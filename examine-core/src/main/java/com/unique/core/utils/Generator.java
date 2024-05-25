@@ -31,7 +31,7 @@ public class Generator {
         System.out.println("请模块名称：");
         Scanner inputScanner = new Scanner(System.in);
         String moduleName = inputScanner.next();
-        String moduleName1 = "approve";
+        String moduleName1 = moduleName;
         String parentPackageName = GENERATOR_PACKAGE+moduleName1;
         String parckagePath = GENERATOR_LOCAL_PATH + moduleName1 + GENERATOR_PACKAGE_PATH;
         inputScanner.close();

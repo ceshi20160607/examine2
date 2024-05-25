@@ -2,4 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.unique.admin.mapper.AdminDeptMapper">
 
+    <select id="queryPageList" resultType="java.util.List">
+        select *
+        from wk_admin_dept
+    </select>
 </mapper>
