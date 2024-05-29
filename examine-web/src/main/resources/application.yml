@@ -1,6 +1,9 @@
 server:
   port: 8888
 spring:
+  #循环依赖
+  main:
+    allow-circular-references: true
   #  profiles:
   #    active: dev
   application:
@@ -14,17 +17,7 @@ spring:
     time-zone: GMT+8
 #    serialization:
 #      write-dates-as-timestamps: false
-  #循环依赖
-  main:
-    allow-circular-references: true
----
-# 设置算法片段
-approve:
-  workerId: 1
-  datacenterId: 1
----
-# redis配置
-spring:
+  # redis配置
   redis:
     # Redis数据库索引（默认为0）
     database: 7
@@ -46,10 +39,7 @@ spring:
         max-idle: 10
         # 连接池中的最小空闲连接
         min-idle: 0
-
----
-# db配置
-spring:
+  # db配置
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     dynamic:
@@ -85,6 +75,12 @@ sa-token:
   token-style: uuid
   # 是否输出操作日志
   is-log: false
+---
+# 设置算法片段
+approve:
+  workerId: 1
+  datacenterId: 1
+---
 ---
 # tianyancha配置
 tianyancha:

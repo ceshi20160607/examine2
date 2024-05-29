@@ -5,9 +5,10 @@ import ${superMapperClassPackage};
 <#if mapperAnnotation>
 import org.apache.ibatis.annotations.Mapper;
 </#if>
-import com.kakarote.core.entity.BasePage;
-import com.kakarote.crm.entity.BO.CrmSearchBO;
-import com.kakarote.crm.entity.PO.CrmDtccDept;
+
+import com.unique.core.common.BasePage;
+import com.unique.core.entity.base.bo.SearchBO;
+
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -29,10 +30,7 @@ interface ${table.mapperName} : ${superMapperClass}<${entity}>
 <#else>
 public interface ${table.mapperName} extends ${superMapperClass}<${entity}> {
 
+ BasePage<Map<String, Object>> queryPageList(BasePage<Object> parse, @Param("search") SearchBO search);
 
-
- BasePage<Map<String, Object>> queryPageList(BasePage<Object> parse, @Param("search") CrmSearchBO search);
-
- CrmModel queryById(@Param("id")Long id);
 }
 </#if>

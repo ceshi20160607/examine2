@@ -41,6 +41,8 @@ public enum SystemCodeEnum implements ResultBaseCode {
 
     SYSTEM_NOT_MY_COMPANY_ERROR(1005, "非本公司下的数据异常!"),
 
+    SYSTEM_REQUEST_PARAMS_ERROR(1006, "请求参数异常!"),
+
     EXAMINE_NOT_ME_ERROR(3000, "非本人审批异常!"),
     ;
 

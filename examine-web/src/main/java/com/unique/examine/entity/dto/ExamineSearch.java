@@ -1,6 +1,6 @@
 package com.unique.examine.entity.dto;
 
-import com.unique.core.bo.BaseSearch;
+import com.unique.core.entity.base.bo.BaseSearch;
 import lombok.Data;
 
 /**

@@ -1,7 +1,7 @@
 package com.unique.core.utils;
 
 import cn.hutool.extra.mail.MailUtil;
-import com.unique.core.bo.SendEmailBO;
+import com.unique.core.entity.base.bo.SendEmailBO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

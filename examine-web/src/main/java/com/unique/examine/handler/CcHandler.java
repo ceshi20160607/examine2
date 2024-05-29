@@ -5,21 +5,19 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.unique.examine.entity.dto.ExamineContext;
 import com.unique.examine.entity.po.ExamineNode;
-import com.unique.examine.entity.po.ExamineNodeUser;
 import com.unique.examine.entity.po.ExamineRecordNode;
 import com.unique.examine.entity.po.ExamineRecordNodeUser;
 import com.unique.examine.enums.CheckStatusEnum;
 import com.unique.examine.enums.ExamineNodeTypeEnum;
 import com.unique.examine.enums.ExamineTypeEnum;
-import com.unique.core.bo.SendEmailBO;
+import com.unique.core.entity.base.bo.SendEmailBO;
 import com.unique.core.utils.BaseUtil;
 import com.unique.core.utils.EmailUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 @Component
 public class CcHandler extends AbstractHandler{
 

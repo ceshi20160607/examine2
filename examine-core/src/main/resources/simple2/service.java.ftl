@@ -3,11 +3,10 @@ package ${package.Service};
 import ${package.Entity}.${entity};
 import ${superServiceClassPackage};
 
-import com.kakarote.common.log.entity.OperationLog;
-import com.kakarote.crm.common.CrmModel;
-import com.kakarote.crm.entity.BO.*;
-import com.kakarote.core.entity.BasePage;
-import com.kakarote.crm.entity.VO.CrmModelFieldVO;
+import com.unique.core.entity.base.bo.SearchBO;
+import com.unique.core.common.BasePage;
+
+import com.unique.module.entity.po.ModuleField;
 
 import java.util.List;
 import java.util.Map;
@@ -32,19 +31,19 @@ public interface ${table.serviceName} extends ${superServiceClass}<${entity}> {
     * @param search 搜索数据
     * @return data
     */
-    BasePage<Map<String, Object>> queryPageList(CrmSearchBO search);
+    BasePage<Map<String, Object>> queryPageList(SearchBO search);
     /**
     * 查询字段配置
     *
     * @param id 主键ID
     */
-    List<CrmModelFieldVO> queryField(Long id);
+    List<ModuleField> queryField(Long id);
     /**
     * 查询字段配置
     *
     * @param id 主键ID
     */
-    List<List<CrmModelFieldVO>> queryFormPositionField(Long id);
+    List<List<ModuleField>> queryFormField(Long id);
 
     /**
     * 保存或新增信息
@@ -59,14 +58,14 @@ public interface ${table.serviceName} extends ${superServiceClass}<${entity}> {
     * @param id     主键ID
     * @return data
     */
-    CrmModel queryById(Long id);
+    Map<String, Object>  queryById(Long id);
 
     /**
     * 查询详情
     *
     * @param id     主键ID
     */
-    public List<CrmModelFieldVO> information(Long id);
+    public List<ModuleField> information(Long id);
 
 
     /**
@@ -74,7 +73,7 @@ public interface ${table.serviceName} extends ${superServiceClass}<${entity}> {
     *
     * @param ids ids
     */
-    List<OperationLog> deleteByIds(List<Long> ids);
+    void deleteByIds(List<Long> ids);
 
 }
 </#if>

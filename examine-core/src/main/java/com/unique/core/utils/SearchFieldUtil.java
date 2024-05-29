@@ -6,7 +6,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.unique.core.bo.BaseSearch;
+import com.unique.core.entity.base.bo.BaseSearch;
 import com.unique.core.enums.SearchFieldEnum;
 
 import java.math.BigDecimal;

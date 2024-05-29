@@ -1,18 +1,14 @@
 package com.unique.admin.service.impl;
 
 import com.unique.admin.entity.po.AdminDept;
-import com.unique.admin.entity.po.AdminUserRole;
 import com.unique.admin.mapper.AdminDeptMapper;
 import com.unique.admin.service.IAdminDeptService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.unique.core.common.BasePage;
-import com.unique.core.bo.SearchBO;
+import com.unique.core.entity.base.bo.SearchBO;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <p>

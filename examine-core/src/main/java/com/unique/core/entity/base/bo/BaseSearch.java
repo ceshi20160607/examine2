@@ -1,4 +1,4 @@
-package com.unique.core.bo;
+package com.unique.core.entity.base.bo;
 
 import com.unique.core.enums.FieldEnum;
 import com.unique.core.enums.SearchFieldEnum;

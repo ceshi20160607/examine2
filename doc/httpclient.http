@@ -1,0 +1,37 @@
+###
+POST http://{{host}}/adminFile/upload
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+Admin-Token: {{token}}
+
+--WebAppBoundary
+Content-Disposition: form-data; name="batchId"
+Content-Type: text/plain
+
+d0eec9ab6e8a462f8c708257660304d7
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="zh-CN.languagePack.xls"
+Content-Type: application/vnd.ms-excel
+
+< D:\download\zh-CN.languagePack.xls
+--WebAppBoundary--
+
+
+###
+POST http://localhost:8888/user/doLogin
+Content-Type: application/json
+
+{"username": "admin","password": "123123aa","deviceType": "0","loginType": "0"}
+
+###
+POST http://{{host}}/module/queryPageList
+Content-Type: application/json
+satoken: {{token}}
+sa-token: {{token}}
+
+{
+  "keyword": "",
+  "moduleType": 0,
+  "page": 1,
+  "limit": 10,
+  "pageType": 0
+}

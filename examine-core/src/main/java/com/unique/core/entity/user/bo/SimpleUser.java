@@ -1,4 +1,4 @@
-package com.unique.admin.entity.vo;
+package com.unique.core.entity.user.bo;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @Setter
 @TableName("un_admin_user")
 @ApiModel(value = "AdminUser对象", description = "用户表")
-public class AdminUserVO implements Serializable {
+public class SimpleUser implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

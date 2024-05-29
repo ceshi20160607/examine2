@@ -14,19 +14,15 @@ import com.unique.examine.enums.CheckStatusEnum;
 import com.unique.examine.enums.ExamineApplyTypeEnum;
 import com.unique.examine.enums.ExamineNodeTypeEnum;
 import com.unique.examine.enums.ExamineTypeEnum;
-import com.unique.examine.handler.AbstractHandler;
 import com.unique.examine.mapper.ExamineRecordNodeMapper;
 import com.unique.examine.service.IExamineRecordNodeService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.unique.examine.service.IExamineRecordNodeUserService;
-import com.unique.core.bo.SendEmailBO;
 import com.unique.core.utils.BaseUtil;
-import com.unique.core.utils.EmailUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

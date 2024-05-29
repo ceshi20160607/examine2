@@ -8,7 +8,7 @@ import com.unique.admin.entity.vo.AdminUserVO;
 import com.unique.admin.service.IAdminUserService;
 import com.unique.core.common.BasePage;
 import com.unique.core.common.Result;
-import com.unique.core.bo.SearchBO;
+import com.unique.core.entity.base.bo.SearchBO;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
