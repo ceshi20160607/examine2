@@ -11,11 +11,11 @@ import com.unique.core.context.ConstModule;
 import com.unique.core.entity.base.bo.SearchBO;
 import com.unique.core.common.BasePage;
 
-import com.unique.module.entity.po.ModuleField;
-import com.unique.module.entity.po.ModuleRecordData;
+import com.unique.examine.entity.po.ModuleField;
+import com.unique.examine.entity.po.ModuleRecordData;
 
-import com.unique.module.service.IModuleFieldService;
-import com.unique.module.service.IModuleRecordDataService;
+import com.unique.examine.service.IModuleFieldService;
+import com.unique.examine.service.IModuleRecordDataService;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;

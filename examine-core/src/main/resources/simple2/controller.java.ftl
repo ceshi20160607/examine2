@@ -5,7 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.unique.core.entity.base.bo.SearchBO;
 import com.unique.core.common.BasePage;
 import com.unique.core.common.Result;
-import com.unique.module.entity.po.ModuleField;
+import com.unique.examine.entity.po.ModuleField;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

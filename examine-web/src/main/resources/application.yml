@@ -1,22 +1,35 @@
 server:
   port: 8888
 spring:
-  #循环依赖
-  main:
-    allow-circular-references: true
-  #  profiles:
-  #    active: dev
   application:
     name: un
+  main:
+    allow-bean-definition-overriding: false
+    allow-circular-references: true
   mvc:
     throw-exception-if-no-handler-found: true
-  ##    pathmatch:
-  ##      matching-strategy: ant_path_matcher
+    format:
+      date: yyyy-MM-dd HH:mm:ss
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      # 上传文件临时目录，需要先创建此目录
+      location: /mnt/upload/
   jackson:
-    date-format: yyyy-MM-dd HH:mm:ss
-    time-zone: GMT+8
-#    serialization:
-#      write-dates-as-timestamps: false
+    dateFormat: yyyy-MM-dd HH:mm:ss
+    timeZone: GMT+8
+  web:
+    resources:
+      add-mappings: false
+mybatis-plus:
+  configuration:
+    call-setters-on-nulls: true
+  mapper-locations: classpath*:/mapper/xml/*.xml
+---
+spring:
   # redis配置
   redis:
     # Redis数据库索引（默认为0）
@@ -42,6 +55,7 @@ spring:
   # db配置
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
+    initialize: false
     dynamic:
       primary: default
       druid:
@@ -54,10 +68,11 @@ spring:
           url: jdbc:mysql://8.142.109.85:3306/unexamine2?characterEncoding=utf8&useSSL=false&zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false&serverTimezone=Asia/Shanghai&useAffectedRows=true&allowPublicKeyRetrieval=true
           username: un
           password: password
----
-# mapper配置
-mybatis-plus:
-  mapper-locations: classpath:xml/*.xml
+        #默认的bi配置
+        bi:
+          url: jdbc:mysql://8.142.109.85:3306/unexamine2?characterEncoding=utf8&useSSL=false&zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false&serverTimezone=Asia/Shanghai&useAffectedRows=true&allowPublicKeyRetrieval=true
+          username: un
+          password: password
 ---
 # satoken配置
 sa-token:

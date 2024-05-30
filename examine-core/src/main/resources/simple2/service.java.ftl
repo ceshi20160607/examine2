@@ -6,7 +6,7 @@ import ${superServiceClassPackage};
 import com.unique.core.entity.base.bo.SearchBO;
 import com.unique.core.common.BasePage;
 
-import com.unique.module.entity.po.ModuleField;
+import com.unique.examine.entity.po.ModuleField;
 
 import java.util.List;
 import java.util.Map;

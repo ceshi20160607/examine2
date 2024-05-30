@@ -38,7 +38,7 @@
         <p6spy.version>3.9.1</p6spy.version>
         <knife4j.version>2.0.7</knife4j.version>
         <swagger2.version>2.10.5</swagger2.version>
-        <liteflow.version>2.9.7</liteflow.version>
+<!--        <liteflow.version>2.9.7</liteflow.version>-->
     </properties>
 
     <repositories>
@@ -188,12 +188,12 @@
             <version>${poi.version}</version>
         </dependency>
 
-        <!--liteflow 流程编排-->
-        <dependency>
-            <groupId>com.yomahub</groupId>
-            <artifactId>liteflow-spring-boot-starter</artifactId>
-            <version>${liteflow.version}</version>
-        </dependency>
+<!--        &lt;!&ndash;liteflow 流程编排&ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.yomahub</groupId>-->
+<!--            <artifactId>liteflow-spring-boot-starter</artifactId>-->
+<!--            <version>${liteflow.version}</version>-->
+<!--        </dependency>-->
 
 
         <!-- springfox 冲突解决 -->
@@ -237,6 +237,21 @@
         </dependency>
     </dependencies>
 
-
+    <build>
+        <plugins>
+            <!-- java编译插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                    <compilerArgument>-parameters</compilerArgument>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
