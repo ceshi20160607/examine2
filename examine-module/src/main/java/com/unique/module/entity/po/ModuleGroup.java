@@ -16,7 +16,7 @@ import lombok.Setter;
  * </p>
  *
  * @author UNIQUE
- * @since 2024-05-25
+ * @since 2024-05-28
  */
 @Getter
 @Setter
@@ -31,6 +31,18 @@ public class ModuleGroup implements Serializable {
 
     @ApiModelProperty("分组名称")
     private String name;
+
+    @ApiModelProperty("流程的排序")
+    private Integer sortNum;
+
+    @ApiModelProperty("父级id")
+    private Long parentId;
+
+    @ApiModelProperty("列的深度")
+    private String depthDepth;
+
+    @ApiModelProperty("是否隐藏 0隐藏 1不隐藏")
+    private Integer hiddenFlag;
 
     @ApiModelProperty("创建人")
     @TableField(fill = FieldFill.INSERT)

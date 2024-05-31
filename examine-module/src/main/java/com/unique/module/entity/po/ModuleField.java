@@ -18,7 +18,7 @@ import lombok.Setter;
  * </p>
  *
  * @author UNIQUE
- * @since 2024-05-25
+ * @since 2024-05-28
  */
 @Getter
 @Setter
@@ -56,13 +56,31 @@ public class ModuleField implements Serializable {
     @ApiModelProperty("默认值")
     private String defaultValue;
 
-    @ApiModelProperty("唯一,必填,隐藏,删除,列表,新建,详情,其他")
-    private Integer typeEnv;
+    @ApiModelProperty("唯一 0不唯一 1唯一")
+    private Integer unionFlag;
+
+    @ApiModelProperty("必填 0不必填 1必填")
+    private Integer mustFlag;
+
+    @ApiModelProperty("隐藏 0不隐藏 1隐藏")
+    private Integer hiddenFlag;
+
+    @ApiModelProperty("删除 0不删除 1删除")
+    private Integer deleteFlag;
+
+    @ApiModelProperty("新建 0不新建 1新建")
+    private Integer addFlag;
+
+    @ApiModelProperty("列表 0不列表 1列表")
+    private Integer indexFlag;
+
+    @ApiModelProperty("详情 0不详情 1详情")
+    private Integer detailFlag;
 
     @ApiModelProperty("排序 从小到大")
     private Integer sorting;
 
-    @ApiModelProperty("字段来源  0.自定义 1.原始固定 2原始字段但值存在扩展表中")
+    @ApiModelProperty("字段来源  0.自定义 1.原始固定 ")
     private Integer fieldType;
 
     @ApiModelProperty("字典id")
@@ -94,6 +112,12 @@ public class ModuleField implements Serializable {
 
     @ApiModelProperty("限制的最小数值")
     private String minNumRestrict;
+
+    @ApiModelProperty("存储的坐标位置x轴")
+    private Integer axisx;
+
+    @ApiModelProperty("存储的坐标位置y轴")
+    private Integer axisy;
 
     @ApiModelProperty("创建时间")
     @TableField(fill = FieldFill.INSERT)

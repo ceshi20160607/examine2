@@ -15,35 +15,35 @@ Content-Type: application/vnd.ms-excel
 < D:\download\zh-CN.languagePack.xls
 --WebAppBoundary--
 
-
+####################################
+### admin相关
+####################################
 ###
 POST http://localhost:8888/user/doLogin
 Content-Type: application/json
 
 {"username": "admin","password": "123123aa","deviceType": "0","loginType": "0"}
+####################################
+### module相关
+####################################
+###
+POST http://{{host}}/moduleField/queryFieldAdd?moduleId=4
+Content-Type: application/json
+satoken: {{token}}
+
 
 ###
 POST http://{{host}}/module/queryPageList
 Content-Type: application/json
 satoken: {{token}}
 
-{
-  "keyword": "",
-  "moduleType": 0,
-  "page": 1,
-  "limit": 10,
-  "pageType": 0
-}
-
+{"keyword":"","moduleType":0,"page":1,"limit":10,"pageType":0}
+####################################
+### 审批相关
+####################################
 ###
 POST http://localhost:8888/examine/queryPageList
 Content-Type: application/json
 satoken: {{token}}
 
-{
-  "keyword": "",
-  "moduleType": 0,
-  "page": 1,
-  "limit": 10,
-  "pageType": 0
-}
+{"keyword":"","moduleType":0,"page":1,"limit":10,"pageType":0}

@@ -1,32 +1,61 @@
+-- DROP TABLE IF EXISTS `un_module_group`;
+
 DROP TABLE IF EXISTS `un_module`;
-CREATE TABLE `un_module` (
-`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-`name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '字段名称',
-`group_id` int(11) NULL DEFAULT NULL COMMENT '模块分组',
-`sort_num` int(11) NULL DEFAULT NULL COMMENT '流程的排序',
-`parent_id` bigint(20) NULL DEFAULT NULL COMMENT '父级id',
-`depth_depth` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '列的深度',
-
-`remark` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '字段说明',
-`create_time` datetime DEFAULT NULL COMMENT '创建时间',
-`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
-`update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-`update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
-PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='模块表';
-
-DROP TABLE IF EXISTS `un_module_group`;
-CREATE TABLE `un_module_group`  (
+CREATE TABLE `un_module`  (
 `id` bigint(20) NOT NULL COMMENT '分组id',
 `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '分组名称',
+
+`sort_num` int(11) NULL DEFAULT NULL COMMENT '流程的排序',
+`parent_id` bigint(20) NULL DEFAULT '0' COMMENT '父级id 0表示顶层的系统',
+`depth_depth` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '列的深度',
+
+`type_flag` int(11) NULL DEFAULT '0' COMMENT '类型标识 0分组结构 1数据模块',
+`hidden_flag` int(11) NULL DEFAULT '1' COMMENT '是否隐藏 0隐藏 1不隐藏',
+
+`root_id` bigint(20) NULL DEFAULT NULL COMMENT '模块的根id',
+
 `create_user_id` bigint(20) NULL DEFAULT NULL COMMENT '创建人',
 `update_user_id` bigint(20) NULL DEFAULT NULL COMMENT '更新人',
 `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
 `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
 `company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '模块分组表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '模块表' ROW_FORMAT = Dynamic;
 
+-- ------------------------
+-- 数据
+-- ------------------------
+INSERT INTO `un_module` (`id`, `name`, `sort_num`, `parent_id`, `depth_depth`, `type_flag`, `hidden_flag`, `root_id`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (1, 'xxx系统', 1, 0, '0', 0, 1, 0, 0, 1, '2024-05-28 11:35:16', NULL, 0);
+INSERT INTO `un_module` (`id`, `name`, `sort_num`, `parent_id`, `depth_depth`, `type_flag`, `hidden_flag`, `root_id`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (2, '客户系统', 2, 1, '0,1', 0, 1, 0, 0, 1, '2024-05-28 11:35:16', NULL, 0);
+INSERT INTO `un_module` (`id`, `name`, `sort_num`, `parent_id`, `depth_depth`, `type_flag`, `hidden_flag`, `root_id`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (3, '工单系统', 3, 1, '0,1', 0, 1, 0, 0, 1, '2024-05-28 11:35:16', NULL, 0);
+INSERT INTO `un_module` (`id`, `name`, `sort_num`, `parent_id`, `depth_depth`, `type_flag`, `hidden_flag`, `root_id`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (4, '客户', 4, 2, '0,1,2', 1, 1, 0, 0, 1, '2024-05-28 11:35:16', NULL, 0);
+INSERT INTO `un_module` (`id`, `name`, `sort_num`, `parent_id`, `depth_depth`, `type_flag`, `hidden_flag`, `root_id`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (5, '项目', 5, 2, '0,1,2', 1, 1, 0, 0, 1, '2024-05-28 11:35:16', NULL, 0);
+INSERT INTO `un_module` (`id`, `name`, `sort_num`, `parent_id`, `depth_depth`, `type_flag`, `hidden_flag`, `root_id`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (6, '合同', 6, 2, '0,1,2', 1, 1, 0, 0, 1, '2024-05-28 11:35:16', NULL, 0);
+
+
+DROP TABLE IF EXISTS `un_module_operate`;
+CREATE TABLE `un_module_operate`  (
+`id` bigint(20) NOT NULL COMMENT 'id',
+`module_id` bigint(20) NOT NULL COMMENT '模块id',
+`name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '功能名称',
+
+`flag` int(11) DEFAULT '0' COMMENT '功能基础类型 0系统默认 1业务分配 2自定义',
+`create_user_id` bigint(20) NULL DEFAULT NULL COMMENT '创建人',
+`update_user_id` bigint(20) NULL DEFAULT NULL COMMENT '更新人',
+`create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+`update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '模块操作功能表' ROW_FORMAT = Dynamic;
+
+-- ------------------------
+-- 数据
+-- ------------------------
+INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (1, 0, '列表', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
+INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (2, 0, '添加', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
+INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (3, 0, '修改', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
+INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (4, 0, '删除', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
+INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (5, 0, '转移', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
 
 
 DROP TABLE IF EXISTS `un_module_field`;
@@ -40,11 +69,21 @@ CREATE TABLE `un_module_field` (
 `input_tips` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '输入提示',
 `max_length` int(11) DEFAULT NULL COMMENT '最大长度',
 `default_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '默认值',
-`type_env` int(8) unsigned zerofill COMMENT '唯一,必填,隐藏,删除,列表,新建,详情,其他',
-`sorting` int(11) DEFAULT '1' COMMENT '排序 从小到大',
-`field_type` int(11) NOT NULL DEFAULT '0' COMMENT '字段来源  0.自定义 1.原始固定 2原始字段但值存在扩展表中',
 
-`dictId` bigint(20) DEFAULT NULL COMMENT '字典id',
+`union_flag` int(1) DEFAULT '0' COMMENT '唯一 0不唯一 1唯一',
+`must_flag` int(1) DEFAULT '0' COMMENT '必填 0不必填 1必填',
+`hidden_flag` int(1) DEFAULT '0' COMMENT '隐藏 0不隐藏 1隐藏',
+`delete_flag` int(1) DEFAULT '0' COMMENT '删除 0不删除 1删除',
+
+`add_flag` int(1) DEFAULT '0' COMMENT '新建 0不新建 1新建',
+`index_flag` int(1) DEFAULT '0' COMMENT '列表 0不列表 1列表',
+`detail_flag` int(1) DEFAULT '0' COMMENT '详情 0不详情 1详情',
+
+-- `type_env` int(8) unsigned zerofill COMMENT '唯一,必填,隐藏,删除,列表,新建,详情,其他',
+`sorting` int(11) DEFAULT '1' COMMENT '排序 从小到大',
+`field_type` int(11) NOT NULL DEFAULT '0' COMMENT '字段来源  0.自定义 1.原始固定 ',
+
+`dict_id` bigint(20) DEFAULT NULL COMMENT '字典id',
 `option_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT 'json类型的数据，如果是下来可以配置显示隐藏字段',
 
 `parent_id` bigint(20) NULL DEFAULT NULL COMMENT '父级id',
@@ -58,12 +97,22 @@ CREATE TABLE `un_module_field` (
 `max_num_restrict` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '限制的最大数值',
 `min_num_restrict` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '限制的最小数值',
 
+`axisx` int(11) DEFAULT '1' COMMENT '存储的坐标位置x轴',
+`axisy` int(11) DEFAULT '1' COMMENT '存储的坐标位置y轴',
+
 `create_time` datetime DEFAULT NULL COMMENT '创建时间',
 `create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
 `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 `update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='自定义字段表';
+-- ------------------------
+-- 数据
+-- ------------------------
+INSERT INTO `un_module_field` (`id`, `module_id`, `field_name`, `name`, `type`, `remark`, `input_tips`, `max_length`, `default_value`, `union_flag`, `must_flag`, `hidden_flag`, `delete_flag`, `add_flag`, `index_flag`, `detail_flag`, `sorting`, `field_type`, `dictId`, `option_data`, `parent_id`, `depth_depth`, `transfer_model_id`, `transfer_field_name`, `style_percent`, `precisions`, `max_num_restrict`, `min_num_restrict`, `axisx`, `axisy`, `create_time`, `create_user_id`, `update_time`, `update_user_id`) VALUES (1, 4, 'num', '', 1, NULL, NULL, NULL, '', 1, 1, 0, 0, 1, 1, 1, 1, 0, NULL, NULL, NULL, NULL, NULL, NULL, 50, NULL, NULL, NULL, 1, 1, NULL, 0, '2024-05-28 14:09:24', NULL);
+INSERT INTO `un_module_field` (`id`, `module_id`, `field_name`, `name`, `type`, `remark`, `input_tips`, `max_length`, `default_value`, `union_flag`, `must_flag`, `hidden_flag`, `delete_flag`, `add_flag`, `index_flag`, `detail_flag`, `sorting`, `field_type`, `dictId`, `option_data`, `parent_id`, `depth_depth`, `transfer_model_id`, `transfer_field_name`, `style_percent`, `precisions`, `max_num_restrict`, `min_num_restrict`, `axisx`, `axisy`, `create_time`, `create_user_id`, `update_time`, `update_user_id`) VALUES (2, 4, 'name', '', 1, NULL, NULL, NULL, '', 0, 0, 0, 0, 1, 1, 1, 1, 0, NULL, NULL, NULL, NULL, NULL, NULL, 50, NULL, NULL, NULL, 1, 1, NULL, 0, '2024-05-28 14:09:25', NULL);
+INSERT INTO `un_module_field` (`id`, `module_id`, `field_name`, `name`, `type`, `remark`, `input_tips`, `max_length`, `default_value`, `union_flag`, `must_flag`, `hidden_flag`, `delete_flag`, `add_flag`, `index_flag`, `detail_flag`, `sorting`, `field_type`, `dictId`, `option_data`, `parent_id`, `depth_depth`, `transfer_model_id`, `transfer_field_name`, `style_percent`, `precisions`, `max_num_restrict`, `min_num_restrict`, `axisx`, `axisy`, `create_time`, `create_user_id`, `update_time`, `update_user_id`) VALUES (3, 4, 'remark', '', 1, NULL, NULL, NULL, '', 0, 0, 0, 0, 1, 1, 1, 1, 0, NULL, NULL, NULL, NULL, NULL, NULL, 50, NULL, NULL, NULL, 1, 1, NULL, 0, '2024-05-28 14:09:25', NULL);
+
 
 DROP TABLE IF EXISTS `un_module_field_auth`;
 CREATE TABLE `un_module_field_auth` (

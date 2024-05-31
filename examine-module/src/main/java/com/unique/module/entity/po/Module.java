@@ -1,9 +1,7 @@
 package com.unique.module.entity.po;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -18,7 +16,7 @@ import lombok.Setter;
  * </p>
  *
  * @author UNIQUE
- * @since 2024-05-25
+ * @since 2024-05-28
  */
 @Getter
 @Setter
@@ -28,43 +26,49 @@ public class Module implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty("主键ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @ApiModelProperty("分组id")
     private Long id;
 
-    @ApiModelProperty("字段名称")
+    @ApiModelProperty("分组名称")
     private String name;
-
-    @ApiModelProperty("模块分组")
-    private Integer groupId;
 
     @ApiModelProperty("流程的排序")
     private Integer sortNum;
 
-    @ApiModelProperty("父级id")
+    @ApiModelProperty("父级id 0表示顶层的系统")
     private Long parentId;
 
     @ApiModelProperty("列的深度")
     private String depthDepth;
 
-    @ApiModelProperty("字段说明")
-    private String remark;
+    @ApiModelProperty("类型标识 0分组结构 1数据模块")
+    private Integer typeFlag;
+
+    @ApiModelProperty("是否隐藏 0隐藏 1不隐藏")
+    private Integer hiddenFlag;
+
+    @ApiModelProperty("模块的根id")
+    private Long rootId;
+
+    @ApiModelProperty("创建人")
+    @TableField(fill = FieldFill.INSERT)
+    private Long createUserId;
+
+    @ApiModelProperty("更新人")
+    @TableField(fill = FieldFill.UPDATE)
+    private Long updateUserId;
 
     @ApiModelProperty("创建时间")
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    @ApiModelProperty("创建人ID")
-    @TableField(fill = FieldFill.INSERT)
-    private Long createUserId;
-
     @ApiModelProperty("更新时间")
     @TableField(fill = FieldFill.UPDATE)
     private LocalDateTime updateTime;
 
-    @ApiModelProperty("修改人ID")
-    @TableField(fill = FieldFill.UPDATE)
-    private Long updateUserId;
+    @ApiModelProperty("企业id")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long companyId;
 
 
 }
