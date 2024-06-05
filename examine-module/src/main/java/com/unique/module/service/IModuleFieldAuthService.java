@@ -45,9 +45,9 @@ public interface IModuleFieldAuthService extends IService<ModuleFieldAuth> {
     /**
     * 保存或新增信息
     *
-    * @param crmModel
+    * @param baseModel
     */
-    Map<String, Object> addOrUpdate(ModuleFieldAuth crmModel, boolean isExcel);
+    Map<String, Object> addOrUpdate(ModuleFieldAuth baseModel, boolean isExcel);
 
     /**
     * 查询字段配置

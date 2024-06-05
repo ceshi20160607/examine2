@@ -82,25 +82,25 @@ public class ModuleController {
     /**
     * 保存数据
     *
-    * @param crmModel 业务对象
+    * @param baseModel 业务对象
     * @return data
     */
     @PostMapping("/add")
     @ApiOperation("保存数据")
-    public Result<Map<String, Object>> add(@RequestBody Module crmModel) {
-        Map<String, Object> map = moduleService.addOrUpdate(crmModel, false);
+    public Result<Map<String, Object>> add(@RequestBody Module baseModel) {
+        Map<String, Object> map = moduleService.addOrUpdate(baseModel, false);
         return Result.ok(map);
     }
     /**
     * 更新数据
     *
-    * @param crmModel 业务对象
+    * @param baseModel 业务对象
     * @return data
     */
     @PostMapping("/update")
     @ApiOperation("修改数据")
-    public Result<Map<String, Object>> update(@RequestBody Module crmModel) {
-        Map<String, Object> map = moduleService.addOrUpdate(crmModel, false);
+    public Result<Map<String, Object>> update(@RequestBody Module baseModel) {
+        Map<String, Object> map = moduleService.addOrUpdate(baseModel, false);
         return Result.ok(map);
     }
     /**

@@ -45,9 +45,9 @@ public interface IModuleFieldApiOpenService extends IService<ModuleFieldApiOpen>
     /**
     * 保存或新增信息
     *
-    * @param crmModel
+    * @param baseModel
     */
-    Map<String, Object> addOrUpdate(ModuleFieldApiOpen crmModel, boolean isExcel);
+    Map<String, Object> addOrUpdate(ModuleFieldApiOpen baseModel, boolean isExcel);
 
     /**
     * 查询字段配置

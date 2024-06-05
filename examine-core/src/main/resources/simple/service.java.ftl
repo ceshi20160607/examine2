@@ -3,11 +3,8 @@ package ${package.Service};
 import ${package.Entity}.${entity};
 import ${superServiceClassPackage};
 
-import com.kakarote.common.log.entity.OperationLog;
-import com.kakarote.crm.common.CrmModel;
-import com.kakarote.crm.entity.VO.CrmModelFieldVO;
-import com.kakarote.crm.entity.BO.*;
-import com.kakarote.core.entity.BasePage;
+import com.unique.core.entity.base.bo.SearchBO;
+import com.unique.core.common.BasePage;
 
 import java.util.List;
 import java.util.Map;
@@ -37,9 +34,9 @@ public interface ${table.serviceName} extends ${superServiceClass}<${entity}> {
     /**
     * 保存或新增信息
     *
-    * @param crmModel
+    * @param baseModel
     */
-    Map<String, Object> addOrUpdate(${entity} crmModel, boolean isExcel);
+    Map<String, Object> addOrUpdate(${entity} baseModel, boolean isExcel);
 
     /**
     * 查询字段配置

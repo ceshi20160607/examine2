@@ -45,9 +45,9 @@ public interface IModuleRecordService extends IService<ModuleRecord> {
     /**
     * 保存或新增信息
     *
-    * @param crmModel
+    * @param baseModel
     */
-    Map<String, Object> addOrUpdate(ModuleRecord crmModel, boolean isExcel);
+    Map<String, Object> addOrUpdate(ModuleRecord baseModel, boolean isExcel);
 
     /**
     * 查询字段配置
@@ -72,4 +72,5 @@ public interface IModuleRecordService extends IService<ModuleRecord> {
     */
     void deleteByIds(List<Long> ids);
 
+    void updateNullByFieldNameWithModuleId(List<String> removeBaseFieldNames, Long moduleId);
 }

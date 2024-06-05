@@ -45,9 +45,9 @@ public interface IModuleRecordDataService extends IService<ModuleRecordData> {
     /**
     * 保存或新增信息
     *
-    * @param crmModel
+    * @param baseModel
     */
-    Map<String, Object> addOrUpdate(ModuleRecordData crmModel, boolean isExcel);
+    Map<String, Object> addOrUpdate(ModuleRecordData baseModel, boolean isExcel);
 
     /**
     * 查询字段配置

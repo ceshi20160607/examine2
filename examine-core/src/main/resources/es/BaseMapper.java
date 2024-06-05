@@ -1,4 +1,4 @@
-package com.kakarote.core.servlet;
+package com.unique.core.servlet;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.toolkit.Constants;

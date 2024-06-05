@@ -8,6 +8,7 @@ import com.unique.core.entity.base.bo.SearchBO;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,6 +21,7 @@ import java.util.Map;
  */
 public interface ModuleRecordMapper extends BaseMapper<ModuleRecord> {
 
- BasePage<Map<String, Object>> queryPageList(BasePage<Object> parse, @Param("search") SearchBO search);
+    BasePage<Map<String, Object>> queryPageList(BasePage<Object> parse, @Param("search") SearchBO search);
 
+    void updateNullByFieldNameWithModuleId(@Param("removeBaseFieldNames") List<String> removeBaseFieldNames, @Param("moduleId") Long moduleId);
 }

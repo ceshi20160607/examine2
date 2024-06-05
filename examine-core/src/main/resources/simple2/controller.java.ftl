@@ -101,25 +101,25 @@ public class ${table.controllerName} {
     /**
     * 保存数据
     *
-    * @param crmModel 业务对象
+    * @param baseModel 业务对象
     * @return data
     */
     @PostMapping("/add")
     @ApiOperation("保存数据")
-    public Result<Map<String, Object>> add(@RequestBody ${entity} crmModel) {
-        Map<String, Object> map = ${table.serviceName?substring(1)?uncap_first}.addOrUpdate(crmModel, false);
+    public Result<Map<String, Object>> add(@RequestBody ${entity} baseModel) {
+        Map<String, Object> map = ${table.serviceName?substring(1)?uncap_first}.addOrUpdate(baseModel, false);
         return Result.ok(map);
     }
     /**
     * 更新数据
     *
-    * @param crmModel 业务对象
+    * @param baseModel 业务对象
     * @return data
     */
     @PostMapping("/update")
     @ApiOperation("修改数据")
-    public Result<Map<String, Object>> update(@RequestBody ${entity} crmModel) {
-        Map<String, Object> map = ${table.serviceName?substring(1)?uncap_first}.addOrUpdate(crmModel, false);
+    public Result<Map<String, Object>> update(@RequestBody ${entity} baseModel) {
+        Map<String, Object> map = ${table.serviceName?substring(1)?uncap_first}.addOrUpdate(baseModel, false);
         return Result.ok(map);
     }
     /**

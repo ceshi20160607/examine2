@@ -1,25 +1,25 @@
 package ${package.Controller};
 
 
-import com.kakarote.common.log.annotation.OperateLog;
-import com.kakarote.common.log.entity.OperationResult;
-import com.kakarote.common.log.enums.ApplyEnum;
-import com.kakarote.common.log.enums.BehaviorEnum;
-import com.kakarote.common.log.enums.OperateObjectEnum;
+import com.unique.common.log.annotation.OperateLog;
+import com.unique.common.log.entity.OperationResult;
+import com.unique.common.log.enums.ApplyEnum;
+import com.unique.common.log.enums.BehaviorEnum;
+import com.unique.common.log.enums.OperateObjectEnum;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import com.kakarote.crm.entity.VO.CrmModelFieldVO;
+import com.unique.crm.entity.VO.CrmModelFieldVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-import com.kakarote.core.common.Result;
-import com.kakarote.core.entity.BasePage;
-import com.kakarote.crm.entity.BO.*;
-import com.kakarote.common.log.entity.OperationLog;
+import com.unique.core.common.Result;
+import com.unique.core.entity.BasePage;
+import com.unique.crm.entity.BO.*;
+import com.unique.common.log.entity.OperationLog;
 
 import ${package.Service}.${table.serviceName};
 import ${package.Entity}.${entity};
@@ -77,14 +77,14 @@ public class ${table.controllerName} {
     /**
     * 保存数据
     *
-    * @param crmModel 业务对象
+    * @param baseModel 业务对象
     * @return data
     */
     @PostMapping("/add")
     @ApiOperation("保存数据")
     @OperateLog(behavior = BehaviorEnum.SAVE, apply = ApplyEnum.CRM, object = OperateObjectEnum.CUSTOMER)
-    public Result<Map<String, Object>> add(@RequestBody ${entity} crmModel) {
-        Map<String, Object> map = ${table.serviceName?uncap_first}.addOrUpdate(crmModel, false);
+    public Result<Map<String, Object>> add(@RequestBody ${entity} baseModel) {
+        Map<String, Object> map = ${table.serviceName?uncap_first}.addOrUpdate(baseModel, false);
         Object operation = map.get("operation");
         map.remove("operation");
         return OperationResult.ok(map, (List<OperationLog>) operation);
@@ -92,14 +92,14 @@ public class ${table.controllerName} {
     /**
     * 更新数据
     *
-    * @param crmModel 业务对象
+    * @param baseModel 业务对象
     * @return data
     */
     @PostMapping("/update")
     @ApiOperation("修改数据")
     @OperateLog(behavior = BehaviorEnum.UPDATE, apply = ApplyEnum.CRM, object = OperateObjectEnum.CUSTOMER)
-    public Result<Map<String, Object>> update(@RequestBody ${entity} crmModel) {
-        Map<String, Object> map = ${table.serviceName?uncap_first}.addOrUpdate(crmModel, false);
+    public Result<Map<String, Object>> update(@RequestBody ${entity} baseModel) {
+        Map<String, Object> map = ${table.serviceName?uncap_first}.addOrUpdate(baseModel, false);
         Object operation = map.get("operation");
         map.remove("operation");
         return OperationResult.ok(map, (List<OperationLog>) operation);

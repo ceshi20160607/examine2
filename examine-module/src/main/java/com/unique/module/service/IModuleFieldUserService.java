@@ -1,5 +1,6 @@
 package com.unique.module.service;
 
+import com.unique.module.entity.bo.ModuleFieldUserBO;
 import com.unique.module.entity.po.ModuleFieldUser;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -23,53 +24,24 @@ public interface IModuleFieldUserService extends IService<ModuleFieldUser> {
 
 
     /**
-    * 查询所有数据
-    *
-    * @param search 搜索数据
-    * @return data
-    */
-    BasePage<Map<String, Object>> queryPageList(SearchBO search);
-    /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    */
-    List<ModuleField> queryField(Long id);
-    /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    */
-    List<List<ModuleField>> queryFormField(Long id);
-
-    /**
-    * 保存或新增信息
-    *
-    * @param crmModel
-    */
-    Map<String, Object> addOrUpdate(ModuleFieldUser crmModel, boolean isExcel);
-
-    /**
-    * 查询字段配置
-    *
-    * @param id     主键ID
-    * @return data
-    */
-    Map<String, Object>  queryById(Long id);
-
-    /**
-    * 查询详情
-    *
-    * @param id     主键ID
-    */
-    public List<ModuleField> information(Long id);
+     * 查询字段配置
+     *
+     * @param moduleId 主键ID
+     */
+    List<ModuleField> queryFieldHead(Long moduleId);
 
 
     /**
-    * 删除客户数据
-    *
-    * @param ids ids
-    */
-    void deleteByIds(List<Long> ids);
+     * 查询字段配置
+     *
+     * @param moduleId 主键ID
+     */
+    List<ModuleField> queryFieldSearch(Long moduleId);
 
+    /**
+     * 配置列表上的字段排序
+     *
+     * @param moduleFieldUserBO
+     */
+    void changeFieldSort(ModuleFieldUserBO moduleFieldUserBO);
 }

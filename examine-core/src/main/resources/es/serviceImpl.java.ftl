@@ -9,26 +9,26 @@ import org.springframework.stereotype.Service;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
-import com.kakarote.common.field.service.FieldDataService;
-import com.kakarote.common.field.utils.FieldUtil;
-import com.kakarote.core.servlet.ApplicationContextHolder;
-import com.kakarote.core.utils.UserCacheUtil;
-import com.kakarote.crm.common.ActionRecordUtil;
-import com.kakarote.crm.constant.CrmEnum;
-import com.kakarote.crm.entity.PO.CrmActionRecord;
-import com.kakarote.crm.entity.PO.CrmField;
-import com.kakarote.crm.entity.PO.CrmQuote;
-import com.kakarote.crm.mapper.CrmQuoteMapper;
-import com.kakarote.crm.service.*;
-import com.kakarote.core.servlet.BaseServiceImpl;
+import com.unique.common.field.service.FieldDataService;
+import com.unique.common.field.utils.FieldUtil;
+import com.unique.core.servlet.ApplicationContextHolder;
+import com.unique.core.utils.UserCacheUtil;
+import com.unique.crm.common.ActionRecordUtil;
+import com.unique.crm.constant.CrmEnum;
+import com.unique.crm.entity.PO.CrmActionRecord;
+import com.unique.crm.entity.PO.CrmField;
+import com.unique.crm.entity.PO.CrmQuote;
+import com.unique.crm.mapper.CrmQuoteMapper;
+import com.unique.crm.service.*;
+import com.unique.core.servlet.BaseServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.kakarote.crm.entity.VO.CrmModelFieldVO;
+import com.unique.crm.entity.VO.CrmModelFieldVO;
 
-import com.kakarote.common.log.entity.OperationLog;
-import com.kakarote.core.entity.BasePage;
-import com.kakarote.crm.common.CrmModel;
-import com.kakarote.crm.entity.BO.*;
+import com.unique.common.log.entity.OperationLog;
+import com.unique.core.entity.BasePage;
+import com.unique.crm.common.CrmModel;
+import com.unique.crm.entity.BO.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,8 +97,8 @@ public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.m
     */
     @Override
     public List<CrmModelFieldVO> queryField(Long id) {
-        CrmModel crmModel = queryById(id, null);
-        List<CrmModelFieldVO> vos = crmFieldService.queryField(crmModel, true);
+        BaseModel baseModel = queryById(id, null);
+        List<CrmModelFieldVO> vos = crmFieldService.queryField(baseModel, true);
 
         return vos;
     }
@@ -112,7 +112,7 @@ public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.m
     public List<List<CrmModelFieldVO>> queryFormPositionField(Long id) {
         CrmModel crmModel = queryById(id);
 
-        List<List<CrmModelFieldVO>> vos = crmFieldService.queryFormPositionFieldVO(crmModel, true);
+        List<List<CrmModelFieldVO>> vos = crmFieldService.queryFormPositionFieldVO(baseModel, true);
 
         for (List<CrmModelFieldVO> filedVOList : vos) {
             filedVOList.forEach(field -> {
@@ -130,10 +130,10 @@ public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.m
     /**
     * 保存或新增信息
     *
-    * @param crmModel model
+    * @param baseModel model
     */
     @Override
-    public Map<String, Object> addOrUpdate(CrmBusinessSaveBO crmModel, boolean isExcel) {
+    public Map<String, Object> addOrUpdate(CrmBusinessSaveBO baseModel, boolean isExcel) {
         Map<String, Object> map = new HashMap<>();
         List<OperationLog> operationLogList = new ArrayList<>();
         OperationLog operationLog = new OperationLog();
@@ -170,7 +170,7 @@ public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.m
 
         ${entity} retModel = getById(newModel.getId());
         crmModel.setEntity(BeanUtil.beanToMap(retModel));
-        savePage(crmModel, retModel.getId(), isExcel);
+        savePage(baseModel, retModel.getId(), isExcel);
 
         Map<String, Object> map = new HashMap<>();
         map.put("customerId", retModel.getCustomerId());
@@ -195,7 +195,7 @@ public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.m
 
             crmModel.setLabel(getLabel().getType());
             crmModel.setOwnerUserName(UserCacheUtil.getUserName(ownerUserId));
-            fieldDataService.setDataByBatchId(crmModel, getLabel());
+            fieldDataService.setDataByBatchId(baseModel, getLabel());
             List<String> stringList = ApplicationContextHolder.getBean(ICrmRoleFieldService.class).queryNoAuthField(crmModel.getLabel(), crmModel.getOwnerUserId());
             stringList.forEach(crmModel::remove);
             // 客户详情摘要

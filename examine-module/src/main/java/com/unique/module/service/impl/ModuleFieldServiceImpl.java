@@ -1,17 +1,22 @@
 package com.unique.module.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.unique.core.enums.FieldTypeEnum;
 import com.unique.core.enums.IsOrNotEnum;
+import com.unique.core.enums.SystemCodeEnum;
+import com.unique.core.exception.BaseException;
+import com.unique.core.utils.BaseUtil;
+import com.unique.module.entity.bo.ModuleFieldBO;
 import com.unique.module.entity.po.ModuleField;
+import com.unique.module.entity.po.ModuleFieldUser;
 import com.unique.module.mapper.ModuleFieldMapper;
 import com.unique.module.service.IModuleFieldService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.unique.module.service.IModuleFieldUserService;
+import com.unique.module.service.IModuleRecordService;
 import org.springframework.stereotype.Service;
 
 import com.unique.core.utils.FieldUtil;
-import com.unique.core.context.ConstModule;
-import com.unique.core.entity.base.bo.SearchBO;
-import com.unique.core.common.BasePage;
-
 import com.unique.module.entity.po.ModuleRecordData;
 
 import com.unique.module.service.IModuleRecordDataService;
@@ -21,10 +26,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import cn.hutool.core.util.ObjectUtil;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -38,21 +43,14 @@ import java.util.*;
 public class ModuleFieldServiceImpl extends ServiceImpl<ModuleFieldMapper, ModuleField> implements IModuleFieldService {
 
     @Autowired
-    private IModuleFieldService moduleFieldService;
+    private IModuleRecordService moduleRecordService;
     @Autowired
     private IModuleRecordDataService moduleRecordDataService;
+    @Autowired
+    private IModuleFieldUserService moduleFieldUserService;
 
-    /**
-    * 导出时查询所有数据
-    *
-    * @param search 业务查询对象
-    * @return data
-    */
-    @Override
-    public BasePage<Map<String, Object>> queryPageList(SearchBO search) {
-        BasePage<Map<String, Object>> basePage = getBaseMapper().queryPageList(search.parse(),search);
-        return basePage;
-    }
+
+
     /**
     * 查询字段配置
     *
@@ -94,69 +92,85 @@ public class ModuleFieldServiceImpl extends ServiceImpl<ModuleFieldMapper, Modul
     * @param newModel
     */
     @Override
-    public Map<String, Object> addOrUpdate(ModuleField newModel, boolean isExcel) {
-        Map<String, Object> map = new HashMap<>();
-        if (ObjectUtil.isEmpty(newModel.getId())){
-            save(newModel);
-            //actionRecordUtil.addRecord(newModel.getId(), CrmEnum.CUSTOMER, newModel.getName());
-        }else {
-            ModuleField  old = getById(newModel.getId());
-            newModel.setCreateTime(LocalDateTime.now());
-            updateById(newModel);
-            //actionRecordUtil.updateRecord(BeanUtil.beanToMap(old), BeanUtil.beanToMap(newModel), CrmEnum.CUSTOMER, newModel.getName(), newModel.getId());
+    public void addOrUpdate(ModuleFieldBO newModel, boolean isExcel) {
+        Long moduleId = newModel.getModuleId();
+        if (ObjectUtil.isEmpty(moduleId)){
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID);
         }
-        map.put("id", newModel.getId());
-        return map;
-    }
+        LocalDateTime nowtime = LocalDateTime.now();
+        //移除字段
+        List<ModuleField> removeFields = newModel.getRemoveList();
+        if (CollectionUtil.isNotEmpty(removeFields)) {
+            List<Long> removeExtendFieldIds = new ArrayList<>();
+            List<Long> removeAllFieldIds = new ArrayList<>();
+            List<String> removeBaseFieldNames = new ArrayList<>();
 
-
-    /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    * @return data
-    */
-    @Override
-    public Map<String, Object> queryById(Long id) {
-        LambdaQueryWrapper<ModuleField> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ModuleField::getId, id);
-        Map<String, Object> recordMap = getMap(queryWrapper);
-        if (ObjectUtil.isNotEmpty(recordMap)) {
-            List<ModuleRecordData> dataList = moduleRecordDataService.lambdaQuery().eq(ModuleRecordData::getRecordId, id).list();
-            if (CollectionUtil.isNotEmpty(dataList)) {
-                dataList.forEach(f->{
-                    recordMap.put(f.getName(),f.getValue());
-                });
+            removeFields.stream().forEach(r->{
+                removeAllFieldIds.add(r.getId());
+                switch (FieldTypeEnum.parse(r.getFieldType())) {
+                    case EXTEND:
+                        removeExtendFieldIds.add(r.getId());
+                        break;
+                    case MAIN:
+                        removeBaseFieldNames.add(r.getFieldName());
+                        break;
+                }
+            });
+            //删除字段
+            if (CollectionUtil.isNotEmpty(removeAllFieldIds)) {
+                removeByIds(removeAllFieldIds);
+                //删除用户关联
+                LambdaQueryWrapper<ModuleFieldUser> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.in(ModuleFieldUser::getFieldId,removeAllFieldIds);
+                queryWrapper.eq(ModuleFieldUser::getModuleId, moduleId);
+                moduleFieldUserService.remove(queryWrapper);
+            }
+            //删除扩展字段在主表的字段
+            if (CollectionUtil.isNotEmpty(removeBaseFieldNames)) {
+                //关联的数据=》删除
+                moduleRecordService.updateNullByFieldNameWithModuleId(removeBaseFieldNames, moduleId);
+            }
+            //删除扩展字段在data表字段
+            if (CollectionUtil.isNotEmpty(removeExtendFieldIds)) {
+                //关联的数据=》删除
+                LambdaQueryWrapper<ModuleRecordData> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.in(ModuleRecordData::getFieldId,removeExtendFieldIds);
+                moduleRecordDataService.remove(queryWrapper);
             }
         }
-        return recordMap;
-    }
-
-    /**
-    * 查询详情
-    *
-    * @param id     主键ID
-    */
-    @Override
-    public List<ModuleField> information(Long id) {
-        List<ModuleField> collect = queryField(id);
-        return collect;
-    }
-
-    /**
-    * 删除客户数据
-    *
-    * @param ids ids
-    */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void deleteByIds(List<Long> ids) {
-        removeByIds(ids);
-        LambdaQueryWrapper<ModuleRecordData> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.in(ModuleRecordData::getRecordId,ids);
-        moduleRecordDataService.remove(queryWrapper);
-        //删除字段操作记录
-        //crmActionRecordService.deleteActionRecord(CrmEnum.CUSTOMER, ids);
+        //更新字段
+        List<ModuleField> updateFields = newModel.getFieldList();
+        if (CollectionUtil.isNotEmpty(updateFields)){
+            List<ModuleField> inserts = new ArrayList<>();
+            List<ModuleField> updates = new ArrayList<>();
+            List<Long> insertIds = new ArrayList<>();
+            updateFields.forEach(r->{
+                r.setUpdateTime(nowtime);
+                r.setUpdateUserId(StpUtil.getLoginIdAsLong());
+                if (ObjectUtil.isEmpty(r.getId())) {
+                    r.setModuleId(moduleId);
+                    r.setCreateUserId(StpUtil.getLoginIdAsLong());
+                    r.setCreateTime(nowtime);
+                    Long nextId = BaseUtil.getNextId();
+                    r.setId(nextId);
+                    inserts.add(r);
+                }else{
+                    updates.add(r);
+                }
+            });
+            if (CollectionUtil.isNotEmpty(inserts)) {
+                saveBatch(inserts);
+                //对应模块下的用户关联的字段做添加
+                LambdaQueryWrapper<ModuleFieldUser> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(ModuleFieldUser::getModuleId,moduleId);
+                moduleFieldUserService.remove(queryWrapper);
+            }
+            if (CollectionUtil.isNotEmpty(updates)) {
+                updateBatchById(updates);
+            }
+            //todo:新增字段=》旧字段=》记录
+            //actionRecordUtil.addRecord(newModel.getId(), CrmEnum.CUSTOMER, newModel.getName());
+        }
     }
 
 }

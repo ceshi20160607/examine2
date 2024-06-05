@@ -1,5 +1,8 @@
 package com.unique.module.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.unique.core.enums.IsOrNotEnum;
+import com.unique.module.entity.bo.ModuleFieldUserBO;
 import com.unique.module.entity.po.ModuleFieldUser;
 import com.unique.module.mapper.ModuleFieldUserMapper;
 import com.unique.module.service.IModuleFieldUserService;
@@ -26,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -43,126 +47,80 @@ public class ModuleFieldUserServiceImpl extends ServiceImpl<ModuleFieldUserMappe
     @Autowired
     private IModuleRecordDataService moduleRecordDataService;
 
-    /**
-    * 导出时查询所有数据
-    *
-    * @param search 业务查询对象
-    * @return data
-    */
     @Override
-    public BasePage<Map<String, Object>> queryPageList(SearchBO search) {
-        BasePage<Map<String, Object>> basePage = getBaseMapper().queryPageList(search.parse(),search);
-        return basePage;
-    }
-    /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    * @return data
-    */
-    @Override
-    public List<ModuleField> queryField(Long id) {
-        Map<String, Object> record = queryById(id);
-        List<ModuleField> vos = new ArrayList<>();
-        if (ObjectUtil.isNotEmpty(record.get(ConstModule.MODULE_ID))) {
-            vos = moduleFieldService.queryField(Long.valueOf(record.get(ConstModule.MODULE_ID).toString()));
-            if (CollectionUtil.isNotEmpty(vos)) {
-                vos.forEach(r->{
-                    if (ObjectUtil.isNotEmpty(record.get(r.getFieldName()))) {
-                        r.setDefaultValue(record.get(r.getFieldName()).toString());
-                    }
-                });
+    public void changeFieldSort(ModuleFieldUserBO moduleFieldUserBO) {
+        initFieldSort(moduleFieldUserBO.getModuleId());
+        if (CollectionUtil.isNotEmpty(moduleFieldUserBO.getHiddenIds())) {
+            lambdaUpdate().set(ModuleFieldUser::getHiddenFlag, IsOrNotEnum.ONE.getType())
+                    .in(ModuleFieldUser::getId, moduleFieldUserBO.getHiddenIds())
+                    .eq(ModuleFieldUser::getModuleId,moduleFieldUserBO.getModuleId())
+                    .eq(ModuleFieldUser::getUserId,StpUtil.getLoginIdAsLong())
+                    .update();
+        }
+        if (CollectionUtil.isNotEmpty(moduleFieldUserBO.getSortIds())) {
+            for (int i = 0; i < moduleFieldUserBO.getSortIds().size(); i++) {
+                lambdaUpdate().set(ModuleFieldUser::getSortFlag, i)
+                        .in(ModuleFieldUser::getId, moduleFieldUserBO.getHiddenIds())
+                        .eq(ModuleFieldUser::getModuleId,moduleFieldUserBO.getModuleId())
+                        .eq(ModuleFieldUser::getUserId,StpUtil.getLoginIdAsLong())
+                        .update();
             }
         }
-        return vos;
     }
-    /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    * @return data
-    */
     @Override
-    public List<List<ModuleField>> queryFormField(Long id) {
-        List<ModuleField> fieldList = queryField(id);
-        List<List<ModuleField>> vos = FieldUtil.getFieldFormList(fieldList,ModuleField::getAxisy,ModuleField::getAxisx);
+    public List<ModuleField> queryFieldHead(Long moduleId) {
+        List<ModuleField> fieldList = new ArrayList<>();
+        initFieldSort(moduleId);
+        //去除掉控制的字段
+        List<ModuleFieldUser> hiddenList = lambdaQuery()
+                .eq(ModuleFieldUser::getModuleId, moduleId)
+                .eq(ModuleFieldUser::getUserId, StpUtil.getLoginIdAsLong())
+                .eq(ModuleFieldUser::getHiddenFlag, IsOrNotEnum.ONE.getType())
+                .list();
 
-        for (List<ModuleField> filedVOList : vos) {
-            filedVOList.forEach(field -> {
-            });
+        if (CollectionUtil.isNotEmpty(hiddenList)) {
+            List<Long> hiddenIds = hiddenList.stream().map(ModuleFieldUser::getFieldId).collect(Collectors.toList());
+            //获取所有字段
+            fieldList = moduleFieldService.lambdaQuery()
+                    .eq(ModuleField::getModuleId, moduleId)
+                    .eq(ModuleField::getIndexFlag, IsOrNotEnum.ONE.getType())
+                    .list();
+            fieldList.removeIf(field -> !hiddenIds.contains(field.getId()));
         }
-
-        return vos;
+        return fieldList;
     }
-    /**
-    * 保存或新增信息
-    *
-    * @param newModel
-    */
     @Override
-    public Map<String, Object> addOrUpdate(ModuleFieldUser newModel, boolean isExcel) {
-        Map<String, Object> map = new HashMap<>();
-        if (ObjectUtil.isEmpty(newModel.getId())){
-            save(newModel);
-            //actionRecordUtil.addRecord(newModel.getId(), CrmEnum.CUSTOMER, newModel.getName());
-        }else {
-            ModuleFieldUser  old = getById(newModel.getId());
-            newModel.setCreateTime(LocalDateTime.now());
-            updateById(newModel);
-            //actionRecordUtil.updateRecord(BeanUtil.beanToMap(old), BeanUtil.beanToMap(newModel), CrmEnum.CUSTOMER, newModel.getName(), newModel.getId());
-        }
-        map.put("id", newModel.getId());
-        return map;
+    public List<ModuleField> queryFieldSearch(Long moduleId) {
+        List<ModuleField> fieldList = queryFieldHead(moduleId);
+        //
+        return fieldList;
     }
 
-
     /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    * @return data
-    */
-    @Override
-    public Map<String, Object> queryById(Long id) {
-        LambdaQueryWrapper<ModuleFieldUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ModuleFieldUser::getId, id);
-        Map<String, Object> recordMap = getMap(queryWrapper);
-        if (ObjectUtil.isNotEmpty(recordMap)) {
-            List<ModuleRecordData> dataList = moduleRecordDataService.lambdaQuery().eq(ModuleRecordData::getRecordId, id).list();
-            if (CollectionUtil.isNotEmpty(dataList)) {
-                dataList.forEach(f->{
-                    recordMap.put(f.getName(),f.getValue());
+     * 初始化列表的字段
+     * @param moduleId
+     */
+    private void initFieldSort(Long moduleId) {
+        Long count = lambdaQuery()
+                .eq(ModuleFieldUser::getModuleId, moduleId)
+                .eq(ModuleFieldUser::getUserId, StpUtil.getLoginIdAsLong())
+                .count();
+        if (count<=0L){
+            List<ModuleField> fieldList = moduleFieldService.lambdaQuery()
+                    .eq(ModuleField::getModuleId, moduleId)
+                    .eq(ModuleField::getIndexFlag, IsOrNotEnum.ONE.getType())
+                    .list();
+            if (CollectionUtil.isNotEmpty(fieldList)) {
+                List<ModuleFieldUser> retList = new ArrayList<>();
+                fieldList.forEach(r->{
+                    ModuleFieldUser item = new ModuleFieldUser();
+                    item.setFieldId(r.getId());
+                    item.setUserId(StpUtil.getLoginIdAsLong());
+                    retList.add(item);
                 });
+                saveBatch(retList);
             }
         }
-        return recordMap;
-    }
-
-    /**
-    * 查询详情
-    *
-    * @param id     主键ID
-    */
-    @Override
-    public List<ModuleField> information(Long id) {
-        List<ModuleField> collect = queryField(id);
-        return collect;
-    }
-
-    /**
-    * 删除客户数据
-    *
-    * @param ids ids
-    */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void deleteByIds(List<Long> ids) {
-        removeByIds(ids);
-        LambdaQueryWrapper<ModuleRecordData> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.in(ModuleRecordData::getRecordId,ids);
-        moduleRecordDataService.remove(queryWrapper);
-        //删除字段操作记录
-        //crmActionRecordService.deleteActionRecord(CrmEnum.CUSTOMER, ids);
     }
 
 }

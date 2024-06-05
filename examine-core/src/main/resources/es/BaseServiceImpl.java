@@ -1,4 +1,4 @@
-package com.kakarote.core.servlet;
+package com.unique.core.servlet;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -13,8 +13,8 @@ import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.ExceptionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
-import com.kakarote.core.common.Const;
-import com.kakarote.core.utils.UserUtil;
+import com.unique.core.common.Const;
+import com.unique.core.utils.UserUtil;
 import org.apache.ibatis.reflection.ExceptionUtil;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;

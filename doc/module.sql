@@ -131,8 +131,10 @@ PRIMARY KEY (`id`) USING BTREE
 DROP TABLE IF EXISTS `un_module_field_user`;
 CREATE TABLE `un_module_field_user` (
 `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+`module_id` bigint(20) NOT NULL COMMENT '模块ID',
 `field_id` bigint(20) DEFAULT NULL COMMENT '字段ID',
 `user_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '用户id',
+`sort_flag` int(11) NOT NULL DEFAULT '0' COMMENT '排序',
 `hidden_flag` int(11) NOT NULL DEFAULT '0' COMMENT '是否隐藏  0不隐藏 1隐藏',
 `auth_type` int(11) NOT NULL DEFAULT '0' COMMENT '授权类型   0不能查看   1只能看 2可以编辑',
 `create_time` datetime DEFAULT NULL COMMENT '创建时间',

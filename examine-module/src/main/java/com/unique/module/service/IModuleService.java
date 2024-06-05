@@ -45,9 +45,9 @@ public interface IModuleService extends IService<Module> {
     /**
     * 保存或新增信息
     *
-    * @param crmModel
+    * @param baseModel
     */
-    Map<String, Object> addOrUpdate(Module crmModel, boolean isExcel);
+    Map<String, Object> addOrUpdate(Module baseModel, boolean isExcel);
 
     /**
     * 查询字段配置

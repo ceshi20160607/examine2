@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.unique.core.entity.base.bo.SearchBO;
 import com.unique.core.common.BasePage;
 import com.unique.core.common.Result;
+import com.unique.module.entity.bo.ModuleFieldBO;
 import com.unique.module.entity.po.ModuleField;
 import com.unique.module.service.IModuleFieldService;
 import io.swagger.annotations.Api;
@@ -36,20 +37,6 @@ public class ModuleFieldController {
     @Autowired
     private IModuleFieldService moduleFieldService;
 
-
-    /**
-    * 查询所有数据
-    *
-    * @param search 业务查询对象
-    * @return data
-    */
-    @PostMapping("/queryPageList")
-    @ApiOperation("查询列表页数据")
-    public Result<BasePage<Map<String, Object>>> queryPageList(@RequestBody SearchBO search) {
-        search.setPageType(1);
-        BasePage<Map<String, Object>> mapBasePage = moduleFieldService.queryPageList(search);
-        return Result.ok(mapBasePage);
-    }
     /**
     * 新建页面字段
     *
@@ -81,64 +68,28 @@ public class ModuleFieldController {
     /**
     * 保存数据
     *
-    * @param crmModel 业务对象
+    * @param moduleBO 业务对象
     * @return data
     */
     @PostMapping("/add")
     @ApiOperation("保存数据")
-    public Result<Map<String, Object>> add(@RequestBody ModuleField crmModel) {
-        Map<String, Object> map = moduleFieldService.addOrUpdate(crmModel, false);
-        return Result.ok(map);
+    public Result add(@RequestBody ModuleFieldBO moduleBO) {
+        moduleFieldService.addOrUpdate(moduleBO, false);
+        return Result.ok();
     }
     /**
     * 更新数据
     *
-    * @param crmModel 业务对象
+    * @param moduleBO 业务对象
     * @return data
     */
     @PostMapping("/update")
     @ApiOperation("修改数据")
-    public Result<Map<String, Object>> update(@RequestBody ModuleField crmModel) {
-        Map<String, Object> map = moduleFieldService.addOrUpdate(crmModel, false);
-        return Result.ok(map);
-    }
-    /**
-    * 查询数据
-    * @param id 业务对象id
-    * @return data
-    */
-    @PostMapping("/queryById/{id}")
-    @ApiOperation("根据ID查询")
-    public Result<Map<String, Object> > queryById(@PathVariable("id") @ApiParam(name = "id", value = "id") Long id) {
-        Map<String, Object>  model = moduleFieldService.queryById(id);
-        return Result.ok(model);
-    }
-    /**
-    * 查询详情页基本信息
-    *
-    * @param  id
-    * @return data
-    */
-    @PostMapping("/information/{id}")
-    @ApiOperation("查询详情页信息")
-    public Result<List<ModuleField>> information(@PathVariable("id") @ApiParam(name = "id", value = "id") Long id) {
-
-        List<ModuleField> information = moduleFieldService.information(id);
-
-        return Result.ok(information);
-    }
-
-    /**
-    * 删除数据
-    * @param ids 业务对象ids
-    * @return data
-    */
-    @PostMapping("/deleteByIds")
-    @ApiOperation("根据ID删除数据")
-    public Result deleteByIds(@ApiParam(name = "ids", value = "id列表") @RequestBody List<Long> ids) {
-        moduleFieldService.deleteByIds(ids);
+    public Result update(@RequestBody ModuleFieldBO moduleBO) {
+        moduleFieldService.addOrUpdate(moduleBO, false);
         return Result.ok();
     }
+
 
 
 }

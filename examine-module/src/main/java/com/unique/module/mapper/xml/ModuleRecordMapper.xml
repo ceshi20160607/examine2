@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.unique.module.mapper.ModuleRecordMapper">
+    <update id="updateNullByFieldNameWithModuleId">
+        update un_module_record
+        <foreach collection="removeBaseFieldNames" item="fieldName" separator="," index="i">
+            <if test="i != 0">
+                ,
+            </if>
+            set ${fieldName} = null
+        </foreach>
+        where module_id = #{moduleId}
+    </update>
 
 
     <select id="queryPageList" resultType="java.util.Map">

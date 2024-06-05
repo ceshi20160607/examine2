@@ -165,4 +165,9 @@ public class ModuleRecordServiceImpl extends ServiceImpl<ModuleRecordMapper, Mod
         //crmActionRecordService.deleteActionRecord(CrmEnum.CUSTOMER, ids);
     }
 
+    @Override
+    public void updateNullByFieldNameWithModuleId(List<String> removeBaseFieldNames, Long moduleId) {
+        getBaseMapper().updateNullByFieldNameWithModuleId(removeBaseFieldNames,moduleId);
+    }
+
 }

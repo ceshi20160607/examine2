@@ -7,24 +7,24 @@ import ${superServiceImplClassPackage};
 import org.springframework.stereotype.Service;
 
 
-import com.kakarote.core.exception.CrmException;
-import com.kakarote.crm.constant.CrmCodeEnum;
+import com.unique.core.exception.CrmException;
+import com.unique.crm.constant.CrmCodeEnum;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.kakarote.common.field.entity.ModelField;
-import com.kakarote.crm.common.ActionRecordUtil;
-import com.kakarote.crm.constant.CrmEnum;
-import com.kakarote.crm.entity.PO.CrmField;
-import com.kakarote.crm.entity.VO.CrmModelFieldVO;
-import com.kakarote.crm.service.ICrmActionRecordService;
-import com.kakarote.crm.service.ICrmFieldService;
+import com.unique.common.field.entity.ModelField;
+import com.unique.crm.common.ActionRecordUtil;
+import com.unique.crm.constant.CrmEnum;
+import com.unique.crm.entity.PO.CrmField;
+import com.unique.crm.entity.VO.CrmModelFieldVO;
+import com.unique.crm.service.ICrmActionRecordService;
+import com.unique.crm.service.ICrmFieldService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.kakarote.common.log.entity.OperationLog;
-import com.kakarote.core.entity.BasePage;
-import com.kakarote.crm.entity.BO.*;
+import com.unique.common.log.entity.OperationLog;
+import com.unique.core.entity.BasePage;
+import com.unique.crm.entity.BO.*;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;

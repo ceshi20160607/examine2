@@ -32,11 +32,17 @@ public class ModuleFieldUser implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    @ApiModelProperty("模块ID")
+    private Long moduleId;
+
     @ApiModelProperty("字段ID")
     private Long fieldId;
 
     @ApiModelProperty("用户id")
     private Long userId;
+
+    @ApiModelProperty("排序")
+    private Integer sortFlag;
 
     @ApiModelProperty("是否隐藏  0不隐藏 1隐藏")
     private Integer hiddenFlag;

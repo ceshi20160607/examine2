@@ -45,9 +45,9 @@ public interface IModuleDictService extends IService<ModuleDict> {
     /**
     * 保存或新增信息
     *
-    * @param crmModel
+    * @param baseModel
     */
-    Map<String, Object> addOrUpdate(ModuleDict crmModel, boolean isExcel);
+    Map<String, Object> addOrUpdate(ModuleDict baseModel, boolean isExcel);
 
     /**
     * 查询字段配置
