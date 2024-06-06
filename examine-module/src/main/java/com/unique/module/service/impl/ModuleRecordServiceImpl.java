@@ -1,6 +1,9 @@
 package com.unique.module.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSON;
+import com.unique.core.enums.FieldTypeEnum;
 import com.unique.module.entity.bo.ModuleRecordBO;
 import com.unique.module.entity.po.ModuleRecord;
 import com.unique.module.mapper.ModuleRecordMapper;
@@ -104,11 +107,17 @@ public class ModuleRecordServiceImpl extends ServiceImpl<ModuleRecordMapper, Mod
     */
     @Override
     public Map<String, Object> addOrUpdate(ModuleRecordBO newModel, boolean isExcel) {
+        //0基础
         Map<String, Object> map = new HashMap<>();
-        Long moduleId = newModel.getModuleId();
         LocalDateTime nowtime = LocalDateTime.now();
-
-        ModuleRecord entity = newModel.getEntity();
+        //1.入参基础
+        Long moduleId = newModel.getModuleId();
+        Map<String,Object> entityParam = newModel.getEntity();
+        ModuleRecord entity = BeanUtil.copyProperties(entityParam, ModuleRecord.class);
+        //2，基础--字段
+        List<ModuleField> fieldExtendList = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getFieldType, FieldTypeEnum.EXTEND.getType())
+                .list();
         entity.setModuleId(moduleId);
         entity.setUpdateTime(nowtime);
         if (ObjectUtil.isEmpty(entity.getId())){
@@ -119,14 +128,16 @@ public class ModuleRecordServiceImpl extends ServiceImpl<ModuleRecordMapper, Mod
             if (save(entity)) {
                 Long recordId = entity.getId();
                 //扩展字段
-                if (CollectionUtil.isNotEmpty(newModel.getFieldList())) {
-                    List<ModuleRecordData> moduleRecordData = newModel.getFieldList().stream().map(r -> {
+                if (CollectionUtil.isNotEmpty(fieldExtendList)) {
+                    List<ModuleRecordData> moduleRecordData = fieldExtendList.stream().map(r -> {
                         ModuleRecordData recordData = new ModuleRecordData();
                         recordData.setModuleId(moduleId);
                         recordData.setRecordId(recordId);
                         recordData.setFieldId(r.getId());
                         recordData.setName(r.getFieldName());
-                        recordData.setValue(r.getValue());
+                        if (ObjectUtil.isNotEmpty(entityParam.get(r.getFieldName()))) {
+                            recordData.setValue(JSON.toJSONString(entityParam.get(r.getFieldName())));
+                        }
                         recordData.setCreateTime(nowtime);
                         return recordData;
                     }).collect(Collectors.toList());
@@ -138,17 +149,17 @@ public class ModuleRecordServiceImpl extends ServiceImpl<ModuleRecordMapper, Mod
             Long recordId = entity.getId();
             ModuleRecord  old = getById(recordId);
             updateById(entity);
-
             //扩展字段
-            if (CollectionUtil.isNotEmpty(newModel.getFieldList())) {
-                moduleRecordDataService.remove(new LambdaQueryWrapper<ModuleRecordData>().eq(ModuleRecordData::getRecordId, recordId));
-                List<ModuleRecordData> moduleRecordData = newModel.getFieldList().stream().map(r -> {
+            if (CollectionUtil.isNotEmpty(fieldExtendList)) {
+                List<ModuleRecordData> moduleRecordData = fieldExtendList.stream().map(r -> {
                     ModuleRecordData recordData = new ModuleRecordData();
                     recordData.setModuleId(moduleId);
                     recordData.setRecordId(recordId);
                     recordData.setFieldId(r.getId());
                     recordData.setName(r.getFieldName());
-                    recordData.setValue(r.getValue());
+                    if (ObjectUtil.isNotEmpty(entityParam.get(r.getFieldName()))) {
+                        recordData.setValue(JSON.toJSONString(entityParam.get(r.getFieldName())));
+                    }
                     recordData.setCreateTime(nowtime);
                     return recordData;
                 }).collect(Collectors.toList());

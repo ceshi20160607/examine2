@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -24,10 +25,7 @@ public class ModuleRecordBO {
     private Long moduleId;
 
     @ApiModelProperty("实体数据")
-    private ModuleRecord entity;
-
-    @ApiModelProperty("扩展的字段")
-    private List<ModuleField> fieldList;
+    private Map<String,Object> entity;
 
     //todo:配置审批
 

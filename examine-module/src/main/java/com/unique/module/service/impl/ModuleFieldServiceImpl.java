@@ -54,13 +54,13 @@ public class ModuleFieldServiceImpl extends ServiceImpl<ModuleFieldMapper, Modul
     /**
     * 查询字段配置
     *
-    * @param id 主键ID
+    * @param moduleId 模块ID
     * @return data
     */
     @Override
-    public List<ModuleField> queryField(Long id) {
+    public List<ModuleField> queryField(Long moduleId) {
         List<ModuleField> fieldList = lambdaQuery()
-                .eq(ModuleField::getModuleId, id)
+                .eq(ModuleField::getModuleId, moduleId)
                 .eq(ModuleField::getAddFlag, IsOrNotEnum.ONE.getType())
                 .list();
         if (CollectionUtil.isEmpty(fieldList)){
@@ -71,12 +71,12 @@ public class ModuleFieldServiceImpl extends ServiceImpl<ModuleFieldMapper, Modul
     /**
     * 查询字段配置
     *
-    * @param id 主键ID
+    * @param moduleId 模块ID
     * @return data
     */
     @Override
-    public List<List<ModuleField>> queryFormField(Long id) {
-        List<ModuleField> fieldList = queryField(id);
+    public List<List<ModuleField>> queryFormField(Long moduleId) {
+        List<ModuleField> fieldList = queryField(moduleId);
         List<List<ModuleField>> vos = FieldUtil.getFieldFormList(fieldList,ModuleField::getAxisy,ModuleField::getAxisx);
 
         for (List<ModuleField> filedVOList : vos) {

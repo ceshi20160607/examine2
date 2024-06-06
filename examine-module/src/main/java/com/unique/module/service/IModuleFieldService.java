@@ -23,15 +23,15 @@ public interface IModuleFieldService extends IService<ModuleField> {
     /**
     * 查询字段配置
     *
-    * @param id 主键ID
+    * @param moduleId 模块ID
     */
-    List<ModuleField> queryField(Long id);
+    List<ModuleField> queryField(Long moduleId);
     /**
     * 查询字段配置
     *
-    * @param id 主键ID
+    * @param moduleId 模块ID
     */
-    List<List<ModuleField>> queryFormField(Long id);
+    List<List<ModuleField>> queryFormField(Long moduleId);
 
     /**
     * 保存或新增信息
