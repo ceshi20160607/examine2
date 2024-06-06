@@ -1,5 +1,6 @@
 package com.unique.module.service;
 
+import com.unique.module.entity.bo.ModuleRecordBO;
 import com.unique.module.entity.po.ModuleRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -47,7 +48,7 @@ public interface IModuleRecordService extends IService<ModuleRecord> {
     *
     * @param baseModel
     */
-    Map<String, Object> addOrUpdate(ModuleRecord baseModel, boolean isExcel);
+    Map<String, Object> addOrUpdate(ModuleRecordBO baseModel, boolean isExcel);
 
     /**
     * 查询字段配置

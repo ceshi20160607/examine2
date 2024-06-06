@@ -19,7 +19,7 @@ Content-Type: application/vnd.ms-excel
 ### admin相关
 ####################################
 ###
-POST http://localhost:8888/user/doLogin
+POST http://{{host}}/user/doLogin
 Content-Type: application/json
 
 {"username": "admin","password": "123123aa","deviceType": "0","loginType": "0"}
@@ -27,7 +27,7 @@ Content-Type: application/json
 ### module相关
 ####################################
 ###
-POST http://{{host}}/moduleField/queryFieldAdd?moduleId=4
+POST http://{{host}}/moduleField/queryFieldAdd?type=1&moduleId=4
 Content-Type: application/json
 satoken: {{token}}
 
@@ -37,13 +37,70 @@ POST http://{{host}}/module/queryPageList
 Content-Type: application/json
 satoken: {{token}}
 
-{"keyword":"","moduleType":0,"page":1,"limit":10,"pageType":0}
+{"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}
+
+
+
+####################################
+### 模块数据
+####################################
+###
+POST http://{{host}}/moduleRecord/add
+Content-Type: application/json
+satoken: {{token}}
+
+{
+  "moduleId": 4,
+  "entity": {"num": "11111","name": "x11111"},
+  "fieldList": [{"id":"12","moduleId":"4","fieldName":"fielddecimal1","name":"金额","type":6,"value":5000}]
+}
+
+###
+POST http://{{host}}/moduleRecord/update
+Content-Type: application/json
+satoken: {{token}}
+
+{
+  "moduleId": 4,
+  "entity": {"id": "2","num": "111112","name": "x111112"},
+  "fieldList": [{"id":"12","moduleId":"4","fieldName":"fielddecimal1","name":"金额","type":6,"value":50001}]
+}
+###
+POST http://{{host}}/moduleRecord/queryById/2
+Content-Type: application/json
+satoken: {{token}}
+
+{}
+
+###
+POST http://{{host}}/moduleRecord/information/2
+Content-Type: application/json
+satoken: {{token}}
+
+{}
+###
+POST http://{{host}}/moduleRecord/queryPageList
+Content-Type: application/json
+satoken: {{token}}
+
+{"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}
+
+
+####
+#POST http://{{host}}/moduleRecord/queryFieldAdd?type=1
+#Content-Type: application/json
+#satoken: {{token}}
+#
+#{}
+
+
+
 ####################################
 ### 审批相关
 ####################################
 ###
-POST http://localhost:8888/examine/queryPageList
+POST http://{{host}}/examine/queryPageList
 Content-Type: application/json
 satoken: {{token}}
 
-{"keyword":"","moduleType":0,"page":1,"limit":10,"pageType":0}
+{"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}

@@ -56,6 +56,10 @@ public class ModuleField implements Serializable {
     @ApiModelProperty("默认值")
     private String defaultValue;
 
+    @ApiModelProperty("具体的数值")
+    @TableField(exist = false)
+    private String value;
+
     @ApiModelProperty("唯一 0不唯一 1唯一")
     private Integer unionFlag;
 

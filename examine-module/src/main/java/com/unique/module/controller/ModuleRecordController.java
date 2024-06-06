@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.unique.core.entity.base.bo.SearchBO;
 import com.unique.core.common.BasePage;
 import com.unique.core.common.Result;
+import com.unique.module.entity.bo.ModuleRecordBO;
 import com.unique.module.entity.po.ModuleField;
 import com.unique.module.service.IModuleRecordService;
 import io.swagger.annotations.Api;
@@ -31,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2024-05-28
  */
 @RestController
-@RequestMapping("/module-record")
+@RequestMapping("/moduleRecord")
 @Api(tags = "主数据基础表")
 public class ModuleRecordController {
 
@@ -88,7 +89,7 @@ public class ModuleRecordController {
     */
     @PostMapping("/add")
     @ApiOperation("保存数据")
-    public Result<Map<String, Object>> add(@RequestBody ModuleRecord baseModel) {
+    public Result<Map<String, Object>> add(@RequestBody ModuleRecordBO baseModel) {
         Map<String, Object> map = moduleRecordService.addOrUpdate(baseModel, false);
         return Result.ok(map);
     }
@@ -100,7 +101,7 @@ public class ModuleRecordController {
     */
     @PostMapping("/update")
     @ApiOperation("修改数据")
-    public Result<Map<String, Object>> update(@RequestBody ModuleRecord baseModel) {
+    public Result<Map<String, Object>> update(@RequestBody ModuleRecordBO baseModel) {
         Map<String, Object> map = moduleRecordService.addOrUpdate(baseModel, false);
         return Result.ok(map);
     }

@@ -1,5 +1,7 @@
 package com.unique.module.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.unique.module.entity.bo.ModuleRecordBO;
 import com.unique.module.entity.po.ModuleRecord;
 import com.unique.module.mapper.ModuleRecordMapper;
 import com.unique.module.service.IModuleRecordService;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -64,8 +67,8 @@ public class ModuleRecordServiceImpl extends ServiceImpl<ModuleRecordMapper, Mod
     public List<ModuleField> queryField(Long id) {
         Map<String, Object> record = queryById(id);
         List<ModuleField> vos = new ArrayList<>();
-        if (ObjectUtil.isNotEmpty(record.get(ConstModule.MODULE_ID))) {
-            vos = moduleFieldService.queryField(Long.valueOf(record.get(ConstModule.MODULE_ID).toString()));
+        if (ObjectUtil.isNotEmpty(record.get(ConstModule.MODULE_ID_BASE))) {
+            vos = moduleFieldService.queryField(Long.valueOf(record.get(ConstModule.MODULE_ID_BASE).toString()));
             if (CollectionUtil.isNotEmpty(vos)) {
                 vos.forEach(r->{
                     if (ObjectUtil.isNotEmpty(record.get(r.getFieldName()))) {
@@ -100,18 +103,60 @@ public class ModuleRecordServiceImpl extends ServiceImpl<ModuleRecordMapper, Mod
     * @param newModel
     */
     @Override
-    public Map<String, Object> addOrUpdate(ModuleRecord newModel, boolean isExcel) {
+    public Map<String, Object> addOrUpdate(ModuleRecordBO newModel, boolean isExcel) {
         Map<String, Object> map = new HashMap<>();
-        if (ObjectUtil.isEmpty(newModel.getId())){
-            save(newModel);
+        Long moduleId = newModel.getModuleId();
+        LocalDateTime nowtime = LocalDateTime.now();
+
+        ModuleRecord entity = newModel.getEntity();
+        entity.setModuleId(moduleId);
+        entity.setUpdateTime(nowtime);
+        if (ObjectUtil.isEmpty(entity.getId())){
+
+            entity.setCreateTime(nowtime);
+            entity.setCreateUserId(StpUtil.getLoginIdAsLong());
+            entity.setOwnerUserId(StpUtil.getLoginIdAsLong());
+            if (save(entity)) {
+                Long recordId = entity.getId();
+                //扩展字段
+                if (CollectionUtil.isNotEmpty(newModel.getFieldList())) {
+                    List<ModuleRecordData> moduleRecordData = newModel.getFieldList().stream().map(r -> {
+                        ModuleRecordData recordData = new ModuleRecordData();
+                        recordData.setModuleId(moduleId);
+                        recordData.setRecordId(recordId);
+                        recordData.setFieldId(r.getId());
+                        recordData.setName(r.getFieldName());
+                        recordData.setValue(r.getValue());
+                        recordData.setCreateTime(nowtime);
+                        return recordData;
+                    }).collect(Collectors.toList());
+                    moduleRecordDataService.saveBatch(moduleRecordData);
+                }
+            }
             //actionRecordUtil.addRecord(newModel.getId(), CrmEnum.CUSTOMER, newModel.getName());
         }else {
-            ModuleRecord  old = getById(newModel.getId());
-            newModel.setCreateTime(LocalDateTime.now());
-            updateById(newModel);
+            Long recordId = entity.getId();
+            ModuleRecord  old = getById(recordId);
+            updateById(entity);
+
+            //扩展字段
+            if (CollectionUtil.isNotEmpty(newModel.getFieldList())) {
+                moduleRecordDataService.remove(new LambdaQueryWrapper<ModuleRecordData>().eq(ModuleRecordData::getRecordId, recordId));
+                List<ModuleRecordData> moduleRecordData = newModel.getFieldList().stream().map(r -> {
+                    ModuleRecordData recordData = new ModuleRecordData();
+                    recordData.setModuleId(moduleId);
+                    recordData.setRecordId(recordId);
+                    recordData.setFieldId(r.getId());
+                    recordData.setName(r.getFieldName());
+                    recordData.setValue(r.getValue());
+                    recordData.setCreateTime(nowtime);
+                    return recordData;
+                }).collect(Collectors.toList());
+                moduleRecordDataService.saveBatch(moduleRecordData);
+            }
             //actionRecordUtil.updateRecord(BeanUtil.beanToMap(old), BeanUtil.beanToMap(newModel), CrmEnum.CUSTOMER, newModel.getName(), newModel.getId());
         }
-        map.put("id", newModel.getId());
+        map.put("id", entity.getId());
         return map;
     }
 

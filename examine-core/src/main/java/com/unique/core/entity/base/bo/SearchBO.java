@@ -25,7 +25,7 @@ public class SearchBO  implements Serializable {
     /**
      * 模块类型
      */
-    private Integer moduleType;
+    private Integer moduleId;
 
 
     @ApiModelProperty("当前页数")
