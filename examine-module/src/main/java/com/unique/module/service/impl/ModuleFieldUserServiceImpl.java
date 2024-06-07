@@ -2,6 +2,7 @@ package com.unique.module.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.unique.core.enums.IsOrNotEnum;
+import com.unique.core.utils.BaseUtil;
 import com.unique.module.entity.bo.ModuleFieldUserBO;
 import com.unique.module.entity.po.ModuleFieldUser;
 import com.unique.module.mapper.ModuleFieldUserMapper;
@@ -101,6 +102,7 @@ public class ModuleFieldUserServiceImpl extends ServiceImpl<ModuleFieldUserMappe
      * @param moduleId
      */
     private void initFieldSort(Long moduleId) {
+        LocalDateTime nowtime = LocalDateTime.now();
         Long count = lambdaQuery()
                 .eq(ModuleFieldUser::getModuleId, moduleId)
                 .eq(ModuleFieldUser::getUserId, StpUtil.getLoginIdAsLong())
@@ -114,8 +116,10 @@ public class ModuleFieldUserServiceImpl extends ServiceImpl<ModuleFieldUserMappe
                 List<ModuleFieldUser> retList = new ArrayList<>();
                 fieldList.forEach(r->{
                     ModuleFieldUser item = new ModuleFieldUser();
+                    item.setId(BaseUtil.getNextId());
                     item.setFieldId(r.getId());
                     item.setUserId(StpUtil.getLoginIdAsLong());
+                    item.setCreateTime(nowtime);
                     retList.add(item);
                 });
                 saveBatch(retList);

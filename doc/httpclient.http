@@ -51,7 +51,7 @@ satoken: {{token}}
 
 {
   "moduleId": 4,
-  "entity": {"num": "11111","name": "x11111"},
+  "entity": {"num": "11111","name": "x11111","fielddecimal1": "5000","owner_user_id": "5000"},
   "fieldList": [{"id":"12","moduleId":"4","fieldName":"fielddecimal1","name":"金额","type":6,"value":5000}]
 }
 
@@ -62,7 +62,7 @@ satoken: {{token}}
 
 {
   "moduleId": 4,
-  "entity": {"id": "2","num": "111112","name": "x111112"},
+  "entity": {"id": "1798543235782676480","num": "11111234","name": "x1111123"},
   "fieldList": [{"id":"12","moduleId":"4","fieldName":"fielddecimal1","name":"金额","type":6,"value":50001}]
 }
 ###
@@ -83,7 +83,7 @@ POST http://{{host}}/moduleRecord/queryPageList
 Content-Type: application/json
 satoken: {{token}}
 
-{"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}
+{"keyword":"","moduleId":7,"page":1,"limit":10,"pageType":0}
 
 
 ####

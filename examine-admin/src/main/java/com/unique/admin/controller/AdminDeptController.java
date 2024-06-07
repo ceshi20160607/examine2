@@ -6,6 +6,7 @@ import com.unique.admin.service.IAdminDeptService;
 import com.unique.core.common.BasePage;
 import com.unique.core.common.Result;
 import com.unique.core.entity.base.bo.SearchBO;
+import com.unique.core.utils.BaseUtil;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ public class AdminDeptController {
     @PostMapping("/add")
     @ApiOperation("保存数据")
     public Result add(@RequestBody AdminDept adminDept) {
+        adminDept.setId(BaseUtil.getNextId());
         iAdminDeptService.save(adminDept);
         return Result.ok();
     }

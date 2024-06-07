@@ -6,6 +6,8 @@ import ${package.Service}.${table.serviceName};
 import ${superServiceImplClassPackage};
 import org.springframework.stereotype.Service;
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.unique.core.utils.BaseUtil;
 import com.unique.core.utils.FieldUtil;
 import com.unique.core.context.ConstModule;
 import com.unique.core.entity.base.bo.SearchBO;
@@ -114,12 +116,17 @@ public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.m
     @Override
     public Map<String, Object> addOrUpdate(${entity} newModel, boolean isExcel) {
         Map<String, Object> map = new HashMap<>();
+        LocalDateTime nowtime = LocalDateTime.now();
+
+        newModel.setUpdateTime(nowtime);
         if (ObjectUtil.isEmpty(newModel.getId())){
+            newModel.setId(BaseUtil.getNextId());
+            newModel.setCreateTime(nowtime);
+            newModel.setCreateUserId(StpUtil.getLoginIdAsLong());
             save(newModel);
             //actionRecordUtil.addRecord(newModel.getId(), CrmEnum.CUSTOMER, newModel.getName());
         }else {
             ${entity}  old = getById(newModel.getId());
-            newModel.setCreateTime(LocalDateTime.now());
             updateById(newModel);
             //actionRecordUtil.updateRecord(BeanUtil.beanToMap(old), BeanUtil.beanToMap(newModel), CrmEnum.CUSTOMER, newModel.getName(), newModel.getId());
         }

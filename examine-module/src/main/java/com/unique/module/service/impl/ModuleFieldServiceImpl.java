@@ -143,11 +143,30 @@ public class ModuleFieldServiceImpl extends ServiceImpl<ModuleFieldMapper, Modul
         if (CollectionUtil.isNotEmpty(updateFields)){
             List<ModuleField> inserts = new ArrayList<>();
             List<ModuleField> updates = new ArrayList<>();
-            List<Long> insertIds = new ArrayList<>();
+            //获取已经占用的字段
+            List<String> hadUserdFieldNames = updateFields.stream().filter(r -> ObjectUtil.isNotEmpty(r.getFieldName())).map(ModuleField::getFieldName).collect(Collectors.toList());
+
+            //查询可以使用的主表的字段
+            List<ModuleField> canUseMainFieldNameList =lambdaQuery().eq(ModuleField::getModuleId,0).list();
+            Map<Integer, List<String>> canUseMainFieldNameListMap = canUseMainFieldNameList.stream()
+//                    .filter(r->!hadUserdFieldNames.contains(r.getFieldName()))
+                    .collect(Collectors.groupingBy(ModuleField::getType,Collectors.mapping(ModuleField::getFieldName,Collectors.toList())));
+
             updateFields.forEach(r->{
                 r.setUpdateTime(nowtime);
                 r.setUpdateUserId(StpUtil.getLoginIdAsLong());
                 if (ObjectUtil.isEmpty(r.getId())) {
+                    //处理新建的字段
+                    String canUseFieldName = FieldUtil.getCanUseFieldName(hadUserdFieldNames, r.getType(), canUseMainFieldNameListMap);
+                    r.setFieldName(canUseFieldName);
+                    if (canUseFieldName.startsWith("field")) {
+                        r.setFieldType(FieldTypeEnum.EXTEND.getType());
+                    }else {
+                        r.setFieldType(FieldTypeEnum.MAIN.getType());
+                    }
+                    hadUserdFieldNames.add(canUseFieldName);
+
+                    r.setId(BaseUtil.getNextId());
                     r.setModuleId(moduleId);
                     r.setCreateUserId(StpUtil.getLoginIdAsLong());
                     r.setCreateTime(nowtime);

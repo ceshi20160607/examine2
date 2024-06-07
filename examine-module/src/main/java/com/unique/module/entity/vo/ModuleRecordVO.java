@@ -35,6 +35,9 @@ public class ModuleRecordVO implements Serializable {
     @ApiModelProperty("主数据的备注")
     private String remark;
 
+    @ApiModelProperty("动态的一个属性--类型 ")
+    private Integer recordFlag;
+
     @ApiModelProperty("状态  0草稿 1正常 2逻辑删除 ")
     private Integer statusFlag;
 

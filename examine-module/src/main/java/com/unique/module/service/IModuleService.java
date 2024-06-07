@@ -29,18 +29,7 @@ public interface IModuleService extends IService<Module> {
     * @return data
     */
     BasePage<Map<String, Object>> queryPageList(SearchBO search);
-    /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    */
-    List<ModuleField> queryField(Long id);
-    /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    */
-    List<List<ModuleField>> queryFormField(Long id);
+
 
     /**
     * 保存或新增信息
@@ -56,13 +45,6 @@ public interface IModuleService extends IService<Module> {
     * @return data
     */
     Map<String, Object>  queryById(Long id);
-
-    /**
-    * 查询详情
-    *
-    * @param id     主键ID
-    */
-    public List<ModuleField> information(Long id);
 
 
     /**

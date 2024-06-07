@@ -1,5 +1,7 @@
 package com.unique.module.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.unique.core.utils.BaseUtil;
 import com.unique.module.entity.po.Module;
 import com.unique.module.mapper.ModuleMapper;
 import com.unique.module.service.IModuleService;
@@ -55,46 +57,6 @@ public class ModuleServiceImpl extends ServiceImpl<ModuleMapper, Module> impleme
         return basePage;
     }
     /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    * @return data
-    */
-    @Override
-    public List<ModuleField> queryField(Long id) {
-        Map<String, Object> record = queryById(id);
-        List<ModuleField> vos = new ArrayList<>();
-        if (ObjectUtil.isNotEmpty(record.get(ConstModule.MODULE_ID))) {
-            vos = moduleFieldService.queryField(Long.valueOf(record.get(ConstModule.MODULE_ID).toString()));
-            if (CollectionUtil.isNotEmpty(vos)) {
-                vos.forEach(r->{
-                    if (ObjectUtil.isNotEmpty(record.get(r.getFieldName()))) {
-                        r.setDefaultValue(record.get(r.getFieldName()).toString());
-                    }
-                });
-            }
-        }
-        return vos;
-    }
-    /**
-    * 查询字段配置
-    *
-    * @param id 主键ID
-    * @return data
-    */
-    @Override
-    public List<List<ModuleField>> queryFormField(Long id) {
-        List<ModuleField> fieldList = queryField(id);
-        List<List<ModuleField>> vos = FieldUtil.getFieldFormList(fieldList,ModuleField::getAxisy,ModuleField::getAxisx);
-
-        for (List<ModuleField> filedVOList : vos) {
-            filedVOList.forEach(field -> {
-            });
-        }
-
-        return vos;
-    }
-    /**
     * 保存或新增信息
     *
     * @param newModel
@@ -102,12 +64,18 @@ public class ModuleServiceImpl extends ServiceImpl<ModuleMapper, Module> impleme
     @Override
     public Map<String, Object> addOrUpdate(Module newModel, boolean isExcel) {
         Map<String, Object> map = new HashMap<>();
+        LocalDateTime nowtime = LocalDateTime.now();
+
+        newModel.setUpdateTime(nowtime);
         if (ObjectUtil.isEmpty(newModel.getId())){
+            newModel.setId(BaseUtil.getNextId());
+            newModel.setCreateTime(nowtime);
+            newModel.setCreateUserId(StpUtil.getLoginIdAsLong());
+
             save(newModel);
             //actionRecordUtil.addRecord(newModel.getId(), CrmEnum.CUSTOMER, newModel.getName());
         }else {
             Module  old = getById(newModel.getId());
-            newModel.setCreateTime(LocalDateTime.now());
             updateById(newModel);
             //actionRecordUtil.updateRecord(BeanUtil.beanToMap(old), BeanUtil.beanToMap(newModel), CrmEnum.CUSTOMER, newModel.getName(), newModel.getId());
         }
@@ -136,17 +104,6 @@ public class ModuleServiceImpl extends ServiceImpl<ModuleMapper, Module> impleme
             }
         }
         return recordMap;
-    }
-
-    /**
-    * 查询详情
-    *
-    * @param id     主键ID
-    */
-    @Override
-    public List<ModuleField> information(Long id) {
-        List<ModuleField> collect = queryField(id);
-        return collect;
     }
 
     /**

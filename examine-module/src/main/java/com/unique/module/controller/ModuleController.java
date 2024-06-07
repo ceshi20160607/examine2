@@ -51,34 +51,7 @@ public class ModuleController {
         BasePage<Map<String, Object>> mapBasePage = moduleService.queryPageList(search);
         return Result.ok(mapBasePage);
     }
-    /**
-    * 新建页面字段
-    *
-    */
-    @PostMapping("/queryFieldAdd")
-    @ApiOperation("查询新增所需字段")
-    public Result<List> queryFieldAdd(@RequestParam(value = "type", required = false) String type) {
-        if (ObjectUtil.isNotEmpty(type)) {
-            return Result.ok(moduleService.queryField(null));
-        }
-        return Result.ok(moduleService.queryFormField(null));
-    }
 
-    /**
-    * 编辑页面字段
-    *
-    * @param id
-    */
-    @PostMapping("/queryFieldEdit/{id}")
-    @ApiOperation("查询修改数据所需信息")
-    public Result<List> queryFieldEdit(@PathVariable("id") @ApiParam(name = "id", value = "id") Long id,
-        @RequestParam(value = "type", required = false) String type) {
-        if (ObjectUtil.isNotEmpty(type)) {
-            List<ModuleField> collect = moduleService.queryField(id).stream().filter(field -> !field.getFieldName().equals("ownerUserId")).collect(Collectors.toList());
-            return Result.ok(collect);
-        }
-        return Result.ok(moduleService.queryFormField(id));
-    }
     /**
     * 保存数据
     *
@@ -103,6 +76,7 @@ public class ModuleController {
         Map<String, Object> map = moduleService.addOrUpdate(baseModel, false);
         return Result.ok(map);
     }
+
     /**
     * 查询数据
     * @param id 业务对象id
@@ -113,20 +87,6 @@ public class ModuleController {
     public Result<Map<String, Object> > queryById(@PathVariable("id") @ApiParam(name = "id", value = "id") Long id) {
         Map<String, Object>  model = moduleService.queryById(id);
         return Result.ok(model);
-    }
-    /**
-    * 查询详情页基本信息
-    *
-    * @param  id
-    * @return data
-    */
-    @PostMapping("/information/{id}")
-    @ApiOperation("查询详情页信息")
-    public Result<List<ModuleField>> information(@PathVariable("id") @ApiParam(name = "id", value = "id") Long id) {
-
-        List<ModuleField> information = moduleService.information(id);
-
-        return Result.ok(information);
     }
 
     /**

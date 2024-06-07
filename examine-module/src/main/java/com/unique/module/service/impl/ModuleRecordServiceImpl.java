@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSON;
 import com.unique.core.enums.FieldTypeEnum;
+import com.unique.core.utils.BaseUtil;
 import com.unique.module.entity.bo.ModuleRecordBO;
 import com.unique.module.entity.po.ModuleRecord;
 import com.unique.module.mapper.ModuleRecordMapper;
@@ -58,6 +59,7 @@ public class ModuleRecordServiceImpl extends ServiceImpl<ModuleRecordMapper, Mod
     @Override
     public BasePage<Map<String, Object>> queryPageList(SearchBO search) {
         BasePage<Map<String, Object>> basePage = getBaseMapper().queryPageList(search.parse(),search);
+
         return basePage;
     }
     /**
@@ -114,60 +116,44 @@ public class ModuleRecordServiceImpl extends ServiceImpl<ModuleRecordMapper, Mod
         Long moduleId = newModel.getModuleId();
         Map<String,Object> entityParam = newModel.getEntity();
         ModuleRecord entity = BeanUtil.copyProperties(entityParam, ModuleRecord.class);
+        Boolean addFlag = ObjectUtil.isEmpty(entity.getId())?Boolean.TRUE:Boolean.FALSE;
+        Long recordId = addFlag?BaseUtil.getNextId():entity.getId();
         //2，基础--字段
         List<ModuleField> fieldExtendList = moduleFieldService.lambdaQuery()
                 .eq(ModuleField::getFieldType, FieldTypeEnum.EXTEND.getType())
                 .list();
+        //扩展字段
+        if (CollectionUtil.isNotEmpty(fieldExtendList)) {
+            List<ModuleRecordData> moduleRecordData = fieldExtendList.stream().map(r -> {
+                ModuleRecordData recordData = new ModuleRecordData();
+                recordData.setModuleId(moduleId);
+                recordData.setRecordId(recordId);
+                recordData.setFieldId(r.getId());
+                recordData.setName(r.getFieldName());
+                if (ObjectUtil.isNotEmpty(entityParam.get(r.getFieldName()))) {
+                    recordData.setValue(JSON.toJSONString(entityParam.get(r.getFieldName())));
+                }
+                recordData.setCreateTime(nowtime);
+                return recordData;
+            }).collect(Collectors.toList());
+            moduleRecordDataService.saveBatch(moduleRecordData);
+        }
+        //3，基础--主数据
         entity.setModuleId(moduleId);
         entity.setUpdateTime(nowtime);
-        if (ObjectUtil.isEmpty(entity.getId())){
-
+        if (addFlag){
+            entity.setId(recordId);
             entity.setCreateTime(nowtime);
             entity.setCreateUserId(StpUtil.getLoginIdAsLong());
             entity.setOwnerUserId(StpUtil.getLoginIdAsLong());
-            if (save(entity)) {
-                Long recordId = entity.getId();
-                //扩展字段
-                if (CollectionUtil.isNotEmpty(fieldExtendList)) {
-                    List<ModuleRecordData> moduleRecordData = fieldExtendList.stream().map(r -> {
-                        ModuleRecordData recordData = new ModuleRecordData();
-                        recordData.setModuleId(moduleId);
-                        recordData.setRecordId(recordId);
-                        recordData.setFieldId(r.getId());
-                        recordData.setName(r.getFieldName());
-                        if (ObjectUtil.isNotEmpty(entityParam.get(r.getFieldName()))) {
-                            recordData.setValue(JSON.toJSONString(entityParam.get(r.getFieldName())));
-                        }
-                        recordData.setCreateTime(nowtime);
-                        return recordData;
-                    }).collect(Collectors.toList());
-                    moduleRecordDataService.saveBatch(moduleRecordData);
-                }
-            }
+            save(entity);
             //actionRecordUtil.addRecord(newModel.getId(), CrmEnum.CUSTOMER, newModel.getName());
         }else {
-            Long recordId = entity.getId();
             ModuleRecord  old = getById(recordId);
             updateById(entity);
-            //扩展字段
-            if (CollectionUtil.isNotEmpty(fieldExtendList)) {
-                List<ModuleRecordData> moduleRecordData = fieldExtendList.stream().map(r -> {
-                    ModuleRecordData recordData = new ModuleRecordData();
-                    recordData.setModuleId(moduleId);
-                    recordData.setRecordId(recordId);
-                    recordData.setFieldId(r.getId());
-                    recordData.setName(r.getFieldName());
-                    if (ObjectUtil.isNotEmpty(entityParam.get(r.getFieldName()))) {
-                        recordData.setValue(JSON.toJSONString(entityParam.get(r.getFieldName())));
-                    }
-                    recordData.setCreateTime(nowtime);
-                    return recordData;
-                }).collect(Collectors.toList());
-                moduleRecordDataService.saveBatch(moduleRecordData);
-            }
             //actionRecordUtil.updateRecord(BeanUtil.beanToMap(old), BeanUtil.beanToMap(newModel), CrmEnum.CUSTOMER, newModel.getName(), newModel.getId());
         }
-        map.put("id", entity.getId());
+        map.put("id", recordId);
         return map;
     }
 

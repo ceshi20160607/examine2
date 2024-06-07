@@ -90,7 +90,13 @@ public class ModuleFieldController {
         return Result.ok();
     }
 
-
+//    @PostMapping("/queryFieldNameWithMainTableList/{moduleId}/{type}")
+//    @ApiOperation("查询字段在主表的扩展字段")
+//    public Result queryFieldNameWithMainTableList(@PathVariable("moduleId") @ApiParam(name = "moduleId", value = "moduleId") Long moduleId,
+//                                                  @PathVariable("type") @ApiParam(name = "type", value = "type") Integer type) {
+//        List<String> ret = moduleFieldService.queryFieldNameWithMainTableList(moduleId, type);
+//        return Result.ok(ret);
+//    }
 
 }
 

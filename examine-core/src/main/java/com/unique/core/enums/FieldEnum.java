@@ -92,6 +92,10 @@ public enum FieldEnum {
      * 定位
      */
     POSITION(18, "position"),
+    /**
+     * 定位
+     */
+    RELATION(19, "relation"),
 
 
     /**

@@ -37,4 +37,11 @@ public class Const {
     public static final List<String> MYSQL_ADDRESS_TO_CLICKHOUSE_SPLIT = Arrays.asList(",",":",";");
 
     public static final String DEFAULT_SESSION_USER_KEY = "USER:LOGIN:INFO:";
+
+
+    /**
+     * 默认密码
+     */
+    public static final String DEFAULT_PASSWORD = "123123aa";
+
 }

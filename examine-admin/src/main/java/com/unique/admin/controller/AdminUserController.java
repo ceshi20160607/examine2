@@ -2,13 +2,16 @@ package com.unique.admin.controller;
 
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.unique.admin.common.utils.EncryptUtil;
 import com.unique.admin.entity.po.AdminUser;
 import com.unique.admin.entity.vo.AdminUserVO;
 import com.unique.admin.service.IAdminUserService;
 import com.unique.core.common.BasePage;
 import com.unique.core.common.Result;
+import com.unique.core.context.Const;
 import com.unique.core.entity.base.bo.SearchBO;
+import com.unique.core.utils.BaseUtil;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +38,10 @@ public class AdminUserController {
     @PostMapping("/add")
     @ApiOperation("保存数据")
     public Result add(@RequestBody AdminUser adminUser) {
+        if (ObjectUtil.isEmpty(adminUser.getPassword())) {
+            adminUser.setPassword(Const.DEFAULT_PASSWORD);
+        }
+        adminUser.setId(BaseUtil.getNextId());
         EncryptUtil.encryUserPwd(adminUser);
         adminUser.setStatus(0);
         iAdminUserService.save(adminUser);

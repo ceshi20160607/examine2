@@ -41,4 +41,5 @@ public interface IModuleFieldService extends IService<ModuleField> {
     void addOrUpdate(ModuleFieldBO baseModel, boolean isExcel);
 
 
+//    List<String> queryFieldNameWithMainTableList(Long moduleId, Integer type);
 }
