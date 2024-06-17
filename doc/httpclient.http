@@ -23,6 +23,12 @@ POST http://{{host}}/user/doLogin
 Content-Type: application/json
 
 {"username": "admin","password": "123123aa","deviceType": "0","loginType": "0"}
+
+
+###
+GET http://{{host}}/user/isLogin
+Content-Type: application/json
+
 ####################################
 ### module相关
 ####################################

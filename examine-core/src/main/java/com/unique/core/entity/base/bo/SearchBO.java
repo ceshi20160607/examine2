@@ -26,6 +26,14 @@ public class SearchBO  implements Serializable {
      * 模块类型
      */
     private Integer moduleId;
+    /**
+     * 模块的根id
+     */
+    private Integer rootId;
+    /**
+     * 类型标识 0分组结构 1数据模块
+     */
+    private Integer typeFlag;
 
 
     @ApiModelProperty("当前页数")

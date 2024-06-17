@@ -31,7 +31,7 @@ public class LoginUserController {
     private IAdminUserService iAdminUserService;
 
 
-    @PostMapping("doLogin")
+    @PostMapping("/doLogin")
     public Result doLogin(@RequestBody UserBO userBO) {
         // 此处仅作模拟示例，真实项目需要从数据库中查询数据进行比对
         List<AdminUser> list = iAdminUserService.lambdaQuery().eq(AdminUser::getUsername, userBO.getUsername()).eq(AdminUser::getStatus, UserStatusEnum.NORMAL.getType()).list();
@@ -48,13 +48,30 @@ public class LoginUserController {
         return Result.error(SystemCodeEnum.SYSTEM_NOT_LOGIN);
     }
 
-    @GetMapping("isLogin")
+    @PostMapping("/doLoginTest")
+    public Result doLoginTest(@RequestBody UserBO userBO) {
+        // 此处仅作模拟示例，真实项目需要从数据库中查询数据进行比对
+        List<AdminUser> list = iAdminUserService.lambdaQuery().list();
+        if (CollectionUtil.isNotEmpty(list)) {
+            AdminUser adminUser = list.get(0);
+            if (EncryptUtil.checkUserPwd(adminUser, userBO.getPassword())) {
+                StpUtil.login(adminUser.getId(), userBO.getDeviceType().getRemarks());
+                SaSession session = StpUtil.getSession();
+                session.set(Const.DEFAULT_SESSION_USER_KEY + adminUser.getId(), adminUser);
+                log.info("****:"+StpUtil.getTokenInfo().toString());
+                return Result.ok(StpUtil.getTokenInfo());
+            }
+        }
+        return Result.error(SystemCodeEnum.SYSTEM_NOT_LOGIN);
+    }
+
+    @GetMapping("/isLogin")
     public Result isLogin() {
         return Result.ok("是否登录：" + StpUtil.isLogin());
     }
 
 
-    @GetMapping("logout")
+    @GetMapping("/logout")
     public Result logout() {
         StpUtil.logout();
         return Result.ok();
