@@ -98,8 +98,22 @@ satoken: {{token}}
 #satoken: {{token}}
 #
 #{}
+####################################
+### 用户使用业务相关
+####################################
+###
+POST http://{{host}}/moduleFieldUser/queryFieldHead?moduleId=4
+Content-Type: application/json
+satoken: {{token}}
 
+{}
 
+###
+POST http://{{host}}/moduleFieldUser/queryFieldSearch?moduleId=4
+Content-Type: application/json
+satoken: {{token}}
+
+{}
 
 ####################################
 ### 审批相关

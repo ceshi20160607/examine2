@@ -7,6 +7,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -129,6 +132,7 @@ public class ModuleField implements Serializable {
 
     @ApiModelProperty("创建人ID")
     @TableField(fill = FieldFill.INSERT)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long createUserId;
 
     @ApiModelProperty("更新时间")
@@ -137,6 +141,7 @@ public class ModuleField implements Serializable {
 
     @ApiModelProperty("修改人ID")
     @TableField(fill = FieldFill.UPDATE)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long updateUserId;
 
 

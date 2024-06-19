@@ -78,14 +78,13 @@ public class ModuleFieldUserServiceImpl extends ServiceImpl<ModuleFieldUserMappe
                 .eq(ModuleFieldUser::getUserId, StpUtil.getLoginIdAsLong())
                 .eq(ModuleFieldUser::getHiddenFlag, IsOrNotEnum.ONE.getType())
                 .list();
-
+        //获取所有字段
+        fieldList = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getModuleId, moduleId)
+                .eq(ModuleField::getIndexFlag, IsOrNotEnum.ZERO.getType())
+                .list();
         if (CollectionUtil.isNotEmpty(hiddenList)) {
             List<Long> hiddenIds = hiddenList.stream().map(ModuleFieldUser::getFieldId).collect(Collectors.toList());
-            //获取所有字段
-            fieldList = moduleFieldService.lambdaQuery()
-                    .eq(ModuleField::getModuleId, moduleId)
-                    .eq(ModuleField::getIndexFlag, IsOrNotEnum.ONE.getType())
-                    .list();
             fieldList.removeIf(field -> !hiddenIds.contains(field.getId()));
         }
         return fieldList;
@@ -117,8 +116,10 @@ public class ModuleFieldUserServiceImpl extends ServiceImpl<ModuleFieldUserMappe
                 fieldList.forEach(r->{
                     ModuleFieldUser item = new ModuleFieldUser();
                     item.setId(BaseUtil.getNextId());
+                    item.setModuleId(moduleId);
                     item.setFieldId(r.getId());
                     item.setUserId(StpUtil.getLoginIdAsLong());
+                    item.setCreateUserId(StpUtil.getLoginIdAsLong());
                     item.setCreateTime(nowtime);
                     retList.add(item);
                 });
