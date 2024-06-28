@@ -2,4 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.unique.admin.mapper.AdminMenuMapper">
 
+    <select id="querySimpleMenu" resultType="com.unique.core.entity.user.bo.SimpleMenu">
+        select *
+        from un_admin_menu
+        inner join un_admin_role_menu on un_admin_menu.id = un_admin_role_menu.menu_id
+        where un_admin_role_menu.user_id = #{userId}
+    </select>
 </mapper>

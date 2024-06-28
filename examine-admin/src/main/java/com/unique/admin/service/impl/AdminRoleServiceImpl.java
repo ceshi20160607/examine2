@@ -5,6 +5,7 @@ import com.unique.admin.entity.po.AdminUser;
 import com.unique.admin.mapper.AdminRoleMapper;
 import com.unique.admin.service.IAdminRoleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.unique.core.entity.user.bo.SimpleRole;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -23,4 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole> implements IAdminRoleService {
 
+    @Override
+    public List<SimpleRole> querySimpleRole(Long userId) {
+        return getBaseMapper().querySimpleRole(userId);
+    }
 }

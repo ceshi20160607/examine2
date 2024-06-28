@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,9 +19,7 @@ import java.time.LocalDateTime;
  * @author UNIQUE
  * @since 2023-03-25
  */
-@Getter
-@Setter
-@TableName("un_admin_user")
+@Data
 @ApiModel(value = "AdminUser对象", description = "用户表")
 public class SimpleUser implements Serializable {
 

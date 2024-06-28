@@ -4,6 +4,7 @@ import com.unique.admin.entity.po.AdminDept;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.unique.core.common.BasePage;
 import com.unique.core.entity.base.bo.SearchBO;
+import com.unique.core.entity.user.bo.SimpleDept;
 
 import java.util.List;
 
@@ -18,6 +19,11 @@ import java.util.List;
 public interface IAdminDeptService extends IService<AdminDept> {
 
     BasePage<List<AdminDept>> queryPageList(SearchBO search);
+
+
+    List<SimpleDept> queryDataDepts(Long userId);
+
+    List<SimpleDept> queryAllDepts();
 
 
     //-----------------------------其他业务使用------------------------------

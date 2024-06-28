@@ -5,7 +5,7 @@
     <select id="queryRoleUserIdGroupByRoleId" resultType="com.unique.admin.entity.po.AdminUserRole">
         select role_id,user_id
         from un_admin_user_role r
-        left join wk_admin_user u on u.user_id = r.user_id
+        left join un_admin_user u on u.user_id = r.user_id
         where u.status = 1
         group by role_id
     </select>

@@ -4,6 +4,16 @@
 
     <select id="queryPageList" resultType="java.util.List">
         select *
-        from wk_admin_dept
+        from un_admin_dept
+    </select>
+    <select id="queryDataDepts" resultType="com.unique.core.entity.user.bo.SimpleDept">
+        select deptd.data_type,dept.*
+        from un_admin_dept as dept
+        inner join un_admin_user_data as deptd on dept.id = deptd.dept_id
+        where deptd.user_id = #{userId}
+    </select>
+    <select id="queryAllDepts" resultType="com.unique.core.entity.user.bo.SimpleDept">
+        select *
+        from un_admin_dept
     </select>
 </mapper>

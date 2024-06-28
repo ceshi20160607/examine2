@@ -2,6 +2,9 @@ package com.unique.admin.mapper;
 
 import com.unique.admin.entity.po.AdminMenu;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.unique.core.entity.user.bo.SimpleMenu;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface AdminMenuMapper extends BaseMapper<AdminMenu> {
 
+    List<SimpleMenu> querySimpleMenu(Long userId);
 }

@@ -2,6 +2,9 @@ package com.unique.admin.mapper;
 
 import com.unique.admin.entity.po.AdminRole;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.unique.core.entity.user.bo.SimpleRole;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface AdminRoleMapper extends BaseMapper<AdminRole> {
 
+    List<SimpleRole> querySimpleRole(Long userId);
 }

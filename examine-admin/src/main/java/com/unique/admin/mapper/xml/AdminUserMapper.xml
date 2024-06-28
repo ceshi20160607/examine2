@@ -4,6 +4,17 @@
 
     <select id="queryPageList" resultType="java.util.List">
         select *
-        from wk_admin_user
+        from un_admin_user
+    </select>
+    <select id="queryDataUsers" resultType="com.unique.core.entity.user.bo.SimpleUser">
+        select *
+        from un_admin_user
+    </select>
+    <select id="queryAllUsers" resultType="com.unique.core.entity.user.bo.SimpleUser">
+        select *
+        from un_admin_user
+        <if test="userId !=null and userId !=''">
+            where id = #{userId}
+        </if>
     </select>
 </mapper>

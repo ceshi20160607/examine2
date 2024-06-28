@@ -2,6 +2,7 @@ package com.unique.admin.service;
 
 import com.unique.admin.entity.po.AdminRole;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.unique.core.entity.user.bo.SimpleRole;
 
 import java.util.List;
 import java.util.Map;
@@ -15,4 +16,5 @@ import java.util.Map;
  * @since 2023-03-25
  */
 public interface IAdminRoleService extends IService<AdminRole> {
+    List<SimpleRole> querySimpleRole(Long userId);
 }

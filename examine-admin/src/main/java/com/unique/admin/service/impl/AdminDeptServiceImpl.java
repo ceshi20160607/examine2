@@ -6,8 +6,10 @@ import com.unique.admin.service.IAdminDeptService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.unique.core.common.BasePage;
 import com.unique.core.entity.base.bo.SearchBO;
+import com.unique.core.entity.user.bo.SimpleDept;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,5 +26,16 @@ public class AdminDeptServiceImpl extends ServiceImpl<AdminDeptMapper, AdminDept
     @Override
     public BasePage<List<AdminDept>> queryPageList(SearchBO search) {
         return getBaseMapper().queryPageList(search.parse(), search);
+    }
+
+
+    @Override
+    public List<SimpleDept> queryDataDepts(Long userId) {
+        return getBaseMapper().queryDataDepts(userId);
+    }
+
+    @Override
+    public List<SimpleDept> queryAllDepts() {
+        return getBaseMapper().queryAllDepts();
     }
 }

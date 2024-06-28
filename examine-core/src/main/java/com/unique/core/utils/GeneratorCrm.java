@@ -18,7 +18,7 @@ public class GeneratorCrm {
     public static final String GENERATOR_USERNAME = "un";
     public static final String GENERATOR_PASSWORD = "password";
     public static final String GENERATOR_AUTHOR="UNIQUE";
-    public static final String GENERATOR_PACKAGE="com.kakarote.";
+    public static final String GENERATOR_PACKAGE="com.unique.";
     public static final String GENERATOR_TABLE_PREFIX="un_";
     public static final String GENERATOR_LOCAL_PATH="D://download//java//generator";
 

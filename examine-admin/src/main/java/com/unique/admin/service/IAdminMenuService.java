@@ -2,6 +2,9 @@ package com.unique.admin.service;
 
 import com.unique.admin.entity.po.AdminMenu;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.unique.core.entity.user.bo.SimpleMenu;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IAdminMenuService extends IService<AdminMenu> {
 
+    List<SimpleMenu> querySimpleMenu(Long userId);
 }

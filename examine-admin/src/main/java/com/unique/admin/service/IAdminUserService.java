@@ -4,7 +4,10 @@ import com.unique.admin.entity.po.AdminUser;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.unique.admin.entity.vo.AdminUserVO;
 import com.unique.core.common.BasePage;
+import com.unique.core.entity.admin.vo.AuthVO;
 import com.unique.core.entity.base.bo.SearchBO;
+import com.unique.core.entity.user.bo.SimpleDept;
+import com.unique.core.entity.user.bo.SimpleUser;
 
 import java.util.List;
 import java.util.Map;
@@ -35,5 +38,23 @@ public interface IAdminUserService extends IService<AdminUser> {
      * @return {@link Map}<{@link Long},{@link List}<{@link Long}>>
      */
     Map<Long, List<Long>> queryDeptUserIdGroupByRoleId();
-    //-----------------------------其他业务使用------------------------------
+
+
+    //-----------------------------权限------------------------------
+
+    /**
+     * 当前用户
+     * @param userId
+     * @return {@link SimpleUser }
+     */
+    SimpleUser querySimpleUser(Long userId);
+
+
+    /**
+     * 所有的用户
+     * @return {@link List }<{@link SimpleUser }>
+     */
+    List<SimpleUser> queryAllUsers();
+
+    //-----------------------------权限------------------------------
 }

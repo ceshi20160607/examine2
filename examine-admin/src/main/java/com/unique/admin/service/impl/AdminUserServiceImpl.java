@@ -6,9 +6,13 @@ import com.unique.admin.mapper.AdminUserMapper;
 import com.unique.admin.service.IAdminUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.unique.core.common.BasePage;
+import com.unique.core.entity.admin.vo.AuthVO;
 import com.unique.core.entity.base.bo.SearchBO;
+import com.unique.core.entity.user.bo.SimpleDept;
+import com.unique.core.entity.user.bo.SimpleUser;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,4 +48,20 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
                 .collect(Collectors.groupingBy(AdminUser::getDeptId,Collectors.mapping(AdminUser::getId, Collectors.toList())));
         return ret;
     }
+
+
+    //-------------------------权限----------------------------
+
+    @Override
+    public SimpleUser querySimpleUser(Long userId) {
+        List<SimpleUser> simpleUsers = getBaseMapper().queryAllUsers(userId);
+        return simpleUsers.isEmpty() ? new SimpleUser() :simpleUsers.get(0);
+    }
+
+    @Override
+    public List<SimpleUser> queryAllUsers() {
+        return getBaseMapper().queryAllUsers(null);
+    }
+
+    //-------------------------权限----------------------------
 }

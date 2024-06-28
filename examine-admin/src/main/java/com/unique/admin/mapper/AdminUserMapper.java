@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.unique.admin.entity.vo.AdminUserVO;
 import com.unique.core.common.BasePage;
 import com.unique.core.entity.base.bo.SearchBO;
+import com.unique.core.entity.user.bo.SimpleUser;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -20,4 +21,10 @@ import java.util.List;
 public interface AdminUserMapper extends BaseMapper<AdminUser> {
 
     BasePage<List<AdminUserVO>> queryPageList(BasePage<Object> parse, @Param("search") SearchBO search);
+
+
+    List<SimpleUser> queryDataUsers(Long userId);
+
+    List<SimpleUser> queryAllUsers(Long userId);
+
 }
