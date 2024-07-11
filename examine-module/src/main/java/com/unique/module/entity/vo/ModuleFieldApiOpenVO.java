@@ -64,5 +64,7 @@ public class ModuleFieldApiOpenVO implements Serializable {
     @ApiModelProperty("更新时间")
     private LocalDateTime updateTime;
 
+    @ApiModelProperty("企业id")
+    private Long companyId;
 
 }

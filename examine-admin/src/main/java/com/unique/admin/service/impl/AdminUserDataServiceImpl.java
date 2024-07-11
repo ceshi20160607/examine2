@@ -1,9 +1,9 @@
 package com.unique.admin.service.impl;
 
-import com.unique.admin.entity.PO.AdminUserData;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.unique.admin.entity.po.AdminUserData;
 import com.unique.admin.mapper.AdminUserDataMapper;
 import com.unique.admin.service.IAdminUserDataService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 /**

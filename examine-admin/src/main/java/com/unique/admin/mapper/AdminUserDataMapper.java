@@ -1,7 +1,8 @@
 package com.unique.admin.mapper;
 
-import com.unique.admin.entity.PO.AdminUserData;
+
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.unique.admin.entity.po.AdminUserData;
 
 /**
  * <p>

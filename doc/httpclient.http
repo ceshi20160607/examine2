@@ -72,7 +72,7 @@ satoken: {{token}}
   "fieldList": [{"id":"12","moduleId":"4","fieldName":"fielddecimal1","name":"金额","type":6,"value":50001}]
 }
 ###
-POST http://{{host}}/moduleRecord/queryById/2
+POST http://{{host}}/moduleRecord/queryById/1801153956043427840
 Content-Type: application/json
 satoken: {{token}}
 
@@ -89,7 +89,7 @@ POST http://{{host}}/moduleRecord/queryPageList
 Content-Type: application/json
 satoken: {{token}}
 
-{"keyword":"","moduleId":7,"page":1,"limit":10,"pageType":0}
+{"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}
 
 
 ####
@@ -102,7 +102,7 @@ satoken: {{token}}
 ### 用户使用业务相关
 ####################################
 ###
-POST http://{{host}}/moduleFieldUser/queryFieldHead?moduleId=4
+POST http://{{host}}/moduleFieldUser/queryFieldHead?moduleId=7
 Content-Type: application/json
 satoken: {{token}}
 

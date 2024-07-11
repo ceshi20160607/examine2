@@ -3,9 +3,8 @@
 <mapper namespace="com.unique.admin.mapper.AdminMenuMapper">
 
     <select id="querySimpleMenu" resultType="com.unique.core.entity.user.bo.SimpleMenu">
-        select *
-        from un_admin_menu
-        inner join un_admin_role_menu on un_admin_menu.id = un_admin_role_menu.menu_id
-        where un_admin_role_menu.user_id = #{userId}
+        select am.*
+        from un_admin_menu as am
+        where exists (select 1 from un_admin_role_menu as arm left join un_admin_user_role as aur on arm.role_id = aur.role_id where aur.user_id = #{userId} and arm.menu_id = am.id)
     </select>
 </mapper>

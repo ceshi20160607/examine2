@@ -145,4 +145,7 @@ public class ModuleField implements Serializable {
     private Long updateUserId;
 
 
+    @ApiModelProperty("企业id")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long companyId;
 }

@@ -60,6 +60,24 @@ public class ModuleRecordServiceImpl extends ServiceImpl<ModuleRecordMapper, Mod
     public BasePage<Map<String, Object>> queryPageList(SearchBO search) {
         BasePage<Map<String, Object>> basePage = getBaseMapper().queryPageList(search.parse(),search);
 
+        //补全字段
+        if (CollectionUtil.isNotEmpty(basePage.getList())) {
+            List<String> ids = basePage.getList().stream().map(r -> r.get("id").toString()).collect(Collectors.toList());
+            List<ModuleRecordData> dataList = moduleRecordDataService.lambdaQuery().eq(ModuleRecordData::getRecordId, ids).list();
+            if (CollectionUtil.isNotEmpty(dataList)) {
+                Map<Long, List<ModuleRecordData>> dataListMap = dataList.stream().collect(Collectors.groupingBy(ModuleRecordData::getRecordId));
+
+                basePage.getList().forEach(r->{
+                    Long id = Long.valueOf(r.get("id").toString());
+                    List<ModuleRecordData> dataList1 = dataListMap.get(id);
+                    if (CollectionUtil.isNotEmpty(dataList1)) {
+                        dataList1.forEach(d->{
+                            r.put(d.getName(),d.getValue());
+                        });
+                    }
+                });
+            }
+        }
         return basePage;
     }
     /**

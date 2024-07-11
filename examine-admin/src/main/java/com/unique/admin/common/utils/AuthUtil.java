@@ -38,7 +38,7 @@ public class AuthUtil {
      */
     public static Boolean adminFlag(Long userId) {
         Boolean boolFlag = Boolean.FALSE;
-        userId = ObjectUtil.isEmpty(userId)?userId:StpUtil.getLoginIdAsLong();
+        userId = ObjectUtil.isNotEmpty(userId)?userId:StpUtil.getLoginIdAsLong();
 //        StpUtil.checkPermission();
         return boolFlag;
     }
@@ -50,7 +50,7 @@ public class AuthUtil {
      */
     public static AuthVO queryAuth(Long userId) {
         AuthVO authVO = new AuthVO();
-        userId = ObjectUtil.isEmpty(userId)?userId:StpUtil.getLoginIdAsLong();
+        userId = ObjectUtil.isNotEmpty(userId)?userId:StpUtil.getLoginIdAsLong();
 //        StpUtil.checkPermission();
         authVO = ME.adminAuthManageService.queryAuth(userId);
         return authVO;

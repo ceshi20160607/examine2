@@ -19,6 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 获取用户相关权限
+ * @author ceshi
+ * @date 2024/07/01
+ */
 @Service
 public class AdminAuthManageService {
     @Autowired

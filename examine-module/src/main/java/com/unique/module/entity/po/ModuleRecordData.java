@@ -53,4 +53,7 @@ public class ModuleRecordData implements Serializable {
     private LocalDateTime createTime;
 
 
+    @ApiModelProperty("企业id")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long companyId;
 }

@@ -4,8 +4,7 @@
 
     <select id="querySimpleRole" resultType="com.unique.core.entity.user.bo.SimpleRole">
         select *
-        from un_admin_role
-        inner join wk_admin_role_user on un_admin_role.id = wk_admin_role_user.role_id
-        where wk_admin_role_user.user_id = #{userId}
+        from un_admin_role as ar
+        where exists (select 1 from un_admin_role_user as uaru where uaru.user_id = #{userId} and uaru.role_id = ar.id)
     </select>
 </mapper>

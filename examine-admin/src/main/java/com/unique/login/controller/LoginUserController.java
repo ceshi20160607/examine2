@@ -3,14 +3,17 @@ package com.unique.login.controller;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.unique.admin.common.utils.AuthUtil;
 import com.unique.admin.common.utils.EncryptUtil;
 import com.unique.admin.entity.bo.UserBO;
 import com.unique.admin.entity.po.AdminUser;
 import com.unique.admin.service.IAdminUserService;
 import com.unique.core.common.Result;
+import com.unique.core.entity.admin.vo.AuthVO;
 import com.unique.core.enums.UserStatusEnum;
 import com.unique.core.context.Const;
 import com.unique.core.enums.SystemCodeEnum;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -75,5 +78,13 @@ public class LoginUserController {
     public Result logout() {
         StpUtil.logout();
         return Result.ok();
+    }
+
+
+    @PostMapping("/loginAuth")
+    @ApiOperation("根据ID删除数据")
+    public Result deleteById() {
+        AuthVO authVO = AuthUtil.queryAuth(null);
+        return Result.ok(authVO);
     }
 }

@@ -81,11 +81,11 @@ public class ModuleFieldUserServiceImpl extends ServiceImpl<ModuleFieldUserMappe
         //获取所有字段
         fieldList = moduleFieldService.lambdaQuery()
                 .eq(ModuleField::getModuleId, moduleId)
-                .eq(ModuleField::getIndexFlag, IsOrNotEnum.ZERO.getType())
+                .eq(ModuleField::getIndexFlag, IsOrNotEnum.ONE.getType())
                 .list();
         if (CollectionUtil.isNotEmpty(hiddenList)) {
             List<Long> hiddenIds = hiddenList.stream().map(ModuleFieldUser::getFieldId).collect(Collectors.toList());
-            fieldList.removeIf(field -> !hiddenIds.contains(field.getId()));
+            fieldList.removeIf(field -> hiddenIds.contains(field.getId()));
         }
         return fieldList;
     }

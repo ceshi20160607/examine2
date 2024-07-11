@@ -42,5 +42,7 @@ public class ModuleRecordDataVO implements Serializable {
 
     private LocalDateTime createTime;
 
+    @ApiModelProperty("企业id")
+    private Long companyId;
 
 }

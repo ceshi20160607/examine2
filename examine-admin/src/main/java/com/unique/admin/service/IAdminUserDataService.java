@@ -1,6 +1,6 @@
 package com.unique.admin.service;
 
-import com.unique.admin.entity.PO.AdminUserData;
+import com.unique.admin.entity.po.AdminUserData;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

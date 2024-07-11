@@ -122,5 +122,7 @@ public class ModuleFieldVO implements Serializable {
     @ApiModelProperty("修改人ID")
     private Long updateUserId;
 
+    @ApiModelProperty("企业id")
+    private Long companyId;
 
 }

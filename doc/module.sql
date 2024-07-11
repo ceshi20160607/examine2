@@ -33,29 +33,122 @@ INSERT INTO `un_module` (`id`, `name`, `sort_num`, `parent_id`, `depth_depth`, `
 INSERT INTO `un_module` (`id`, `name`, `sort_num`, `parent_id`, `depth_depth`, `type_flag`, `hidden_flag`, `root_id`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (6, '合同', 6, 2, '0,1,2', 1, 1, 0, 0, 1, '2024-05-28 11:35:16', NULL, 0);
 
 
-DROP TABLE IF EXISTS `un_module_operate`;
-CREATE TABLE `un_module_operate`  (
-`id` bigint(20) NOT NULL COMMENT 'id',
-`module_id` bigint(20) NOT NULL COMMENT '模块id',
-`name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '功能名称',
+-- DROP TABLE IF EXISTS `un_module_operate`;
+-- CREATE TABLE `un_module_operate`  (
+-- `id` bigint(20) NOT NULL COMMENT 'id',
+-- `module_id` bigint(20) NOT NULL COMMENT '模块id',
+-- `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '功能名称',
+--
+-- `flag` int(11) DEFAULT '0' COMMENT '功能基础类型 0系统默认 1业务分配 2自定义',
+-- `create_user_id` bigint(20) NULL DEFAULT NULL COMMENT '创建人',
+-- `update_user_id` bigint(20) NULL DEFAULT NULL COMMENT '更新人',
+-- `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+-- `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+-- `company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+-- PRIMARY KEY (`id`) USING BTREE
+-- ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '模块操作功能表' ROW_FORMAT = Dynamic;
+--
+-- -- ------------------------
+-- -- 数据
+-- -- ------------------------
+-- INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (1, 0, '列表', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
+-- INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (2, 0, '添加', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
+-- INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (3, 0, '修改', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
+-- INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (4, 0, '删除', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
+-- INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (5, 0, '转移', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
 
-`flag` int(11) DEFAULT '0' COMMENT '功能基础类型 0系统默认 1业务分配 2自定义',
-`create_user_id` bigint(20) NULL DEFAULT NULL COMMENT '创建人',
-`update_user_id` bigint(20) NULL DEFAULT NULL COMMENT '更新人',
-`create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-`update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+
+DROP TABLE IF EXISTS `un_module_menu`;
+CREATE TABLE `un_module_menu` (
+`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '菜单ID',
+`menu_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '菜单名称',
+`module_id` bigint(20) DEFAULT NULL COMMENT '所属模块',
+`menu_type` int(11) DEFAULT NULL COMMENT '菜单类型 0 列表1 详情2 添加3 编辑4 删除5 导入6 导出7 打印  10 修改状态 11 转化数据',
+
+`menu_option` longtext CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '修改状态/转化数据 对应的规则的json',
+`realm_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '权限URL',
+-- `menu_type` int(11) DEFAULT NULL COMMENT '菜单类型  1目录 2 菜单 3 按钮 4特殊',
+
+`sorts` int(10) unsigned DEFAULT '0' COMMENT '排序（同级有效）',
+`status` int(11) DEFAULT '1' COMMENT '状态  0 禁用 1 启用',
+`remarks` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '菜单说明',
 `company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '模块操作功能表' ROW_FORMAT = Dynamic;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='模块菜单功能权限配置表';
 
--- ------------------------
--- 数据
--- ------------------------
-INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (1, 0, '列表', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
-INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (2, 0, '添加', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
-INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (3, 0, '修改', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
-INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (4, 0, '删除', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
-INSERT INTO `un_module_operate` (`id`, `module_id`, `name`, `flag`, `create_user_id`, `update_user_id`, `create_time`, `update_time`, `company_id`) VALUES (5, 0, '转移', 0, 0, 0, '2024-05-28 11:24:51', '2024-05-28 11:24:51', 0);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (1, '列表', 4, 0, NULL, 0, 1, NULL);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (2, '详情', 4, 1, NULL, 0, 1, NULL);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (3, '添加', 4, 2, NULL, 0, 1, NULL);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (4, '编辑', 4, 3, NULL, 0, 1, NULL);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (5, '删除', 4, 4, NULL, 0, 1, NULL);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (6, '导入', 4, 5, NULL, 0, 1, NULL);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (7, '导出', 4, 6, NULL, 0, 1, NULL);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (8, '打印', 4, 7, NULL, 0, 1, NULL);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (9, '修改某个字段/状态', 4, 10, '{\"old\":\"status\",\"new\":\"status\"}', 0, 1, NULL);
+INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu_option`, `sorts`, `status`, `remarks`) VALUES (10, '转化，模块下的数据转成另一个模块的数据', 4, 11, '[{\"old\":\"status\",\"new\":\"status\"},{\"old\":\"status\",\"new\":\"status\"},{\"old\":\"status\",\"new\":\"status\"}]', 0, 1, NULL);
+
+DROP TABLE IF EXISTS `un_module_role`;
+CREATE TABLE `un_module_role` (
+`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键' ,
+`role_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '名称',
+`remark` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '备注',
+`create_time` datetime DEFAULT NULL COMMENT '创建时间',
+`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
+`update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+`update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='角色表';
+
+
+DROP TABLE IF EXISTS `un_module_role_menu`;
+CREATE TABLE `un_module_role_menu` (
+`id` bigint(20) NOT NULL,
+`role_id` bigint(20) NOT NULL COMMENT '角色ID',
+`module_id` bigint(20) DEFAULT NULL COMMENT '所属模块',
+`menu_id` bigint(20) NOT NULL COMMENT '菜单ID',
+`create_time` datetime DEFAULT NULL COMMENT '创建时间',
+`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
+`update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+`update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='模块的角色对应菜单权限';
+
+DROP TABLE IF EXISTS `un_module_role_data`;
+CREATE TABLE `un_module_role_data` (
+`id` bigint(20) NOT NULL,
+`role_id` bigint(20) NOT NULL COMMENT '角色ID',
+`module_id` bigint(20) DEFAULT NULL COMMENT '所属模块',
+`data_type` int(11) DEFAULT '1' COMMENT '数据权限 1、本人，2、本人及下属，3、本部门，4、本部门及下属部门，5、全部',
+
+`create_time` datetime DEFAULT NULL COMMENT '创建时间',
+`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
+`update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+`update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='模块的角色对应数据权限';
+
+DROP TABLE IF EXISTS `un_module_role_field`;
+CREATE TABLE `un_module_role_field` (
+`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+`role_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '角色id',
+`module_id` bigint(20) DEFAULT NULL COMMENT '所属模块',
+`field_id` bigint(20) DEFAULT NULL COMMENT '字段ID',
+`auth_type` int(11) NOT NULL DEFAULT '0' COMMENT '授权类型   0不能查看   1只能看 2可以编辑',
+`create_time` datetime DEFAULT NULL COMMENT '创建时间',
+`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
+`update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+`update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='模块的角色对应字段权限';
+
+
+
+
+
 
 
 DROP TABLE IF EXISTS `un_module_field`;
@@ -104,6 +197,7 @@ CREATE TABLE `un_module_field` (
 `create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
 `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 `update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='自定义字段表';
 -- ------------------------
@@ -161,20 +255,7 @@ INSERT INTO `un_module_field` (`id`, `module_id`, `field_name`, `name`, `type`, 
 INSERT INTO `un_module_field` (`id`, `module_id`, `field_name`, `name`, `type`, `remark`, `input_tips`, `max_length`, `default_value`, `union_flag`, `must_flag`, `hidden_flag`, `delete_flag`, `add_flag`, `index_flag`, `detail_flag`, `sorting`, `field_type`, `dict_id`, `option_data`, `parent_id`, `depth_depth`, `transfer_model_id`, `transfer_field_name`, `style_percent`, `precisions`, `max_num_restrict`, `min_num_restrict`, `axisx`, `axisy`, `create_time`, `create_user_id`, `update_time`, `update_user_id`) VALUES (50, 7, 'fieldnum2', '加油站', 3, NULL, NULL, NULL, '', 0, 0, 0, 0, 0, 0, 0, 1, 0, NULL, '{\"1\":\"中化加油\",\"2\":\"联盈石化\",\"3\":\"中国石油\",\"4\":\"中国石化\",\"5\":\"其他\"}', NULL, NULL, NULL, NULL, 50, NULL, NULL, NULL, 1, 1, NULL, 0, '2024-06-06 14:00:06', NULL);
 
 
-DROP TABLE IF EXISTS `un_module_field_auth`;
-CREATE TABLE `un_module_field_auth` (
-`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-`field_id` bigint(20) DEFAULT NULL COMMENT '字段ID',
-`role_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '角色id',
-`auth_type` int(11) NOT NULL DEFAULT '0' COMMENT '授权类型   0不能查看   1只能看 2可以编辑',
-`create_time` datetime DEFAULT NULL COMMENT '创建时间',
-`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
-`update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-`update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
-PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='自定义字段关联角色表';
-
-
+--
 DROP TABLE IF EXISTS `un_module_field_user`;
 CREATE TABLE `un_module_field_user` (
 `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
@@ -188,6 +269,7 @@ CREATE TABLE `un_module_field_user` (
 `create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
 `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 `update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='自定义字段关联用户表';
 
@@ -209,6 +291,7 @@ CREATE TABLE `un_module_field_api_open` (
 `owner_user_id` bigint(20) DEFAULT NULL COMMENT '负责人ID',
 `create_time` datetime DEFAULT NULL COMMENT '创建时间',
 `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='第三方接口 字段对照表';
 
@@ -229,6 +312,7 @@ CREATE TABLE `un_module_dict` (
 `owner_user_id` bigint(20) DEFAULT NULL COMMENT '负责人ID',
 `create_time` datetime DEFAULT NULL COMMENT '创建时间',
 `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='字典表';
 
@@ -278,11 +362,15 @@ CREATE TABLE `un_module_record` (
 `fieldtext8` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '主数据默认文本字段',
 `fieldtext9` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '主数据默认文本字段',
 
+`old_id` bigint  NULL COMMENT '转化的时候使用的id',
+`old_module_id` bigint  NULL COMMENT '转化的时候使用的模块ID',
+
 `owner_dept_id` bigint DEFAULT NULL COMMENT '所属部门',
 `create_user_id` bigint NOT NULL COMMENT '创建人ID',
 `owner_user_id` bigint NOT NULL COMMENT '负责人ID',
 `create_time` datetime NOT NULL COMMENT '创建时间',
 `update_time` datetime NOT NULL COMMENT '更新时间',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='主数据基础表';
 -- 油数据
@@ -400,6 +488,8 @@ CREATE TABLE `un_module_record_data` (
 `old_value` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '老值',
 
 `create_time` datetime NOT NULL,
+`update_time` datetime NOT NULL COMMENT '更新时间',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='主数据自定义字段存值表';
 

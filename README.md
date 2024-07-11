@@ -9,14 +9,13 @@ an examine system
 
 # 完善模块
 
+# 模块下的字段=》自关联的性质==》实例到表固定字段，非固定字段不能被实例化
+~~> 1.执行1次，设置完成保存后直接更新~~
+~~> 2.执行多次，定时更新，定时任务，执行sql更新；~~
+# 菜单动态构建，系统规则菜单模式内自由创建
+> 菜单类型固定7+2种来处理
+> 1.模块下的 菜单=》1个人可以多个
+> 2.模块下的 数据=》1个人只能被设置1个==》模块===》数据权限
+>                                       ===>字段权限
+
 # 添加记事本note--使用模块实现
-
-
-List<ModuleField> fieldList = lambdaQuery()
-.eq(ModuleField::getModuleId, id)
-.eq(ModuleField::getAddFlag, IsOrNotEnum.ONE.getType())
-.list();
-
-
-    @ApiModelProperty("显示：0全部 1分配给我的 2我创建的 3我参与的")
-    private Integer showFlag = 0;

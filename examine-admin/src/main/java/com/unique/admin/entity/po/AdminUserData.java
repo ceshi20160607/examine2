@@ -1,4 +1,4 @@
-package com.unique.admin.entity.PO;
+package com.unique.admin.entity.po;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;

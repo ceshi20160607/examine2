@@ -77,4 +77,7 @@ public class ModuleFieldApiOpen implements Serializable {
     private LocalDateTime updateTime;
 
 
+    @ApiModelProperty("企业id")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long companyId;
 }

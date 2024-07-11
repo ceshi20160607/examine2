@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.unique.core.utils.BaseUtil;
 import com.unique.module.entity.po.Module;
 import com.unique.module.mapper.ModuleMapper;
+import com.unique.module.service.IModuleMenuService;
 import com.unique.module.service.IModuleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
@@ -40,10 +41,10 @@ import java.util.*;
 @Service
 public class ModuleServiceImpl extends ServiceImpl<ModuleMapper, Module> implements IModuleService {
 
-    @Autowired
     private IModuleFieldService moduleFieldService;
     @Autowired
     private IModuleRecordDataService moduleRecordDataService;
+
 
     /**
     * 导出时查询所有数据
@@ -74,6 +75,7 @@ public class ModuleServiceImpl extends ServiceImpl<ModuleMapper, Module> impleme
 
             save(newModel);
             //actionRecordUtil.addRecord(newModel.getId(), CrmEnum.CUSTOMER, newModel.getName());
+
         }else {
             Module  old = getById(newModel.getId());
             updateById(newModel);

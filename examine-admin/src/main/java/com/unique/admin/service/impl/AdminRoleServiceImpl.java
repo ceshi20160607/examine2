@@ -1,7 +1,6 @@
 package com.unique.admin.service.impl;
 
 import com.unique.admin.entity.po.AdminRole;
-import com.unique.admin.entity.po.AdminUser;
 import com.unique.admin.mapper.AdminRoleMapper;
 import com.unique.admin.service.IAdminRoleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

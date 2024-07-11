@@ -18,8 +18,8 @@ public class Generator {
     public static final String GENERATOR_PASSWORD = "password";
     public static final String GENERATOR_AUTHOR = "UNIQUE";
     public static final String GENERATOR_PACKAGE="com.unique.";
-//    public static final String GENERATOR_LOCAL_PATH = "E://mysnow//open//createbase//";
-    public static final String GENERATOR_LOCAL_PATH = "E://mysnow//open//examine2//examine2//";
+    public static final String GENERATOR_LOCAL_PATH = "E://mysnow//open//createbase//";
+//    public static final String GENERATOR_LOCAL_PATH = "E://mysnow//open//examine2//examine2//";
     public static final String GENERATOR_PACKAGE_PATH = "//src//main//java";
     public static final String GENERATOR_PACKAGE_MODULE_FLOLD = "examine-module";
 

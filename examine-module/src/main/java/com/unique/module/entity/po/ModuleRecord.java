@@ -149,6 +149,15 @@ public class ModuleRecord implements Serializable {
     @ApiModelProperty("主数据默认文本字段")
     private String fieldtext9;
 
+
+    @ApiModelProperty("转化的时候使用的id")
+    private Long oldId;
+
+    @ApiModelProperty("转化的时候使用的模块ID")
+    private Long oldModuleId;
+
+
+
     @ApiModelProperty("所属部门")
     private Long ownerDeptId;
 
@@ -168,4 +177,7 @@ public class ModuleRecord implements Serializable {
     private LocalDateTime updateTime;
 
 
+    @ApiModelProperty("企业id")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long companyId;
 }
