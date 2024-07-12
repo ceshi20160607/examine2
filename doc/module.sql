@@ -493,3 +493,67 @@ CREATE TABLE `un_module_record_data` (
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='主数据自定义字段存值表';
 
+
+
+
+
+
+
+
+-- -----------------------------
+-- 数据字典=》最终取值还是base表中的id，dict表相当于控制版本
+-- -----------------------------
+-- 数据字段基础表
+DROP TABLE IF EXISTS `un_module_dict_base`;
+CREATE TABLE `un_module_dict_base` (
+`id` bigint(20) NOT NULL AUTO_INCREMENT,
+`module_id` bigint(20) NOT NULL COMMENT '模块ID',
+`dict_key` bigint(20) NOT NULL COMMENT '具体数据recordID',
+`dict_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
+
+`status` int(10) NOT NULL DEFAULT '1' COMMENT '状态 1正常 0禁用',
+`use_flag` int(10) NOT NULL DEFAULT '0' COMMENT '修改后是否应用所有 0不应用 1应用',
+
+`create_time` datetime NOT NULL,
+`update_time` datetime NOT NULL COMMENT '更新时间',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='数据字段基础表';
+
+-- 数据字段基础表
+DROP TABLE IF EXISTS `un_module_dict_group`;
+CREATE TABLE `un_module_dict_group` (
+`id` bigint(20) NOT NULL AUTO_INCREMENT,
+`module_id` bigint(20) NOT NULL COMMENT '模块ID',
+`name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
+`status` int(10) NOT NULL DEFAULT '1' COMMENT '状态 1正常 0禁用',
+
+`create_time` datetime NOT NULL,
+`update_time` datetime NOT NULL COMMENT '更新时间',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='数据字典组表';
+
+-- 数据字段基础表
+DROP TABLE IF EXISTS `un_module_dict`;
+CREATE TABLE `un_module_dict` (
+`id` bigint(20) NOT NULL AUTO_INCREMENT,
+`module_id` bigint(20) NOT NULL COMMENT '模块ID',
+`group_id` bigint(20) NOT NULL COMMENT '字典组ID',
+
+`parent_id` bigint(20) NULL DEFAULT '0' COMMENT '父级id 0表示顶层的系统',
+`depth_depth` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '列的深度',
+
+`dict_id` bigint(20) NOT NULL COMMENT '具体数据dictID',
+`dict_key` bigint(20) NOT NULL COMMENT '具体数据recordID',
+`dict_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
+`sort_num` int(11) NULL DEFAULT NULL COMMENT '排序',
+
+
+`status` int(10) NOT NULL DEFAULT '1' COMMENT '状态 1正常 0禁用',
+
+`create_time` datetime NOT NULL,
+`update_time` datetime NOT NULL COMMENT '更新时间',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='数据字典组具体数据表';
