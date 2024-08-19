@@ -1,4 +1,4 @@
-package com.unique.core.utils;
+package com.unique.core.generator;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.core.enums.SqlLike;
@@ -19,7 +19,9 @@ public class GeneratorCrm {
     public static final String GENERATOR_PASSWORD = "password";
     public static final String GENERATOR_AUTHOR="UNIQUE";
     public static final String GENERATOR_PACKAGE="com.unique.";
-    public static final String GENERATOR_TABLE_PREFIX="un_";
+public static final String GENERATOR_TABLE_PREFIX="un_";
+//    public static final String GENERATOR_PACKAGE="com.kakarote.";
+//    public static final String GENERATOR_TABLE_PREFIX="wk_";
     public static final String GENERATOR_LOCAL_PATH="D://download//java//generator";
 
     public static void main(String[] args) {
