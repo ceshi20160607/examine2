@@ -14,7 +14,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 数据字典组具体数据表
+ * 数据字段基础表
  * </p>
  *
  * @author UNIQUE
@@ -22,9 +22,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("un_module_dict")
-@ApiModel(value = "ModuleDict对象", description = "数据字典组具体数据表")
-public class ModuleDict implements Serializable {
+@TableName("un_module_dict_base")
+@ApiModel(value = "ModuleDictBase对象", description = "数据字段基础表")
+public class ModuleDictBase implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -34,29 +34,17 @@ public class ModuleDict implements Serializable {
     @ApiModelProperty("模块ID")
     private Long moduleId;
 
-    @ApiModelProperty("字典组ID")
-    private Long groupId;
-
-    @ApiModelProperty("父级id 0表示顶层的系统")
-    private Long parentId;
-
-    @ApiModelProperty("列的深度")
-    private String depthDepth;
-
-    @ApiModelProperty("具体数据dictID")
-    private Long dictId;
-
     @ApiModelProperty("具体数据recordID")
     private Long dictKey;
 
     @ApiModelProperty("名称")
     private String dictTitle;
 
-    @ApiModelProperty("排序")
-    private Integer sortNum;
-
     @ApiModelProperty("状态 1正常 0禁用")
     private Integer status;
+
+    @ApiModelProperty("修改后是否应用所有 0不应用 1应用")
+    private Integer useFlag;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

@@ -1,8 +1,8 @@
 package com.unique.module.service.impl;
 
-import com.unique.module.entity.po.ModuleDict;
-import com.unique.module.mapper.ModuleDictMapper;
-import com.unique.module.service.IModuleDictService;
+import com.unique.module.entity.po.ModuleDictGroup;
+import com.unique.module.mapper.ModuleDictGroupMapper;
+import com.unique.module.service.IModuleDictGroupService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -20,14 +20,14 @@ import java.util.*;
 
 /**
  * <p>
- * 数据字典组具体数据表 服务实现类
+ * 数据字典组表 服务实现类
  * </p>
  *
  * @author UNIQUE
  * @since 2024-08-19
  */
 @Service
-public class ModuleDictServiceImpl extends ServiceImpl<ModuleDictMapper, ModuleDict> implements IModuleDictService {
+public class ModuleDictGroupServiceImpl extends ServiceImpl<ModuleDictGroupMapper, ModuleDictGroup> implements IModuleDictGroupService {
 
     /**
     * 导出时查询所有数据
@@ -40,13 +40,14 @@ public class ModuleDictServiceImpl extends ServiceImpl<ModuleDictMapper, ModuleD
         BasePage<Map<String, Object>> basePage = getBaseMapper().queryPageList(search.parse(),search);
         return basePage;
     }
+
     /**
     * 保存或新增信息
     *
     * @param newModel
     */
     @Override
-    public Map<String, Object> addOrUpdate(ModuleDict newModel, boolean isExcel) {
+    public Map<String, Object> addOrUpdate(ModuleDictGroup newModel, boolean isExcel) {
         Map<String, Object> map = new HashMap<>();
         LocalDateTime nowtime = LocalDateTime.now();
 
@@ -71,8 +72,8 @@ public class ModuleDictServiceImpl extends ServiceImpl<ModuleDictMapper, ModuleD
     */
     @Override
     public Map<String, Object> queryById(Long id) {
-        LambdaQueryWrapper<ModuleDict> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ModuleDict::getId, id);
+        LambdaQueryWrapper<ModuleDictGroup> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ModuleDictGroup::getId, id);
         Map<String, Object> recordMap = getMap(queryWrapper);
         return recordMap;
     }

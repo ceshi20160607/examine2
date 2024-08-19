@@ -1,6 +1,6 @@
 package com.unique.module.mapper;
 
-import com.unique.module.entity.po.ModuleDict;
+import com.unique.module.entity.po.ModuleDictGroup;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 import com.unique.core.common.BasePage;
@@ -13,13 +13,13 @@ import java.util.Map;
 
 /**
  * <p>
- * 数据字典组具体数据表 Mapper 接口
+ * 数据字典组表 Mapper 接口
  * </p>
  *
  * @author UNIQUE
  * @since 2024-08-19
  */
-public interface ModuleDictMapper extends BaseMapper<ModuleDict> {
+public interface ModuleDictGroupMapper extends BaseMapper<ModuleDictGroup> {
 
  BasePage<Map<String, Object>> queryPageList(BasePage<Object> parse, @Param("search") SearchBO search);
 

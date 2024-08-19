@@ -16,26 +16,26 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 
-import com.unique.module.service.IModuleDictService;
-import com.unique.module.entity.po.ModuleDict;
+import com.unique.module.service.IModuleDictBaseService;
+import com.unique.module.entity.po.ModuleDictBase;
 
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
- * 数据字典组具体数据表 前端控制器
+ * 数据字段基础表 前端控制器
  * </p>
  *
  * @author UNIQUE
  * @since 2024-08-19
  */
 @RestController
-@RequestMapping("/moduleDict")
-@Api(tags = "数据字典组具体数据表")
-public class ModuleDictController {
+@RequestMapping("/moduleDictBase")
+@Api(tags = "数据字段基础表")
+public class ModuleDictBaseController {
 
     @Autowired
-    private IModuleDictService moduleDictService;
+    private IModuleDictBaseService moduleDictBaseService;
 
 
     /**
@@ -48,9 +48,11 @@ public class ModuleDictController {
     @ApiOperation("查询列表页数据")
     public Result<BasePage<Map<String, Object>>> queryPageList(@RequestBody SearchBO search) {
         search.setPageType(1);
-        BasePage<Map<String, Object>> mapBasePage = moduleDictService.queryPageList(search);
+        BasePage<Map<String, Object>> mapBasePage = moduleDictBaseService.queryPageList(search);
         return Result.ok(mapBasePage);
     }
+
+
     /**
     * 保存数据
     *
@@ -59,8 +61,8 @@ public class ModuleDictController {
     */
     @PostMapping("/add")
     @ApiOperation("保存数据")
-    public Result<Map<String, Object>> add(@RequestBody ModuleDict baseModel) {
-        Map<String, Object> map = moduleDictService.addOrUpdate(baseModel, false);
+    public Result<Map<String, Object>> add(@RequestBody ModuleDictBase baseModel) {
+        Map<String, Object> map = moduleDictBaseService.addOrUpdate(baseModel, false);
         return Result.ok(map);
     }
     /**
@@ -71,8 +73,8 @@ public class ModuleDictController {
     */
     @PostMapping("/update")
     @ApiOperation("修改数据")
-    public Result<Map<String, Object>> update(@RequestBody ModuleDict baseModel) {
-        Map<String, Object> map = moduleDictService.addOrUpdate(baseModel, false);
+    public Result<Map<String, Object>> update(@RequestBody ModuleDictBase baseModel) {
+        Map<String, Object> map = moduleDictBaseService.addOrUpdate(baseModel, false);
         return Result.ok(map);
     }
     /**
@@ -83,9 +85,11 @@ public class ModuleDictController {
     @PostMapping("/queryById/{id}")
     @ApiOperation("根据ID查询")
     public Result<Map<String, Object> > queryById(@PathVariable("id") @ApiParam(name = "id", value = "id") Long id) {
-        Map<String, Object>  model = moduleDictService.queryById(id);
+        Map<String, Object>  model = moduleDictBaseService.queryById(id);
         return Result.ok(model);
     }
+
+
     /**
     * 删除数据
     * @param ids 业务对象ids
@@ -94,7 +98,7 @@ public class ModuleDictController {
     @PostMapping("/deleteByIds")
     @ApiOperation("根据ID删除数据")
     public Result deleteByIds(@ApiParam(name = "ids", value = "id列表") @RequestBody List<Long> ids) {
-        moduleDictService.deleteByIds(ids);
+        moduleDictBaseService.deleteByIds(ids);
         return Result.ok();
     }
 

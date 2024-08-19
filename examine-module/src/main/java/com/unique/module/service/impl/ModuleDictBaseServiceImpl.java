@@ -1,8 +1,8 @@
 package com.unique.module.service.impl;
 
-import com.unique.module.entity.po.ModuleDict;
-import com.unique.module.mapper.ModuleDictMapper;
-import com.unique.module.service.IModuleDictService;
+import com.unique.module.entity.po.ModuleDictBase;
+import com.unique.module.mapper.ModuleDictBaseMapper;
+import com.unique.module.service.IModuleDictBaseService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -20,14 +20,14 @@ import java.util.*;
 
 /**
  * <p>
- * 数据字典组具体数据表 服务实现类
+ * 数据字段基础表 服务实现类
  * </p>
  *
  * @author UNIQUE
  * @since 2024-08-19
  */
 @Service
-public class ModuleDictServiceImpl extends ServiceImpl<ModuleDictMapper, ModuleDict> implements IModuleDictService {
+public class ModuleDictBaseServiceImpl extends ServiceImpl<ModuleDictBaseMapper, ModuleDictBase> implements IModuleDictBaseService {
 
     /**
     * 导出时查询所有数据
@@ -46,7 +46,7 @@ public class ModuleDictServiceImpl extends ServiceImpl<ModuleDictMapper, ModuleD
     * @param newModel
     */
     @Override
-    public Map<String, Object> addOrUpdate(ModuleDict newModel, boolean isExcel) {
+    public Map<String, Object> addOrUpdate(ModuleDictBase newModel, boolean isExcel) {
         Map<String, Object> map = new HashMap<>();
         LocalDateTime nowtime = LocalDateTime.now();
 
@@ -71,8 +71,8 @@ public class ModuleDictServiceImpl extends ServiceImpl<ModuleDictMapper, ModuleD
     */
     @Override
     public Map<String, Object> queryById(Long id) {
-        LambdaQueryWrapper<ModuleDict> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ModuleDict::getId, id);
+        LambdaQueryWrapper<ModuleDictBase> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ModuleDictBase::getId, id);
         Map<String, Object> recordMap = getMap(queryWrapper);
         return recordMap;
     }
