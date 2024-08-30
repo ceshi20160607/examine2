@@ -4,9 +4,7 @@ import com.unique.admin.entity.po.AdminUser;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.unique.admin.entity.vo.AdminUserVO;
 import com.unique.core.common.BasePage;
-import com.unique.core.entity.admin.vo.AuthVO;
 import com.unique.core.entity.base.bo.SearchBO;
-import com.unique.core.entity.user.bo.SimpleDept;
 import com.unique.core.entity.user.bo.SimpleUser;
 
 import java.util.List;

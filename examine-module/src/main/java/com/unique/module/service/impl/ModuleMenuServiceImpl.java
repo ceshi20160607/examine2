@@ -1,5 +1,6 @@
 package com.unique.module.service.impl;
 
+import com.unique.core.entity.user.bo.SimpleMenu;
 import com.unique.module.entity.bo.ModuleMenuBO;
 import com.unique.module.entity.po.ModuleMenu;
 import com.unique.module.mapper.ModuleMenuMapper;
@@ -83,6 +84,11 @@ public class ModuleMenuServiceImpl extends ServiceImpl<ModuleMenuMapper, ModuleM
     public void deleteByIds(List<Long> ids) {
         removeByIds(ids);
         //crmActionRecordService.deleteActionRecord(CrmEnum.CUSTOMER, ids);
+    }
+
+    @Override
+    public List<SimpleMenu> querySimpleMenu(Long moduleId,Long userId) {
+        return getBaseMapper().querySimpleMenu(moduleId,userId);
     }
 
 }

@@ -32,6 +32,9 @@ public class ModuleRole implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    @ApiModelProperty("所属模块")
+    private Long moduleId;
+
     @ApiModelProperty("名称")
     private String roleName;
 

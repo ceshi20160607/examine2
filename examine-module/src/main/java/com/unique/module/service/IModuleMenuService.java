@@ -1,5 +1,6 @@
 package com.unique.module.service;
 
+import com.unique.core.entity.user.bo.SimpleMenu;
 import com.unique.module.entity.bo.ModuleMenuBO;
 import com.unique.module.entity.po.ModuleMenu;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -55,4 +56,6 @@ public interface IModuleMenuService extends IService<ModuleMenu> {
     void deleteByIds(List<Long> ids);
 
 
+    //--------------------------------------------------
+    List<SimpleMenu> querySimpleMenu(Long moduleId,Long userId);
 }

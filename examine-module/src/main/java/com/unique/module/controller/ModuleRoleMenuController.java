@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2024-07-02
  */
 @RestController
-@RequestMapping("/module-role-menu")
+@RequestMapping("/moduleRoleMenu")
 @Api(tags = "模块的角色对应菜单权限")
 public class ModuleRoleMenuController {
 

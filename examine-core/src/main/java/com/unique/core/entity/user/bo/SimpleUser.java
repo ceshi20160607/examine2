@@ -26,8 +26,10 @@ public class SimpleUser implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty("主键")
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
+
+    @ApiModelProperty("模块ID")
+    private Long moduleId;
 
     @ApiModelProperty("用户名")
     private String username;
@@ -61,6 +63,9 @@ public class SimpleUser implements Serializable {
 
     @ApiModelProperty("直属上级ID")
     private Long parentId;
+
+    @ApiModelProperty("parent_id 构建的深度")
+    private String deepth;
 
     @ApiModelProperty("最后登录时间")
     private LocalDateTime lastLoginTime;

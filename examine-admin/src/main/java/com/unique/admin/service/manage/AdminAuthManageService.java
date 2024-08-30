@@ -1,22 +1,19 @@
 package com.unique.admin.service.manage;
 
 import cn.dev33.satoken.stp.StpUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.unique.admin.service.IAdminDeptService;
 import com.unique.admin.service.IAdminMenuService;
 import com.unique.admin.service.IAdminRoleService;
 import com.unique.admin.service.IAdminUserService;
-import com.unique.core.entity.admin.vo.AuthVO;
+import com.unique.core.entity.base.vo.AuthVO;
 import com.unique.core.entity.user.bo.SimpleDept;
 import com.unique.core.entity.user.bo.SimpleUser;
 import com.unique.core.enums.DataTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -57,7 +54,7 @@ public class AdminAuthManageService {
 
 
         List<SimpleUser> dataSimpleUserIds = new ArrayList<>();
-        List<Long> userIds = new ArrayList<>();
+        Set<Long> userIds = new HashSet<>();
         List<Long> deptIds = new ArrayList<>();
         List<SimpleDept> dataSimpleDeptIds =  adminDeptService.queryDataDepts(userId);
         if (CollectionUtil.isNotEmpty(dataSimpleDeptIds)) {

@@ -3,8 +3,6 @@ package com.unique.examine.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.unique.admin.service.IAdminUserRoleService;
-import com.unique.admin.service.IAdminUserService;
 import com.unique.examine.entity.bo.ExamineNodeBO;
 import com.unique.examine.entity.dto.ExamineNodeAdd;
 import com.unique.examine.entity.po.ExamineNodeUser;
@@ -19,6 +17,7 @@ import com.unique.examine.service.IExamineRecordNodeService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.unique.examine.service.IExamineRecordNodeUserService;
 import com.unique.core.utils.BaseUtil;
+import com.unique.module.manage.service.ModuleAuthManageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,9 +37,7 @@ import java.util.Map;
 public class ExamineRecordNodeServiceImpl extends ServiceImpl<ExamineRecordNodeMapper, ExamineRecordNode> implements IExamineRecordNodeService {
 
     @Autowired
-    private IAdminUserService adminUserService;
-    @Autowired
-    private IAdminUserRoleService adminUserRoleService;
+    private ModuleAuthManageService moduleAuthManageService;
 
     @Autowired
     private IExamineRecordNodeUserService examineRecordNodeUserService;
@@ -56,11 +53,11 @@ public class ExamineRecordNodeServiceImpl extends ServiceImpl<ExamineRecordNodeM
 
             //-------------------------系统用户参数------------------------------
             //人员上级的用户
-            Map<Long,List<Long>> superWithUserId = adminUserService.querySuperUserGroupByUserId();
+            Map<Long,List<Long>> superWithUserId = moduleAuthManageService.querySuperUserGroupByUserId(examineNode.getModuleId());
             //部门的用户
-            Map<Long,List<Long>> deptIdWithUserId = adminUserService.queryDeptUserIdGroupByRoleId();
+            Map<Long,List<Long>> deptIdWithUserId = moduleAuthManageService.queryDeptUserIdGroupByDeptId(examineNode.getModuleId());
             //角色下的用户
-            Map<Long,List<Long>> roleIdWithUserId = adminUserRoleService.queryRoleUserIdGroupByRoleId();
+            Map<Long,List<Long>> roleIdWithUserId = moduleAuthManageService.queryRoleUserIdGroupByRoleId(examineNode.getModuleId());
             //-------------------------系统用户参数------------------------------
 
             List<ExamineRecordNodeUser> itemRecordUsers = new ArrayList<>();

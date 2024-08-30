@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2024-05-28
  */
 @RestController
-@RequestMapping("/module-operate")
+@RequestMapping("/moduleOperate")
 @Api(tags = "模块操作功能表")
 public class ModuleOperateController {
 

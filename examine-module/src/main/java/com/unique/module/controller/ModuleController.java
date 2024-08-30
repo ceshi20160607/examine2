@@ -7,6 +7,7 @@ import com.unique.core.common.BasePage;
 import com.unique.core.common.Result;
 import com.unique.module.entity.po.ModuleField;
 import com.unique.module.entity.po.Module;
+import com.unique.module.entity.vo.ModuleVO;
 import com.unique.module.service.IModuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -102,5 +103,18 @@ public class ModuleController {
     }
 
 
+
+    /**
+     * 模块的数据--树形结构
+     *
+     * @param search 业务查询对象
+     * @return data
+     */
+    @PostMapping("/queryPageListTree")
+    @ApiOperation("查询列表页数据")
+    public Result<List<Module>> queryPageListTree(@RequestBody SearchBO search) {
+        List<Module> ret = moduleService.queryPageListTree(search);
+        return Result.ok(ret);
+    }
 }
 

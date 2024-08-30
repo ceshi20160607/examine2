@@ -6,4 +6,9 @@
     <select id="queryPageList" resultType="java.util.Map">
         select * from un_module_role where 1=1
     </select>
+    <select id="querySimpleRole" resultType="com.unique.core.entity.user.bo.SimpleRole">
+        select ar.*
+        from un_module_role as ar
+        inner join (select distinct uaru.role_id from un_module_role_user as uaru where uaru.module_id = #{moduleId} and uaru.user_id = #{userId} ) as temp on temp.role_id = ar.id
+    </select>
 </mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.module.mapper.ModuleRoleUserMapper">
+
+
+    <select id="queryPageList" resultType="com.unique.module.entity.po.ModuleRoleUser">
+        select * from un_module_role_user where 1=1
+    </select>
+    <select id="queryDataType" resultType="com.unique.core.entity.user.bo.SimpleUserRole">
+        select umru.user_id,umu.dept_id,max(umru.data_type) as data_type
+        from un_module_role_user umru
+        left join un_module_user umu on umu.id = umru.user_id
+        where umru.module_id = #{moduleId}
+        <if test="userIds != null and userIds.size()>0">
+            and umru.user_id in
+            <foreach collection="userIds" item="userId" open="and user_id in (" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        group by umru.user_id
+    </select>
+</mapper>

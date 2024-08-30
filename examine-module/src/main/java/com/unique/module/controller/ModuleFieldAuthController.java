@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2024-05-28
  */
 @RestController
-@RequestMapping("/module-field-auth")
+@RequestMapping("/moduleFieldAuth")
 @Api(tags = "自定义字段关联角色表")
 public class ModuleFieldAuthController {
 

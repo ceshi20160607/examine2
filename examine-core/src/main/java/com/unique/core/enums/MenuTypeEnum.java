@@ -1,4 +1,4 @@
-package com.unique.admin.common.enums;
+package com.unique.core.enums;
 
 /**
  * 菜单类型

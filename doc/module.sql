@@ -5,6 +5,9 @@ CREATE TABLE `un_module`  (
 `id` bigint(20) NOT NULL COMMENT '分组id',
 `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '分组名称',
 
+`icon` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '图标',
+`color` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '颜色',
+
 `sort_num` int(11) NULL DEFAULT NULL COMMENT '流程的排序',
 `parent_id` bigint(20) NULL DEFAULT '0' COMMENT '父级id 0表示顶层的系统',
 `depth_depth` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '列的深度',
@@ -90,7 +93,10 @@ INSERT INTO `un_module_menu` (`id`, `menu_name`, `module_id`, `menu_type`, `menu
 DROP TABLE IF EXISTS `un_module_role`;
 CREATE TABLE `un_module_role` (
 `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键' ,
+`module_id` bigint(20) DEFAULT NULL COMMENT '所属模块',
 `role_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '名称',
+`admin_flag` int(11) DEFAULT '0' COMMENT '1管理员 0非管理员',
+`data_type` int(11) DEFAULT '1' COMMENT '数据权限 1、本人，2、本人及下属，3、本部门，4、本部门及下属部门，5、全部',
 `remark` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '备注',
 `create_time` datetime DEFAULT NULL COMMENT '创建时间',
 `create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
@@ -99,7 +105,6 @@ CREATE TABLE `un_module_role` (
 `company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='角色表';
-
 
 DROP TABLE IF EXISTS `un_module_role_menu`;
 CREATE TABLE `un_module_role_menu` (
@@ -114,21 +119,37 @@ CREATE TABLE `un_module_role_menu` (
 `company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='模块的角色对应菜单权限';
-
-DROP TABLE IF EXISTS `un_module_role_data`;
-CREATE TABLE `un_module_role_data` (
+-- ------------------------------
+-- 添加用户权限
+-- ------------------------------
+DROP TABLE IF EXISTS `un_module_role_user`;
+CREATE TABLE `un_module_role_user` (
 `id` bigint(20) NOT NULL,
+`module_id` bigint(20) NOT NULL COMMENT '模块ID',
+`user_id` bigint(20) NOT NULL COMMENT '用户ID',
 `role_id` bigint(20) NOT NULL COMMENT '角色ID',
-`module_id` bigint(20) DEFAULT NULL COMMENT '所属模块',
 `data_type` int(11) DEFAULT '1' COMMENT '数据权限 1、本人，2、本人及下属，3、本部门，4、本部门及下属部门，5、全部',
-
 `create_time` datetime DEFAULT NULL COMMENT '创建时间',
 `create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
 `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 `update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
-`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='模块的角色对应数据权限';
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='用户角色对应关系表';
+
+-- DROP TABLE IF EXISTS `un_module_role_data`;
+-- CREATE TABLE `un_module_role_data` (
+-- `id` bigint(20) NOT NULL,
+-- `role_id` bigint(20) NOT NULL COMMENT '角色ID',
+-- `module_id` bigint(20) DEFAULT NULL COMMENT '所属模块',
+-- `data_type` int(11) DEFAULT '1' COMMENT '数据权限 1、本人，2、本人及下属，3、本部门，4、本部门及下属部门，5、全部',
+--
+-- `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+-- `create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
+-- `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+-- `update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+-- `company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+-- PRIMARY KEY (`id`) USING BTREE
+-- ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='模块的角色对应数据权限';
 
 DROP TABLE IF EXISTS `un_module_role_field`;
 CREATE TABLE `un_module_role_field` (
@@ -296,25 +317,25 @@ PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='第三方接口 字段对照表';
 
 
--- 字典表
-DROP TABLE IF EXISTS `un_module_dict`;
-CREATE TABLE `un_module_dict` (
-`id` bigint(20) NOT NULL AUTO_INCREMENT,
-`module_id` bigint(20) NOT NULL COMMENT '模块ID',
-`group_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '组名称',
-`dict_key` int(11) NOT NULL COMMENT '字典key',
-`dict_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '字典value',
-
-`hidden_flag` int(11) NOT NULL DEFAULT '0' COMMENT '是否隐藏  0不隐藏 1隐藏',
-`remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '备注',
-
-`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
-`owner_user_id` bigint(20) DEFAULT NULL COMMENT '负责人ID',
-`create_time` datetime DEFAULT NULL COMMENT '创建时间',
-`update_time` datetime DEFAULT NULL COMMENT '更新时间',
-`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
-PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='字典表';
+-- -- 字典表
+-- DROP TABLE IF EXISTS `un_module_dict`;
+-- CREATE TABLE `un_module_dict` (
+-- `id` bigint(20) NOT NULL AUTO_INCREMENT,
+-- `module_id` bigint(20) NOT NULL COMMENT '模块ID',
+-- `group_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '组名称',
+-- `dict_key` int(11) NOT NULL COMMENT '字典key',
+-- `dict_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '字典value',
+--
+-- `hidden_flag` int(11) NOT NULL DEFAULT '0' COMMENT '是否隐藏  0不隐藏 1隐藏',
+-- `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '备注',
+--
+-- `create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
+-- `owner_user_id` bigint(20) DEFAULT NULL COMMENT '负责人ID',
+-- `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+-- `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+-- `company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+-- PRIMARY KEY (`id`) USING BTREE
+-- ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='字典表';
 
 
 -- 主数据基础表
@@ -512,7 +533,7 @@ CREATE TABLE `un_module_dict_base` (
 `dict_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
 
 `status` int(10) NOT NULL DEFAULT '1' COMMENT '状态 1正常 0禁用',
-`use_flag` int(10) NOT NULL DEFAULT '0' COMMENT '修改后是否应用所有 0不应用 1应用',
+`use_flag` int(10) NOT NULL DEFAULT '1' COMMENT '修改后是否应用所有 0不应用 1应用',
 
 `create_time` datetime NOT NULL,
 `update_time` datetime NOT NULL COMMENT '更新时间',
@@ -557,3 +578,67 @@ CREATE TABLE `un_module_dict` (
 `company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='数据字典组具体数据表';
+
+
+
+-- -----------------------------
+-- admin下的用户----保证用户唯一，：使用系统的人，这个人具体使用那个系统自己通过admin来进行建立，之后自动修改系统相关以及配置
+
+-- module下的用户----权限
+-- -----------------------------
+DROP TABLE IF EXISTS `un_module_user`;
+CREATE TABLE `un_module_user` (
+`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+`module_id` bigint(20) NOT NULL COMMENT '模块ID',
+
+`username` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '用户名',
+`password` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '密码',
+`salt` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '安全符',
+`img` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '头像',
+`realname` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '真实姓名',
+`num` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '员工编号',
+`mobile` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '手机号',
+`email` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '邮箱',
+`sex` int(11) DEFAULT NULL COMMENT '0 未选择 1 男 2 女 ',
+`dept_id` bigint(20) DEFAULT NULL COMMENT '部门',
+`post` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '岗位',
+`status` int(11) NOT NULL DEFAULT '0' COMMENT '状态,0未激活,1正常,2禁用',
+`parent_id` bigint(20) DEFAULT '0' COMMENT '直属上级ID',
+`deepth` longtext CHARACTER SET utf8 COLLATE utf8_general_ci  COMMENT 'parent_id 构建的深度',
+`last_login_time` datetime DEFAULT NULL COMMENT '最后登录时间',
+`last_login_ip` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '最后登录IP 注意兼容IPV6',
+
+`create_time` datetime DEFAULT NULL COMMENT '创建时间',
+`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
+`update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+`update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1000000000000000000 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='用户表';
+
+DROP TABLE IF EXISTS `un_module_dept`;
+CREATE TABLE `un_module_dept` (
+`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键' ,
+`module_id` bigint(20) NOT NULL COMMENT '模块ID',
+`parent_id` bigint(20) DEFAULT '0' COMMENT '父级ID 顶级部门为0',
+`deepth` longtext CHARACTER SET utf8 COLLATE utf8_general_ci  COMMENT 'parent_id 构建的深度',
+`name` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '部门名称',
+`num` int(11) DEFAULT NULL COMMENT '排序 越大越靠后',
+`remark` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT '部门备注',
+`owner_user_id` bigint(20) DEFAULT NULL COMMENT '部门负责人',
+
+`create_time` datetime DEFAULT NULL COMMENT '创建时间',
+`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
+`update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+`update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1000000000000000000 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='部门表';
+
+
+
+
+
+
+
+

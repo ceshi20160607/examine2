@@ -11,6 +11,9 @@
         <if test="search.typeFlag != null and search.typeFlag != ''">
             and type_flag = #{search.typeFlag}
         </if>
+        <if test="search.parentId != null and search.parentId != ''">
+            and parent_id = #{search.parentId}
+        </if>
         <if test="search.rootId != null and search.rootId != ''">
             and root_id = #{search.rootId}
         </if>

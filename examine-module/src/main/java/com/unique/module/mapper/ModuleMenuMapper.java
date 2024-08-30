@@ -1,5 +1,6 @@
 package com.unique.module.mapper;
 
+import com.unique.core.entity.user.bo.SimpleMenu;
 import com.unique.module.entity.po.ModuleMenu;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -9,6 +10,7 @@ import com.unique.core.entity.base.bo.SearchBO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,6 +23,7 @@ import java.util.Map;
  */
 public interface ModuleMenuMapper extends BaseMapper<ModuleMenu> {
 
- BasePage<Map<String, Object>> queryPageList(BasePage<Object> parse, @Param("search") SearchBO search);
+    BasePage<Map<String, Object>> queryPageList(BasePage<Object> parse, @Param("search") SearchBO search);
 
+    List<SimpleMenu> querySimpleMenu(@Param("moduleId") Long moduleId, @Param("userId") Long userId);
 }

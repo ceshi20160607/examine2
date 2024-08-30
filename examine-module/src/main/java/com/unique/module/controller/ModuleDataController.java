@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2024-07-01
  */
 @RestController
-@RequestMapping("/module-data")
+@RequestMapping("/moduleData")
 @Api(tags = "用户模块的数据权限")
 public class ModuleDataController {
 

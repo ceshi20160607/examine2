@@ -1,8 +1,6 @@
 package com.unique.examine.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.unique.admin.service.IAdminUserRoleService;
-import com.unique.admin.service.IAdminUserService;
 import com.unique.examine.entity.dto.ExamineContext;
 import com.unique.examine.entity.po.*;
 import com.unique.examine.entity.vo.ExamineRecordVO;
@@ -13,6 +11,7 @@ import com.unique.examine.mapper.ExamineRecordMapper;
 import com.unique.examine.service.*;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.unique.examine.utils.ApproveUtil;
+import com.unique.module.manage.service.ModuleAuthManageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,9 +33,7 @@ import java.util.stream.Collectors;
 public class ExamineRecordServiceImpl extends ServiceImpl<ExamineRecordMapper, ExamineRecord> implements IExamineRecordService {
 
     @Autowired
-    private IAdminUserService adminUserService;
-    @Autowired
-    private IAdminUserRoleService adminUserRoleService;
+    private ModuleAuthManageService moduleAuthManageService;
 
     @Autowired
     private HandlerService handlerService;
@@ -111,9 +108,10 @@ public class ExamineRecordServiceImpl extends ServiceImpl<ExamineRecordMapper, E
      */
     private void fillBaseExamine(ExamineContext context ,Boolean recordFlag) {
         //构建基础数据
-        context.setSuperWithUserId(adminUserService.querySuperUserGroupByUserId());
-        context.setDeptIdWithUserId(adminUserService.queryDeptUserIdGroupByRoleId());
-        context.setRoleIdWithUserId(adminUserRoleService.queryRoleUserIdGroupByRoleId());
+
+        context.setSuperWithUserId(moduleAuthManageService.querySuperUserGroupByUserId(context.getModuleId()));
+        context.setDeptIdWithUserId(moduleAuthManageService.queryDeptUserIdGroupByDeptId(context.getModuleId()));
+        context.setRoleIdWithUserId(moduleAuthManageService.queryRoleUserIdGroupByRoleId(context.getModuleId()));
 
         //0.前置环境
 

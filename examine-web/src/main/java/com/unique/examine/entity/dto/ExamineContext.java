@@ -28,6 +28,10 @@ public class ExamineContext implements Serializable {
     /**
      * 关联审批模块
      */
+    private Long moduleId;
+    /**
+     * 关联审批模块
+     */
     private Long examineId;
     //-------------------------审批基础参数------------------------------
     /**

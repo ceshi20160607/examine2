@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2024-07-01
  */
 @RestController
-@RequestMapping("/module-menu")
+@RequestMapping("/moduleMenu")
 @Api(tags = "模块菜单功能权限配置表")
 public class ModuleMenuController {
 

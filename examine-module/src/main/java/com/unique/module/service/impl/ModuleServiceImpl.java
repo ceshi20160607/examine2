@@ -1,8 +1,10 @@
 package com.unique.module.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.bean.BeanUtil;
 import com.unique.core.utils.BaseUtil;
 import com.unique.module.entity.po.Module;
+import com.unique.module.entity.vo.ModuleVO;
 import com.unique.module.mapper.ModuleMapper;
 import com.unique.module.service.IModuleMenuService;
 import com.unique.module.service.IModuleService;
@@ -29,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -122,6 +125,20 @@ public class ModuleServiceImpl extends ServiceImpl<ModuleMapper, Module> impleme
         moduleRecordDataService.remove(queryWrapper);
         //删除字段操作记录
         //crmActionRecordService.deleteActionRecord(CrmEnum.CUSTOMER, ids);
+    }
+
+    @Override
+    public List<Module> queryPageListTree(SearchBO search) {
+        List<Module> list = lambdaQuery().eq(ObjectUtil.isNotEmpty(search.getTypeFlag()), Module::getTypeFlag, search.getTypeFlag())
+                .eq(ObjectUtil.isNotEmpty(search.getParentId()), Module::getParentId, search.getParentId())
+                .eq(ObjectUtil.isNotEmpty(search.getRootId()), Module::getRootId, search.getRootId())
+                .orderByAsc(Module::getSortNum)
+                .list();
+        Map<Long, List<Module>> listMap = list.stream().collect(Collectors.groupingBy(Module::getParentId));
+        list.forEach(f->{
+            f.setChildren(listMap.get(f.getId()));
+        });
+        return listMap.get(1L);
     }
 
 }

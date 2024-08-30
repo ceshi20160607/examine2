@@ -73,7 +73,7 @@ public class Generator {
                 .injectionConfig(consumer -> {
                     Map<String, String> customFile = new HashMap<>();
                     // DTO
-                    customFile.put("VO.java", "/simple2/entityVO.java.ftl");
+                    customFile.put("VO.java", "/simple3/entityVO.java.ftl");
                     consumer.customFile(customFile);
                 })
                 .templateEngine(new EnhanceFreemarkerTemplateEngine()) // 使用Freemarker引擎模板，默认的是Velocity引擎模板
@@ -92,12 +92,18 @@ public class Generator {
 //                            .mapper("/simple/mapper.java")
 //                            .mapperXml("/simple/mapper.xml")
 
+//                            //simple2用于没有自定义字段还是要进行自定义字段的数据保存逻辑
+//                            .controller("/simple2/controller.java")
+//                           .service("/simple2/service.java")
+//                           .serviceImpl("/simple2/serviceImpl.java")
+//                           .mapper("/simple2/mapper.java")
+//                           .mapperXml("/simple2/mapper.xml")
                             //simple2用于没有自定义字段还是要进行自定义字段的数据保存逻辑
-                            .controller("/simple2/controller.java")
-                           .service("/simple2/service.java")
-                           .serviceImpl("/simple2/serviceImpl.java")
-                           .mapper("/simple2/mapper.java")
-                           .mapperXml("/simple2/mapper.xml")
+                            .controller("/simple3/controller.java")
+                           .service("/simple3/service.java")
+                           .serviceImpl("/simple3/serviceImpl.java")
+                           .mapper("/simple3/mapper.java")
+                           .mapperXml("/simple3/mapper.xml")
                             .build();
                 } )
                 .execute();

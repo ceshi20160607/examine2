@@ -1,4 +1,4 @@
-package com.unique.core.entity.admin.vo;
+package com.unique.core.entity.base.vo;
 
 import com.unique.core.entity.user.bo.SimpleDept;
 import com.unique.core.entity.user.bo.SimpleMenu;
@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -42,7 +43,7 @@ public class AuthVO implements Serializable {
     @ApiModelProperty("数据权限")
     private List<Long> dataDeptIds;
     @ApiModelProperty("数据权限")
-    private List<Long> dataUserIds;
+    private Set<Long> dataUserIds;
 
     @ApiModelProperty("数据权限")
     private List<SimpleDept> dataSimpleDeptIds;

@@ -1,5 +1,6 @@
 package com.unique.module.service.impl;
 
+import com.unique.core.entity.user.bo.SimpleRole;
 import com.unique.module.entity.po.ModuleRole;
 import com.unique.module.mapper.ModuleRoleMapper;
 import com.unique.module.service.IModuleRoleService;
@@ -171,6 +172,11 @@ public class ModuleRoleServiceImpl extends ServiceImpl<ModuleRoleMapper, ModuleR
         moduleRecordDataService.remove(queryWrapper);
         //删除字段操作记录
         //crmActionRecordService.deleteActionRecord(CrmEnum.CUSTOMER, ids);
+    }
+
+    @Override
+    public List<SimpleRole> querySimpleRole(Long moduleId,Long userId) {
+        return getBaseMapper().querySimpleRole(moduleId,userId);
     }
 
 }

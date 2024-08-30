@@ -1,17 +1,9 @@
 package com.unique.admin.common.utils;
 
-import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.RandomUtil;
-import com.unique.admin.entity.po.AdminUser;
-import com.unique.admin.service.IAdminDeptService;
-import com.unique.admin.service.IAdminMenuService;
-import com.unique.admin.service.IAdminRoleService;
-import com.unique.admin.service.IAdminUserService;
 import com.unique.admin.service.manage.AdminAuthManageService;
-import com.unique.core.context.Const;
-import com.unique.core.entity.admin.vo.AuthVO;
+import com.unique.core.entity.base.vo.AuthVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

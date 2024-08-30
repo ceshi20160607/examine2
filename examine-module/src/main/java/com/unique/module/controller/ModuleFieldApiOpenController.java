@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2024-05-28
  */
 @RestController
-@RequestMapping("/module-field-api-open")
+@RequestMapping("/moduleFieldApiOpen")
 @Api(tags = "第三方接口 字段对照表")
 public class ModuleFieldApiOpenController {
 

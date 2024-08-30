@@ -31,6 +31,10 @@ public class SearchBO  implements Serializable {
      */
     private Integer rootId;
     /**
+     * 父级id
+     */
+    private Integer parentId;
+    /**
      * 类型标识 0分组结构 1数据模块
      */
     private Integer typeFlag;

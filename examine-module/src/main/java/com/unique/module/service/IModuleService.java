@@ -7,6 +7,7 @@ import com.unique.core.entity.base.bo.SearchBO;
 import com.unique.core.common.BasePage;
 
 import com.unique.module.entity.po.ModuleField;
+import com.unique.module.entity.vo.ModuleVO;
 
 import java.util.List;
 import java.util.Map;
@@ -54,4 +55,5 @@ public interface IModuleService extends IService<Module> {
     */
     void deleteByIds(List<Long> ids);
 
+    List<Module> queryPageListTree(SearchBO search);
 }

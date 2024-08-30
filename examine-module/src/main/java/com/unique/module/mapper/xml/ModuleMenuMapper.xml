@@ -2,4 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.unique.module.mapper.ModuleMenuMapper">
 
+    <select id="querySimpleMenu" resultType="com.unique.core.entity.user.bo.SimpleMenu">
+        select am.*
+        from un_module_menu as am
+        inner join (select distinct umrm.menu_id from un_module_role_menu as umrm left join un_module_role_user as uaru on uaru.role_id = umrm.role_id where uaru.module_id = #{moduleId} and uaru.user_id = #{userId} ) as temp on temp.menu_id = am.id
+    </select>
 </mapper>

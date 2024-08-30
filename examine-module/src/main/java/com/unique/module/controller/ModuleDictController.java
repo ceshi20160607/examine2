@@ -1,7 +1,6 @@
 package com.unique.module.controller;
 
 
-import cn.hutool.core.util.ObjectUtil;
 import com.unique.core.entity.base.bo.SearchBO;
 import com.unique.core.common.BasePage;
 import com.unique.core.common.Result;
@@ -13,11 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-
-import com.unique.module.service.IModuleDictService;
 import com.unique.module.entity.po.ModuleDict;
+import com.unique.module.service.IModuleDictService;
 
 import org.springframework.web.bind.annotation.RestController;
 

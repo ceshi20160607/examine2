@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.module.mapper.ModuleDeptMapper">
+
+
+    <select id="queryPageList" resultType="com.unique.module.entity.po.ModuleDept">
+        select * from un_module_dept where 1=1
+    </select>
+    <select id="queryDataDepts" resultType="com.unique.core.entity.user.bo.SimpleDept">
+        select user_id,max(data_type)
+        from un_module_role_user
+        where module_id = #{moduleId} and user_id = #{userId}
+        group by user_id
+    </select>
+    <select id="queryAllDepts" resultType="com.unique.core.entity.user.bo.SimpleDept">
+        select *
+        from un_module_dept
+        where module_id = #{moduleId}
+    </select>
+</mapper>

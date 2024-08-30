@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.module.mapper.ModuleUserMapper">
+
+
+    <select id="queryPageList" resultType="com.unique.module.entity.po.ModuleUser">
+        select * from un_module_user where 1=1
+    </select>
+    <select id="queryAllUsers" resultType="com.unique.core.entity.user.bo.SimpleUser">
+        select * from un_module_user where module_id = #{moduleId} and status=1
+    </select>
+</mapper>

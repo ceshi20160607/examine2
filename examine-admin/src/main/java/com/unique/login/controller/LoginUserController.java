@@ -9,7 +9,7 @@ import com.unique.admin.entity.bo.UserBO;
 import com.unique.admin.entity.po.AdminUser;
 import com.unique.admin.service.IAdminUserService;
 import com.unique.core.common.Result;
-import com.unique.core.entity.admin.vo.AuthVO;
+import com.unique.core.entity.base.vo.AuthVO;
 import com.unique.core.enums.UserStatusEnum;
 import com.unique.core.context.Const;
 import com.unique.core.enums.SystemCodeEnum;
