@@ -2,14 +2,14 @@ package com.unique.module.manage.controller;
 
 
 import cn.dev33.satoken.session.SaSession;
-import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.unique.core.common.Result;
 import com.unique.core.context.Const;
 import com.unique.core.entity.admin.bo.UserBO;
 import com.unique.core.entity.base.vo.AuthVO;
+import com.unique.core.entity.user.bo.SimpleRole;
 import com.unique.core.enums.SystemCodeEnum;
 import com.unique.core.enums.UserStatusEnum;
 import com.unique.core.utils.EncryptUtil;
@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -73,9 +74,9 @@ public class ManageAuthController {
             ModuleUser adminUser = list.get(0);
             if (EncryptUtil.checkUserPwd(adminUser.getUsername(),userBO.getPassword(),adminUser.getSalt(),adminUser.getPassword())) {
                 StpUtil.login(adminUser.getId(), userBO.getDeviceType().getRemarks());
-                List<ModuleRoleUser> roleUserList = moduleRoleUserService.lambdaQuery().eq(ModuleRoleUser::getModuleId, adminUser.getModuleId())
-                        .eq(ModuleRoleUser::getUserId, adminUser.getId())
-                        .list();
+                List<SimpleRole> roleUserList  = moduleRoleUserService.queryAllRoleUser(adminUser.getModuleId(), null, Arrays.asList(adminUser.getId()));
+                adminUser.setAdminFlag(CollectionUtil.isNotEmpty(roleUserList) && roleUserList.stream().anyMatch(f -> f.getAdminFlag().equals(1))?1:0);
+                adminUser.setUserRoleList(roleUserList);
                 SaSession session = StpUtil.getSession();
                 session.set(Const.DEFAULT_SESSION_USER_KEY + adminUser.getId(), adminUser);
                 log.info("****:"+StpUtil.getTokenInfo().toString());

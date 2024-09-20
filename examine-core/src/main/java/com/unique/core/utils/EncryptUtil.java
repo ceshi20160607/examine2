@@ -35,7 +35,7 @@ public class EncryptUtil {
      * @param username
      * @param password
      * @param salt
-     * @return { com.unique.admin.entity.po.AdminUser}
+     * @return {}
      */
     public static String encryUserPwdSalt(String username,String password,String salt) {
         return SaSecureUtil.md5BySalt(username + Const.SEPARATOR_COLON + password, salt);

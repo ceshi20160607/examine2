@@ -1,6 +1,6 @@
 package com.unique.module.mapper;
 
-import com.unique.core.entity.user.bo.SimpleUserRole;
+import com.unique.core.entity.user.bo.SimpleRole;
 import com.unique.module.entity.po.ModuleRoleUser;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -24,5 +24,5 @@ public interface ModuleRoleUserMapper extends BaseMapper<ModuleRoleUser> {
 
  BasePage<ModuleRoleUser> queryPageList(BasePage<Object> parse, @Param("search") SearchBO search);
 
- List<SimpleUserRole> queryDataType(@Param("moduleId")Long moduleId, @Param("userIds")List<Long> userIds);
+ List<SimpleRole> queryAllRoleUser(@Param("moduleId")Long moduleId, @Param("roleId")Long roleId, @Param("userIds")List<Long> userIds);
 }

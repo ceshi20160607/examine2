@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -81,5 +82,5 @@ public class Module implements Serializable {
 
     @ApiModelProperty("子级")
     @TableField(exist = false)
-    private List<Module> children;
+    private List<Module> children = new ArrayList<>();
 }

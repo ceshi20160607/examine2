@@ -1,6 +1,6 @@
 package com.unique.module.service;
 
-import com.unique.core.entity.user.bo.SimpleUserRole;
+import com.unique.core.entity.user.bo.SimpleRole;
 import com.unique.module.entity.po.ModuleRoleUser;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -51,5 +51,6 @@ public interface IModuleRoleUserService extends IService<ModuleRoleUser> {
     */
     void deleteByIds(List<Long> ids);
 
-    List<SimpleUserRole> queryDataType(Long moduleId, List<Long> list);
+
+    List<SimpleRole> queryAllRoleUser(Long moduleId,Long roleId, List<Long> userIds);
 }

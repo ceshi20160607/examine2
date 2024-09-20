@@ -30,6 +30,7 @@ public interface IModuleService extends IService<Module> {
     * @return data
     */
     BasePage<Map<String, Object>> queryPageList(SearchBO search);
+    BasePage<Module> queryPageListBean(SearchBO search);
 
 
     /**
@@ -56,4 +57,5 @@ public interface IModuleService extends IService<Module> {
     void deleteByIds(List<Long> ids);
 
     List<Module> queryPageListTree(SearchBO search);
+
 }

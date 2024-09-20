@@ -6,7 +6,7 @@
     <select id="queryPageList" resultType="java.util.Map">
         select * from un_module where 1=1
         <if test="search.keyword != null and search.keyword != ''">
-            and module_name like concat('%',#{search.keyword},'%')
+            and name like concat('%',#{search.keyword},'%')
         </if>
         <if test="search.typeFlag != null and search.typeFlag != ''">
             and type_flag = #{search.typeFlag}

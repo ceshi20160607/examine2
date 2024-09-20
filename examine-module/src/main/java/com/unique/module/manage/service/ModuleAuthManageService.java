@@ -1,9 +1,8 @@
 package com.unique.module.manage.service;
 
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.unique.core.entity.user.bo.SimpleUserRole;
+import com.unique.core.entity.user.bo.SimpleRole;
 import com.unique.module.entity.po.ModuleRoleUser;
 import com.unique.module.service.*;
 import com.unique.core.entity.base.vo.AuthVO;
@@ -28,15 +27,14 @@ public class ModuleAuthManageService {
     @Autowired
     private IModuleDeptService moduleDeptService;
     @Autowired
-    private IModuleRoleService moduleRoleService;
-    @Autowired
     private IModuleRoleUserService moduleRoleUserService;
     @Autowired
     private IModuleMenuService moduleMenuService;
 
     public AuthVO moduleAuth(Long moduleId,Long userId) {
         AuthVO ret = new AuthVO();
-        ret.setUserRoles(moduleRoleService.querySimpleRole(moduleId,userId));
+        List<SimpleRole> userRoles = moduleRoleUserService.queryAllRoleUser(moduleId,null, Arrays.asList(userId));
+        ret.setUserRoles(userRoles);
         ret.setRoleMenus(moduleMenuService.querySimpleMenu(moduleId,userId));
         //数据
         List<SimpleUser> allUsers = moduleUserService.queryAllUsers(moduleId);
@@ -51,16 +49,16 @@ public class ModuleAuthManageService {
             }
         }
         //如果是超管
-        if (StpUtil.hasRole("admin")) {
+        if (ObjectUtil.isNotEmpty(userRoles) && userRoles.stream().anyMatch(f -> f.getAdminFlag() == 1)) {
+            ret.setAdminFlag(Boolean.TRUE);
             ret.setDataUserIds(allUsers.stream().map(SimpleUser::getId).collect(Collectors.toSet()));
             ret.setDataSimpleUserIds(allUsers);
             return ret;
         }
 
         Set<Long> userIds = new HashSet<>();
-        List<SimpleUserRole> roleUsers = moduleRoleUserService.queryDataType(moduleId, Arrays.asList(userId));
-
-        roleUsers.forEach(r->{
+        if (CollectionUtil.isNotEmpty(userRoles)) {
+            SimpleRole r = userRoles.get(0);
             DataTypeEnum dataTypeEnum = DataTypeEnum.parse(r.getDataType());
             switch (dataTypeEnum){
                 case SELF:
@@ -96,8 +94,9 @@ public class ModuleAuthManageService {
                         }
                     }
                     break;
+                default:
             }
-        });
+        }
         ret.setDataUserIds(userIds);
         if (CollectionUtil.isNotEmpty(userIds)) {
             ret.setDataSimpleUserIds(allUsers.stream().filter(f->userIds.contains(f.getId())).collect(Collectors.toList()));

@@ -37,8 +37,17 @@ public class ModuleRoleUser implements Serializable {
     @ApiModelProperty("角色ID")
     private Long roleId;
 
+    @ApiModelProperty("角色名称")
+    @TableField(exist = false)
+    private String roleName;
+
+    @ApiModelProperty("是否超管 0非超管  1超管")
+    @TableField(exist = false)
+    private Integer adminFlag;
+
     @ApiModelProperty("数据权限 1、本人，2、本人及下属，3、本部门，4、本部门及下属部门，5、全部")
     private Integer dataType;
+
 
     @ApiModelProperty("创建时间")
     @TableField(fill = FieldFill.INSERT)

@@ -96,7 +96,6 @@ CREATE TABLE `un_module_role` (
 `module_id` bigint(20) DEFAULT NULL COMMENT '所属模块',
 `role_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '名称',
 `admin_flag` int(11) DEFAULT '0' COMMENT '1管理员 0非管理员',
-`data_type` int(11) DEFAULT '1' COMMENT '数据权限 1、本人，2、本人及下属，3、本部门，4、本部门及下属部门，5、全部',
 `remark` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '备注',
 `create_time` datetime DEFAULT NULL COMMENT '创建时间',
 `create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',

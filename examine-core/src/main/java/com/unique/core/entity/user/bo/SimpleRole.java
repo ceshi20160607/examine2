@@ -22,26 +22,26 @@ public class SimpleRole implements Serializable {
 
     private Long id;
 
-    @ApiModelProperty("名称")
+    @ApiModelProperty("模块ID")
+    private Long moduleId;
+
+    @ApiModelProperty("用户ID")
+    private Long userId;
+
+    @ApiModelProperty("用户ID-部门")
+    private Long deptId;
+
+    @ApiModelProperty("角色ID")
+    private Long roleId;
+
+    @ApiModelProperty("角色名称")
     private String roleName;
 
-    @ApiModelProperty("0 超管 1自定义 ")
-    private Integer roleType;
+    @ApiModelProperty("是否超管 0非超管  1超管")
+    private Integer adminFlag;
 
-    @ApiModelProperty("备注")
-    private String remark;
-
-    @ApiModelProperty(" 0 禁用 1 启用")
-    private Integer status;
-
-    @ApiModelProperty("数据权限 0默认全部 1本人，2本人及下属 3本部门 4本部门及下属部门 ")
+    @ApiModelProperty("数据权限 1、本人，2、本人及下属，3、本部门，4、本部门及下属部门，5、全部")
     private Integer dataType;
-
-    @ApiModelProperty("0 隐藏 1 不隐藏")
-    private Integer hidden;
-
-    @ApiModelProperty("0默认系统级别  1 审批级别")
-    private Integer moduleType;
 
     @ApiModelProperty("创建时间")
     private LocalDateTime createTime;

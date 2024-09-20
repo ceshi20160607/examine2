@@ -1,7 +1,7 @@
 ###
 POST http://localhost:9099/adminFile/upload
 Content-Type: multipart/form-data; boundary=WebAppBoundary
-Admin-Token: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+Admin-Token: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 --WebAppBoundary
 Content-Disposition: form-data; name="batchId"
@@ -43,20 +43,20 @@ Content-Type: application/json
 ###
 POST http://localhost:9099/moduleField/queryFieldAdd?type=1&moduleId=4
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 
 ###
 POST http://localhost:9099/module/queryPageList
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}
 
 ###
 POST http://localhost:9099/module/queryPageListTree
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}
 
@@ -68,7 +68,7 @@ satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
 ###
 POST http://localhost:9099/moduleRecord/add
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {
   "moduleId": 4,
@@ -79,7 +79,7 @@ satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
 ###
 POST http://localhost:9099/moduleRecord/update
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {
   "moduleId": 4,
@@ -89,28 +89,33 @@ satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
 ###
 POST http://localhost:9099/moduleRecord/queryById/1801153956043427840
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {}
 
 ###
 POST http://localhost:9099/moduleRecord/information/2
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {}
 ###
 POST http://localhost:9099/moduleRecord/queryPageList
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}
 
+###
+POST http://localhost:9099/module/queryPageListBean
+Content-Type: application/json
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
+{"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}
 ####
 #POST http://localhost:9099/moduleRecord/queryFieldAdd?type=1
 #Content-Type: application/json
-#satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+#satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 #
 #{}
 ####################################
@@ -119,14 +124,14 @@ satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
 ###
 POST http://localhost:9099/moduleFieldUser/queryFieldHead?moduleId=7
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {}
 
 ###
 POST http://localhost:9099/moduleFieldUser/queryFieldSearch?moduleId=4
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {}
 
@@ -136,6 +141,6 @@ satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
 ###
 POST http://localhost:9099/examine/queryPageList
 Content-Type: application/json
-satoken: 42aec31a-2fe1-40e6-bd56-b3384d28f5b9
+satoken: e0c88891-6716-4e1b-84ef-675a09a14c52
 
 {"keyword":"","moduleId":4,"page":1,"limit":10,"pageType":0}

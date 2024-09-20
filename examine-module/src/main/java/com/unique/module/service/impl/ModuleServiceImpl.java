@@ -60,6 +60,17 @@ public class ModuleServiceImpl extends ServiceImpl<ModuleMapper, Module> impleme
         BasePage<Map<String, Object>> basePage = getBaseMapper().queryPageList(search.parse(),search);
         return basePage;
     }
+    @Override
+    public BasePage<Module> queryPageListBean(SearchBO search) {
+        BasePage<Module> page = lambdaQuery().like(ObjectUtil.isNotEmpty(search.getKeyword()), Module::getName, search.getKeyword())
+                .eq(ObjectUtil.isNotEmpty(search.getTypeFlag()), Module::getTypeFlag, search.getTypeFlag())
+                .eq(ObjectUtil.isNotEmpty(search.getParentId()), Module::getParentId, search.getParentId())
+                .eq(ObjectUtil.isNotEmpty(search.getRootId()), Module::getRootId, search.getRootId())
+                .page(search.parse());
+        return page;
+    }
+
+
     /**
     * 保存或新增信息
     *

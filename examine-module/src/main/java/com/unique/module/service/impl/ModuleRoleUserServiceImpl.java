@@ -1,6 +1,6 @@
 package com.unique.module.service.impl;
 
-import com.unique.core.entity.user.bo.SimpleUserRole;
+import com.unique.core.entity.user.bo.SimpleRole;
 import com.unique.module.entity.po.ModuleRoleUser;
 import com.unique.module.mapper.ModuleRoleUserMapper;
 import com.unique.module.service.IModuleRoleUserService;
@@ -11,8 +11,6 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.unique.core.utils.BaseUtil;
 import com.unique.core.entity.base.bo.SearchBO;
 import com.unique.core.common.BasePage;
-
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 import cn.hutool.core.util.ObjectUtil;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,8 +87,8 @@ public class ModuleRoleUserServiceImpl extends ServiceImpl<ModuleRoleUserMapper,
     }
 
     @Override
-    public List<SimpleUserRole> queryDataType(Long moduleId, List<Long> userIds) {
-        return getBaseMapper().queryDataType(moduleId,userIds);
+    public List<SimpleRole> queryAllRoleUser(Long moduleId,Long roleId, List<Long> userIds) {
+        return getBaseMapper().queryAllRoleUser(moduleId,roleId,userIds);
     }
 
 }

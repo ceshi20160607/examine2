@@ -52,6 +52,13 @@ public class ModuleController {
         BasePage<Map<String, Object>> mapBasePage = moduleService.queryPageList(search);
         return Result.ok(mapBasePage);
     }
+    @PostMapping("/queryPageListBean")
+    @ApiOperation("查询列表页数据")
+    public Result<BasePage<Module>> queryPageListBean(@RequestBody SearchBO search) {
+        search.setPageType(1);
+        BasePage<Module> mapBasePage = moduleService.queryPageListBean(search);
+        return Result.ok(mapBasePage);
+    }
 
     /**
     * 保存数据

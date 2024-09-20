@@ -41,6 +41,9 @@ public class ModuleRole implements Serializable {
     @ApiModelProperty("备注")
     private String remark;
 
+    @ApiModelProperty("是否超管 0非超管  1超管")
+    private Integer adminFlag;
+
     @ApiModelProperty("创建时间")
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

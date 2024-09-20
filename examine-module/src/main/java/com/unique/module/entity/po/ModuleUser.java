@@ -7,6 +7,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.unique.core.entity.user.bo.SimpleRole;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -96,5 +99,13 @@ public class ModuleUser implements Serializable {
     @TableField(fill = FieldFill.UPDATE)
     private Long updateUserId;
 
+
+    @TableField(exist = false)
+    @ApiModelProperty("超管")
+    private Integer adminFlag;
+
+    @TableField(exist = false)
+    @ApiModelProperty("权限list")
+    private List<SimpleRole> userRoleList;
 
 }
