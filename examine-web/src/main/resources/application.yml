@@ -101,3 +101,15 @@ approve:
 tianyancha:
   token: 44444444444444444444
   url: http://open.api.tianyancha.com/services
+---
+# 上传配置
+unique:
+  upload:
+    type: local
+    endpoint:
+    accessKeyId:
+    accessKeySecret:
+    bucketName: D:/upload/game/private
+    domain: http://192.168.0.6:18888/file
+    extra:
+      publicBucket: D:/upload/game/public

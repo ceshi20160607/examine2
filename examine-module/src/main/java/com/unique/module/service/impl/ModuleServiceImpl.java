@@ -147,9 +147,13 @@ public class ModuleServiceImpl extends ServiceImpl<ModuleMapper, Module> impleme
                 .list();
         Map<Long, List<Module>> listMap = list.stream().collect(Collectors.groupingBy(Module::getParentId));
         list.forEach(f->{
-            f.setChildren(listMap.get(f.getId()));
+            f.setChildren(new ArrayList<>());
+            if (ObjectUtil.isNotEmpty(listMap.get(f.getId()))) {
+                f.setChildren(listMap.get(f.getId()));
+            }
         });
-        return listMap.get(1L);
+        List<Module> ret = list.stream().filter(f -> f.getParentId() == 0).collect(Collectors.toList());
+        return ret;
     }
 
 }

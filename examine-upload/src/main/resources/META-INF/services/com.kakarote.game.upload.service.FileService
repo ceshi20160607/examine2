@@ -1,0 +1,6 @@
+com.unique.upload.service.impl.FtpFileServiceImpl
+com.unique.upload.service.impl.LocalFileServiceImpl
+com.unique.upload.service.impl.OssFileServiceImpl
+com.unique.upload.service.impl.QncFileServiceImpl
+com.unique.upload.service.impl.TencentFileServiceImpl
+com.unique.upload.service.impl.AwsFileServiceImpl

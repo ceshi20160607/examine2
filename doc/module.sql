@@ -634,9 +634,26 @@ CREATE TABLE `un_module_dept` (
 PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1000000000000000000 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='部门表';
 
+-- ------------------------------------
+-- 保存文件
+-- ------------------------------------
+DROP TABLE IF EXISTS `un_module_file`;
+CREATE TABLE `un_module_file` (
+`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'id 主键ID',
 
+`file_type` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'fileType 类型',
+`name` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'name 名称',
+`path` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'path 路径',
+`type` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'type local 本地 oss 阿里云oss',
+`is_public` tinyint(4) DEFAULT '0' COMMENT 'isPublic 1 公有访问 0 私有访问',
+`size` bigint(20) DEFAULT NULL COMMENT 'size 大小',
 
-
+`batch_id` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'batchId 批次id',
+`create_time` datetime(6) DEFAULT NULL COMMENT 'createTime 创建时间',
+`create_user_id` bigint(20) DEFAULT NULL COMMENT 'createUserId 创建人',
+`update_time` datetime(6) DEFAULT NULL COMMENT 'updateTime 修改时间',
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
 

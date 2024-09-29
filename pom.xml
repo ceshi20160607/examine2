@@ -17,8 +17,8 @@
 
     <modules>
         <module>examine-core</module>
-<!--        <module>examine-admin</module>-->
         <module>examine-module</module>
+        <module>examine-upload</module>
         <module>examine-web</module>
     </modules>
 

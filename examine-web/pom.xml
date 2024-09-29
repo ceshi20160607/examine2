@@ -17,11 +17,6 @@
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.unique</groupId>-->
-<!--            <artifactId>examine-admin</artifactId>-->
-<!--            <version>0.0.1-SNAPSHOT</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.unique</groupId>
             <artifactId>examine-module</artifactId>
