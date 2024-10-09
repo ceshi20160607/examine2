@@ -198,7 +198,7 @@ public class AwsFileServiceImpl implements FileService {
      */
     @Override
     public UploadType getType() {
-        return UploadType.aws_s3;
+        return UploadType.aws3;
     }
 
     /**

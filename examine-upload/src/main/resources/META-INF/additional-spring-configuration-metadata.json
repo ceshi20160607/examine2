@@ -2,8 +2,8 @@
   "groups": [
     {
       "name": "unique.upload",
-      "type": "entity.com.unique.upload.UploadProperties",
-      "sourceType": "entity.com.unique.upload.UploadProperties"
+      "type": "com.unique.upload.entity.UploadProperties",
+      "sourceType": "com.unique.upload.entity.UploadProperties"
     }
   ],
   "properties": [
@@ -11,49 +11,49 @@
       "name": "unique.upload.access-key-id",
       "type": "java.lang.String",
       "description": "账号",
-      "sourceType": "entity.com.unique.upload.UploadProperties"
+      "sourceType": "com.unique.upload.entity.UploadProperties"
     },
     {
       "name": "unique.upload.access-key-secret",
       "type": "java.lang.String",
       "description": "密码",
-      "sourceType": "entity.com.unique.upload.UploadProperties"
+      "sourceType": "com.unique.upload.entity.UploadProperties"
     },
     {
       "name": "unique.upload.bucket-name",
       "type": "java.lang.String",
       "description": "桶名称",
-      "sourceType": "entity.com.unique.upload.UploadProperties"
+      "sourceType": "com.unique.upload.entity.UploadProperties"
     },
     {
       "name": "unique.upload.domain",
       "type": "java.lang.String",
       "description": "默认的域名",
-      "sourceType": "entity.com.unique.upload.UploadProperties"
+      "sourceType": "com.unique.upload.entity.UploadProperties"
     },
     {
       "name": "unique.upload.endpoint",
       "type": "java.lang.String",
       "description": "端点",
-      "sourceType": "entity.com.unique.upload.UploadProperties"
+      "sourceType": "com.unique.upload.entity.UploadProperties"
     },
     {
       "name": "unique.upload.extra",
       "type": "java.util.Map<java.lang.String,java.lang.Object>",
       "description": "额外数据",
-      "sourceType": "entity.com.unique.upload.UploadProperties"
+      "sourceType": "com.unique.upload.entity.UploadProperties"
     },
     {
       "name": "unique.upload.region",
       "type": "java.lang.String",
       "description": "区域",
-      "sourceType": "entity.com.unique.upload.UploadProperties"
+      "sourceType": "com.unique.upload.entity.UploadProperties"
     },
     {
       "name": "unique.upload.type",
-      "type": "entity.com.unique.upload.UploadType",
+      "type": "com.unique.upload.entity.UploadType",
       "description": "上传类型：oss，qnc,cos,aws_s3,local,ftp",
-      "sourceType": "entity.com.unique.upload.UploadProperties"
+      "sourceType": "com.unique.upload.entity.UploadProperties"
     }
   ],
   "hints": []

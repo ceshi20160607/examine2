@@ -10,7 +10,7 @@ public enum UploadType {
     /**
      * 亚马逊
      */
-    aws_s3(),
+    aws3(),
 
     /**
      * ftp
