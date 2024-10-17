@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * @author zhangzhiwei
+ * @author UNIQUE
  * 通用mapper
  */
 

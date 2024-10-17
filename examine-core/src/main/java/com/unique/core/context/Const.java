@@ -44,4 +44,19 @@ public class Const {
      */
     public static final String DEFAULT_PASSWORD = "123123aa";
 
+
+
+    //-------------------------------------------------------------------------------------
+
+    /**
+     * 缓存用户信息
+     */
+    public static final String CACHE_USER_KEY = "CACHE:LOGIN:USER";
+    /**
+     * 最长用户过期时间
+     */
+    public static final Long MAX_USER_EXIST_TIME = 60 * 60 * 24L;
+    public static final Integer MAX_USER_LOGIN_EXIST_TIME = 60 * 60 * 24 * 3;
+
+    //-------------------------------------------------------------------------------------
 }

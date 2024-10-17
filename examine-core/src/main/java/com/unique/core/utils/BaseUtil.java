@@ -1,20 +1,27 @@
 package com.unique.core.utils;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
+import com.alibaba.fastjson.JSONValidator;
 import com.unique.core.config.ApproveConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author ceshi
@@ -31,6 +38,113 @@ public class BaseUtil {
     public static Long getNextId(){
         return IdUtil.getSnowflake(ApproveConfig.approveProperties.workerId, ApproveConfig.approveProperties.datacenterId).nextId();
     }
+    /**
+     * 获取当前年月的字符串
+     *
+     * @return yyyyMMdd
+     */
+    public static String getDate() {
+        return DateUtil.format(new Date(), DatePattern.PURE_DATE_FORMAT);
+    }
+
+    /**
+     * 获取request对象
+     *
+     * @return request
+     */
+
+    public static HttpServletRequest getRequest() {
+        ServletRequestAttributes attributes = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes());
+        return Optional.ofNullable(attributes).map(ServletRequestAttributes::getRequest).orElse(null);
+    }
+    /**
+     * 获取response对象
+     *
+     * @return response
+     */
+    public static HttpServletResponse getResponse() {
+        ServletRequestAttributes attributes = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes());
+        return Optional.ofNullable(attributes).map(ServletRequestAttributes::getResponse).orElse(null);
+    }
+
+    /**
+     * 获取当前是否是windows系统
+     *
+     * @return true代表为真
+     */
+    public static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().contains("windows");
+    }
+
+    /**
+     * 判断字符串是否是json数组
+     *
+     * @param str 字符串
+     * @return true代表是
+     */
+    public static boolean isJSONArray(String str) {
+        if (str == null) {
+            return false;
+        }
+        return JSONValidator.from(str).getType() == JSONValidator.Type.Array;
+    }
+
+    /**
+     * 判断字符串是否是json对象
+     *
+     * @param str 字符串
+     * @return true代表是
+     */
+    public static boolean isJSONObject(String str) {
+        if (str == null) {
+            return false;
+        }
+        return JSONValidator.from(str).getType() == JSONValidator.Type.Object;
+    }
+
+    /**
+     * 判断字符串是否是json
+     *
+     * @param str 字符串
+     * @return true代表是
+     */
+    public static boolean isJSON(String str) {
+        return isJSONArray(str) || isJSONObject(str);
+    }
+
+    /**
+     * 判断对象是否是array
+     *
+     * @param value 字段值
+     * @return true代表是
+     */
+    public static boolean isArray(Object value) {
+        return value instanceof Collection;
+    }
+
+    /**
+     * 判断对象是否是map对象
+     *
+     * @param value 字段值
+     * @return true代表是
+     */
+    public static boolean isMap(Object value) {
+        return value instanceof Map;
+    }
+
+    /**
+     * 判断对象是否可转换为json
+     * 暂未考虑java bean
+     * @param value 字段值
+     * @return true代表是
+     */
+    public static boolean isJSON(Object value) {
+        return isArray(value) || isMap(value);
+    }
+
+
+
+
 
 //
 //    public static void main(String[] args) {
