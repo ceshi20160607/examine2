@@ -657,4 +657,22 @@ PRIMARY KEY (`id`)
 
 
 
+-- ------------------------------------
+-- 用户--角色
+-- 用户--数据权限
+-- ------------------------------------
+DROP TABLE IF EXISTS `un_module_user_data`;
+CREATE TABLE `un_module_user_data` (
+`id` bigint(20) NOT NULL,
+`user_id` bigint(20) NOT NULL COMMENT '用户ID',
+`module_id` bigint(20) DEFAULT NULL COMMENT '所属模块',
+`dept_id` bigint(20) DEFAULT NULL COMMENT '部门id--一个人在一个模块下仅能对应一个部门',
+`data_type` int(11) DEFAULT '1' COMMENT '数据权限 1、本人，2、本人及下属，3、本部门，4、本部门及下属部门，5、全部',
 
+`create_time` datetime DEFAULT NULL COMMENT '创建时间',
+`create_user_id` bigint(20) NOT NULL COMMENT '创建人ID',
+`update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+`update_user_id` bigint(20) DEFAULT NULL COMMENT '修改人ID',
+`company_id` bigint(20) NULL DEFAULT NULL COMMENT '企业id',
+PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='模块的用户对应数据权限';

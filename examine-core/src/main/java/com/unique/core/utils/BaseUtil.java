@@ -231,4 +231,99 @@ public class BaseUtil {
 //            throw new RuntimeException(e);
 //        }
 //    }
+
+
+
+//            //-------------------------多线程编排----------------
+//            log.info("时间2111："+(System.currentTimeMillis()-l));
+//            //标签
+//            CompletableFuture<List<ProjectLabel>> cfLabels = CompletableFuture.supplyAsync(() -> {
+//                return projectLabelService.listByIds(labelIds);
+//            });
+//            //人员
+//            CompletableFuture<List<SimpleUser>> cfUsers = CompletableFuture.supplyAsync(() -> {
+//                return UserCacheUtil.getSimpleUsers(allUserIds);
+//            });
+//            //状态
+//            CompletableFuture<Map<Long,String>> cfEventStatus = CompletableFuture.supplyAsync(() -> {
+//                List<ProjectEventStatus> eventStatusList = projectEventStatusService.queryEventStatusByProjectIds(null, null, allProjectIds);
+//                return CollectionUtil.isEmpty(eventStatusList)?new HashMap<>():eventStatusList.stream().collect(Collectors.toMap(ProjectEventStatus::getId,ProjectEventStatus::getStatusName));
+//            });
+//            //迭代
+//            CompletableFuture<Map<Long,String>> cfBelong = CompletableFuture.supplyAsync(() -> {
+//                return projectTaskService.lambdaQuery().in(ProjectTask::getTaskId, allBelongTaskIds).list().stream().collect(Collectors.toMap(ProjectTask::getTaskId,ProjectTask::getName));
+//            });
+//            //关联
+//            CompletableFuture<List<ProjectTaskRelation>> cfRelation = CompletableFuture.supplyAsync(() -> {
+//                return projectTaskRelationService.lambdaQuery().in(ProjectTaskRelation::getTaskId, allTaskIds).list();
+//            });
+//            //关联--子关联
+//            CompletableFuture<Map<Long, Map<Integer, List<Long>>>> cfRelationMap = cfRelation.thenCompose(x -> CompletableFuture.supplyAsync(()->{
+//                return x.stream().collect(Collectors.groupingBy(ProjectTaskRelation::getTaskId, Collectors.groupingBy(ProjectTaskRelation::getType, Collectors.mapping(ProjectTaskRelation::getRelationId, Collectors.toList()))));
+//            }));
+//            //关联--子关联
+//            CompletableFuture<Map<Long, SimpleCrmEntity>> cfRelationSubModule = cfRelation.thenCompose(x -> CompletableFuture.supplyAsync(()->{
+//                Set<Long> ids = x.stream().filter(f->CrmRelationTypeEnum.MODULE.getType()==f.getType()).map(ProjectTaskRelation::getRelationId).collect(Collectors.toSet());
+//                List<SimpleCrmEntity> data = adminService.queryModuleInfo(ids).getData();
+//                return CollectionUtil.isNotEmpty(data)?data.stream().collect(Collectors.toMap(SimpleCrmEntity::getId,m->m)):new HashMap<>();
+//            }));
+//            //关联--子关联
+//            CompletableFuture<Map<Long, SimpleCrmEntity>> cfRelationSubCustomer = cfRelation.thenCompose(x -> CompletableFuture.supplyAsync(()->{
+//                Set<Long> ids = x.stream().filter(f->CrmRelationTypeEnum.CUSTOMER.getType()==f.getType()).map(ProjectTaskRelation::getRelationId).collect(Collectors.toSet());
+//                List<SimpleCrmEntity> data = crmService.queryCustomerInfo(ids).getData();
+//                return CollectionUtil.isNotEmpty(data)?data.stream().collect(Collectors.toMap(SimpleCrmEntity::getId,m->m)):new HashMap<>();
+//            }));
+//            //关联--子关联
+//            CompletableFuture<Map<Long, SimpleCrmEntity>> cfRelationSubContacts = cfRelation.thenCompose(x -> CompletableFuture.supplyAsync(()->{
+//                Set<Long> ids = x.stream().filter(f->CrmRelationTypeEnum.CONTACTS.getType()==f.getType()).map(ProjectTaskRelation::getRelationId).collect(Collectors.toSet());
+//                List<SimpleCrmEntity> data = crmService.queryContactsInfo(ids).getData();
+//                return CollectionUtil.isNotEmpty(data)?data.stream().collect(Collectors.toMap(SimpleCrmEntity::getId,m->m)):new HashMap<>();
+//            }));
+//            //关联--子关联
+//            CompletableFuture<Map<Long, SimpleCrmEntity>> cfRelationSubBusiness = cfRelation.thenCompose(x -> CompletableFuture.supplyAsync(()->{
+//                Set<Long> ids = x.stream().filter(f->CrmRelationTypeEnum.BUSINESS.getType()==f.getType()).map(ProjectTaskRelation::getRelationId).collect(Collectors.toSet());
+//                List<SimpleCrmEntity> data = crmService.queryBusinessInfo(ids).getData();
+//                return CollectionUtil.isNotEmpty(data)?data.stream().collect(Collectors.toMap(SimpleCrmEntity::getId,m->m)):new HashMap<>();
+//            }));
+//            //关联--子关联
+//            CompletableFuture<Map<Long, SimpleCrmEntity>> cfRelationSubContract = cfRelation.thenCompose(x -> CompletableFuture.supplyAsync(()->{
+//                Set<Long> ids = x.stream().filter(f->CrmRelationTypeEnum.CONTRACT.getType()==f.getType()).map(ProjectTaskRelation::getRelationId).collect(Collectors.toSet());
+//                List<SimpleCrmEntity> data = crmService.queryContractInfo(ids).getData();
+//                return CollectionUtil.isNotEmpty(data)?data.stream().collect(Collectors.toMap(SimpleCrmEntity::getId,m->m)):new HashMap<>();
+//            }));
+//            //关联--子关联
+//            CompletableFuture<Map<Long, SimpleCrmEntity>> cfRelationSubReceivables = cfRelation.thenCompose(x -> CompletableFuture.supplyAsync(()->{
+//                Set<Long> ids = x.stream().filter(f->CrmRelationTypeEnum.RECEIVABLES.getType()==f.getType()).map(ProjectTaskRelation::getRelationId).collect(Collectors.toSet());
+//                List<SimpleCrmEntity> data = crmService.queryReceivablesInfo(ids).getData();
+//                return CollectionUtil.isNotEmpty(data)?data.stream().collect(Collectors.toMap(SimpleCrmEntity::getId,m->m)):new HashMap<>();
+//            }));
+//            //关联--子关联
+//            CompletableFuture<Map<Long, SimpleCrmEntity>> cfRelationSubQuotation = cfRelation.thenCompose(x -> CompletableFuture.supplyAsync(()->{
+//                Set<Long> ids = x.stream().filter(f->CrmRelationTypeEnum.QUOTATION.getType()==f.getType()).map(ProjectTaskRelation::getRelationId).collect(Collectors.toSet());
+//                List<SimpleCrmEntity> data = crmService.queryQuotationInfo(ids).getData();
+//                return CollectionUtil.isNotEmpty(data)?data.stream().collect(Collectors.toMap(SimpleCrmEntity::getId,m->m)):new HashMap<>();
+//            }));
+//
+//            log.info("时间2113："+(System.currentTimeMillis()-l));
+//            /// t1  t2  t3  t4  全部并行执行结束时结束任务
+//            CompletableFuture.allOf(cfLabels, cfUsers, cfEventStatus,cfBelong,cfRelationMap,cfRelationSubModule,cfRelationSubCustomer,cfRelationSubContacts,cfRelationSubBusiness,cfRelationSubContract,cfRelationSubReceivables,cfRelationSubQuotation).join();
+//            // 所有任务完成后执行的操作
+//            List<ProjectLabel> projectLabels = cfLabels.get();
+//            List<SimpleUser> simpleUsers = cfUsers.get();
+//            Map<Long,String> eventProjectStatusListMap = cfEventStatus.get();
+//            Map<Long,String> allBelongTaskList = cfBelong.get();
+//            Map<Long, Map<Integer, List<Long>>> finalAllRelationTaskList = cfRelationMap.get();
+//            Map<Long,SimpleCrmEntity> moduleList = cfRelationSubModule.get();
+//            Map<Long,SimpleCrmEntity> customerList = cfRelationSubCustomer.get();
+//            Map<Long,SimpleCrmEntity> contactsList = cfRelationSubContacts.get();
+//            Map<Long,SimpleCrmEntity> businessList = cfRelationSubBusiness.get();
+//            Map<Long,SimpleCrmEntity> contractList = cfRelationSubContract.get();
+//            Map<Long,SimpleCrmEntity> receivablesList = cfRelationSubReceivables.get();
+//            Map<Long,SimpleCrmEntity> quotationList = cfRelationSubQuotation.get();
+//            log.info("时间2114："+(System.currentTimeMillis()-l));
+//            //-----------------------------------------
+
+
+
+
 }

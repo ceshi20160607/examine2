@@ -17,6 +17,14 @@
             <artifactId>examine-core</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+
+
+        <!--tio web-socket-->
+        <dependency>
+            <groupId>org.t-io</groupId>
+            <artifactId>tio-websocket-server</artifactId>
+            <version>3.8.5.v20230901-RELEASE</version>
+        </dependency>
     </dependencies>
 
 <!--    <build>-->
