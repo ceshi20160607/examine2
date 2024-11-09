@@ -1,7 +1,7 @@
 package com.unique.module.im;
 
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import lombok.Getter;
 import org.tio.websocket.common.Opcode;
 import org.tio.websocket.common.WsResponse;

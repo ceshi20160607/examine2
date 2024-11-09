@@ -2,7 +2,7 @@ package com.unique.core.thirdapi;
 
 import cn.hutool.crypto.digest.DigestUtil;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.*;
 
 

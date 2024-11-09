@@ -1,46 +1,42 @@
 package com.unique.core.config;
 
 import cn.dev33.satoken.context.SaHolder;
-import cn.dev33.satoken.filter.SaServletFilter;
 import cn.dev33.satoken.interceptor.SaInterceptor;
-import cn.dev33.satoken.router.SaHttpMethod;
-import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
-import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
+import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
+import com.baomidou.mybatisplus.extension.MybatisMapWrapperFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import org.springframework.beans.factory.annotation.Configurable;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.unique.core.context.BaseConst;
+import com.unique.core.utils.BaseUtil;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.format.FormatterRegistry;
-import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+import java.util.TimeZone;
 
 /**
  * @author UNIQUE
@@ -65,88 +61,78 @@ public class SaTokenConfigure implements WebMvcConfigurer {
                 .excludePathPatterns("/moduleAdmin/doLogin","/moduleAdmin/doLoginTest","/error");
     }
 
-//    @Override
-//    public void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(new SaInterceptor(handle -> {
-//            SaRouter.match("/**")
-//                    .notMatch(excludePaths())
-//                    .check(r -> StpUtil.checkLogin());
-//        })).addPathPatterns("/**");
-//    }
-//
-//    // 动态获取哪些 path 可以忽略鉴权
-//    public List<String> excludePaths() {
-//        // 此处仅为示例，实际项目你可以写任意代码来查询这些path
-//        return Arrays.asList("/user/doLogin");
-//    }
 
-    //当实现了implements WebMvcConfigurer的时候，必须手动设置进去。
-    @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(getObjectMapper());
-        converters.add(converter);
-    }
     /**
-     * 设置localdatetime的序列化与反序列化的方式
-     *
-     * @return
+     * long类型数据统一处理转换为string
      */
-    @Bean(name = "mapperObject")
-    public ObjectMapper getObjectMapper() {
-        ObjectMapper om = new ObjectMapper();
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
+        return jacksonObjectMapperBuilder -> {
+            jacksonObjectMapperBuilder.serializerByType(Long.TYPE, ToStringSerializer.instance);
+            jacksonObjectMapperBuilder.serializerByType(Long.class, ToStringSerializer.instance);
+            jacksonObjectMapperBuilder.deserializerByType(Date.class, new DateDeSerializer());
+            //localDate类型的序列化
+            jacksonObjectMapperBuilder.serializers(new LocalDateTimeSerializer(DatePattern.NORM_DATETIME_FORMATTER), new LocalDateSerializer(DatePattern.NORM_DATE_FORMATTER));
+            //localDate类型的反序列化
+            jacksonObjectMapperBuilder.deserializers(new LocalDateTimeDeserializer(DatePattern.NORM_DATETIME_FORMATTER), new LocalDateDeserializer(DatePattern.NORM_DATE_FORMATTER));
+        };
+    }
+
+    /**
+     * 对objectMapper增加一些时间类型的处理
+     *
+     * @return objectMapper
+     */
+    @Bean
+    public ObjectMapper buildObjectMapper() {
+        ObjectMapper objectMapper = new JsonMapper();
+        objectMapper.registerModule(new Jdk8Module());
+        objectMapper.setDateFormat(new SimpleDateFormat(DatePattern.NORM_DATETIME_PATTERN));
+        objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         JavaTimeModule javaTimeModule = new JavaTimeModule();
-
-        //这个返回时间戳   注意这里的LocalDateTimeSerializer是上面自己实现的一
-        //javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer());
-        //返回指定字符串格式 这里的LocalDateTimeSerializer是com.fasterxml.jackson.datatype.jsr310.ser下的
-        javaTimeModule.addSerializer(LocalDateTime.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-
-        javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        javaTimeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern("HH:mm:ss")));
+        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DatePattern.NORM_DATETIME_FORMATTER));
+        javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(DatePattern.NORM_DATE_FORMATTER));
+        javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DatePattern.NORM_DATETIME_FORMATTER));
+        javaTimeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(DatePattern.NORM_DATE_FORMATTER));
+        javaTimeModule.addDeserializer(Date.class, new DateDeSerializer());
         javaTimeModule.addSerializer(Long.class, ToStringSerializer.instance);
         javaTimeModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
+        objectMapper.registerModule(javaTimeModule);
+        return objectMapper;
+    }
 
-        // 这个反序列化。接受前端传来的格式
-        javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        // 这两个得加上。不然他俩默认返回了List结构
-        javaTimeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        javaTimeModule.addDeserializer(Date.class, new DateDeserializers.DateDeserializer());
-//        javaTimeModule.addDeserializer(Date.class, new DateDeserializer());
-        //添加此配置
-        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    @Bean
+    public PaginationInnerInterceptor paginationInterceptor() {
+        PaginationInnerInterceptor paginationInterceptor = new PaginationInnerInterceptor(DbType.MYSQL);
+        paginationInterceptor.setMaxLimit(BaseConst.QUERY_MAX_SIZE * 100);
+        paginationInterceptor.setOptimizeJoin(true);
+        return paginationInterceptor;
+    }
 
-        om.registerModule(javaTimeModule);
+    @Bean
+    public ConfigurationCustomizer configurationCustomizer() {
+        return i -> i.setObjectWrapperFactory(new MybatisMapWrapperFactory());
+    }
 
-        return om;
+    @Bean
+    @Primary
+    public IdentifierGenerator idGenerator() {
+        return entity -> BaseUtil.getNextId();
     }
 
     /**
-     * 添加分页插件
+     * 自定义long序列化，因为默认情况下long类型都序列化成string,在需要long类型数据时使用
+     * 将注解加到bean属性上即可
+     * <p>
+     * \@JsonSerialize(using = WebConfig.NumberSerializer.class)
      */
-    @Bean
-    public MybatisPlusInterceptor mybatisPlusInterceptor() {
-        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        interceptor.addInnerInterceptor(new PaginationInnerInterceptor());
-        return interceptor;
-    }
+    public static class NumberSerializer extends JsonSerializer<Long> {
 
-    /**
-     * get方式的参数 定义String与对应类型的转换方式
-     *
-     * @return
-     */
-    @Bean
-    public Converter<String, LocalDateTime> LocalDateTimeConvert() {
-        return new Converter<String, LocalDateTime>() {
-            @Override
-            public LocalDateTime convert(String source) {
-                if (ObjectUtil.isEmpty(source)) {
-                    return null;
-                }
-                return LocalDateTime.parse(source, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            }
-
-        };
+        @Override
+        public void serialize(Long value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeNumber(value);
+        }
     }
 
     /**
@@ -163,60 +149,4 @@ public class SaTokenConfigure implements WebMvcConfigurer {
             return null;
         }
     }
-
-    /**
-     * 自定义long序列化，因为默认情况下long类型都序列化成string,在需要long类型数据时使用
-     * 将注解加到bean属性上即可
-     *
-     * @JsonSerialize(using = WebConfig.NumberSerializer.class)
-     */
-    public static class NumberSerializer extends JsonSerializer<Long> {
-
-        @Override
-        public void serialize(Long value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-            gen.writeNumber(value);
-        }
-    }
-
-//    /**
-//     * 注册 [Sa-Token全局过滤器]
-//     */
-//    @Bean
-//    public SaServletFilter getSaServletFilter() {
-//        return new SaServletFilter()
-//                    // 拦截与排除 path
-//                .addInclude("/**")
-//                .addExclude("/favicon.ico","/user/doLogin")
-//                    // 全局认证函数
-//                .setAuth(obj -> {
-//                    System.out.println("---------- 进入Sa-Token全局认证 -----------");
-//
-//                    // 登录认证 -- 拦截所有路由，并排除/user/doLogin 用于开放登录
-//                    SaRouter.match("/**", "/user/doLogin", () -> StpUtil.checkLogin());
-//                    // 更多拦截处理方式，请参考“路由拦截式鉴权”章节 */
-//                })
-////
-////                // 异常处理函数
-////                .setError(e -> {
-////                    return AjaxJson.getError(e.getMessage());
-////                })
-//                // 前置函数：在每次认证函数之前执行
-//                .setBeforeAuth(obj -> {
-//                    // ---------- 设置跨域响应头 ----------
-//                    SaHolder.getResponse()
-//                            // 允许指定域访问跨域资源
-//                            .setHeader("Access-Control-Allow-Origin", "*")
-//                            // 允许所有请求方式
-////                            .setHeader("Access-Control-Allow-Methods", "*")
-//                            .setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE")
-//                            // 有效时间
-//                            .setHeader("Access-Control-Max-Age", "3600")
-//                            // 允许的header参数
-//                            .setHeader("Access-Control-Allow-Headers", "*");
-//                    // 如果是预检请求，则立即返回到前端
-//                    SaRouter.match(SaHttpMethod.OPTIONS)
-//                            .free(r -> System.out.println("--------OPTIONS预检请求，不做处理"))
-//                            .back();
-//                });
-//    }
 }

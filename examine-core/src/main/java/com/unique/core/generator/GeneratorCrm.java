@@ -33,7 +33,6 @@ public static final String GENERATOR_TABLE_PREFIX="un_";
                 .globalConfig(builder -> {
                     builder.author(GENERATOR_AUTHOR) // 设置作者
                             .enableSwagger() // 开启 swagger 模式
-                            .fileOverride() // 覆盖已生成文件
                             .outputDir(GENERATOR_LOCAL_PATH); // 指定输出目录
                 })
                 .packageConfig(builder -> {

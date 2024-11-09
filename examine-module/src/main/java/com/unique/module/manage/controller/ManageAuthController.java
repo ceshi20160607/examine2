@@ -4,16 +4,14 @@ package com.unique.module.manage.controller;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.unique.core.common.Result;
-import com.unique.core.context.Const;
+import com.unique.core.context.BaseConst;
 import com.unique.core.entity.admin.bo.UserBO;
 import com.unique.core.entity.base.vo.AuthVO;
 import com.unique.core.entity.user.bo.SimpleRole;
 import com.unique.core.enums.SystemCodeEnum;
 import com.unique.core.enums.UserStatusEnum;
 import com.unique.core.utils.EncryptUtil;
-import com.unique.module.entity.po.ModuleRoleUser;
 import com.unique.module.entity.po.ModuleUser;
 import com.unique.module.manage.service.ModuleAuthManageService;
 import com.unique.module.service.IModuleRoleUserService;
@@ -58,7 +56,7 @@ public class ManageAuthController {
             if (EncryptUtil.checkUserPwd(adminUser.getUsername(),userBO.getPassword(),adminUser.getSalt(),adminUser.getPassword())) {
                 StpUtil.login(adminUser.getId(), userBO.getDeviceType().getRemarks());
                 SaSession session = StpUtil.getSession();
-                session.set(Const.DEFAULT_SESSION_USER_KEY + adminUser.getId(), adminUser);
+                session.set(BaseConst.DEFAULT_SESSION_USER_KEY + adminUser.getId(), adminUser);
                 log.info("****:"+StpUtil.getTokenInfo().toString());
                 return Result.ok(StpUtil.getTokenInfo());
             }
@@ -78,7 +76,7 @@ public class ManageAuthController {
                 adminUser.setAdminFlag(CollectionUtil.isNotEmpty(roleUserList) && roleUserList.stream().anyMatch(f -> f.getAdminFlag().equals(1))?1:0);
                 adminUser.setUserRoleList(roleUserList);
                 SaSession session = StpUtil.getSession();
-                session.set(Const.DEFAULT_SESSION_USER_KEY + adminUser.getId(), adminUser);
+                session.set(BaseConst.DEFAULT_SESSION_USER_KEY + adminUser.getId(), adminUser);
                 log.info("****:"+StpUtil.getTokenInfo().toString());
                 return Result.ok(StpUtil.getTokenInfo());
             }
@@ -102,7 +100,7 @@ public class ManageAuthController {
     @ApiOperation("管理的权限")
     public Result moduleAuth() {
         SaSession session = StpUtil.getSession();
-        ModuleUser loginUser = (ModuleUser)session.get(Const.DEFAULT_SESSION_USER_KEY + StpUtil.getLoginIdAsLong());
+        ModuleUser loginUser = (ModuleUser)session.get(BaseConst.DEFAULT_SESSION_USER_KEY + StpUtil.getLoginIdAsLong());
         AuthVO authVO = moduleAuthManageService.moduleAuth(loginUser.getModuleId(),StpUtil.getLoginIdAsLong());
         return Result.ok(authVO);
     }

@@ -6,8 +6,8 @@ import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 import com.baomidou.mybatisplus.generator.IFill;
 import com.baomidou.mybatisplus.generator.config.TemplateType;
 import com.baomidou.mybatisplus.generator.config.po.LikeTable;
+import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 import com.baomidou.mybatisplus.generator.fill.Column;
-import com.unique.core.utils.EnhanceFreemarkerTemplateEngine;
 
 import java.util.*;
 
@@ -37,13 +37,11 @@ public class Generator {
                 .globalConfig(builder -> {
                     builder.author(GENERATOR_AUTHOR) // 设置作者
                             .enableSwagger() // 开启 swagger 模式
-                            .fileOverride() // 覆盖已生成文件
                             .outputDir(parckagePath); // 指定输出目录
                 })
                 .packageConfig(builder -> {
                     builder.parent(parentPackageName) // 设置父包名
                             .entity("entity.po")
-                            .other("entity.vo")
 //                            .moduleName("examine") // 设置父包模块名
 //                            .pathInfo(Collections.singletonMap(OutputFile.mapperXml, GENERATOR_LOCAL_XML_PATH))// 设置mapperXml生成路径
                     ;
@@ -76,9 +74,9 @@ public class Generator {
                     customFile.put("VO.java", "/simple3/entityVO.java.ftl");
                     consumer.customFile(customFile);
                 })
-                .templateEngine(new EnhanceFreemarkerTemplateEngine()) // 使用Freemarker引擎模板，默认的是Velocity引擎模板
+                .templateEngine(new FreemarkerTemplateEngine()) // 使用Freemarker引擎模板，默认的是Velocity引擎模板
                 .templateConfig(builder ->{
-                    builder.disable(TemplateType.CONTROLLER, TemplateType.SERVICE, TemplateType.SERVICEIMPL, TemplateType.MAPPER,TemplateType.XML)
+                    builder.disable(TemplateType.CONTROLLER, TemplateType.SERVICE, TemplateType.MAPPER,TemplateType.XML)
 //                           .controller("/es/controller.java")
 //                           .service("/es/service.java")
 //                           .serviceImpl("/es/serviceImpl.java")
@@ -103,7 +101,6 @@ public class Generator {
                            .service("/simple3/service.java")
                            .serviceImpl("/simple3/serviceImpl.java")
                            .mapper("/simple3/mapper.java")
-                           .mapperXml("/simple3/mapper.xml")
                             .build();
                 } )
                 .execute();

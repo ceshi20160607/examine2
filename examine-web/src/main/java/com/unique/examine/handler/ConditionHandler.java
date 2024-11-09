@@ -3,7 +3,7 @@ package com.unique.examine.handler;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.unique.examine.entity.dto.ExamineContext;
 import com.unique.examine.entity.dto.ExamineFillParams;
 import com.unique.examine.entity.dto.ExamineSearch;
@@ -19,7 +19,7 @@ import com.unique.core.utils.SearchFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

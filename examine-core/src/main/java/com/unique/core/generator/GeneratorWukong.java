@@ -34,7 +34,6 @@ public class GeneratorWukong {
                 .globalConfig(builder -> {
                     builder.author(GENERATOR_AUTHOR) // 设置作者
                             .enableSwagger() // 开启 swagger 模式
-                            .fileOverride() // 覆盖已生成文件
                             .outputDir(GENERATOR_LOCAL_PATH); // 指定输出目录
                 })
                 .packageConfig(builder -> {
@@ -67,26 +66,23 @@ public class GeneratorWukong {
                 })
                 .templateEngine(new FreemarkerTemplateEngine()) // 使用Freemarker引擎模板，默认的是Velocity引擎模板
                 .templateConfig(builder ->{
-                    builder.disable(TemplateType.CONTROLLER, TemplateType.SERVICE, TemplateType.SERVICEIMPL, TemplateType.MAPPER,TemplateType.XML)
+                    builder.disable(TemplateType.CONTROLLER, TemplateType.SERVICE,  TemplateType.MAPPER,TemplateType.XML)
 //                           .controller("/es/controller.java")
 //                           .service("/es/service.java")
 //                           .serviceImpl("/es/serviceImpl.java")
 //                           .mapper("/es/mapper.java")
-//                           .mapperXml("/es/mapper.xml")
 
 //                            //simple用于mp生成的基础的模板
                             .controller("/simple/controller.java")
                            .service("/simple/service.java")
                            .serviceImpl("/simple/serviceImpl.java")
                            .mapper("/simple/mapper.java")
-                           .mapperXml("/simple/mapper.xml")
 
 //                            //simple2用于没有自定义字段还是要进行自定义字段的数据保存逻辑
 //                            .controller("/simple2/controller.java")
 //                           .service("/simple2/service.java")
 //                           .serviceImpl("/simple2/serviceImpl.java")
 //                           .mapper("/simple2/mapper.java")
-//                           .mapperXml("/simple2/mapper.xml")
                           .build();
                 } )
                 .execute();

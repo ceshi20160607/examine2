@@ -9,7 +9,7 @@ import java.util.List;
  * @date 2022/12/28 10:07
  */
 
-public class Const {
+public class BaseConst {
     /**
      * 项目版本
      */
@@ -30,6 +30,15 @@ public class Const {
      * 默认编码
      */
     public static final String DEFAULT_CONTENT_TYPE = "application/json;charset=UTF-8";
+
+
+    /**
+     * sql最大查询条数限制,以及字段数量限制
+     */
+    public static final Long QUERY_MAX_SIZE = 100L;
+
+
+
 
     /**
      * 用于地址转换成clickhouse后尽心后续截取做检索处理

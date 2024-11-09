@@ -2,7 +2,7 @@ package com.unique.core.utils;
 
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.hutool.core.util.RandomUtil;
-import com.unique.core.context.Const;
+import com.unique.core.context.BaseConst;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +38,7 @@ public class EncryptUtil {
      * @return {}
      */
     public static String encryUserPwdSalt(String username,String password,String salt) {
-        return SaSecureUtil.md5BySalt(username + Const.SEPARATOR_COLON + password, salt);
+        return SaSecureUtil.md5BySalt(username + BaseConst.SEPARATOR_COLON + password, salt);
     }
 
     /**

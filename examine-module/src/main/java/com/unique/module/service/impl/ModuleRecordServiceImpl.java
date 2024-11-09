@@ -2,7 +2,7 @@ package com.unique.module.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.unique.core.enums.FieldTypeEnum;
 import com.unique.core.utils.BaseUtil;
 import com.unique.module.entity.bo.ModuleRecordBO;

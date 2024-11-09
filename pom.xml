@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.10</version>
+        <version>3.3.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.unique</groupId>
@@ -23,21 +23,23 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
 
         <sa.version>1.34.0</sa.version>
-        <hutool.version>5.7.16</hutool.version>
-        <lombok.version>1.18.10</lombok.version>
-        <fastjson.version>1.2.83</fastjson.version>
-        <druid.version>1.2.8</druid.version>
-        <baomidou.version>3.5.1</baomidou.version>
-        <generator.version>3.5.1</generator.version>
-        <poi.version>4.1.2</poi.version>
+        <hutool.version>5.8.33</hutool.version>
+        <lombok.version>1.18.34</lombok.version>
+        <fastjson.version>2.0.53</fastjson.version>
+        <druid.version>1.2.23</druid.version>
+        <baomidou.version>3.5.9</baomidou.version>
+        <dynamic.version>4.3.1</dynamic.version>
+        <generator.version>3.5.9</generator.version>
+        <poi.version>5.3.0</poi.version>
         <p6spy.version>3.9.1</p6spy.version>
-        <knife4j.version>2.0.7</knife4j.version>
-        <swagger2.version>2.10.5</swagger2.version>
+        <knife4j.version>3.0.3</knife4j.version>
+        <swagger2.version>3.0.0</swagger2.version>
 <!--        <liteflow.version>2.9.7</liteflow.version>-->
     </properties>
 
@@ -74,6 +76,18 @@
         </pluginRepository>
     </pluginRepositories>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-bom</artifactId>
+                <version>${baomidou.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <!--web依赖包-->
         <dependency>
@@ -86,20 +100,31 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- undertow服务-->
+        <!--undertow服务-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-undertow</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.undertow</groupId>
+                    <artifactId>undertow-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.undertow</groupId>
+                    <artifactId>undertow-websockets-jsr</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+        <!--解决undertow的cve漏洞-->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-core</artifactId>
+            <version>2.3.15.Final</version>
         </dependency>
         <!-- Sa-Token 权限认证，在线文档：https://sa-token.cc -->
         <dependency>
             <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-spring-boot-starter</artifactId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
             <version>${sa.version}</version>
         </dependency>
         <!-- Sa-Token 整合 Redis （使用 jdk 默认序列化方式） -->
@@ -122,16 +147,6 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>${baomidou.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
-            <version>${baomidou.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
             <version>${druid.version}</version>
@@ -142,11 +157,29 @@
             <artifactId>p6spy</artifactId>
             <version>${p6spy.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+<!--            <version>${baomidou.version}</version>-->
+        </dependency>
+        <!-- jdk 11+ 引入可选模块 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
+            <version>${dynamic.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-generator</artifactId>
-            <version>${generator.version}</version>
+            <!--            <version>${generator.version}</version>-->
         </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.freemarker/freemarker -->
         <!--生成代码的模板-->
         <dependency>
@@ -169,9 +202,10 @@
             <artifactId>hutool-all</artifactId>
             <version>${hutool.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.alibaba.fastjson2/fastjson2 -->
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
             <version>${fastjson.version}</version>
         </dependency>
 
@@ -196,34 +230,34 @@
 <!--        </dependency>-->
 
 
-        <!-- springfox 冲突解决 -->
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>${swagger2.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.swagger</groupId>
-                    <artifactId>swagger-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.swagger</groupId>
-                    <artifactId>swagger-models</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+<!--        &lt;!&ndash; springfox 冲突解决 &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>io.springfox</groupId>-->
+<!--            <artifactId>springfox-swagger2</artifactId>-->
+<!--            <version>${swagger2.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>io.swagger</groupId>-->
+<!--                    <artifactId>swagger-annotations</artifactId>-->
+<!--                </exclusion>-->
+<!--                <exclusion>-->
+<!--                    <groupId>io.swagger</groupId>-->
+<!--                    <artifactId>swagger-models</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
 <!--        &lt;!&ndash;Swagger2 - RESTful API文档&ndash;&gt;-->
 <!--        <dependency>-->
 <!--            <groupId>io.springfox</groupId>-->
 <!--            <artifactId>springfox-swagger2</artifactId>-->
 <!--            <version>${swagger2.version}</version>-->
 <!--        </dependency>-->
-        <!--swaggerUI-->
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-            <version>${swagger2.version}</version>
-        </dependency>
+<!--        &lt;!&ndash;swaggerUI&ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>io.springfox</groupId>-->
+<!--            <artifactId>springfox-swagger-ui</artifactId>-->
+<!--            <version>${swagger2.version}</version>-->
+<!--        </dependency>-->
 
         <!--knife4j-->
         <dependency>
