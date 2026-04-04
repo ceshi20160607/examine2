@@ -8,16 +8,8 @@
         <artifactId>examine</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>examine-app</artifactId>
-    <name>examine-app</name>
+    <artifactId>examine-module</artifactId>
+    <name>examine-module</name>
     <packaging>jar</packaging>
-    <description>对外开放 API（占位，启动入口在 examine-web）</description>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.unique</groupId>
-            <artifactId>examine-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+    <description>无代码 / 自建应用（占位）</description>
 </project>

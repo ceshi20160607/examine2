@@ -4,12 +4,15 @@
 
 ---
 
-## 平台登录（与租户无关）
+## 平台域（与租户无关；会话走 Redis）
 
 | 表名 | 做什么 |
 |------|--------|
 | **plat_account** | 平台账号：注册/登录身份，手机邮箱密码等（先有独占平台身份，再进各系统）。 |
-| **plat_session** | 平台会话：token、设备、过期；可选记录当前选中的系统/租户（`active_system_id` / `active_tenant_id`）。 |
+| **plat_config** | 平台基础配置：键值、分组（安全/公告/UI 等），可承载开关与元数据。 |
+| **plat_login_log** | 登录日志：成功/失败、IP/UA、尝试登录名等。 |
+| **plat_oper_log** | 平台操作日志：控制台关键操作（建系统、改配置等），与业务 `audit_biz_log` 分层。 |
+| **plat_msg** | **平台级**消息：`msg_type` 区分通告/提示/告警等；`source_type` 区分配置发布、运营录入、系统生成；与业务侧 `sys_message` 区分。 |
 
 ---
 
@@ -17,8 +20,8 @@
 
 | 表名 | 做什么 |
 |------|--------|
-| **sys_system** | 低代码「系统/应用」一条记录，对应 README 的 `systemId`；可配置是否多租户、默认 `tenant_id`。旧库 `company_id` 一般映射到这里。 |
-| **sys_tenant** | 租户：仅在系统开启多租户时使用；关多租户时业务多用 `default_tenant_id` 一条逻辑。 |
+| **plat_system** | 低代码「系统/应用」一条记录，对应 README 的 `systemId`；**预置 id=0 表示平台占位**。可配置是否多租户、默认 `tenant_id`。旧库 `company_id` 一般映射到非 0 行。 |
+| **plat_tenant** | 租户：**预置 id=0 且 system_id=0 为默认租户占位**；业务系统在 `multi_tenant_enabled=1` 下挂多条租户。 |
 | **sys_member** | 某平台账号在某个 `system_id + tenant_id` 下的成员身份；可绑定 `un_module_user.id` 等业务用户。 |
 
 ---
@@ -84,7 +87,7 @@
 
 ## 张数统计
 
-- 上表共 **22 张**（v3 脚本内 `CREATE TABLE`）。
+- 上表共 **25 张**（v3 脚本内 `CREATE TABLE`；已去掉 `plat_session`，改为 Redis 会话；`sys_system`/`sys_tenant` 更名为 `plat_system`/`plat_tenant` 并增加平台域日志/消息/配置表）。
 - 加上 `module.sql` 里原有模块域表，才是完整低代码 + 审批存储。
 
 若你希望把某几张合并或改名，可以按这张清单讨论定稿后再改 `schema_v3.sql`。

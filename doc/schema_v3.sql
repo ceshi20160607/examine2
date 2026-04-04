@@ -7,7 +7,9 @@
 --   doc/module.sql    → un_module_* 低代码模块/字段/主数据/EAV（槽位 + record_data）
 --   doc/examine.sql   → un_examine_* 旧审批；本文件用 flow_* / record_* 逻辑名重写
 --
--- 上下文（D1）：platform_account_id + system_id + tenant_id
+-- 上下文（D1）：plat_id（物理列 plat_account_id）+ system_id + tenant_id
+--   - 登录后会话/token 存 Redis，不使用 plat_session 表
+--   - plat_system.id=0、plat_tenant.id=0 为平台占位（README systemId=0 / 默认租户）
 --   - 旧库 company_id 建议迁移映射为 system_id；tenant_id 关多租户时固定 0（或约定 defaultTenantId）
 --
 -- 主键（D10）：业务主键建议雪花 BIGINT，由应用分配；本 DDL 不强制 AUTO_INCREMENT，
@@ -20,14 +22,17 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- -----------------------------------------------------------------------------
--- 一、平台账号（无租户；参考 schema_v2 plat_*）
+-- 一、平台账号与平台域配置（无租户；token 会话走 Redis，不落库）
 -- -----------------------------------------------------------------------------
 
-DROP TABLE IF EXISTS plat_session;
+DROP TABLE IF EXISTS plat_login_log;
+DROP TABLE IF EXISTS plat_oper_log;
+DROP TABLE IF EXISTS plat_msg;
+DROP TABLE IF EXISTS plat_config;
 DROP TABLE IF EXISTS plat_account;
 
 CREATE TABLE plat_account (
-  id              BIGINT       NOT NULL COMMENT '平台账号主键（雪花）',
+  id              BIGINT       NOT NULL COMMENT '平台账号主键（雪花）；逻辑 platId',
   username        VARCHAR(64)  NULL COMMENT '登录名',
   password_hash   VARCHAR(255) NULL,
   password_salt   VARCHAR(64)  NULL,
@@ -45,34 +50,78 @@ CREATE TABLE plat_account (
   KEY idx_plat_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台账号';
 
-CREATE TABLE plat_session (
+CREATE TABLE plat_config (
+  id             BIGINT        NOT NULL,
+  config_key     VARCHAR(128)  NOT NULL COMMENT '唯一键，如 security.password.min_length',
+  config_value   MEDIUMTEXT    NULL,
+  value_type     VARCHAR(32)   NOT NULL DEFAULT 'string' COMMENT 'string/json/number/boolean',
+  group_code     VARCHAR(64)   NULL COMMENT '分组：security/notice/ui',
+  description    VARCHAR(512)  NULL,
+  create_time    DATETIME      NOT NULL,
+  update_time    DATETIME      NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_plat_config_key (config_key),
+  KEY idx_plat_config_group (group_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台基础配置（可含公告/提示类配置的元数据或开关）';
+
+CREATE TABLE plat_login_log (
   id               BIGINT       NOT NULL,
-  plat_account_id  BIGINT       NOT NULL,
-  device           VARCHAR(32)  NOT NULL DEFAULT 'web',
-  access_token     VARCHAR(128) NOT NULL,
-  refresh_token    VARCHAR(128) NULL,
-  issued_at        DATETIME     NOT NULL,
-  expire_at        DATETIME     NOT NULL,
-  revoked_flag     TINYINT      NOT NULL DEFAULT 0,
+  plat_account_id  BIGINT       NULL COMMENT '成功时必有；失败尝试可为空',
+  username_attempt VARCHAR(64)  NULL COMMENT '尝试登录名',
+  success_flag     TINYINT      NOT NULL COMMENT '1=成功 0=失败',
+  fail_reason      VARCHAR(255) NULL,
   ip               VARCHAR(64)  NULL,
   ua               VARCHAR(512) NULL,
-  active_system_id BIGINT       NULL COMMENT '当前选中的系统（低代码应用）',
-  active_tenant_id BIGINT       NULL COMMENT '当前租户，可为空',
+  device           VARCHAR(32)  NULL,
+  login_time       DATETIME     NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY uk_plat_session_token (access_token),
-  KEY idx_plat_session_account (plat_account_id, device)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台会话';
+  KEY idx_plat_login_time (login_time),
+  KEY idx_plat_login_account (plat_account_id, login_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台登录日志';
+
+CREATE TABLE plat_oper_log (
+  id               BIGINT       NOT NULL,
+  plat_account_id  BIGINT       NOT NULL,
+  oper_time        DATETIME     NOT NULL,
+  module_code      VARCHAR(64)  NULL COMMENT '如 platform/console',
+  action_code      VARCHAR(64)  NOT NULL COMMENT 'create_system/update_config 等',
+  resource_type    VARCHAR(64)  NULL,
+  resource_id      VARCHAR(64)  NULL,
+  detail_json      JSON         NULL,
+  ip               VARCHAR(64)  NULL,
+  request_id       VARCHAR(64)  NULL,
+  PRIMARY KEY (id),
+  KEY idx_plat_oper_time (oper_time),
+  KEY idx_plat_oper_account (plat_account_id, oper_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台操作日志（控制台关键操作）';
+
+CREATE TABLE plat_msg (
+  id             BIGINT        NOT NULL,
+  msg_type       VARCHAR(32)   NOT NULL COMMENT 'announcement/tip/notice/alert/maintenance 等，可扩展',
+  title          VARCHAR(255)  NOT NULL,
+  content        MEDIUMTEXT    NULL,
+  payload_json   JSON          NULL COMMENT '扩展：链接、附加参数、多语言键',
+  source_type    TINYINT       NOT NULL DEFAULT 1 COMMENT '1=配置发布 2=运营录入 3=系统生成',
+  priority       TINYINT       NOT NULL DEFAULT 0,
+  publish_time   DATETIME      NULL,
+  expire_time    DATETIME      NULL,
+  status         TINYINT       NOT NULL DEFAULT 1 COMMENT '1=发布 0=草稿 2=下线',
+  create_time    DATETIME      NOT NULL,
+  update_time    DATETIME      NOT NULL,
+  PRIMARY KEY (id),
+  KEY idx_plat_msg_query (msg_type, status, publish_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台级消息（通告/提示等；与业务 sys_message 区分）';
 
 -- -----------------------------------------------------------------------------
--- 二、系统（低代码「应用」）与租户、成员
+-- 二、系统（低代码「应用」）与租户、成员；plat_system.id=0 / plat_tenant.id=0 为占位
 -- -----------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS sys_member;
-DROP TABLE IF EXISTS sys_tenant;
-DROP TABLE IF EXISTS sys_system;
+DROP TABLE IF EXISTS plat_tenant;
+DROP TABLE IF EXISTS plat_system;
 
-CREATE TABLE sys_system (
-  id                   BIGINT       NOT NULL COMMENT '系统ID（对应 README systemId；旧 company_id 可映射至此）',
+CREATE TABLE plat_system (
+  id                   BIGINT       NOT NULL COMMENT '系统ID=README systemId；0=平台占位',
   name                 VARCHAR(255) NOT NULL,
   icon_url             VARCHAR(512) NULL,
   multi_tenant_enabled TINYINT      NOT NULL DEFAULT 0 COMMENT '0=单租户 tenant_id 固定 1=多租户',
@@ -82,24 +131,24 @@ CREATE TABLE sys_system (
   create_time          DATETIME     NOT NULL,
   update_time          DATETIME     NOT NULL,
   PRIMARY KEY (id),
-  KEY idx_sys_system_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='低代码系统（应用）';
+  KEY idx_plat_system_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='低代码系统（应用）；含 id=0 平台行';
 
-CREATE TABLE sys_tenant (
-  id          BIGINT       NOT NULL,
+CREATE TABLE plat_tenant (
+  id          BIGINT       NOT NULL COMMENT '租户ID；0=默认租户占位（通常对应 system_id=0）',
   system_id   BIGINT       NOT NULL,
   name        VARCHAR(255) NOT NULL,
   status      TINYINT      NOT NULL DEFAULT 1,
   create_time DATETIME     NOT NULL,
   update_time DATETIME     NOT NULL,
   PRIMARY KEY (id),
-  KEY idx_tenant_system (system_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='租户（multi_tenant_enabled=1 时使用）';
+  KEY idx_plat_tenant_system (system_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='租户；multi_tenant_enabled=1 时使用';
 
 CREATE TABLE sys_member (
   id               BIGINT       NOT NULL,
   system_id        BIGINT       NOT NULL,
-  tenant_id        BIGINT       NOT NULL DEFAULT 0 COMMENT 'D1：关多租户=sys_system.default_tenant_id',
+  tenant_id        BIGINT       NOT NULL DEFAULT 0 COMMENT 'D1：关多租户=plat_system.default_tenant_id',
   plat_account_id  BIGINT       NOT NULL,
   module_user_id   BIGINT       NULL COMMENT '可选：绑定 un_module_user.id',
   employee_no      VARCHAR(64)  NULL,
@@ -112,6 +161,12 @@ CREATE TABLE sys_member (
   UNIQUE KEY uk_member_scope (system_id, tenant_id, plat_account_id),
   KEY idx_member_plat (plat_account_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统内成员（平台账号在某系统/租户下身份）';
+
+-- 种子：平台占位 systemId=0、默认租户 tenantId=0（须与业务约定一致；重复执行需用迁移脚本或 INSERT IGNORE）
+INSERT IGNORE INTO plat_system (id, name, icon_url, multi_tenant_enabled, default_tenant_id, status, owner_plat_account_id, create_time, update_time)
+VALUES (0, '平台', NULL, 0, 0, 1, NULL, NOW(3), NOW(3));
+INSERT IGNORE INTO plat_tenant (id, system_id, name, status, create_time, update_time)
+VALUES (0, 0, '默认租户', 1, NOW(3), NOW(3));
 
 -- -----------------------------------------------------------------------------
 -- 三、流程定义（模板）— 对应旧 un_examine / un_examine_node
@@ -503,7 +558,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- 1) un_module / un_module_field / un_module_record / un_module_record_data 等
 --    仍建议以 doc/module.sql 为基准导入，再执行下列「增量」：
 --
---    ALTER TABLE un_module ADD COLUMN system_id BIGINT NULL COMMENT '映射 sys_system.id' AFTER id;
+--    ALTER TABLE un_module ADD COLUMN system_id BIGINT NULL COMMENT '映射 plat_system.id' AFTER id;
 --    -- 将原 company_id 数据刷入 system_id 后，可弃用 company_id 或保留兼容期双写。
 --
 --    ALTER TABLE un_module_record ADD COLUMN tenant_id BIGINT NOT NULL DEFAULT 0 AFTER system_id;
