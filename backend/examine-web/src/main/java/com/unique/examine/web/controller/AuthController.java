@@ -1,9 +1,9 @@
 package com.unique.examine.web.controller;
 
 import com.unique.examine.core.security.AuthContextHolder;
-import com.unique.examine.plat.entity.PlatAccount;
-import com.unique.examine.plat.service.AuthService;
-import com.unique.examine.web.common.ApiResult;
+import com.unique.examine.core.web.ApiResult;
+import com.unique.examine.plat.entity.PO.PlatAccount;
+import com.unique.examine.web.service.AuthService;
 import com.unique.examine.web.dto.LoginBody;
 import com.unique.examine.web.dto.RegisterBody;
 import io.swagger.v3.oas.annotations.Operation;

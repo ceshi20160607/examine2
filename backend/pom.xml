@@ -18,10 +18,8 @@
     <modules>
         <module>examine-core</module>
         <module>examine-plat</module>
-        <module>examine-module</module>
         <module>examine-upload</module>
         <module>examine-web</module>
-        <module>examine-app</module>
     </modules>
 
     <properties>

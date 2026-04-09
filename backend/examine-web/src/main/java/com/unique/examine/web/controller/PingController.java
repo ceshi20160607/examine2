@@ -1,6 +1,6 @@
 package com.unique.examine.web.controller;
 
-import com.unique.examine.web.common.ApiResult;
+import com.unique.examine.core.web.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;

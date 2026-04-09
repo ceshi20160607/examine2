@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 
@@ -46,9 +47,16 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             }
             SessionPayload p = session.get();
             AuthContextHolder.setPlatId(p.platId());
+            AuthContextHolder.setUsername(p.username());
+            MDC.put("platId", String.valueOf(p.platId()));
+            if (p.username() != null) {
+                MDC.put("username", p.username());
+            }
             filterChain.doFilter(request, response);
         } finally {
             AuthContextHolder.clear();
+            MDC.remove("platId");
+            MDC.remove("username");
         }
     }
 
@@ -75,4 +83,5 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         }
         return false;
     }
+
 }

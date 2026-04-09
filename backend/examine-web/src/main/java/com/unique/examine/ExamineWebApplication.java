@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(scanBasePackages = "com.unique.examine")
-@MapperScan({"com.unique.examine.plat.mapper"})
+@MapperScan({"com.unique.examine.plat.mapper", "com.unique.examine.upload.mapper"})
 public class ExamineWebApplication {
 
     public static void main(String[] args) {
