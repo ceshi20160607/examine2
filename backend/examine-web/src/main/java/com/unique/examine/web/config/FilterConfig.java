@@ -10,7 +10,7 @@ import org.springframework.core.Ordered;
 public class FilterConfig {
 
     @Bean
-    public com.unique.examine.web.security.RequestContextFilter requestContextFilter() {
+    public com.unique.examine.web.security.RequestContextFilter examineRequestContextFilter() {
         return new com.unique.examine.web.security.RequestContextFilter();
     }
 
@@ -21,9 +21,9 @@ public class FilterConfig {
 
     @Bean
     public FilterRegistrationBean<com.unique.examine.web.security.RequestContextFilter> requestContextFilterRegistration(
-            com.unique.examine.web.security.RequestContextFilter filter) {
+            com.unique.examine.web.security.RequestContextFilter examineRequestContextFilter) {
         FilterRegistrationBean<com.unique.examine.web.security.RequestContextFilter> bean = new FilterRegistrationBean<>();
-        bean.setFilter(filter);
+        bean.setFilter(examineRequestContextFilter);
         bean.addUrlPatterns("/api/*");
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
         return bean;

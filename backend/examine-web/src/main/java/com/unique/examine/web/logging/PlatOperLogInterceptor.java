@@ -1,7 +1,7 @@
 package com.unique.examine.web.logging;
 
 import com.unique.examine.core.security.AuthContextHolder;
-import com.unique.examine.plat.entity.PlatOperLog;
+import com.unique.examine.plat.entity.PO.PlatOperLog;
 import com.unique.examine.plat.service.PlatOperLogService;
 import com.unique.examine.web.security.RequestContextFilter;
 import jakarta.servlet.http.HttpServletRequest;

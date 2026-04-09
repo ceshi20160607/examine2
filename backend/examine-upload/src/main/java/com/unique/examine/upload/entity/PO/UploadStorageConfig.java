@@ -57,7 +57,7 @@ public class UploadStorageConfig implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long updateUserId;
 
-    @Schema(description = "本地存储根目录（storage_type=local），如 D:\data\uploads")
+    @Schema(description = "本地存储根目录（storage_type=local），如 D:\\data\\uploads")
     private String localRootPath;
 
     @Schema(description = "本地文件对外访问域名/前缀（可选），如 https://static.example.com/uploads")
