@@ -1,9 +1,9 @@
-package com.unique.examine.core.service;
+package com.unique.examine.plat.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.unique.examine.core.entity.PlatMsg;
 import com.unique.examine.core.exception.BusinessException;
-import com.unique.examine.core.mapper.PlatMsgMapper;
+import com.unique.examine.plat.entity.PlatMsg;
+import com.unique.examine.plat.mapper.PlatMsgMapper;
 import org.springframework.stereotype.Service;
 
 @Service

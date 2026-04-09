@@ -1,12 +1,13 @@
-package com.unique.examine.core.service;
+package com.unique.examine.plat.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unique.examine.core.entity.PlatAccount;
-import com.unique.examine.core.entity.PlatLoginLog;
 import com.unique.examine.core.exception.BusinessException;
-import com.unique.examine.core.mapper.PlatAccountMapper;
-import com.unique.examine.core.mapper.PlatLoginLogMapper;
 import com.unique.examine.core.security.SessionPayload;
+import com.unique.examine.core.service.SessionService;
+import com.unique.examine.plat.entity.PlatAccount;
+import com.unique.examine.plat.entity.PlatLoginLog;
+import com.unique.examine.plat.mapper.PlatAccountMapper;
+import com.unique.examine.plat.mapper.PlatLoginLogMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

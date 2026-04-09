@@ -1,4 +1,4 @@
-package com.unique.examine.core.entity;
+package com.unique.examine.plat.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -10,14 +10,16 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("plat_tenant")
-public class PlatTenant {
+@TableName("plat_config")
+public class PlatConfig {
 
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
-    private Long systemId;
-    private String name;
-    private Integer status;
+    private String configKey;
+    private String configValue;
+    private String valueType;
+    private String groupCode;
+    private String description;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
     @TableField(fill = FieldFill.INSERT_UPDATE)

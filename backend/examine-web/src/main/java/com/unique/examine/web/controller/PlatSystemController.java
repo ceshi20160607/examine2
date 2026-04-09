@@ -1,8 +1,8 @@
 package com.unique.examine.web.controller;
 
-import com.unique.examine.core.entity.PlatSystem;
 import com.unique.examine.core.security.AuthContextHolder;
-import com.unique.examine.core.service.PlatSystemService;
+import com.unique.examine.plat.entity.PlatSystem;
+import com.unique.examine.plat.service.PlatSystemService;
 import com.unique.examine.web.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

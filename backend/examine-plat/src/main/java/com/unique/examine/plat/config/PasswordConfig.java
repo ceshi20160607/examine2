@@ -1,4 +1,4 @@
-package com.unique.examine.core.config;
+package com.unique.examine.plat.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

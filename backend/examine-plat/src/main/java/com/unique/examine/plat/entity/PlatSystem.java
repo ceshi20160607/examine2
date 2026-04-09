@@ -1,4 +1,4 @@
-package com.unique.examine.core.entity;
+package com.unique.examine.plat.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;

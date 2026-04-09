@@ -1,7 +1,7 @@
 package com.unique.examine.web.controller;
 
-import com.unique.examine.core.entity.PlatMsg;
-import com.unique.examine.core.service.PlatMsgService;
+import com.unique.examine.plat.entity.PlatMsg;
+import com.unique.examine.plat.service.PlatMsgService;
 import com.unique.examine.web.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

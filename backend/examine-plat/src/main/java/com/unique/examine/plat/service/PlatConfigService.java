@@ -1,10 +1,10 @@
-package com.unique.examine.core.service;
+package com.unique.examine.plat.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.unique.examine.core.entity.PlatConfig;
 import com.unique.examine.core.exception.BusinessException;
-import com.unique.examine.core.mapper.PlatConfigMapper;
+import com.unique.examine.plat.entity.PlatConfig;
+import com.unique.examine.plat.mapper.PlatConfigMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

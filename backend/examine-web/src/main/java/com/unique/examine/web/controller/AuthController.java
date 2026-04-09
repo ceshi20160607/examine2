@@ -1,8 +1,8 @@
 package com.unique.examine.web.controller;
 
-import com.unique.examine.core.entity.PlatAccount;
 import com.unique.examine.core.security.AuthContextHolder;
-import com.unique.examine.core.service.AuthService;
+import com.unique.examine.plat.entity.PlatAccount;
+import com.unique.examine.plat.service.AuthService;
 import com.unique.examine.web.common.ApiResult;
 import com.unique.examine.web.dto.LoginBody;
 import com.unique.examine.web.dto.RegisterBody;
