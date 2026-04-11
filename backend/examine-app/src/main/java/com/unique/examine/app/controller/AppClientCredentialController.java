@@ -1,7 +1,7 @@
 package com.unique.examine.app.controller;
 
 import com.unique.examine.core.common.Result;
-import com.unique.examine.app.entity.PO.AppClientCredential;
+import com.unique.examine.app.entity.po.AppClientCredential;
 import com.unique.examine.app.service.IAppClientCredentialService;
 import com.unique.examine.core.entity.BasePage;
 import com.unique.examine.core.entity.PageEntity;
@@ -19,7 +19,7 @@ import java.util.List;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 @RestController
 @RequestMapping("/appClientCredential")

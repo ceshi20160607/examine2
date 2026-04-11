@@ -1,6 +1,6 @@
 package com.unique.examine.upload.service;
 
-import com.unique.examine.upload.entity.PO.UploadFile;
+import com.unique.examine.upload.entity.po.UploadFile;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.unique.examine.core.entity.BasePage;
 import com.unique.examine.core.entity.PageEntity;
@@ -14,14 +14,14 @@ import java.util.List;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 public interface IUploadFileService extends IService<UploadFile> {
 
     /**
      * 查询字段配置
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param id 主键ID
      * @return data
      */
@@ -30,7 +30,7 @@ public interface IUploadFileService extends IService<UploadFile> {
     /**
      * 保存或新增信息
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param entity entity
      */
     public void addOrUpdate(UploadFile entity);
@@ -39,7 +39,7 @@ public interface IUploadFileService extends IService<UploadFile> {
     /**
      * 查询所有数据
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param search 搜索条件
      * @return list
      */
@@ -48,7 +48,7 @@ public interface IUploadFileService extends IService<UploadFile> {
     /**
      * 根据ID列表删除数据
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param ids ids
      */
     public void deleteByIds(List<Serializable> ids);

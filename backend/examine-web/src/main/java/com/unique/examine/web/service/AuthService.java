@@ -4,11 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.SessionPayload;
 import com.unique.examine.core.service.SessionService;
-import com.unique.examine.plat.entity.PO.PlatAccount;
-import com.unique.examine.plat.entity.PO.PlatLoginLog;
-import com.unique.examine.plat.mapper.PlatAccountMapper;
-import com.unique.examine.plat.mapper.PlatLoginLogMapper;
-import com.unique.examine.plat.service.IPlatAccountService;import com.unique.examine.plat.service.IPlatLoginLogService;import org.springframework.beans.factory.annotation.Autowired;import org.springframework.security.crypto.password.PasswordEncoder;
+import com.unique.examine.plat.manage.PlatRbacManageService;
+import com.unique.examine.plat.entity.po.PlatAccount;
+import com.unique.examine.plat.entity.po.PlatLoginLog;
+import com.unique.examine.plat.service.IPlatAccountService;
+import com.unique.examine.plat.service.IPlatLoginLogService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +28,8 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private SessionService sessionService;
-
+    @Autowired
+    private PlatRbacManageService platRbacManageService;
 
     @Transactional(rollbackFor = Exception.class)
     public PlatAccount register(String username, String rawPassword) {
@@ -41,11 +44,13 @@ public class AuthService {
         if (cnt != null && cnt > 0) {
             throw new BusinessException("用户名已存在");
         }
+        long existedBefore = platAccountService.count();
         PlatAccount acc = new PlatAccount();
         acc.setUsername(u);
         acc.setPasswordHash(passwordEncoder.encode(rawPassword));
         acc.setStatus(1);
         platAccountService.save(acc);
+        platRbacManageService.bindDefaultRoleOnRegister(acc.getId(), existedBefore == 0);
         return acc;
     }
 

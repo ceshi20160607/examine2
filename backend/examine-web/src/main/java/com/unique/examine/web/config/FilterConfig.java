@@ -15,8 +15,8 @@ public class FilterConfig {
     }
 
     @Bean
-    public TokenAuthenticationFilter tokenAuthenticationFilter(com.unique.examine.core.service.SessionService sessionService) {
-        return new TokenAuthenticationFilter(sessionService);
+    public TokenAuthenticationFilter tokenAuthenticationFilter() {
+        return new TokenAuthenticationFilter();
     }
 
     @Bean

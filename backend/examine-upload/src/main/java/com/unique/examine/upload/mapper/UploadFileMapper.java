@@ -1,6 +1,6 @@
 package com.unique.examine.upload.mapper;
 
-import com.unique.examine.upload.entity.PO.UploadFile;
+import com.unique.examine.upload.entity.po.UploadFile;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 public interface UploadFileMapper extends BaseMapper<UploadFile> {
 

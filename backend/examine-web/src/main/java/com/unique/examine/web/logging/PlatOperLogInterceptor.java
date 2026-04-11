@@ -1,24 +1,24 @@
 package com.unique.examine.web.logging;
 
 import com.unique.examine.core.security.AuthContextHolder;
-import com.unique.examine.plat.entity.PO.PlatOperLog;
-import com.unique.examine.plat.service.PlatOperLogService;
+import com.unique.examine.plat.entity.po.PlatOperLog;
+import com.unique.examine.plat.service.IPlatOperLogService;
 import com.unique.examine.web.security.RequestContextFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.time.LocalDateTime;
 
+@Component
 public class PlatOperLogInterceptor implements HandlerInterceptor {
 
-    private final PlatOperLogService operLogService;
-
-    public PlatOperLogInterceptor(PlatOperLogService operLogService) {
-        this.operLogService = operLogService;
-    }
+    @Autowired
+    private IPlatOperLogService operLogService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {

@@ -7,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,11 +17,8 @@ import java.io.IOException;
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
-    private final SessionService sessionService;
-
-    public TokenAuthenticationFilter(SessionService sessionService) {
-        this.sessionService = sessionService;
-    }
+    @Autowired
+    private SessionService sessionService;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
@@ -48,6 +46,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             SessionPayload p = session.get();
             AuthContextHolder.setPlatId(p.platId());
             AuthContextHolder.setUsername(p.username());
+            AuthContextHolder.setSystemId(p.systemId() == null ? 0L : p.systemId());
+            AuthContextHolder.setTenantId(p.tenantId() == null ? 0L : p.tenantId());
             MDC.put("platId", String.valueOf(p.platId()));
             if (p.username() != null) {
                 MDC.put("username", p.username());

@@ -1,6 +1,6 @@
 package com.unique.examine.flow.service.impl;
 
-import com.unique.examine.flow.entity.PO.FlowNodeTemplate;
+import com.unique.examine.flow.entity.po.FlowNodeTemplate;
 import com.unique.examine.flow.mapper.FlowNodeTemplateMapper;
 import com.unique.examine.flow.service.IFlowNodeTemplateService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -18,7 +18,7 @@ import java.util.List;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 @Service
 public class FlowNodeTemplateServiceImpl extends ServiceImpl<FlowNodeTemplateMapper, FlowNodeTemplate> implements IFlowNodeTemplateService {
@@ -26,7 +26,7 @@ public class FlowNodeTemplateServiceImpl extends ServiceImpl<FlowNodeTemplateMap
     /**
      * 查询字段配置
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param id 主键ID
      * @return data
      */
@@ -38,7 +38,7 @@ public class FlowNodeTemplateServiceImpl extends ServiceImpl<FlowNodeTemplateMap
     /**
      * 保存或新增信息
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param entity entity
      */
     @Override
@@ -51,7 +51,7 @@ public class FlowNodeTemplateServiceImpl extends ServiceImpl<FlowNodeTemplateMap
     /**
      * 查询所有数据
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param search 搜索条件
      * @return list
      */
@@ -63,7 +63,7 @@ public class FlowNodeTemplateServiceImpl extends ServiceImpl<FlowNodeTemplateMap
     /**
      * 根据ID列表删除数据
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param ids ids
      */
     @Override

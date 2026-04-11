@@ -1,7 +1,7 @@
 package com.unique.examine.module.controller;
 
 import com.unique.examine.core.common.Result;
-import com.unique.examine.module.entity.PO.ModuleApp;
+import com.unique.examine.module.entity.po.ModuleApp;
 import com.unique.examine.module.service.IModuleAppService;
 import com.unique.examine.core.entity.BasePage;
 import com.unique.examine.core.entity.PageEntity;
@@ -19,7 +19,7 @@ import java.util.List;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 @RestController
 @RequestMapping("/moduleApp")

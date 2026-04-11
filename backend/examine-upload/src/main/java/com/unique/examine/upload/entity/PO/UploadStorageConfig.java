@@ -1,4 +1,4 @@
-package com.unique.examine.upload.entity.PO;
+package com.unique.examine.upload.entity.po;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -20,7 +20,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 @Getter
 @Setter
@@ -57,7 +57,7 @@ public class UploadStorageConfig implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long updateUserId;
 
-    @Schema(description = "本地存储根目录（storage_type=local），如 D:\\data\\uploads")
+    @Schema(description = "本地存储根目录（storage_type=local），如 D:\data\uploads")
     private String localRootPath;
 
     @Schema(description = "本地文件对外访问域名/前缀（可选），如 https://static.example.com/uploads")

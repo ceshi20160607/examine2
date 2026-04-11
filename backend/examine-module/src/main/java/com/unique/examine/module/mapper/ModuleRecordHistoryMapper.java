@@ -1,6 +1,6 @@
 package com.unique.examine.module.mapper;
 
-import com.unique.examine.module.entity.PO.ModuleRecordHistory;
+import com.unique.examine.module.entity.po.ModuleRecordHistory;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 public interface ModuleRecordHistoryMapper extends BaseMapper<ModuleRecordHistory> {
 

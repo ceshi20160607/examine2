@@ -2,7 +2,7 @@ package com.unique.examine.web.controller;
 
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.core.web.ApiResult;
-import com.unique.examine.plat.entity.PO.PlatAccount;
+import com.unique.examine.plat.entity.po.PlatAccount;
 import com.unique.examine.web.service.AuthService;
 import com.unique.examine.web.dto.LoginBody;
 import com.unique.examine.web.dto.RegisterBody;
@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,11 +25,8 @@ import java.util.Map;
 @RequestMapping("/api/v1/platform/auth")
 public class AuthController {
 
-    private final AuthService authService;
-
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
+    @Autowired
+    private AuthService authService;
 
     @Operation(summary = "注册")
     @PostMapping("/register")

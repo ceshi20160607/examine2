@@ -1,4 +1,4 @@
-package com.unique.examine.module.entity.PO;
+package com.unique.examine.module.entity.po;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -20,7 +20,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 @Getter
 @Setter

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -18,11 +19,8 @@ public class ControllerParamLoggingAspect {
 
     private static final int MAX_LEN = 2000;
 
-    private final ObjectMapper objectMapper;
-
-    public ControllerParamLoggingAspect(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Before("within(@org.springframework.web.bind.annotation.RestController *)")
     public void logControllerArgs(JoinPoint jp) {

@@ -1,6 +1,6 @@
 package com.unique.examine.app.service.impl;
 
-import com.unique.examine.app.entity.PO.AppIpWhitelist;
+import com.unique.examine.app.entity.po.AppIpWhitelist;
 import com.unique.examine.app.mapper.AppIpWhitelistMapper;
 import com.unique.examine.app.service.IAppIpWhitelistService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -18,7 +18,7 @@ import java.util.List;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 @Service
 public class AppIpWhitelistServiceImpl extends ServiceImpl<AppIpWhitelistMapper, AppIpWhitelist> implements IAppIpWhitelistService {
@@ -26,7 +26,7 @@ public class AppIpWhitelistServiceImpl extends ServiceImpl<AppIpWhitelistMapper,
     /**
      * 查询字段配置
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param id 主键ID
      * @return data
      */
@@ -38,7 +38,7 @@ public class AppIpWhitelistServiceImpl extends ServiceImpl<AppIpWhitelistMapper,
     /**
      * 保存或新增信息
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param entity entity
      */
     @Override
@@ -51,7 +51,7 @@ public class AppIpWhitelistServiceImpl extends ServiceImpl<AppIpWhitelistMapper,
     /**
      * 查询所有数据
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param search 搜索条件
      * @return list
      */
@@ -63,7 +63,7 @@ public class AppIpWhitelistServiceImpl extends ServiceImpl<AppIpWhitelistMapper,
     /**
      * 根据ID列表删除数据
      * @author UNIQUE
-     * @since 2026-04-09
+     * @since 2026-04-10
      * @param ids ids
      */
     @Override

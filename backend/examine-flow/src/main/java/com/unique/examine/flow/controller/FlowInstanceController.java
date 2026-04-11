@@ -1,7 +1,7 @@
 package com.unique.examine.flow.controller;
 
 import com.unique.examine.core.common.Result;
-import com.unique.examine.flow.entity.PO.FlowInstance;
+import com.unique.examine.flow.entity.po.FlowInstance;
 import com.unique.examine.flow.service.IFlowInstanceService;
 import com.unique.examine.core.entity.BasePage;
 import com.unique.examine.core.entity.PageEntity;
@@ -19,7 +19,7 @@ import java.util.List;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 @RestController
 @RequestMapping("/flowInstance")

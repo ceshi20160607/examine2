@@ -10,6 +10,7 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
@@ -20,11 +21,8 @@ public class ResponseLoggingAdvice implements ResponseBodyAdvice<Object> {
 
     private static final int MAX_LEN = 2000;
 
-    private final ObjectMapper objectMapper;
-
-    public ResponseLoggingAdvice(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {

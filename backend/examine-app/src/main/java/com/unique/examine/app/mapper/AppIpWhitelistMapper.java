@@ -1,6 +1,6 @@
 package com.unique.examine.app.mapper;
 
-import com.unique.examine.app.entity.PO.AppIpWhitelist;
+import com.unique.examine.app.entity.po.AppIpWhitelist;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-09
+ * @since 2026-04-10
  */
 public interface AppIpWhitelistMapper extends BaseMapper<AppIpWhitelist> {
 
