@@ -20,7 +20,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-10
+ * @since 2026-04-14
  */
 @Getter
 @Setter
@@ -67,11 +67,32 @@ public class ModuleField implements Serializable {
     @Schema(description = "是否唯一：1=唯一 0=否")
     private Integer uniqueFlag;
 
+    @Schema(description = "是否隐藏（字段级配置默认）：1=隐藏 0=显示")
+    private Integer hiddenFlag;
+
+    @Schema(description = "输入提示/placeholder（可选）")
+    private String tips;
+
+    @Schema(description = "最大长度（string 等，可选）")
+    private Integer maxLength;
+
+    @Schema(description = "最小长度（string 等，可选）")
+    private Integer minLength;
+
+    @Schema(description = "校验类型（phone|email|idCard|url 等，可选）")
+    private String validateType;
+
+    @Schema(description = "日期格式（如 yyyymmdd / yyyy-mm-dd / yyyy-mm-dd HH:mm:ss）")
+    private String dateFormat;
+
+    @Schema(description = "数据字典编码（引用 un_module_dict.dict_code，可选）")
+    private String dictCode;
+
+    @Schema(description = "是否多选：1=多选 0=单选（enum/dict 等）")
+    private Integer multiFlag;
+
     @Schema(description = "默认值（字符串表示，可选）")
     private String defaultValue;
-
-    @Schema(description = "枚举/字典/校验等扩展配置 JSON")
-    private String optionsJson;
 
     @Schema(description = "排序号")
     private Integer sortNo;

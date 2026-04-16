@@ -93,6 +93,19 @@ public class AuthService {
         sessionService.deleteSession(token);
     }
 
+    /**
+     * 刷新会话：校验旧 token，轮换新 token（旧 token 失效），保持 {@link SessionPayload} 不变。
+     */
+    public String refreshToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new BusinessException(401, "token 缺失");
+        }
+        SessionPayload cur = sessionService.getSession(token.trim())
+                .orElseThrow(() -> new BusinessException(401, "登录已过期"));
+        sessionService.deleteSession(token.trim());
+        return sessionService.createSession(cur);
+    }
+
     public PlatAccount requireAccount(Long platId) {
         PlatAccount acc = platAccountService.queryById(platId);
         if (acc == null) {

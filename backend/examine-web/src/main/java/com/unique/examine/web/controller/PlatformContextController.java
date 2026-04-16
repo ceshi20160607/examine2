@@ -13,6 +13,7 @@ import com.unique.examine.plat.service.IPlatTenantService;
 import com.unique.examine.plat.manage.PlatRbacManageService;
 import com.unique.examine.plat.entity.dto.PlatMenuTreeNode;
 import com.unique.examine.web.service.PlatPermissionService;
+import com.unique.examine.web.service.SystemModuleBootstrapService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "平台态-系统与租户")
 @RestController
-@RequestMapping("/api/v1/platform")
+@RequestMapping("/v1/platform")
 public class PlatformContextController {
 
     @Autowired
@@ -48,6 +49,8 @@ public class PlatformContextController {
     private PlatPermissionService platPermissionService;
     @Autowired
     private PlatRbacManageService platRbacManageService;
+    @Autowired
+    private SystemModuleBootstrapService systemModuleBootstrapService;
 
     @Operation(summary = "当前账号的平台级权限（RBAC：角色+菜单树+权限码；无绑定角色时回退账号列 plat_perm_codes；不含系统内 module 权限）")
     @GetMapping("/permissions/me")
@@ -94,6 +97,7 @@ public class PlatformContextController {
         s.setCreateUserId(platId);
         s.setUpdateUserId(platId);
         platSystemService.save(s);
+        systemModuleBootstrapService.afterSystemCreated(s, platId);
         return ApiResult.ok(s);
     }
 
@@ -167,6 +171,9 @@ public class PlatformContextController {
         }
         SessionPayload next = new SessionPayload(cur.platId(), cur.username(), s.getId(), tenantId);
         sessionService.updateSession(token, next);
+        if (s.getMultiTenantEnabled() != null && s.getMultiTenantEnabled() == 1 && tenantId > 0) {
+            systemModuleBootstrapService.ensureTenantModuleSeed(s, tenantId, platId);
+        }
         return ApiResult.ok(next);
     }
 
@@ -224,6 +231,7 @@ public class PlatformContextController {
 
         SessionPayload next = new SessionPayload(cur.platId(), cur.username(), cur.systemId(), t.getId());
         sessionService.updateSession(token, next);
+        systemModuleBootstrapService.ensureTenantModuleSeed(s, t.getId(), cur.platId());
         return ApiResult.ok(next);
     }
 

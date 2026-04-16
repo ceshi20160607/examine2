@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-10
+ * @since 2026-04-14
  */
 public interface ModuleRolePermMapper extends BaseMapper<ModuleRolePerm> {
 

@@ -61,5 +61,6 @@ public final class AuthContextHolder {
         USERNAME.remove();
         SYSTEM_ID.remove();
         TENANT_ID.remove();
+        ModuleAuthContextHolder.clear();
     }
 }

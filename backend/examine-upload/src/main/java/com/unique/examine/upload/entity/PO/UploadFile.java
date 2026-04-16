@@ -87,7 +87,7 @@ public class UploadFile implements Serializable {
     @Schema(description = "对象Key/路径（对象存储）")
     private String objectKey;
 
-    @Schema(description = "本地物理路径（storage_type=local 时使用，如 D:\data\uploads\2026\a.png）")
+    @Schema(description = "本地物理路径（storage_type=local 时使用，如 D:/data/uploads/2026/a.png）")
     private String localAbsPath;
 
     @Schema(description = "外网可访问地址（可为空，按配置/签名动态生成）")

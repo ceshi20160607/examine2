@@ -69,10 +69,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private static boolean isPublic(String uri) {
-        if (uri.startsWith("/api/ping")) {
-            return true;
-        }
-        if (uri.startsWith("/api/v1/platform/auth/register") || uri.startsWith("/api/v1/platform/auth/login")) {
+        if (uri.startsWith("/v1/platform/auth/register") || uri.startsWith("/v1/platform/auth/login")) {
             return true;
         }
         if (uri.startsWith("/actuator") || uri.startsWith("/error")) {

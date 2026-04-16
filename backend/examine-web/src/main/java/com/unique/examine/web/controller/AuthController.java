@@ -22,7 +22,7 @@ import java.util.Map;
 
 @Tag(name = "平台认证")
 @RestController
-@RequestMapping("/api/v1/platform/auth")
+@RequestMapping("/v1/platform/auth")
 public class AuthController {
 
     @Autowired
@@ -43,6 +43,17 @@ public class AuthController {
                 "token", r.token(),
                 "account", r.account()
         ));
+    }
+
+    @Operation(summary = "刷新 token（旧 token 作废，换发新 token；会话内 systemId/tenantId 不变）")
+    @PostMapping("/refresh")
+    public ApiResult<Map<String, String>> refresh(@RequestHeader(value = "Authorization", required = false) String authorization) {
+        String token = null;
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            token = authorization.substring(7).trim();
+        }
+        String newToken = authService.refreshToken(token != null ? token : "");
+        return ApiResult.ok(Map.of("token", newToken));
     }
 
     @Operation(summary = "登出")

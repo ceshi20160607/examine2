@@ -57,7 +57,7 @@ public class PlatOperLogInterceptor implements HandlerInterceptor {
     }
 
     private static String resolveModuleCode(String uri) {
-        // e.g. /api/v1/platform/auth/login -> platform
+        // e.g. /v1/platform/auth/login -> platform
         String[] parts = uri.split("/");
         for (int i = 0; i < parts.length; i++) {
             if ("v1".equals(parts[i]) && i + 1 < parts.length) {

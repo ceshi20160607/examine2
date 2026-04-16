@@ -16,17 +16,17 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 应用菜单
+ * 应用菜单（权限与接口门统一挂菜单）
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-10
+ * @since 2026-04-14
  */
 @Getter
 @Setter
 @Accessors(chain = true)
 @TableName("un_module_menu")
-@Schema(name = "ModuleMenu对象", description = "应用菜单")
+@Schema(name = "ModuleMenu对象", description = "应用菜单（权限与接口门统一挂菜单）")
 public class ModuleMenu implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -62,8 +62,17 @@ public class ModuleMenu implements Serializable {
     @Schema(description = "排序号")
     private Integer sortNo;
 
-    @Schema(description = "是否可见：1=可见 0=隐藏")
+    @Schema(description = "是否可见：1=可见 0=隐藏（接口门菜单可置 0）")
     private Integer visibleFlag;
+
+    @Schema(description = "与 un_module_role_perm.perm_key 一致，菜单级功能权限")
+    private String permKey;
+
+    @Schema(description = "后端 Ant 路径；与 perm_key 均非空时参与 HTTP 鉴权")
+    private String apiPattern;
+
+    @Schema(description = "本菜单（模块入口）下模型字段展示/校验等自定义（可选）")
+    private String moduleFieldsJson;
 
     @Schema(description = "创建人 platId")
     @TableField(fill = FieldFill.INSERT)

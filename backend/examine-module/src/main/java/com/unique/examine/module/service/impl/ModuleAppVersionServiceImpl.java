@@ -18,7 +18,7 @@ import java.util.List;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-10
+ * @since 2026-04-14
  */
 @Service
 public class ModuleAppVersionServiceImpl extends ServiceImpl<ModuleAppVersionMapper, ModuleAppVersion> implements IModuleAppVersionService {
@@ -26,7 +26,7 @@ public class ModuleAppVersionServiceImpl extends ServiceImpl<ModuleAppVersionMap
     /**
      * 查询字段配置
      * @author UNIQUE
-     * @since 2026-04-10
+     * @since 2026-04-14
      * @param id 主键ID
      * @return data
      */
@@ -38,7 +38,7 @@ public class ModuleAppVersionServiceImpl extends ServiceImpl<ModuleAppVersionMap
     /**
      * 保存或新增信息
      * @author UNIQUE
-     * @since 2026-04-10
+     * @since 2026-04-14
      * @param entity entity
      */
     @Override
@@ -51,7 +51,7 @@ public class ModuleAppVersionServiceImpl extends ServiceImpl<ModuleAppVersionMap
     /**
      * 查询所有数据
      * @author UNIQUE
-     * @since 2026-04-10
+     * @since 2026-04-14
      * @param search 搜索条件
      * @return list
      */
@@ -63,7 +63,7 @@ public class ModuleAppVersionServiceImpl extends ServiceImpl<ModuleAppVersionMap
     /**
      * 根据ID列表删除数据
      * @author UNIQUE
-     * @since 2026-04-10
+     * @since 2026-04-14
      * @param ids ids
      */
     @Override

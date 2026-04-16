@@ -15,11 +15,11 @@ import java.util.List;
 
 /**
  * <p>
- * 应用菜单 前端控制器
+ * 应用菜单（权限与接口门统一挂菜单） 前端控制器
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-10
+ * @since 2026-04-14
  */
 @RestController
 @RequestMapping("/moduleMenu")

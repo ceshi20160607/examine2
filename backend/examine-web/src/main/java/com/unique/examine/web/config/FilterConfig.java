@@ -24,7 +24,7 @@ public class FilterConfig {
             com.unique.examine.web.security.RequestContextFilter examineRequestContextFilter) {
         FilterRegistrationBean<com.unique.examine.web.security.RequestContextFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(examineRequestContextFilter);
-        bean.addUrlPatterns("/api/*");
+        bean.addUrlPatterns("/v1/*", "/ping");
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
         return bean;
     }
@@ -33,7 +33,7 @@ public class FilterConfig {
     public FilterRegistrationBean<TokenAuthenticationFilter> tokenFilterRegistration(TokenAuthenticationFilter filter) {
         FilterRegistrationBean<TokenAuthenticationFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(filter);
-        bean.addUrlPatterns("/api/*");
+        bean.addUrlPatterns("/v1/*");
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 20);
         return bean;
     }

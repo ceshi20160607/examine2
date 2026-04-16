@@ -20,7 +20,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author UNIQUE
- * @since 2026-04-10
+ * @since 2026-04-14
  */
 @Getter
 @Setter
@@ -62,6 +62,9 @@ public class ModulePage implements Serializable {
 
     @Schema(description = "页面配置 JSON（布局/数据源/交互等）")
     private String configJson;
+
+    @Schema(description = "页面内表单字段级自定义（控件/校验/联动等），与 config_json 分工见文件头说明")
+    private String formFieldsJson;
 
     @Schema(description = "状态：1=启用 2=停用")
     private Integer status;
