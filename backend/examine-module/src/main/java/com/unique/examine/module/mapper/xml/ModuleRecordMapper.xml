@@ -2,4 +2,119 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.unique.examine.module.mapper.ModuleRecordMapper">
 
+    <!--
+      filters.field：
+      - 保留字：id / createTime / updateTime → 走主表列
+      - 其它：视为 field_code，走 EAV 表 un_module_record_data（EXISTS）
+    -->
+    <sql id="record_dsl_where">
+        r.system_id = #{q.systemId}
+        and r.tenant_id = #{q.tenantId}
+        and r.app_id = #{q.appId}
+        and r.model_id = #{q.modelId}
+        and r.status = 1
+        <if test="q.filters != null and q.filters.size() &gt; 0">
+            <foreach collection="q.filters" item="f">
+                <choose>
+                    <when test="f.field == 'id'">
+                        <choose>
+                            <when test="f.op == 'eq'">
+                                and r.id = #{f.value}
+                            </when>
+                            <when test="f.op == 'in'">
+                                and r.id in
+                                <foreach collection="f.values" item="v" open="(" separator="," close=")">
+                                    #{v}
+                                </foreach>
+                            </when>
+                        </choose>
+                    </when>
+
+                    <when test="f.field == 'createTime'">
+                        <choose>
+                            <when test="f.op == 'gte'">
+                                and r.create_time &gt;= #{f.value}
+                            </when>
+                            <when test="f.op == 'lte'">
+                                and r.create_time &lt;= #{f.value}
+                            </when>
+                        </choose>
+                    </when>
+
+                    <when test="f.field == 'updateTime'">
+                        <choose>
+                            <when test="f.op == 'gte'">
+                                and r.update_time &gt;= #{f.value}
+                            </when>
+                            <when test="f.op == 'lte'">
+                                and r.update_time &lt;= #{f.value}
+                            </when>
+                        </choose>
+                    </when>
+
+                    <otherwise>
+                        <choose>
+                            <when test="f.op == 'eq'">
+                                and exists (
+                                    select 1 from un_module_record_data rdf
+                                    where rdf.record_id = r.id
+                                      and rdf.field_code = #{f.field}
+                                      and rdf.value_text = #{f.value}
+                                )
+                            </when>
+                            <when test="f.op == 'like'">
+                                and exists (
+                                    select 1 from un_module_record_data rdf
+                                    where rdf.record_id = r.id
+                                      and rdf.field_code = #{f.field}
+                                      and rdf.value_text like concat('%', #{f.value}, '%')
+                                )
+                            </when>
+                        </choose>
+                    </otherwise>
+                </choose>
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="countDsl" resultType="java.lang.Long">
+        select count(1)
+        from un_module_record r
+        where
+        <include refid="record_dsl_where"/>
+    </select>
+
+    <select id="listDsl" resultType="java.util.Map">
+        select
+            r.id,
+            r.system_id,
+            r.tenant_id,
+            r.app_id,
+            r.model_id,
+            r.status,
+            r.create_user_id,
+            r.update_user_id,
+            r.create_time,
+            r.update_time
+        from un_module_record r
+        where
+        <include refid="record_dsl_where"/>
+        <choose>
+            <when test="q.sortBy == 'createTime'">
+                order by r.create_time
+            </when>
+            <when test="q.sortBy == 'id'">
+                order by r.id
+            </when>
+            <otherwise>
+                order by r.update_time
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="q.sortDir == 'asc'"> asc </when>
+            <otherwise> desc </otherwise>
+        </choose>
+        limit #{limit} offset #{offset}
+    </select>
+
 </mapper>

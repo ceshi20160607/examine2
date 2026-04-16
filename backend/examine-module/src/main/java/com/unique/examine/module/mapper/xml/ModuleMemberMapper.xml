@@ -2,4 +2,32 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.unique.examine.module.mapper.ModuleMemberMapper">
 
+    <select id="selectModulePermKeysByPlat" resultType="java.lang.String">
+        select distinct m.perm_key
+        from un_module_member mb
+        join un_module_role_menu_perm rp
+          on rp.system_id = mb.system_id
+         and rp.tenant_id = mb.tenant_id
+         and rp.app_id = mb.app_id
+         and rp.role_id = mb.role_id
+         and rp.perm_level = 1
+        join un_module_menu m
+          on m.id = rp.menu_id
+         and m.app_id = mb.app_id
+        where mb.system_id = #{systemId}
+          and mb.tenant_id = #{tenantId}
+          and mb.plat_id = #{platId}
+          and mb.status = 1
+          and m.perm_key is not null and m.perm_key &lt;&gt; ''
+    </select>
+
+    <select id="selectPlatIdsByRole" resultType="java.lang.Long">
+        select distinct mb.plat_id
+        from un_module_member mb
+        where mb.system_id = #{systemId}
+          and mb.tenant_id = #{tenantId}
+          and mb.role_id = #{roleId}
+          and mb.status = 1
+    </select>
+
 </mapper>

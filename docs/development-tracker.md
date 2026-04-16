@@ -39,7 +39,7 @@
 | A-1 | 注册/登录/登出、token 刷新；Redis 会话包含 `platId/systemId/tenantId` | ✅ | 未登录 401；平台态仅允许平台接口；会话切换不串 system | `examine-web` 登录与会话代码；README §1.2–§1.3 |
 | A-2 | 系统列表/创建/启停/软删；进入系统（会话内更新 `systemId`） | ✅ | 进入系统后 system 口接口可用；未进入系统访问 system 口 403 | `SystemContextInterceptor`、进入系统接口 |
 | A-3 | 多租户：选择 tenant 写入会话（token 不变） | ✅ | 开启多租户系统必须先选 tenant；否则 403 | 选择租户接口；README §1.3 |
-| A-4 | message/todo 平台级入口（可先空列表/占位） | 🟡 | 有入口/空态；可见性框架预留 | README §12.1 占位描述 |
+| A-4 | message/todo 平台级入口（可先空列表/占位） | ✅ | 有入口/空态；可见性框架预留 | `PlatformInboxController`（messages 查询 `un_plat_msg`；todos 空态） |
 
 ### B 组织与权限（成员/角色/菜单与 AuthContext）
 
@@ -57,7 +57,7 @@
 | C-2 | 字典/字典项 | 🟡 | 字典可维护、可被字段引用 | `ModuleDictController`、`ModuleDictItemController` |
 | C-3 | 列表视图/列配置/筛选模板 | 🟡 | 列表展示配置可维护 | `ModuleListViewController`、`ModuleListViewColController`、`ModuleListFilterTplController` |
 | C-4 | 导出模板/字段（导出配置） | 🟡 | 导出配置可维护（先不要求真实导出实现） | `ModuleExportTplController`、`ModuleExportTplFieldController` |
-| C-5 | 业务行数据 CRUD、`*_data` / EAV、DSL 白名单 | ⬜ | 数据可写可查；查询不允许任意 SQL | 待落地：data/DSL 相关实现 |
+| C-5 | 业务行数据 CRUD、`*_data` / EAV、DSL 白名单 | 🟡 | 数据可写可查；查询不允许任意 SQL | MVP：`SystemModuleRecordController`（create/detail/query）；`un_module_record_data` 为 **EAV**（`field_code`+`value_text`）；DSL 动态条件用 **field_code**（非 `data.*`） |
 
 ### D flow（审批引擎主链路）
 

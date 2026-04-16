@@ -2,6 +2,9 @@ package com.unique.examine.module.mapper;
 
 import com.unique.examine.module.entity.po.ModuleMenu;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface ModuleMenuMapper extends BaseMapper<ModuleMenu> {
 
+    List<ModuleMenu> selectMenusWithApiPatternForAcl(@Param("appId") Long appId);
 }

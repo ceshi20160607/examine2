@@ -16,22 +16,19 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 模型记录数据（*_data）
+ * 模型记录数据（EAV：一行一字段，与 un_module_field.field_code 对齐）
  * </p>
- *
- * @author UNIQUE
- * @since 2026-04-14
  */
 @Getter
 @Setter
 @Accessors(chain = true)
 @TableName("un_module_record_data")
-@Schema(name = "ModuleRecordData对象", description = "模型记录数据（*_data）")
+@Schema(name = "ModuleRecordData对象", description = "模型记录数据（EAV）")
 public class ModuleRecordData implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "数据ID")
+    @Schema(description = "数据行ID")
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
@@ -56,8 +53,11 @@ public class ModuleRecordData implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long recordId;
 
-    @Schema(description = "记录数据（动态字段 JSON）")
-    private String dataJson;
+    @Schema(description = "字段编码（与元数据 field_code 一致）")
+    private String fieldCode;
+
+    @Schema(description = "字段值（字符串存储）")
+    private String valueText;
 
     @Schema(description = "创建人 platId")
     @TableField(fill = FieldFill.INSERT)
@@ -76,6 +76,4 @@ public class ModuleRecordData implements Serializable {
     @Schema(description = "更新时间")
     @TableField(fill = FieldFill.UPDATE)
     private LocalDateTime updateTime;
-
-
 }

@@ -26,3 +26,11 @@
   - `docs/requirements-log.md` 是需求记录（唯一变更日志）
 - **后续动作**：后续任何新增模块/接口/里程碑口径调整，必须先追加本 log，再同步 README 与 tracker。
 
+### 2026-04-16 业务数据存储：统一 EAV（一行一字段）
+
+- **背景**：列表 DSL 曾用 `data.*` 路径查 JSON，与主文档「record_data EAV」不一致。
+- **变更**：`un_module_record_data` 改为 **EAV**：`record_id` + `field_code` 唯一，每行 `value_text`；创建接口仍接收 JSON `data` 对象，服务端拆成多行写入；`POST /v1/system/records/query` 中动态条件使用 **field_code**（与 `un_module_field.field_code` 对齐），保留字仍为 `id` / `createTime` / `updateTime`。
+- **影响范围**：需按新版 `docs/sql/05_module_ddl.sql` 建库；旧库可参考 `docs/sql/15_module_record_data_eav_alter.sql` 手工迁移（脚本内为注释指引）。
+- **结论**：对外语义统一为「字段一行」，不再使用 `data.xxx` 形式的 DSL 字段名。
+- **后续动作**：后续可按模型元数据校验 `field_code` 是否存在、以及扩 typed 列/索引。
+

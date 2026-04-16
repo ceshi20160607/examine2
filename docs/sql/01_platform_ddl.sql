@@ -1,4 +1,4 @@
--- 平台域表结构（与 docs/platform-database-tables.md 一致；会话走 Redis，无 plat_session）
+-- 平台域表结构（会话走 Redis，无 plat_session）
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 

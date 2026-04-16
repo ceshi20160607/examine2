@@ -324,15 +324,17 @@ CREATE TABLE un_module_record_data (
   app_id         BIGINT       NOT NULL COMMENT 'un_module_app.id',
   model_id       BIGINT       NOT NULL COMMENT 'un_module_model.id',
   record_id      BIGINT       NOT NULL COMMENT 'un_module_record.id',
-  data_json      JSON         NOT NULL COMMENT '记录数据（动态字段 JSON）',
+  field_code     VARCHAR(64)  NOT NULL COMMENT '字段编码，与 un_module_field.field_code 对齐；EAV 一行一字段',
+  value_text     MEDIUMTEXT   NULL COMMENT '字段值（字符串存储；数值/时间可存字面量，后续可扩 typed 列）',
   create_user_id BIGINT       NULL COMMENT '创建人 platId',
   update_user_id BIGINT       NULL COMMENT '更新人 platId',
   create_time    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   PRIMARY KEY (id),
-  UNIQUE KEY uk_module_record_data (record_id),
-  KEY idx_module_record_data_model (model_id, record_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型记录数据（*_data）';
+  UNIQUE KEY uk_module_record_data_field (record_id, field_code),
+  KEY idx_module_record_data_model (model_id, record_id),
+  KEY idx_module_record_data_lookup (model_id, field_code, record_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型记录数据（EAV：一行一字段）';
 
 CREATE TABLE un_module_record_history (
   id             BIGINT       NOT NULL COMMENT '历史ID',
