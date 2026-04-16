@@ -7,6 +7,7 @@ import com.unique.examine.web.service.ModuleRecordFacadeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +27,7 @@ public class SystemModuleRecordController {
     private ModuleRecordFacadeService moduleRecordFacadeService;
 
     public record CreateRecordBody(Long appId, Long modelId, JsonNode data) {}
+    public record UpdateRecordBody(JsonNode data) {}
 
     @Operation(summary = "创建记录（EAV：写 un_module_record + 多行 un_module_record_data，每行 field_code + value_text）")
     @PostMapping("")
@@ -44,6 +46,20 @@ public class SystemModuleRecordController {
     @GetMapping("/{recordId}")
     public ApiResult<Map<String, Object>> detail(@PathVariable("recordId") Long recordId) {
         return ApiResult.ok(moduleRecordFacadeService.detailWithData(recordId));
+    }
+
+    @Operation(summary = "更新记录（EAV：先清空旧字段行，再写入新字段行）")
+    @PostMapping("/{recordId}/update")
+    public ApiResult<Map<String, Object>> update(@PathVariable("recordId") Long recordId,
+                                                 @RequestBody UpdateRecordBody body) {
+        return ApiResult.ok(moduleRecordFacadeService.updateWithData(recordId, body == null ? null : body.data()));
+    }
+
+    @Operation(summary = "删除记录（软删主表 status=2，并删除对应 EAV 字段行）")
+    @DeleteMapping("/{recordId}")
+    public ApiResult<Void> delete(@PathVariable("recordId") Long recordId) {
+        moduleRecordFacadeService.deleteRecord(recordId);
+        return ApiResult.ok();
     }
 
     @Operation(summary = "DSL 白名单查询（分页/排序/过滤；禁止任意 SQL）")
