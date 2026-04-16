@@ -47,7 +47,7 @@
 |---|---|---|---|---|
 | B-1 | 自建系统内接口前缀与“必须已进入系统/选择租户”校验链 | ✅ | system 内接口统一被拦截器保护 | README §12.1：`/v1/system/**`、`SystemContextInterceptor` |
 | B-2 | 成员/角色/菜单权限基础能力（RBAC + 菜单树） | 🟡 | 菜单/权限查询可用；按 system 隔离 | `ModuleMenuController` 等；README §12.1 |
-| B-3 | AuthContext 计算/缓存/失效（5min TTL 可配） | 🟡 | 接口硬过滤生效；缓存可命中可失效 | `AuthContextHolder`、`ModuleAuthContextHolder`、`ModuleAuthCacheCoordinator` |
+| B-3 | AuthContext 计算/缓存/失效（5min TTL 可配） | ✅ | 接口硬过滤生效；缓存可命中可失效 | `ModuleAuthService`（Redis 5min）；`ModuleAuthContextInterceptor`；成员/角色/权限变更失效（`ModuleMemberServiceImpl/ModuleRoleServiceImpl/ModuleRolePermServiceImpl/ModuleRoleMenuPermServiceImpl`）；菜单接口门变更 evict（`ModuleMenuServiceImpl`） |
 
 ### C 无代码与 `examine-module`（模块/字段/列表/字典/关系/CRUD）
 
