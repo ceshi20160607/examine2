@@ -1,11 +1,13 @@
 package com.unique.examine.module.service.impl;
 
+import com.unique.examine.core.module.ModuleMenuAclRuntimeCache;
 import com.unique.examine.module.entity.po.ModuleMenu;
 import com.unique.examine.module.mapper.ModuleMenuMapper;
 import com.unique.examine.module.service.IModuleMenuService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.unique.examine.core.entity.BasePage;
 import com.unique.examine.core.entity.PageEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,9 @@ import java.util.List;
  */
 @Service
 public class ModuleMenuServiceImpl extends ServiceImpl<ModuleMenuMapper, ModuleMenu> implements IModuleMenuService {
+
+    @Autowired(required = false)
+    private ModuleMenuAclRuntimeCache moduleMenuAclRuntimeCache;
 
     /**
      * 查询字段配置
@@ -44,7 +49,15 @@ public class ModuleMenuServiceImpl extends ServiceImpl<ModuleMenuMapper, ModuleM
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addOrUpdate(ModuleMenu entity) {
+        Long appId = entity == null ? null : entity.getAppId();
+        if (appId == null && entity != null && entity.getId() != null) {
+            ModuleMenu old = getById(entity.getId());
+            appId = old == null ? null : old.getAppId();
+        }
         saveOrUpdate(entity);
+        if (moduleMenuAclRuntimeCache != null && appId != null) {
+            moduleMenuAclRuntimeCache.evictByAppId(appId);
+        }
     }
 
 
@@ -71,6 +84,15 @@ public class ModuleMenuServiceImpl extends ServiceImpl<ModuleMenuMapper, ModuleM
         if (ids == null || ids.isEmpty()) {
               return;
         }
+        List<ModuleMenu> rows = listByIds(ids);
         removeByIds(ids);
+        if (moduleMenuAclRuntimeCache == null || rows == null || rows.isEmpty()) {
+            return;
+        }
+        for (ModuleMenu m : rows) {
+            if (m != null && m.getAppId() != null) {
+                moduleMenuAclRuntimeCache.evictByAppId(m.getAppId());
+            }
+        }
     }
 }
