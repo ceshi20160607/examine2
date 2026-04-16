@@ -7,11 +7,13 @@ import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.module.entity.dto.ModuleRecordDslFilter;
 import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
+import com.unique.examine.module.entity.po.ModuleField;
 import com.unique.examine.module.entity.po.ModuleRecord;
 import com.unique.examine.module.entity.po.ModuleRecordData;
 import com.unique.examine.module.entity.po.ModuleRecordHistory;
 import com.unique.examine.module.mapper.ModuleRecordMapper;
 import com.unique.examine.module.service.IModuleRecordDataService;
+import com.unique.examine.module.service.IModuleFieldService;
 import com.unique.examine.module.service.IModuleRecordHistoryService;
 import com.unique.examine.module.service.IModuleRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,8 @@ public class ModuleRecordFacadeService {
     private IModuleRecordDataService moduleRecordDataService;
     @Autowired
     private IModuleRecordHistoryService moduleRecordHistoryService;
+    @Autowired
+    private IModuleFieldService moduleFieldService;
     @Autowired
     private ModuleRecordMapper moduleRecordMapper;
     @Autowired
@@ -78,6 +82,7 @@ public class ModuleRecordFacadeService {
                 if (!FIELD_CODE.matcher(fieldCode).matches()) {
                     throw new BusinessException("data 中存在非法 fieldCode: " + fieldCode);
                 }
+                requireFieldExists(systemId, tenantId, appId, modelId, fieldCode);
                 JsonNode v = e.getValue();
                 String text = valueToText(v);
                 if (text != null && text.length() > 65535) {
@@ -201,6 +206,7 @@ public class ModuleRecordFacadeService {
                 if (!FIELD_CODE.matcher(fieldCode).matches()) {
                     throw new BusinessException("data 中存在非法 fieldCode: " + fieldCode);
                 }
+                requireFieldExists(systemId, tenantId, r.getAppId(), r.getModelId(), fieldCode);
                 JsonNode v = e.getValue();
                 String text = valueToText(v);
                 if (text != null && text.length() > 65535) {
@@ -315,7 +321,7 @@ public class ModuleRecordFacadeService {
         }
         if (filters != null) {
             for (ModuleRecordDslFilter f : filters) {
-                normalizeAndValidateFilter(f);
+                normalizeAndValidateFilter(body.getModelId(), body.getAppId(), systemId, tenantId, f);
             }
         }
 
@@ -333,7 +339,7 @@ public class ModuleRecordFacadeService {
         return m;
     }
 
-    private static void normalizeAndValidateFilter(ModuleRecordDslFilter f) {
+    private void normalizeAndValidateFilter(Long modelId, Long appId, long systemId, long tenantId, ModuleRecordDslFilter f) {
         if (f == null) {
             throw new BusinessException("filter 不能为空");
         }
@@ -365,6 +371,10 @@ public class ModuleRecordFacadeService {
             if (!FIELD_CODE.matcher(field).matches()) {
                 throw new BusinessException("filter.field 须为 id/createTime/updateTime 或合法 field_code（字母开头，字母数字下划线）");
             }
+            if (modelId == null || modelId <= 0L || appId == null || appId <= 0L) {
+                throw new BusinessException("modelId/appId 不能为空");
+            }
+            requireFieldExists(systemId, tenantId, appId, modelId, field);
             if (!(op.equals("eq") || op.equals("like"))) {
                 throw new BusinessException("field_code 条件仅支持 eq/like");
             }
@@ -392,6 +402,23 @@ public class ModuleRecordFacadeService {
 
         f.setField(field);
         f.setOp(op);
+    }
+
+    private void requireFieldExists(long systemId, long tenantId, Long appId, Long modelId, String fieldCode) {
+        if (fieldCode == null || fieldCode.isBlank()) {
+            throw new BusinessException("fieldCode 不能为空");
+        }
+        Long cnt = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getAppId, appId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getFieldCode, fieldCode)
+                .eq(ModuleField::getStatus, 1)
+                .count();
+        if (cnt == null || cnt == 0L) {
+            throw new BusinessException("字段不存在或已停用: " + fieldCode);
+        }
     }
 
     private void saveHistory(String action, ModuleRecord r, String snapshotJson) {
