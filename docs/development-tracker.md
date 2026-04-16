@@ -57,7 +57,7 @@
 | C-2 | 字典/字典项 | 🟡 | 字典可维护、可被字段引用 | `ModuleDictController`、`ModuleDictItemController` |
 | C-3 | 列表视图/列配置/筛选模板 | 🟡 | 列表展示配置可维护 | `ModuleListViewController`、`ModuleListViewColController`、`ModuleListFilterTplController` |
 | C-4 | 导出模板/字段（导出配置） | 🟡 | 导出配置可维护（先不要求真实导出实现） | `ModuleExportTplController`、`ModuleExportTplFieldController` |
-| C-5 | 业务行数据 CRUD、`*_data` / EAV、DSL 白名单 | 🟡 | 数据可写可查；查询不允许任意 SQL | MVP：`SystemModuleRecordController`（create/detail/query/update/delete）；`un_module_record_data` 为 **EAV**（`field_code`+`value_text`）；变更写入 `un_module_record_history`；DSL 动态条件用 **field_code** |
+| C-5 | 业务行数据 CRUD、`*_data` / EAV、DSL 白名单 | ✅ | 数据可写可查；查询不允许任意 SQL | `SystemModuleRecordController`（create/detail/query/update/delete）；`un_module_record_data` 为 **EAV**（`field_code`+`value_text`）；变更写入 `un_module_record_history`；DSL 动态条件用 **field_code**；写入/查询均校验 `field_code` 存在于 `un_module_field`（注：typed-value/索引优化后续迭代） |
 
 ### D flow（审批引擎主链路）
 
