@@ -23,6 +23,11 @@ spring:
       port: 6379
       password: 123456
       database: 0
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
 
 mybatis-plus:
   configuration:
