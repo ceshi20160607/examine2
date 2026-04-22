@@ -82,6 +82,16 @@
 
 ---
 
+## 3.1 上线准备（生产化收口项）
+
+| ID | 任务 | 状态 | 验收要点 | 证据（示例） |
+|---|---|---|---|---|
+| P-1 | Flyway 基线迁移（platform/upload/module/flow/app/plat_rbac） | ✅ | `db/migration/V*` 齐全；启动时可自动建表/初始化种子；不依赖手工跑 `docs/sql` | `examine-web`：`spring.flyway.*`；`backend/examine-web/src/main/resources/db/migration/` |
+| P-2 | requestId 贯穿（入参可传、响应回传、日志可关联） | ✅ | 支持从 `X-Request-Id` 透传；否则自动生成；响应头回写；异常响应 `ApiResult.requestId` 一致 | `RequestContextFilter`；`GlobalExceptionHandler`；`PlatOperLogInterceptor` |
+| P-3 | 最小指标暴露（Actuator metrics + Prometheus） | ✅ | `management.endpoints.web.exposure.include` 含 `metrics/prometheus`；具备 `/actuator/prometheus` | `examine-web`：`micrometer-registry-prometheus`；`application.yml` management 配置 |
+
+---
+
 ## 4. 文档收敛结果（你要的“统一一份”）
 
 - **需求根本**：`README.md`
