@@ -168,10 +168,21 @@ public class SystemUploadController {
         return ApiResult.ok(m);
     }
 
+    @Operation(summary = "文件详情（按 fileId；返回元数据与 view/download URL）")
+    @GetMapping("/{fileId}")
+    public ApiResult<Map<String, Object>> detail(@PathVariable("fileId") Long fileId) {
+        UploadFile uf = requireFileInScope(fileId, true);
+        return ApiResult.ok(Map.of(
+                "file", uf,
+                "viewUrl", "/v1/system/uploads/" + uf.getId() + "/view",
+                "downloadUrl", "/v1/system/uploads/" + uf.getId() + "/download"
+        ));
+    }
+
     @Operation(summary = "下载文件（按 fileId；Content-Disposition=attachment）")
     @GetMapping("/{fileId}/download")
     public void download(@PathVariable("fileId") Long fileId, HttpServletResponse response) {
-        UploadFile uf = requireAccessibleFile(fileId);
+        UploadFile uf = requireFileInScope(fileId, false);
         if (!Objects.equals(uf.getStorageType(), "local") || !StringUtils.hasText(uf.getLocalAbsPath())) {
             throw new BusinessException(400, "仅支持 local 存储文件下载");
         }
@@ -193,7 +204,7 @@ public class SystemUploadController {
     @Operation(summary = "预览文件（按 fileId；inline）")
     @GetMapping("/{fileId}/view")
     public void view(@PathVariable("fileId") Long fileId, HttpServletResponse response) {
-        UploadFile uf = requireAccessibleFile(fileId);
+        UploadFile uf = requireFileInScope(fileId, false);
         if (!Objects.equals(uf.getStorageType(), "local") || !StringUtils.hasText(uf.getLocalAbsPath())) {
             throw new BusinessException(400, "仅支持 local 存储文件预览");
         }
@@ -219,7 +230,7 @@ public class SystemUploadController {
         if (platId == null) {
             throw new BusinessException(401, "未登录");
         }
-        UploadFile uf = requireAccessibleFile(fileId);
+        UploadFile uf = requireFileInScope(fileId, true);
         if (uf.getStatus() != null && uf.getStatus() == 2) {
             return ApiResult.ok();
         }
@@ -229,7 +240,7 @@ public class SystemUploadController {
         return ApiResult.ok();
     }
 
-    private UploadFile requireAccessibleFile(Long fileId) {
+    private UploadFile requireFileInScope(Long fileId, boolean allowDeleted) {
         Long platId = AuthContextHolder.getPlatId();
         if (platId == null) {
             throw new BusinessException(401, "未登录");
@@ -243,8 +254,13 @@ public class SystemUploadController {
             throw new BusinessException(400, "fileId 不能为空");
         }
         UploadFile uf = uploadFileService.getById(fileId);
-        if (uf == null || uf.getStatus() == null || uf.getStatus() != 1) {
+        if (uf == null) {
             throw new BusinessException(404, "文件不存在");
+        }
+        if (!allowDeleted) {
+            if (uf.getStatus() == null || uf.getStatus() != 1) {
+                throw new BusinessException(404, "文件不存在");
+            }
         }
         if (!Objects.equals(uf.getSystemId(), systemId) || !Objects.equals(uf.getTenantId(), tenantId)) {
             throw new BusinessException(403, "无权限访问该文件");
