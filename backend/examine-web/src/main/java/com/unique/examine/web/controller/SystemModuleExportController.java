@@ -2,6 +2,7 @@ package com.unique.examine.web.controller;
 
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.core.web.ApiResult;
+import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
 import com.unique.examine.module.entity.po.ModuleExportTpl;
 import com.unique.examine.module.entity.po.ModuleExportTplField;
 import com.unique.examine.web.service.SystemModuleExportService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Tag(name = "自建系统态-module导出模板")
@@ -85,6 +87,15 @@ public class SystemModuleExportController {
         Long platId = AuthContextHolder.getPlatId();
         systemModuleExportService.deleteFields(platId, body == null ? null : body.ids());
         return ApiResult.ok();
+    }
+
+    @Operation(summary = "按导出模板导出 CSV（最小闭环；支持传入 DSL filters）")
+    @PostMapping("/tpls/{tplId}/export/csv")
+    public void exportCsv(@PathVariable("tplId") Long tplId,
+                          @RequestBody(required = false) ModuleRecordDslQuery query,
+                          HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleExportService.exportCsv(tplId, platId, query, response);
     }
 }
 

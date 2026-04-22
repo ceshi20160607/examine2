@@ -2,18 +2,31 @@ package com.unique.examine.web.service;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
+import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
 import com.unique.examine.module.entity.po.ModuleExportTpl;
 import com.unique.examine.module.entity.po.ModuleExportTplField;
+import com.unique.examine.module.entity.po.ModuleRecordData;
+import com.unique.examine.module.service.IModuleFieldService;
+import com.unique.examine.module.service.IModuleRecordDataService;
+import com.unique.examine.module.entity.po.ModuleField;
+import com.unique.examine.module.mapper.ModuleRecordMapper;
 import com.unique.examine.module.service.IModuleExportTplFieldService;
 import com.unique.examine.module.service.IModuleExportTplService;
 import com.unique.examine.web.controller.SystemModuleExportController;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.LinkedHashMap;
 
 @Service
 public class SystemModuleExportService {
@@ -22,6 +35,14 @@ public class SystemModuleExportService {
     private IModuleExportTplService moduleExportTplService;
     @Autowired
     private IModuleExportTplFieldService moduleExportTplFieldService;
+    @Autowired
+    private IModuleFieldService moduleFieldService;
+    @Autowired
+    private IModuleRecordDataService moduleRecordDataService;
+    @Autowired
+    private ModuleRecordMapper moduleRecordMapper;
+    @Autowired
+    private ModuleRecordFacadeService moduleRecordFacadeService;
 
     public List<ModuleExportTpl> listTpls(Long modelId, Long operatorPlatId) {
         requireOperator(operatorPlatId);
@@ -243,6 +264,151 @@ public class SystemModuleExportService {
             throw new BusinessException(403, "请先进入自建系统");
         }
         return sid;
+    }
+
+    public void exportCsv(Long tplId, Long operatorPlatId, ModuleRecordDslQuery query, HttpServletResponse response) {
+        requireOperator(operatorPlatId);
+        long systemId = requireSystem();
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (tplId == null || tplId <= 0L) {
+            throw new BusinessException(400, "tplId 不能为空");
+        }
+
+        ModuleExportTpl tpl = moduleExportTplService.getById(tplId);
+        if (tpl == null) {
+            throw new BusinessException(404, "tpl 不存在");
+        }
+        if (!Objects.equals(tpl.getSystemId(), systemId) || !Objects.equals(tpl.getTenantId(), tenantId)) {
+            throw new BusinessException(403, "无权访问该 tpl");
+        }
+
+        List<ModuleExportTplField> fields = moduleExportTplFieldService.lambdaQuery()
+                .eq(ModuleExportTplField::getSystemId, systemId)
+                .eq(ModuleExportTplField::getTenantId, tenantId)
+                .eq(ModuleExportTplField::getTplId, tplId)
+                .orderByAsc(ModuleExportTplField::getSortNo)
+                .orderByAsc(ModuleExportTplField::getId)
+                .list();
+        if (fields == null || fields.isEmpty()) {
+            throw new BusinessException(400, "导出字段为空");
+        }
+
+        // Resolve export columns: keep order
+        List<String> colTitles = new ArrayList<>();
+        List<String> fieldCodes = new ArrayList<>();
+        for (ModuleExportTplField f : fields) {
+            if (f.getFieldId() == null) {
+                continue;
+            }
+            ModuleField mf = moduleFieldService.getById(f.getFieldId());
+            if (mf == null) {
+                continue;
+            }
+            if (!Objects.equals(mf.getSystemId(), systemId)
+                    || !Objects.equals(mf.getTenantId(), tenantId)
+                    || !Objects.equals(mf.getAppId(), tpl.getAppId())
+                    || !Objects.equals(mf.getModelId(), tpl.getModelId())
+                    || mf.getStatus() == null
+                    || mf.getStatus() != 1) {
+                continue;
+            }
+            String title = f.getColTitle();
+            if (title == null || title.isBlank()) {
+                title = mf.getFieldName() == null ? mf.getFieldCode() : mf.getFieldName();
+            }
+            colTitles.add(title);
+            fieldCodes.add(mf.getFieldCode());
+        }
+        if (fieldCodes.isEmpty()) {
+            throw new BusinessException(400, "导出字段无有效列");
+        }
+
+        ModuleRecordDslQuery q = query == null ? new ModuleRecordDslQuery() : query;
+        q = moduleRecordFacadeService.prepareDslQuery(q, tpl.getAppId(), tpl.getModelId(), 2000L);
+
+        // fetch record ids by DSL
+        List<Map<String, Object>> list = moduleRecordMapper.listDsl(q, 0, q.getLimit());
+        List<Long> recordIds = new ArrayList<>();
+        if (list != null) {
+            for (Map<String, Object> row : list) {
+                Object id = row == null ? null : row.get("id");
+                if (id instanceof Number n) {
+                    recordIds.add(n.longValue());
+                } else if (id instanceof String s) {
+                    try {
+                        recordIds.add(Long.parseLong(s));
+                    } catch (NumberFormatException ignore) {
+                        // skip
+                    }
+                }
+            }
+        }
+
+        // prepare EAV map: recordId -> (fieldCode -> valueText)
+        Map<Long, Map<String, String>> data = new HashMap<>();
+        if (!recordIds.isEmpty()) {
+            List<ModuleRecordData> rows = moduleRecordDataService.lambdaQuery()
+                    .eq(ModuleRecordData::getSystemId, systemId)
+                    .eq(ModuleRecordData::getTenantId, tenantId)
+                    .eq(ModuleRecordData::getAppId, tpl.getAppId())
+                    .eq(ModuleRecordData::getModelId, tpl.getModelId())
+                    .in(ModuleRecordData::getRecordId, recordIds)
+                    .in(ModuleRecordData::getFieldCode, fieldCodes)
+                    .list();
+            if (rows != null) {
+                for (ModuleRecordData row : rows) {
+                    if (row.getRecordId() == null || row.getFieldCode() == null) {
+                        continue;
+                    }
+                    data.computeIfAbsent(row.getRecordId(), k -> new LinkedHashMap<>())
+                            .put(row.getFieldCode(), row.getValueText());
+                }
+            }
+        }
+
+        String filename = (tpl.getTplCode() == null ? "export" : tpl.getTplCode()) + ".csv";
+        try {
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.setContentType("text/csv; charset=utf-8");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
+            try (OutputStreamWriter w = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8)) {
+                // UTF-8 BOM for Excel
+                w.write('\uFEFF');
+                writeCsvRow(w, colTitles);
+                for (Long rid : recordIds) {
+                    Map<String, String> row = data.get(rid);
+                    List<String> cells = new ArrayList<>(fieldCodes.size());
+                    for (String fc : fieldCodes) {
+                        String v = row == null ? null : row.get(fc);
+                        cells.add(v == null ? "" : v);
+                    }
+                    writeCsvRow(w, cells);
+                }
+                w.flush();
+            }
+        } catch (Exception e) {
+            throw new BusinessException(500, "导出失败: " + e.getMessage());
+        }
+    }
+
+    private static void writeCsvRow(OutputStreamWriter w, List<String> cells) throws Exception {
+        for (int i = 0; i < cells.size(); i++) {
+            if (i > 0) {
+                w.write(',');
+            }
+            w.write(escapeCsv(cells.get(i)));
+        }
+        w.write("\r\n");
+    }
+
+    private static String escapeCsv(String s) {
+        if (s == null) {
+            return "";
+        }
+        boolean needQuote = s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r");
+        String t = s.replace("\"", "\"\"");
+        return needQuote ? ("\"" + t + "\"") : t;
     }
 }
 

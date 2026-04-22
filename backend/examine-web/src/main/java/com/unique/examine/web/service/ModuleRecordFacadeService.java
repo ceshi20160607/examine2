@@ -281,6 +281,27 @@ public class ModuleRecordFacadeService {
     }
 
     public Map<String, Object> queryDsl(ModuleRecordDslQuery body) {
+        ModuleRecordDslQuery q = prepareDslQuery(body, null, null, 200L);
+
+        long offset = (q.getPage() - 1) * q.getLimit();
+        Long total = moduleRecordMapper.countDsl(q);
+        List<Map<String, Object>> list = total != null && total > 0
+                ? moduleRecordMapper.listDsl(q, offset, q.getLimit())
+                : List.of();
+
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("page", q.getPage());
+        m.put("limit", q.getLimit());
+        m.put("total", total == null ? 0L : total);
+        m.put("list", list);
+        return m;
+    }
+
+    /**
+     * 导出/查询共用的 DSL 规范化与白名单校验。
+     * forceAppId/forceModelId 不为空时将覆盖 body 中的 appId/modelId（用于“按模板导出”强制作用域）。
+     */
+    public ModuleRecordDslQuery prepareDslQuery(ModuleRecordDslQuery body, Long forceAppId, Long forceModelId, long maxLimit) {
         Long platId = AuthContextHolder.getPlatId();
         if (platId == null) {
             throw new BusinessException(401, "未登录");
@@ -293,6 +314,13 @@ public class ModuleRecordFacadeService {
         if (body == null) {
             throw new BusinessException("body 不能为空");
         }
+
+        if (forceAppId != null) {
+            body.setAppId(forceAppId);
+        }
+        if (forceModelId != null) {
+            body.setModelId(forceModelId);
+        }
         if (body.getAppId() == null || body.getAppId() <= 0L) {
             throw new BusinessException("appId 不能为空");
         }
@@ -303,7 +331,8 @@ public class ModuleRecordFacadeService {
         long page = body.getPage() == null ? 1L : body.getPage();
         long limit = body.getLimit() == null ? 20L : body.getLimit();
         page = Math.max(1L, page);
-        limit = Math.max(1L, Math.min(limit, 200L));
+        long upper = Math.max(1L, maxLimit);
+        limit = Math.max(1L, Math.min(limit, upper));
 
         body.setSystemId(systemId);
         body.setTenantId(tenantId);
@@ -331,19 +360,7 @@ public class ModuleRecordFacadeService {
                 normalizeAndValidateFilter(body.getModelId(), body.getAppId(), systemId, tenantId, f);
             }
         }
-
-        long offset = (page - 1) * limit;
-        Long total = moduleRecordMapper.countDsl(body);
-        List<Map<String, Object>> list = total != null && total > 0
-                ? moduleRecordMapper.listDsl(body, offset, limit)
-                : List.of();
-
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("page", page);
-        m.put("limit", limit);
-        m.put("total", total == null ? 0L : total);
-        m.put("list", list);
-        return m;
+        return body;
     }
 
     private void normalizeAndValidateFilter(Long modelId, Long appId, long systemId, long tenantId, ModuleRecordDslFilter f) {
