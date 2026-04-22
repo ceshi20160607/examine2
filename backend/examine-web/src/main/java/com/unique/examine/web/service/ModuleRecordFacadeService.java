@@ -16,6 +16,8 @@ import com.unique.examine.module.service.IModuleRecordDataService;
 import com.unique.examine.module.service.IModuleFieldService;
 import com.unique.examine.module.service.IModuleRecordHistoryService;
 import com.unique.examine.module.service.IModuleRecordService;
+import com.unique.examine.upload.entity.po.UploadFile;
+import com.unique.examine.upload.service.IUploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.regex.Pattern;
 
 @Service
@@ -42,6 +46,8 @@ public class ModuleRecordFacadeService {
     private IModuleFieldService moduleFieldService;
     @Autowired
     private ModuleRecordMapper moduleRecordMapper;
+    @Autowired
+    private IUploadFileService uploadFileService;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -84,8 +90,9 @@ public class ModuleRecordFacadeService {
                 if (!FIELD_CODE.matcher(fieldCode).matches()) {
                     throw new BusinessException("data 中存在非法 fieldCode: " + fieldCode);
                 }
-                requireFieldExists(systemId, tenantId, appId, modelId, fieldCode);
                 JsonNode v = e.getValue();
+                ModuleField f = requireField(systemId, tenantId, appId, modelId, fieldCode);
+                validateFileFieldValue(systemId, tenantId, appId, modelId, f, v);
                 String text = valueToText(v);
                 if (text != null && text.length() > 65535) {
                     throw new BusinessException("字段 " + fieldCode + " 值过长");
@@ -122,6 +129,83 @@ public class ModuleRecordFacadeService {
             return v.asText();
         }
         return v.toString();
+    }
+
+    private void validateFileFieldValue(long systemId,
+                                        long tenantId,
+                                        Long appId,
+                                        Long modelId,
+                                        ModuleField field,
+                                        JsonNode value) {
+        if (field == null) {
+            return;
+        }
+        String ft = field.getFieldType();
+        if (ft == null) {
+            return;
+        }
+        String t = ft.trim().toLowerCase();
+        if (!(t.equals("file") || t.equals("upload") || t.equals("attachment"))) {
+            return;
+        }
+
+        if (value == null || value.isNull()) {
+            return;
+        }
+
+        HashSet<Long> ids = new HashSet<>();
+        if (value.isNumber()) {
+            long v = value.asLong();
+            if (v > 0) {
+                ids.add(v);
+            }
+        } else if (value.isTextual()) {
+            String s = value.asText().trim();
+            if (!s.isEmpty()) {
+                try {
+                    long v = Long.parseLong(s);
+                    if (v > 0) {
+                        ids.add(v);
+                    } else {
+                        throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 的 fileId 非法");
+                    }
+                } catch (NumberFormatException e) {
+                    throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 仅支持 fileId 或 fileId 数组");
+                }
+            }
+        } else if (value.isArray()) {
+            for (JsonNode it : value) {
+                Long id = parseFileIdNode(it);
+                if (id != null) {
+                    ids.add(id);
+                } else if (it != null && !it.isNull()) {
+                    throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 数组元素非法");
+                }
+            }
+        } else if (value.isObject()) {
+            Long id = parseFileIdNode(value);
+            if (id != null) {
+                ids.add(id);
+            } else {
+                throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 仅支持 fileId 或 fileId 数组");
+            }
+        } else {
+            throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 仅支持 fileId 或 fileId 数组");
+        }
+
+        if (ids.isEmpty()) {
+            return;
+        }
+
+        Long cnt = uploadFileService.lambdaQuery()
+                .eq(UploadFile::getSystemId, systemId)
+                .eq(UploadFile::getTenantId, tenantId)
+                .eq(UploadFile::getStatus, 1)
+                .in(UploadFile::getId, ids)
+                .count();
+        if (cnt == null || cnt != ids.size()) {
+            throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 引用了不存在或无权限的 fileId");
+        }
     }
 
     public Map<String, Object> detailWithData(Long recordId) {
@@ -164,10 +248,147 @@ public class ModuleRecordFacadeService {
             }
         }
 
+        Map<String, Object> filesMeta = buildFilesMetaForRecord(systemId, tenantId, r.getAppId(), r.getModelId(), rows);
+
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("record", r);
         m.put("data", dataNode);
+        if (!filesMeta.isEmpty()) {
+            m.put("files", filesMeta);
+        }
         return m;
+    }
+
+    private Map<String, Object> buildFilesMetaForRecord(long systemId,
+                                                        long tenantId,
+                                                        Long appId,
+                                                        Long modelId,
+                                                        List<ModuleRecordData> rows) {
+        if (rows == null || rows.isEmpty() || appId == null || modelId == null) {
+            return Map.of();
+        }
+
+        // 1) collect file-like fieldCodes from model fields
+        List<ModuleField> fields = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getAppId, appId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getStatus, 1)
+                .list();
+        if (fields == null || fields.isEmpty()) {
+            return Map.of();
+        }
+        HashSet<String> fileFieldCodes = new HashSet<>();
+        for (ModuleField f : fields) {
+            String t = f == null ? null : f.getFieldType();
+            if (t == null) {
+                continue;
+            }
+            String lt = t.trim().toLowerCase();
+            if (lt.equals("file") || lt.equals("upload") || lt.equals("attachment")) {
+                if (f.getFieldCode() != null) {
+                    fileFieldCodes.add(f.getFieldCode());
+                }
+            }
+        }
+        if (fileFieldCodes.isEmpty()) {
+            return Map.of();
+        }
+
+        // 2) parse record values -> fileIds
+        HashSet<Long> fileIds = new HashSet<>();
+        for (ModuleRecordData row : rows) {
+            if (row == null || row.getFieldCode() == null || row.getValueText() == null) {
+                continue;
+            }
+            if (!fileFieldCodes.contains(row.getFieldCode())) {
+                continue;
+            }
+            String vt = row.getValueText().trim();
+            if (vt.isEmpty()) {
+                continue;
+            }
+            // support: "123" or ["123","456"] or [123,456]
+            try {
+                if (vt.startsWith("[") || vt.startsWith("{")) {
+                    JsonNode n = objectMapper.readTree(vt);
+                    if (n != null && n.isArray()) {
+                        for (JsonNode it : n) {
+                            Long id = parseFileIdNode(it);
+                            if (id != null) {
+                                fileIds.add(id);
+                            }
+                        }
+                    } else {
+                        Long id = parseFileIdNode(n);
+                        if (id != null) {
+                            fileIds.add(id);
+                        }
+                    }
+                } else {
+                    Long id = Long.parseLong(vt);
+                    if (id > 0) {
+                        fileIds.add(id);
+                    }
+                }
+            } catch (Exception ignore) {
+                // ignore malformed values
+            }
+        }
+        if (fileIds.isEmpty()) {
+            return Map.of();
+        }
+
+        // 3) load UploadFile meta under same scope
+        List<UploadFile> files = uploadFileService.lambdaQuery()
+                .eq(UploadFile::getSystemId, systemId)
+                .eq(UploadFile::getTenantId, tenantId)
+                .eq(UploadFile::getStatus, 1)
+                .in(UploadFile::getId, fileIds)
+                .list();
+        if (files == null || files.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<String, Object> out = new HashMap<>();
+        for (UploadFile uf : files) {
+            if (uf == null || uf.getId() == null) {
+                continue;
+            }
+            out.put(String.valueOf(uf.getId()), Map.of(
+                    "id", uf.getId(),
+                    "originalName", uf.getOriginalName(),
+                    "contentType", uf.getContentType(),
+                    "fileSize", uf.getFileSize()
+            ));
+        }
+        return out;
+    }
+
+    private static Long parseFileIdNode(JsonNode n) {
+        if (n == null || n.isNull()) {
+            return null;
+        }
+        if (n.isNumber()) {
+            long v = n.asLong();
+            return v > 0 ? v : null;
+        }
+        if (n.isTextual()) {
+            try {
+                long v = Long.parseLong(n.asText().trim());
+                return v > 0 ? v : null;
+            } catch (NumberFormatException ignore) {
+                return null;
+            }
+        }
+        if (n.isObject()) {
+            JsonNode id = n.get("id");
+            if (id != null) {
+                return parseFileIdNode(id);
+            }
+        }
+        return null;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -210,8 +431,9 @@ public class ModuleRecordFacadeService {
                 if (!FIELD_CODE.matcher(fieldCode).matches()) {
                     throw new BusinessException("data 中存在非法 fieldCode: " + fieldCode);
                 }
-                requireFieldExists(systemId, tenantId, r.getAppId(), r.getModelId(), fieldCode);
                 JsonNode v = e.getValue();
+                ModuleField f = requireField(systemId, tenantId, r.getAppId(), r.getModelId(), fieldCode);
+                validateFileFieldValue(systemId, tenantId, r.getAppId(), r.getModelId(), f, v);
                 String text = valueToText(v);
                 if (text != null && text.length() > 65535) {
                     throw new BusinessException("字段 " + fieldCode + " 值过长");
@@ -443,6 +665,25 @@ public class ModuleRecordFacadeService {
         if (cnt == null || cnt == 0L) {
             throw new BusinessException("字段不存在或已停用: " + fieldCode);
         }
+    }
+
+    private ModuleField requireField(long systemId, long tenantId, Long appId, Long modelId, String fieldCode) {
+        if (fieldCode == null || fieldCode.isBlank()) {
+            throw new BusinessException("fieldCode 不能为空");
+        }
+        ModuleField f = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getAppId, appId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getFieldCode, fieldCode)
+                .eq(ModuleField::getStatus, 1)
+                .last("limit 1")
+                .one();
+        if (f == null) {
+            throw new BusinessException("字段不存在或已停用: " + fieldCode);
+        }
+        return f;
     }
 
     private void saveHistory(String action, ModuleRecord r, String snapshotJson) {

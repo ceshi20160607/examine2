@@ -42,3 +42,7 @@ management:
     web:
       exposure:
         include: health,info
+
+examine:
+  upload:
+    local-root-path: data/uploads
