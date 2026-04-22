@@ -13,6 +13,30 @@
 			}
 		},
 		{
+			"path": "pages/tabs/workbench",
+			"style": {
+				"navigationBarTitleText": "工作台"
+			}
+		},
+		{
+			"path": "pages/tabs/apps",
+			"style": {
+				"navigationBarTitleText": "应用"
+			}
+		},
+		{
+			"path": "pages/tabs/inbox",
+			"style": {
+				"navigationBarTitleText": "待办"
+			}
+		},
+		{
+			"path": "pages/tabs/me",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
+		},
+		{
 			"path": "pages/auth/login",
 			"style": {
 				"navigationBarTitleText": "登录"
@@ -90,5 +114,29 @@
 		"navigationBarTitleText": "uni-app",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#666666",
+		"selectedColor": "#2979FF",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/tabs/workbench",
+				"text": "工作台"
+			},
+			{
+				"pagePath": "pages/tabs/apps",
+				"text": "应用"
+			},
+			{
+				"pagePath": "pages/tabs/inbox",
+				"text": "待办"
+			},
+			{
+				"pagePath": "pages/tabs/me",
+				"text": "我的"
+			}
+		]
 	}
 }

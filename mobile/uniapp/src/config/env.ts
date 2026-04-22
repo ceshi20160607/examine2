@@ -1,7 +1,8 @@
 export type AppEnv = 'dev' | 'test' | 'prod'
 
 export function getEnv(): AppEnv {
-  // 第一版默认 dev；后续可在“我的-环境设置”里切换并持久化
+  const saved = uni.getStorageSync('env')
+  if (saved === 'dev' || saved === 'test' || saved === 'prod') return saved
   return 'dev'
 }
 
