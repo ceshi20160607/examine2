@@ -26,6 +26,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -115,6 +117,55 @@ public class SystemUploadController {
                 "contentType", uf.getContentType(),
                 "fileSize", uf.getFileSize()
         ));
+    }
+
+    @Operation(summary = "文件分页列表（按 system/tenant 隔离；可选 keyword；默认仅 status=1）")
+    @GetMapping("/page")
+    public ApiResult<Map<String, Object>> page(
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "includeDeleted", required = false) Integer includeDeleted
+    ) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        long systemId = AuthContextHolder.getSystemIdOrDefault();
+        if (systemId == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+
+        int p = (page == null || page <= 0) ? 1 : page;
+        int s = (size == null || size <= 0) ? 20 : Math.min(size, 200);
+        long offset = (long) (p - 1) * s;
+        boolean incDeleted = includeDeleted != null && includeDeleted == 1;
+
+        var q = uploadFileService.lambdaQuery()
+                .eq(UploadFile::getSystemId, systemId)
+                .eq(UploadFile::getTenantId, tenantId);
+        if (!incDeleted) {
+            q.eq(UploadFile::getStatus, 1);
+        }
+        if (StringUtils.hasText(keyword)) {
+            String kw = keyword.trim();
+            q.and(w -> w.like(UploadFile::getOriginalName, kw)
+                    .or()
+                    .like(UploadFile::getContentType, kw));
+        }
+
+        long total = q.count();
+        List<UploadFile> records = total == 0 ? List.of() : q.orderByDesc(UploadFile::getId)
+                .last("limit " + s + " offset " + offset)
+                .list();
+
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("page", p);
+        m.put("size", s);
+        m.put("total", total);
+        m.put("records", records);
+        return ApiResult.ok(m);
     }
 
     @Operation(summary = "下载文件（按 fileId；Content-Disposition=attachment）")
