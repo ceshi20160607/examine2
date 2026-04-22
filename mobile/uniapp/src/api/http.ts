@@ -21,6 +21,46 @@ function onUnauthorized() {
   uni.reLaunch({ url: '/pages/auth/login' })
 }
 
+let refreshing: Promise<string | null> | null = null
+
+function refreshToken(currentToken: string): Promise<string | null> {
+  if (refreshing) return refreshing
+  const requestId = genRequestId()
+  const url = getBaseURL().replace(/\/$/, '') + '/v1/platform/auth/refresh'
+  refreshing = new Promise((resolve) => {
+    uni.request({
+      url,
+      method: 'POST',
+      data: {},
+      header: {
+        'X-Request-Id': requestId,
+        Authorization: `Bearer ${currentToken}`,
+        'Content-Type': 'application/json'
+      },
+      success: (res) => {
+        try {
+          const r = res.data as any
+          const newToken = r?.data?.token
+          if (res.statusCode === 200 && r?.code === 0 && typeof newToken === 'string' && newToken.trim()) {
+            const t = newToken.trim()
+            uni.setStorageSync('token', t)
+            resolve(t)
+            return
+          }
+        } catch {
+          // ignore
+        }
+        resolve(null)
+      },
+      fail: () => resolve(null),
+      complete: () => {
+        refreshing = null
+      }
+    })
+  })
+  return refreshing
+}
+
 function toast(message: string) {
   try {
     uni.showToast({ title: message || '请求失败', icon: 'none', duration: 2500 })
@@ -40,7 +80,8 @@ export async function httpPost<T>(path: string, body?: any): Promise<ApiResult<T
 export async function httpRequest<T>(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE',
   path: string,
-  data?: any
+  data?: any,
+  opts?: { retryOnUnauthorized?: boolean }
 ): Promise<ApiResult<T>> {
   const token = getToken()
   const requestId = genRequestId()
@@ -65,6 +106,23 @@ export async function httpRequest<T>(
       success: (res) => {
         const r = res.data as ApiResult<T>
         if (res.statusCode === 401 || r?.code === 401) {
+          const canRetry = (opts?.retryOnUnauthorized ?? true) && !!token
+          if (canRetry) {
+            refreshToken(token as string)
+              .then((newToken) => {
+                if (!newToken) {
+                  onUnauthorized()
+                  reject(new Error('unauthorized'))
+                  return
+                }
+                httpRequest<T>(method, path, data, { retryOnUnauthorized: false }).then(resolve).catch(reject)
+              })
+              .catch(() => {
+                onUnauthorized()
+                reject(new Error('unauthorized'))
+              })
+            return
+          }
           onUnauthorized()
           reject(new Error('unauthorized'))
           return
