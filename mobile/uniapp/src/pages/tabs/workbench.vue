@@ -44,7 +44,11 @@ function goUpload() {
 }
 
 onMounted(() => {
-  ensureLogin()
+  if (!ensureLogin()) return
+  const p = getSessionPayload()
+  if (!p || !p.systemId) {
+    uni.reLaunch({ url: '/pages/platform/systems' })
+  }
 })
 </script>
 

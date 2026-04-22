@@ -24,8 +24,10 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { httpPost } from '@/api/http'
+import { getSessionPayload } from '@/store/context'
+import { hasToken } from '@/utils/guard'
 
 const submitting = ref(false)
 const error = ref<string | null>(null)
@@ -49,8 +51,8 @@ async function doLogin() {
     })
     uni.setStorageSync('token', r.data.token)
     uni.showToast({ title: '登录成功', icon: 'success' })
-    // 进入 Tab 工作台
-    uni.reLaunch({ url: '/pages/tabs/workbench' })
+    // 登录后先进入系统选择/创建
+    uni.reLaunch({ url: '/pages/platform/systems' })
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   } finally {
@@ -61,5 +63,15 @@ async function doLogin() {
 function goHealth() {
   uni.navigateTo({ url: '/pages/boot/health' })
 }
+
+onMounted(() => {
+  if (!hasToken()) return
+  const p = getSessionPayload()
+  if (p && p.systemId) {
+    uni.reLaunch({ url: '/pages/tabs/workbench' })
+  } else {
+    uni.reLaunch({ url: '/pages/platform/systems' })
+  }
+})
 </script>
 
