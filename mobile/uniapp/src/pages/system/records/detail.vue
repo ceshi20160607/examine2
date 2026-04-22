@@ -15,8 +15,9 @@
 
 <script setup lang="ts">
 import { onLoad } from '@dcloudio/uni-app'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { httpGet } from '@/api/http'
+import { ensureSystemContext } from '@/utils/guard'
 
 const recordId = ref<number>(0)
 const loading = ref(false)
@@ -53,6 +54,9 @@ function goEdit() {
   uni.navigateTo({ url: `/pages/system/records/form?recordId=${recordId.value}` })
 }
 
-load()
+onMounted(() => {
+  if (!ensureSystemContext()) return
+  load()
+})
 </script>
 

@@ -37,6 +37,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
+import { ensureSystemContext } from '@/utils/guard'
 
 type ModuleField = { id: number; fieldCode?: string; fieldName?: string; fieldType?: string; status?: number }
 
@@ -109,6 +110,9 @@ function goRecords() {
   uni.navigateTo({ url: `/pages/system/records/list?appId=${appId.value}&modelId=${modelId.value}` })
 }
 
-onMounted(load)
+onMounted(() => {
+  if (!ensureSystemContext()) return
+  load()
+})
 </script>
 

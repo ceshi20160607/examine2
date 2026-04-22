@@ -26,6 +26,7 @@
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpPost } from '@/api/http'
+import { ensureSystemContext } from '@/utils/guard'
 
 type Row = { id: number }
 
@@ -62,6 +63,9 @@ function goDetail(recordId: number) {
   uni.navigateTo({ url: `/pages/system/records/detail?recordId=${recordId}` })
 }
 
-onMounted(query)
+onMounted(() => {
+  if (!ensureSystemContext()) return
+  query()
+})
 </script>
 

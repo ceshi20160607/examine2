@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { httpGet, httpPost } from '@/api/http'
+import { ensureSystemContext } from '@/utils/guard'
 
 type ModuleApp = { id: number; appCode?: string; appName?: string; status?: number }
 
@@ -75,6 +76,9 @@ function goModels(a: ModuleApp) {
   uni.navigateTo({ url: `/pages/system/module/meta/models?appId=${a.id}` })
 }
 
-onMounted(load)
+onMounted(() => {
+  if (!ensureSystemContext()) return
+  load()
+})
 </script>
 

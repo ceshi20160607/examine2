@@ -18,9 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpPost } from '@/api/http'
+import { ensureSystemContext } from '@/utils/guard'
 
 const appId = ref(0)
 const modelId = ref(0)
@@ -36,6 +37,10 @@ onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
   modelId.value = Number((opts as any)?.modelId || 0) || 0
   recordId.value = Number((opts as any)?.recordId || 0) || 0
+})
+
+onMounted(() => {
+  ensureSystemContext()
 })
 
 function back() {

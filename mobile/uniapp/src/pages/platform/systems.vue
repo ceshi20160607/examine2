@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { listMySystems, createSystem as apiCreateSystem, enterSystem as apiEnterSystem } from '@/api/platform'
+import { ensureLogin } from '@/utils/guard'
 
 type PlatSystem = {
   id: number
@@ -76,6 +77,9 @@ async function enterSystem(s: PlatSystem) {
   uni.reLaunch({ url: '/pages/system/module/meta/apps' })
 }
 
-onMounted(load)
+onMounted(() => {
+  if (!ensureLogin()) return
+  load()
+})
 </script>
 

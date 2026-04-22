@@ -36,8 +36,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { httpGet } from '@/api/http'
+import { ensureSystemContext } from '@/utils/guard'
 
 type FlowTask = { id: number; recordId?: number; nodeName?: string }
 
@@ -69,5 +70,10 @@ function goTask(t: FlowTask) {
   if (!t?.id || !t?.recordId) return
   uni.navigateTo({ url: `/pages/system/flow/task?instanceId=${t.recordId}&taskId=${t.id}` })
 }
+
+onMounted(() => {
+  if (!ensureSystemContext()) return
+  loadPending()
+})
 </script>
 

@@ -26,8 +26,9 @@
 
 <script setup lang="ts">
 import { onLoad } from '@dcloudio/uni-app'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { httpPost } from '@/api/http'
+import { ensureSystemContext } from '@/utils/guard'
 
 const instanceId = ref<number>(0)
 const taskId = ref<number>(0)
@@ -38,6 +39,10 @@ const error = ref<string | null>(null)
 onLoad((opts) => {
   instanceId.value = Number((opts as any)?.instanceId || 0) || 0
   taskId.value = Number((opts as any)?.taskId || 0) || 0
+})
+
+onMounted(() => {
+  ensureSystemContext()
 })
 
 async function approve() {

@@ -15,13 +15,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { getSessionPayload } from '@/store/context'
-
-function hasToken(): boolean {
-  const t = uni.getStorageSync('token')
-  return typeof t === 'string' && !!t.trim()
-}
+import { ensureLogin, ensureSystemContext, hasToken } from '@/utils/guard'
 
 const statusText = computed(() => {
   if (!hasToken()) return '未登录（请先登录）'
@@ -31,38 +27,24 @@ const statusText = computed(() => {
 })
 
 function goSystems() {
-  if (!hasToken()) {
-    uni.reLaunch({ url: '/pages/auth/login' })
-    return
-  }
+  if (!ensureLogin()) return
   uni.navigateTo({ url: '/pages/platform/systems' })
 }
 function goApps() {
-  if (!hasToken()) {
-    uni.reLaunch({ url: '/pages/auth/login' })
-    return
-  }
+  if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/module/meta/apps' })
 }
 function goInbox() {
-  if (!hasToken()) {
-    uni.reLaunch({ url: '/pages/auth/login' })
-    return
-  }
+  if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/flow/inbox' })
 }
 function goUpload() {
-  if (!hasToken()) {
-    uni.reLaunch({ url: '/pages/auth/login' })
-    return
-  }
+  if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/upload/index' })
 }
 
 onMounted(() => {
-  if (!hasToken()) {
-    uni.reLaunch({ url: '/pages/auth/login' })
-  }
+  ensureLogin()
 })
 </script>
 

@@ -27,8 +27,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { getBaseURL } from '@/config/env'
+import { ensureSystemContext, hasToken } from '@/utils/guard'
 
 const uploading = ref(false)
 const loading = ref(false)
@@ -45,11 +46,9 @@ function getToken(): string | null {
 
 async function chooseAndUpload() {
   error.value = null
+  if (!ensureSystemContext()) return
   const token = getToken()
-  if (!token) {
-    uni.showToast({ title: '请先登录', icon: 'none' })
-    return
-  }
+  if (!token) return
 
   // H5/小程序/App 兼容：先用 chooseFile（H5）/chooseImage 等后续再增强
   // 这里用 chooseFile（新版本 uni 支持），若平台不支持会 fail 并提示
@@ -95,6 +94,7 @@ async function chooseAndUpload() {
 }
 
 async function loadPage() {
+  if (!ensureSystemContext()) return
   loading.value = true
   error.value = null
   try {
@@ -119,5 +119,13 @@ async function loadPage() {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  if (!hasToken()) {
+    uni.reLaunch({ url: '/pages/auth/login' })
+    return
+  }
+  loadPage()
+})
 </script>
 
