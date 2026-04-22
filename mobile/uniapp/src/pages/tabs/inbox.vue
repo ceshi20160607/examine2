@@ -9,8 +9,16 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { ensureSystemContext } from '@/utils/guard'
+
 function goInbox() {
+  if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/flow/inbox' })
 }
+
+onMounted(() => {
+  ensureSystemContext()
+})
 </script>
 

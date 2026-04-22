@@ -13,11 +13,19 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { ensureSystemContext } from '@/utils/guard'
+
 function goApps() {
+  if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/module/meta/apps' })
 }
 function goRecordsTip() {
   uni.showToast({ title: '请先进入某个 Model 的 Fields，再点“进入 Records”', icon: 'none' })
 }
+
+onMounted(() => {
+  ensureSystemContext()
+})
 </script>
 
