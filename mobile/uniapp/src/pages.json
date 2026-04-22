@@ -43,6 +43,24 @@
 			}
 		},
 		{
+			"path": "pages/system/records/list",
+			"style": {
+				"navigationBarTitleText": "Records"
+			}
+		},
+		{
+			"path": "pages/system/records/detail",
+			"style": {
+				"navigationBarTitleText": "Record Detail"
+			}
+		},
+		{
+			"path": "pages/system/records/form",
+			"style": {
+				"navigationBarTitleText": "Record Form"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "uni-app"

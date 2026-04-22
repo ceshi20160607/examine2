@@ -10,6 +10,9 @@
           <uni-easyinput v-model="form.fieldType" placeholder="fieldType (text/number/date...)" />
           <uni-button type="primary" :disabled="saving" @click="create">创建</uni-button>
         </view>
+        <view style="display:flex; gap: 8px;">
+          <uni-button :disabled="!appId || !modelId" @click="goRecords">进入 Records</uni-button>
+        </view>
       </view>
     </uni-card>
 
@@ -95,9 +98,15 @@ async function create() {
     form.fieldCode = ''
     form.fieldName = ''
     await load()
+    uni.showToast({ title: '创建字段成功', icon: 'success' })
   } finally {
     saving.value = false
   }
+}
+
+function goRecords() {
+  if (!appId.value || !modelId.value) return
+  uni.navigateTo({ url: `/pages/system/records/list?appId=${appId.value}&modelId=${modelId.value}` })
 }
 
 onMounted(load)
