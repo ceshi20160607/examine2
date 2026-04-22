@@ -1,12 +1,17 @@
 <template>
   <view style="padding: 16px">
     <uni-card title="我的">
+      <view style="color:#666">account: {{ accountText }}</view>
       <view style="color:#666">env: {{ env }}</view>
       <view style="color:#666">baseURL: {{ baseURL }}</view>
       <view style="margin-top: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button @click="setEnv('dev')">dev</uni-button>
         <uni-button @click="setEnv('test')">test</uni-button>
         <uni-button @click="setEnv('prod')">prod</uni-button>
+      </view>
+      <view style="margin-top: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
+        <uni-button :disabled="refreshing" @click="refreshToken">刷新 token</uni-button>
+        <uni-button :disabled="loadingMe" @click="loadMe">刷新 me</uni-button>
       </view>
       <view style="margin-top: 12px">
         <uni-button type="warn" @click="logout">退出登录</uni-button>
@@ -16,12 +21,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { getBaseURL, getEnv, type AppEnv } from '@/config/env'
+import { httpGet, httpPost } from '@/api/http'
+import { clearSessionPayload } from '@/store/context'
 
 const envRef = ref<AppEnv>(getEnv())
 const env = computed(() => envRef.value)
 const baseURL = computed(() => getBaseURL())
+
+const me = ref<{ id?: number; username?: string } | null>(null)
+const loadingMe = ref(false)
+const refreshing = ref(false)
+
+const accountText = computed(() => {
+  if (!me.value) return '-'
+  return `${me.value.username || '-'} (#${me.value.id || '-'})`
+})
 
 function setEnv(e: AppEnv) {
   uni.setStorageSync('env', e)
@@ -29,9 +45,40 @@ function setEnv(e: AppEnv) {
   uni.showToast({ title: `env=${e}`, icon: 'none' })
 }
 
-function logout() {
+async function loadMe() {
+  loadingMe.value = true
+  try {
+    const r = await httpGet<any>('/v1/platform/auth/me')
+    me.value = r.data
+  } finally {
+    loadingMe.value = false
+  }
+}
+
+async function refreshToken() {
+  refreshing.value = true
+  try {
+    const r = await httpPost<{ token: string }>('/v1/platform/auth/refresh')
+    if (r.data?.token) {
+      uni.setStorageSync('token', r.data.token)
+      uni.showToast({ title: 'token 已刷新', icon: 'success' })
+    }
+  } finally {
+    refreshing.value = false
+  }
+}
+
+async function logout() {
+  try {
+    await httpPost('/v1/platform/auth/logout')
+  } catch {
+    // ignore
+  }
   uni.removeStorageSync('token')
+  clearSessionPayload()
   uni.reLaunch({ url: '/pages/auth/login' })
 }
+
+onMounted(loadMe)
 </script>
 

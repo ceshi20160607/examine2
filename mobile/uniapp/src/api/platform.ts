@@ -1,5 +1,6 @@
 import { httpGet, httpPost } from '@/api/http'
 import type { ApiResult } from '@/api/http'
+import { setSessionPayload } from '@/store/context'
 
 export type PlatSystem = {
   id: number
@@ -23,6 +24,10 @@ export async function createSystem(name: string, multiTenantEnabled = 0): Promis
 }
 
 export async function enterSystem(systemId: number): Promise<ApiResult<SessionPayload>> {
-  return httpPost<SessionPayload>('/v1/platform/context/enter-system', { systemId })
+  const r = await httpPost<SessionPayload>('/v1/platform/context/enter-system', { systemId })
+  if (r?.data) {
+    setSessionPayload(r.data)
+  }
+  return r
 }
 
