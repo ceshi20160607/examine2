@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.module.manage;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.module.ModuleAuthCacheCoordinator;
@@ -11,7 +11,6 @@ import com.unique.examine.module.service.IModuleMemberService;
 import com.unique.examine.module.service.IModuleMenuService;
 import com.unique.examine.module.service.IModuleRoleMenuPermService;
 import com.unique.examine.module.service.IModuleRoleService;
-import com.unique.examine.web.controller.SystemModuleRbacController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +21,23 @@ import java.util.Objects;
 
 @Service
 public class SystemModuleRbacService {
+
+    public record UpsertRoleCmd(Long id, Long appId, String roleCode, String roleName, Integer status) {}
+    public record UpsertMemberCmd(Long id, Long appId, Long platId, Long roleId, Integer status) {}
+    public record UpsertMenuCmd(
+            Long id,
+            Long appId,
+            Long parentId,
+            String menuName,
+            Long pageId,
+            Integer sortNo,
+            Integer visibleFlag,
+            String permKey,
+            String apiPattern
+    ) {}
+    public record UpsertRoleMenuPermCmd(Long id, Long roleId, Long menuId, Integer status) {}
+    public record SetRoleMenuPermCmd(Long roleId, List<Long> menuIds, Integer permLevel) {}
+    public record AssignMemberRoleCmd(Long appId, Long memberPlatId, Long roleId) {}
 
     @Autowired
     private IModuleRoleService moduleRoleService;
@@ -69,7 +85,7 @@ public class SystemModuleRbacService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleRole upsertRole(Long appId, Long operatorPlatId, SystemModuleRbacController.UpsertRoleBody body) {
+    public ModuleRole upsertRole(Long appId, Long operatorPlatId, UpsertRoleCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -131,7 +147,7 @@ public class SystemModuleRbacService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleMenu upsertMenu(Long appId, Long operatorPlatId, SystemModuleRbacController.UpsertMenuBody body) {
+    public ModuleMenu upsertMenu(Long appId, Long operatorPlatId, UpsertMenuCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -192,7 +208,7 @@ public class SystemModuleRbacService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void setRoleMenuPerms(Long operatorPlatId, SystemModuleRbacController.SetRoleMenuPermBody body) {
+    public void setRoleMenuPerms(Long operatorPlatId, SetRoleMenuPermCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -248,7 +264,7 @@ public class SystemModuleRbacService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleMember assignMemberRole(Long operatorPlatId, SystemModuleRbacController.AssignMemberRoleBody body) {
+    public ModuleMember assignMemberRole(Long operatorPlatId, AssignMemberRoleCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();

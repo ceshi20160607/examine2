@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.module.manage;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
@@ -8,7 +8,6 @@ import com.unique.examine.module.entity.po.ModuleListViewCol;
 import com.unique.examine.module.service.IModuleListFilterTplService;
 import com.unique.examine.module.service.IModuleListViewColService;
 import com.unique.examine.module.service.IModuleListViewService;
-import com.unique.examine.web.controller.SystemModuleListViewController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +17,10 @@ import java.util.Objects;
 
 @Service
 public class SystemModuleListViewService {
+
+    public record UpsertViewCmd(Long id, Long appId, Long modelId, Long platId, String viewCode, String viewName, Integer defaultFlag, Integer status) {}
+    public record UpsertColCmd(Long id, Long viewId, Long fieldId, String colTitle, Integer width, Integer sortNo, Integer visibleFlag, String fixedType, String formatJson) {}
+    public record UpsertFilterTplCmd(Long id, Long appId, Long modelId, Long menuId, String tplCode, String tplName, Integer status) {}
 
     @Autowired
     private IModuleListViewService moduleListViewService;
@@ -43,7 +46,7 @@ public class SystemModuleListViewService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleListView upsertView(Long operatorPlatId, SystemModuleListViewController.UpsertViewBody body) {
+    public ModuleListView upsertView(Long operatorPlatId, UpsertViewCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -135,7 +138,7 @@ public class SystemModuleListViewService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleListViewCol upsertCol(Long operatorPlatId, SystemModuleListViewController.UpsertColBody body) {
+    public ModuleListViewCol upsertCol(Long operatorPlatId, UpsertColCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -245,7 +248,7 @@ public class SystemModuleListViewService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleListFilterTpl upsertFilterTpl(Long operatorPlatId, SystemModuleListViewController.UpsertFilterTplBody body) {
+    public ModuleListFilterTpl upsertFilterTpl(Long operatorPlatId, UpsertFilterTplCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();

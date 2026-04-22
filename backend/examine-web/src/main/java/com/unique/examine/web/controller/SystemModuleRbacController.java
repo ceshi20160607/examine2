@@ -5,7 +5,7 @@ import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.module.entity.po.ModuleMember;
 import com.unique.examine.module.entity.po.ModuleMenu;
 import com.unique.examine.module.entity.po.ModuleRole;
-import com.unique.examine.web.service.SystemModuleRbacService;
+import com.unique.examine.module.manage.SystemModuleRbacService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,9 @@ public class SystemModuleRbacController {
     @PostMapping("/apps/{appId}/roles/upsert")
     public ApiResult<ModuleRole> upsertRole(@PathVariable("appId") Long appId, @RequestBody UpsertRoleBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleRbacService.upsertRole(appId, platId, body));
+        return ApiResult.ok(systemModuleRbacService.upsertRole(appId, platId, new SystemModuleRbacService.UpsertRoleCmd(
+                body.id(), appId, body.roleCode(), body.roleName(), body.status()
+        )));
     }
 
     public record UpsertMenuBody(Long id,
@@ -62,7 +64,9 @@ public class SystemModuleRbacController {
     @PostMapping("/apps/{appId}/menus/upsert")
     public ApiResult<ModuleMenu> upsertMenu(@PathVariable("appId") Long appId, @RequestBody UpsertMenuBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleRbacService.upsertMenu(appId, platId, body));
+        return ApiResult.ok(systemModuleRbacService.upsertMenu(appId, platId, new SystemModuleRbacService.UpsertMenuCmd(
+                body.id(), appId, body.parentId(), body.menuName(), body.pageId(), body.sortNo(), body.visibleFlag(), body.permKey(), body.apiPattern()
+        )));
     }
 
     public record SetRoleMenuPermBody(Long roleId, List<Long> menuIds, Integer permLevel) {}
@@ -71,7 +75,7 @@ public class SystemModuleRbacController {
     @PostMapping("/roles/menu-perms/set")
     public ApiResult<Void> setRoleMenuPerms(@RequestBody SetRoleMenuPermBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        systemModuleRbacService.setRoleMenuPerms(platId, body);
+        systemModuleRbacService.setRoleMenuPerms(platId, new SystemModuleRbacService.SetRoleMenuPermCmd(body.roleId(), body.menuIds(), body.permLevel()));
         return ApiResult.ok();
     }
 
@@ -81,7 +85,9 @@ public class SystemModuleRbacController {
     @PostMapping("/members/assign-role")
     public ApiResult<ModuleMember> assignMemberRole(@RequestBody AssignMemberRoleBody body) {
         Long operatorPlatId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleRbacService.assignMemberRole(operatorPlatId, body));
+        return ApiResult.ok(systemModuleRbacService.assignMemberRole(operatorPlatId, new SystemModuleRbacService.AssignMemberRoleCmd(
+                body.appId(), body.memberPlatId(), body.roleId()
+        )));
     }
 }
 

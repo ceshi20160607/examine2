@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.module.manage;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
@@ -12,7 +12,6 @@ import com.unique.examine.module.service.IModuleAppService;
 import com.unique.examine.module.service.IModuleFieldService;
 import com.unique.examine.module.service.IModuleModelService;
 import com.unique.examine.module.service.IModuleRelationService;
-import com.unique.examine.web.controller.SystemModuleMetaController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +21,56 @@ import java.util.Objects;
 
 @Service
 public class SystemModuleMetaService {
+
+    public record UpsertAppCmd(
+            Long id,
+            String appCode,
+            String appName,
+            String iconUrl,
+            Integer status,
+            Integer publishedFlag,
+            String remark
+    ) {}
+
+    public record UpsertModelCmd(
+            Long id,
+            Long appId,
+            String modelCode,
+            String modelName,
+            Integer status,
+            String remark
+    ) {}
+
+    public record UpsertFieldCmd(
+            Long id,
+            Long appId,
+            Long modelId,
+            String fieldCode,
+            String fieldName,
+            String fieldType,
+            Integer requiredFlag,
+            Integer uniqueFlag,
+            Integer hiddenFlag,
+            String tips,
+            Integer maxLength,
+            Integer minLength,
+            String validateType,
+            String dateFormat,
+            String dictCode,
+            Integer multiFlag,
+            String defaultValue,
+            Integer sortNo,
+            Integer status
+    ) {}
+
+    public record UpsertRelationCmd(
+            Long id,
+            Long appId,
+            Long srcModelId,
+            Long dstModelId,
+            String relType,
+            String configJson
+    ) {}
 
     @Autowired
     private IModuleAppService moduleAppService;
@@ -46,7 +95,7 @@ public class SystemModuleMetaService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleApp upsertApp(Long operatorPlatId, SystemModuleMetaController.UpsertAppBody body) {
+    public ModuleApp upsertApp(Long operatorPlatId, UpsertAppCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -143,7 +192,7 @@ public class SystemModuleMetaService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleModel upsertModel(Long operatorPlatId, SystemModuleMetaController.UpsertModelBody body) {
+    public ModuleModel upsertModel(Long operatorPlatId, UpsertModelCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -239,7 +288,7 @@ public class SystemModuleMetaService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleField upsertField(Long operatorPlatId, SystemModuleMetaController.UpsertFieldBody body) {
+    public ModuleField upsertField(Long operatorPlatId, UpsertFieldCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -347,7 +396,7 @@ public class SystemModuleMetaService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleRelation upsertRelation(Long operatorPlatId, SystemModuleMetaController.UpsertRelationBody body) {
+    public ModuleRelation upsertRelation(Long operatorPlatId, UpsertRelationCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();

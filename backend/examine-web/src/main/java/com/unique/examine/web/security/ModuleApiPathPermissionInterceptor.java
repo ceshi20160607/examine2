@@ -2,7 +2,7 @@ package com.unique.examine.web.security;
 
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.core.security.ModuleAuthContextHolder;
-import com.unique.examine.web.service.ModuleRuntimeApiPermissionService;
+import com.unique.examine.module.manage.ModuleRuntimeApiPermissionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;

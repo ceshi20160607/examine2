@@ -7,7 +7,7 @@ import com.unique.examine.module.entity.po.ModuleApp;
 import com.unique.examine.module.entity.po.ModuleField;
 import com.unique.examine.module.entity.po.ModuleModel;
 import com.unique.examine.module.entity.po.ModuleRelation;
-import com.unique.examine.web.service.SystemModuleMetaService;
+import com.unique.examine.module.manage.SystemModuleMetaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,9 @@ public class SystemModuleMetaController {
     @PostMapping("/apps/upsert")
     public ApiResult<ModuleApp> upsertApp(@RequestBody UpsertAppBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleMetaService.upsertApp(platId, body));
+        return ApiResult.ok(systemModuleMetaService.upsertApp(platId, new SystemModuleMetaService.UpsertAppCmd(
+                body.id(), body.appCode(), body.appName(), body.iconUrl(), body.status(), body.publishedFlag(), body.remark()
+        )));
     }
 
     public record DeleteIdsBody(List<Long> ids) {}
@@ -67,7 +69,9 @@ public class SystemModuleMetaController {
     @PostMapping("/models/upsert")
     public ApiResult<ModuleModel> upsertModel(@RequestBody UpsertModelBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleMetaService.upsertModel(platId, body));
+        return ApiResult.ok(systemModuleMetaService.upsertModel(platId, new SystemModuleMetaService.UpsertModelCmd(
+                body.id(), body.appId(), body.modelCode(), body.modelName(), body.status(), body.remark()
+        )));
     }
 
     @Operation(summary = "删除模型（按 id 列表）")
@@ -109,7 +113,12 @@ public class SystemModuleMetaController {
     @PostMapping("/fields/upsert")
     public ApiResult<ModuleField> upsertField(@RequestBody UpsertFieldBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleMetaService.upsertField(platId, body));
+        return ApiResult.ok(systemModuleMetaService.upsertField(platId, new SystemModuleMetaService.UpsertFieldCmd(
+                body.id(), body.appId(), body.modelId(), body.fieldCode(), body.fieldName(), body.fieldType(),
+                body.requiredFlag(), body.uniqueFlag(), body.hiddenFlag(), body.tips(),
+                body.maxLength(), body.minLength(), body.validateType(), body.dateFormat(), body.dictCode(),
+                body.multiFlag(), body.defaultValue(), body.sortNo(), body.status()
+        )));
     }
 
     @Operation(summary = "删除字段（按 id 列表）")
@@ -133,7 +142,9 @@ public class SystemModuleMetaController {
     @PostMapping("/relations/upsert")
     public ApiResult<ModuleRelation> upsertRelation(@RequestBody UpsertRelationBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleMetaService.upsertRelation(platId, body));
+        return ApiResult.ok(systemModuleMetaService.upsertRelation(platId, new SystemModuleMetaService.UpsertRelationCmd(
+                body.id(), body.appId(), body.srcModelId(), body.dstModelId(), body.relType(), body.configJson()
+        )));
     }
 
     @Operation(summary = "删除关系（按 id 列表）")

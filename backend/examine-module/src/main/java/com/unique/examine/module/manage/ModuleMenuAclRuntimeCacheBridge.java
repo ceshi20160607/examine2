@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.module.manage;
 
 import com.unique.examine.core.module.ModuleMenuAclRuntimeCache;
 import org.springframework.beans.factory.annotation.Autowired;

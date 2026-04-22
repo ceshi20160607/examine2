@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.module.manage;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
@@ -6,7 +6,6 @@ import com.unique.examine.module.entity.po.ModuleDict;
 import com.unique.examine.module.entity.po.ModuleDictItem;
 import com.unique.examine.module.service.IModuleDictItemService;
 import com.unique.examine.module.service.IModuleDictService;
-import com.unique.examine.web.controller.SystemModuleDictController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +15,9 @@ import java.util.Objects;
 
 @Service
 public class SystemModuleDictService {
+
+    public record UpsertDictCmd(Long id, String dictCode, String dictName, Integer status, String remark) {}
+    public record UpsertItemCmd(Long id, Long dictId, String itemValue, String itemLabel, Integer sortNo, Integer status) {}
 
     @Autowired
     private IModuleDictService moduleDictService;
@@ -38,7 +40,7 @@ public class SystemModuleDictService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleDict upsertDict(Long appId, Long operatorPlatId, SystemModuleDictController.UpsertDictBody body) {
+    public ModuleDict upsertDict(Long appId, Long operatorPlatId, UpsertDictCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -125,7 +127,7 @@ public class SystemModuleDictService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleDictItem upsertItem(Long dictId, Long operatorPlatId, SystemModuleDictController.UpsertItemBody body) {
+    public ModuleDictItem upsertItem(Long dictId, Long operatorPlatId, UpsertItemCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();

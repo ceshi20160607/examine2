@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.module.manage;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unique.examine.core.module.ModuleAuthCacheCoordinator;
@@ -13,7 +13,7 @@ import com.unique.examine.module.service.IModuleMemberService;
 import com.unique.examine.module.service.IModuleMenuService;
 import com.unique.examine.module.service.IModuleRoleService;
 import com.unique.examine.plat.entity.po.PlatSystem;
-import com.unique.examine.web.module.ModuleMenuApiPermissionCatalog;
+import com.unique.examine.module.manage.ModuleMenuApiPermissionCatalog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -13,7 +13,7 @@ import com.unique.examine.plat.service.IPlatTenantService;
 import com.unique.examine.plat.manage.PlatRbacManageService;
 import com.unique.examine.plat.entity.dto.PlatMenuTreeNode;
 import com.unique.examine.web.service.PlatPermissionService;
-import com.unique.examine.web.service.SystemModuleBootstrapService;
+import com.unique.examine.module.manage.SystemModuleBootstrapService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

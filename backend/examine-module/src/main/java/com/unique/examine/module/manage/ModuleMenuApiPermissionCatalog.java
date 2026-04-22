@@ -1,4 +1,4 @@
-package com.unique.examine.web.module;
+package com.unique.examine.module.manage;
 
 import com.unique.examine.core.security.ModulePermCodes;
 

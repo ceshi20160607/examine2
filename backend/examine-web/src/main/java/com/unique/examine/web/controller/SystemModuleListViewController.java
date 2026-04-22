@@ -5,7 +5,7 @@ import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.module.entity.po.ModuleListFilterTpl;
 import com.unique.examine.module.entity.po.ModuleListView;
 import com.unique.examine.module.entity.po.ModuleListViewCol;
-import com.unique.examine.web.service.SystemModuleListViewService;
+import com.unique.examine.module.manage.SystemModuleListViewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,9 @@ public class SystemModuleListViewController {
     @PostMapping("/upsert")
     public ApiResult<ModuleListView> upsertView(@RequestBody UpsertViewBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleListViewService.upsertView(platId, body));
+        return ApiResult.ok(systemModuleListViewService.upsertView(platId, new SystemModuleListViewService.UpsertViewCmd(
+                body.id(), body.appId(), body.modelId(), body.platId(), body.viewCode(), body.viewName(), body.defaultFlag(), body.status()
+        )));
     }
 
     @Operation(summary = "列配置列表（按 viewId）")
@@ -70,7 +72,9 @@ public class SystemModuleListViewController {
     @PostMapping("/cols/upsert")
     public ApiResult<ModuleListViewCol> upsertCol(@RequestBody UpsertColBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleListViewService.upsertCol(platId, body));
+        return ApiResult.ok(systemModuleListViewService.upsertCol(platId, new SystemModuleListViewService.UpsertColCmd(
+                body.id(), body.viewId(), body.fieldId(), body.colTitle(), body.width(), body.sortNo(), body.visibleFlag(), body.fixedType(), body.formatJson()
+        )));
     }
 
     public record DeleteIdsBody(List<Long> ids) {}
@@ -110,7 +114,9 @@ public class SystemModuleListViewController {
     @PostMapping("/filter-tpls/upsert")
     public ApiResult<ModuleListFilterTpl> upsertFilterTpl(@RequestBody UpsertFilterTplBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleListViewService.upsertFilterTpl(platId, body));
+        return ApiResult.ok(systemModuleListViewService.upsertFilterTpl(platId, new SystemModuleListViewService.UpsertFilterTplCmd(
+                body.id(), body.appId(), body.modelId(), body.menuId(), body.tplCode(), body.tplName(), body.status()
+        )));
     }
 
     @Operation(summary = "删除筛选模板（按 id 列表）")

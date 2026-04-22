@@ -4,7 +4,7 @@ import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.module.entity.po.ModuleDict;
 import com.unique.examine.module.entity.po.ModuleDictItem;
-import com.unique.examine.web.service.SystemModuleDictService;
+import com.unique.examine.module.manage.SystemModuleDictService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,9 @@ public class SystemModuleDictController {
     @PostMapping("/apps/{appId}/upsert")
     public ApiResult<ModuleDict> upsertDict(@PathVariable("appId") Long appId, @RequestBody UpsertDictBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleDictService.upsertDict(appId, platId, body));
+        return ApiResult.ok(systemModuleDictService.upsertDict(appId, platId, new SystemModuleDictService.UpsertDictCmd(
+                body.id(), body.dictCode(), body.dictName(), body.status(), body.remark()
+        )));
     }
 
     @Operation(summary = "字典项列表（按 dictId）")
@@ -54,7 +56,9 @@ public class SystemModuleDictController {
     @PostMapping("/{dictId}/items/upsert")
     public ApiResult<ModuleDictItem> upsertItem(@PathVariable("dictId") Long dictId, @RequestBody UpsertItemBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleDictService.upsertItem(dictId, platId, body));
+        return ApiResult.ok(systemModuleDictService.upsertItem(dictId, platId, new SystemModuleDictService.UpsertItemCmd(
+                body.id(), dictId, body.itemValue(), body.itemLabel(), body.sortNo(), body.status()
+        )));
     }
 
     public record DeleteIdsBody(List<Long> ids) {}
