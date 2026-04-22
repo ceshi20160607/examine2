@@ -3,7 +3,7 @@ package com.unique.examine.web.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
-import com.unique.examine.web.service.ModuleRecordFacadeService;
+import com.unique.examine.module.manage.ModuleRecordFacadeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

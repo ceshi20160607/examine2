@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.module.manage;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * module → flow 触发门面：只查 {@link FlowBinding} 并调用 {@link FlowEngineService}，不内嵌引擎规则。
+ * module → flow 触发门面：只查 {@link FlowBinding} 并调用 flow 引擎，不内嵌引擎规则。
  */
 @Service
 public class ModuleFlowTriggerService {
@@ -32,7 +32,7 @@ public class ModuleFlowTriggerService {
     @Autowired
     private IFlowTempService flowTempService;
     @Autowired
-    private FlowEngineService flowEngineService;
+    private com.unique.examine.flow.manage.FlowEngineService flowEngineService;
     @Autowired
     private ObjectMapper objectMapper;
 

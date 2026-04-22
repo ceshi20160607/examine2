@@ -5,7 +5,7 @@ import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
 import com.unique.examine.module.entity.po.ModuleExportTpl;
 import com.unique.examine.module.entity.po.ModuleExportTplField;
-import com.unique.examine.web.manage.module.SystemModuleExportService;
+import com.unique.examine.module.manage.SystemModuleExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -47,7 +47,9 @@ public class SystemModuleExportController {
     @PostMapping("/tpls/upsert")
     public ApiResult<ModuleExportTpl> upsertTpl(@RequestBody UpsertTplBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleExportService.upsertTpl(platId, body));
+        return ApiResult.ok(systemModuleExportService.upsertTpl(platId, new SystemModuleExportService.UpsertTplCmd(
+                body.id(), body.appId(), body.modelId(), body.menuId(), body.tplCode(), body.tplName(), body.fileType(), body.status()
+        )));
     }
 
     @Operation(summary = "导出字段列表（按 tplId）")
@@ -68,7 +70,9 @@ public class SystemModuleExportController {
     @PostMapping("/fields/upsert")
     public ApiResult<ModuleExportTplField> upsertField(@RequestBody UpsertFieldBody body) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleExportService.upsertField(platId, body));
+        return ApiResult.ok(systemModuleExportService.upsertField(platId, new SystemModuleExportService.UpsertFieldCmd(
+                body.id(), body.tplId(), body.fieldId(), body.colTitle(), body.sortNo(), body.formatJson()
+        )));
     }
 
     public record DeleteIdsBody(List<Long> ids) {}

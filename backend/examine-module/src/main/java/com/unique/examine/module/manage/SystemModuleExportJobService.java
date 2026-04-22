@@ -1,4 +1,4 @@
-package com.unique.examine.web.manage.module;
+package com.unique.examine.module.manage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.examine.core.exception.BusinessException;
@@ -8,7 +8,7 @@ import com.unique.examine.module.entity.po.ModuleExportJob;
 import com.unique.examine.module.entity.po.ModuleExportTpl;
 import com.unique.examine.module.service.IModuleExportJobService;
 import com.unique.examine.module.service.IModuleExportTplService;
-import com.unique.examine.web.service.ModuleRecordFacadeService;
+import com.unique.examine.module.manage.ModuleRecordFacadeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

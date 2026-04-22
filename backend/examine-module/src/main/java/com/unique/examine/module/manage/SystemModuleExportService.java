@@ -1,4 +1,4 @@
-package com.unique.examine.web.manage.module;
+package com.unique.examine.module.manage;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
@@ -12,8 +12,7 @@ import com.unique.examine.module.service.IModuleExportTplFieldService;
 import com.unique.examine.module.service.IModuleExportTplService;
 import com.unique.examine.module.service.IModuleFieldService;
 import com.unique.examine.module.service.IModuleRecordDataService;
-import com.unique.examine.web.controller.module.SystemModuleExportController;
-import com.unique.examine.web.service.ModuleRecordFacadeService;
+import com.unique.examine.module.manage.ModuleRecordFacadeService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,6 +30,26 @@ import java.util.Objects;
 
 @Service
 public class SystemModuleExportService {
+
+    public record UpsertTplCmd(
+            Long id,
+            Long appId,
+            Long modelId,
+            Long menuId,
+            String tplCode,
+            String tplName,
+            String fileType,
+            Integer status
+    ) {}
+
+    public record UpsertFieldCmd(
+            Long id,
+            Long tplId,
+            Long fieldId,
+            String colTitle,
+            Integer sortNo,
+            String formatJson
+    ) {}
 
     @Autowired
     private IModuleExportTplService moduleExportTplService;
@@ -62,7 +81,7 @@ public class SystemModuleExportService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleExportTpl upsertTpl(Long operatorPlatId, SystemModuleExportController.UpsertTplBody body) {
+    public ModuleExportTpl upsertTpl(Long operatorPlatId, UpsertTplCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -151,7 +170,7 @@ public class SystemModuleExportService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ModuleExportTplField upsertField(Long operatorPlatId, SystemModuleExportController.UpsertFieldBody body) {
+    public ModuleExportTplField upsertField(Long operatorPlatId, UpsertFieldCmd body) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();

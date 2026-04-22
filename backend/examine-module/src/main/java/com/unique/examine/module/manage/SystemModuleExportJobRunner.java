@@ -1,4 +1,4 @@
-package com.unique.examine.web.manage.module;
+package com.unique.examine.module.manage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.examine.core.security.AuthContextHolder;

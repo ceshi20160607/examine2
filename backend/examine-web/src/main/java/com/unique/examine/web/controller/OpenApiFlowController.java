@@ -9,7 +9,7 @@ import com.unique.examine.flow.service.IFlowLogActionService;
 import com.unique.examine.flow.service.IFlowLogTraceService;
 import com.unique.examine.flow.service.IFlowRecordService;
 import com.unique.examine.flow.service.IFlowTaskService;
-import com.unique.examine.web.service.FlowEngineService;
+import com.unique.examine.flow.manage.FlowEngineService;
 import com.unique.examine.web.service.FlowBizActionService;
 import com.unique.examine.web.service.FlowTaskInboxService;
 import com.unique.examine.web.service.OpenApiIdempotencyService;
