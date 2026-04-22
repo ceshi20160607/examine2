@@ -31,6 +31,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.Set;
+import java.util.HashSet;
 
 @Tag(name = "自建系统态-附件上传")
 @RestController
@@ -40,6 +42,15 @@ public class SystemUploadController {
     // MVP：先做 local 存储；后续可接入 UploadStorageConfig（minio/oss）
     @Value("${examine.upload.local-root-path:data/uploads}")
     private String localRootPath;
+
+    @Value("${examine.upload.max-size-mb:50}")
+    private long maxSizeMb;
+
+    @Value("${examine.upload.allowed-exts:}")
+    private String allowedExts;
+
+    @Value("${examine.upload.allowed-content-types:}")
+    private String allowedContentTypes;
 
     @Autowired
     private IUploadFileService uploadFileService;
@@ -68,12 +79,14 @@ public class SystemUploadController {
         if (size <= 0) {
             throw new BusinessException(400, "空文件不允许上传");
         }
-        if (size > 50L * 1024 * 1024) {
-            throw new BusinessException(400, "文件过大（最大 50MB）");
+        long maxBytes = Math.max(1L, maxSizeMb) * 1024 * 1024;
+        if (size > maxBytes) {
+            throw new BusinessException(400, "文件过大（最大 " + Math.max(1L, maxSizeMb) + "MB）");
         }
 
         String contentType = file.getContentType();
         String ext = extractExt(originalName);
+        validateTypeAllowlist(ext, contentType);
 
         LocalDate d = LocalDate.now();
         String dir = d.getYear() + "/" + String.format("%02d", d.getMonthValue()) + "/" + String.format("%02d", d.getDayOfMonth());
@@ -286,6 +299,40 @@ public class SystemUploadController {
             return null;
         }
         return ext;
+    }
+
+    private void validateTypeAllowlist(String ext, String contentType) {
+        Set<String> exts = parseCsvToSetLower(allowedExts);
+        if (!exts.isEmpty()) {
+            if (ext == null || ext.isBlank() || !exts.contains(ext.trim().toLowerCase())) {
+                throw new BusinessException(400, "不支持的文件类型（ext）");
+            }
+        }
+        Set<String> cts = parseCsvToSetLower(allowedContentTypes);
+        if (!cts.isEmpty()) {
+            String ct = contentType == null ? "" : contentType.trim().toLowerCase();
+            if (ct.isEmpty() || !cts.contains(ct)) {
+                throw new BusinessException(400, "不支持的文件类型（contentType）");
+            }
+        }
+    }
+
+    private static Set<String> parseCsvToSetLower(String csv) {
+        if (!StringUtils.hasText(csv)) {
+            return Set.of();
+        }
+        String[] parts = csv.split("[,;\\s]+");
+        HashSet<String> set = new HashSet<>();
+        for (String p : parts) {
+            if (p == null) {
+                continue;
+            }
+            String t = p.trim().toLowerCase();
+            if (!t.isEmpty()) {
+                set.add(t);
+            }
+        }
+        return set;
     }
 
     private static String sanitizeFilename(String s) {

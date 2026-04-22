@@ -46,3 +46,6 @@ management:
 examine:
   upload:
     local-root-path: data/uploads
+    max-size-mb: 50
+    allowed-exts: "jpg,jpeg,png,gif,webp,pdf,txt,csv,xlsx"
+    allowed-content-types: "image/jpeg,image/png,image/gif,image/webp,application/pdf,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
