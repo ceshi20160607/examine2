@@ -12,7 +12,7 @@ import com.unique.examine.plat.service.IPlatSystemService;
 import com.unique.examine.plat.service.IPlatTenantService;
 import com.unique.examine.plat.manage.PlatRbacManageService;
 import com.unique.examine.plat.entity.dto.PlatMenuTreeNode;
-import com.unique.examine.web.service.PlatPermissionService;
+import com.unique.examine.plat.manage.PlatPermissionManageService;
 import com.unique.examine.module.manage.SystemModuleBootstrapService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,7 +46,7 @@ public class PlatformContextController {
     @Autowired
     private SessionService sessionService;
     @Autowired
-    private PlatPermissionService platPermissionService;
+    private PlatPermissionManageService platPermissionService;
     @Autowired
     private PlatRbacManageService platRbacManageService;
     @Autowired

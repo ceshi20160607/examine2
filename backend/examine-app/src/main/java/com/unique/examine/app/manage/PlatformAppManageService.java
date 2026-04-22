@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.app.manage;
 
 import com.unique.examine.app.entity.po.AppClient;
 import com.unique.examine.app.entity.po.AppClientCredential;

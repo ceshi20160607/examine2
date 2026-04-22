@@ -3,7 +3,7 @@ package com.unique.examine.web.controller;
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.plat.entity.po.PlatAccount;
-import com.unique.examine.web.service.AuthService;
+import com.unique.examine.plat.manage.PlatAuthManageService;
 import com.unique.examine.web.dto.LoginBody;
 import com.unique.examine.web.dto.RegisterBody;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +26,7 @@ import java.util.Map;
 public class AuthController {
 
     @Autowired
-    private AuthService authService;
+    private PlatAuthManageService authService;
 
     @Operation(summary = "注册")
     @PostMapping("/register")
@@ -37,7 +37,7 @@ public class AuthController {
     @Operation(summary = "登录")
     @PostMapping("/login")
     public ApiResult<Map<String, Object>> login(@Valid @RequestBody LoginBody body, HttpServletRequest request) {
-        AuthService.LoginResult r = authService.login(body.getUsername(), body.getPassword(),
+        PlatAuthManageService.LoginResult r = authService.login(body.getUsername(), body.getPassword(),
                 request.getRemoteAddr(), request.getHeader("User-Agent"));
         return ApiResult.ok(Map.of(
                 "token", r.token(),

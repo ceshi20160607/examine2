@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.flow.manage;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
@@ -7,6 +7,7 @@ import com.unique.examine.flow.entity.po.FlowRecord;
 import com.unique.examine.flow.entity.po.FlowTask;
 import com.unique.examine.flow.service.IFlowRecordService;
 import com.unique.examine.flow.service.IFlowTaskService;
+import com.unique.examine.flow.manage.FlowTaskInboxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

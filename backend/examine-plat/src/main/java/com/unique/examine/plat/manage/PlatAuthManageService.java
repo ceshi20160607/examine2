@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.plat.manage;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unique.examine.core.exception.BusinessException;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 @Service
-public class AuthService {
+public class PlatAuthManageService {
 
 
     @Autowired

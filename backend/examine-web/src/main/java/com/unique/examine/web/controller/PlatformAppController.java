@@ -4,8 +4,8 @@ import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.core.security.PlatPermCodes;
 import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.app.entity.po.AppClient;
-import com.unique.examine.web.service.PlatPermissionService;
-import com.unique.examine.web.service.PlatformAppManageService;
+import com.unique.examine.plat.manage.PlatPermissionManageService;
+import com.unique.examine.app.manage.PlatformAppManageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ import java.util.List;
 public class PlatformAppController {
 
     @Autowired
-    private PlatPermissionService platPermissionService;
+    private PlatPermissionManageService platPermissionService;
     @Autowired
     private PlatformAppManageService platformAppManageService;
 

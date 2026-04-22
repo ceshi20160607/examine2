@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.plat.manage;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.plat.entity.po.PlatAccount;
@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PlatPermissionService {
+public class PlatPermissionManageService {
 
     @Autowired
     private IPlatAccountService platAccountService;

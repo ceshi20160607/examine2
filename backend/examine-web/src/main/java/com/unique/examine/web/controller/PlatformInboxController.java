@@ -6,7 +6,7 @@ import com.unique.examine.plat.entity.po.PlatSystem;
 import com.unique.examine.plat.entity.po.PlatMsg;
 import com.unique.examine.plat.service.IPlatMsgService;
 import com.unique.examine.plat.service.IPlatSystemService;
-import com.unique.examine.web.service.FlowTaskInboxService;
+import com.unique.examine.flow.manage.FlowTaskInboxService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

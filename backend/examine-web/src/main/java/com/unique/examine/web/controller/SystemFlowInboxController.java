@@ -2,7 +2,7 @@ package com.unique.examine.web.controller;
 
 import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.flow.entity.po.FlowTask;
-import com.unique.examine.web.service.FlowTaskInboxService;
+import com.unique.examine.flow.manage.FlowTaskInboxService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
