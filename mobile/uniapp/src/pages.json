@@ -61,6 +61,18 @@
 			}
 		},
 		{
+			"path": "pages/system/flow/inbox",
+			"style": {
+				"navigationBarTitleText": "Flow Inbox"
+			}
+		},
+		{
+			"path": "pages/system/flow/task",
+			"style": {
+				"navigationBarTitleText": "Flow Task"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "uni-app"
