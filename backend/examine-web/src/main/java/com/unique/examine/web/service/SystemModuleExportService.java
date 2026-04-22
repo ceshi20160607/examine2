@@ -267,6 +267,29 @@ public class SystemModuleExportService {
     }
 
     public void exportCsv(Long tplId, Long operatorPlatId, ModuleRecordDslQuery query, HttpServletResponse response) {
+        byte[] bytes = exportCsvBytes(tplId, operatorPlatId, query);
+        String filename = "export.csv";
+        try {
+            ModuleExportTpl tpl = moduleExportTplService.getById(tplId);
+            if (tpl != null && tpl.getTplCode() != null && !tpl.getTplCode().isBlank()) {
+                filename = tpl.getTplCode() + ".csv";
+            }
+        } catch (Exception ignore) {
+            // keep default
+        }
+        requireOperator(operatorPlatId);
+        try {
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.setContentType("text/csv; charset=utf-8");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+            response.getOutputStream().write(bytes);
+            response.getOutputStream().flush();
+        } catch (Exception e) {
+            throw new BusinessException(500, "导出失败: " + e.getMessage());
+        }
+    }
+
+    public byte[] exportCsvBytes(Long tplId, Long operatorPlatId, ModuleRecordDslQuery query) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
@@ -293,7 +316,6 @@ public class SystemModuleExportService {
             throw new BusinessException(400, "导出字段为空");
         }
 
-        // Resolve export columns: keep order
         List<String> colTitles = new ArrayList<>();
         List<String> fieldCodes = new ArrayList<>();
         for (ModuleExportTplField f : fields) {
@@ -326,7 +348,6 @@ public class SystemModuleExportService {
         ModuleRecordDslQuery q = query == null ? new ModuleRecordDslQuery() : query;
         q = moduleRecordFacadeService.prepareDslQuery(q, tpl.getAppId(), tpl.getModelId(), 2000L);
 
-        // fetch record ids by DSL
         List<Map<String, Object>> list = moduleRecordMapper.listDsl(q, 0, q.getLimit());
         List<Long> recordIds = new ArrayList<>();
         if (list != null) {
@@ -344,7 +365,6 @@ public class SystemModuleExportService {
             }
         }
 
-        // prepare EAV map: recordId -> (fieldCode -> valueText)
         Map<Long, Map<String, String>> data = new HashMap<>();
         if (!recordIds.isEmpty()) {
             List<ModuleRecordData> rows = moduleRecordDataService.lambdaQuery()
@@ -366,14 +386,9 @@ public class SystemModuleExportService {
             }
         }
 
-        String filename = (tpl.getTplCode() == null ? "export" : tpl.getTplCode()) + ".csv";
         try {
-            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            response.setContentType("text/csv; charset=utf-8");
-            response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-
-            try (OutputStreamWriter w = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8)) {
-                // UTF-8 BOM for Excel
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            try (OutputStreamWriter w = new OutputStreamWriter(baos, StandardCharsets.UTF_8)) {
                 w.write('\uFEFF');
                 writeCsvRow(w, colTitles);
                 for (Long rid : recordIds) {
@@ -387,6 +402,7 @@ public class SystemModuleExportService {
                 }
                 w.flush();
             }
+            return baos.toByteArray();
         } catch (Exception e) {
             throw new BusinessException(500, "导出失败: " + e.getMessage());
         }
