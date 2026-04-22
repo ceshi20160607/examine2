@@ -1,11 +1,10 @@
-package com.unique.examine.web.service;
+package com.unique.examine.web.manage.module;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
 import com.unique.examine.module.entity.po.ModuleExportJob;
 import com.unique.examine.module.service.IModuleExportJobService;
-import com.unique.examine.web.manage.module.SystemModuleExportService;
 import com.unique.examine.upload.entity.po.UploadFile;
 import com.unique.examine.upload.service.IUploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,6 @@ public class SystemModuleExportJobRunner {
 
     @Scheduled(fixedDelayString = "${examine.export-job.poll-ms:2000}")
     public void pollAndRunOnce() {
-        // pick one pending job
         ModuleExportJob job = moduleExportJobService.lambdaQuery()
                 .eq(ModuleExportJob::getStatus, 0)
                 .orderByAsc(ModuleExportJob::getId)
@@ -47,7 +45,6 @@ public class SystemModuleExportJobRunner {
             return;
         }
 
-        // claim (optimistic)
         boolean claimed = moduleExportJobService.lambdaUpdate()
                 .eq(ModuleExportJob::getId, job.getId())
                 .eq(ModuleExportJob::getStatus, 0)
@@ -71,7 +68,6 @@ public class SystemModuleExportJobRunner {
     }
 
     private void runJob(ModuleExportJob job) throws Exception {
-        // set context for shared validators
         AuthContextHolder.setPlatId(job.getCreateUserId());
         AuthContextHolder.setSystemId(job.getSystemId());
         AuthContextHolder.setTenantId(job.getTenantId());
@@ -83,7 +79,6 @@ public class SystemModuleExportJobRunner {
 
         byte[] bytes = systemModuleExportService.exportCsvBytes(job.getTplId(), job.getCreateUserId(), q);
 
-        // save to local uploads and create UploadFile row
         LocalDate d = LocalDate.now();
         String dir = d.getYear() + "/" + String.format("%02d", d.getMonthValue()) + "/" + String.format("%02d", d.getDayOfMonth());
         String safeName = UUID.randomUUID().toString().replace("-", "");

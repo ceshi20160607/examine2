@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.web.manage.module;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.examine.core.exception.BusinessException;
@@ -8,13 +8,10 @@ import com.unique.examine.module.entity.po.ModuleExportJob;
 import com.unique.examine.module.entity.po.ModuleExportTpl;
 import com.unique.examine.module.service.IModuleExportJobService;
 import com.unique.examine.module.service.IModuleExportTplService;
-import com.unique.examine.upload.entity.po.UploadFile;
-import com.unique.examine.upload.service.IUploadFileService;
+import com.unique.examine.web.service.ModuleRecordFacadeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -28,8 +25,6 @@ public class SystemModuleExportJobService {
     private ObjectMapper objectMapper;
     @Autowired
     private ModuleRecordFacadeService moduleRecordFacadeService;
-    @Autowired
-    private IUploadFileService uploadFileService;
 
     public ModuleExportJob createJob(Long tplId, Long operatorPlatId, String queryJson) {
         if (operatorPlatId == null) {
@@ -51,7 +46,6 @@ public class SystemModuleExportJobService {
             throw new BusinessException(403, "无权访问该 tpl");
         }
 
-        // validate DSL query early (fast fail) if provided
         if (queryJson != null && !queryJson.isBlank()) {
             try {
                 ModuleRecordDslQuery q = objectMapper.readValue(queryJson, ModuleRecordDslQuery.class);
@@ -98,26 +92,6 @@ public class SystemModuleExportJobService {
             throw new BusinessException(403, "无权访问该 job");
         }
         return job;
-    }
-
-    public Map<String, Object> getJobDetail(Long jobId, Long operatorPlatId) {
-        ModuleExportJob job = getJob(jobId, operatorPlatId);
-        Map<String, Object> m = new HashMap<>();
-        m.put("job", job);
-        if (job.getResultFileId() != null && job.getResultFileId() > 0) {
-            UploadFile uf = uploadFileService.getById(job.getResultFileId());
-            // scope check (avoid leaking cross-scope files)
-            if (uf != null
-                    && Objects.equals(uf.getSystemId(), job.getSystemId())
-                    && Objects.equals(uf.getTenantId(), job.getTenantId())
-                    && uf.getStatus() != null
-                    && uf.getStatus() == 1) {
-                m.put("file", uf);
-                m.put("viewUrl", "/v1/system/uploads/" + uf.getId() + "/view");
-                m.put("downloadUrl", "/v1/system/uploads/" + uf.getId() + "/download");
-            }
-        }
-        return m;
     }
 }
 
