@@ -1,4 +1,4 @@
-package com.unique.examine.web.service;
+package com.unique.examine.web.manage.module;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
@@ -6,13 +6,14 @@ import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
 import com.unique.examine.module.entity.po.ModuleExportTpl;
 import com.unique.examine.module.entity.po.ModuleExportTplField;
 import com.unique.examine.module.entity.po.ModuleRecordData;
-import com.unique.examine.module.service.IModuleFieldService;
-import com.unique.examine.module.service.IModuleRecordDataService;
 import com.unique.examine.module.entity.po.ModuleField;
 import com.unique.examine.module.mapper.ModuleRecordMapper;
 import com.unique.examine.module.service.IModuleExportTplFieldService;
 import com.unique.examine.module.service.IModuleExportTplService;
-import com.unique.examine.web.controller.SystemModuleExportController;
+import com.unique.examine.module.service.IModuleFieldService;
+import com.unique.examine.module.service.IModuleRecordDataService;
+import com.unique.examine.web.controller.module.SystemModuleExportController;
+import com.unique.examine.web.service.ModuleRecordFacadeService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,13 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Locale;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.LinkedHashMap;
 
 @Service
 public class SystemModuleExportService {
@@ -236,36 +237,6 @@ public class SystemModuleExportService {
                 .remove();
     }
 
-    private static String normalizeFileType(String fileType) {
-        String t = fileType == null ? "xlsx" : fileType.trim().toLowerCase(Locale.ROOT);
-        if (!"xlsx".equals(t) && !"csv".equals(t)) {
-            throw new BusinessException(400, "fileType 须为 xlsx|csv");
-        }
-        return t;
-    }
-
-    private static String trimToNull(String s) {
-        if (s == null) {
-            return null;
-        }
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
-    }
-
-    private static void requireOperator(Long platId) {
-        if (platId == null) {
-            throw new BusinessException(401, "未登录");
-        }
-    }
-
-    private static long requireSystem() {
-        long sid = AuthContextHolder.getSystemIdOrDefault();
-        if (sid == 0L) {
-            throw new BusinessException(403, "请先进入自建系统");
-        }
-        return sid;
-    }
-
     public void exportCsv(Long tplId, Long operatorPlatId, ModuleRecordDslQuery query, HttpServletResponse response) {
         byte[] bytes = exportCsvBytes(tplId, operatorPlatId, query);
         String filename = "export.csv";
@@ -277,7 +248,6 @@ public class SystemModuleExportService {
         } catch (Exception ignore) {
             // keep default
         }
-        requireOperator(operatorPlatId);
         try {
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.setContentType("text/csv; charset=utf-8");
@@ -406,6 +376,36 @@ public class SystemModuleExportService {
         } catch (Exception e) {
             throw new BusinessException(500, "导出失败: " + e.getMessage());
         }
+    }
+
+    private static String normalizeFileType(String fileType) {
+        String t = fileType == null ? "xlsx" : fileType.trim().toLowerCase(Locale.ROOT);
+        if (!"xlsx".equals(t) && !"csv".equals(t)) {
+            throw new BusinessException(400, "fileType 须为 xlsx|csv");
+        }
+        return t;
+    }
+
+    private static String trimToNull(String s) {
+        if (s == null) {
+            return null;
+        }
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
+    }
+
+    private static void requireOperator(Long platId) {
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+    }
+
+    private static long requireSystem() {
+        long sid = AuthContextHolder.getSystemIdOrDefault();
+        if (sid == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        return sid;
     }
 
     private static void writeCsvRow(OutputStreamWriter w, List<String> cells) throws Exception {
