@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS un_module_integration;
 
 DROP TABLE IF EXISTS un_module_export_tpl_field;
 DROP TABLE IF EXISTS un_module_export_tpl;
+DROP TABLE IF EXISTS un_module_export_job;
 
 DROP TABLE IF EXISTS un_module_list_filter_field;
 DROP TABLE IF EXISTS un_module_list_filter_tpl;
@@ -589,6 +590,27 @@ CREATE TABLE un_module_export_tpl_field (
   UNIQUE KEY uk_module_export_tpl_field (tpl_id, field_id),
   KEY idx_module_export_tpl_field (tpl_id, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='导出模板字段配置（导出列）';
+
+CREATE TABLE un_module_export_job (
+  id             BIGINT       NOT NULL COMMENT '任务ID',
+  system_id      BIGINT       NOT NULL COMMENT 'systemId',
+  tenant_id      BIGINT       NOT NULL DEFAULT 0 COMMENT 'tenantId',
+  app_id         BIGINT       NOT NULL COMMENT 'appId',
+  model_id       BIGINT       NOT NULL COMMENT 'modelId',
+  tpl_id         BIGINT       NOT NULL COMMENT '导出模板ID',
+  file_type      VARCHAR(16)  NOT NULL DEFAULT 'csv' COMMENT 'csv|xlsx',
+  status         TINYINT      NOT NULL DEFAULT 0 COMMENT '0=pending 1=running 2=success 3=failed',
+  query_json     JSON         NULL COMMENT '导出查询 DSL（可选）',
+  result_file_id BIGINT       NULL COMMENT '结果文件ID（un_upload_file.id）',
+  error_msg      VARCHAR(512) NULL COMMENT '失败原因（可选）',
+  create_user_id BIGINT       NULL COMMENT '创建人 platId',
+  update_user_id BIGINT       NULL COMMENT '更新人 platId',
+  create_time    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  update_time    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (id),
+  KEY idx_export_job_scope (system_id, tenant_id, app_id, model_id, status, id),
+  KEY idx_export_job_creator (create_user_id, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模块导出任务';
 
 -- -----------------------------------------------------------------------------
 -- 7) 模块内置功能（action）与开关
