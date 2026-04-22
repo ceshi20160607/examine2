@@ -34,8 +34,8 @@ async function ping() {
   requestId.value = null
   const t0 = Date.now()
   try {
-    // 以实际后端为准；默认尝试 /v1/ping
-    const resp = await httpGet<any>('/v1/ping')
+    // 后端 PingController: GET /ping
+    const resp = await httpGet<any>('/ping')
     latencyMs.value = Date.now() - t0
     requestId.value = resp.requestId ?? null
     status.value = 'ok'

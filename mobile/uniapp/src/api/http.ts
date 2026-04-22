@@ -21,6 +21,14 @@ function onUnauthorized() {
   uni.reLaunch({ url: '/pages/auth/login' })
 }
 
+function toast(message: string) {
+  try {
+    uni.showToast({ title: message || '请求失败', icon: 'none', duration: 2500 })
+  } catch {
+    // ignore
+  }
+}
+
 export async function httpGet<T>(path: string): Promise<ApiResult<T>> {
   return httpRequest<T>('GET', path)
 }
@@ -62,10 +70,12 @@ export async function httpRequest<T>(
           return
         }
         if (!r || typeof r.code !== 'number') {
+          toast('接口响应格式错误')
           reject(new Error('bad api response'))
           return
         }
         if (r.code !== 0) {
+          toast(r.message || `接口错误: ${r.code}`)
           reject(new Error(r.message || `api error: ${r.code}`))
           return
         }

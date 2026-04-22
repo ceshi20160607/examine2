@@ -49,8 +49,8 @@ async function doLogin() {
     })
     uni.setStorageSync('token', r.data.token)
     uni.showToast({ title: '登录成功', icon: 'success' })
-    // 第一版下一步：系统列表/创建系统
-    uni.reLaunch({ url: '/pages/index/index' })
+    // 下一步：系统列表/创建系统
+    uni.reLaunch({ url: '/pages/platform/systems' })
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   } finally {
