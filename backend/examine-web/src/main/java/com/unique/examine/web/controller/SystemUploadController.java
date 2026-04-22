@@ -161,6 +161,23 @@ public class SystemUploadController {
         }
     }
 
+    @Operation(summary = "删除文件（软删 status=2；不物理删除；需同 system/tenant）")
+    @PostMapping("/{fileId}/delete")
+    public ApiResult<Void> delete(@PathVariable("fileId") Long fileId) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        UploadFile uf = requireAccessibleFile(fileId);
+        if (uf.getStatus() != null && uf.getStatus() == 2) {
+            return ApiResult.ok();
+        }
+        uf.setStatus(2);
+        uf.setUpdateUserId(platId);
+        uploadFileService.updateById(uf);
+        return ApiResult.ok();
+    }
+
     private UploadFile requireAccessibleFile(Long fileId) {
         Long platId = AuthContextHolder.getPlatId();
         if (platId == null) {
