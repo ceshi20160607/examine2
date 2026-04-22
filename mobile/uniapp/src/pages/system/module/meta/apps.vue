@@ -16,7 +16,7 @@
           :title="(a.appName || a.appCode || ('App#' + a.id))"
           :note="a.appCode || ''"
           clickable
-          @click="goModels(a)"
+          @click="openActions(a)"
         />
       </uni-list>
       <view v-else style="color:#666">暂无应用</view>
@@ -74,6 +74,26 @@ async function create() {
 
 function goModels(a: ModuleApp) {
   uni.navigateTo({ url: `/pages/system/module/meta/models?appId=${a.id}` })
+}
+
+function openActions(a: ModuleApp) {
+  if (!a?.id) return
+  uni.showActionSheet({
+    itemList: ['Models', 'Dicts', 'RBAC'],
+    success: (res) => {
+      if (res.tapIndex === 0) {
+        goModels(a)
+        return
+      }
+      if (res.tapIndex === 1) {
+        uni.navigateTo({ url: `/pages/system/module/dict/dicts?appId=${a.id}` })
+        return
+      }
+      if (res.tapIndex === 2) {
+        uni.navigateTo({ url: `/pages/system/module/rbac/index?appId=${a.id}` })
+      }
+    }
+  })
 }
 
 onMounted(() => {
