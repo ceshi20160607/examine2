@@ -31,6 +31,18 @@
 			}
 		},
 		{
+			"path": "pages/system/module/meta/models",
+			"style": {
+				"navigationBarTitleText": "Models"
+			}
+		},
+		{
+			"path": "pages/system/module/meta/fields",
+			"style": {
+				"navigationBarTitleText": "Fields"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "uni-app"

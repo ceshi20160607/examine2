@@ -58,6 +58,9 @@ async function create() {
     await httpPost('/v1/system/module/meta/apps/upsert', {
       appCode: form.appCode.trim(),
       appName: form.appName.trim(),
+      iconUrl: null,
+      publishedFlag: 0,
+      remark: null,
       status: 1
     })
     form.appCode = ''
