@@ -73,6 +73,12 @@
 			}
 		},
 		{
+			"path": "pages/system/upload/index",
+			"style": {
+				"navigationBarTitleText": "Upload"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "uni-app"
