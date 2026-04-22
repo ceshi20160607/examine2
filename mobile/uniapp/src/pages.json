@@ -85,6 +85,12 @@
 			}
 		},
 		{
+			"path": "pages/system/module/listviews/views",
+			"style": {
+				"navigationBarTitleText": "List Views"
+			}
+		},
+		{
 			"path": "pages/system/records/list",
 			"style": {
 				"navigationBarTitleText": "Records"

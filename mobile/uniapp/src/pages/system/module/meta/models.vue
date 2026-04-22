@@ -16,7 +16,7 @@
           :title="(m.modelName || m.modelCode || ('Model#' + m.id))"
           :note="m.modelCode || ''"
           clickable
-          @click="goFields(m)"
+          @click="openActions(m)"
         />
       </uni-list>
       <view v-else style="color:#666">暂无模型</view>
@@ -86,6 +86,22 @@ async function create() {
 
 function goFields(m: ModuleModel) {
   uni.navigateTo({ url: `/pages/system/module/meta/fields?appId=${appId.value}&modelId=${m.id}` })
+}
+
+function openActions(m: ModuleModel) {
+  if (!m?.id) return
+  uni.showActionSheet({
+    itemList: ['Fields', 'List Views'],
+    success: (res) => {
+      if (res.tapIndex === 0) {
+        goFields(m)
+        return
+      }
+      if (res.tapIndex === 1) {
+        uni.navigateTo({ url: `/pages/system/module/listviews/views?appId=${appId.value}&modelId=${m.id}` })
+      }
+    }
+  })
 }
 
 onMounted(() => {
