@@ -7,6 +7,7 @@
         <uni-button @click="goInbox">待办</uni-button>
         <uni-button @click="goFlowStart">发起流程</uni-button>
         <uni-button @click="goFlowInstances">流程实例</uni-button>
+        <uni-button @click="goFlowMyInstances">我的实例</uni-button>
         <uni-button @click="goUpload">上传</uni-button>
       </view>
       <view style="margin-top: 12px; color:#666">
@@ -47,6 +48,10 @@ function goFlowStart() {
 function goFlowInstances() {
   if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/flow/instances' })
+}
+function goFlowMyInstances() {
+  if (!ensureSystemContext()) return
+  uni.navigateTo({ url: '/pages/system/flow/my_instances' })
 }
 function goUpload() {
   if (!ensureSystemContext()) return

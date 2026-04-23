@@ -8,6 +8,7 @@
         <uni-button @click="goTemps">流程模板</uni-button>
         <uni-button @click="goStart">发起流程</uni-button>
         <uni-button @click="goInstances">实例列表</uni-button>
+        <uni-button @click="goMyInstances">我的实例</uni-button>
       </view>
     </uni-card>
   </view>
@@ -35,6 +36,11 @@ function goStart() {
 function goInstances() {
   if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/flow/instances' })
+}
+
+function goMyInstances() {
+  if (!ensureSystemContext()) return
+  uni.navigateTo({ url: '/pages/system/flow/my_instances' })
 }
 
 onMounted(() => {
