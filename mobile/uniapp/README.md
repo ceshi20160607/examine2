@@ -38,6 +38,9 @@ corepack pnpm -C mobile/uniapp dev:h5
   - Apps/Models/Fields 列表 + 创建（`/v1/system/module/meta/*`）
   - Records：列表、详情、创建、更新（`/v1/system/records*`）
 - **流程（flow）**：Inbox（待办/抄送）+ Task 操作（同意/拒绝/领取/撤回/终止等）
+  - 模板分页：`GET /v1/system/flow/temps/page`
+  - 发起流程：`POST /v1/system/flow/instances/start`
+  - 实例分页/详情：`GET /v1/system/flow/instances/page`、`GET /v1/system/flow/instances/{id}` + tasks/actions/traces
 - **上传（upload）**：上传文件 + 列表分页
 - **导航**：Tabbar（Workbench/Apps/Inbox/Me）
 
