@@ -102,7 +102,7 @@ function openActions(m: ModuleModel) {
         return
       }
       if (res.tapIndex === 2) {
-        uni.navigateTo({ url: `/pages/system/module/export/jobs?modelId=${m.id}` })
+        uni.navigateTo({ url: `/pages/system/module/export/tpls?appId=${appId.value}&modelId=${m.id}` })
       }
     }
   })

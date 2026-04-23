@@ -115,6 +115,18 @@
 			}
 		},
 		{
+			"path": "pages/system/module/export/tpls",
+			"style": {
+				"navigationBarTitleText": "Export Tpls"
+			}
+		},
+		{
+			"path": "pages/system/module/export/tpl_fields",
+			"style": {
+				"navigationBarTitleText": "Export Tpl Fields"
+			}
+		},
+		{
 			"path": "pages/system/module/export/job_detail",
 			"style": {
 				"navigationBarTitleText": "Export Job Detail"
