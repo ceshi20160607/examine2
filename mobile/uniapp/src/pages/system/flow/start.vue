@@ -22,6 +22,7 @@
       <view style="display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button type="primary" :disabled="starting" @click="start">发起</uni-button>
         <uni-button @click="goTemps">选择模板</uni-button>
+        <uni-button @click="goByBiz">按 biz 查询</uni-button>
       </view>
 
       <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
@@ -47,12 +48,19 @@ const form = reactive({
   title: ''
 })
 
+const tempName = ref<string>('')
 const varsText = ref('{}')
 
 onLoad((opts) => {
   const dc = decodeURIComponent(String((opts as any)?.defCode || ''))
   if (dc) form.defCode = dc
+  const tn = decodeURIComponent(String((opts as any)?.tempName || ''))
+  if (tn) tempName.value = tn
 })
+
+function goByBiz() {
+  uni.navigateTo({ url: `/pages/system/flow/by_biz?bizType=${encodeURIComponent(form.bizType || '')}&bizId=${encodeURIComponent(form.bizId || '')}` })
+}
 
 async function start() {
   error.value = null
@@ -62,8 +70,8 @@ async function start() {
     error.value = 'defCode 不能为空'
     return
   }
-  if (!form.bizType.trim() || !form.bizId.trim() || !form.title.trim()) {
-    error.value = 'bizType/bizId/title 不能为空'
+  if (!form.bizType.trim() || !form.bizId.trim()) {
+    error.value = 'bizType/bizId 不能为空'
     return
   }
 
@@ -79,6 +87,10 @@ async function start() {
 
   starting.value = true
   try {
+    if (!form.title.trim()) {
+      const prefix = tempName.value?.trim() || form.defCode.trim()
+      form.title = `${prefix}:${form.bizId.trim()}`
+    }
     const r = await httpPost<any>('/v1/system/flow/instances/start', {
       defCode: form.defCode.trim(),
       bizType: form.bizType.trim(),

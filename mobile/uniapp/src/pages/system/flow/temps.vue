@@ -77,7 +77,8 @@ async function next() {
 
 function goStart(t: FlowTemp) {
   const code = encodeURIComponent(String(t.tempCode || ''))
-  uni.navigateTo({ url: `/pages/system/flow/start?defCode=${code}` })
+  const name = encodeURIComponent(String(t.tempName || ''))
+  uni.navigateTo({ url: `/pages/system/flow/start?defCode=${code}&tempName=${name}` })
 }
 
 onMounted(() => {

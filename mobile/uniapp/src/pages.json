@@ -217,6 +217,12 @@
 			}
 		},
 		{
+			"path": "pages/system/flow/by_biz",
+			"style": {
+				"navigationBarTitleText": "Flow By Biz"
+			}
+		},
+		{
 			"path": "pages/system/flow/start",
 			"style": {
 				"navigationBarTitleText": "Flow Start"
