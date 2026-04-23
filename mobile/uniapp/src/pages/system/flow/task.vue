@@ -19,6 +19,12 @@
         <uni-button :disabled="acting" @click="terminate">终止实例</uni-button>
       </view>
 
+      <view
+        v-if="actionResultText"
+        style="margin-top: 12px; font-family: monospace; white-space: pre-wrap; color:#333"
+      >
+        {{ actionResultText }}
+      </view>
       <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
     </uni-card>
   </view>
@@ -35,6 +41,7 @@ const taskId = ref<number>(0)
 const commentText = ref<string>('')
 const acting = ref(false)
 const error = ref<string | null>(null)
+const actionResultText = ref<string>('')
 
 onLoad((opts) => {
   instanceId.value = Number((opts as any)?.instanceId || 0) || 0
@@ -69,9 +76,38 @@ async function act(path: string, body?: any) {
   if (path.includes('/tasks/') && !taskId.value) return
   acting.value = true
   error.value = null
+  actionResultText.value = ''
   try {
-    await httpPost<any>(path, body)
+    const r = await httpPost<any>(path, body)
     uni.showToast({ title: '操作成功', icon: 'success' })
+    try {
+      actionResultText.value = JSON.stringify(r?.data ?? null, null, 2)
+    } catch {
+      actionResultText.value = String(r?.data ?? '')
+    }
+
+    const d = r?.data || {}
+    const nextTaskId = Number(d.nextTaskId || 0) || 0
+    const nextNodeName = String(d.nextNodeName || '').trim()
+    const items: string[] = []
+    if (nextTaskId) {
+      items.push(`打开下一任务${nextNodeName ? `：${nextNodeName}` : ''}`)
+    }
+    items.push('返回待办箱')
+    items.push('留在当前页')
+    uni.showActionSheet({
+      itemList: items,
+      success: (res) => {
+        const pick = items[res.tapIndex]
+        if (pick?.startsWith('打开下一任务') && nextTaskId) {
+          uni.redirectTo({ url: `/pages/system/flow/task?instanceId=${instanceId.value}&taskId=${nextTaskId}` })
+          return
+        }
+        if (pick === '返回待办箱') {
+          uni.redirectTo({ url: '/pages/system/flow/inbox' })
+        }
+      }
+    })
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   } finally {
