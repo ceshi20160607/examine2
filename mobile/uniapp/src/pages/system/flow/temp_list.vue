@@ -88,17 +88,21 @@ function editTemp(id: any) {
 function openActions(t: FlowTemp) {
   if (!t?.id) return
   uni.showActionSheet({
-    itemList: ['版本管理', '编辑', '删除'],
+    itemList: ['版本管理', '一键发布MVP', '编辑', '删除'],
     success: (res) => {
       if (res.tapIndex === 0) {
         goVers(t.id)
         return
       }
       if (res.tapIndex === 1) {
-        editTemp(t.id)
+        quickPublishMvp(t)
         return
       }
       if (res.tapIndex === 2) {
+        editTemp(t.id)
+        return
+      }
+      if (res.tapIndex === 3) {
         deleteTemp(t.id)
       }
     }
@@ -107,6 +111,37 @@ function openActions(t: FlowTemp) {
 
 function goVers(id: any) {
   uni.navigateTo({ url: `/pages/system/flow/temp_ver_list?tempId=${encodeURIComponent(String(id))}` })
+}
+
+async function quickPublishMvp(t: FlowTemp) {
+  if (!t?.id) return
+  uni.showModal({
+    title: '一键发布 MVP？',
+    content: '将自动创建一个版本，填充最小 graphJson，并发布为可发起状态。',
+    success: async (m) => {
+      if (!m.confirm) return
+      const mvp = {
+        nodes: [{ id: 'approve-1', name: '审批', type: 'approve' }],
+        edges: []
+      }
+      const up = await httpPost<any>('/v1/system/flow/temp-vers/upsert', {
+        id: null,
+        tempId: t.id,
+        verNo: null,
+        publishStatus: 1,
+        graphJson: JSON.stringify(mvp, null, 2),
+        formJson: JSON.stringify({ fields: [] }, null, 2)
+      })
+      const verId = up?.data?.id
+      if (!verId) {
+        uni.showToast({ title: '创建版本失败', icon: 'none' })
+        return
+      }
+      await httpPost(`/v1/system/flow/temp-vers/${encodeURIComponent(String(verId))}/publish`)
+      uni.showToast({ title: '已发布', icon: 'success' })
+      reload()
+    }
+  })
 }
 
 function deleteTemp(id: any) {
