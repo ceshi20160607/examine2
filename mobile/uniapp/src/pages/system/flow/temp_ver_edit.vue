@@ -19,6 +19,10 @@
       <view style="display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button type="primary" :disabled="saving" @click="save">保存</uni-button>
         <uni-button @click="back">返回</uni-button>
+        <uni-button v-if="id" @click="goNodes">节点</uni-button>
+        <uni-button v-if="id" @click="goLines">连线</uni-button>
+        <uni-button v-if="id" @click="goSettings">全局设置</uni-button>
+        <uni-button v-if="id" @click="goNodeSettings">节点设置</uni-button>
       </view>
 
       <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
@@ -57,6 +61,23 @@ onLoad((opts) => {
 
 function back() {
   uni.navigateBack()
+}
+
+function goNodes() {
+  if (!id.value) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_nodes?tempVerId=${id.value}` })
+}
+function goLines() {
+  if (!id.value) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_lines?tempVerId=${id.value}` })
+}
+function goSettings() {
+  if (!id.value) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_settings?tempVerId=${id.value}` })
+}
+function goNodeSettings() {
+  if (!id.value) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_node_settings?tempVerId=${id.value}` })
 }
 
 async function loadDetail() {

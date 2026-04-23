@@ -187,6 +187,36 @@
 			}
 		},
 		{
+			"path": "pages/system/flow/temp_ver_nodes",
+			"style": {
+				"navigationBarTitleText": "Flow Ver Nodes"
+			}
+		},
+		{
+			"path": "pages/system/flow/temp_ver_lines",
+			"style": {
+				"navigationBarTitleText": "Flow Ver Lines"
+			}
+		},
+		{
+			"path": "pages/system/flow/temp_ver_line_conds",
+			"style": {
+				"navigationBarTitleText": "Flow Line Conds"
+			}
+		},
+		{
+			"path": "pages/system/flow/temp_ver_settings",
+			"style": {
+				"navigationBarTitleText": "Flow Ver Settings"
+			}
+		},
+		{
+			"path": "pages/system/flow/temp_ver_node_settings",
+			"style": {
+				"navigationBarTitleText": "Flow Ver Node Settings"
+			}
+		},
+		{
 			"path": "pages/system/flow/start",
 			"style": {
 				"navigationBarTitleText": "Flow Start"
