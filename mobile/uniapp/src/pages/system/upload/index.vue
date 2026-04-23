@@ -19,6 +19,8 @@
           :key="f.id"
           :title="f.originalName || ('File#' + f.id)"
           :note="`${f.id} / ${f.fileSize || 0} bytes`"
+          clickable
+          @click="openActions(f)"
         />
       </uni-list>
       <view v-else style="color:#666">暂无文件</view>
@@ -36,7 +38,7 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const lastFileId = ref<number | null>(null)
 
-type UploadRow = { id: number; originalName?: string; fileSize?: number }
+type UploadRow = { id: number; originalName?: string; fileSize?: number; contentType?: string }
 const rows = ref<UploadRow[]>([])
 
 function getToken(): string | null {
@@ -112,7 +114,94 @@ async function loadPage() {
     if (!json || json.code !== 0) {
       throw new Error(json?.message || '加载失败')
     }
-    rows.value = json.data?.rows || []
+    rows.value = json.data?.records || json.data?.rows || []
+  } catch (e: any) {
+    error.value = e?.message ?? String(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+function buildUrl(path: string): string {
+  const base = getBaseURL().replace(/\/$/, '')
+  return base + path
+}
+
+function openActions(f: UploadRow) {
+  if (!f?.id) return
+  uni.showActionSheet({
+    itemList: ['预览(view)', '下载(download)', '删除(软删)'],
+    success: (res) => {
+      if (res.tapIndex === 0) {
+        const u = buildUrl(`/v1/system/uploads/${f.id}/view`)
+        uni.navigateTo({ url: `/pages/system/upload/view?fileId=${f.id}&name=${encodeURIComponent(f.originalName || '')}` })
+        return
+      }
+      if (res.tapIndex === 1) {
+        downloadFile(f.id, f.originalName || `file-${f.id}`)
+        return
+      }
+      if (res.tapIndex === 2) {
+        deleteFile(f.id)
+      }
+    }
+  })
+}
+
+async function downloadFile(fileId: number, filename: string) {
+  if (!ensureSystemContext()) return
+  const token = getToken()
+  if (!token) return
+  const url = buildUrl(`/v1/system/uploads/${fileId}/download`)
+  uni.showLoading({ title: '下载中...' })
+  try {
+    const dl: any = await new Promise((resolve, reject) => {
+      uni.downloadFile({
+        url,
+        header: { Authorization: `Bearer ${token}` },
+        success: resolve,
+        fail: reject
+      })
+    })
+    const tempFilePath = dl?.tempFilePath
+    if (!tempFilePath) throw new Error('下载失败')
+    // App/部分平台支持保存到本地；H5 会直接下载或给 temp path
+    uni.saveFile({
+      tempFilePath,
+      success: () => {
+        uni.showToast({ title: '已保存', icon: 'success' })
+      },
+      fail: () => {
+        uni.showToast({ title: '已下载（临时文件）', icon: 'none' })
+      }
+    })
+  } catch (e: any) {
+    error.value = e?.message ?? String(e)
+  } finally {
+    uni.hideLoading()
+  }
+}
+
+async function deleteFile(fileId: number) {
+  if (!ensureSystemContext()) return
+  const token = getToken()
+  if (!token) return
+  loading.value = true
+  try {
+    const r: any = await new Promise((resolve, reject) => {
+      uni.request({
+        url: getBaseURL().replace(/\/$/, '') + `/v1/system/uploads/${fileId}/delete`,
+        method: 'POST',
+        data: {},
+        header: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        success: resolve,
+        fail: reject
+      })
+    })
+    const json = r?.data
+    if (!json || json.code !== 0) throw new Error(json?.message || '删除失败')
+    uni.showToast({ title: '已删除', icon: 'success' })
+    await loadPage()
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   } finally {

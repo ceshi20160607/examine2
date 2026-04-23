@@ -175,6 +175,12 @@
 			}
 		},
 		{
+			"path": "pages/system/upload/view",
+			"style": {
+				"navigationBarTitleText": "Upload View"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "uni-app"
