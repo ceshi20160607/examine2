@@ -91,6 +91,24 @@
 			}
 		},
 		{
+			"path": "pages/system/module/listviews/filter_tpls",
+			"style": {
+				"navigationBarTitleText": "Filter Tpls"
+			}
+		},
+		{
+			"path": "pages/system/module/listviews/cols",
+			"style": {
+				"navigationBarTitleText": "List View Cols"
+			}
+		},
+		{
+			"path": "pages/system/module/rbac/role_menus",
+			"style": {
+				"navigationBarTitleText": "Role Menus"
+			}
+		},
+		{
 			"path": "pages/system/records/list",
 			"style": {
 				"navigationBarTitleText": "Records"

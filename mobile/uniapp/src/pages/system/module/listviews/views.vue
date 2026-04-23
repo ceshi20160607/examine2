@@ -10,12 +10,17 @@
     </uni-card>
 
     <uni-card title="列表" style="margin-top: 12px">
+      <view style="margin-bottom: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
+        <uni-button :disabled="!modelId" @click="goFilterTpls">筛选模板</uni-button>
+      </view>
       <uni-list v-if="rows.length">
         <uni-list-item
           v-for="v in rows"
           :key="v.id"
           :title="v.viewName || v.viewCode || ('View#' + v.id)"
           :note="v.viewCode || ''"
+          clickable
+          @click="openViewActions(v)"
         />
       </uni-list>
       <view v-else style="color:#666">暂无视图</view>
@@ -79,6 +84,25 @@ async function upsert() {
   } finally {
     saving.value = false
   }
+}
+
+function goFilterTpls() {
+  if (!appId.value || !modelId.value) return
+  uni.navigateTo({ url: `/pages/system/module/listviews/filter_tpls?appId=${appId.value}&modelId=${modelId.value}` })
+}
+
+function openViewActions(v: ViewRow) {
+  if (!v?.id) return
+  uni.showActionSheet({
+    itemList: ['Cols（列配置）'],
+    success: (res) => {
+      if (res.tapIndex !== 0) return
+      if (!appId.value || !modelId.value) return
+      uni.navigateTo({
+        url: `/pages/system/module/listviews/cols?viewId=${v.id}&appId=${appId.value}&modelId=${modelId.value}`
+      })
+    }
+  })
 }
 
 onMounted(() => {
