@@ -41,6 +41,7 @@ corepack pnpm -C mobile/uniapp dev:h5
   - 模板分页：`GET /v1/system/flow/temps/page`
   - 发起流程：`POST /v1/system/flow/instances/start`
   - 实例分页/详情：`GET /v1/system/flow/instances/page`、`GET /v1/system/flow/instances/{id}` + tasks/actions/traces
+  - 我的相关实例分页：`GET /v1/system/flow/instances/my/page`
 - **上传（upload）**：上传文件 + 列表分页
 - **导航**：Tabbar（Workbench/Apps/Inbox/Me）
 
