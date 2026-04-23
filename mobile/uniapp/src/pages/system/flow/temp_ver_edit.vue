@@ -18,6 +18,8 @@
 
       <view style="display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button type="primary" :disabled="saving" @click="save">保存</uni-button>
+        <uni-button v-if="id" type="warn" :disabled="saving || publishing" @click="publish">发布</uni-button>
+        <uni-button v-if="id" :disabled="saving" @click="fillGraphMvp">填充 graphJson(MVP)</uni-button>
         <uni-button @click="back">返回</uni-button>
         <uni-button v-if="id" @click="goNodes">节点</uni-button>
         <uni-button v-if="id" @click="goLines">连线</uni-button>
@@ -39,6 +41,7 @@ import { ensureSystemContext } from '@/utils/guard'
 const id = ref<number>(0)
 const tempId = ref<number>(0)
 const saving = ref(false)
+const publishing = ref(false)
 const error = ref<string | null>(null)
 
 const pubOptions = [
@@ -102,6 +105,24 @@ function normalizeJson(s: string): string | null {
   }
 }
 
+function fillGraphMvp() {
+  const t = (form.graphJson || '').trim()
+  if (t) {
+    uni.showToast({ title: 'graphJson 已有内容', icon: 'none' })
+    return
+  }
+  const mvp = {
+    nodes: [
+      { id: 'approve-1', name: '审批', type: 'approve' }
+    ],
+    edges: []
+  }
+  form.graphJson = JSON.stringify(mvp, null, 2)
+  if (!(form.formJson || '').trim()) {
+    form.formJson = JSON.stringify({ fields: [] }, null, 2)
+  }
+}
+
 async function save() {
   error.value = null
   if (!tempId.value) {
@@ -145,6 +166,21 @@ async function save() {
     error.value = e?.message ?? String(e)
   } finally {
     saving.value = false
+  }
+}
+
+async function publish() {
+  if (!id.value) return
+  error.value = null
+  publishing.value = true
+  try {
+    await httpPost(`/v1/system/flow/temp-vers/${id.value}/publish`)
+    uni.showToast({ title: '已发布', icon: 'success' })
+    await loadDetail()
+  } catch (e: any) {
+    error.value = e?.message ?? String(e)
+  } finally {
+    publishing.value = false
   }
 }
 

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
@@ -185,6 +186,72 @@ public class SystemFlowTempVerController {
         }
         flowTempVerService.deleteByIds(ids);
         return ApiResult.ok();
+    }
+
+    @Operation(summary = "发布版本（publishStatus=2，并写回 temp.latestVerNo）")
+    @PostMapping("/{id}/publish")
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResult<FlowTempVer> publish(@PathVariable("id") Long id) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        long systemId = AuthContextHolder.getSystemIdOrDefault();
+        if (systemId == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        FlowTempVer v = flowTempVerService.getById(id);
+        if (v == null) {
+            throw new BusinessException(404, "版本不存在");
+        }
+        if (!Objects.equals(v.getSystemId(), systemId) || !Objects.equals(v.getTenantId(), tenantId)) {
+            throw new BusinessException(403, "无权操作该版本");
+        }
+        if (v.getGraphJson() == null || v.getGraphJson().isBlank()) {
+            throw new BusinessException(400, "发布前必须填写 graphJson");
+        }
+        FlowTemp t = flowTempService.getById(v.getTempId());
+        if (t == null) {
+            throw new BusinessException(404, "模板不存在");
+        }
+        if (!Objects.equals(t.getSystemId(), systemId) || !Objects.equals(t.getTenantId(), tenantId)) {
+            throw new BusinessException(403, "无权操作该模板");
+        }
+        if (v.getVerNo() == null || v.getVerNo() <= 0) {
+            // 自动分配 verNo：当前 temp 下最大 verNo + 1
+            Integer max = flowTempVerService.lambdaQuery()
+                    .eq(FlowTempVer::getSystemId, systemId)
+                    .eq(FlowTempVer::getTenantId, tenantId)
+                    .eq(FlowTempVer::getTempId, v.getTempId())
+                    .select(FlowTempVer::getVerNo)
+                    .orderByDesc(FlowTempVer::getVerNo)
+                    .last("limit 1")
+                    .oneOpt()
+                    .map(FlowTempVer::getVerNo)
+                    .orElse(0);
+            v.setVerNo((max == null ? 0 : max) + 1);
+        }
+
+        // 旧发布版本设为废弃（同 tempId）
+        flowTempVerService.lambdaUpdate()
+                .eq(FlowTempVer::getSystemId, systemId)
+                .eq(FlowTempVer::getTenantId, tenantId)
+                .eq(FlowTempVer::getTempId, v.getTempId())
+                .eq(FlowTempVer::getPublishStatus, 2)
+                .ne(FlowTempVer::getId, v.getId())
+                .set(FlowTempVer::getPublishStatus, 3)
+                .update();
+
+        v.setPublishStatus(2);
+        v.setUpdateUserId(platId);
+        flowTempVerService.updateById(v);
+
+        t.setLatestVerNo(v.getVerNo());
+        t.setUpdateUserId(platId);
+        flowTempService.updateById(t);
+
+        return ApiResult.ok(v);
     }
 }
 
