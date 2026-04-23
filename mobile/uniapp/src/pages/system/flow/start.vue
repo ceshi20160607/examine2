@@ -22,6 +22,7 @@
       <view style="display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button type="primary" :disabled="starting" @click="start">发起</uni-button>
         <uni-button @click="goTemps">选择模板</uni-button>
+        <uni-button @click="goTempManage">模板管理</uni-button>
         <uni-button @click="goByBiz">按 biz 查询</uni-button>
       </view>
 
@@ -113,6 +114,10 @@ async function start() {
 
 function goTemps() {
   uni.navigateTo({ url: '/pages/system/flow/temps' })
+}
+
+function goTempManage() {
+  uni.navigateTo({ url: '/pages/system/flow/temp_list' })
 }
 
 onMounted(() => {

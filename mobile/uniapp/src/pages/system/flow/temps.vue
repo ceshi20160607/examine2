@@ -15,9 +15,9 @@
           v-for="t in rows"
           :key="String(t.id)"
           :title="t.tempName || t.tempCode || ('Temp#' + t.id)"
-          :note="`code=${t.tempCode || ''} ver=${t.latestVerNo ?? ''}`"
+          :note="noteText(t)"
           clickable
-          @click="goStart(t)"
+          @click="onClick(t)"
         />
       </uni-list>
       <view v-else style="color:#666">暂无模板</view>
@@ -46,13 +46,35 @@ const rows = ref<FlowTemp[]>([])
 
 const hasNext = computed(() => page.value * size.value < total.value)
 
+function isStartable(t: FlowTemp): boolean {
+  const st = Number(t.status || 0)
+  const ver = Number(t.latestVerNo || 0)
+  return st === 1 && ver > 0 && !!String(t.tempCode || '').trim()
+}
+
+function noteText(t: FlowTemp): string {
+  const code = String(t.tempCode || '')
+  const ver = t.latestVerNo ?? ''
+  const st = Number(t.status || 0)
+  const stText = st === 1 ? '启用' : st === 2 ? '停用' : `status=${st || ''}`
+  const can = isStartable(t) ? '可发起' : '不可发起'
+  return `code=${code} ver=${ver} ${stText} ${can}`
+}
+
 async function load() {
   loading.value = true
   try {
     const r = await httpGet<any>(`/v1/system/flow/temps/page?page=${page.value}&size=${size.value}`)
     const d = r.data || {}
     total.value = Number(d.total || 0)
-    rows.value = (d.records || []) as FlowTemp[]
+    const list = (d.records || []) as FlowTemp[]
+    list.sort((a, b) => {
+      const sa = isStartable(a) ? 0 : 1
+      const sb = isStartable(b) ? 0 : 1
+      if (sa !== sb) return sa - sb
+      return String(a.tempName || a.tempCode || '').localeCompare(String(b.tempName || b.tempCode || ''), 'zh-Hans-CN')
+    })
+    rows.value = list
   } finally {
     loading.value = false
   }
@@ -79,6 +101,30 @@ function goStart(t: FlowTemp) {
   const code = encodeURIComponent(String(t.tempCode || ''))
   const name = encodeURIComponent(String(t.tempName || ''))
   uni.navigateTo({ url: `/pages/system/flow/start?defCode=${code}&tempName=${name}` })
+}
+
+function goTempManage() {
+  uni.navigateTo({ url: '/pages/system/flow/temp_list' })
+}
+
+function goTempEdit(id: FlowTemp['id']) {
+  uni.navigateTo({ url: `/pages/system/flow/temp_edit?id=${encodeURIComponent(String(id))}` })
+}
+
+function onClick(t: FlowTemp) {
+  const ok = isStartable(t)
+  const name = t.tempName || t.tempCode || ''
+  if (ok) {
+    goStart(t)
+    return
+  }
+  uni.showActionSheet({
+    itemList: ['去模板管理', `编辑模板：${name || t.id}`],
+    success: (res) => {
+      if (res.tapIndex === 0) goTempManage()
+      if (res.tapIndex === 1) goTempEdit(t.id)
+    }
+  })
 }
 
 onMounted(() => {
