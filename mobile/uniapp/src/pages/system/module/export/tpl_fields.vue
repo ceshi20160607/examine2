@@ -4,10 +4,12 @@
       <view style="display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-easyinput v-model="form.fieldId" placeholder="fieldId" />
         <uni-easyinput v-model="form.colTitle" placeholder="colTitle" />
+        <uni-easyinput v-model="form.sortNo" placeholder="sortNo(默认 0)" />
         <uni-button type="primary" :disabled="saving" @click="upsert">新增字段</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
         <uni-button :disabled="!modelId" @click="goFields">查看模型字段</uni-button>
       </view>
+      <view style="margin-top: 8px; color:#666">formatJson：暂不做 UI 编辑，可后续增强。</view>
     </uni-card>
 
     <uni-card title="字段列表" style="margin-top: 12px">
@@ -16,7 +18,7 @@
           v-for="f in rows"
           :key="String(f.id)"
           :title="f.colTitle || ('Field#' + f.id)"
-          :note="`fieldId=${f.fieldId || ''}`"
+          :note="`fieldId=${f.fieldId || ''} sortNo=${f.sortNo ?? ''}`"
           clickable
           @click="openFieldActions(f)"
         />
@@ -38,6 +40,7 @@ type FieldRow = {
   fieldId?: number | string
   colTitle?: string
   sortNo?: number
+  formatJson?: string
 }
 
 const tplId = ref<number>(0)
@@ -48,7 +51,8 @@ const loading = ref(false)
 const saving = ref(false)
 const rows = ref<FieldRow[]>([])
 
-const form = reactive<{ fieldId: string; colTitle: string }>({ fieldId: '', colTitle: '' })
+const editingId = ref<string | number | null>(null)
+const form = reactive<{ fieldId: string; colTitle: string; sortNo: string }>({ fieldId: '', colTitle: '', sortNo: '0' })
 
 onLoad((opts) => {
   tplId.value = Number((opts as any)?.tplId || 0) || 0
@@ -78,18 +82,25 @@ async function upsert() {
     uni.showToast({ title: '请输入 colTitle', icon: 'none' })
     return
   }
+  const sortNo = Number((form.sortNo || '0').trim() || '0')
+  if (Number.isNaN(sortNo)) {
+    uni.showToast({ title: 'sortNo 非法', icon: 'none' })
+    return
+  }
   saving.value = true
   try {
     await httpPost('/v1/system/module/exports/fields/upsert', {
-      id: null,
+      id: editingId.value ?? null,
       tplId: tplId.value,
       fieldId,
       colTitle: form.colTitle.trim(),
-      sortNo: 0,
+      sortNo,
       formatJson: null
     })
+    editingId.value = null
     form.fieldId = ''
     form.colTitle = ''
+    form.sortNo = '0'
     await load()
   } finally {
     saving.value = false
@@ -107,10 +118,18 @@ function goFields() {
 function openFieldActions(f: FieldRow) {
   if (!f?.id) return
   uni.showActionSheet({
-    itemList: ['删除字段配置'],
+    itemList: ['编辑', '删除字段配置'],
     success: (res) => {
-      if (res.tapIndex !== 0) return
-      deleteField(f.id)
+      if (res.tapIndex === 0) {
+        editingId.value = f.id
+        form.fieldId = String(f.fieldId || '')
+        form.colTitle = String(f.colTitle || '')
+        form.sortNo = String(f.sortNo ?? 0)
+        return
+      }
+      if (res.tapIndex === 1) {
+        deleteField(f.id)
+      }
     }
   })
 }

@@ -17,8 +17,8 @@
         <uni-list-item
           v-for="j in rows"
           :key="String(j.id)"
-          :title="`job#${j.id} status=${j.status}`"
-          :note="`tplId=${j.tplId || ''} modelId=${j.modelId || ''} fileId=${j.resultFileId || ''}`"
+          :title="`job#${j.id} ${statusText(j.status)}`"
+          :note="`${j.errorMsg ? ('err=' + j.errorMsg + ' | ') : ''}tplId=${j.tplId || ''} modelId=${j.modelId || ''} fileId=${j.resultFileId || ''}`"
           clickable
           @click="goDetail(j.id)"
         />
@@ -51,6 +51,14 @@ const rows = ref<JobRow[]>([])
 const filter = reactive<{ tplId: string; modelId: string; status: string }>({ tplId: '', modelId: '', status: '' })
 
 const hasNext = computed(() => page.value * size.value < total.value)
+
+function statusText(st: any): string {
+  if (st === 0) return 'pending'
+  if (st === 1) return 'running'
+  if (st === 2) return 'success'
+  if (st === 3) return 'failed'
+  return String(st ?? '')
+}
 
 onLoad((opts) => {
   const mid = String((opts as any)?.modelId || '').trim()
