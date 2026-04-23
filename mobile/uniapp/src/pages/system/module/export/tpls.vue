@@ -125,7 +125,7 @@ function goFields(t: ExportTpl) {
 function openTplActions(t: ExportTpl) {
   if (!t?.id) return
   uni.showActionSheet({
-    itemList: ['配置导出字段', '创建异步导出任务', '仅查看 job 列表'],
+    itemList: ['配置导出字段', '创建异步导出任务', '查看导出任务', '删除模板'],
     success: (res) => {
       if (res.tapIndex === 0) {
         goFields(t)
@@ -137,6 +137,27 @@ function openTplActions(t: ExportTpl) {
       }
       if (res.tapIndex === 2) {
         goJobs()
+        return
+      }
+      if (res.tapIndex === 3) {
+        deleteTpl(t.id)
+      }
+    }
+  })
+}
+
+async function deleteTpl(tplId: string | number) {
+  uni.showModal({
+    title: '确认删除？',
+    content: '会级联删除模板字段配置',
+    success: async (m) => {
+      if (!m.confirm) return
+      try {
+        await httpPost('/v1/system/module/exports/tpls/delete', { ids: [tplId] })
+        uni.showToast({ title: '已删除', icon: 'success' })
+        await load()
+      } catch {
+        // http.ts 会 toast
       }
     }
   })

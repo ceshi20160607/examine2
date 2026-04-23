@@ -17,6 +17,8 @@
           :key="String(f.id)"
           :title="f.colTitle || ('Field#' + f.id)"
           :note="`fieldId=${f.fieldId || ''}`"
+          clickable
+          @click="openFieldActions(f)"
         />
       </uni-list>
       <view v-else style="color:#666">暂无字段</view>
@@ -100,6 +102,34 @@ function goFields() {
     return
   }
   uni.navigateTo({ url: `/pages/system/module/meta/fields?appId=${appId.value}&modelId=${modelId.value}` })
+}
+
+function openFieldActions(f: FieldRow) {
+  if (!f?.id) return
+  uni.showActionSheet({
+    itemList: ['删除字段配置'],
+    success: (res) => {
+      if (res.tapIndex !== 0) return
+      deleteField(f.id)
+    }
+  })
+}
+
+function deleteField(id: string | number) {
+  uni.showModal({
+    title: '确认删除？',
+    content: '仅删除导出字段映射，不会删除真实字段元数据',
+    success: async (m) => {
+      if (!m.confirm) return
+      try {
+        await httpPost('/v1/system/module/exports/fields/delete', { ids: [id] })
+        uni.showToast({ title: '已删除', icon: 'success' })
+        await load()
+      } catch {
+        // http.ts 会 toast
+      }
+    }
+  })
 }
 
 onMounted(() => {
