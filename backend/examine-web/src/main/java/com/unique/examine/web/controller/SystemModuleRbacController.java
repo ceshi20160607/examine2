@@ -5,6 +5,7 @@ import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.module.entity.po.ModuleMember;
 import com.unique.examine.module.entity.po.ModuleMenu;
 import com.unique.examine.module.entity.po.ModuleRole;
+import com.unique.examine.module.entity.po.ModuleRoleMenuPerm;
 import com.unique.examine.module.manage.SystemModuleRbacService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +39,20 @@ public class SystemModuleRbacController {
     public ApiResult<List<ModuleMenu>> listMenus(@PathVariable("appId") Long appId) {
         Long platId = AuthContextHolder.getPlatId();
         return ApiResult.ok(systemModuleRbacService.listMenus(appId, platId));
+    }
+
+    @Operation(summary = "成员列表（按 appId）")
+    @GetMapping("/apps/{appId}/members")
+    public ApiResult<List<ModuleMember>> listMembers(@PathVariable("appId") Long appId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listMembers(appId, platId));
+    }
+
+    @Operation(summary = "角色菜单权限明细（按 roleId）")
+    @GetMapping("/roles/{roleId}/menu-perms")
+    public ApiResult<List<ModuleRoleMenuPerm>> listRoleMenuPerms(@PathVariable("roleId") Long roleId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listRoleMenuPerms(roleId, platId));
     }
 
     public record UpsertRoleBody(Long id, String roleCode, String roleName, Integer status) {}

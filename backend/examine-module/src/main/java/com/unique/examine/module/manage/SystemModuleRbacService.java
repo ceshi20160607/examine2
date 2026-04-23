@@ -84,6 +84,45 @@ public class SystemModuleRbacService {
                 .list();
     }
 
+    public List<ModuleMember> listMembers(Long appId, Long operatorPlatId) {
+        requireOperator(operatorPlatId);
+        long systemId = requireSystem();
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (appId == null) {
+            throw new BusinessException(400, "appId 不能为空");
+        }
+        return moduleMemberService.lambdaQuery()
+                .eq(ModuleMember::getSystemId, systemId)
+                .eq(ModuleMember::getTenantId, tenantId)
+                .eq(ModuleMember::getAppId, appId)
+                .orderByAsc(ModuleMember::getPlatId)
+                .orderByAsc(ModuleMember::getId)
+                .list();
+    }
+
+    public List<ModuleRoleMenuPerm> listRoleMenuPerms(Long roleId, Long operatorPlatId) {
+        requireOperator(operatorPlatId);
+        long systemId = requireSystem();
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (roleId == null) {
+            throw new BusinessException(400, "roleId 不能为空");
+        }
+        ModuleRole role = moduleRoleService.getById(roleId);
+        if (role == null) {
+            throw new BusinessException(404, "role 不存在");
+        }
+        if (!Objects.equals(role.getSystemId(), systemId) || !Objects.equals(role.getTenantId(), tenantId)) {
+            throw new BusinessException(403, "无权访问该角色");
+        }
+        return moduleRoleMenuPermService.lambdaQuery()
+                .eq(ModuleRoleMenuPerm::getSystemId, systemId)
+                .eq(ModuleRoleMenuPerm::getTenantId, tenantId)
+                .eq(ModuleRoleMenuPerm::getRoleId, roleId)
+                .orderByAsc(ModuleRoleMenuPerm::getMenuId)
+                .orderByAsc(ModuleRoleMenuPerm::getId)
+                .list();
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public ModuleRole upsertRole(Long appId, Long operatorPlatId, UpsertRoleCmd body) {
         requireOperator(operatorPlatId);
