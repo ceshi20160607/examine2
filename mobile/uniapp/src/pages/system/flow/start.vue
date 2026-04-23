@@ -2,6 +2,14 @@
   <view style="padding: 16px">
     <uni-card title="发起流程">
       <uni-forms labelPosition="top">
+        <uni-forms-item label="模板（推荐）">
+          <uni-data-select
+            v-model="selectedTempId"
+            :localdata="tempOptions"
+            placeholder="请选择可发起模板"
+            @change="onTempChanged"
+          />
+        </uni-forms-item>
         <uni-forms-item label="defCode（FlowTemp.tempCode）">
           <uni-easyinput v-model="form.defCode" placeholder="例如 leave" />
         </uni-forms-item>
@@ -20,12 +28,13 @@
       </uni-forms>
 
       <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-button type="primary" :disabled="starting" @click="start">发起</uni-button>
+        <uni-button type="primary" :disabled="starting || !canStart" @click="start">发起</uni-button>
         <uni-button @click="goTemps">选择模板</uni-button>
         <uni-button @click="goTempManage">模板管理</uni-button>
         <uni-button @click="goByBiz">按 biz 查询</uni-button>
       </view>
 
+      <view v-if="hint" style="margin-top: 12px; color:#666">{{ hint }}</view>
       <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
       <view v-if="resultText" style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ resultText }}</view>
     </uni-card>
@@ -33,14 +42,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpPost } from '@/api/http'
+import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 
 const starting = ref(false)
 const error = ref<string | null>(null)
 const resultText = ref<string>('')
+const hint = ref<string>('')
 
 const form = reactive({
   defCode: '',
@@ -51,6 +61,73 @@ const form = reactive({
 
 const tempName = ref<string>('')
 const varsText = ref('{}')
+
+type FlowTemp = {
+  id: number | string
+  tempCode?: string
+  tempName?: string
+  latestVerNo?: number
+  status?: number
+}
+
+const temps = ref<FlowTemp[]>([])
+const selectedTempId = ref<string>('')
+const tempOptions = ref<{ value: string; text: string }[]>([])
+
+function isStartable(t: FlowTemp): boolean {
+  const st = Number(t.status || 0)
+  const ver = Number(t.latestVerNo || 0)
+  const code = String(t.tempCode || '').trim()
+  return st === 1 && ver > 0 && !!code
+}
+
+const canStart = computed(() => {
+  const codeOk = !!form.defCode.trim()
+  if (!codeOk) return false
+  if (!selectedTempId.value) return true // 手填 defCode 的情况
+  const t = temps.value.find((x) => String(x.id) === String(selectedTempId.value))
+  if (!t) return true
+  return isStartable(t)
+})
+
+function rebuildOptions() {
+  const list = [...temps.value]
+  list.sort((a, b) => {
+    const sa = isStartable(a) ? 0 : 1
+    const sb = isStartable(b) ? 0 : 1
+    if (sa !== sb) return sa - sb
+    return String(a.tempName || a.tempCode || '').localeCompare(String(b.tempName || b.tempCode || ''), 'zh-Hans-CN')
+  })
+  tempOptions.value = [{ value: '', text: '（不选择，手填 defCode）' }].concat(
+    list.map((t) => {
+      const name = t.tempName || t.tempCode || `Temp#${t.id}`
+      const tag = isStartable(t) ? '' : '（不可发起）'
+      return { value: String(t.id), text: `${name}${tag}` }
+    })
+  )
+}
+
+async function loadTemps() {
+  const r = await httpGet<any>('/v1/system/flow/temps/page?page=1&size=200')
+  const d = r.data || {}
+  temps.value = (d.records || []) as FlowTemp[]
+  rebuildOptions()
+}
+
+function onTempChanged() {
+  hint.value = ''
+  const id = selectedTempId.value
+  if (!id) return
+  const t = temps.value.find((x) => String(x.id) === String(id))
+  if (!t) return
+  form.defCode = String(t.tempCode || '').trim()
+  tempName.value = String(t.tempName || '').trim()
+  if (!isStartable(t)) {
+    const st = Number(t.status || 0)
+    const ver = Number(t.latestVerNo || 0)
+    hint.value = `该模板当前不可发起（status=${st} latestVerNo=${ver}）。请去“模板管理”发布版本后再发起。`
+  }
+}
 
 onLoad((opts) => {
   const dc = decodeURIComponent(String((opts as any)?.defCode || ''))
@@ -121,6 +198,7 @@ function goTempManage() {
 }
 
 onMounted(() => {
-  ensureSystemContext()
+  if (!ensureSystemContext()) return
+  loadTemps()
 })
 </script>
