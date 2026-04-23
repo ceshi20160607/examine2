@@ -1,9 +1,14 @@
 <template>
   <view style="padding: 16px">
     <uni-card :title="`Records（modelId=${modelId}）`">
-      <view style="display:flex; gap: 8px;">
+      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button type="primary" :disabled="!appId || !modelId" @click="goCreate">新建</uni-button>
         <uni-button :disabled="loading" @click="query">刷新</uni-button>
+        <uni-easyinput v-model="keyword" placeholder="keyword(可选)" style="flex: 1; min-width: 160px" />
+        <uni-button :disabled="loading" @click="reload">搜索</uni-button>
+      </view>
+      <view style="margin-top: 8px; color:#666" v-if="searchFieldCode">
+        搜索字段：{{ searchFieldCode }}
       </view>
     </uni-card>
 
@@ -37,6 +42,8 @@ const modelId = ref<number>(0)
 const loading = ref(false)
 const rows = ref<Row[]>([])
 const summaries = ref<Record<number, Summary>>({})
+const keyword = ref('')
+const searchFieldCode = ref<string>('')
 
 onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
@@ -54,12 +61,18 @@ async function query() {
   if (!modelId.value) return
   loading.value = true
   try {
+    const filters: any[] = []
+    const kw = keyword.value.trim()
+    if (kw && searchFieldCode.value) {
+      filters.push({ field: searchFieldCode.value, op: 'like', value: kw })
+    }
     // 使用后端 DSL 查询（最小：只按 modelId 过滤，limit 20）
     const r = await httpPost<any>('/v1/system/records/query', {
       appId: appId.value,
       modelId: modelId.value,
       page: 1,
-      limit: 20
+      limit: 20,
+      filters
     })
     rows.value = (r.data?.list || []).map((x: any) => ({ id: x.id }))
     summaries.value = {}
@@ -68,6 +81,10 @@ async function query() {
   } finally {
     loading.value = false
   }
+}
+
+async function reload() {
+  await query()
 }
 
 async function hydrateSummaries(ids: number[]) {
@@ -112,8 +129,21 @@ function goDetail(recordId: number) {
   uni.navigateTo({ url: `/pages/system/records/detail?recordId=${recordId}` })
 }
 
+async function loadFieldsForSearch() {
+  if (!modelId.value) return
+  try {
+    const r = await httpGet<any>(`/v1/system/module/meta/models/${modelId.value}/fields`)
+    const list = (r.data || []) as Array<{ fieldCode?: string; fieldType?: string; dictCode?: string; hiddenFlag?: number }>
+    const cand = list.find((f) => f && f.hiddenFlag !== 1 && f.fieldCode && !f.dictCode)
+    searchFieldCode.value = cand?.fieldCode ? String(cand.fieldCode) : ''
+  } catch {
+    searchFieldCode.value = ''
+  }
+}
+
 onMounted(() => {
   if (!ensureSystemContext()) return
+  loadFieldsForSearch()
   query()
 })
 </script>

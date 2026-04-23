@@ -4,6 +4,7 @@
       <view style="display:flex; gap: 8px;">
         <uni-button type="primary" :disabled="!recordId" @click="goEdit">编辑</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
+        <uni-button type="warn" :disabled="!recordId || loading" @click="doDelete">删除</uni-button>
         <uni-button :disabled="!detail" @click="copyJson">复制 JSON</uni-button>
         <uni-button @click="toggleRaw">{{ showRaw ? '结构化' : '原始 JSON' }}</uni-button>
       </view>
@@ -31,7 +32,7 @@
 <script setup lang="ts">
 import { onLoad } from '@dcloudio/uni-app'
 import { computed, onMounted, ref } from 'vue'
-import { httpGet } from '@/api/http'
+import { httpGet, httpRequest } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 
 const recordId = ref<number>(0)
@@ -102,6 +103,24 @@ function stringifyValue(v: any): string {
     }
   }
   return String(v)
+}
+
+function doDelete() {
+  if (!recordId.value) return
+  uni.showModal({
+    title: '确认删除？',
+    content: `将删除记录 #${recordId.value}`,
+    success: async (m) => {
+      if (!m.confirm) return
+      try {
+        await httpRequest('DELETE', `/v1/system/records/${recordId.value}`)
+        uni.showToast({ title: '已删除', icon: 'success' })
+        uni.navigateBack()
+      } catch (e: any) {
+        error.value = e?.message ?? String(e)
+      }
+    }
+  })
 }
 
 onMounted(() => {
