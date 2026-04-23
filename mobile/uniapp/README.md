@@ -37,6 +37,7 @@ corepack pnpm -C mobile/uniapp dev:h5
 - **低代码（module）**：
   - Apps/Models/Fields 列表 + 创建（`/v1/system/module/meta/*`）
   - Records：列表、详情、创建、更新（`/v1/system/records*`）
+  - 导出任务：列表/详情（`GET /v1/system/module/export-jobs/page`、`GET /v1/system/module/export-jobs/{jobId}`）
 - **流程（flow）**：Inbox（待办/抄送）+ Task 操作（同意/拒绝/领取/撤回/终止等）
   - 模板分页：`GET /v1/system/flow/temps/page`
   - 发起流程：`POST /v1/system/flow/instances/start`
