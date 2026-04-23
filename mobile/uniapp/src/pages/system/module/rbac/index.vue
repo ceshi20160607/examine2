@@ -24,6 +24,24 @@
       <view style="margin-top: 8px; color:#666">说明：memberPlatId 为平台账号 platId（数字）。</view>
     </uni-card>
 
+    <uni-card title="成员列表" style="margin-top: 12px">
+      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+        <uni-button :disabled="loading" @click="loadMembers">刷新成员</uni-button>
+      </view>
+      <uni-list v-if="members.length">
+        <uni-list-item
+          v-for="m in members"
+          :key="m.id"
+          :title="`platId=${m.platId}`"
+          :note="`roleId=${m.roleId || ''} status=${m.status || ''}`"
+          clickable
+          @click="quickFillMember(m)"
+        />
+      </uni-list>
+      <view v-else style="color:#666">暂无成员</view>
+      <view style="margin-top: 8px; color:#666">点击成员可自动填充到“成员分配角色”。</view>
+    </uni-card>
+
     <uni-card title="角色列表" style="margin-top: 12px">
       <uni-list v-if="roles.length">
         <uni-list-item
@@ -71,12 +89,14 @@ import { ensureSystemContext } from '@/utils/guard'
 
 type RoleRow = { id: number; roleCode?: string; roleName?: string; status?: number }
 type MenuRow = { id: number; parentId?: number; menuName?: string; permKey?: string; apiPattern?: string; pageId?: number }
+type MemberRow = { id: number; platId?: number; roleId?: number; status?: number }
 
 const appId = ref<number>(0)
 const loading = ref(false)
 
 const roles = ref<RoleRow[]>([])
 const menus = ref<MenuRow[]>([])
+const members = ref<MemberRow[]>([])
 
 const savingRole = ref(false)
 const roleForm = reactive<{ roleCode: string; roleName: string }>({ roleCode: '', roleName: '' })
@@ -117,6 +137,23 @@ async function loadMenus() {
   } finally {
     loading.value = false
   }
+}
+
+async function loadMembers() {
+  if (!appId.value) return
+  loading.value = true
+  try {
+    const r = await httpGet<MemberRow[]>(`/v1/system/module/rbac/apps/${appId.value}/members`)
+    members.value = r.data || []
+  } finally {
+    loading.value = false
+  }
+}
+
+function quickFillMember(m: MemberRow) {
+  if (!m?.platId) return
+  memberForm.memberPlatId = String(m.platId)
+  if (m.roleId) memberForm.roleId = String(m.roleId)
 }
 
 async function upsertRole() {
@@ -219,5 +256,6 @@ onMounted(() => {
   if (!ensureSystemContext()) return
   loadRoles()
   loadMenus()
+  loadMembers()
 })
 </script>

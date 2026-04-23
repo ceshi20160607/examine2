@@ -73,9 +73,29 @@ async function loadMenus() {
   }
 }
 
+async function loadCurrentPerms() {
+  if (!roleId.value) return
+  const r = await httpGet<any[]>(`/v1/system/module/rbac/roles/${roleId.value}/menu-perms`)
+  const perms = (r.data || []) as Array<{ menuId?: number; permLevel?: number }>
+  const next: Record<number, boolean> = {}
+  let anyLevel0 = false
+  let anyLevel1 = false
+  for (const p of perms) {
+    const mid = Number(p?.menuId || 0)
+    if (!mid) continue
+    if (p?.permLevel === 0) anyLevel0 = true
+    if (p?.permLevel === 1 || p?.permLevel == null) anyLevel1 = true
+    // UI 只回显允许列表（permLevel=1）
+    if (p?.permLevel === 1) next[mid] = true
+  }
+  selected.value = next
+  // 默认：如果历史里有 0 级别，仍用 1（UI 当前只支持覆盖写一个级别）
+  if (anyLevel1 && !anyLevel0) permLevelText.value = '1'
+}
+
 async function reload() {
   selected.value = {}
-  await loadMenus()
+  await Promise.all([loadMenus(), loadCurrentPerms()])
 }
 
 async function save() {
@@ -108,6 +128,6 @@ onMounted(() => {
     uni.showToast({ title: '缺少 appId/roleId', icon: 'none' })
     return
   }
-  loadMenus()
+  reload()
 })
 </script>
