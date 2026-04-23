@@ -40,6 +40,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import { getBaseURL } from '@/config/env'
 
 type ExportTpl = {
   id: number | string
@@ -125,25 +126,59 @@ function goFields(t: ExportTpl) {
 function openTplActions(t: ExportTpl) {
   if (!t?.id) return
   uni.showActionSheet({
-    itemList: ['配置导出字段', '创建异步导出任务', '查看导出任务', '删除模板'],
+    itemList: ['配置导出字段', '同步导出 CSV（下载）', '创建异步导出任务', '查看导出任务', '删除模板'],
     success: (res) => {
       if (res.tapIndex === 0) {
         goFields(t)
         return
       }
       if (res.tapIndex === 1) {
-        createJob(t.id)
+        exportCsv(t.id)
         return
       }
       if (res.tapIndex === 2) {
-        goJobs()
+        createJob(t.id)
         return
       }
       if (res.tapIndex === 3) {
+        goJobs()
+        return
+      }
+      if (res.tapIndex === 4) {
         deleteTpl(t.id)
       }
     }
   })
+}
+
+async function exportCsv(tplId: string | number) {
+  if (!ensureSystemContext()) return
+  const token = uni.getStorageSync('token')
+  if (typeof token !== 'string' || !token.trim()) return
+  const base = getBaseURL().replace(/\/$/, '')
+  const url = `${base}/v1/system/module/exports/tpls/${tplId}/export/csv?limit=200`
+  uni.showLoading({ title: '导出中...' })
+  try {
+    const dl: any = await new Promise((resolve, reject) => {
+      uni.downloadFile({
+        url,
+        header: { Authorization: `Bearer ${token.trim()}` },
+        success: resolve,
+        fail: reject
+      })
+    })
+    const tempFilePath = dl?.tempFilePath
+    if (!tempFilePath) throw new Error('导出失败')
+    uni.saveFile({
+      tempFilePath,
+      success: () => uni.showToast({ title: '已保存', icon: 'success' }),
+      fail: () => uni.showToast({ title: '已下载（临时文件）', icon: 'none' })
+    })
+  } catch (e: any) {
+    uni.showToast({ title: e?.message ?? '导出失败', icon: 'none' })
+  } finally {
+    uni.hideLoading()
+  }
 }
 
 async function deleteTpl(tplId: string | number) {
