@@ -109,6 +109,18 @@
 			}
 		},
 		{
+			"path": "pages/system/module/export/jobs",
+			"style": {
+				"navigationBarTitleText": "Export Jobs"
+			}
+		},
+		{
+			"path": "pages/system/module/export/job_detail",
+			"style": {
+				"navigationBarTitleText": "Export Job Detail"
+			}
+		},
+		{
 			"path": "pages/system/records/list",
 			"style": {
 				"navigationBarTitleText": "Records"

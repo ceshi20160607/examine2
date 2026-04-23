@@ -91,7 +91,7 @@ function goFields(m: ModuleModel) {
 function openActions(m: ModuleModel) {
   if (!m?.id) return
   uni.showActionSheet({
-    itemList: ['Fields', 'List Views'],
+    itemList: ['Fields', 'List Views', 'Exports'],
     success: (res) => {
       if (res.tapIndex === 0) {
         goFields(m)
@@ -99,6 +99,10 @@ function openActions(m: ModuleModel) {
       }
       if (res.tapIndex === 1) {
         uni.navigateTo({ url: `/pages/system/module/listviews/views?appId=${appId.value}&modelId=${m.id}` })
+        return
+      }
+      if (res.tapIndex === 2) {
+        uni.navigateTo({ url: `/pages/system/module/export/jobs?modelId=${m.id}` })
       }
     }
   })
