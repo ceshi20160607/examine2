@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -100,6 +101,17 @@ public class SystemModuleExportController {
                           HttpServletResponse response) {
         Long platId = AuthContextHolder.getPlatId();
         systemModuleExportService.exportCsv(tplId, platId, query, response);
+    }
+
+    @Operation(summary = "按导出模板导出 CSV（GET；便于移动端直接下载；可选 limit）")
+    @GetMapping("/tpls/{tplId}/export/csv")
+    public void exportCsvGet(@PathVariable("tplId") Long tplId,
+                             @RequestParam(value = "limit", required = false) Long limit,
+                             HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        ModuleRecordDslQuery q = new ModuleRecordDslQuery();
+        q.setLimit(limit == null ? 200L : limit);
+        systemModuleExportService.exportCsv(tplId, platId, q, response);
     }
 }
 
