@@ -88,17 +88,25 @@ function editTemp(id: any) {
 function openActions(t: FlowTemp) {
   if (!t?.id) return
   uni.showActionSheet({
-    itemList: ['编辑', '删除'],
+    itemList: ['版本管理', '编辑', '删除'],
     success: (res) => {
       if (res.tapIndex === 0) {
-        editTemp(t.id)
+        goVers(t.id)
         return
       }
       if (res.tapIndex === 1) {
+        editTemp(t.id)
+        return
+      }
+      if (res.tapIndex === 2) {
         deleteTemp(t.id)
       }
     }
   })
+}
+
+function goVers(id: any) {
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_list?tempId=${encodeURIComponent(String(id))}` })
 }
 
 function deleteTemp(id: any) {

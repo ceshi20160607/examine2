@@ -94,17 +94,50 @@ function edit(id: any) {
 function openActions(v: TempVer) {
   if (!v?.id) return
   uni.showActionSheet({
-    itemList: ['编辑', '删除'],
+    itemList: ['编辑', '发布', '填充MVP并发布', '删除'],
     success: (res) => {
       if (res.tapIndex === 0) {
         edit(v.id)
         return
       }
-      if (res.tapIndex === 1) {
-        del(v.id)
-      }
+      if (res.tapIndex === 1) return publish(v.id)
+      if (res.tapIndex === 2) return fillMvpAndPublish(v.id)
+      if (res.tapIndex === 3) return del(v.id)
     }
   })
+}
+
+async function publish(id: any) {
+  await httpPost(`/v1/system/flow/temp-vers/${encodeURIComponent(String(id))}/publish`)
+  uni.showToast({ title: '已发布', icon: 'success' })
+  reload()
+}
+
+async function fillMvpAndPublish(id: any) {
+  // 先读详情（拿到 tempId/verNo 等），补 graphJson/formJson，再发布
+  const r = await httpGet<any>(`/v1/system/flow/temp-vers/${encodeURIComponent(String(id))}`)
+  const v = r.data || {}
+  const g = String(v.graphJson || '').trim()
+  const f = String(v.formJson || '').trim()
+  const hasG = !!g
+  const hasF = !!f
+  if (hasG) {
+    await publish(id)
+    return
+  }
+  const mvp = {
+    nodes: [{ id: 'approve-1', name: '审批', type: 'approve' }],
+    edges: []
+  }
+  await httpPost('/v1/system/flow/temp-vers/upsert', {
+    id,
+    tempId: v.tempId,
+    verNo: v.verNo ?? null,
+    publishStatus: v.publishStatus ?? 1,
+    graphJson: JSON.stringify(mvp, null, 2),
+    formJson: hasF ? f : JSON.stringify({ fields: [] }, null, 2)
+  })
+  await publish(id)
 }
 
 function del(id: any) {
