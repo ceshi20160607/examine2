@@ -49,6 +49,27 @@ corepack pnpm -C mobile/uniapp dev:h5
 - **上传（upload）**：上传文件 + 列表分页
 - **导航**：Tabbar（Workbench/Apps/Inbox/Me）
 
+## 上线前最小回归清单（建议按顺序）
+
+- **准备**
+  - 后端启动（Swagger/Knife4j 可访问）
+  - 手机端配置好 `src/config/env.ts` 指向后端
+- **认证/系统上下文**
+  - 登录成功，能进入系统列表
+  - 创建系统成功，并能“进入系统”（WorkBench 状态正常）
+- **低代码（module）主链路**
+  - 创建 App / Model / Field（至少：文本、数字、日期、字典单选/多选）
+  - 创建 Record、编辑 Record、详情能正确展示
+- **RBAC**
+  - 创建角色、创建菜单（含 `apiPattern` / `permKey`）
+  - 角色设置菜单权限、成员分配角色
+  - 使用“权限验证（按 URI）”确认 `requiredPermKey/allowed` 符合预期
+- **Flow**
+  - 模板管理：创建模板 → 一键发布 MVP（或手动版本→发布）
+  - 发起流程：选择模板 → 发起成功 → 打开任务 → 同意/拒绝 → 返回待办箱
+- **Upload**
+  - 上传文件成功，列表可见
+
 ## 下一步（继续完善）
 
 - **低代码**：字典、列表视图、RBAC（角色/菜单/权限）页面

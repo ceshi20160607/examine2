@@ -24,6 +24,14 @@
       <view style="margin-top: 8px; color:#666">说明：memberPlatId 为平台账号 platId（数字）。</view>
     </uni-card>
 
+    <uni-card title="权限验证（按 URI）" style="margin-top: 12px">
+      <view style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <uni-easyinput v-model="permPreviewUri" placeholder="/v1/system/records/page" style="flex:1" />
+        <uni-button type="primary" :disabled="previewingPerm" @click="previewPerm">验证</uni-button>
+      </view>
+      <view v-if="permPreviewText" style="margin-top: 8px; font-family: monospace; white-space: pre-wrap;">{{ permPreviewText }}</view>
+    </uni-card>
+
     <uni-card title="成员列表" style="margin-top: 12px">
       <view style="display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button :disabled="loading" @click="loadMembers">刷新成员</uni-button>
@@ -112,6 +120,10 @@ const menuForm = reactive<{ parentId: string; menuName: string; permKey: string;
   apiPattern: '',
   pageId: ''
 })
+
+const previewingPerm = ref(false)
+const permPreviewUri = ref('/v1/system/records/page')
+const permPreviewText = ref('')
 
 onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
@@ -238,6 +250,24 @@ async function upsertMenu() {
     await loadMenus()
   } finally {
     savingMenu.value = false
+  }
+}
+
+async function previewPerm() {
+  const uri = (permPreviewUri.value || '').trim()
+  if (!uri) {
+    uni.showToast({ title: '请输入 uri', icon: 'none' })
+    return
+  }
+  previewingPerm.value = true
+  permPreviewText.value = ''
+  try {
+    const r = await httpGet<any>(`/v1/system/auth/perm-preview?uri=${encodeURIComponent(uri)}`)
+    permPreviewText.value = JSON.stringify(r.data ?? null, null, 2)
+  } catch (e: any) {
+    permPreviewText.value = e?.message ?? String(e)
+  } finally {
+    previewingPerm.value = false
   }
 }
 
