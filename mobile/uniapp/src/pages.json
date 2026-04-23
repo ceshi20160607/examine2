@@ -133,6 +133,30 @@
 			}
 		},
 		{
+			"path": "pages/system/flow/temps",
+			"style": {
+				"navigationBarTitleText": "Flow Temps"
+			}
+		},
+		{
+			"path": "pages/system/flow/start",
+			"style": {
+				"navigationBarTitleText": "Flow Start"
+			}
+		},
+		{
+			"path": "pages/system/flow/instances",
+			"style": {
+				"navigationBarTitleText": "Flow Instances"
+			}
+		},
+		{
+			"path": "pages/system/flow/instance",
+			"style": {
+				"navigationBarTitleText": "Flow Instance"
+			}
+		},
+		{
 			"path": "pages/system/flow/task",
 			"style": {
 				"navigationBarTitleText": "Flow Task"
