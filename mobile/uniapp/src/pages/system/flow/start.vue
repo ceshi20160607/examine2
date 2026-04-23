@@ -36,6 +36,10 @@
 
       <view v-if="hint" style="margin-top: 12px; color:#666">{{ hint }}</view>
       <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
+      <view v-if="lastStart.instanceId || lastStart.taskId" style="margin-top: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
+        <uni-button v-if="lastStart.instanceId && lastStart.taskId" type="primary" @click="goLastTask">打开任务</uni-button>
+        <uni-button v-if="lastStart.instanceId" @click="goInbox">打开待办箱</uni-button>
+      </view>
       <view v-if="resultText" style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ resultText }}</view>
     </uni-card>
   </view>
@@ -51,6 +55,7 @@ const starting = ref(false)
 const error = ref<string | null>(null)
 const resultText = ref<string>('')
 const hint = ref<string>('')
+const lastStart = reactive<{ instanceId: number; taskId: number }>({ instanceId: 0, taskId: 0 })
 
 const form = reactive({
   defCode: '',
@@ -140,9 +145,20 @@ function goByBiz() {
   uni.navigateTo({ url: `/pages/system/flow/by_biz?bizType=${encodeURIComponent(form.bizType || '')}&bizId=${encodeURIComponent(form.bizId || '')}` })
 }
 
+function goInbox() {
+  uni.navigateTo({ url: '/pages/system/flow/inbox' })
+}
+
+function goLastTask() {
+  if (!lastStart.instanceId || !lastStart.taskId) return
+  uni.navigateTo({ url: `/pages/system/flow/task?instanceId=${lastStart.instanceId}&taskId=${lastStart.taskId}` })
+}
+
 async function start() {
   error.value = null
   resultText.value = ''
+  lastStart.instanceId = 0
+  lastStart.taskId = 0
 
   if (!form.defCode.trim()) {
     error.value = 'defCode 不能为空'
@@ -177,6 +193,8 @@ async function start() {
       vars
     })
     uni.showToast({ title: '已发起', icon: 'success' })
+    lastStart.instanceId = Number(r?.data?.instanceId || 0) || 0
+    lastStart.taskId = Number(r?.data?.taskId || 0) || 0
     try {
       resultText.value = JSON.stringify(r.data, null, 2)
     } catch {
