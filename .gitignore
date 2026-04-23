@@ -14,6 +14,7 @@
 
 # UniApp local copies
 mobile/uniapp - */
+mobile/uniappsrc/
 
 # Flutter / Dart
 **/.dart_tool/
