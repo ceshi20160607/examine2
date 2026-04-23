@@ -19,6 +19,7 @@
       <view style="display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button type="primary" :disabled="saving" @click="save">保存</uni-button>
         <uni-button @click="back">返回</uni-button>
+        <uni-button v-if="id" @click="goVers">版本管理</uni-button>
       </view>
 
       <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
@@ -54,6 +55,11 @@ onLoad((opts) => {
 
 function back() {
   uni.navigateBack()
+}
+
+function goVers() {
+  if (!id.value) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_list?tempId=${id.value}` })
 }
 
 async function loadDetail() {

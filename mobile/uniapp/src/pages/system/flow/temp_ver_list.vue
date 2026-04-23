@@ -1,0 +1,132 @@
+<template>
+  <view style="padding: 16px">
+    <uni-card :title="`模板版本（tempId=${tempId}）`">
+      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+        <uni-button type="primary" :disabled="loading" @click="createNew">新建版本</uni-button>
+        <uni-button :disabled="loading" @click="reload">刷新</uni-button>
+        <uni-button :disabled="loading || page<=1" @click="prev">上一页</uni-button>
+        <uni-button :disabled="loading || !hasNext" @click="next">下一页</uni-button>
+      </view>
+      <view style="margin-top: 8px; color:#666">page={{ page }} size={{ size }} total={{ total }}</view>
+    </uni-card>
+
+    <uni-card title="列表" style="margin-top: 12px">
+      <uni-list v-if="rows.length">
+        <uni-list-item
+          v-for="v in rows"
+          :key="String(v.id)"
+          :title="`verNo=${v.verNo ?? ''} ${publishText(v.publishStatus)}`"
+          :note="`id=${v.id}`"
+          clickable
+          @click="openActions(v)"
+        />
+      </uni-list>
+      <view v-else style="color:#666">暂无版本</view>
+    </uni-card>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import { httpGet, httpPost } from '@/api/http'
+import { ensureSystemContext } from '@/utils/guard'
+
+type TempVer = { id: number | string; verNo?: number; publishStatus?: number }
+
+const tempId = ref<number>(0)
+const loading = ref(false)
+const page = ref(1)
+const size = ref(20)
+const total = ref(0)
+const rows = ref<TempVer[]>([])
+
+const hasNext = computed(() => page.value * size.value < total.value)
+
+onLoad((opts) => {
+  tempId.value = Number((opts as any)?.tempId || 0) || 0
+})
+
+function publishText(st: any) {
+  if (st === 1) return 'draft'
+  if (st === 2) return 'published'
+  if (st === 3) return 'deprecated'
+  return String(st ?? '')
+}
+
+async function load() {
+  if (!tempId.value) return
+  loading.value = true
+  try {
+    const r = await httpGet<any>(`/v1/system/flow/temp-vers/page?tempId=${tempId.value}&page=${page.value}&size=${size.value}`)
+    const d = r.data || {}
+    total.value = Number(d.total || 0)
+    rows.value = (d.records || []) as TempVer[]
+  } finally {
+    loading.value = false
+  }
+}
+
+async function reload() {
+  page.value = 1
+  await load()
+}
+async function prev() {
+  if (page.value <= 1) return
+  page.value -= 1
+  await load()
+}
+async function next() {
+  if (!hasNext.value) return
+  page.value += 1
+  await load()
+}
+
+function createNew() {
+  if (!tempId.value) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_edit?tempId=${tempId.value}` })
+}
+
+function edit(id: any) {
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_edit?id=${encodeURIComponent(String(id))}&tempId=${tempId.value}` })
+}
+
+function openActions(v: TempVer) {
+  if (!v?.id) return
+  uni.showActionSheet({
+    itemList: ['编辑', '删除'],
+    success: (res) => {
+      if (res.tapIndex === 0) {
+        edit(v.id)
+        return
+      }
+      if (res.tapIndex === 1) {
+        del(v.id)
+      }
+    }
+  })
+}
+
+function del(id: any) {
+  uni.showModal({
+    title: '确认删除？',
+    content: `将删除版本 #${id}`,
+    success: async (m) => {
+      if (!m.confirm) return
+      await httpPost('/v1/system/flow/temp-vers/delete', { ids: [id] })
+      uni.showToast({ title: '已删除', icon: 'success' })
+      reload()
+    }
+  })
+}
+
+onMounted(() => {
+  if (!ensureSystemContext()) return
+  if (!tempId.value) {
+    uni.showToast({ title: '缺少 tempId', icon: 'none' })
+    return
+  }
+  load()
+})
+</script>
+

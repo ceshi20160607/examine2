@@ -175,6 +175,18 @@
 			}
 		},
 		{
+			"path": "pages/system/flow/temp_ver_list",
+			"style": {
+				"navigationBarTitleText": "Flow Temp Vers"
+			}
+		},
+		{
+			"path": "pages/system/flow/temp_ver_edit",
+			"style": {
+				"navigationBarTitleText": "Flow Temp Ver Edit"
+			}
+		},
+		{
 			"path": "pages/system/flow/start",
 			"style": {
 				"navigationBarTitleText": "Flow Start"
