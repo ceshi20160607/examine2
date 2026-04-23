@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
@@ -34,6 +34,7 @@ const job = ref<any>(null)
 const file = ref<any>(null)
 const viewUrl = ref<string>('')
 const downloadUrl = ref<string>('')
+const pollTimer = ref<any>(null)
 
 onLoad((opts) => {
   jobId.value = Number((opts as any)?.jobId || 0) || 0
@@ -67,11 +68,49 @@ async function reload() {
     file.value = d.file || null
     viewUrl.value = d.viewUrl ? buildUrl(String(d.viewUrl)) : ''
     downloadUrl.value = d.downloadUrl ? buildUrl(String(d.downloadUrl)) : ''
+    afterJobLoaded()
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   } finally {
     loading.value = false
   }
+}
+
+function stopPoll() {
+  if (pollTimer.value) {
+    clearInterval(pollTimer.value)
+    pollTimer.value = null
+  }
+}
+
+function shouldPollStatus(status: any) {
+  return status === 0 || status === 1
+}
+
+function afterJobLoaded() {
+  const st = job.value?.status
+  if (!shouldPollStatus(st)) {
+    stopPoll()
+    return
+  }
+  if (pollTimer.value) {
+    return
+  }
+  pollTimer.value = setInterval(async () => {
+    try {
+      const r = await httpGet<any>(`/v1/system/module/export-jobs/${jobId.value}`)
+      const d = r.data || {}
+      job.value = d.job
+      file.value = d.file || null
+      viewUrl.value = d.viewUrl ? buildUrl(String(d.viewUrl)) : ''
+      downloadUrl.value = d.downloadUrl ? buildUrl(String(d.downloadUrl)) : ''
+      if (!shouldPollStatus(job.value?.status)) {
+        stopPoll()
+      }
+    } catch {
+      // ignore transient errors during polling; user can 刷新
+    }
+  }, 2000)
 }
 
 async function download() {
@@ -138,6 +177,10 @@ onMounted(() => {
     return
   }
   reload()
+})
+
+onUnmounted(() => {
+  stopPoll()
 })
 </script>
 
