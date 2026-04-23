@@ -12,6 +12,9 @@
 **/dist/
 **/.vite/
 
+# UniApp local copies
+mobile/uniapp - */
+
 # Flutter / Dart
 **/.dart_tool/
 **/.flutter-plugins
