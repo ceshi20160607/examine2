@@ -27,7 +27,7 @@
               <uni-datetime-picker
                 v-else-if="isDateField(f)"
                 v-model="formData[f.fieldCode]"
-                type="date"
+                :type="datePickerType(f)"
               />
 
               <uni-data-select
@@ -134,6 +134,12 @@ function isDateField(f: ModuleField) {
   const t = String(f.fieldType || '').toLowerCase()
   return t === 'date' || t === 'datetime' || t === 'time'
 }
+function datePickerType(f: ModuleField): 'date' | 'datetime' | 'time' {
+  const t = String(f.fieldType || '').toLowerCase()
+  if (t === 'datetime') return 'datetime'
+  if (t === 'time') return 'time'
+  return 'date'
+}
 function isTextField(f: ModuleField) {
   return !isNumberField(f) && !isDateField(f) && !f.dictCode
 }
@@ -186,10 +192,57 @@ async function bootstrap() {
       }
     }
 
+    // 兼容：把多选字典值规范成数组；日期时间值规范成字符串
+    normalizeFormDataValues()
+
     // 字典选项
     await loadDictOptionsIfNeeded()
   } catch (e: any) {
     error.value = e?.message ?? String(e)
+  }
+}
+
+function normalizeMultiValue(v: any): any[] {
+  if (v == null || v === '') return []
+  if (Array.isArray(v)) return v
+  if (typeof v === 'string') {
+    const t = v.trim()
+    if (!t) return []
+    if (t.startsWith('[') && t.endsWith(']')) {
+      try {
+        const arr = JSON.parse(t)
+        return Array.isArray(arr) ? arr : []
+      } catch {
+        // fall through
+      }
+    }
+    return t.split(',').map((x) => x.trim()).filter((x) => x.length > 0)
+  }
+  return [v]
+}
+
+function normalizeDateValue(v: any): string | null {
+  if (v == null) return null
+  if (Array.isArray(v)) {
+    const first = v[0]
+    return first == null ? null : String(first)
+  }
+  const s = String(v)
+  return s.trim() ? s : null
+}
+
+function normalizeFormDataValues() {
+  for (const mf of fields.value || []) {
+    const code = mf?.fieldCode
+    if (!code) continue
+    if (isDictMulti(mf)) {
+      formData[code] = normalizeMultiValue(formData[code])
+      continue
+    }
+    if (isDateField(mf)) {
+      const nv = normalizeDateValue(formData[code])
+      formData[code] = nv ?? ''
+    }
   }
 }
 
@@ -231,6 +284,12 @@ function toSubmitData(): any {
         const n = Number(t)
         v = Number.isNaN(n) ? t : n
       }
+    }
+    if (isDictMulti(mf)) {
+      v = normalizeMultiValue(v)
+    }
+    if (isDateField(mf)) {
+      v = normalizeDateValue(v)
     }
     out[code] = v
   }
