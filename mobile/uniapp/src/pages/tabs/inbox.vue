@@ -6,6 +6,7 @@
       </view>
       <view style="margin-top: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button @click="goTemps">流程模板</uni-button>
+        <uni-button @click="goTempManage">模板管理</uni-button>
         <uni-button @click="goStart">发起流程</uni-button>
         <uni-button @click="goInstances">实例列表</uni-button>
         <uni-button @click="goMyInstances">我的实例</uni-button>
@@ -26,6 +27,11 @@ function goInbox() {
 function goTemps() {
   if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/flow/temps' })
+}
+
+function goTempManage() {
+  if (!ensureSystemContext()) return
+  uni.navigateTo({ url: '/pages/system/flow/temp_list' })
 }
 
 function goStart() {

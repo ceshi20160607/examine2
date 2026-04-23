@@ -163,6 +163,18 @@
 			}
 		},
 		{
+			"path": "pages/system/flow/temp_list",
+			"style": {
+				"navigationBarTitleText": "Flow Temp Manage"
+			}
+		},
+		{
+			"path": "pages/system/flow/temp_edit",
+			"style": {
+				"navigationBarTitleText": "Flow Temp Edit"
+			}
+		},
+		{
 			"path": "pages/system/flow/start",
 			"style": {
 				"navigationBarTitleText": "Flow Start"
