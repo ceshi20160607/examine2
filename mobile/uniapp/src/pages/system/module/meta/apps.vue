@@ -1,36 +1,46 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="应用 Apps">
-      <view style="display:flex; gap: 8px;">
-        <uni-easyinput v-model="form.appCode" placeholder="appCode (如 default)" />
-        <uni-easyinput v-model="form.appName" placeholder="appName" />
+  <Page title="应用 Apps" subtitle="创建应用后可继续创建模型、字段与权限">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="创建应用">
+          <view style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <uni-easyinput v-model="form.appCode" placeholder="appCode（如 default）" style="flex:1; min-width: 160px" />
+            <uni-easyinput v-model="form.appName" placeholder="appName" style="flex:1; min-width: 160px" />
+          </view>
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="create">创建</uni-button>
-      </view>
-    </uni-card>
-
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="apps.length">
-        <uni-list-item
-          v-for="a in apps"
-          :key="a.id"
-          :title="(a.appName || a.appCode || ('App#' + a.id))"
-          :note="a.appCode || ''"
-          clickable
-          @click="openActions(a)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无应用</view>
-      <view style="margin-top: 12px">
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
+      </ActionBar>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="apps.length">
+          <uni-list-item
+            v-for="a in apps"
+            :key="a.id"
+            :title="(a.appName || a.appCode || ('App#' + a.id))"
+            :note="a.appCode || ''"
+            clickable
+            @click="openActions(a)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无应用" />
       </view>
-    </uni-card>
-  </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type ModuleApp = { id: number; appCode?: string; appName?: string; status?: number }
 

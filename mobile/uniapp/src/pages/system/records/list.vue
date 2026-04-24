@@ -1,31 +1,32 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`Records（modelId=${modelId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page :title="`Records（modelId=${modelId}）`" subtitle="支持关键字搜索与详情查看">
+    <view class="u-card u-section">
+      <ActionBar>
         <uni-button type="primary" :disabled="!appId || !modelId" @click="goCreate">新建</uni-button>
         <uni-button :disabled="loading" @click="query">刷新</uni-button>
         <uni-easyinput v-model="keyword" placeholder="keyword(可选)" style="flex: 1; min-width: 160px" />
         <uni-button :disabled="loading" @click="reload">搜索</uni-button>
-      </view>
-      <view style="margin-top: 8px; color:#666" v-if="searchFieldCode">
-        搜索字段：{{ searchFieldCode }}
-      </view>
-    </uni-card>
+      </ActionBar>
+      <view v-if="searchFieldCode" class="u-subtitle">搜索字段：{{ searchFieldCode }}</view>
+    </view>
 
-    <uni-card title="结果" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="r in rows"
-          :key="r.id"
-          :title="titleOf(r.id)"
-          :note="noteOf(r.id)"
-          clickable
-          @click="goDetail(r.id)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无数据</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">结果</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="r in rows"
+            :key="r.id"
+            :title="titleOf(r.id)"
+            :note="noteOf(r.id)"
+            clickable
+            @click="goDetail(r.id)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无数据" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +34,9 @@ import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type Row = { id: number }
 type Summary = { title: string; note: string }

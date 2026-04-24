@@ -1,9 +1,9 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="title">
+  <Page :title="title" subtitle="按字段元数据生成表单；复杂场景可切换高级 JSON">
+    <view class="u-card">
       <uni-forms labelPosition="top">
         <uni-forms-item v-if="!advancedJson" label="字段表单">
-          <view v-if="fields.length === 0" style="color:#666">加载字段中...</view>
+          <view v-if="fields.length === 0" style="color: var(--u-text-muted)">加载字段中...</view>
           <view v-else style="display:flex; flex-direction: column; gap: 12px;">
             <view v-for="f in visibleFields" :key="String(f.id)">
               <view style="margin-bottom: 6px; color:#333">
@@ -58,15 +58,15 @@
         </uni-forms-item>
       </uni-forms>
 
-      <view style="display:flex; gap: 8px;">
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="submit">{{ recordId ? '更新' : '创建' }}</uni-button>
-        <uni-button @click="back">返回</uni-button>
-        <uni-button @click="toggleAdvanced">{{ advancedJson ? '切回表单' : '高级 JSON' }}</uni-button>
-      </view>
+        <uni-button :disabled="saving" @click="back">返回</uni-button>
+        <uni-button :disabled="saving" @click="toggleAdvanced">{{ advancedJson ? '切回表单' : '高级 JSON' }}</uni-button>
+      </ActionBar>
 
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-    </uni-card>
-  </view>
+      <ErrorBlock :text="error" />
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -74,6 +74,9 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const appId = ref(0)
 const modelId = ref(0)

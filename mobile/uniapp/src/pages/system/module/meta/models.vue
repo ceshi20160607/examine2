@@ -1,30 +1,37 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`模型 Models（appId=${appId}）`">
-      <view style="display:flex; gap: 8px;">
-        <uni-easyinput v-model="form.modelCode" placeholder="modelCode (如 order)" />
-        <uni-easyinput v-model="form.modelName" placeholder="modelName" />
+  <Page :title="`模型 Models（appId=${appId}）`" subtitle="创建模型后可配置字段、视图与导出">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="创建模型">
+          <view style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <uni-easyinput v-model="form.modelCode" placeholder="modelCode（如 order）" style="flex:1; min-width: 160px" />
+            <uni-easyinput v-model="form.modelName" placeholder="modelName" style="flex:1; min-width: 160px" />
+          </view>
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="create">创建</uni-button>
-      </view>
-    </uni-card>
-
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="models.length">
-        <uni-list-item
-          v-for="m in models"
-          :key="m.id"
-          :title="(m.modelName || m.modelCode || ('Model#' + m.id))"
-          :note="m.modelCode || ''"
-          clickable
-          @click="openActions(m)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无模型</view>
-      <view style="margin-top: 12px">
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
+      </ActionBar>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="models.length">
+          <uni-list-item
+            v-for="m in models"
+            :key="m.id"
+            :title="(m.modelName || m.modelCode || ('Model#' + m.id))"
+            :note="m.modelCode || ''"
+            clickable
+            @click="openActions(m)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无模型" />
       </view>
-    </uni-card>
-  </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -32,6 +39,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type ModuleModel = { id: number; appId?: number; modelCode?: string; modelName?: string; status?: number }
 

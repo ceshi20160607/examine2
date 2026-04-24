@@ -1,36 +1,37 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`字段 Fields（modelId=${modelId}）`">
-      <view style="display:flex; flex-direction: column; gap: 8px;">
-        <view style="display:flex; gap: 8px;">
-          <uni-easyinput v-model="form.fieldCode" placeholder="fieldCode (如 title)" />
-          <uni-easyinput v-model="form.fieldName" placeholder="fieldName" />
-        </view>
-        <view style="display:flex; gap: 8px;">
-          <uni-easyinput v-model="form.fieldType" placeholder="fieldType (text/number/date...)" />
-          <uni-button type="primary" :disabled="saving" @click="create">创建</uni-button>
-        </view>
-        <view style="display:flex; gap: 8px;">
-          <uni-button :disabled="!appId || !modelId" @click="goRecords">进入 Records</uni-button>
-        </view>
-      </view>
-    </uni-card>
-
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="fields.length">
-        <uni-list-item
-          v-for="f in fields"
-          :key="f.id"
-          :title="(f.fieldName || f.fieldCode || ('Field#' + f.id))"
-          :note="`${f.fieldCode || ''} / ${f.fieldType || ''}`"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无字段</view>
-      <view style="margin-top: 12px">
+  <Page :title="`字段 Fields（modelId=${modelId}）`" subtitle="字段决定 Records 的表单与查询能力">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="创建字段">
+          <view style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <uni-easyinput v-model="form.fieldCode" placeholder="fieldCode（如 title）" style="flex:1; min-width: 160px" />
+            <uni-easyinput v-model="form.fieldName" placeholder="fieldName" style="flex:1; min-width: 160px" />
+            <uni-easyinput v-model="form.fieldType" placeholder="fieldType（text/number/date/datetime...）" style="flex:1; min-width: 180px" />
+          </view>
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
+        <uni-button type="primary" :disabled="saving" @click="create">创建</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
+        <uni-button :disabled="!appId || !modelId" @click="goRecords">进入 Records</uni-button>
+      </ActionBar>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="fields.length">
+          <uni-list-item
+            v-for="f in fields"
+            :key="f.id"
+            :title="(f.fieldName || f.fieldCode || ('Field#' + f.id))"
+            :note="`${f.fieldCode || ''} / ${f.fieldType || ''}`"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无字段" />
       </view>
-    </uni-card>
-  </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -38,6 +39,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type ModuleField = { id: number; fieldCode?: string; fieldName?: string; fieldType?: string; status?: number }
 
