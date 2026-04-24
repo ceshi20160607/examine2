@@ -1,38 +1,42 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`导出模板（modelId=${modelId}）`">
-      <view style="display:flex; flex-direction: column; gap: 8px;">
-        <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page :title="`导出模板（modelId=${modelId}）`" subtitle="配置导出字段；支持同步下载与异步任务">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="tplCode">
           <uni-easyinput v-model="form.tplCode" placeholder="tplCode" />
+        </uni-forms-item>
+        <uni-forms-item label="tplName">
           <uni-easyinput v-model="form.tplName" placeholder="tplName" />
-        </view>
-        <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+        </uni-forms-item>
+        <uni-forms-item label="fileType(默认 csv)">
           <uni-easyinput v-model="form.fileType" placeholder="fileType(默认 csv)" />
-          <uni-button type="primary" :disabled="saving || !appId || !modelId" @click="createTpl">创建模板</uni-button>
-          <uni-button :disabled="loading" @click="load">刷新</uni-button>
-        </view>
-        <view style="color:#666">说明：当前后端仅支持 csv 导出/任务。</view>
-      </view>
-    </uni-card>
-
-    <uni-card title="模板列表" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="t in rows"
-          :key="String(t.id)"
-          :title="t.tplName || t.tplCode || ('Tpl#' + t.id)"
-          :note="`${t.tplCode || ''} / ${t.fileType || 'csv'}`"
-          clickable
-          @click="openTplActions(t)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无模板</view>
-
-      <view style="margin-top: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
+        <uni-button type="primary" :disabled="saving || !appId || !modelId" @click="createTpl">创建模板</uni-button>
+        <uni-button :disabled="loading" @click="load">刷新</uni-button>
         <uni-button :disabled="!modelId" @click="goJobs">查看导出任务</uni-button>
+      </ActionBar>
+      <view class="u-subtitle">说明：当前后端仅支持 csv 导出/任务。</view>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">模板列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="t in rows"
+            :key="String(t.id)"
+            :title="t.tplName || t.tplCode || ('Tpl#' + t.id)"
+            :note="`${t.tplCode || ''} / ${t.fileType || 'csv'}`"
+            clickable
+            @click="openTplActions(t)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无模板" />
       </view>
-    </uni-card>
-  </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -40,6 +44,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { buildApiUrl, buildAuthHeaders, httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type ExportTpl = {
   id: number | string

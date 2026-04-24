@@ -1,31 +1,42 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`导出字段（tplId=${tplId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-easyinput v-model="form.fieldId" placeholder="fieldId" />
-        <uni-easyinput v-model="form.colTitle" placeholder="colTitle" />
-        <uni-easyinput v-model="form.sortNo" placeholder="sortNo(默认 0)" />
-        <uni-button type="primary" :disabled="saving" @click="upsert">新增字段</uni-button>
+  <Page :title="`导出字段（tplId=${tplId}）`" subtitle="配置导出列（fieldId 对应模型字段）">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="fieldId">
+          <uni-easyinput v-model="form.fieldId" placeholder="fieldId" />
+        </uni-forms-item>
+        <uni-forms-item label="colTitle">
+          <uni-easyinput v-model="form.colTitle" placeholder="colTitle" />
+        </uni-forms-item>
+        <uni-forms-item label="sortNo(默认 0)">
+          <uni-easyinput v-model="form.sortNo" placeholder="sortNo(默认 0)" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
+        <uni-button type="primary" :disabled="saving" @click="upsert">{{ editingId ? '保存修改' : '新增字段' }}</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
         <uni-button :disabled="!modelId" @click="goFields">查看模型字段</uni-button>
-      </view>
-      <view style="margin-top: 8px; color:#666">formatJson：暂不做 UI 编辑，可后续增强。</view>
-    </uni-card>
+      </ActionBar>
+      <view class="u-subtitle">formatJson：暂不做 UI 编辑，可后续增强。</view>
+    </view>
 
-    <uni-card title="字段列表" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="f in rows"
-          :key="String(f.id)"
-          :title="f.colTitle || ('Field#' + f.id)"
-          :note="`fieldId=${f.fieldId || ''} sortNo=${f.sortNo ?? ''}`"
-          clickable
-          @click="openFieldActions(f)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无字段</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">字段列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="f in rows"
+            :key="String(f.id)"
+            :title="f.colTitle || ('Field#' + f.id)"
+            :note="`fieldId=${f.fieldId || ''} sortNo=${f.sortNo ?? ''}`"
+            clickable
+            @click="openFieldActions(f)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无字段" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +44,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type FieldRow = {
   id: number | string

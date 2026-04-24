@@ -1,31 +1,38 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`List Views（modelId=${modelId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-easyinput v-model="form.viewCode" placeholder="viewCode" />
-        <uni-easyinput v-model="form.viewName" placeholder="viewName" />
+  <Page :title="`List Views（modelId=${modelId}）`" subtitle="列表视图 + 列配置 + 筛选模板">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="viewCode">
+          <uni-easyinput v-model="form.viewCode" placeholder="viewCode" />
+        </uni-forms-item>
+        <uni-forms-item label="viewName">
+          <uni-easyinput v-model="form.viewName" placeholder="viewName" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="upsert">创建</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
-      </view>
-    </uni-card>
-
-    <uni-card title="列表" style="margin-top: 12px">
-      <view style="margin-bottom: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button :disabled="!modelId" @click="goFilterTpls">筛选模板</uni-button>
+      </ActionBar>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="v in rows"
+            :key="v.id"
+            :title="v.viewName || v.viewCode || ('View#' + v.id)"
+            :note="v.viewCode || ''"
+            clickable
+            @click="openViewActions(v)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无视图" />
       </view>
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="v in rows"
-          :key="v.id"
-          :title="v.viewName || v.viewCode || ('View#' + v.id)"
-          :note="v.viewCode || ''"
-          clickable
-          @click="openViewActions(v)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无视图</view>
-    </uni-card>
-  </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +40,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type ViewRow = { id: number; viewCode?: string; viewName?: string; defaultFlag?: number; status?: number }
 

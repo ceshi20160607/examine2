@@ -1,30 +1,37 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`列配置 Cols（viewId=${viewId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-easyinput v-model="form.fieldId" placeholder="fieldId" />
-        <uni-easyinput v-model="form.colTitle" placeholder="colTitle" />
+  <Page :title="`列配置 Cols（viewId=${viewId}）`" subtitle="配置列表展示的列（需要 fieldId）">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="fieldId">
+          <uni-easyinput v-model="form.fieldId" placeholder="fieldId" />
+        </uni-forms-item>
+        <uni-forms-item label="colTitle">
+          <uni-easyinput v-model="form.colTitle" placeholder="colTitle" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="upsert">新增列</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
         <uni-button :disabled="!appId || !modelId" @click="goFields">查看字段</uni-button>
-      </view>
-      <view style="margin-top: 12px; color:#666">
-        提示：fieldId 可在 Fields 页面对照列表中的 id。
-      </view>
-    </uni-card>
+      </ActionBar>
+      <view class="u-subtitle">提示：fieldId 可在 Fields 页面对照列表中的 id。</view>
+    </view>
 
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="c in rows"
-          :key="c.id"
-          :title="c.colTitle || ('Col#' + c.id)"
-          :note="`fieldId=${c.fieldId || ''}`"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无列配置</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="c in rows"
+            :key="c.id"
+            :title="c.colTitle || ('Col#' + c.id)"
+            :note="`fieldId=${c.fieldId || ''}`"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无列配置" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -32,6 +39,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type ColRow = { id: number; viewId?: number; fieldId?: number; colTitle?: string; width?: number; sortNo?: number; visibleFlag?: number }
 

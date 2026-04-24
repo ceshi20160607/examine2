@@ -1,95 +1,129 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`RBAC（appId=${appId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page :title="`RBAC（appId=${appId}）`" subtitle="角色 / 成员 / 菜单 / 权限调试">
+    <view class="u-card u-section">
+      <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="loadRoles">刷新角色</uni-button>
         <uni-button :disabled="loading" @click="loadMenus">刷新菜单</uni-button>
-      </view>
-    </uni-card>
-
-    <uni-card title="新增角色" style="margin-top: 12px">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-easyinput v-model="roleForm.roleCode" placeholder="roleCode" />
-        <uni-easyinput v-model="roleForm.roleName" placeholder="roleName" />
-        <uni-button type="primary" :disabled="savingRole" @click="upsertRole">保存</uni-button>
-      </view>
-    </uni-card>
-
-    <uni-card title="成员分配角色" style="margin-top: 12px">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-easyinput v-model="memberForm.memberPlatId" placeholder="memberPlatId" />
-        <uni-easyinput v-model="memberForm.roleId" placeholder="roleId" />
-        <uni-button type="primary" :disabled="savingMember" @click="assignMemberRole">分配</uni-button>
-      </view>
-      <view style="margin-top: 8px; color:#666">说明：memberPlatId 为平台账号 platId（数字）。</view>
-    </uni-card>
-
-    <uni-card title="权限验证（按 URI）" style="margin-top: 12px">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-        <uni-easyinput v-model="permPreviewUri" placeholder="/v1/system/records/page" style="flex:1" />
-        <uni-button type="primary" :disabled="previewingPerm" @click="previewPerm">验证</uni-button>
-      </view>
-      <view v-if="permPreviewText" style="margin-top: 8px; font-family: monospace; white-space: pre-wrap;">{{ permPreviewText }}</view>
-    </uni-card>
-
-    <uni-card title="成员列表" style="margin-top: 12px">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
         <uni-button :disabled="loading" @click="loadMembers">刷新成员</uni-button>
+      </ActionBar>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">新增角色</view>
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="roleCode">
+          <uni-easyinput v-model="roleForm.roleCode" placeholder="roleCode" />
+        </uni-forms-item>
+        <uni-forms-item label="roleName">
+          <uni-easyinput v-model="roleForm.roleName" placeholder="roleName" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
+        <uni-button type="primary" :disabled="savingRole" @click="upsertRole">保存</uni-button>
+      </ActionBar>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">成员分配角色</view>
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="memberPlatId（平台账号 platId）">
+          <uni-easyinput v-model="memberForm.memberPlatId" placeholder="memberPlatId" />
+        </uni-forms-item>
+        <uni-forms-item label="roleId">
+          <uni-easyinput v-model="memberForm.roleId" placeholder="roleId" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
+        <uni-button type="primary" :disabled="savingMember" @click="assignMemberRole">分配</uni-button>
+      </ActionBar>
+      <view class="u-subtitle">点击成员可自动填充到这里。</view>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">权限验证（按 URI）</view>
+      <ActionBar>
+        <uni-easyinput v-model="permPreviewUri" placeholder="/v1/system/records/page" style="flex:1; min-width: 220px" />
+        <uni-button type="primary" :disabled="previewingPerm" @click="previewPerm">验证</uni-button>
+      </ActionBar>
+      <view v-if="permPreviewText" style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ permPreviewText }}</view>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">成员列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="members.length">
+          <uni-list-item
+            v-for="m in members"
+            :key="m.id"
+            :title="`platId=${m.platId}`"
+            :note="`roleId=${m.roleId || ''} status=${m.status || ''}`"
+            clickable
+            @click="quickFillMember(m)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无成员" />
       </view>
-      <uni-list v-if="members.length">
-        <uni-list-item
-          v-for="m in members"
-          :key="m.id"
-          :title="`platId=${m.platId}`"
-          :note="`roleId=${m.roleId || ''} status=${m.status || ''}`"
-          clickable
-          @click="quickFillMember(m)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无成员</view>
-      <view style="margin-top: 8px; color:#666">点击成员可自动填充到“成员分配角色”。</view>
-    </uni-card>
+    </view>
 
-    <uni-card title="角色列表" style="margin-top: 12px">
-      <uni-list v-if="roles.length">
-        <uni-list-item
-          v-for="r in roles"
-          :key="r.id"
-          :title="r.roleName || r.roleCode || ('Role#' + r.id)"
-          :note="r.roleCode || ''"
-          clickable
-          @click="openRoleActions(r)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无角色</view>
-    </uni-card>
+    <view class="u-card u-section">
+      <view class="u-title">角色列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="roles.length">
+          <uni-list-item
+            v-for="r in roles"
+            :key="r.id"
+            :title="r.roleName || r.roleCode || ('Role#' + r.id)"
+            :note="r.roleCode || ''"
+            clickable
+            @click="openRoleActions(r)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无角色" />
+      </view>
+    </view>
 
-    <uni-card title="新增菜单" style="margin-top: 12px">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-easyinput v-model="menuForm.parentId" placeholder="parentId(0根)" />
-        <uni-easyinput v-model="menuForm.menuName" placeholder="menuName" />
-        <uni-easyinput v-model="menuForm.permKey" placeholder="permKey(可选)" />
-        <uni-easyinput v-model="menuForm.apiPattern" placeholder="apiPattern(可选)" />
-        <uni-easyinput v-model="menuForm.pageId" placeholder="pageId(可选)" />
+    <view class="u-card u-section">
+      <view class="u-title">新增菜单</view>
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="parentId(0根)">
+          <uni-easyinput v-model="menuForm.parentId" placeholder="parentId(0根)" />
+        </uni-forms-item>
+        <uni-forms-item label="menuName">
+          <uni-easyinput v-model="menuForm.menuName" placeholder="menuName" />
+        </uni-forms-item>
+        <uni-forms-item label="permKey(可选)">
+          <uni-easyinput v-model="menuForm.permKey" placeholder="permKey(可选)" />
+        </uni-forms-item>
+        <uni-forms-item label="apiPattern(可选)">
+          <uni-easyinput v-model="menuForm.apiPattern" placeholder="apiPattern(可选)" />
+        </uni-forms-item>
+        <uni-forms-item label="pageId(可选)">
+          <uni-easyinput v-model="menuForm.pageId" placeholder="pageId(可选)" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
         <uni-button type="primary" :disabled="savingMenu" @click="upsertMenu">保存</uni-button>
-      </view>
-    </uni-card>
+      </ActionBar>
+      <view class="u-subtitle">点击菜单行会把 parentId 预填到这里。</view>
+    </view>
 
-    <uni-card title="菜单列表（树形）" style="margin-top: 12px">
-      <uni-list v-if="menusFlat.length">
-        <uni-list-item
-          v-for="m in menusFlat"
-          :key="m.id"
-          :title="rbacMenuTitleIndented(m)"
-          :note="rbacMenuNote(m)"
-          clickable
-          @click="quickFillParentMenu(m)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无菜单</view>
-      <view style="margin-top: 8px; color:#666">点击菜单行会把 parentId 预填到“新增菜单”。</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">菜单列表（树形）</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="menusFlat.length">
+          <uni-list-item
+            v-for="m in menusFlat"
+            :key="m.id"
+            :title="rbacMenuTitleIndented(m)"
+            :note="rbacMenuNote(m)"
+            clickable
+            @click="quickFillParentMenu(m)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无菜单" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -104,6 +138,9 @@ import {
   type RbacMenuFlatRow,
   type RbacMenuRow
 } from '@/utils/rbacMenuTree'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type RoleRow = { id: number; roleCode?: string; roleName?: string; status?: number }
 type MenuRow = RbacMenuRow

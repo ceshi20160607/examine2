@@ -1,28 +1,37 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`字典 Dicts（appId=${appId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-easyinput v-model="form.dictCode" placeholder="dictCode" />
-        <uni-easyinput v-model="form.dictName" placeholder="dictName" />
+  <Page :title="`字典 Dicts（appId=${appId}）`" subtitle="用于下拉/枚举：先建 dict，再建 items">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="dictCode">
+          <uni-easyinput v-model="form.dictCode" placeholder="dictCode" />
+        </uni-forms-item>
+        <uni-forms-item label="dictName">
+          <uni-easyinput v-model="form.dictName" placeholder="dictName" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="upsert">保存</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
-      </view>
-    </uni-card>
+      </ActionBar>
+    </view>
 
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="d in rows"
-          :key="d.id"
-          :title="d.dictName || d.dictCode || ('Dict#' + d.id)"
-          :note="d.dictCode || ''"
-          clickable
-          @click="goItems(d.id)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无字典</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="d in rows"
+            :key="d.id"
+            :title="d.dictName || d.dictCode || ('Dict#' + d.id)"
+            :note="d.dictCode || ''"
+            clickable
+            @click="goItems(d.id)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无字典" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -30,6 +39,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type DictRow = { id: number; dictCode?: string; dictName?: string; status?: number; remark?: string }
 

@@ -1,31 +1,35 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`角色菜单权限（roleId=${roleId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-        <view style="color:#666">permLevel</view>
-        <uni-easyinput v-model="permLevelText" placeholder="1" style="width: 120px" />
+  <Page :title="`角色菜单权限（roleId=${roleId}）`" subtitle="选择菜单并覆盖写权限级别">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="permLevel">
+          <uni-easyinput v-model="permLevelText" placeholder="1" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="save">保存（覆盖写）</uni-button>
         <uni-button :disabled="loading" @click="reload">刷新</uni-button>
-      </view>
-      <view style="margin-top: 8px; color:#666">
-        点击菜单行切换选中；保存会调用 `/v1/system/module/rbac/roles/menu-perms/set`。
-      </view>
-    </uni-card>
+      </ActionBar>
+      <view class="u-subtitle">点击菜单行切换选中；保存会调用 `/v1/system/module/rbac/roles/menu-perms/set`。</view>
+    </view>
 
-    <uni-card title="菜单（树形；点击切换）" style="margin-top: 12px">
-      <uni-list v-if="menusFlat.length">
-        <uni-list-item
-          v-for="m in menusFlat"
-          :key="m.id"
-          :title="`${isSelected(m.id) ? '✓ ' : ''}${rbacMenuTitleIndented(m)}`"
-          :note="rbacMenuNote(m)"
-          clickable
-          @click="toggle(m.id)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无菜单（请先在 RBAC 页创建菜单）</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">菜单（树形；点击切换）</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="menusFlat.length">
+          <uni-list-item
+            v-for="m in menusFlat"
+            :key="m.id"
+            :title="`${isSelected(m.id) ? '✓ ' : ''}${rbacMenuTitleIndented(m)}`"
+            :note="rbacMenuNote(m)"
+            clickable
+            @click="toggle(m.id)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无菜单（请先在 RBAC 页创建菜单）" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -40,6 +44,9 @@ import {
   type RbacMenuFlatRow,
   type RbacMenuRow
 } from '@/utils/rbacMenuTree'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type MenuRow = RbacMenuRow
 type MenuFlatRow = RbacMenuFlatRow

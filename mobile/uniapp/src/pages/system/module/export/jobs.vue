@@ -1,31 +1,42 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="导出任务 Export Jobs">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-easyinput v-model="filter.tplId" placeholder="tplId(可选)" />
-        <uni-easyinput v-model="filter.modelId" placeholder="modelId(可选)" />
-        <uni-easyinput v-model="filter.status" placeholder="status(可选 0/1/2/3)" />
+  <Page title="导出任务 Export Jobs" subtitle="异步导出任务列表（分页）">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="tplId(可选)">
+          <uni-easyinput v-model="filter.tplId" placeholder="tplId(可选)" />
+        </uni-forms-item>
+        <uni-forms-item label="modelId(可选)">
+          <uni-easyinput v-model="filter.modelId" placeholder="modelId(可选)" />
+        </uni-forms-item>
+        <uni-forms-item label="status(可选 0/1/2/3)">
+          <uni-easyinput v-model="filter.status" placeholder="status(可选 0/1/2/3)" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="reload">刷新</uni-button>
         <uni-button :disabled="loading || page<=1" @click="prev">上一页</uni-button>
         <uni-button :disabled="loading || !hasNext" @click="next">下一页</uni-button>
-      </view>
-      <view style="margin-top: 8px; color:#666">page={{ page }} size={{ size }} total={{ total }}</view>
-    </uni-card>
+      </ActionBar>
+      <view class="u-subtitle">page={{ page }} size={{ size }} total={{ total }}</view>
+    </view>
 
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="j in rows"
-          :key="String(j.id)"
-          :title="`job#${j.id} ${statusText(j.status)}`"
-          :note="`${j.errorMsg ? ('err=' + j.errorMsg + ' | ') : ''}tplId=${j.tplId || ''} modelId=${j.modelId || ''} fileId=${j.resultFileId || ''}`"
-          clickable
-          @click="goDetail(j.id)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无任务</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="j in rows"
+            :key="String(j.id)"
+            :title="`job#${j.id} ${statusText(j.status)}`"
+            :note="`${j.errorMsg ? ('err=' + j.errorMsg + ' | ') : ''}tplId=${j.tplId || ''} modelId=${j.modelId || ''} fileId=${j.resultFileId || ''}`"
+            clickable
+            @click="goDetail(j.id)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无任务" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +44,9 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type JobRow = {
   id: number | string

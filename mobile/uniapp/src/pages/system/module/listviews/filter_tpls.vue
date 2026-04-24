@@ -1,27 +1,38 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`筛选模板（modelId=${modelId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-easyinput v-model="form.tplCode" placeholder="tplCode" />
-        <uni-easyinput v-model="form.tplName" placeholder="tplName" />
-        <uni-easyinput v-model="form.menuId" placeholder="menuId(可选)" />
+  <Page :title="`筛选模板（modelId=${modelId}）`" subtitle="为列表视图准备筛选配置模板">
+    <view class="u-card u-section">
+      <uni-forms labelPosition="top">
+        <uni-forms-item label="tplCode">
+          <uni-easyinput v-model="form.tplCode" placeholder="tplCode" />
+        </uni-forms-item>
+        <uni-forms-item label="tplName">
+          <uni-easyinput v-model="form.tplName" placeholder="tplName" />
+        </uni-forms-item>
+        <uni-forms-item label="menuId(可选)">
+          <uni-easyinput v-model="form.menuId" placeholder="menuId(可选)" />
+        </uni-forms-item>
+      </uni-forms>
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="upsert">创建</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
-      </view>
-    </uni-card>
+      </ActionBar>
+    </view>
 
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="t in rows"
-          :key="t.id"
-          :title="t.tplName || t.tplCode || ('Tpl#' + t.id)"
-          :note="t.tplCode || ''"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无模板</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="t in rows"
+            :key="t.id"
+            :title="t.tplName || t.tplCode || ('Tpl#' + t.id)"
+            :note="t.tplCode || ''"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无模板" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -29,6 +40,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type FilterTplRow = { id: number; tplCode?: string; tplName?: string; menuId?: number; status?: number }
 

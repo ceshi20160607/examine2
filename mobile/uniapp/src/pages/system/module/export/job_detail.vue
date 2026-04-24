@@ -1,22 +1,24 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`Export Job #${jobId}`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page :title="`Export Job #${jobId}`" subtitle="异步导出任务详情（自动轮询 pending/running）">
+    <view class="u-card u-section">
+      <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="reload">刷新</uni-button>
         <uni-button :disabled="!downloadUrl || loading" @click="download">下载结果</uni-button>
         <uni-button :disabled="!viewUrl || loading" @click="preview">预览结果</uni-button>
-      </view>
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-    </uni-card>
+      </ActionBar>
+      <ErrorBlock :text="error" />
+    </view>
 
-    <uni-card title="job" style="margin-top: 12px">
-      <view style="font-family: monospace; white-space: pre-wrap;">{{ pretty(job) }}</view>
-    </uni-card>
+    <view class="u-card u-section">
+      <view class="u-title">job</view>
+      <view style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ pretty(job) }}</view>
+    </view>
 
-    <uni-card title="file" style="margin-top: 12px" v-if="file">
-      <view style="font-family: monospace; white-space: pre-wrap;">{{ pretty(file) }}</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section" v-if="file">
+      <view class="u-title">file</view>
+      <view style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ pretty(file) }}</view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -24,6 +26,9 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { buildApiUrl, buildAuthHeaders, httpGet } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const jobId = ref<number>(0)
 const loading = ref(false)
