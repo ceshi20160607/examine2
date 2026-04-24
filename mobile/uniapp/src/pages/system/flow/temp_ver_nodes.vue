@@ -59,12 +59,12 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { deleteTempVerNodes, pageTempVerNodes, upsertTempVerNode } from '@/api/flow'
 
 type NodeRow = { id: number | string; nodeKey?: string; parentNodeKey?: string; nodeType?: string; nodeName?: string; configJson?: string; sortNo?: number }
 
@@ -93,7 +93,7 @@ async function load() {
   if (!tempVerId.value) return
   loading.value = true
   try {
-    const r = await httpGet<any>(`/v1/system/flow/temp-ver-nodes/page?tempVerId=${tempVerId.value}&page=1&size=200`)
+    const r = await pageTempVerNodes(tempVerId.value)
     rows.value = (r.data?.records || []) as NodeRow[]
   } finally {
     loading.value = false
@@ -137,7 +137,7 @@ function del(id: any) {
     content: `将删除节点 #${id}`,
     success: async (m) => {
       if (!m.confirm) return
-      await httpPost('/v1/system/flow/temp-ver-nodes/delete', { ids: [id] })
+      await deleteTempVerNodes([id])
       uni.showToast({ title: '已删除', icon: 'success' })
       reload()
     }
@@ -172,7 +172,7 @@ async function save() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/flow/temp-ver-nodes/upsert', {
+    await upsertTempVerNode({
       id: editingId.value,
       tempVerId: tempVerId.value,
       nodeKey: form.nodeKey.trim(),

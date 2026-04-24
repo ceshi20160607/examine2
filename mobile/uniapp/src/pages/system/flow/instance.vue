@@ -44,12 +44,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { getInstance, listInstanceActions, listInstanceTasks, listInstanceTraces } from '@/api/flow'
 
 const instanceId = ref<number>(0)
 const loading = ref(false)
@@ -83,10 +83,10 @@ async function reload() {
   error.value = null
   try {
     const [r1, r2, r3, r4] = await Promise.all([
-      httpGet<any>(`/v1/system/flow/instances/${instanceId.value}`),
-      httpGet<any[]>(`/v1/system/flow/instances/${instanceId.value}/tasks`),
-      httpGet<any[]>(`/v1/system/flow/instances/${instanceId.value}/actions`),
-      httpGet<any[]>(`/v1/system/flow/instances/${instanceId.value}/traces`)
+      getInstance(instanceId.value),
+      listInstanceTasks(instanceId.value),
+      listInstanceActions(instanceId.value),
+      listInstanceTraces(instanceId.value)
     ])
     record.value = r1.data
     tasks.value = r2.data || []

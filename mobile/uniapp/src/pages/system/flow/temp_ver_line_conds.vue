@@ -59,12 +59,12 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { deleteTempVerLineConds, pageTempVerLineConds, upsertTempVerLineCond } from '@/api/flow'
 
 type CondRow = { id: number | string; groupNo?: number; logicOp?: string; leftVar?: string; cmpOp?: string; rightType?: string; rightValue?: string; status?: number }
 
@@ -93,7 +93,7 @@ async function load() {
   if (!lineId.value) return
   loading.value = true
   try {
-    const r = await httpGet<any>(`/v1/system/flow/temp-ver-line-conds/page?lineId=${lineId.value}&page=1&size=200`)
+    const r = await pageTempVerLineConds(lineId.value)
     rows.value = (r.data?.records || []) as CondRow[]
   } finally {
     loading.value = false
@@ -137,7 +137,7 @@ function del(id: any) {
     content: `将删除条件 #${id}`,
     success: async (m) => {
       if (!m.confirm) return
-      await httpPost('/v1/system/flow/temp-ver-line-conds/delete', { ids: [id] })
+      await deleteTempVerLineConds([id])
       uni.showToast({ title: '已删除', icon: 'success' })
       reload()
     }
@@ -154,7 +154,7 @@ async function save() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/flow/temp-ver-line-conds/upsert', {
+    await upsertTempVerLineCond({
       id: editingId.value,
       lineId: lineId.value,
       groupNo: g,

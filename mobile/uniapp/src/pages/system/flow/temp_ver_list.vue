@@ -32,11 +32,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import { deleteTempVers, getTempVer, pageTempVers, publishTempVer, upsertTempVer } from '@/api/flow'
 
 type TempVer = { id: number | string; verNo?: number; publishStatus?: number }
 
@@ -64,7 +64,7 @@ async function load() {
   if (!tempId.value) return
   loading.value = true
   try {
-    const r = await httpGet<any>(`/v1/system/flow/temp-vers/page?tempId=${tempId.value}&page=${page.value}&size=${size.value}`)
+    const r = await pageTempVers(tempId.value, page.value, size.value)
     const d = r.data || {}
     total.value = Number(d.total || 0)
     rows.value = (d.records || []) as TempVer[]
@@ -114,14 +114,14 @@ function openActions(v: TempVer) {
 }
 
 async function publish(id: any) {
-  await httpPost(`/v1/system/flow/temp-vers/${encodeURIComponent(String(id))}/publish`)
+  await publishTempVer(id)
   uni.showToast({ title: '已发布', icon: 'success' })
   reload()
 }
 
 async function fillMvpAndPublish(id: any) {
   // 先读详情（拿到 tempId/verNo 等），补 graphJson/formJson，再发布
-  const r = await httpGet<any>(`/v1/system/flow/temp-vers/${encodeURIComponent(String(id))}`)
+  const r = await getTempVer(id)
   const v = r.data || {}
   const g = String(v.graphJson || '').trim()
   const f = String(v.formJson || '').trim()
@@ -135,7 +135,7 @@ async function fillMvpAndPublish(id: any) {
     nodes: [{ id: 'approve-1', name: '审批', type: 'approve' }],
     edges: []
   }
-  await httpPost('/v1/system/flow/temp-vers/upsert', {
+  await upsertTempVer({
     id,
     tempId: v.tempId,
     verNo: v.verNo ?? null,
@@ -152,7 +152,7 @@ function del(id: any) {
     content: `将删除版本 #${id}`,
     success: async (m) => {
       if (!m.confirm) return
-      await httpPost('/v1/system/flow/temp-vers/delete', { ids: [id] })
+      await deleteTempVers([id])
       uni.showToast({ title: '已删除', icon: 'success' })
       reload()
     }

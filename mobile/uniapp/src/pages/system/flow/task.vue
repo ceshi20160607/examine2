@@ -35,11 +35,11 @@
 <script setup lang="ts">
 import { onLoad } from '@dcloudio/uni-app'
 import { onMounted, ref } from 'vue'
-import { httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { actTask } from '@/api/flow'
 
 const instanceId = ref<number>(0)
 const taskId = ref<number>(0)
@@ -83,7 +83,7 @@ async function act(path: string, body?: any) {
   error.value = null
   actionResultText.value = ''
   try {
-    const r = await httpPost<any>(path, body)
+    const r = await actTask(path, body)
     uni.showToast({ title: '操作成功', icon: 'success' })
     try {
       actionResultText.value = JSON.stringify(r?.data ?? null, null, 2)

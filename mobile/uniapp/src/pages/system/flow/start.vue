@@ -50,11 +50,11 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { pageTemps, startInstance, type FlowTemp } from '@/api/flow'
 
 const starting = ref(false)
 const error = ref<string | null>(null)
@@ -71,14 +71,6 @@ const form = reactive({
 
 const tempName = ref<string>('')
 const varsText = ref('{}')
-
-type FlowTemp = {
-  id: number | string
-  tempCode?: string
-  tempName?: string
-  latestVerNo?: number
-  status?: number
-}
 
 const temps = ref<FlowTemp[]>([])
 const selectedTempId = ref<string>('')
@@ -118,7 +110,7 @@ function rebuildOptions() {
 }
 
 async function loadTemps() {
-  const r = await httpGet<any>('/v1/system/flow/temps/page?page=1&size=200')
+  const r = await pageTemps(1, 200)
   const d = r.data || {}
   temps.value = (d.records || []) as FlowTemp[]
   rebuildOptions()
@@ -190,7 +182,7 @@ async function start() {
       const prefix = tempName.value?.trim() || form.defCode.trim()
       form.title = `${prefix}:${form.bizId.trim()}`
     }
-    const r = await httpPost<any>('/v1/system/flow/instances/start', {
+    const r = await startInstance({
       defCode: form.defCode.trim(),
       bizType: form.bizType.trim(),
       bizId: form.bizId.trim(),

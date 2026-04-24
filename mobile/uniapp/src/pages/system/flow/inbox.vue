@@ -43,13 +43,11 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type FlowTask = { id: number; recordId?: number; nodeName?: string }
+import { inboxCc, inboxPending, type FlowTask } from '@/api/flow'
 
 const loading = ref(false)
 const pending = ref<FlowTask[]>([])
@@ -58,7 +56,7 @@ const cc = ref<FlowTask[]>([])
 async function loadPending() {
   loading.value = true
   try {
-    const r = await httpGet<FlowTask[]>('/v1/system/flow/inbox/tasks/pending?limit=50')
+    const r = await inboxPending(50)
     pending.value = r.data || []
   } finally {
     loading.value = false
@@ -68,7 +66,7 @@ async function loadPending() {
 async function loadCc() {
   loading.value = true
   try {
-    const r = await httpGet<FlowTask[]>('/v1/system/flow/inbox/cc?limit=50')
+    const r = await inboxCc(50)
     cc.value = r.data || []
   } finally {
     loading.value = false

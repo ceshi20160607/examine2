@@ -30,11 +30,11 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { getTemp, upsertTemp } from '@/api/flow'
 
 const id = ref<number>(0)
 const saving = ref(false)
@@ -67,7 +67,7 @@ function goVers() {
 
 async function loadDetail() {
   if (!id.value) return
-  const r = await httpGet<any>(`/v1/system/flow/temps/${id.value}`)
+  const r = await getTemp(id.value)
   const t = r.data || {}
   form.tempCode = String(t.tempCode || '')
   form.tempName = String(t.tempName || '')
@@ -83,7 +83,7 @@ async function save() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/flow/temps/upsert', {
+    await upsertTemp({
       id: id.value || null,
       tempCode: form.tempCode.trim(),
       tempName: form.tempName.trim(),

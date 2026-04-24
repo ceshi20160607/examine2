@@ -27,11 +27,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { byBiz, byBizActionable, byBizWithPending } from '@/api/flow'
 
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -68,7 +68,7 @@ async function loadLatest() {
   loading.value = true
   error.value = null
   try {
-    const r = await httpGet<any>(`/v1/system/flow/instances/by-biz?bizType=${encodeURIComponent(bizType.value.trim())}&bizId=${encodeURIComponent(bizId.value.trim())}`)
+    const r = await byBiz(bizType.value.trim(), bizId.value.trim())
     result.value = r.data
   } catch (e: any) {
     error.value = e?.message ?? String(e)
@@ -82,9 +82,7 @@ async function loadWithPending() {
   loading.value = true
   error.value = null
   try {
-    const r = await httpGet<any>(
-      `/v1/system/flow/instances/by-biz/with-pending-tasks?bizType=${encodeURIComponent(bizType.value.trim())}&bizId=${encodeURIComponent(bizId.value.trim())}`
-    )
+    const r = await byBizWithPending(bizType.value.trim(), bizId.value.trim())
     result.value = r.data
   } catch (e: any) {
     error.value = e?.message ?? String(e)
@@ -98,9 +96,7 @@ async function loadActionable() {
   loading.value = true
   error.value = null
   try {
-    const r = await httpGet<any>(
-      `/v1/system/flow/instances/by-biz/actionable-tasks?bizType=${encodeURIComponent(bizType.value.trim())}&bizId=${encodeURIComponent(bizId.value.trim())}`
-    )
+    const r = await byBizActionable(bizType.value.trim(), bizId.value.trim())
     result.value = r.data
   } catch (e: any) {
     error.value = e?.message ?? String(e)

@@ -31,19 +31,11 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type FlowRecord = {
-  id: number | string
-  title?: string
-  status?: number
-  bizType?: string
-  bizId?: string
-}
+import { pageInstances, type FlowRecord } from '@/api/flow'
 
 const loading = ref(false)
 const page = ref(1)
@@ -58,8 +50,7 @@ async function load() {
   loading.value = true
   try {
     const kw = keyword.value.trim()
-    const q = `/v1/system/flow/instances/page?page=${page.value}&size=${size.value}${kw ? `&keyword=${encodeURIComponent(kw)}` : ''}`
-    const r = await httpGet<any>(q)
+    const r = await pageInstances(page.value, size.value, kw)
     const d = r.data || {}
     total.value = Number(d.total || 0)
     rows.value = (d.records || []) as FlowRecord[]

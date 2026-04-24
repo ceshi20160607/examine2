@@ -56,12 +56,12 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { deleteTempVerLines, pageTempVerLines, upsertTempVerLine } from '@/api/flow'
 
 type LineRow = { id: number | string; fromNodeKey?: string; toNodeKey?: string; priority?: number; isDefault?: number; status?: number; remark?: string }
 
@@ -93,7 +93,7 @@ async function load() {
   if (!tempVerId.value) return
   loading.value = true
   try {
-    const r = await httpGet<any>(`/v1/system/flow/temp-ver-lines/page?tempVerId=${tempVerId.value}&page=1&size=200`)
+    const r = await pageTempVerLines(tempVerId.value)
     rows.value = (r.data?.records || []) as LineRow[]
   } finally {
     loading.value = false
@@ -141,7 +141,7 @@ function del(id: any) {
     content: `将删除连线 #${id}`,
     success: async (m) => {
       if (!m.confirm) return
-      await httpPost('/v1/system/flow/temp-ver-lines/delete', { ids: [id] })
+      await deleteTempVerLines([id])
       uni.showToast({ title: '已删除', icon: 'success' })
       reload()
     }
@@ -162,7 +162,7 @@ async function save() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/flow/temp-ver-lines/upsert', {
+    await upsertTempVerLine({
       id: editingId.value,
       tempVerId: tempVerId.value,
       fromNodeKey: form.fromNodeKey.trim(),

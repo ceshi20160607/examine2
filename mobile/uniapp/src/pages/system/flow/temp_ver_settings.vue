@@ -50,12 +50,12 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { deleteTempVerSettings, pageTempVerSettings, upsertTempVerSetting } from '@/api/flow'
 
 type SettingRow = { id: number | string; exceptionMode?: string; exceptionAdminPlatId?: number; exceptionEndReason?: string; status?: number }
 
@@ -81,7 +81,7 @@ async function load() {
   if (!tempVerId.value) return
   loading.value = true
   try {
-    const r = await httpGet<any>(`/v1/system/flow/temp-ver-settings/page?tempVerId=${tempVerId.value}&page=1&size=200`)
+    const r = await pageTempVerSettings(tempVerId.value)
     rows.value = (r.data?.records || []) as SettingRow[]
   } finally {
     loading.value = false
@@ -122,7 +122,7 @@ function del(id: any) {
     content: `将删除 setting #${id}`,
     success: async (m) => {
       if (!m.confirm) return
-      await httpPost('/v1/system/flow/temp-ver-settings/delete', { ids: [id] })
+      await deleteTempVerSettings([id])
       uni.showToast({ title: '已删除', icon: 'success' })
       reload()
     }
@@ -140,7 +140,7 @@ async function save() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/flow/temp-ver-settings/upsert', {
+    await upsertTempVerSetting({
       id: editingId.value,
       tempVerId: tempVerId.value,
       exceptionMode: form.exceptionMode.trim() || null,

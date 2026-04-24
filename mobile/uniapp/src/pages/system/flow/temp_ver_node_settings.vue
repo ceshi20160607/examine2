@@ -53,12 +53,12 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { deleteTempVerNodeSettings, pageTempVerNodeSettings, upsertTempVerNodeSetting } from '@/api/flow'
 
 type NodeSettingRow = { id: number | string; nodeKey?: string; exceptionMode?: string; exceptionAdminPlatId?: number; exceptionEndReason?: string; status?: number }
 
@@ -85,7 +85,7 @@ async function load() {
   if (!tempVerId.value) return
   loading.value = true
   try {
-    const r = await httpGet<any>(`/v1/system/flow/temp-ver-node-settings/page?tempVerId=${tempVerId.value}&page=1&size=200`)
+    const r = await pageTempVerNodeSettings(tempVerId.value)
     rows.value = (r.data?.records || []) as NodeSettingRow[]
   } finally {
     loading.value = false
@@ -127,7 +127,7 @@ function del(id: any) {
     content: `将删除 nodeSetting #${id}`,
     success: async (m) => {
       if (!m.confirm) return
-      await httpPost('/v1/system/flow/temp-ver-node-settings/delete', { ids: [id] })
+      await deleteTempVerNodeSettings([id])
       uni.showToast({ title: '已删除', icon: 'success' })
       reload()
     }
@@ -149,7 +149,7 @@ async function save() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/flow/temp-ver-node-settings/upsert', {
+    await upsertTempVerNodeSetting({
       id: editingId.value,
       tempVerId: tempVerId.value,
       nodeKey: form.nodeKey.trim(),

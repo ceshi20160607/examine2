@@ -35,11 +35,11 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { getTempVer, publishTempVer, upsertTempVer } from '@/api/flow'
 
 const id = ref<number>(0)
 const tempId = ref<number>(0)
@@ -88,7 +88,7 @@ function goNodeSettings() {
 
 async function loadDetail() {
   if (!id.value) return
-  const r = await httpGet<any>(`/v1/system/flow/temp-vers/${id.value}`)
+  const r = await getTempVer(id.value)
   const v = r.data || {}
   tempId.value = Number(v.tempId || tempId.value || 0) || 0
   form.verNo = v.verNo == null ? '' : String(v.verNo)
@@ -155,7 +155,7 @@ async function save() {
 
   saving.value = true
   try {
-    await httpPost('/v1/system/flow/temp-vers/upsert', {
+    await upsertTempVer({
       id: id.value || null,
       tempId: tempId.value,
       verNo,
@@ -177,7 +177,7 @@ async function publish() {
   error.value = null
   publishing.value = true
   try {
-    await httpPost(`/v1/system/flow/temp-vers/${id.value}/publish`)
+    await publishTempVer(id.value)
     uni.showToast({ title: '已发布', icon: 'success' })
     await loadDetail()
   } catch (e: any) {

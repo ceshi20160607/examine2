@@ -31,20 +31,11 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type FlowTemp = {
-  id: number | string
-  tempCode?: string
-  tempName?: string
-  status?: number
-  remark?: string
-  latestVerNo?: number
-}
+import { deleteTemps, pageTemps, publishTempVer, type FlowTemp, upsertTempVer } from '@/api/flow'
 
 const loading = ref(false)
 const page = ref(1)
@@ -57,7 +48,7 @@ const hasNext = computed(() => page.value * size.value < total.value)
 async function load() {
   loading.value = true
   try {
-    const r = await httpGet<any>(`/v1/system/flow/temps/page?page=${page.value}&size=${size.value}`)
+    const r = await pageTemps(page.value, size.value)
     const d = r.data || {}
     total.value = Number(d.total || 0)
     rows.value = (d.records || []) as FlowTemp[]
@@ -130,7 +121,7 @@ async function quickPublishMvp(t: FlowTemp) {
         nodes: [{ id: 'approve-1', name: '审批', type: 'approve' }],
         edges: []
       }
-      const up = await httpPost<any>('/v1/system/flow/temp-vers/upsert', {
+      const up = await upsertTempVer({
         id: null,
         tempId: t.id,
         verNo: null,
@@ -143,7 +134,7 @@ async function quickPublishMvp(t: FlowTemp) {
         uni.showToast({ title: '创建版本失败', icon: 'none' })
         return
       }
-      await httpPost(`/v1/system/flow/temp-vers/${encodeURIComponent(String(verId))}/publish`)
+      await publishTempVer(verId)
       uni.showToast({ title: '已发布', icon: 'success' })
       reload()
     }
@@ -156,7 +147,7 @@ function deleteTemp(id: any) {
     content: `将删除模板 #${id}`,
     success: async (m) => {
       if (!m.confirm) return
-      await httpPost('/v1/system/flow/temps/delete', { ids: [id] })
+      await deleteTemps([id])
       uni.showToast({ title: '已删除', icon: 'success' })
       reload()
     }

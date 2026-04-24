@@ -30,19 +30,11 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type FlowTemp = {
-  id: number | string
-  tempCode?: string
-  tempName?: string
-  latestVerNo?: number
-  status?: number
-}
+import { pageTemps, type FlowTemp } from '@/api/flow'
 
 const loading = ref(false)
 const page = ref(1)
@@ -70,7 +62,7 @@ function noteText(t: FlowTemp): string {
 async function load() {
   loading.value = true
   try {
-    const r = await httpGet<any>(`/v1/system/flow/temps/page?page=${page.value}&size=${size.value}`)
+    const r = await pageTemps(page.value, size.value)
     const d = r.data || {}
     total.value = Number(d.total || 0)
     const list = (d.records || []) as FlowTemp[]
