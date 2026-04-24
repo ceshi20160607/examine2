@@ -1,29 +1,32 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`模板版本（tempId=${tempId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page :title="`模板版本（tempId=${tempId}）`" subtitle="创建/编辑/发布/填充 MVP">
+    <view class="u-card u-section">
+      <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="createNew">新建版本</uni-button>
         <uni-button :disabled="loading" @click="reload">刷新</uni-button>
         <uni-button :disabled="loading || page<=1" @click="prev">上一页</uni-button>
         <uni-button :disabled="loading || !hasNext" @click="next">下一页</uni-button>
-      </view>
-      <view style="margin-top: 8px; color:#666">page={{ page }} size={{ size }} total={{ total }}</view>
-    </uni-card>
+      </ActionBar>
+      <view class="u-subtitle">page={{ page }} size={{ size }} total={{ total }}</view>
+    </view>
 
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="v in rows"
-          :key="String(v.id)"
-          :title="`verNo=${v.verNo ?? ''} ${publishText(v.publishStatus)}`"
-          :note="`id=${v.id}`"
-          clickable
-          @click="openActions(v)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无版本</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="v in rows"
+            :key="String(v.id)"
+            :title="`verNo=${v.verNo ?? ''} ${publishText(v.publishStatus)}`"
+            :note="`id=${v.id}`"
+            clickable
+            @click="openActions(v)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无版本" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -31,6 +34,9 @@ import { computed, onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type TempVer = { id: number | string; verNo?: number; publishStatus?: number }
 

@@ -1,6 +1,6 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="id ? `编辑模板 #${id}` : '新建模板'">
+  <Page :title="id ? `编辑模板 #${id}` : '新建模板'" subtitle="保存后可进入版本管理并发布">
+    <view class="u-card">
       <uni-forms labelPosition="top">
         <uni-forms-item label="tempCode">
           <uni-easyinput v-model="form.tempCode" placeholder="例如 leave" />
@@ -16,15 +16,15 @@
         </uni-forms-item>
       </uni-forms>
 
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="save">保存</uni-button>
         <uni-button @click="back">返回</uni-button>
         <uni-button v-if="id" @click="goVers">版本管理</uni-button>
-      </view>
+      </ActionBar>
 
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-    </uni-card>
-  </view>
+      <ErrorBlock :text="error" />
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -32,6 +32,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const id = ref<number>(0)
 const saving = ref(false)

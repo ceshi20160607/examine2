@@ -1,6 +1,6 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="id ? `编辑版本 #${id}` : `新建版本（tempId=${tempId}）`">
+  <Page :title="id ? `编辑版本 #${id}` : `新建版本（tempId=${tempId}）`" subtitle="编辑 graphJson/formJson；发布后模板可发起">
+    <view class="u-card">
       <uni-forms labelPosition="top">
         <uni-forms-item label="verNo（可选）">
           <uni-easyinput v-model="form.verNo" placeholder="例如 1" />
@@ -16,7 +16,7 @@
         </uni-forms-item>
       </uni-forms>
 
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+      <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="save">保存</uni-button>
         <uni-button v-if="id" type="warn" :disabled="saving || publishing" @click="publish">发布</uni-button>
         <uni-button v-if="id" :disabled="saving" @click="fillGraphMvp">填充 graphJson(MVP)</uni-button>
@@ -25,11 +25,11 @@
         <uni-button v-if="id" @click="goLines">连线</uni-button>
         <uni-button v-if="id" @click="goSettings">全局设置</uni-button>
         <uni-button v-if="id" @click="goNodeSettings">节点设置</uni-button>
-      </view>
+      </ActionBar>
 
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-    </uni-card>
-  </view>
+      <ErrorBlock :text="error" />
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -37,6 +37,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const id = ref<number>(0)
 const tempId = ref<number>(0)
