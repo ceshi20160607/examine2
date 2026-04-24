@@ -22,9 +22,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet } from '@/api/http'
-import { ensureSystemContext } from '@/utils/guard'
-import { getBaseURL } from '@/config/env'
+import { buildApiUrl, buildAuthHeaders, httpGet } from '@/api/http'
+import { ensureSystemContext, hasToken } from '@/utils/guard'
 
 const jobId = ref<number>(0)
 const loading = ref(false)
@@ -48,13 +47,12 @@ function pretty(v: any) {
   }
 }
 
-function getToken(): string | null {
-  const t = uni.getStorageSync('token')
-  return typeof t === 'string' && t.trim() ? t.trim() : null
-}
-
-function buildUrl(path: string) {
-  return getBaseURL().replace(/\/$/, '') + path
+function toAbsUrl(u: string) {
+  const s = String(u || '').trim()
+  if (!s) return ''
+  if (s.startsWith('http://') || s.startsWith('https://')) return s
+  if (s.startsWith('/')) return buildApiUrl(s)
+  return buildApiUrl(`/${s}`)
 }
 
 async function reload() {
@@ -66,8 +64,8 @@ async function reload() {
     const d = r.data || {}
     job.value = d.job
     file.value = d.file || null
-    viewUrl.value = d.viewUrl ? buildUrl(String(d.viewUrl)) : ''
-    downloadUrl.value = d.downloadUrl ? buildUrl(String(d.downloadUrl)) : ''
+    viewUrl.value = d.viewUrl ? toAbsUrl(String(d.viewUrl)) : ''
+    downloadUrl.value = d.downloadUrl ? toAbsUrl(String(d.downloadUrl)) : ''
     afterJobLoaded()
   } catch (e: any) {
     error.value = e?.message ?? String(e)
@@ -102,8 +100,8 @@ function afterJobLoaded() {
       const d = r.data || {}
       job.value = d.job
       file.value = d.file || null
-      viewUrl.value = d.viewUrl ? buildUrl(String(d.viewUrl)) : ''
-      downloadUrl.value = d.downloadUrl ? buildUrl(String(d.downloadUrl)) : ''
+      viewUrl.value = d.viewUrl ? toAbsUrl(String(d.viewUrl)) : ''
+      downloadUrl.value = d.downloadUrl ? toAbsUrl(String(d.downloadUrl)) : ''
       if (!shouldPollStatus(job.value?.status)) {
         stopPoll()
       }
@@ -114,14 +112,13 @@ function afterJobLoaded() {
 }
 
 async function download() {
-  const token = getToken()
-  if (!token || !downloadUrl.value) return
+  if (!hasToken() || !downloadUrl.value) return
   uni.showLoading({ title: '下载中...' })
   try {
     const dl: any = await new Promise((resolve, reject) => {
       uni.downloadFile({
         url: downloadUrl.value,
-        header: { Authorization: `Bearer ${token}` },
+        header: buildAuthHeaders(),
         success: resolve,
         fail: reject
       })
@@ -141,14 +138,13 @@ async function download() {
 }
 
 async function preview() {
-  const token = getToken()
-  if (!token || !viewUrl.value) return
+  if (!hasToken() || !viewUrl.value) return
   uni.showLoading({ title: '加载预览...' })
   try {
     const dl: any = await new Promise((resolve, reject) => {
       uni.downloadFile({
         url: viewUrl.value,
-        header: { Authorization: `Bearer ${token}` },
+        header: buildAuthHeaders(),
         success: resolve,
         fail: reject
       })

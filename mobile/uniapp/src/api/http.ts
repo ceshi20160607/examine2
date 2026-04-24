@@ -16,6 +16,43 @@ function getToken(): string | null {
   return typeof t === 'string' && t.trim() ? t.trim() : null
 }
 
+export function buildApiUrl(path: string): string {
+  const p = String(path || '')
+  if (!p.startsWith('/')) {
+    return getBaseURL().replace(/\/$/, '') + '/' + p
+  }
+  return getBaseURL().replace(/\/$/, '') + p
+}
+
+/**
+ * 给 uni.request / uploadFile / downloadFile 用：与 httpRequest 一样携带 X-Request-Id + Bearer token。
+ */
+export function buildAuthHeaders(extra?: Record<string, string>): Record<string, string> {
+  const requestId = genRequestId()
+  const header: Record<string, string> = {
+    'X-Request-Id': requestId
+  }
+  const token = getToken()
+  if (token) {
+    header['Authorization'] = `Bearer ${token}`
+  }
+  if (extra) {
+    for (const [k, v] of Object.entries(extra)) {
+      if (v != null) header[k] = v
+    }
+  }
+  return header
+}
+
+function failMessage(err: any, fallback: string) {
+  const m =
+    (err && (err.errMsg as string)) ||
+    (err && (err.message as string)) ||
+    (typeof err === 'string' ? err : '') ||
+    ''
+  return m?.trim() ? m : fallback
+}
+
 function onUnauthorized() {
   uni.removeStorageSync('token')
   uni.reLaunch({ url: '/pages/auth/login' })
@@ -139,7 +176,11 @@ export async function httpRequest<T>(
         }
         resolve(r)
       },
-      fail: (err) => reject(err)
+      fail: (err) => {
+        const msg = failMessage(err, '网络错误')
+        toast(msg)
+        reject(new Error(msg))
+      }
     })
   })
 }

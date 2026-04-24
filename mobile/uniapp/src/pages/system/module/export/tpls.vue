@@ -38,9 +38,8 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
-import { ensureSystemContext } from '@/utils/guard'
-import { getBaseURL } from '@/config/env'
+import { buildApiUrl, buildAuthHeaders, httpGet, httpPost } from '@/api/http'
+import { ensureSystemContext, hasToken } from '@/utils/guard'
 
 type ExportTpl = {
   id: number | string
@@ -153,16 +152,14 @@ function openTplActions(t: ExportTpl) {
 
 async function exportCsv(tplId: string | number) {
   if (!ensureSystemContext()) return
-  const token = uni.getStorageSync('token')
-  if (typeof token !== 'string' || !token.trim()) return
-  const base = getBaseURL().replace(/\/$/, '')
-  const url = `${base}/v1/system/module/exports/tpls/${tplId}/export/csv?limit=200`
+  if (!hasToken()) return
+  const url = buildApiUrl(`/v1/system/module/exports/tpls/${tplId}/export/csv?limit=200`)
   uni.showLoading({ title: '导出中...' })
   try {
     const dl: any = await new Promise((resolve, reject) => {
       uni.downloadFile({
         url,
-        header: { Authorization: `Bearer ${token.trim()}` },
+        header: buildAuthHeaders(),
         success: resolve,
         fail: reject
       })

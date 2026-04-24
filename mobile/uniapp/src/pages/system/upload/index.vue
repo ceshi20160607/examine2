@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { getBaseURL } from '@/config/env'
+import { buildApiUrl, buildAuthHeaders, httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
 
 const uploading = ref(false)
@@ -41,16 +41,10 @@ const lastFileId = ref<number | null>(null)
 type UploadRow = { id: number; originalName?: string; fileSize?: number; contentType?: string }
 const rows = ref<UploadRow[]>([])
 
-function getToken(): string | null {
-  const t = uni.getStorageSync('token')
-  return typeof t === 'string' && t.trim() ? t.trim() : null
-}
-
 async function chooseAndUpload() {
   error.value = null
   if (!ensureSystemContext()) return
-  const token = getToken()
-  if (!token) return
+  if (!hasToken()) return
 
   // H5/小程序/App 兼容：先用 chooseFile（H5）/chooseImage 等后续再增强
   // 这里用 chooseFile（新版本 uni 支持），若平台不支持会 fail 并提示
@@ -70,18 +64,26 @@ async function chooseAndUpload() {
 
     const uploadRes: any = await new Promise((resolve, reject) => {
       uni.uploadFile({
-        url: getBaseURL().replace(/\/$/, '') + '/v1/system/uploads',
+        url: buildApiUrl('/v1/system/uploads'),
         filePath,
         name: 'file',
-        header: {
-          Authorization: `Bearer ${token}`
-        },
+        header: buildAuthHeaders(),
         success: resolve,
         fail: reject
       })
     })
 
-    const json = typeof uploadRes?.data === 'string' ? JSON.parse(uploadRes.data) : uploadRes.data
+    const raw = uploadRes?.data
+    let json: any
+    if (typeof raw === 'string') {
+      try {
+        json = JSON.parse(raw)
+      } catch {
+        throw new Error('上传响应不是 JSON（请检查网关/地址配置）')
+      }
+    } else {
+      json = raw
+    }
     if (!json || json.code !== 0) {
       throw new Error(json?.message || '上传失败')
     }
@@ -100,21 +102,9 @@ async function loadPage() {
   loading.value = true
   error.value = null
   try {
-    const r: any = await new Promise((resolve, reject) => {
-      const token = getToken()
-      uni.request({
-        url: getBaseURL().replace(/\/$/, '') + '/v1/system/uploads/page?page=1&size=20',
-        method: 'GET',
-        header: token ? { Authorization: `Bearer ${token}` } : {},
-        success: resolve,
-        fail: reject
-      })
-    })
-    const json = r?.data
-    if (!json || json.code !== 0) {
-      throw new Error(json?.message || '加载失败')
-    }
-    rows.value = json.data?.records || json.data?.rows || []
+    const r = await httpGet<any>('/v1/system/uploads/page?page=1&size=20')
+    const d: any = r.data || {}
+    rows.value = d.records || d.rows || []
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   } finally {
@@ -123,8 +113,7 @@ async function loadPage() {
 }
 
 function buildUrl(path: string): string {
-  const base = getBaseURL().replace(/\/$/, '')
-  return base + path
+  return buildApiUrl(path)
 }
 
 function openActions(f: UploadRow) {
@@ -150,15 +139,14 @@ function openActions(f: UploadRow) {
 
 async function downloadFile(fileId: number, filename: string) {
   if (!ensureSystemContext()) return
-  const token = getToken()
-  if (!token) return
+  if (!hasToken()) return
   const url = buildUrl(`/v1/system/uploads/${fileId}/download`)
   uni.showLoading({ title: '下载中...' })
   try {
     const dl: any = await new Promise((resolve, reject) => {
       uni.downloadFile({
         url,
-        header: { Authorization: `Bearer ${token}` },
+        header: buildAuthHeaders(),
         success: resolve,
         fail: reject
       })
@@ -184,22 +172,10 @@ async function downloadFile(fileId: number, filename: string) {
 
 async function deleteFile(fileId: number) {
   if (!ensureSystemContext()) return
-  const token = getToken()
-  if (!token) return
+  if (!hasToken()) return
   loading.value = true
   try {
-    const r: any = await new Promise((resolve, reject) => {
-      uni.request({
-        url: getBaseURL().replace(/\/$/, '') + `/v1/system/uploads/${fileId}/delete`,
-        method: 'POST',
-        data: {},
-        header: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        success: resolve,
-        fail: reject
-      })
-    })
-    const json = r?.data
-    if (!json || json.code !== 0) throw new Error(json?.message || '删除失败')
+    await httpPost(`/v1/system/uploads/${fileId}/delete`, {})
     uni.showToast({ title: '已删除', icon: 'success' })
     await loadPage()
   } catch (e: any) {

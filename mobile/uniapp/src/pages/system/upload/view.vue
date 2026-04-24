@@ -14,10 +14,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { ensureSystemContext } from '@/utils/guard'
-import { getBaseURL } from '@/config/env'
+import { buildApiUrl, buildAuthHeaders } from '@/api/http'
+import { ensureSystemContext, hasToken } from '@/utils/guard'
 
 const nameRef = ref('')
 const fileIdRef = ref<number>(0)
@@ -30,27 +30,19 @@ onLoad((opts) => {
   fileIdRef.value = Number((opts as any)?.fileId || 0) || 0
 })
 
-function getToken(): string | null {
-  const t = uni.getStorageSync('token')
-  return typeof t === 'string' && t.trim() ? t.trim() : null
-}
-
 function buildUrl(path: string): string {
-  const base = getBaseURL().replace(/\/$/, '')
-  return base + path
+  return buildApiUrl(path)
 }
 
 function copyUrl() {
-  const token = getToken()
-  if (!token || !fileIdRef.value) return
+  if (!hasToken() || !fileIdRef.value) return
   const url = buildUrl(`/v1/system/uploads/${fileIdRef.value}/view`)
   uni.setClipboardData({ data: url })
 }
 
 async function openPreview() {
   if (!ensureSystemContext()) return
-  const token = getToken()
-  if (!token || !fileIdRef.value) return
+  if (!hasToken() || !fileIdRef.value) return
   const url = buildUrl(`/v1/system/uploads/${fileIdRef.value}/view`)
 
   opening.value = true
@@ -59,7 +51,7 @@ async function openPreview() {
     const dl: any = await new Promise((resolve, reject) => {
       uni.downloadFile({
         url,
-        header: { Authorization: `Bearer ${token}` },
+        header: buildAuthHeaders(),
         success: resolve,
         fail: reject
       })
@@ -84,6 +76,8 @@ async function openPreview() {
   }
 }
 
-ensureSystemContext()
+onMounted(() => {
+  ensureSystemContext()
+})
 </script>
 
