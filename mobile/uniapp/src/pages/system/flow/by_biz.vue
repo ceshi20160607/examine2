@@ -1,6 +1,6 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="按 biz 查询流程">
+  <Page title="按 biz 查询流程" subtitle="用于排查：按 bizType/bizId 查询实例与待办">
+    <view class="u-card u-section">
       <uni-forms labelPosition="top">
         <uni-forms-item label="bizType">
           <uni-easyinput v-model="bizType" placeholder="例如 record" />
@@ -9,18 +9,19 @@
           <uni-easyinput v-model="bizId" placeholder="例如 123 / order-001" />
         </uni-forms-item>
       </uni-forms>
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+      <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="loadLatest">查询最新实例</uni-button>
         <uni-button :disabled="loading" @click="loadWithPending">带待办</uni-button>
         <uni-button :disabled="loading" @click="loadActionable">可办理待办</uni-button>
-      </view>
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-    </uni-card>
+      </ActionBar>
+      <ErrorBlock :text="error" />
+    </view>
 
-    <uni-card title="结果" style="margin-top: 12px">
-      <view style="font-family: monospace; white-space: pre-wrap;">{{ pretty(result) }}</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">结果</view>
+      <view style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ pretty(result) }}</view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -28,6 +29,9 @@ import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const loading = ref(false)
 const error = ref<string | null>(null)

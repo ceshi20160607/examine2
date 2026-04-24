@@ -1,38 +1,44 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`Instance #${instanceId}`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page :title="`Instance #${instanceId}`" subtitle="实例详情 / 任务 / 动作 / 轨迹">
+    <view class="u-card u-section">
+      <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="reload">刷新</uni-button>
+      </ActionBar>
+      <ErrorBlock :text="error" />
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">record</view>
+      <view style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ pretty(record) }}</view>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">tasks</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="tasks.length">
+          <uni-list-item
+            v-for="t in tasks"
+            :key="String(t.id)"
+            :title="t.nodeName || ('Task#' + t.id)"
+            :note="`status=${t.status ?? ''} id=${t.id}`"
+            clickable
+            @click="goTask(t)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无任务" />
       </view>
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-    </uni-card>
+    </view>
 
-    <uni-card title="record" style="margin-top: 12px">
-      <view style="font-family: monospace; white-space: pre-wrap;">{{ pretty(record) }}</view>
-    </uni-card>
+    <view class="u-card u-section">
+      <view class="u-title">actions</view>
+      <view style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ pretty(actions) }}</view>
+    </view>
 
-    <uni-card title="tasks" style="margin-top: 12px">
-      <uni-list v-if="tasks.length">
-        <uni-list-item
-          v-for="t in tasks"
-          :key="String(t.id)"
-          :title="t.nodeName || ('Task#' + t.id)"
-          :note="`status=${t.status ?? ''} id=${t.id}`"
-          clickable
-          @click="goTask(t)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无任务</view>
-    </uni-card>
-
-    <uni-card title="actions" style="margin-top: 12px">
-      <view style="font-family: monospace; white-space: pre-wrap;">{{ pretty(actions) }}</view>
-    </uni-card>
-
-    <uni-card title="traces" style="margin-top: 12px">
-      <view style="font-family: monospace; white-space: pre-wrap;">{{ pretty(traces) }}</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">traces</view>
+      <view style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ pretty(traces) }}</view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -40,6 +46,10 @@ import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const instanceId = ref<number>(0)
 const loading = ref(false)

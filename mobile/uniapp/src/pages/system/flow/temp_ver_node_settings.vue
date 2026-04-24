@@ -1,28 +1,31 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`节点设置（tempVerId=${tempVerId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page :title="`节点设置（tempVerId=${tempVerId}）`" subtitle="按 nodeKey 配置节点级异常兜底（弹窗编辑）">
+    <view class="u-card u-section">
+      <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="openEdit()">新增</uni-button>
         <uni-button :disabled="loading" @click="reload">刷新</uni-button>
-      </view>
-    </uni-card>
+      </ActionBar>
+    </view>
 
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="s in rows"
-          :key="String(s.id)"
-          :title="`${s.nodeKey || ''} mode=${s.exceptionMode || ''}`"
-          :note="`admin=${s.exceptionAdminPlatId || ''} status=${s.status ?? ''}`"
-          clickable
-          @click="openActions(s)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无节点设置</view>
-    </uni-card>
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="s in rows"
+            :key="String(s.id)"
+            :title="`${s.nodeKey || ''} mode=${s.exceptionMode || ''}`"
+            :note="`admin=${s.exceptionAdminPlatId || ''} status=${s.status ?? ''}`"
+            clickable
+            @click="openActions(s)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无节点设置" />
+      </view>
+    </view>
 
     <uni-popup ref="popupRef" type="bottom">
-      <view style="background:#fff; padding: 16px">
+      <view class="u-card">
         <uni-forms labelPosition="top">
           <uni-forms-item label="nodeKey">
             <uni-easyinput v-model="form.nodeKey" />
@@ -37,14 +40,14 @@
             <uni-easyinput v-model="form.exceptionEndReason" />
           </uni-forms-item>
         </uni-forms>
-        <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+        <ActionBar>
           <uni-button type="primary" :disabled="saving" @click="save">保存</uni-button>
           <uni-button @click="closePopup">取消</uni-button>
-        </view>
-        <view v-if="error" style="margin-top: 8px; color:#d00">{{ error }}</view>
+        </ActionBar>
+        <ErrorBlock :text="error" />
       </view>
     </uni-popup>
-  </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -52,6 +55,10 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 type NodeSettingRow = { id: number | string; nodeKey?: string; exceptionMode?: string; exceptionAdminPlatId?: number; exceptionEndReason?: string; status?: number }
 

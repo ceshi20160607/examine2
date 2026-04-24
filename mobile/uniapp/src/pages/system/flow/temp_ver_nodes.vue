@@ -1,28 +1,31 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`版本节点（tempVerId=${tempVerId}）`">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page :title="`版本节点（tempVerId=${tempVerId}）`" subtitle="节点元数据配置（弹窗编辑）">
+    <view class="u-card u-section">
+      <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="openEdit()">新增</uni-button>
         <uni-button :disabled="loading" @click="reload">刷新</uni-button>
-      </view>
-    </uni-card>
+      </ActionBar>
+    </view>
 
-    <uni-card title="列表" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="n in rows"
-          :key="String(n.id)"
-          :title="`${n.nodeName || n.nodeKey || ('Node#' + n.id)} (${n.nodeType || ''})`"
-          :note="`key=${n.nodeKey || ''} parent=${n.parentNodeKey || ''}`"
-          clickable
-          @click="openActions(n)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无节点</view>
-    </uni-card>
+    <view class="u-card u-section">
+      <view class="u-title">列表</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="n in rows"
+            :key="String(n.id)"
+            :title="`${n.nodeName || n.nodeKey || ('Node#' + n.id)} (${n.nodeType || ''})`"
+            :note="`key=${n.nodeKey || ''} parent=${n.parentNodeKey || ''}`"
+            clickable
+            @click="openActions(n)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无节点" />
+      </view>
+    </view>
 
     <uni-popup ref="popupRef" type="bottom">
-      <view style="background:#fff; padding: 16px">
+      <view class="u-card">
         <uni-forms labelPosition="top">
           <uni-forms-item label="nodeKey">
             <uni-easyinput v-model="form.nodeKey" />
@@ -43,14 +46,14 @@
             <uni-easyinput v-model="form.configJson" type="textarea" :autoHeight="true" />
           </uni-forms-item>
         </uni-forms>
-        <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+        <ActionBar>
           <uni-button type="primary" :disabled="saving" @click="save">保存</uni-button>
           <uni-button @click="closePopup">取消</uni-button>
-        </view>
-        <view v-if="error" style="margin-top: 8px; color:#d00">{{ error }}</view>
+        </ActionBar>
+        <ErrorBlock :text="error" />
       </view>
     </uni-popup>
-  </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -58,6 +61,10 @@ import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 type NodeRow = { id: number | string; nodeKey?: string; parentNodeKey?: string; nodeType?: string; nodeName?: string; configJson?: string; sortNo?: number }
 
