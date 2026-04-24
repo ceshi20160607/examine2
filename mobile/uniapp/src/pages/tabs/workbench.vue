@@ -1,7 +1,7 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="工作台">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page title="工作台" :subtitle="`当前：${statusText}`">
+    <view class="u-card">
+      <ActionBar>
         <uni-button type="primary" @click="goSystems">系统</uni-button>
         <uni-button @click="goApps">Apps</uni-button>
         <uni-button @click="goInbox">待办</uni-button>
@@ -9,18 +9,17 @@
         <uni-button @click="goFlowInstances">流程实例</uni-button>
         <uni-button @click="goFlowMyInstances">我的实例</uni-button>
         <uni-button @click="goUpload">上传</uni-button>
-      </view>
-      <view style="margin-top: 12px; color:#666">
-        当前：{{ statusText }}
-      </view>
-    </uni-card>
-  </view>
+      </ActionBar>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { getSessionPayload } from '@/store/context'
 import { ensureLogin, ensureSystemContext, hasToken } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
 
 const statusText = computed(() => {
   if (!hasToken()) return '未登录（请先登录）'

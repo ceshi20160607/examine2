@@ -1,36 +1,42 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="我的系统">
-      <view style="display: flex; gap: 8px">
-        <uni-easyinput v-model="newSystemName" placeholder="输入系统名称" />
-        <uni-button type="primary" :disabled="creating" @click="createSystem">创建</uni-button>
+  <Page title="我的系统" subtitle="创建并进入系统后开始配置应用与流程">
+    <view class="u-card u-section">
+      <view style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <uni-easyinput v-model="newSystemName" placeholder="输入系统名称" style="flex: 1; min-width: 220px" />
+        <ActionBar>
+          <uni-button type="primary" :disabled="creating" @click="createSystem">创建</uni-button>
+          <uni-button :disabled="loading" @click="load">刷新</uni-button>
+        </ActionBar>
       </view>
-    </uni-card>
+    </view>
 
-    <uni-card title="系统列表" style="margin-top: 12px">
-      <uni-list v-if="systems.length">
-        <uni-list-item
-          v-for="s in systems"
-          :key="s.id"
-          :title="s.name || ('系统 #' + s.id)"
-          :note="s.ownerPlatAccountId ? ('owner=' + s.ownerPlatAccountId) : ''"
-          clickable
-          @click="enterSystem(s)"
-        />
-      </uni-list>
-      <view v-else style="color: #666">暂无系统</view>
-
+    <view class="u-card u-section">
+      <view class="u-title">系统列表</view>
+      <view class="u-subtitle">点击进入系统</view>
       <view style="margin-top: 12px">
-        <uni-button :disabled="loading" @click="load">刷新</uni-button>
+        <uni-list v-if="systems.length">
+          <uni-list-item
+            v-for="s in systems"
+            :key="s.id"
+            :title="s.name || ('系统 #' + s.id)"
+            :note="s.ownerPlatAccountId ? ('owner=' + s.ownerPlatAccountId) : ''"
+            clickable
+            @click="enterSystem(s)"
+          />
+        </uni-list>
+        <view v-else style="color: var(--u-text-muted)">暂无系统</view>
       </view>
-    </uni-card>
-  </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { listMySystems, createSystem as apiCreateSystem, enterSystem as apiEnterSystem } from '@/api/platform'
 import { ensureLogin } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import { useSessionStore } from '@/stores/session'
 
 type PlatSystem = {
   id: number
@@ -42,6 +48,7 @@ const systems = ref<PlatSystem[]>([])
 const loading = ref(false)
 const creating = ref(false)
 const newSystemName = ref('')
+const session = useSessionStore()
 
 async function load() {
   loading.value = true
@@ -71,7 +78,10 @@ async function createSystem() {
 
 async function enterSystem(s: PlatSystem) {
   if (!s?.id) return
-  await apiEnterSystem(s.id)
+  const r = await apiEnterSystem(s.id)
+  if (r?.data) {
+    session.setPayload(r.data as any)
+  }
   uni.showToast({ title: `已进入系统: ${s.name || s.id}`, icon: 'success' })
   // 下一步：进入 module 元数据
   uni.reLaunch({ url: '/pages/system/module/meta/apps' })

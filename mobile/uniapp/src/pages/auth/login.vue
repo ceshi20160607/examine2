@@ -1,6 +1,6 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="登录">
+  <Page title="登录" subtitle="登录后进入系统列表">
+    <view class="u-card">
       <uni-forms :modelValue="form" labelPosition="top">
         <uni-forms-item label="用户名">
           <uni-easyinput v-model="form.username" placeholder="请输入用户名" />
@@ -11,16 +11,15 @@
       </uni-forms>
 
       <view style="margin-top: 12px">
-        <uni-button type="primary" :disabled="submitting" @click="doLogin">登录</uni-button>
+        <ActionBar>
+          <uni-button type="primary" :disabled="submitting" @click="doLogin">登录</uni-button>
+          <uni-button :disabled="submitting" @click="goHealth">健康检查</uni-button>
+        </ActionBar>
       </view>
 
       <view v-if="error" style="margin-top: 12px; color: #d00">{{ error }}</view>
-    </uni-card>
-
-    <view style="margin-top: 12px">
-      <uni-button @click="goHealth">Back to Health</uni-button>
     </view>
-  </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -28,9 +27,13 @@ import { onMounted, reactive, ref } from 'vue'
 import { httpPost } from '@/api/http'
 import { getSessionPayload } from '@/store/context'
 import { hasToken } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import { useSessionStore } from '@/stores/session'
 
 const submitting = ref(false)
 const error = ref<string | null>(null)
+const session = useSessionStore()
 
 const form = reactive({
   username: '',
@@ -49,7 +52,7 @@ async function doLogin() {
       username: form.username.trim(),
       password: form.password
     })
-    uni.setStorageSync('token', r.data.token)
+    session.setToken(r.data.token)
     uni.showToast({ title: '登录成功', icon: 'success' })
     // 登录后先进入系统选择/创建
     uni.reLaunch({ url: '/pages/platform/systems' })
