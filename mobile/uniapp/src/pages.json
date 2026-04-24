@@ -2,6 +2,7 @@
 	"easycom": {
 		"autoscan": true,
 		"custom": {
+			"^uni-button$": "@/components/uni-button/uni-button.vue",
 			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
 		}
 	},
