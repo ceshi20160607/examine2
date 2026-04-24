@@ -75,28 +75,39 @@
       </view>
     </uni-card>
 
-    <uni-card title="菜单列表" style="margin-top: 12px">
-      <uni-list v-if="menus.length">
+    <uni-card title="菜单列表（树形）" style="margin-top: 12px">
+      <uni-list v-if="menusFlat.length">
         <uni-list-item
-          v-for="m in menus"
+          v-for="m in menusFlat"
           :key="m.id"
-          :title="m.menuName || ('Menu#' + m.id)"
-          :note="m.permKey || ''"
+          :title="rbacMenuTitleIndented(m)"
+          :note="rbacMenuNote(m)"
+          clickable
+          @click="quickFillParentMenu(m)"
         />
       </uni-list>
       <view v-else style="color:#666">暂无菜单</view>
+      <view style="margin-top: 8px; color:#666">点击菜单行会把 parentId 预填到“新增菜单”。</view>
     </uni-card>
   </view>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import {
+  flattenRbacMenusTree,
+  rbacMenuNote,
+  rbacMenuTitleIndented,
+  type RbacMenuFlatRow,
+  type RbacMenuRow
+} from '@/utils/rbacMenuTree'
 
 type RoleRow = { id: number; roleCode?: string; roleName?: string; status?: number }
-type MenuRow = { id: number; parentId?: number; menuName?: string; permKey?: string; apiPattern?: string; pageId?: number }
+type MenuRow = RbacMenuRow
+type MenuFlatRow = RbacMenuFlatRow
 type MemberRow = { id: number; platId?: number; roleId?: number; status?: number }
 
 const appId = ref<number>(0)
@@ -125,9 +136,15 @@ const previewingPerm = ref(false)
 const permPreviewUri = ref('/v1/system/records/page')
 const permPreviewText = ref('')
 
+const menusFlat = computed(() => flattenRbacMenusTree(menus.value || []))
+
 onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
 })
+
+function quickFillParentMenu(m: MenuFlatRow) {
+  menuForm.parentId = String(Number(m.id) || 0)
+}
 
 async function loadRoles() {
   if (!appId.value) return

@@ -12,13 +12,13 @@
       </view>
     </uni-card>
 
-    <uni-card title="菜单（点击切换）" style="margin-top: 12px">
-      <uni-list v-if="menus.length">
+    <uni-card title="菜单（树形；点击切换）" style="margin-top: 12px">
+      <uni-list v-if="menusFlat.length">
         <uni-list-item
-          v-for="m in menus"
+          v-for="m in menusFlat"
           :key="m.id"
-          :title="`${isSelected(m.id) ? '✓ ' : ''}${m.menuName || ('Menu#' + m.id)}`"
-          :note="m.permKey || m.apiPattern || ''"
+          :title="`${isSelected(m.id) ? '✓ ' : ''}${rbacMenuTitleIndented(m)}`"
+          :note="rbacMenuNote(m)"
           clickable
           @click="toggle(m.id)"
         />
@@ -29,12 +29,20 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import {
+  flattenRbacMenusTree,
+  rbacMenuNote,
+  rbacMenuTitleIndented,
+  type RbacMenuFlatRow,
+  type RbacMenuRow
+} from '@/utils/rbacMenuTree'
 
-type MenuRow = { id: number; parentId?: number; menuName?: string; permKey?: string; apiPattern?: string; pageId?: number }
+type MenuRow = RbacMenuRow
+type MenuFlatRow = RbacMenuFlatRow
 
 const appId = ref<number>(0)
 const roleId = ref<number>(0)
@@ -45,6 +53,8 @@ const saving = ref(false)
 const menus = ref<MenuRow[]>([])
 const selected = ref<Record<number, boolean>>({})
 const permLevelText = ref('1')
+
+const menusFlat = computed(() => flattenRbacMenusTree(menus.value || []))
 
 onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
