@@ -1,13 +1,14 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`Record #${recordId}`">
-      <view style="display:flex; gap: 8px;">
+  <Page :title="`Record #${recordId}`" subtitle="查看/复制/删除">
+    <view class="u-card">
+      <ActionBar>
         <uni-button type="primary" :disabled="!recordId" @click="goEdit">编辑</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
         <uni-button type="warn" :disabled="!recordId || loading" @click="doDelete">删除</uni-button>
         <uni-button :disabled="!detail" @click="copyJson">复制 JSON</uni-button>
         <uni-button @click="toggleRaw">{{ showRaw ? '结构化' : '原始 JSON' }}</uni-button>
-      </view>
+      </ActionBar>
+
       <view v-if="showRaw" style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">
         {{ pretty }}
       </view>
@@ -22,11 +23,11 @@
             @click="copyText(`${e.k}=${e.v}`)"
           />
         </uni-list>
-        <view v-else style="color:#666">无字段数据</view>
+        <EmptyState v-else text="无字段数据" />
       </view>
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-    </uni-card>
-  </view>
+      <ErrorBlock :text="error" />
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -34,6 +35,10 @@ import { onLoad } from '@dcloudio/uni-app'
 import { computed, onMounted, ref } from 'vue'
 import { httpGet, httpRequest } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const recordId = ref<number>(0)
 const loading = ref(false)

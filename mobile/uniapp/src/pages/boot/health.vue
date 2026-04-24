@@ -1,26 +1,26 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="Backend Health">
+  <Page title="Backend Health" subtitle="用于快速验证后端连通性与 requestId">
+    <view class="u-card">
       <view>baseURL: {{ baseURL }}</view>
       <view>status: {{ status }}</view>
       <view>latencyMs: {{ latencyMs }}</view>
       <view>requestId: {{ requestId }}</view>
-      <view v-if="error" style="color: #d00">{{ error }}</view>
-      <view style="margin-top: 12px">
+      <ErrorBlock :text="error" />
+      <ActionBar>
         <uni-button type="primary" @click="ping">Ping</uni-button>
-      </view>
-    </uni-card>
-
-    <view style="margin-top: 12px">
-      <uni-button @click="goLogin">Go Login</uni-button>
+        <uni-button @click="goLogin">Go Login</uni-button>
+      </ActionBar>
     </view>
-  </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { getBaseURL } from '@/config/env'
 import { httpGet } from '@/api/http'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const baseURL = getBaseURL()
 const status = ref<'idle' | 'loading' | 'ok' | 'failed'>('idle')

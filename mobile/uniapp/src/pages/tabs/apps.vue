@@ -1,20 +1,20 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="应用（低代码）">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page title="应用（低代码）" subtitle="应用/模型/字段/记录管理入口">
+    <view class="u-card">
+      <ActionBar>
         <uni-button type="primary" @click="goApps">Apps</uni-button>
         <uni-button @click="goRecordsTip">Records</uni-button>
-      </view>
-      <view style="margin-top: 12px; color:#666">
-        Records 需要先选择 app/model（从 Apps→Models→Fields 进入）。
-      </view>
-    </uni-card>
-  </view>
+      </ActionBar>
+      <view class="u-subtitle">Records 需要先选择 app/model（从 Apps→Models→Fields 进入）。</view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
 
 function goApps() {
   if (!ensureSystemContext()) return

@@ -1,23 +1,32 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="我的">
-      <view style="color:#666">account: {{ accountText }}</view>
-      <view style="color:#666">env: {{ env }}</view>
-      <view style="color:#666">baseURL: {{ baseURL }}</view>
-      <view style="margin-top: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-button @click="setEnv('dev')">dev</uni-button>
-        <uni-button @click="setEnv('test')">test</uni-button>
-        <uni-button @click="setEnv('prod')">prod</uni-button>
+  <Page title="我的" subtitle="环境配置 / 会话信息">
+    <view class="u-card">
+      <view style="color: var(--u-text-muted)">account: {{ accountText }}</view>
+      <view style="color: var(--u-text-muted)">env: {{ env }}</view>
+      <view style="color: var(--u-text-muted)">baseURL: {{ baseURL }}</view>
+
+      <view style="margin-top: 12px">
+        <view class="u-title" style="margin-bottom: 8px">切换环境</view>
+        <ActionBar>
+          <uni-button @click="setEnv('dev')">dev</uni-button>
+          <uni-button @click="setEnv('test')">test</uni-button>
+          <uni-button @click="setEnv('prod')">prod</uni-button>
+        </ActionBar>
       </view>
-      <view style="margin-top: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-button :disabled="refreshing" @click="refreshToken">刷新 token</uni-button>
-        <uni-button :disabled="loadingMe" @click="loadMe">刷新 me</uni-button>
+
+      <view style="margin-top: 12px">
+        <view class="u-title" style="margin-bottom: 8px">会话</view>
+        <ActionBar>
+          <uni-button :disabled="refreshing" @click="refreshToken">刷新 token</uni-button>
+          <uni-button :disabled="loadingMe" @click="loadMe">刷新 me</uni-button>
+        </ActionBar>
       </view>
+
       <view style="margin-top: 12px">
         <uni-button type="warn" @click="logout">退出登录</uni-button>
       </view>
-    </uni-card>
-  </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -25,6 +34,8 @@ import { computed, onMounted, ref } from 'vue'
 import { getBaseURL, getEnv, type AppEnv } from '@/config/env'
 import { httpGet, httpPost } from '@/api/http'
 import { clearSessionPayload } from '@/store/context'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
 
 const envRef = ref<AppEnv>(getEnv())
 const env = computed(() => envRef.value)
