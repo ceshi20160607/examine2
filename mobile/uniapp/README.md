@@ -10,6 +10,14 @@ UniApp（uni-ui）手机端工程。
 corepack pnpm -C mobile/uniapp install
 ```
 
+- **H5 生产构建（发版前建议跑）**：
+
+```powershell
+corepack pnpm -C mobile/uniapp run build:h5
+```
+
+说明：`@dcloudio/uni-ui` 的组件样式会用到 `scss`；本仓库已在 `devDependencies` 中声明 `sass` 以满足构建。
+
 - **启动 H5**：
 
 ```powershell
