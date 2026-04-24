@@ -1,0 +1,58 @@
+:root {
+  --u-bg: #f6f7fb;
+  --u-card-bg: #ffffff;
+  --u-text: #1f2329;
+  --u-text-muted: #6b7280;
+  --u-border: #e5e7eb;
+
+  --u-primary: #1677ff;
+  --u-warn: #dd524d;
+
+  --u-radius: 10px;
+  --u-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+
+  --u-space-1: 8px;
+  --u-space-2: 12px;
+  --u-space-3: 16px;
+  --u-space-4: 20px;
+}
+
+.u-page {
+  min-height: 100vh;
+  background: var(--u-bg);
+  color: var(--u-text);
+}
+
+.u-container {
+  padding: var(--u-space-3);
+}
+
+.u-card {
+  background: var(--u-card-bg);
+  border: 1px solid var(--u-border);
+  border-radius: var(--u-radius);
+  box-shadow: var(--u-shadow);
+  padding: var(--u-space-3);
+}
+
+.u-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.u-subtitle {
+  margin-top: 6px;
+  color: var(--u-text-muted);
+  font-size: 12px;
+}
+
+.u-actions {
+  display: flex;
+  gap: var(--u-space-1);
+  flex-wrap: wrap;
+}
+
+.u-section + .u-section {
+  margin-top: var(--u-space-3);
+}
+

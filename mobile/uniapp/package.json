@@ -54,6 +54,13 @@
     "@dcloudio/uni-mp-xhs": "3.0.0-4080420251103001",
     "@dcloudio/uni-quickapp-webview": "3.0.0-4080420251103001",
     "@dcloudio/uni-ui": "^1.5.12",
+    "@vue/devtools-api": "^8.1.1",
+    "@vue/devtools-kit": "^8.1.1",
+    "@vue/devtools-shared": "^8.1.1",
+    "birpc": "^4.0.0",
+    "hookable": "^6.1.1",
+    "perfect-debounce": "^2.1.0",
+    "pinia": "^3.0.4",
     "vue": "^3.4.21",
     "vue-i18n": "^9.1.9"
   },
