@@ -8,7 +8,7 @@ export function getEnv(): AppEnv {
 
 export function getBaseURL(): string {
   const env = getEnv()
-  if (env === 'dev') return 'http://127.0.0.1:8080'
+  if (env === 'dev') return 'http://127.0.0.1:9999'
   if (env === 'test') return 'https://test.example.com'
   return 'https://prod.example.com'
 }

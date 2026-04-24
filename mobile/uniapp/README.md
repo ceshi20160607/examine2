@@ -24,7 +24,7 @@ corepack pnpm -C mobile/uniapp run build:h5
 corepack pnpm -C mobile/uniapp dev:h5
 ```
 
-启动后打开终端输出的本地地址（类似 `http://localhost:5175/`）。
+启动后打开终端输出的本地地址（类似 `http://localhost:5175/`）。后端联调请保证 `src/config/env.ts` 的 `dev` 基址与后端一致（默认 `http://127.0.0.1:9999`，与 `backend/examine-web` 的 `server.port` 一致）。
 
 ## 工程说明
 
