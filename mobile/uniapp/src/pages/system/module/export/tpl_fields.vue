@@ -42,20 +42,16 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type FieldRow = {
-  id: number | string
-  tplId?: number | string
-  fieldId?: number | string
-  colTitle?: string
-  sortNo?: number
-  formatJson?: string
-}
+import {
+  deleteExportTplField,
+  listExportTplFields,
+  type ModuleExportTplFieldRow,
+  upsertExportTplField
+} from '@/api/module'
 
 const tplId = ref<number>(0)
 const appId = ref<number>(0)
@@ -63,7 +59,7 @@ const modelId = ref<number>(0)
 
 const loading = ref(false)
 const saving = ref(false)
-const rows = ref<FieldRow[]>([])
+const rows = ref<ModuleExportTplFieldRow[]>([])
 
 const editingId = ref<string | number | null>(null)
 const form = reactive<{ fieldId: string; colTitle: string; sortNo: string }>({ fieldId: '', colTitle: '', sortNo: '0' })
@@ -78,7 +74,7 @@ async function load() {
   if (!tplId.value) return
   loading.value = true
   try {
-    const r = await httpGet<FieldRow[]>(`/v1/system/module/exports/tpls/${tplId.value}/fields`)
+    const r = await listExportTplFields(tplId.value)
     rows.value = r.data || []
   } finally {
     loading.value = false
@@ -103,7 +99,7 @@ async function upsert() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/module/exports/fields/upsert', {
+    await upsertExportTplField({
       id: editingId.value ?? null,
       tplId: tplId.value,
       fieldId,
@@ -129,7 +125,7 @@ function goFields() {
   uni.navigateTo({ url: `/pages/system/module/meta/fields?appId=${appId.value}&modelId=${modelId.value}` })
 }
 
-function openFieldActions(f: FieldRow) {
+function openFieldActions(f: ModuleExportTplFieldRow) {
   if (!f?.id) return
   uni.showActionSheet({
     itemList: ['编辑', '删除字段配置'],
@@ -155,7 +151,7 @@ function deleteField(id: string | number) {
     success: async (m) => {
       if (!m.confirm) return
       try {
-        await httpPost('/v1/system/module/exports/fields/delete', { ids: [id] })
+        await deleteExportTplField([id])
         uni.showToast({ title: '已删除', icon: 'success' })
         await load()
       } catch {

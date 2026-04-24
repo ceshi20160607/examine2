@@ -38,19 +38,17 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type FilterTplRow = { id: number; tplCode?: string; tplName?: string; menuId?: number; status?: number }
+import { listFilterTpls, type ModuleFilterTplRow, upsertFilterTpl } from '@/api/module'
 
 const appId = ref<number>(0)
 const modelId = ref<number>(0)
 const loading = ref(false)
 const saving = ref(false)
-const rows = ref<FilterTplRow[]>([])
+const rows = ref<ModuleFilterTplRow[]>([])
 
 const form = reactive<{ tplCode: string; tplName: string; menuId: string }>({ tplCode: '', tplName: '', menuId: '' })
 
@@ -63,7 +61,7 @@ async function load() {
   if (!modelId.value) return
   loading.value = true
   try {
-    const r = await httpGet<FilterTplRow[]>(`/v1/system/module/list-views/models/${modelId.value}/filter-tpls`)
+    const r = await listFilterTpls(modelId.value)
     rows.value = r.data || []
   } finally {
     loading.value = false
@@ -85,7 +83,7 @@ async function upsert() {
 
   saving.value = true
   try {
-    await httpPost('/v1/system/module/list-views/filter-tpls/upsert', {
+    await upsertFilterTpl({
       id: null,
       appId: appId.value,
       modelId: modelId.value,

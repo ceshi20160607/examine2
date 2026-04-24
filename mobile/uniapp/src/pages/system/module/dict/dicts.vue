@@ -37,18 +37,16 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type DictRow = { id: number; dictCode?: string; dictName?: string; status?: number; remark?: string }
+import { listDictsByApp, type ModuleDictRow, upsertDict } from '@/api/module'
 
 const appId = ref<number>(0)
 const loading = ref(false)
 const saving = ref(false)
-const rows = ref<DictRow[]>([])
+const rows = ref<ModuleDictRow[]>([])
 
 const form = reactive<{ dictCode: string; dictName: string }>({ dictCode: '', dictName: '' })
 
@@ -60,7 +58,7 @@ async function load() {
   if (!appId.value) return
   loading.value = true
   try {
-    const r = await httpGet<DictRow[]>(`/v1/system/module/dicts/apps/${appId.value}`)
+    const r = await listDictsByApp(appId.value)
     rows.value = r.data || []
   } finally {
     loading.value = false
@@ -75,13 +73,7 @@ async function upsert() {
   }
   saving.value = true
   try {
-    await httpPost(`/v1/system/module/dicts/apps/${appId.value}/upsert`, {
-      id: null,
-      dictCode: form.dictCode.trim(),
-      dictName: form.dictName.trim(),
-      status: 1,
-      remark: null
-    })
+    await upsertDict(appId.value, { id: null, dictCode: form.dictCode.trim(), dictName: form.dictName.trim(), status: 1, remark: null })
     form.dictCode = ''
     form.dictName = ''
     await load()

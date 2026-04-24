@@ -37,13 +37,11 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type ColRow = { id: number; viewId?: number; fieldId?: number; colTitle?: string; width?: number; sortNo?: number; visibleFlag?: number }
+import { listViewCols, type ModuleListViewColRow, upsertViewCol } from '@/api/module'
 
 const viewId = ref<number>(0)
 const appId = ref<number>(0)
@@ -51,7 +49,7 @@ const modelId = ref<number>(0)
 
 const loading = ref(false)
 const saving = ref(false)
-const rows = ref<ColRow[]>([])
+const rows = ref<ModuleListViewColRow[]>([])
 
 const form = reactive<{ fieldId: string; colTitle: string }>({ fieldId: '', colTitle: '' })
 
@@ -65,7 +63,7 @@ async function load() {
   if (!viewId.value) return
   loading.value = true
   try {
-    const r = await httpGet<ColRow[]>(`/v1/system/module/list-views/${viewId.value}/cols`)
+    const r = await listViewCols(viewId.value)
     rows.value = r.data || []
   } finally {
     loading.value = false
@@ -86,7 +84,7 @@ async function upsert() {
 
   saving.value = true
   try {
-    await httpPost('/v1/system/module/list-views/cols/upsert', {
+    await upsertViewCol({
       id: null,
       viewId: viewId.value,
       fieldId,

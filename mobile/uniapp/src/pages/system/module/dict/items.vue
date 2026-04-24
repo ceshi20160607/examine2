@@ -35,18 +35,16 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type DictItemRow = { id: number; dictId?: number; itemValue?: string; itemLabel?: string; sortNo?: number; status?: number }
+import { listDictItems, type ModuleDictItemRow, upsertDictItem } from '@/api/module'
 
 const dictId = ref<number>(0)
 const loading = ref(false)
 const saving = ref(false)
-const rows = ref<DictItemRow[]>([])
+const rows = ref<ModuleDictItemRow[]>([])
 
 const form = reactive<{ itemValue: string; itemLabel: string }>({ itemValue: '', itemLabel: '' })
 
@@ -58,7 +56,7 @@ async function load() {
   if (!dictId.value) return
   loading.value = true
   try {
-    const r = await httpGet<DictItemRow[]>(`/v1/system/module/dicts/${dictId.value}/items`)
+    const r = await listDictItems(dictId.value)
     rows.value = r.data || []
   } finally {
     loading.value = false
@@ -73,13 +71,7 @@ async function upsert() {
   }
   saving.value = true
   try {
-    await httpPost(`/v1/system/module/dicts/${dictId.value}/items/upsert`, {
-      id: null,
-      itemValue: form.itemValue.trim(),
-      itemLabel: form.itemLabel.trim(),
-      sortNo: 0,
-      status: 1
-    })
+    await upsertDictItem(dictId.value, { id: null, itemValue: form.itemValue.trim(), itemLabel: form.itemLabel.trim(), sortNo: 0, status: 1 })
     form.itemValue = ''
     form.itemLabel = ''
     await load()

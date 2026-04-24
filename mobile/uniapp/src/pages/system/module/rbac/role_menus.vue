@@ -35,7 +35,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import {
   flattenRbacMenusTree,
@@ -47,6 +46,7 @@ import {
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import { listRbacMenus, listRoleMenuPerms, setRoleMenuPerms } from '@/api/module'
 
 type MenuRow = RbacMenuRow
 type MenuFlatRow = RbacMenuFlatRow
@@ -83,7 +83,7 @@ async function loadMenus() {
   if (!appId.value) return
   loading.value = true
   try {
-    const r = await httpGet<MenuRow[]>(`/v1/system/module/rbac/apps/${appId.value}/menus`)
+    const r = await listRbacMenus(appId.value)
     menus.value = r.data || []
   } finally {
     loading.value = false
@@ -92,7 +92,7 @@ async function loadMenus() {
 
 async function loadCurrentPerms() {
   if (!roleId.value) return
-  const r = await httpGet<any[]>(`/v1/system/module/rbac/roles/${roleId.value}/menu-perms`)
+  const r = await listRoleMenuPerms(roleId.value)
   const perms = (r.data || []) as Array<{ menuId?: number; permLevel?: number }>
   const next: Record<number, boolean> = {}
   let anyLevel0 = false
@@ -128,11 +128,7 @@ async function save() {
 
   saving.value = true
   try {
-    await httpPost('/v1/system/module/rbac/roles/menu-perms/set', {
-      roleId: roleId.value,
-      menuIds,
-      permLevel
-    })
+    await setRoleMenuPerms({ roleId: roleId.value, menuIds, permLevel })
     uni.showToast({ title: '已保存', icon: 'success' })
   } finally {
     saving.value = false

@@ -42,26 +42,17 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type JobRow = {
-  id: number | string
-  status?: number
-  tplId?: number | string
-  modelId?: number | string
-  resultFileId?: number | string
-  errorMsg?: string
-}
+import { pageExportJobs, type ModuleExportJobRow } from '@/api/module'
 
 const loading = ref(false)
 const page = ref(1)
 const size = ref(20)
 const total = ref(0)
-const rows = ref<JobRow[]>([])
+const rows = ref<ModuleExportJobRow[]>([])
 const filter = reactive<{ tplId: string; modelId: string; status: string }>({ tplId: '', modelId: '', status: '' })
 
 const hasNext = computed(() => page.value * size.value < total.value)
@@ -95,10 +86,16 @@ function buildQuery() {
 async function load() {
   loading.value = true
   try {
-    const r = await httpGet<any>(`/v1/system/module/export-jobs/page?page=${page.value}&size=${size.value}${buildQuery()}`)
+    const r = await pageExportJobs({
+      page: page.value,
+      size: size.value,
+      tplId: filter.tplId,
+      modelId: filter.modelId,
+      status: filter.status
+    })
     const d = r.data || {}
     total.value = Number(d.total || 0)
-    rows.value = (d.records || []) as JobRow[]
+    rows.value = (d.records || []) as ModuleExportJobRow[]
   } finally {
     loading.value = false
   }

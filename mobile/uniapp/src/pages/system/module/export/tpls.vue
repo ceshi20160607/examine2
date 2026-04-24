@@ -42,26 +42,19 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { buildApiUrl, buildAuthHeaders, httpGet, httpPost } from '@/api/http'
+import { buildApiUrl, buildAuthHeaders } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type ExportTpl = {
-  id: number | string
-  tplCode?: string
-  tplName?: string
-  fileType?: string
-  status?: number
-}
+import { createExportJob, deleteExportTpl, listExportTplsByModel, type ModuleExportTplRow, upsertExportTpl } from '@/api/module'
 
 const appId = ref<number>(0)
 const modelId = ref<number>(0)
 
 const loading = ref(false)
 const saving = ref(false)
-const rows = ref<ExportTpl[]>([])
+const rows = ref<ModuleExportTplRow[]>([])
 
 const form = reactive<{ tplCode: string; tplName: string; fileType: string }>({
   tplCode: '',
@@ -78,7 +71,7 @@ async function load() {
   if (!modelId.value) return
   loading.value = true
   try {
-    const r = await httpGet<ExportTpl[]>(`/v1/system/module/exports/models/${modelId.value}/tpls`)
+    const r = await listExportTplsByModel(modelId.value)
     rows.value = r.data || []
   } finally {
     loading.value = false
@@ -98,7 +91,7 @@ async function createTpl() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/module/exports/tpls/upsert', {
+    await upsertExportTpl({
       id: null,
       appId: appId.value,
       modelId: modelId.value,
@@ -122,14 +115,14 @@ function goJobs() {
   uni.navigateTo({ url: `/pages/system/module/export/jobs?modelId=${modelId.value}` })
 }
 
-function goFields(t: ExportTpl) {
+function goFields(t: ModuleExportTplRow) {
   if (!t?.id) return
   uni.navigateTo({
     url: `/pages/system/module/export/tpl_fields?tplId=${t.id}&appId=${appId.value}&modelId=${modelId.value}`
   })
 }
 
-function openTplActions(t: ExportTpl) {
+function openTplActions(t: ModuleExportTplRow) {
   if (!t?.id) return
   uni.showActionSheet({
     itemList: ['配置导出字段', '同步导出 CSV（下载）', '创建异步导出任务', '查看导出任务', '删除模板'],
@@ -192,7 +185,7 @@ async function deleteTpl(tplId: string | number) {
     success: async (m) => {
       if (!m.confirm) return
       try {
-        await httpPost('/v1/system/module/exports/tpls/delete', { ids: [tplId] })
+        await deleteExportTpl([tplId])
         uni.showToast({ title: '已删除', icon: 'success' })
         await load()
       } catch {
@@ -206,7 +199,7 @@ async function createJob(tplId: string | number) {
   if (!appId.value || !modelId.value) return
   // 给后端一个最小 query（会走 prepareDslQuery 注入/校验作用域）
   const query = { appId: appId.value, modelId: modelId.value, limit: 200, page: 1 }
-  const r = await httpPost<any>(`/v1/system/module/export-jobs/tpls/${tplId}`, query)
+  const r = await createExportJob(tplId, query)
   const jobId = r.data?.jobId
   uni.showToast({ title: '任务已创建', icon: 'success' })
   if (jobId) {

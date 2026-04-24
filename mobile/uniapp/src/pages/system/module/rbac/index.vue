@@ -129,7 +129,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import {
   flattenRbacMenusTree,
@@ -141,6 +140,15 @@ import {
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import {
+  assignRbacMemberRole,
+  listRbacMembers,
+  listRbacMenus,
+  listRbacRoles,
+  permPreview,
+  upsertRbacMenu,
+  upsertRbacRole
+} from '@/api/module'
 
 type RoleRow = { id: number; roleCode?: string; roleName?: string; status?: number }
 type MenuRow = RbacMenuRow
@@ -187,7 +195,7 @@ async function loadRoles() {
   if (!appId.value) return
   loading.value = true
   try {
-    const r = await httpGet<RoleRow[]>(`/v1/system/module/rbac/apps/${appId.value}/roles`)
+    const r = await listRbacRoles(appId.value)
     roles.value = r.data || []
   } finally {
     loading.value = false
@@ -198,7 +206,7 @@ async function loadMenus() {
   if (!appId.value) return
   loading.value = true
   try {
-    const r = await httpGet<MenuRow[]>(`/v1/system/module/rbac/apps/${appId.value}/menus`)
+    const r = await listRbacMenus(appId.value)
     menus.value = r.data || []
   } finally {
     loading.value = false
@@ -209,7 +217,7 @@ async function loadMembers() {
   if (!appId.value) return
   loading.value = true
   try {
-    const r = await httpGet<MemberRow[]>(`/v1/system/module/rbac/apps/${appId.value}/members`)
+    const r = await listRbacMembers(appId.value)
     members.value = r.data || []
   } finally {
     loading.value = false
@@ -230,12 +238,7 @@ async function upsertRole() {
   }
   savingRole.value = true
   try {
-    await httpPost(`/v1/system/module/rbac/apps/${appId.value}/roles/upsert`, {
-      id: null,
-      roleCode: roleForm.roleCode.trim(),
-      roleName: roleForm.roleName.trim(),
-      status: 1
-    })
+    await upsertRbacRole(appId.value, { id: null, roleCode: roleForm.roleCode.trim(), roleName: roleForm.roleName.trim(), status: 1 })
     roleForm.roleCode = ''
     roleForm.roleName = ''
     await loadRoles()
@@ -254,11 +257,7 @@ async function assignMemberRole() {
   }
   savingMember.value = true
   try {
-    await httpPost('/v1/system/module/rbac/members/assign-role', {
-      appId: appId.value,
-      memberPlatId,
-      roleId
-    })
+    await assignRbacMemberRole({ appId: appId.value, memberPlatId, roleId })
     uni.showToast({ title: '分配成功', icon: 'success' })
     memberForm.memberPlatId = ''
     memberForm.roleId = ''
@@ -287,7 +286,7 @@ async function upsertMenu() {
 
   savingMenu.value = true
   try {
-    await httpPost(`/v1/system/module/rbac/apps/${appId.value}/menus/upsert`, {
+    await upsertRbacMenu(appId.value, {
       id: null,
       parentId,
       menuName: menuForm.menuName.trim(),
@@ -316,7 +315,7 @@ async function previewPerm() {
   previewingPerm.value = true
   permPreviewText.value = ''
   try {
-    const r = await httpGet<any>(`/v1/system/auth/perm-preview?uri=${encodeURIComponent(uri)}`)
+    const r = await permPreview(uri)
     permPreviewText.value = JSON.stringify(r.data ?? null, null, 2)
   } catch (e: any) {
     permPreviewText.value = e?.message ?? String(e)

@@ -38,19 +38,17 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type ViewRow = { id: number; viewCode?: string; viewName?: string; defaultFlag?: number; status?: number }
+import { listViewsByModel, type ModuleListViewRow, upsertListView } from '@/api/module'
 
 const appId = ref<number>(0)
 const modelId = ref<number>(0)
 const loading = ref(false)
 const saving = ref(false)
-const rows = ref<ViewRow[]>([])
+const rows = ref<ModuleListViewRow[]>([])
 
 const form = reactive<{ viewCode: string; viewName: string }>({ viewCode: '', viewName: '' })
 
@@ -63,7 +61,7 @@ async function load() {
   if (!modelId.value) return
   loading.value = true
   try {
-    const r = await httpGet<ViewRow[]>(`/v1/system/module/list-views/models/${modelId.value}`)
+    const r = await listViewsByModel(modelId.value)
     rows.value = r.data || []
   } finally {
     loading.value = false
@@ -78,7 +76,7 @@ async function upsert() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/module/list-views/upsert', {
+    await upsertListView({
       id: null,
       appId: appId.value,
       modelId: modelId.value,
@@ -101,7 +99,7 @@ function goFilterTpls() {
   uni.navigateTo({ url: `/pages/system/module/listviews/filter_tpls?appId=${appId.value}&modelId=${modelId.value}` })
 }
 
-function openViewActions(v: ViewRow) {
+function openViewActions(v: ModuleListViewRow) {
   if (!v?.id) return
   uni.showActionSheet({
     itemList: ['Cols（列配置）'],

@@ -24,11 +24,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { buildApiUrl, buildAuthHeaders, httpGet } from '@/api/http'
+import { buildApiUrl, buildAuthHeaders } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { getExportJobDetail } from '@/api/module'
 
 const jobId = ref<number>(0)
 const loading = ref(false)
@@ -65,7 +66,7 @@ async function reload() {
   loading.value = true
   error.value = null
   try {
-    const r = await httpGet<any>(`/v1/system/module/export-jobs/${jobId.value}`)
+    const r = await getExportJobDetail(jobId.value)
     const d = r.data || {}
     job.value = d.job
     file.value = d.file || null
@@ -101,7 +102,7 @@ function afterJobLoaded() {
   }
   pollTimer.value = setInterval(async () => {
     try {
-      const r = await httpGet<any>(`/v1/system/module/export-jobs/${jobId.value}`)
+      const r = await getExportJobDetail(jobId.value)
       const d = r.data || {}
       job.value = d.job
       file.value = d.file || null
