@@ -31,19 +31,25 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { buildApiUrl, buildAuthHeaders, httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import {
+  buildUploadDownloadUrl,
+  deleteUpload,
+  pageUploads,
+  type UploadRow,
+  uploadOneFile,
+  downloadUploadToTemp
+} from '@/api/upload'
 
 const uploading = ref(false)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const lastFileId = ref<number | null>(null)
 
-type UploadRow = { id: number; originalName?: string; fileSize?: number; contentType?: string }
 const rows = ref<UploadRow[]>([])
 
 async function chooseAndUpload() {
@@ -67,32 +73,8 @@ async function chooseAndUpload() {
       throw new Error('未选择文件')
     }
 
-    const uploadRes: any = await new Promise((resolve, reject) => {
-      uni.uploadFile({
-        url: buildApiUrl('/v1/system/uploads'),
-        filePath,
-        name: 'file',
-        header: buildAuthHeaders(),
-        success: resolve,
-        fail: reject
-      })
-    })
-
-    const raw = uploadRes?.data
-    let json: any
-    if (typeof raw === 'string') {
-      try {
-        json = JSON.parse(raw)
-      } catch {
-        throw new Error('上传响应不是 JSON（请检查网关/地址配置）')
-      }
-    } else {
-      json = raw
-    }
-    if (!json || json.code !== 0) {
-      throw new Error(json?.message || '上传失败')
-    }
-    lastFileId.value = json.data?.fileId ?? null
+    const r = await uploadOneFile(filePath)
+    lastFileId.value = r?.data?.fileId ?? null
     uni.showToast({ title: '上传成功', icon: 'success' })
     await loadPage()
   } catch (e: any) {
@@ -107,7 +89,7 @@ async function loadPage() {
   loading.value = true
   error.value = null
   try {
-    const r = await httpGet<any>('/v1/system/uploads/page?page=1&size=20')
+    const r = await pageUploads(1, 20)
     const d: any = r.data || {}
     rows.value = d.records || d.rows || []
   } catch (e: any) {
@@ -117,17 +99,12 @@ async function loadPage() {
   }
 }
 
-function buildUrl(path: string): string {
-  return buildApiUrl(path)
-}
-
 function openActions(f: UploadRow) {
   if (!f?.id) return
   uni.showActionSheet({
     itemList: ['预览(view)', '下载(download)', '删除(软删)'],
     success: (res) => {
       if (res.tapIndex === 0) {
-        const u = buildUrl(`/v1/system/uploads/${f.id}/view`)
         uni.navigateTo({ url: `/pages/system/upload/view?fileId=${f.id}&name=${encodeURIComponent(f.originalName || '')}` })
         return
       }
@@ -145,19 +122,10 @@ function openActions(f: UploadRow) {
 async function downloadFile(fileId: number, filename: string) {
   if (!ensureSystemContext()) return
   if (!hasToken()) return
-  const url = buildUrl(`/v1/system/uploads/${fileId}/download`)
+  const url = buildUploadDownloadUrl(fileId)
   uni.showLoading({ title: '下载中...' })
   try {
-    const dl: any = await new Promise((resolve, reject) => {
-      uni.downloadFile({
-        url,
-        header: buildAuthHeaders(),
-        success: resolve,
-        fail: reject
-      })
-    })
-    const tempFilePath = dl?.tempFilePath
-    if (!tempFilePath) throw new Error('下载失败')
+    const tempFilePath = await downloadUploadToTemp(url)
     // App/部分平台支持保存到本地；H5 会直接下载或给 temp path
     uni.saveFile({
       tempFilePath,
@@ -180,7 +148,7 @@ async function deleteFile(fileId: number) {
   if (!hasToken()) return
   loading.value = true
   try {
-    await httpPost(`/v1/system/uploads/${fileId}/delete`, {})
+    await deleteUpload(fileId)
     uni.showToast({ title: '已删除', icon: 'success' })
     await loadPage()
   } catch (e: any) {

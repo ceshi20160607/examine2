@@ -14,11 +14,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { buildApiUrl, buildAuthHeaders } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { buildUploadViewUrl, downloadUploadToTemp } from '@/api/upload'
 
 const nameRef = ref('')
 const fileIdRef = ref<number>(0)
@@ -32,14 +32,10 @@ onLoad((opts) => {
   fileIdRef.value = Number((opts as any)?.fileId || 0) || 0
 })
 
-function buildUrl(path: string): string {
-  return buildApiUrl(path)
-}
-
 function copyUrl() {
   error.value = null
   if (!hasToken() || !fileIdRef.value) return
-  const url = buildUrl(`/v1/system/uploads/${fileIdRef.value}/view`)
+  const url = buildUploadViewUrl(fileIdRef.value)
   uni.setClipboardData({ data: url })
 }
 
@@ -47,21 +43,12 @@ async function openPreview() {
   error.value = null
   if (!ensureSystemContext()) return
   if (!hasToken() || !fileIdRef.value) return
-  const url = buildUrl(`/v1/system/uploads/${fileIdRef.value}/view`)
+  const url = buildUploadViewUrl(fileIdRef.value)
 
   opening.value = true
   uni.showLoading({ title: '加载预览...' })
   try {
-    const dl: any = await new Promise((resolve, reject) => {
-      uni.downloadFile({
-        url,
-        header: buildAuthHeaders(),
-        success: resolve,
-        fail: reject
-      })
-    })
-    const filePath = dl?.tempFilePath
-    if (!filePath) throw new Error('预览下载失败')
+    const filePath = await downloadUploadToTemp(url)
     // 尝试用系统打开
     // @ts-ignore
     uni.openDocument?.({

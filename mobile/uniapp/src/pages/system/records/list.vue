@@ -32,11 +32,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import { getRecord, queryRecords } from '@/api/records'
+import { httpGet } from '@/api/http'
 
 type Row = { id: number }
 type Summary = { title: string; note: string }
@@ -71,7 +72,7 @@ async function query() {
       filters.push({ field: searchFieldCode.value, op: 'like', value: kw })
     }
     // 使用后端 DSL 查询（最小：只按 modelId 过滤，limit 20）
-    const r = await httpPost<any>('/v1/system/records/query', {
+    const r = await queryRecords({
       appId: appId.value,
       modelId: modelId.value,
       page: 1,
@@ -94,7 +95,7 @@ async function reload() {
 async function hydrateSummaries(ids: number[]) {
   for (const id of ids) {
     try {
-      const r = await httpGet<any>(`/v1/system/records/${id}`)
+      const r = await getRecord(id)
       const d = r.data || {}
       const data = d.data || {}
       const keys = Object.keys(data).slice(0, 3)

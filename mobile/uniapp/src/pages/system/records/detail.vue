@@ -33,12 +33,12 @@
 <script setup lang="ts">
 import { onLoad } from '@dcloudio/uni-app'
 import { computed, onMounted, ref } from 'vue'
-import { httpGet, httpRequest } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { deleteRecord, getRecord } from '@/api/records'
 
 const recordId = ref<number>(0)
 const loading = ref(false)
@@ -72,7 +72,7 @@ async function load() {
   loading.value = true
   error.value = null
   try {
-    const r = await httpGet<any>(`/v1/system/records/${recordId.value}`)
+    const r = await getRecord(recordId.value)
     detail.value = r.data
   } catch (e: any) {
     error.value = e?.message ?? String(e)
@@ -118,7 +118,7 @@ function doDelete() {
     success: async (m) => {
       if (!m.confirm) return
       try {
-        await httpRequest('DELETE', `/v1/system/records/${recordId.value}`)
+        await deleteRecord(recordId.value)
         uni.showToast({ title: '已删除', icon: 'success' })
         uni.navigateBack()
       } catch (e: any) {
