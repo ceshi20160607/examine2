@@ -1,22 +1,24 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card :title="`Flow Task（instanceId=${instanceId} taskId=${taskId}）`">
+  <Page :title="`Flow Task（instanceId=${instanceId} taskId=${taskId}）`" subtitle="同意/拒绝/领取/撤回/终止">
+    <view class="u-card">
       <uni-forms labelPosition="top">
         <uni-forms-item label="commentText">
           <uni-easyinput v-model="commentText" placeholder="可选" />
         </uni-forms-item>
       </uni-forms>
 
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+      <ActionBar>
         <uni-button type="primary" :disabled="acting" @click="approve">同意</uni-button>
         <uni-button type="warn" :disabled="acting" @click="reject">拒绝</uni-button>
         <uni-button :disabled="acting" @click="claim">领取</uni-button>
         <uni-button :disabled="acting" @click="unclaim">取消领取</uni-button>
-      </view>
+      </ActionBar>
 
-      <view style="display:flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+      <view style="margin-top: 8px">
+        <ActionBar>
         <uni-button :disabled="acting" @click="withdraw">撤回实例</uni-button>
         <uni-button :disabled="acting" @click="terminate">终止实例</uni-button>
+        </ActionBar>
       </view>
 
       <view
@@ -25,9 +27,9 @@
       >
         {{ actionResultText }}
       </view>
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-    </uni-card>
-  </view>
+      <ErrorBlock :text="error" />
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -35,6 +37,9 @@ import { onLoad } from '@dcloudio/uni-app'
 import { onMounted, ref } from 'vue'
 import { httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const instanceId = ref<number>(0)
 const taskId = ref<number>(0)

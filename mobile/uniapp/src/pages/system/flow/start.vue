@@ -1,6 +1,6 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="发起流程">
+  <Page title="发起流程" subtitle="推荐从模板下拉选择；发起成功可直接打开任务/待办">
+    <view class="u-card">
       <uni-forms labelPosition="top">
         <uni-forms-item label="模板（推荐）">
           <uni-data-select
@@ -27,22 +27,24 @@
         </uni-forms-item>
       </uni-forms>
 
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+      <ActionBar>
         <uni-button type="primary" :disabled="starting || !canStart" @click="start">发起</uni-button>
         <uni-button @click="goTemps">选择模板</uni-button>
         <uni-button @click="goTempManage">模板管理</uni-button>
         <uni-button @click="goByBiz">按 biz 查询</uni-button>
-      </view>
+      </ActionBar>
 
-      <view v-if="hint" style="margin-top: 12px; color:#666">{{ hint }}</view>
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-      <view v-if="lastStart.instanceId || lastStart.taskId" style="margin-top: 12px; display:flex; gap: 8px; flex-wrap: wrap;">
-        <uni-button v-if="lastStart.instanceId && lastStart.taskId" type="primary" @click="goLastTask">打开任务</uni-button>
-        <uni-button v-if="lastStart.instanceId" @click="goInbox">打开待办箱</uni-button>
+      <view v-if="hint" class="u-subtitle">{{ hint }}</view>
+      <ErrorBlock :text="error" />
+      <view v-if="lastStart.instanceId || lastStart.taskId" style="margin-top: 12px">
+        <ActionBar>
+          <uni-button v-if="lastStart.instanceId && lastStart.taskId" type="primary" @click="goLastTask">打开任务</uni-button>
+          <uni-button v-if="lastStart.instanceId" @click="goInbox">打开待办箱</uni-button>
+        </ActionBar>
       </view>
       <view v-if="resultText" style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ resultText }}</view>
-    </uni-card>
-  </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
@@ -50,6 +52,9 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const starting = ref(false)
 const error = ref<string | null>(null)

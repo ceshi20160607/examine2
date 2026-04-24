@@ -1,44 +1,53 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="待办 Inbox">
-      <view style="display:flex; gap: 8px;">
+  <Page title="待办 Inbox" subtitle="我的待办 + 抄送">
+    <view class="u-card u-section">
+      <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="loadPending">刷新待办</uni-button>
         <uni-button :disabled="loading" @click="loadCc">刷新抄送</uni-button>
+      </ActionBar>
+    </view>
+
+    <view class="u-card u-section">
+      <view class="u-title">我的待办</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="pending.length">
+          <uni-list-item
+            v-for="t in pending"
+            :key="t.id"
+            :title="t.nodeName || ('Task#' + t.id)"
+            :note="`instanceId=${t.recordId} taskId=${t.id}`"
+            clickable
+            @click="goTask(t)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无待办" />
       </view>
-    </uni-card>
+    </view>
 
-    <uni-card title="我的待办" style="margin-top: 12px">
-      <uni-list v-if="pending.length">
-        <uni-list-item
-          v-for="t in pending"
-          :key="t.id"
-          :title="t.nodeName || ('Task#' + t.id)"
-          :note="`instanceId=${t.recordId} taskId=${t.id}`"
-          clickable
-          @click="goTask(t)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无待办</view>
-    </uni-card>
-
-    <uni-card title="我的抄送" style="margin-top: 12px">
-      <uni-list v-if="cc.length">
-        <uni-list-item
-          v-for="t in cc"
-          :key="t.id"
-          :title="t.nodeName || ('CC#' + t.id)"
-          :note="`instanceId=${t.recordId} taskId=${t.id}`"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无抄送</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">我的抄送</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="cc.length">
+          <uni-list-item
+            v-for="t in cc"
+            :key="t.id"
+            :title="t.nodeName || ('CC#' + t.id)"
+            :note="`instanceId=${t.recordId} taskId=${t.id}`"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无抄送" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { httpGet } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
 
 type FlowTask = { id: number; recordId?: number; nodeName?: string }
 

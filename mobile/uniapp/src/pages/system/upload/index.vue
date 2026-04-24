@@ -1,37 +1,42 @@
 <template>
-  <view style="padding: 16px">
-    <uni-card title="上传文件">
-      <view style="display:flex; gap: 8px; flex-wrap: wrap;">
+  <Page title="上传文件" subtitle="支持上传、预览、下载与删除">
+    <view class="u-card u-section">
+      <ActionBar>
         <uni-button type="primary" :disabled="uploading" @click="chooseAndUpload">选择并上传</uni-button>
         <uni-button :disabled="loading" @click="loadPage">刷新列表</uni-button>
-      </view>
+      </ActionBar>
 
-      <view v-if="lastFileId" style="margin-top: 12px">
-        <view>lastFileId: {{ lastFileId }}</view>
-      </view>
-      <view v-if="error" style="margin-top: 12px; color:#d00">{{ error }}</view>
-    </uni-card>
+      <view v-if="lastFileId" class="u-subtitle">lastFileId: {{ lastFileId }}</view>
+      <ErrorBlock :text="error" />
+    </view>
 
-    <uni-card title="文件列表（page）" style="margin-top: 12px">
-      <uni-list v-if="rows.length">
-        <uni-list-item
-          v-for="f in rows"
-          :key="f.id"
-          :title="f.originalName || ('File#' + f.id)"
-          :note="`${f.id} / ${f.fileSize || 0} bytes`"
-          clickable
-          @click="openActions(f)"
-        />
-      </uni-list>
-      <view v-else style="color:#666">暂无文件</view>
-    </uni-card>
-  </view>
+    <view class="u-card u-section">
+      <view class="u-title">文件列表（page）</view>
+      <view style="margin-top: 12px">
+        <uni-list v-if="rows.length">
+          <uni-list-item
+            v-for="f in rows"
+            :key="f.id"
+            :title="f.originalName || ('File#' + f.id)"
+            :note="`${f.id} / ${f.fileSize || 0} bytes`"
+            clickable
+            @click="openActions(f)"
+          />
+        </uni-list>
+        <EmptyState v-else text="暂无文件" />
+      </view>
+    </view>
+  </Page>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { buildApiUrl, buildAuthHeaders, httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
+import Page from '@/ui/Page.vue'
+import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 
 const uploading = ref(false)
 const loading = ref(false)
