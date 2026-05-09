@@ -72,11 +72,13 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { listFieldsByModel } from '@/api/meta'
+import { listDictItems, listDictsByApp } from '@/api/module'
+import { createRecord, getRecord, updateRecord } from '@/api/records'
 
 const appId = ref(0)
 const modelId = ref(0)
@@ -164,7 +166,7 @@ async function bootstrap() {
   try {
     // 编辑场景：先拿 record，补齐 appId/modelId，并回填 data
     if (recordId.value) {
-      const d = await httpGet<any>(`/v1/system/records/${recordId.value}`)
+      const d = await getRecord(recordId.value)
       const rec = d.data?.record
       const data = d.data?.data
       if (!appId.value) appId.value = Number(rec?.appId || 0) || 0
@@ -177,7 +179,7 @@ async function bootstrap() {
     }
 
     if (!modelId.value) return
-    const f = await httpGet<ModuleField[]>(`/v1/system/module/meta/models/${modelId.value}/fields`)
+    const f = await listFieldsByModel(modelId.value)
     fields.value = (f.data || []) as any
 
     // 新建：填默认值
@@ -256,7 +258,7 @@ async function loadDictOptionsIfNeeded() {
   )
   if (dictCodes.length === 0) return
 
-  const dictsResp = await httpGet<any>(`/v1/system/module/dicts/apps/${appId.value}`)
+  const dictsResp = await listDictsByApp(appId.value)
   const dicts = (dictsResp.data || []) as Array<{ id: number | string; dictCode?: string }>
   const codeToId: Record<string, any> = {}
   for (const d of dicts) {
@@ -267,7 +269,7 @@ async function loadDictOptionsIfNeeded() {
     if (dictOptionsByCode[code]?.length) continue
     const dictId = codeToId[code]
     if (!dictId) continue
-    const itemsResp = await httpGet<any>(`/v1/system/module/dicts/${dictId}/items`)
+    const itemsResp = await listDictItems(Number(dictId))
     const items = (itemsResp.data || []) as Array<{ itemValue?: any; itemLabel?: string }>
     dictOptionsByCode[code] = items.map((it) => ({ value: it.itemValue ?? '', text: it.itemLabel || String(it.itemValue ?? '') }))
   }
@@ -334,12 +336,12 @@ async function submit() {
   saving.value = true
   try {
     if (recordId.value) {
-      await httpPost(`/v1/system/records/${recordId.value}/update`, { data: dataObj })
+      await updateRecord(recordId.value, dataObj)
       uni.showToast({ title: '更新成功', icon: 'success' })
       back()
       return
     }
-    const r = await httpPost<any>('/v1/system/records', { appId: appId.value, modelId: modelId.value, data: dataObj })
+    const r = await createRecord({ appId: appId.value, modelId: modelId.value, data: dataObj })
     const id = r.data?.recordId
     uni.showToast({ title: '创建成功', icon: 'success' })
     if (id) {
