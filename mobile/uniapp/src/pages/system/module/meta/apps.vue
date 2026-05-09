@@ -36,13 +36,11 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type ModuleApp = { id: number; appCode?: string; appName?: string; status?: number }
+import { listApps, type ModuleApp, upsertApp } from '@/api/meta'
 
 const apps = ref<ModuleApp[]>([])
 const loading = ref(false)
@@ -52,7 +50,7 @@ const form = reactive({ appCode: '', appName: '' })
 async function load() {
   loading.value = true
   try {
-    const r = await httpGet<ModuleApp[]>('/v1/system/module/meta/apps')
+    const r = await listApps()
     apps.value = r.data || []
   } finally {
     loading.value = false
@@ -66,7 +64,7 @@ async function create() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/module/meta/apps/upsert', {
+    await upsertApp({
       appCode: form.appCode.trim(),
       appName: form.appName.trim(),
       iconUrl: null,

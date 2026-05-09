@@ -37,7 +37,7 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import { getRecord, queryRecords } from '@/api/records'
-import { httpGet } from '@/api/http'
+import { listFieldsByModel } from '@/api/meta'
 
 type Row = { id: number }
 type Summary = { title: string; note: string }
@@ -137,7 +137,7 @@ function goDetail(recordId: number) {
 async function loadFieldsForSearch() {
   if (!modelId.value) return
   try {
-    const r = await httpGet<any>(`/v1/system/module/meta/models/${modelId.value}/fields`)
+    const r = await listFieldsByModel(modelId.value)
     const list = (r.data || []) as Array<{ fieldCode?: string; fieldType?: string; dictCode?: string; hiddenFlag?: number }>
     const cand = list.find((f) => f && f.hiddenFlag !== 1 && f.fieldCode && !f.dictCode)
     searchFieldCode.value = cand?.fieldCode ? String(cand.fieldCode) : ''

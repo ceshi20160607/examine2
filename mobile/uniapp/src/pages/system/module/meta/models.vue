@@ -37,13 +37,11 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type ModuleModel = { id: number; appId?: number; modelCode?: string; modelName?: string; status?: number }
+import { listModelsByApp, type ModuleModel, upsertModel } from '@/api/meta'
 
 const appId = ref<number>(0)
 const models = ref<ModuleModel[]>([])
@@ -63,7 +61,7 @@ async function load() {
   }
   loading.value = true
   try {
-    const r = await httpGet<ModuleModel[]>(`/v1/system/module/meta/apps/${appId.value}/models`)
+    const r = await listModelsByApp(appId.value)
     models.value = r.data || []
   } finally {
     loading.value = false
@@ -78,14 +76,7 @@ async function create() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/module/meta/models/upsert', {
-      id: null,
-      appId: appId.value,
-      modelCode: form.modelCode.trim(),
-      modelName: form.modelName.trim(),
-      status: 1,
-      remark: null
-    })
+    await upsertModel({ id: null, appId: appId.value, modelCode: form.modelCode.trim(), modelName: form.modelName.trim(), status: 1, remark: null })
     form.modelCode = ''
     form.modelName = ''
     await load()

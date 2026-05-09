@@ -37,13 +37,11 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { httpGet, httpPost } from '@/api/http'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-
-type ModuleField = { id: number; fieldCode?: string; fieldName?: string; fieldType?: string; status?: number }
+import { listFieldsByModel, type ModuleField, upsertField } from '@/api/meta'
 
 const appId = ref<number>(0)
 const modelId = ref<number>(0)
@@ -64,7 +62,7 @@ async function load() {
   }
   loading.value = true
   try {
-    const r = await httpGet<ModuleField[]>(`/v1/system/module/meta/models/${modelId.value}/fields`)
+    const r = await listFieldsByModel(modelId.value)
     fields.value = r.data || []
   } finally {
     loading.value = false
@@ -79,7 +77,7 @@ async function create() {
   }
   saving.value = true
   try {
-    await httpPost('/v1/system/module/meta/fields/upsert', {
+    await upsertField({
       id: null,
       appId: appId.value,
       modelId: modelId.value,
