@@ -24,12 +24,12 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { httpPost } from '@/api/http'
 import { getSessionPayload } from '@/store/context'
 import { hasToken } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import { useSessionStore } from '@/stores/session'
+import { login } from '@/api/platformAuth'
 
 const submitting = ref(false)
 const error = ref<string | null>(null)
@@ -48,10 +48,7 @@ async function doLogin() {
   submitting.value = true
   error.value = null
   try {
-    const r = await httpPost<{ token: string; account: any }>('/v1/platform/auth/login', {
-      username: form.username.trim(),
-      password: form.password
-    })
+    const r = await login(form.username.trim(), form.password)
     session.setToken(r.data.token)
     uni.showToast({ title: '登录成功', icon: 'success' })
     // 登录后先进入系统选择/创建

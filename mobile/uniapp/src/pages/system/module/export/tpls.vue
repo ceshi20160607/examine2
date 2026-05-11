@@ -42,12 +42,19 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { buildApiUrl, buildAuthHeaders } from '@/api/http'
+import { buildAuthHeaders } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-import { createExportJob, deleteExportTpl, listExportTplsByModel, type ModuleExportTplRow, upsertExportTpl } from '@/api/module'
+import {
+  buildExportTplCsvUrl,
+  createExportJob,
+  deleteExportTpl,
+  listExportTplsByModel,
+  type ModuleExportTplRow,
+  upsertExportTpl
+} from '@/api/module'
 
 const appId = ref<number>(0)
 const modelId = ref<number>(0)
@@ -153,7 +160,7 @@ function openTplActions(t: ModuleExportTplRow) {
 async function exportCsv(tplId: string | number) {
   if (!ensureSystemContext()) return
   if (!hasToken()) return
-  const url = buildApiUrl(`/v1/system/module/exports/tpls/${tplId}/export/csv?limit=200`)
+  const url = buildExportTplCsvUrl(tplId, 200)
   uni.showLoading({ title: '导出中...' })
   try {
     const dl: any = await new Promise((resolve, reject) => {

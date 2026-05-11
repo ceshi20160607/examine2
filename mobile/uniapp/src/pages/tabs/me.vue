@@ -32,10 +32,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { getBaseURL, getEnv, type AppEnv } from '@/config/env'
-import { httpGet, httpPost } from '@/api/http'
 import { clearSessionPayload } from '@/store/context'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
+import { me as getMe, refresh as refreshAuthToken, logout as doLogout } from '@/api/platformAuth'
 
 const envRef = ref<AppEnv>(getEnv())
 const env = computed(() => envRef.value)
@@ -59,7 +59,7 @@ function setEnv(e: AppEnv) {
 async function loadMe() {
   loadingMe.value = true
   try {
-    const r = await httpGet<any>('/v1/platform/auth/me')
+    const r = await getMe()
     me.value = r.data
   } finally {
     loadingMe.value = false
@@ -69,7 +69,7 @@ async function loadMe() {
 async function refreshToken() {
   refreshing.value = true
   try {
-    const r = await httpPost<{ token: string }>('/v1/platform/auth/refresh')
+    const r = await refreshAuthToken()
     if (r.data?.token) {
       uni.setStorageSync('token', r.data.token)
       uni.showToast({ title: 'token 已刷新', icon: 'success' })
@@ -81,7 +81,7 @@ async function refreshToken() {
 
 async function logout() {
   try {
-    await httpPost('/v1/platform/auth/logout')
+    await doLogout()
   } catch {
     // ignore
   }

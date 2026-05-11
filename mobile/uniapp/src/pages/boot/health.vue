@@ -17,10 +17,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { getBaseURL } from '@/config/env'
-import { httpGet } from '@/api/http'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { ping as pingBackend } from '@/api/misc'
 
 const baseURL = getBaseURL()
 const status = ref<'idle' | 'loading' | 'ok' | 'failed'>('idle')
@@ -34,8 +34,7 @@ async function ping() {
   requestId.value = null
   const t0 = Date.now()
   try {
-    // 后端 PingController: GET /ping
-    const resp = await httpGet<any>('/ping')
+    const resp = await pingBackend()
     latencyMs.value = Date.now() - t0
     requestId.value = resp.requestId ?? null
     status.value = 'ok'

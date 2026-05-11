@@ -1,4 +1,4 @@
-import { httpGet, httpPost } from '@/api/http'
+import { buildApiUrl, httpGet, httpPost } from '@/api/http'
 import type { ApiResult } from '@/api/http'
 
 // ---- Dict ----
@@ -240,6 +240,11 @@ export function getExportJobDetail(jobId: number): Promise<ApiResult<any>> {
 
 export function createExportJob(tplId: string | number, query: any): Promise<ApiResult<any>> {
   return httpPost<any>(`/v1/system/module/export-jobs/tpls/${tplId}`, query)
+}
+
+export function buildExportTplCsvUrl(tplId: string | number, limit = 200): string {
+  // for uni.downloadFile
+  return buildApiUrl(`/v1/system/module/exports/tpls/${tplId}/export/csv?limit=${limit}`)
 }
 
 // ---- RBAC ----
