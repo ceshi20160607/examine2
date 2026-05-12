@@ -3,6 +3,41 @@ import type { ApiResult } from '@/api/http'
 
 export type UploadRow = { id: number; originalName?: string; fileSize?: number; contentType?: string }
 
+export async function pickSingleFilePath(): Promise<string> {
+  // Prefer chooseFile if available (H5/APP). Fallback to chooseMessageFile (WeChat MP). Last fallback chooseImage.
+  const u: any = uni as any
+
+  // chooseFile
+  if (typeof u.chooseFile === 'function') {
+    const chooseRes: any = await new Promise((resolve, reject) => {
+      u.chooseFile({ count: 1, success: resolve, fail: reject })
+    })
+    const fp = chooseRes?.tempFilePaths?.[0]
+    if (fp) return fp
+  }
+
+  // chooseMessageFile (mp-weixin)
+  if (typeof u.chooseMessageFile === 'function') {
+    const chooseRes: any = await new Promise((resolve, reject) => {
+      u.chooseMessageFile({ count: 1, type: 'file', success: resolve, fail: reject })
+    })
+    const file = chooseRes?.tempFiles?.[0]
+    const fp = file?.path || file?.tempFilePath
+    if (fp) return fp
+  }
+
+  // chooseImage fallback
+  if (typeof u.chooseImage === 'function') {
+    const chooseRes: any = await new Promise((resolve, reject) => {
+      u.chooseImage({ count: 1, success: resolve, fail: reject })
+    })
+    const fp = chooseRes?.tempFilePaths?.[0]
+    if (fp) return fp
+  }
+
+  throw new Error('当前平台不支持选择文件')
+}
+
 export async function uploadOneFile(filePath: string): Promise<ApiResult<{ fileId: number }>> {
   const uploadRes: any = await new Promise((resolve, reject) => {
     uni.uploadFile({

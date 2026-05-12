@@ -41,6 +41,7 @@ import {
   deleteUpload,
   pageUploads,
   type UploadRow,
+  pickSingleFilePath,
   uploadOneFile,
   downloadUploadToTemp
 } from '@/api/upload'
@@ -57,21 +58,9 @@ async function chooseAndUpload() {
   if (!ensureSystemContext()) return
   if (!hasToken()) return
 
-  // H5/小程序/App 兼容：先用 chooseFile（H5）/chooseImage 等后续再增强
-  // 这里用 chooseFile（新版本 uni 支持），若平台不支持会 fail 并提示
   uploading.value = true
   try {
-    const chooseRes: any = await new Promise((resolve, reject) => {
-      ;(uni as any).chooseFile({
-        count: 1,
-        success: resolve,
-        fail: reject
-      })
-    })
-    const filePath = chooseRes?.tempFilePaths?.[0]
-    if (!filePath) {
-      throw new Error('未选择文件')
-    }
+    const filePath = await pickSingleFilePath()
 
     const r = await uploadOneFile(filePath)
     lastFileId.value = r?.data?.fileId ?? null
