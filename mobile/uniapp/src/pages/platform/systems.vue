@@ -8,6 +8,7 @@
           <uni-button :disabled="loading" @click="load">刷新</uni-button>
         </ActionBar>
       </view>
+      <ErrorBlock :text="error" />
     </view>
 
     <view class="u-card u-section">
@@ -24,7 +25,7 @@
             @click="enterSystem(s)"
           />
         </uni-list>
-        <view v-else style="color: var(--u-text-muted)">暂无系统</view>
+        <EmptyState v-else text="暂无系统，请先创建" />
       </view>
     </view>
   </Page>
@@ -36,6 +37,8 @@ import { listMySystems, createSystem as apiCreateSystem, enterSystem as apiEnter
 import { ensureLogin } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
+import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { useSessionStore } from '@/stores/session'
 
 type PlatSystem = {
@@ -48,13 +51,17 @@ const systems = ref<PlatSystem[]>([])
 const loading = ref(false)
 const creating = ref(false)
 const newSystemName = ref('')
+const error = ref<string | null>(null)
 const session = useSessionStore()
 
 async function load() {
   loading.value = true
+  error.value = null
   try {
     const r = await listMySystems()
     systems.value = r.data || []
+  } catch (e: any) {
+    error.value = e?.message ?? String(e)
   } finally {
     loading.value = false
   }
@@ -67,10 +74,13 @@ async function createSystem() {
     return
   }
   creating.value = true
+  error.value = null
   try {
     await apiCreateSystem(name, 0)
     newSystemName.value = ''
     await load()
+  } catch (e: any) {
+    error.value = e?.message ?? String(e)
   } finally {
     creating.value = false
   }
@@ -78,13 +88,17 @@ async function createSystem() {
 
 async function enterSystem(s: PlatSystem) {
   if (!s?.id) return
-  const r = await apiEnterSystem(s.id)
-  if (r?.data) {
-    session.setPayload(r.data as any)
+  error.value = null
+  try {
+    const r = await apiEnterSystem(s.id)
+    if (r?.data) {
+      session.setPayload(r.data as any)
+    }
+    uni.showToast({ title: `已进入系统: ${s.name || s.id}`, icon: 'success' })
+    uni.switchTab({ url: '/pages/tabs/workbench' })
+  } catch (e: any) {
+    error.value = e?.message ?? String(e)
   }
-  uni.showToast({ title: `已进入系统: ${s.name || s.id}`, icon: 'success' })
-  // 下一步：进入 module 元数据
-  uni.reLaunch({ url: '/pages/system/module/meta/apps' })
 }
 
 onMounted(() => {

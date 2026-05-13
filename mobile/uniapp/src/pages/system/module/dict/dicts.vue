@@ -1,6 +1,7 @@
 <template>
   <Page :title="`字典 Dicts（appId=${appId}）`" subtitle="用于下拉/枚举：先建 dict，再建 items">
     <view class="u-card u-section">
+      <view v-if="hintNoApp" class="u-subtitle">未找到应用：请先在「元数据」中创建 App，或从 Apps 列表进入本页（带 appId）。</view>
       <uni-forms labelPosition="top">
         <uni-forms-item label="dictCode">
           <uni-easyinput v-model="form.dictCode" placeholder="dictCode" />
@@ -42,6 +43,7 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import { listDictsByApp, type ModuleDictRow, upsertDict } from '@/api/module'
+import { listApps } from '@/api/meta'
 
 const appId = ref<number>(0)
 const loading = ref(false)
@@ -49,10 +51,26 @@ const saving = ref(false)
 const rows = ref<ModuleDictRow[]>([])
 
 const form = reactive<{ dictCode: string; dictName: string }>({ dictCode: '', dictName: '' })
+const hintNoApp = ref(false)
 
 onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
 })
+
+async function ensureAppIdFromFirstApp() {
+  if (appId.value) return
+  hintNoApp.value = false
+  try {
+    const r = await listApps()
+    const apps = r.data || []
+    if (apps.length && apps[0]?.id) {
+      appId.value = Number(apps[0].id)
+    }
+  } catch {
+    /* ignore */
+  }
+  if (!appId.value) hintNoApp.value = true
+}
 
 async function load() {
   if (!appId.value) return
@@ -86,9 +104,10 @@ function goItems(dictId: number) {
   uni.navigateTo({ url: `/pages/system/module/dict/items?dictId=${dictId}` })
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!ensureSystemContext()) return
-  load()
+  await ensureAppIdFromFirstApp()
+  await load()
 })
 </script>
 

@@ -3,37 +3,61 @@ import type { ApiResult } from '@/api/http'
 
 export type UploadRow = { id: number; originalName?: string; fileSize?: number; contentType?: string }
 
+function isPickerUserCancel(err: any): boolean {
+  const s = String(err?.errMsg ?? err?.message ?? err ?? '').toLowerCase()
+  return s.includes('cancel') || s.includes('取消')
+}
+
 export async function pickSingleFilePath(): Promise<string> {
-  // Prefer chooseFile if available (H5/APP). Fallback to chooseMessageFile (WeChat MP). Last fallback chooseImage.
+  // Prefer chooseFile (H5/App). Fallback chooseMessageFile (mp-weixin chat file). Last chooseImage.
   const u: any = uni as any
 
-  // chooseFile
-  if (typeof u.chooseFile === 'function') {
-    const chooseRes: any = await new Promise((resolve, reject) => {
-      u.chooseFile({ count: 1, success: resolve, fail: reject })
-    })
-    const fp = chooseRes?.tempFilePaths?.[0]
-    if (fp) return fp
+  const tryChooseFile = async (): Promise<string | null> => {
+    if (typeof u.chooseFile !== 'function') return null
+    try {
+      const chooseRes: any = await new Promise((resolve, reject) => {
+        u.chooseFile({ count: 1, success: resolve, fail: reject })
+      })
+      return chooseRes?.tempFilePaths?.[0] || null
+    } catch (e) {
+      if (isPickerUserCancel(e)) throw new Error('已取消选择')
+      return null
+    }
   }
 
-  // chooseMessageFile (mp-weixin)
-  if (typeof u.chooseMessageFile === 'function') {
-    const chooseRes: any = await new Promise((resolve, reject) => {
-      u.chooseMessageFile({ count: 1, type: 'file', success: resolve, fail: reject })
-    })
-    const file = chooseRes?.tempFiles?.[0]
-    const fp = file?.path || file?.tempFilePath
-    if (fp) return fp
+  const tryChooseMessageFile = async (): Promise<string | null> => {
+    if (typeof u.chooseMessageFile !== 'function') return null
+    try {
+      const chooseRes: any = await new Promise((resolve, reject) => {
+        u.chooseMessageFile({ count: 1, type: 'file', success: resolve, fail: reject })
+      })
+      const file = chooseRes?.tempFiles?.[0]
+      return file?.path || file?.tempFilePath || null
+    } catch (e) {
+      if (isPickerUserCancel(e)) throw new Error('已取消选择')
+      return null
+    }
   }
 
-  // chooseImage fallback
-  if (typeof u.chooseImage === 'function') {
-    const chooseRes: any = await new Promise((resolve, reject) => {
-      u.chooseImage({ count: 1, success: resolve, fail: reject })
-    })
-    const fp = chooseRes?.tempFilePaths?.[0]
-    if (fp) return fp
+  const tryChooseImage = async (): Promise<string | null> => {
+    if (typeof u.chooseImage !== 'function') return null
+    try {
+      const chooseRes: any = await new Promise((resolve, reject) => {
+        u.chooseImage({ count: 1, success: resolve, fail: reject })
+      })
+      return chooseRes?.tempFilePaths?.[0] || null
+    } catch (e) {
+      if (isPickerUserCancel(e)) throw new Error('已取消选择')
+      return null
+    }
   }
+
+  let fp = await tryChooseFile()
+  if (fp) return fp
+  fp = await tryChooseMessageFile()
+  if (fp) return fp
+  fp = await tryChooseImage()
+  if (fp) return fp
 
   throw new Error('当前平台不支持选择文件')
 }

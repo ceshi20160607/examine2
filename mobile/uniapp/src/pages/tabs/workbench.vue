@@ -3,12 +3,18 @@
     <view class="u-card">
       <ActionBar>
         <uni-button type="primary" @click="goSystems">系统</uni-button>
-        <uni-button @click="goApps">Apps</uni-button>
+        <uni-button @click="goApps">元数据</uni-button>
         <uni-button @click="goInbox">待办</uni-button>
         <uni-button @click="goFlowStart">发起流程</uni-button>
         <uni-button @click="goFlowInstances">流程实例</uni-button>
         <uni-button @click="goFlowMyInstances">我的实例</uni-button>
         <uni-button @click="goUpload">上传</uni-button>
+      </ActionBar>
+      <ActionBar>
+        <uni-button @click="goDict">字典</uni-button>
+        <uni-button @click="goExportJobs">导出任务</uni-button>
+        <uni-button @click="goRbac">权限</uni-button>
+        <uni-button @click="goFlowTemps">流程模板</uni-button>
       </ActionBar>
     </view>
   </Page>
@@ -55,6 +61,22 @@ function goFlowMyInstances() {
 function goUpload() {
   if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/upload/index' })
+}
+function goDict() {
+  if (!ensureSystemContext()) return
+  uni.navigateTo({ url: '/pages/system/module/dict/dicts' })
+}
+function goExportJobs() {
+  if (!ensureSystemContext()) return
+  uni.navigateTo({ url: '/pages/system/module/export/jobs' })
+}
+function goRbac() {
+  if (!ensureSystemContext()) return
+  uni.navigateTo({ url: '/pages/system/module/rbac/index' })
+}
+function goFlowTemps() {
+  if (!ensureSystemContext()) return
+  uni.navigateTo({ url: '/pages/system/flow/temp_list' })
 }
 
 onMounted(() => {
