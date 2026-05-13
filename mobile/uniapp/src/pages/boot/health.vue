@@ -1,5 +1,5 @@
 <template>
-  <Page title="Backend Health" subtitle="用于快速验证后端连通性与 requestId">
+  <Page title="Backend Health" subtitle="GET /ping：验证连通性与 requestId">
     <view class="u-card">
       <view>baseURL: {{ baseURL }}</view>
       <view>status: {{ status }}</view>
