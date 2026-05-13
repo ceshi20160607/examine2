@@ -17,7 +17,7 @@
         </ActionBar>
       </view>
 
-      <view v-if="error" style="margin-top: 12px; color: #d00">{{ error }}</view>
+      <ErrorBlock :text="error" />
     </view>
   </Page>
 </template>
@@ -28,6 +28,7 @@ import { getSessionPayload } from '@/store/context'
 import { hasToken } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { useSessionStore } from '@/stores/session'
 import { login } from '@/api/platformAuth'
 

@@ -30,7 +30,7 @@ corepack pnpm -C mobile/uniapp dev:h5
 
 - 已引入 `@dcloudio/uni-ui`（`pages.json` 已配置 easycom 自动扫描）
 - `uni-button`：官方 `@dcloudio/uni-ui` 发行包不包含 `uni-button` 目录；本项目用 `src/components/uni-button/uni-button.vue` 做轻量兼容，并在 `pages.json` 的 `easycom.custom` 中优先生效（避免 MP 端构建时解析不到组件）
-- 启动页：`pages/boot/health`（`GET /v1/ping`）
+- 启动页：`pages/boot/health`（`GET /ping`，见 `PingController`）
 - 登录页：`pages/auth/login`（`POST /v1/platform/auth/login`）
 
 ## 已实现功能（可跑通主流程）
