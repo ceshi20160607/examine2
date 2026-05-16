@@ -1,5 +1,5 @@
 <template>
-  <Page title="待办" subtitle="流程相关入口">
+  <Page title="待办" :subtitle="subtitle">
     <view class="u-card">
       <ActionBar>
         <uni-button type="primary" @click="goInbox">打开待办箱</uni-button>
@@ -18,10 +18,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
+import { inboxPending } from '@/api/flow'
+
+const pendingCount = ref<number | null>(null)
+
+const subtitle = computed(() => {
+  if (pendingCount.value === null) return '流程相关入口'
+  return `待办 ${pendingCount.value} 条 · 流程相关入口`
+})
 
 function goInbox() {
   if (!ensureSystemContext()) return
@@ -53,8 +61,18 @@ function goMyInstances() {
   uni.navigateTo({ url: '/pages/system/flow/my_instances' })
 }
 
+async function refreshPendingCount() {
+  if (!ensureSystemContext()) return
+  try {
+    const r = await inboxPending(50)
+    pendingCount.value = (r.data || []).length
+  } catch {
+    pendingCount.value = null
+  }
+}
+
 onMounted(() => {
-  ensureSystemContext()
+  if (!ensureSystemContext()) return
+  refreshPendingCount()
 })
 </script>
-

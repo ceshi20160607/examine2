@@ -13,6 +13,7 @@
         <uni-button type="primary" :disabled="saving" @click="create">创建</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
       </ActionBar>
+      <ErrorBlock :text="error" />
     </view>
 
     <view class="u-card u-section">
@@ -41,12 +42,14 @@ import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { usePageRequest } from '@/composables/usePageRequest'
 import { listModelsByApp, type ModuleModel, upsertModel } from '@/api/meta'
 
 const appId = ref<number>(0)
 const models = ref<ModuleModel[]>([])
-const loading = ref(false)
 const saving = ref(false)
+const { loading, error, run, capture, clearError } = usePageRequest()
 const form = reactive({ modelCode: '', modelName: '' })
 
 onLoad((opts) => {
@@ -59,13 +62,10 @@ async function load() {
     uni.showToast({ title: '缺少 appId', icon: 'none' })
     return
   }
-  loading.value = true
-  try {
+  await run(async () => {
     const r = await listModelsByApp(appId.value)
     models.value = r.data || []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 async function create() {
@@ -75,11 +75,14 @@ async function create() {
     return
   }
   saving.value = true
+  clearError()
   try {
     await upsertModel({ id: null, appId: appId.value, modelCode: form.modelCode.trim(), modelName: form.modelName.trim(), status: 1, remark: null })
     form.modelCode = ''
     form.modelName = ''
     await load()
+  } catch (e: unknown) {
+    capture(e)
   } finally {
     saving.value = false
   }

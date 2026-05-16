@@ -15,6 +15,7 @@
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
         <uni-button :disabled="!appId || !modelId" @click="goRecords">进入 Records</uni-button>
       </ActionBar>
+      <ErrorBlock :text="error" />
     </view>
 
     <view class="u-card u-section">
@@ -41,13 +42,15 @@ import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { usePageRequest } from '@/composables/usePageRequest'
 import { listFieldsByModel, type ModuleField, upsertField } from '@/api/meta'
 
 const appId = ref<number>(0)
 const modelId = ref<number>(0)
 const fields = ref<ModuleField[]>([])
-const loading = ref(false)
 const saving = ref(false)
+const { loading, error, run, capture, clearError } = usePageRequest()
 const form = reactive({ fieldCode: '', fieldName: '', fieldType: 'text' })
 
 onLoad((opts) => {
@@ -60,13 +63,10 @@ async function load() {
     uni.showToast({ title: '缺少 modelId', icon: 'none' })
     return
   }
-  loading.value = true
-  try {
+  await run(async () => {
     const r = await listFieldsByModel(modelId.value)
     fields.value = r.data || []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 async function create() {
@@ -76,6 +76,7 @@ async function create() {
     return
   }
   saving.value = true
+  clearError()
   try {
     await upsertField({
       id: null,
@@ -102,6 +103,8 @@ async function create() {
     form.fieldName = ''
     await load()
     uni.showToast({ title: '创建字段成功', icon: 'success' })
+  } catch (e: unknown) {
+    capture(e)
   } finally {
     saving.value = false
   }

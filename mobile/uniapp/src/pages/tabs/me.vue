@@ -4,6 +4,9 @@
       <view style="color: var(--u-text-muted)">account: {{ accountText }}</view>
       <view style="color: var(--u-text-muted)">env: {{ env }}</view>
       <view style="color: var(--u-text-muted)">baseURL: {{ baseURL }}</view>
+      <view v-if="session.hasSystem" style="color: var(--u-text-muted)">
+        systemId={{ session.payload?.systemId }} tenantId={{ session.payload?.tenantId }}
+      </view>
 
       <view style="margin-top: 12px">
         <view class="u-title" style="margin-bottom: 8px">切换环境</view>
@@ -25,25 +28,29 @@
       <view style="margin-top: 12px">
         <uni-button type="warn" @click="logout">退出登录</uni-button>
       </view>
+
+      <ErrorBlock :text="error" />
     </view>
   </Page>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { getBaseURL, getEnv, type AppEnv } from '@/config/env'
-import { clearSessionPayload } from '@/store/context'
+import { getBaseURL, type AppEnv } from '@/config/env'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { me as getMe, refresh as refreshAuthToken, logout as doLogout } from '@/api/platformAuth'
+import { useSessionStore } from '@/stores/session'
 
-const envRef = ref<AppEnv>(getEnv())
-const env = computed(() => envRef.value)
+const session = useSessionStore()
+const env = computed(() => session.env)
 const baseURL = computed(() => getBaseURL())
 
 const me = ref<{ id?: number; username?: string } | null>(null)
 const loadingMe = ref(false)
 const refreshing = ref(false)
+const error = ref<string | null>(null)
 
 const accountText = computed(() => {
   if (!me.value) return '-'
@@ -51,16 +58,18 @@ const accountText = computed(() => {
 })
 
 function setEnv(e: AppEnv) {
-  uni.setStorageSync('env', e)
-  envRef.value = e
+  session.setEnv(e)
   uni.showToast({ title: `env=${e}`, icon: 'none' })
 }
 
 async function loadMe() {
   loadingMe.value = true
+  error.value = null
   try {
     const r = await getMe()
     me.value = r.data
+  } catch (e: any) {
+    error.value = e?.message ?? String(e)
   } finally {
     loadingMe.value = false
   }
@@ -68,12 +77,15 @@ async function loadMe() {
 
 async function refreshToken() {
   refreshing.value = true
+  error.value = null
   try {
     const r = await refreshAuthToken()
     if (r.data?.token) {
-      uni.setStorageSync('token', r.data.token)
+      session.setToken(r.data.token)
       uni.showToast({ title: 'token 已刷新', icon: 'success' })
     }
+  } catch (e: any) {
+    error.value = e?.message ?? String(e)
   } finally {
     refreshing.value = false
   }
@@ -83,13 +95,10 @@ async function logout() {
   try {
     await doLogout()
   } catch {
-    // ignore
+    /* ignore */
   }
-  uni.removeStorageSync('token')
-  clearSessionPayload()
-  uni.reLaunch({ url: '/pages/auth/login' })
+  session.logoutAndReLaunch()
 }
 
 onMounted(loadMe)
 </script>
-

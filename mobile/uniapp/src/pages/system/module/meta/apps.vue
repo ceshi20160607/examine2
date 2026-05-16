@@ -13,6 +13,7 @@
         <uni-button type="primary" :disabled="saving" @click="create">创建</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
       </ActionBar>
+      <ErrorBlock :text="error" />
     </view>
 
     <view class="u-card u-section">
@@ -40,21 +41,20 @@ import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { usePageRequest } from '@/composables/usePageRequest'
 import { listApps, type ModuleApp, upsertApp } from '@/api/meta'
 
 const apps = ref<ModuleApp[]>([])
-const loading = ref(false)
 const saving = ref(false)
+const { loading, error, run, capture, clearError } = usePageRequest()
 const form = reactive({ appCode: '', appName: '' })
 
 async function load() {
-  loading.value = true
-  try {
+  await run(async () => {
     const r = await listApps()
     apps.value = r.data || []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 async function create() {
@@ -63,6 +63,7 @@ async function create() {
     return
   }
   saving.value = true
+  clearError()
   try {
     await upsertApp({
       appCode: form.appCode.trim(),
@@ -75,6 +76,8 @@ async function create() {
     form.appCode = ''
     form.appName = ''
     await load()
+  } catch (e: unknown) {
+    capture(e)
   } finally {
     saving.value = false
   }

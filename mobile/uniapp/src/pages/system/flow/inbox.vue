@@ -5,6 +5,7 @@
         <uni-button type="primary" :disabled="loading" @click="loadPending">刷新待办</uni-button>
         <uni-button :disabled="loading" @click="loadCc">刷新抄送</uni-button>
       </ActionBar>
+      <ErrorBlock :text="error" />
     </view>
 
     <view class="u-card u-section">
@@ -47,30 +48,26 @@ import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { usePageRequest } from '@/composables/usePageRequest'
 import { inboxCc, inboxPending, type FlowTask } from '@/api/flow'
 
-const loading = ref(false)
+const { loading, error, run } = usePageRequest()
 const pending = ref<FlowTask[]>([])
 const cc = ref<FlowTask[]>([])
 
 async function loadPending() {
-  loading.value = true
-  try {
+  await run(async () => {
     const r = await inboxPending(50)
     pending.value = r.data || []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 async function loadCc() {
-  loading.value = true
-  try {
+  await run(async () => {
     const r = await inboxCc(50)
     cc.value = r.data || []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 function goTask(t: FlowTask) {

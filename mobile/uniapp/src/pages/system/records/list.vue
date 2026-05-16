@@ -8,6 +8,7 @@
         <uni-button :disabled="loading" @click="reload">搜索</uni-button>
       </ActionBar>
       <view v-if="searchFieldCode" class="u-subtitle">搜索字段：{{ searchFieldCode }}</view>
+      <ErrorBlock :text="error" />
     </view>
 
     <view class="u-card u-section">
@@ -36,6 +37,8 @@ import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { usePageRequest } from '@/composables/usePageRequest'
 import { getRecord, queryRecords } from '@/api/records'
 import { listFieldsByModel } from '@/api/meta'
 
@@ -44,7 +47,7 @@ type Summary = { title: string; note: string }
 
 const appId = ref<number>(0)
 const modelId = ref<number>(0)
-const loading = ref(false)
+const { loading, error, run } = usePageRequest()
 const rows = ref<Row[]>([])
 const summaries = ref<Record<number, Summary>>({})
 const keyword = ref('')
@@ -64,14 +67,12 @@ function noteOf(id: number) {
 
 async function query() {
   if (!modelId.value) return
-  loading.value = true
-  try {
+  await run(async () => {
     const filters: any[] = []
     const kw = keyword.value.trim()
     if (kw && searchFieldCode.value) {
       filters.push({ field: searchFieldCode.value, op: 'like', value: kw })
     }
-    // 使用后端 DSL 查询（最小：只按 modelId 过滤，limit 20）
     const r = await queryRecords({
       appId: appId.value,
       modelId: modelId.value,
@@ -81,11 +82,8 @@ async function query() {
     })
     rows.value = (r.data?.list || []).map((x: any) => ({ id: x.id }))
     summaries.value = {}
-    // 轻量增强：拉取前 10 条详情，抽取 data 里的前几个字段做摘要
     await hydrateSummaries(rows.value.slice(0, 10).map((x) => x.id))
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 async function reload() {

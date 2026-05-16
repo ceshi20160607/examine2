@@ -1,4 +1,5 @@
 import { getBaseURL } from '@/config/env'
+import { clearSessionPayload } from '@/store/context'
 
 export type ApiResult<T> = {
   code: number
@@ -55,6 +56,7 @@ function failMessage(err: any, fallback: string) {
 
 function onUnauthorized() {
   uni.removeStorageSync('token')
+  clearSessionPayload()
   uni.reLaunch({ url: '/pages/auth/login' })
 }
 
