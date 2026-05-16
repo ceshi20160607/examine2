@@ -14,6 +14,7 @@
         <uni-button type="primary" :disabled="saving" @click="upsert">保存</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
       </ActionBar>
+      <ErrorBlock :text="error" />
     </view>
 
     <view class="u-card u-section">
@@ -42,12 +43,14 @@ import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { usePageRequest } from '@/composables/usePageRequest'
 import { listDictsByApp, type ModuleDictRow, upsertDict } from '@/api/module'
 import { listApps } from '@/api/meta'
 
 const appId = ref<number>(0)
-const loading = ref(false)
 const saving = ref(false)
+const { loading, error, run, capture, clearError } = usePageRequest()
 const rows = ref<ModuleDictRow[]>([])
 
 const form = reactive<{ dictCode: string; dictName: string }>({ dictCode: '', dictName: '' })
@@ -74,13 +77,10 @@ async function ensureAppIdFromFirstApp() {
 
 async function load() {
   if (!appId.value) return
-  loading.value = true
-  try {
+  await run(async () => {
     const r = await listDictsByApp(appId.value)
     rows.value = r.data || []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 async function upsert() {
@@ -90,11 +90,14 @@ async function upsert() {
     return
   }
   saving.value = true
+  clearError()
   try {
     await upsertDict(appId.value, { id: null, dictCode: form.dictCode.trim(), dictName: form.dictName.trim(), status: 1, remark: null })
     form.dictCode = ''
     form.dictName = ''
     await load()
+  } catch (e: unknown) {
+    capture(e)
   } finally {
     saving.value = false
   }

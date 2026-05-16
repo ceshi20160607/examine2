@@ -6,6 +6,7 @@
         <uni-button :disabled="loading" @click="loadMenus">刷新菜单</uni-button>
         <uni-button :disabled="loading" @click="loadMembers">刷新成员</uni-button>
       </ActionBar>
+      <ErrorBlock :text="error" />
     </view>
 
     <view class="u-card u-section">
@@ -140,6 +141,8 @@ import {
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
+import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { usePageRequest } from '@/composables/usePageRequest'
 import {
   assignRbacMemberRole,
   listRbacMembers,
@@ -149,6 +152,7 @@ import {
   upsertRbacMenu,
   upsertRbacRole
 } from '@/api/module'
+import { listApps } from '@/api/meta'
 
 type RoleRow = { id: number; roleCode?: string; roleName?: string; status?: number }
 type MenuRow = RbacMenuRow
@@ -156,7 +160,7 @@ type MenuFlatRow = RbacMenuFlatRow
 type MemberRow = { id: number; platId?: number; roleId?: number; status?: number }
 
 const appId = ref<number>(0)
-const loading = ref(false)
+const { loading, error, run, capture, clearError } = usePageRequest()
 
 const roles = ref<RoleRow[]>([])
 const menus = ref<MenuRow[]>([])
@@ -187,41 +191,43 @@ onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
 })
 
+async function ensureAppIdFromFirstApp() {
+  if (appId.value) return
+  try {
+    const r = await listApps()
+    const apps = r.data || []
+    if (apps.length && apps[0]?.id) appId.value = Number(apps[0].id)
+  } catch {
+    /* ignore */
+  }
+}
+
 function quickFillParentMenu(m: MenuFlatRow) {
   menuForm.parentId = String(Number(m.id) || 0)
 }
 
 async function loadRoles() {
   if (!appId.value) return
-  loading.value = true
-  try {
+  await run(async () => {
     const r = await listRbacRoles(appId.value)
     roles.value = r.data || []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 async function loadMenus() {
   if (!appId.value) return
-  loading.value = true
-  try {
+  await run(async () => {
     const r = await listRbacMenus(appId.value)
     menus.value = r.data || []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 async function loadMembers() {
   if (!appId.value) return
-  loading.value = true
-  try {
+  await run(async () => {
     const r = await listRbacMembers(appId.value)
     members.value = r.data || []
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 function quickFillMember(m: MemberRow) {
@@ -335,8 +341,9 @@ function openRoleActions(r: RoleRow) {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!ensureSystemContext()) return
+  await ensureAppIdFromFirstApp()
   loadRoles()
   loadMenus()
   loadMembers()
