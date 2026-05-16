@@ -9,6 +9,8 @@ export type ModuleField = {
   fieldName?: string
   fieldType?: string
   dictCode?: string | null
+  refModelId?: number | null
+  refDisplayField?: string | null
   requiredFlag?: number
   uniqueFlag?: number
   hiddenFlag?: number
@@ -87,6 +89,8 @@ export function upsertField(cmd: {
   validateType?: string | null
   dateFormat?: string | null
   dictCode?: string | null
+  refModelId?: number | null
+  refDisplayField?: string | null
   multiFlag?: number
   defaultValue?: string | null
   sortNo?: number

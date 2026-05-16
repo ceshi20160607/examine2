@@ -15,6 +15,16 @@
         <uni-forms-item v-if="needsDict" label="dictCode">
           <uni-data-select v-model="form.dictCode" :localdata="dictCodeOptions" placeholder="选择字典" />
         </uni-forms-item>
+        <uni-forms-item v-if="needsRef" label="关联模型">
+          <uni-data-select v-model="form.refModelId" :localdata="modelOptions" placeholder="选择已建模块" @change="onRefModelChange" />
+        </uni-forms-item>
+        <uni-forms-item v-if="needsRef && form.refModelId" label="展示字段">
+          <uni-data-select
+            v-model="form.refDisplayField"
+            :localdata="refDisplayFieldOptions"
+            placeholder="目标记录用于展示的字段"
+          />
+        </uni-forms-item>
         <uni-forms-item label="sortNo">
           <uni-easyinput v-model="form.sortNo" type="number" placeholder="排序，越小越靠前" />
         </uni-forms-item>
@@ -69,14 +79,19 @@ import { listDictsByApp } from '@/api/module'
 import {
   deleteFields,
   listFieldsByModel,
+  listModelsByApp,
   type ModuleField,
+  type ModuleModel,
   upsertField
 } from '@/api/meta'
 import {
   FIELD_TYPE_OPTIONS,
   fieldTypeNeedsDict,
+  fieldTypeNeedsRef,
   multiFlagForFieldType,
-  storageFieldType
+  storageFieldType,
+  uiFieldTypeFromMeta,
+  validateTypeForFieldType
 } from '@/utils/fieldTypes'
 
 const appId = ref(0)
@@ -97,6 +112,8 @@ const form = reactive({
   fieldName: '',
   fieldType: 'text',
   dictCode: '',
+  refModelId: '',
+  refDisplayField: '',
   sortNo: '0',
   tips: '',
   defaultValue: '',
@@ -106,6 +123,10 @@ const form = reactive({
 const dictCodeOptions = ref<Array<{ value: string; text: string }>>([])
 
 const needsDict = computed(() => fieldTypeNeedsDict(form.fieldType))
+const needsRef = computed(() => fieldTypeNeedsRef(form.fieldType))
+
+const modelOptions = ref<Array<{ value: string; text: string }>>([])
+const refDisplayFieldOptions = ref<Array<{ value: string; text: string }>>([])
 
 onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
@@ -115,6 +136,8 @@ onLoad((opts) => {
 function fieldNote(f: ModuleField) {
   const parts = [f.fieldCode, f.fieldType]
   if (f.dictCode) parts.push(`dict=${f.dictCode}`)
+  if (f.refModelId) parts.push(`ref→model#${f.refModelId}`)
+  if (f.refDisplayField) parts.push(`show=${f.refDisplayField}`)
   if (f.requiredFlag === 1) parts.push('必填')
   if (f.hiddenFlag === 1) parts.push('隐藏')
   if (f.multiFlag === 1) parts.push('多选')
@@ -123,6 +146,51 @@ function fieldNote(f: ModuleField) {
 
 function onFieldTypeChange() {
   if (!needsDict.value) form.dictCode = ''
+  if (!needsRef.value) {
+    form.refModelId = ''
+    form.refDisplayField = ''
+    refDisplayFieldOptions.value = []
+  }
+}
+
+async function loadModelOptions() {
+  if (!appId.value) return
+  try {
+    const r = await listModelsByApp(appId.value)
+    modelOptions.value = (r.data || [])
+      .filter((m: ModuleModel) => m?.id)
+      .map((m: ModuleModel) => ({
+        value: String(m.id),
+        text: `${m.modelName || m.modelCode || 'Model'} (#${m.id})`
+      }))
+  } catch {
+    modelOptions.value = []
+  }
+}
+
+async function loadRefDisplayFieldOptions(targetModelId: number) {
+  if (!targetModelId) {
+    refDisplayFieldOptions.value = []
+    return
+  }
+  try {
+    const r = await listFieldsByModel(targetModelId)
+    refDisplayFieldOptions.value = (r.data || [])
+      .filter((x) => x?.fieldCode)
+      .map((x) => ({
+        value: String(x.fieldCode),
+        text: `${x.fieldName || x.fieldCode} (${x.fieldCode})`
+      }))
+  } catch {
+    refDisplayFieldOptions.value = []
+  }
+}
+
+function onRefModelChange() {
+  form.refDisplayField = ''
+  const mid = Number(form.refModelId) || 0
+  if (mid) loadRefDisplayFieldOptions(mid)
+  else refDisplayFieldOptions.value = []
 }
 
 async function loadDictOptions() {
@@ -154,6 +222,9 @@ function resetForm() {
   form.fieldName = ''
   form.fieldType = 'text'
   form.dictCode = ''
+  form.refModelId = ''
+  form.refDisplayField = ''
+  refDisplayFieldOptions.value = []
   form.sortNo = '0'
   form.tips = ''
   form.defaultValue = ''
@@ -164,11 +235,11 @@ function fillForm(f: ModuleField) {
   editingId.value = Number(f.id)
   form.fieldCode = f.fieldCode || ''
   form.fieldName = f.fieldName || ''
-  const t = String(f.fieldType || 'text').toLowerCase()
-  if (f.dictCode && (f.multiFlag ?? 0) === 1) form.fieldType = 'multiselect'
-  else if (f.dictCode) form.fieldType = 'select'
-  else form.fieldType = t
+  form.fieldType = uiFieldTypeFromMeta(f)
   form.dictCode = f.dictCode || ''
+  form.refModelId = f.refModelId ? String(f.refModelId) : ''
+  form.refDisplayField = f.refDisplayField || ''
+  if (f.refModelId) loadRefDisplayFieldOptions(Number(f.refModelId))
   form.sortNo = String(f.sortNo ?? 0)
   form.tips = f.tips || ''
   form.defaultValue = f.defaultValue || ''
@@ -186,6 +257,10 @@ async function save() {
   }
   if (needsDict.value && !form.dictCode.trim()) {
     uni.showToast({ title: '请选择 dictCode', icon: 'none' })
+    return
+  }
+  if (needsRef.value && !form.refModelId) {
+    uni.showToast({ title: '请选择关联模型', icon: 'none' })
     return
   }
 
@@ -206,9 +281,11 @@ async function save() {
       tips: form.tips.trim() || null,
       maxLength: null,
       minLength: null,
-      validateType: null,
+      validateType: validateTypeForFieldType(form.fieldType),
       dateFormat: null,
       dictCode: needsDict.value ? form.dictCode.trim() : null,
+      refModelId: needsRef.value ? Number(form.refModelId) || null : null,
+      refDisplayField: needsRef.value ? form.refDisplayField.trim() || null : null,
       multiFlag: multiFlagForFieldType(form.fieldType),
       defaultValue: form.defaultValue.trim() || null,
       sortNo: Number(form.sortNo) || 0,
@@ -261,6 +338,7 @@ function goRecords() {
 onMounted(async () => {
   if (!ensureSystemContext()) return
   await loadDictOptions()
+  await loadModelOptions()
   await load()
 })
 </script>

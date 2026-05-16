@@ -104,6 +104,8 @@ public class SystemModuleMetaController {
                                   String validateType,
                                   String dateFormat,
                                   String dictCode,
+                                  Long refModelId,
+                                  String refDisplayField,
                                   Integer multiFlag,
                                   String defaultValue,
                                   Integer sortNo,
@@ -117,6 +119,7 @@ public class SystemModuleMetaController {
                 body.id(), body.appId(), body.modelId(), body.fieldCode(), body.fieldName(), body.fieldType(),
                 body.requiredFlag(), body.uniqueFlag(), body.hiddenFlag(), body.tips(),
                 body.maxLength(), body.minLength(), body.validateType(), body.dateFormat(), body.dictCode(),
+                body.refModelId(), body.refDisplayField(),
                 body.multiFlag(), body.defaultValue(), body.sortNo(), body.status()
         )));
     }

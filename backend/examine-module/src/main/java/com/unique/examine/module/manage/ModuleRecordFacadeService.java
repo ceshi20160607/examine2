@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -93,6 +94,7 @@ public class ModuleRecordFacadeService {
                 JsonNode v = e.getValue();
                 ModuleField f = requireField(systemId, tenantId, appId, modelId, fieldCode);
                 validateFileFieldValue(systemId, tenantId, appId, modelId, f, v);
+                validateRefFieldValue(systemId, tenantId, f, v);
                 String text = valueToText(v);
                 if (text != null && text.length() > 65535) {
                     throw new BusinessException("字段 " + fieldCode + " 值过长");
@@ -145,7 +147,7 @@ public class ModuleRecordFacadeService {
             return;
         }
         String t = ft.trim().toLowerCase();
-        if (!(t.equals("file") || t.equals("upload") || t.equals("attachment"))) {
+        if (!(t.equals("file") || t.equals("upload") || t.equals("attachment") || t.equals("image"))) {
             return;
         }
 
@@ -205,6 +207,111 @@ public class ModuleRecordFacadeService {
                 .count();
         if (cnt == null || cnt != ids.size()) {
             throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 引用了不存在或无权限的 fileId");
+        }
+    }
+
+    private void validateRefFieldValue(long systemId, long tenantId, ModuleField field, JsonNode value) {
+        if (field == null || value == null || value.isNull()) {
+            return;
+        }
+        String ft = field.getFieldType();
+        if (ft == null) {
+            return;
+        }
+        String t = ft.trim().toLowerCase();
+        if (!(t.equals("ref") || t.equals("relation") || t.equals("lookup"))) {
+            return;
+        }
+        Long refModelId = field.getRefModelId();
+        if (refModelId == null || refModelId <= 0L) {
+            return;
+        }
+
+        HashSet<Long> ids = new HashSet<>();
+        if (value.isNumber()) {
+            long v = value.asLong();
+            if (v > 0) {
+                ids.add(v);
+            }
+        } else if (value.isTextual()) {
+            String s = value.asText().trim();
+            if (s.isEmpty()) {
+                return;
+            }
+            if (s.startsWith("[") && s.endsWith("]")) {
+                try {
+                    JsonNode arr = objectMapper.readTree(s);
+                    collectRefIds(arr, ids, field.getFieldCode());
+                } catch (Exception e) {
+                    throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " JSON 数组非法");
+                }
+            } else {
+                try {
+                    long v = Long.parseLong(s);
+                    if (v > 0) {
+                        ids.add(v);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 须为 recordId");
+                }
+            }
+        } else if (value.isArray()) {
+            collectRefIds(value, ids, field.getFieldCode());
+        } else {
+            throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 须为 recordId 或 recordId 数组");
+        }
+
+        if (ids.isEmpty()) {
+            return;
+        }
+
+        for (Long id : ids) {
+            ModuleRecord rec = moduleRecordService.getById(id);
+            if (rec == null) {
+                throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 引用的记录不存在: " + id);
+            }
+            if (rec.getSystemId() == null || rec.getTenantId() == null
+                    || rec.getSystemId() != systemId
+                    || rec.getTenantId() != tenantId) {
+                throw new BusinessException(403, "关联字段 " + field.getFieldCode() + " 引用的记录无权限: " + id);
+            }
+            if (!Objects.equals(rec.getModelId(), refModelId)) {
+                throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 须指向 modelId=" + refModelId);
+            }
+            if (rec.getStatus() != null && rec.getStatus() != 1) {
+                throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 引用的记录不可用: " + id);
+            }
+        }
+    }
+
+    private void collectRefIds(JsonNode arr, HashSet<Long> ids, String fieldCode) {
+        if (arr == null || !arr.isArray()) {
+            throw new BusinessException(400, "关联字段 " + fieldCode + " 数组非法");
+        }
+        for (JsonNode it : arr) {
+            if (it == null || it.isNull()) {
+                continue;
+            }
+            if (it.isNumber()) {
+                long v = it.asLong();
+                if (v > 0) {
+                    ids.add(v);
+                }
+            } else if (it.isTextual()) {
+                String s = it.asText().trim();
+                if (!s.isEmpty()) {
+                    try {
+                        long v = Long.parseLong(s);
+                        if (v > 0) {
+                            ids.add(v);
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new BusinessException(400, "关联字段 " + fieldCode + " 数组元素非法");
+                    }
+                }
+            } else {
+                throw new BusinessException(400, "关联字段 " + fieldCode + " 数组元素非法");
+            }
         }
     }
 
@@ -468,6 +575,7 @@ public class ModuleRecordFacadeService {
                 JsonNode v = e.getValue();
                 ModuleField f = requireField(systemId, tenantId, r.getAppId(), r.getModelId(), fieldCode);
                 validateFileFieldValue(systemId, tenantId, r.getAppId(), r.getModelId(), f, v);
+                validateRefFieldValue(systemId, tenantId, f, v);
                 String text = valueToText(v);
                 if (text != null && text.length() > 65535) {
                     throw new BusinessException("字段 " + fieldCode + " 值过长");

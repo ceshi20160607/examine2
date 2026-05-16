@@ -57,6 +57,8 @@ public class SystemModuleMetaService {
             String validateType,
             String dateFormat,
             String dictCode,
+            Long refModelId,
+            String refDisplayField,
             Integer multiFlag,
             String defaultValue,
             Integer sortNo,
@@ -351,6 +353,28 @@ public class SystemModuleMetaService {
         f.setValidateType(trimToNull(body.validateType()));
         f.setDateFormat(trimToNull(body.dateFormat()));
         f.setDictCode(trimToNull(body.dictCode()));
+        String ft = body.fieldType().trim().toLowerCase();
+        if (ft.equals("ref") || ft.equals("relation") || ft.equals("lookup")) {
+            if (body.refModelId() == null || body.refModelId() <= 0L) {
+                throw new BusinessException(400, "关联字段须指定 refModelId");
+            }
+            ModuleModel refModel = moduleModelService.getById(body.refModelId());
+            if (refModel == null) {
+                throw new BusinessException(404, "关联 model 不存在");
+            }
+            if (!Objects.equals(refModel.getSystemId(), systemId) || !Objects.equals(refModel.getTenantId(), tenantId)) {
+                throw new BusinessException(403, "无权使用该关联 model");
+            }
+            if (!Objects.equals(refModel.getAppId(), body.appId())) {
+                throw new BusinessException(400, "关联 model 须与当前字段同属一个 app");
+            }
+            f.setRefModelId(body.refModelId());
+            f.setRefDisplayField(trimToNull(body.refDisplayField()));
+            f.setDictCode(null);
+        } else {
+            f.setRefModelId(null);
+            f.setRefDisplayField(null);
+        }
         f.setMultiFlag(body.multiFlag());
         f.setDefaultValue(trimToNull(body.defaultValue()));
         f.setSortNo(body.sortNo());

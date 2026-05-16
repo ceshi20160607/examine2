@@ -14,7 +14,29 @@
               <uni-easyinput
                 v-if="isPlainTextField(f)"
                 v-model="formData[f.fieldCode]"
-                :placeholder="f.tips || ''"
+                :type="inputTypeForField(f)"
+                :placeholder="f.tips || placeholderFor(f)"
+              />
+
+              <uni-easyinput
+                v-else-if="isValidatedTextField(f)"
+                v-model="formData[f.fieldCode]"
+                :placeholder="f.tips || placeholderFor(f)"
+              />
+
+              <uni-easyinput
+                v-else-if="isPasswordField(f)"
+                v-model="formData[f.fieldCode]"
+                type="password"
+                :placeholder="f.tips || '请输入密码'"
+              />
+
+              <uni-easyinput
+                v-else-if="isJsonField(f)"
+                v-model="formData[f.fieldCode]"
+                type="textarea"
+                :autoHeight="true"
+                :placeholder="f.tips || 'JSON 对象或数组'"
               />
 
               <uni-easyinput
@@ -66,6 +88,20 @@
                 :localdata="dictOptionsByCode[f.dictCode || ''] || []"
               />
 
+              <uni-data-select
+                v-else-if="isRefField(f) && !isRefMultiField(f)"
+                v-model="formData[f.fieldCode]"
+                :localdata="refOptionsByCode[f.fieldCode || ''] || []"
+                placeholder="选择关联记录"
+              />
+
+              <uni-data-checkbox
+                v-else-if="isRefMultiField(f)"
+                v-model="formData[f.fieldCode]"
+                multiple
+                :localdata="refOptionsByCode[f.fieldCode || ''] || []"
+              />
+
               <uni-easyinput
                 v-else
                 v-model="formData[f.fieldCode]"
@@ -104,15 +140,22 @@ import { createRecord, getRecord, updateRecord } from '@/api/records'
 import { pickSingleFilePath, uploadOneFile } from '@/api/upload'
 import {
   datePickerType,
+  inputTypeForField,
   isBooleanField,
   isDateField,
   isDictMulti,
   isDictSingle,
   isFileField,
+  isJsonField,
   isNumberField,
+  isPasswordField,
   isPlainTextField,
-  isTextareaField
+  isRefField,
+  isRefMultiField,
+  isTextareaField,
+  isValidatedTextField
 } from '@/utils/fieldTypes'
+import { loadRefSelectOptions } from '@/utils/refPicker'
 
 const appId = ref(0)
 const modelId = ref(0)
@@ -143,6 +186,18 @@ function back() {
 const fields = ref<ModuleField[]>([])
 const formData = reactive<Record<string, any>>({})
 const dictOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
+const refOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
+
+function placeholderFor(f: ModuleField) {
+  const t = String(f.fieldType || '').toLowerCase()
+  if (t === 'email') return 'name@example.com'
+  if (t === 'phone') return '11 位手机号'
+  if (t === 'url') return 'https://'
+  if (t === 'idcard') return '18 位身份证号'
+  if (t === 'color') return '#RRGGBB'
+  if (t === 'region') return '省/市/区'
+  return f.tips || ''
+}
 
 const visibleFields = computed(() => {
   return (fields.value || [])
@@ -228,6 +283,10 @@ async function bootstrap() {
           formData[mf.fieldCode] = false
         } else if (isFileField(mf)) {
           formData[mf.fieldCode] = null
+        } else if (isRefMultiField(mf)) {
+          formData[mf.fieldCode] = []
+        } else if (isRefField(mf)) {
+          formData[mf.fieldCode] = ''
         } else {
           formData[mf.fieldCode] = ''
         }
@@ -239,6 +298,7 @@ async function bootstrap() {
 
     // 字典选项
     await loadDictOptionsIfNeeded()
+    await loadRefOptionsIfNeeded()
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   }
@@ -277,8 +337,16 @@ function normalizeFormDataValues() {
   for (const mf of fields.value || []) {
     const code = mf?.fieldCode
     if (!code) continue
-    if (isDictMulti(mf)) {
+    if (isDictMulti(mf) || isRefMultiField(mf)) {
       formData[code] = normalizeMultiValue(formData[code])
+      continue
+    }
+    if (isRefField(mf) && !isRefMultiField(mf)) {
+      const raw = formData[code]
+      if (raw != null && raw !== '') {
+        const n = Number(raw)
+        formData[code] = Number.isFinite(n) && n > 0 ? n : raw
+      }
       continue
     }
     if (isDateField(mf)) {
@@ -289,6 +357,20 @@ function normalizeFormDataValues() {
     if (isBooleanField(mf)) {
       const v = formData[code]
       formData[code] = v === true || v === 1 || v === '1' || v === 'true'
+    }
+  }
+}
+
+async function loadRefOptionsIfNeeded() {
+  if (!appId.value) return
+  for (const mf of fields.value || []) {
+    const code = mf?.fieldCode
+    if (!code || !isRefField(mf)) continue
+    if (refOptionsByCode[code]?.length) continue
+    try {
+      refOptionsByCode[code] = await loadRefSelectOptions({ appId: appId.value, field: mf })
+    } catch {
+      refOptionsByCode[code] = []
     }
   }
 }
@@ -332,8 +414,19 @@ function toSubmitData(): any {
         v = Number.isNaN(n) ? t : n
       }
     }
-    if (isDictMulti(mf)) {
-      v = normalizeMultiValue(v)
+    if (isDictMulti(mf) || isRefMultiField(mf)) {
+      v = normalizeMultiValue(v).map((x) => {
+        const n = Number(x)
+        return Number.isFinite(n) && n > 0 ? n : x
+      })
+    }
+    if (isRefField(mf) && !isRefMultiField(mf)) {
+      const t = String(v ?? '').trim()
+      if (t === '') v = null
+      else {
+        const n = Number(t)
+        v = Number.isFinite(n) && n > 0 ? n : t
+      }
     }
     if (isDateField(mf)) {
       v = normalizeDateValue(v)

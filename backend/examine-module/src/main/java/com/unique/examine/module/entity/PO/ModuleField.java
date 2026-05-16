@@ -88,6 +88,13 @@ public class ModuleField implements Serializable {
     @Schema(description = "数据字典编码（引用 un_module_dict.dict_code，可选）")
     private String dictCode;
 
+    @Schema(description = "关联目标 modelId（field_type=ref/relation 时）")
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long refModelId;
+
+    @Schema(description = "关联展示字段 fieldCode（目标 model）")
+    private String refDisplayField;
+
     @Schema(description = "是否多选：1=多选 0=单选（enum/dict 等）")
     private Integer multiFlag;
 

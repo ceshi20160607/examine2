@@ -39,13 +39,18 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { listFieldsByModel, type ModuleField } from '@/api/meta'
 import { deleteRecord, getRecord } from '@/api/records'
+import { isRefField, isRefMultiField } from '@/utils/fieldTypes'
+import { resolveRefDisplay } from '@/utils/refPicker'
 
 const recordId = ref<number>(0)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const detail = ref<any>(null)
 const showRaw = ref(false)
+const fieldMetaByCode = ref<Record<string, ModuleField>>({})
+const refLabelByKey = ref<Record<string, string>>({})
 
 onLoad((opts) => {
   recordId.value = Number((opts as any)?.recordId || 0) || 0
@@ -69,7 +74,7 @@ const dataEntries = computed(() => {
     .map((k) => {
       const raw = data[k]
       const meta = files?.[k]
-      let v = stringifyValue(raw)
+      let v = refLabelByKey.value[k] || stringifyValue(raw)
       if (meta && typeof meta === 'object') {
         const name = meta.originalName || meta.name
         if (name) v = `${v} (${name})`
@@ -80,7 +85,34 @@ const dataEntries = computed(() => {
 
 type DataEntry = { k: string; v: string; raw: any; meta?: any }
 
+function parseRefIds(v: any): number[] {
+  if (v == null || v === '') return []
+  if (Array.isArray(v)) {
+    return v.map((x) => Number(x)).filter((n) => Number.isFinite(n) && n > 0)
+  }
+  const s = String(v).trim()
+  if (!s) return []
+  if (s.startsWith('[')) {
+    try {
+      const arr = JSON.parse(s)
+      if (Array.isArray(arr)) return arr.map((x) => Number(x)).filter((n) => Number.isFinite(n) && n > 0)
+    } catch {
+      return []
+    }
+  }
+  const n = Number(s)
+  return Number.isFinite(n) && n > 0 ? [n] : []
+}
+
 function onEntryClick(e: DataEntry) {
+  const mf = fieldMetaByCode.value[e.k]
+  if (mf && isRefField(mf)) {
+    const ids = parseRefIds(e.raw)
+    if (ids.length === 1) {
+      uni.navigateTo({ url: `/pages/system/records/detail?recordId=${ids[0]}` })
+      return
+    }
+  }
   const fileId = resolveFileId(e.raw)
   if (fileId) {
     uni.navigateTo({
@@ -104,6 +136,7 @@ async function load() {
   try {
     const r = await getRecord(recordId.value)
     detail.value = r.data
+    await enrichRefLabels()
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   } finally {
@@ -129,6 +162,37 @@ function copyText(s: string) {
 
 function copyJson() {
   copyText(pretty.value)
+}
+
+async function enrichRefLabels() {
+  refLabelByKey.value = {}
+  fieldMetaByCode.value = {}
+  const modelId = Number(detail.value?.record?.modelId || 0)
+  if (!modelId) return
+  try {
+    const fr = await listFieldsByModel(modelId)
+    for (const mf of fr.data || []) {
+      if (mf?.fieldCode) fieldMetaByCode.value[mf.fieldCode] = mf
+    }
+  } catch {
+    return
+  }
+  const data = detail.value?.data || {}
+  for (const k of Object.keys(data)) {
+    const mf = fieldMetaByCode.value[k]
+    if (!mf || !isRefField(mf)) continue
+    const raw = data[k]
+    if (isRefMultiField(mf)) {
+      const ids = parseRefIds(raw)
+      const parts: string[] = []
+      for (const id of ids) {
+        parts.push(await resolveRefDisplay(id, mf.refDisplayField))
+      }
+      refLabelByKey.value[k] = parts.join('、') || stringifyValue(raw)
+    } else {
+      refLabelByKey.value[k] = await resolveRefDisplay(raw, mf.refDisplayField)
+    }
+  }
 }
 
 function stringifyValue(v: any): string {
