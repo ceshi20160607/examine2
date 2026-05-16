@@ -60,6 +60,48 @@
                 :type="datePickerType(f)"
               />
 
+              <view v-else-if="isDateRangeField(f)" style="display:flex; flex-direction:column; gap:8px;">
+                <view class="u-subtitle">开始</view>
+                <uni-datetime-picker v-model="dateRangeStart[f.fieldCode]" :type="datePickerType(f)" />
+                <view class="u-subtitle">结束</view>
+                <uni-datetime-picker v-model="dateRangeEnd[f.fieldCode]" :type="datePickerType(f)" />
+              </view>
+
+              <uni-easyinput
+                v-else-if="isSerialNoField(f)"
+                v-model="formData[f.fieldCode]"
+                :disabled="!recordId"
+                :placeholder="recordId ? '' : '保存时自动生成编号'"
+              />
+
+              <uni-data-select
+                v-else-if="isPersonField(f) && !isPersonMulti(f)"
+                v-model="formData[f.fieldCode]"
+                :localdata="memberOptions"
+                placeholder="选择人员"
+              />
+
+              <uni-data-checkbox
+                v-else-if="isPersonField(f) && isPersonMulti(f)"
+                v-model="formData[f.fieldCode]"
+                multiple
+                :localdata="memberOptions"
+              />
+
+              <uni-data-select
+                v-else-if="isDepartmentField(f) && !isDepartmentMulti(f)"
+                v-model="formData[f.fieldCode]"
+                :localdata="departmentOptions"
+                placeholder="选择部门"
+              />
+
+              <uni-data-checkbox
+                v-else-if="isDepartmentField(f) && isDepartmentMulti(f)"
+                v-model="formData[f.fieldCode]"
+                multiple
+                :localdata="departmentOptions"
+              />
+
               <switch
                 v-else-if="isBooleanField(f)"
                 :checked="boolValue(f)"
@@ -102,10 +144,18 @@
                   multiple
                   :localdata="refOptionsByCode[f.fieldCode || ''] || []"
                 />
+                <uni-list v-if="refTableRows(f).length">
+                  <uni-list-item
+                    v-for="row in refTableRows(f)"
+                    :key="row.id"
+                    :title="row.title"
+                    :note="row.note"
+                  />
+                </uni-list>
               </view>
 
               <uni-data-checkbox
-                v-else-if="isRefMultiField(f)"
+                v-else-if="isRefMultiField(f) && !isRefTableField(f)"
                 v-model="formData[f.fieldCode]"
                 multiple
                 :localdata="refOptionsByCode[f.fieldCode || ''] || []"
@@ -160,6 +210,7 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { listFieldsByModel, type ModuleField } from '@/api/meta'
+import { listDepartmentPickerOptions, listMemberPickerOptions } from '@/api/rbac'
 import { listDictItems, listDictsByApp } from '@/api/module'
 import { createRecord, getRecord, updateRecord } from '@/api/records'
 import { pickSingleFilePath, uploadOneFile } from '@/api/upload'
@@ -168,6 +219,8 @@ import {
   inputTypeForField,
   isBooleanField,
   isDateField,
+  isDateRangeField,
+  isDepartmentField,
   isDictMulti,
   isDictSingle,
   isFileField,
@@ -175,6 +228,8 @@ import {
   isNumberField,
   isPasswordField,
   isPlainTextField,
+  isPersonField,
+  isSerialNoField,
   configFromMeta,
   isAddressMapEnabled,
   isRefField,
@@ -218,6 +273,11 @@ const fields = ref<ModuleField[]>([])
 const formData = reactive<Record<string, any>>({})
 const dictOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
 const refOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
+const memberOptions = ref<Array<{ value: any; text: string }>>([])
+const departmentOptions = ref<Array<{ value: any; text: string }>>([])
+const dateRangeStart = reactive<Record<string, string>>({})
+const dateRangeEnd = reactive<Record<string, string>>({})
+const refRowCache = reactive<Record<string, Record<number, { title: string; note: string }>>>({})
 
 function addressPlaceholder(f: ModuleField) {
   const cfg = configFromMeta(f)
@@ -244,6 +304,67 @@ function pickAddressOnMap(f: ModuleField) {
       uni.showToast({ title: '选点取消或不可用', icon: 'none' })
     }
   })
+}
+
+function isPersonMulti(f: ModuleField) {
+  return isPersonField(f) && (configFromMeta(f).multi === true || (f.multiFlag ?? 0) === 1)
+}
+
+function isDepartmentMulti(f: ModuleField) {
+  return isDepartmentField(f) && (configFromMeta(f).multi === true || (f.multiFlag ?? 0) === 1)
+}
+
+function refTableRows(f: ModuleField) {
+  const code = f.fieldCode || ''
+  const ids = normalizeMultiValue(formData[code]).map((x) => Number(x)).filter((n) => n > 0)
+  return ids.map((id) => {
+    const c = refRowCache[code]?.[id]
+    return { id, title: c?.title || `#${id}`, note: c?.note || '' }
+  })
+}
+
+async function refreshRefTableRows(f: ModuleField) {
+  const code = f.fieldCode
+  if (!code) return
+  const opts = refOptionsByCode[code] || []
+  if (!refRowCache[code]) refRowCache[code] = {}
+  for (const o of opts) {
+    const id = Number(o.value)
+    if (!id) continue
+    refRowCache[code][id] = { title: String(o.text), note: '' }
+  }
+}
+
+function syncDateRangeFromForm() {
+  for (const mf of fields.value || []) {
+    const code = mf?.fieldCode
+    if (!code || !isDateRangeField(mf)) continue
+    const start = dateRangeStart[code] || ''
+    const end = dateRangeEnd[code] || ''
+    if (!start && !end) {
+      formData[code] = ''
+      continue
+    }
+    formData[code] = JSON.stringify({ start, end })
+  }
+}
+
+function parseDateRangeToPickers() {
+  for (const mf of fields.value || []) {
+    const code = mf?.fieldCode
+    if (!code || !isDateRangeField(mf)) continue
+    const raw = formData[code]
+    if (!raw) continue
+    try {
+      const o = typeof raw === 'string' ? JSON.parse(raw) : raw
+      if (o && typeof o === 'object') {
+        dateRangeStart[code] = o.start || ''
+        dateRangeEnd[code] = o.end || ''
+      }
+    } catch {
+      // ignore
+    }
+  }
 }
 
 function placeholderFor(f: ModuleField) {
@@ -357,6 +478,11 @@ async function bootstrap() {
     // 字典选项
     await loadDictOptionsIfNeeded()
     await loadRefOptionsIfNeeded()
+    await loadPickerOptionsIfNeeded()
+    parseDateRangeToPickers()
+    for (const mf of fields.value) {
+      if (isRefTableField(mf)) await refreshRefTableRows(mf)
+    }
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   }
@@ -412,10 +538,35 @@ function normalizeFormDataValues() {
       formData[code] = nv ?? ''
       continue
     }
+    if (isDateRangeField(mf)) {
+      parseDateRangeToPickers()
+      continue
+    }
+    if (isPersonField(mf) || isDepartmentField(mf)) {
+      if (isPersonMulti(mf) || isDepartmentMulti(mf)) {
+        formData[code] = normalizeMultiValue(formData[code])
+      }
+      continue
+    }
     if (isBooleanField(mf)) {
       const v = formData[code]
       formData[code] = v === true || v === 1 || v === '1' || v === 'true'
     }
+  }
+}
+
+async function loadPickerOptionsIfNeeded() {
+  if (!appId.value) return
+  try {
+    const [m, d] = await Promise.all([
+      listMemberPickerOptions(appId.value),
+      listDepartmentPickerOptions(appId.value)
+    ])
+    memberOptions.value = (m.data || []).map((x) => ({ value: x.value, text: x.text }))
+    departmentOptions.value = (d.data || []).map((x) => ({ value: x.value, text: x.text }))
+  } catch {
+    memberOptions.value = []
+    departmentOptions.value = []
   }
 }
 
@@ -458,6 +609,7 @@ async function loadDictOptionsIfNeeded() {
 }
 
 function toSubmitData(): any {
+  syncDateRangeFromForm()
   const out: any = {}
   for (const mf of fields.value || []) {
     const code = mf?.fieldCode
@@ -488,6 +640,15 @@ function toSubmitData(): any {
     }
     if (isDateField(mf)) {
       v = normalizeDateValue(v)
+    }
+    if (isDateRangeField(mf)) {
+      const start = dateRangeStart[mf.fieldCode!] || ''
+      const end = dateRangeEnd[mf.fieldCode!] || ''
+      v = start || end ? { start, end } : null
+    }
+    if (isSerialNoField(mf) && !recordId.value) {
+      const t = String(v ?? '').trim()
+      v = t === '' ? null : t
     }
     if (isBooleanField(mf)) {
       v = v === true || v === 1 || v === '1' || v === 'true'

@@ -2,6 +2,7 @@ package com.unique.examine.module.manage;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
@@ -55,6 +56,8 @@ public class ModuleRecordFacadeService {
     private ObjectMapper objectMapper;
     @Autowired
     private ModuleFlowTriggerService moduleFlowTriggerService;
+    @Autowired
+    private ModuleSerialNoService moduleSerialNoService;
 
     @Transactional(rollbackFor = Exception.class)
     public ModuleRecord createWithData(Long appId, Long modelId, JsonNode data) {
@@ -84,8 +87,10 @@ public class ModuleRecordFacadeService {
         r.setUpdateUserId(platId);
         moduleRecordService.save(r);
 
-        if (data != null && data.isObject()) {
-            ObjectNode obj = (ObjectNode) data;
+        ObjectNode obj = ensureObjectNode(data);
+        fillSerialNumbers(systemId, tenantId, appId, modelId, obj);
+
+        if (obj != null && !obj.isEmpty()) {
             var it = obj.fields();
             while (it.hasNext()) {
                 var e = it.next();
@@ -115,11 +120,42 @@ public class ModuleRecordFacadeService {
             }
         }
 
-        saveHistory("create", r, dataToSnapshotJson(data));
+        saveHistory("create", r, dataToSnapshotJson(obj));
 
-        moduleFlowTriggerService.tryTriggerAfterRecordChange(r, "create", data);
+        moduleFlowTriggerService.tryTriggerAfterRecordChange(r, "create", obj);
 
         return r;
+    }
+
+    private ObjectNode ensureObjectNode(JsonNode data) {
+        if (data != null && data.isObject()) {
+            return (ObjectNode) data;
+        }
+        return objectMapper.createObjectNode();
+    }
+
+    private void fillSerialNumbers(long systemId, long tenantId, Long appId, Long modelId, ObjectNode obj) {
+        List<ModuleField> defs = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getStatus, 1)
+                .list();
+        for (ModuleField f : defs) {
+            if (ModuleFieldConfigSupport.typeOf(f) != ModuleFieldType.SERIAL_NO) {
+                continue;
+            }
+            String code = f.getFieldCode();
+            if (code == null || code.isBlank()) {
+                continue;
+            }
+            JsonNode cur = obj.get(code);
+            if (cur != null && !cur.isNull() && !cur.asText("").isBlank()) {
+                continue;
+            }
+            String generated = moduleSerialNoService.generate(systemId, tenantId, appId, modelId, f, obj);
+            obj.set(code, TextNode.valueOf(generated));
+        }
     }
 
     private static String valueToText(JsonNode v) {

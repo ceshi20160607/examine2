@@ -76,8 +76,11 @@ export function isNumberField(f: FieldLike): boolean {
 }
 
 export function isDateField(f: FieldLike): boolean {
-  const c = fieldTypeCode(f)
-  return c === 'DATETIME' || c === 'DATE_RANGE'
+  return fieldTypeCode(f) === 'DATETIME'
+}
+
+export function isDateRangeField(f: FieldLike): boolean {
+  return fieldTypeCode(f) === 'DATE_RANGE'
 }
 
 export function datePickerType(f: FieldLike): 'date' | 'datetime' | 'time' {

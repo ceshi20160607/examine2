@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "自建系统态-module RBAC")
 @RestController
@@ -46,6 +47,20 @@ public class SystemModuleRbacController {
     public ApiResult<List<ModuleMember>> listMembers(@PathVariable("appId") Long appId) {
         Long platId = AuthContextHolder.getPlatId();
         return ApiResult.ok(systemModuleRbacService.listMembers(appId, platId));
+    }
+
+    @Operation(summary = "人员字段选择项（PERSON）")
+    @GetMapping("/apps/{appId}/picker/members")
+    public ApiResult<List<Map<String, Object>>> memberPicker(@PathVariable("appId") Long appId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listMemberPickerOptions(appId, platId));
+    }
+
+    @Operation(summary = "部门字段选择项（DEPARTMENT，当前映射为角色）")
+    @GetMapping("/apps/{appId}/picker/departments")
+    public ApiResult<List<Map<String, Object>>> departmentPicker(@PathVariable("appId") Long appId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listDepartmentPickerOptions(appId, platId));
     }
 
     @Operation(summary = "角色菜单权限明细（按 roleId）")

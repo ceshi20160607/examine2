@@ -7,6 +7,8 @@ import com.unique.examine.module.entity.po.ModuleMember;
 import com.unique.examine.module.entity.po.ModuleMenu;
 import com.unique.examine.module.entity.po.ModuleRole;
 import com.unique.examine.module.entity.po.ModuleRoleMenuPerm;
+import com.unique.examine.plat.entity.po.PlatAccount;
+import com.unique.examine.plat.service.IPlatAccountService;
 import com.unique.examine.module.service.IModuleMemberService;
 import com.unique.examine.module.service.IModuleMenuService;
 import com.unique.examine.module.service.IModuleRoleMenuPermService;
@@ -16,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -51,6 +55,48 @@ public class SystemModuleRbacService {
     private ModuleAuthCacheCoordinator moduleAuthCacheCoordinator;
     @Autowired
     private ModuleRuntimeApiPermissionService moduleRuntimeApiPermissionService;
+    @Autowired
+    private IPlatAccountService platAccountService;
+
+    /** 人员字段选择器：platId + 展示名 */
+    public List<Map<String, Object>> listMemberPickerOptions(Long appId, Long operatorPlatId) {
+        List<ModuleMember> members = listMembers(appId, operatorPlatId);
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (ModuleMember m : members) {
+            if (m.getPlatId() == null || m.getStatus() == null || m.getStatus() != 1) {
+                continue;
+            }
+            PlatAccount acc = platAccountService.getById(m.getPlatId());
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("value", m.getPlatId());
+            String label = acc != null && acc.getDisplayName() != null && !acc.getDisplayName().isBlank()
+                    ? acc.getDisplayName()
+                    : (acc != null ? acc.getUsername() : null);
+            if (label == null || label.isBlank()) {
+                label = "用户#" + m.getPlatId();
+            }
+            row.put("text", label);
+            row.put("roleId", m.getRoleId());
+            out.add(row);
+        }
+        return out;
+    }
+
+    /** 部门字段选择器：暂用角色作为部门维度 */
+    public List<Map<String, Object>> listDepartmentPickerOptions(Long appId, Long operatorPlatId) {
+        List<ModuleRole> roles = listRoles(appId, operatorPlatId);
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (ModuleRole r : roles) {
+            if (r.getId() == null || r.getStatus() == null || r.getStatus() != 1) {
+                continue;
+            }
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("value", r.getId());
+            row.put("text", r.getRoleName() != null ? r.getRoleName() : r.getRoleCode());
+            out.add(row);
+        }
+        return out;
+    }
 
     public List<ModuleRole> listRoles(Long appId, Long operatorPlatId) {
         requireOperator(operatorPlatId);
