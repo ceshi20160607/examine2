@@ -12,8 +12,16 @@
               </view>
 
               <uni-easyinput
-                v-if="isTextField(f)"
+                v-if="isPlainTextField(f)"
                 v-model="formData[f.fieldCode]"
+                :placeholder="f.tips || ''"
+              />
+
+              <uni-easyinput
+                v-else-if="isTextareaField(f)"
+                v-model="formData[f.fieldCode]"
+                type="textarea"
+                :autoHeight="true"
                 :placeholder="f.tips || ''"
               />
 
@@ -29,6 +37,20 @@
                 v-model="formData[f.fieldCode]"
                 :type="datePickerType(f)"
               />
+
+              <switch
+                v-else-if="isBooleanField(f)"
+                :checked="boolValue(f)"
+                @change="(e: any) => setBool(f, e.detail.value)"
+              />
+
+              <view v-else-if="isFileField(f)" style="display:flex; flex-direction:column; gap:8px;">
+                <view class="u-subtitle">fileId: {{ fileIdLabel(f) }}</view>
+                <ActionBar>
+                  <uni-button size="mini" @click="pickFileFor(f)">选择并上传</uni-button>
+                  <uni-button size="mini" @click="clearFileFor(f)">清除</uni-button>
+                </ActionBar>
+              </view>
 
               <uni-data-select
                 v-else-if="isDictSingle(f)"
@@ -47,7 +69,7 @@
               <uni-easyinput
                 v-else
                 v-model="formData[f.fieldCode]"
-                :placeholder="`${f.fieldType || 'text'}（暂按文本处理）`"
+                :placeholder="`${f.fieldType || 'text'}（暂按文本）`"
               />
             </view>
           </view>
@@ -76,9 +98,21 @@ import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
-import { listFieldsByModel } from '@/api/meta'
+import { listFieldsByModel, type ModuleField } from '@/api/meta'
 import { listDictItems, listDictsByApp } from '@/api/module'
 import { createRecord, getRecord, updateRecord } from '@/api/records'
+import { pickSingleFilePath, uploadOneFile } from '@/api/upload'
+import {
+  datePickerType,
+  isBooleanField,
+  isDateField,
+  isDictMulti,
+  isDictSingle,
+  isFileField,
+  isNumberField,
+  isPlainTextField,
+  isTextareaField
+} from '@/utils/fieldTypes'
 
 const appId = ref(0)
 const modelId = ref(0)
@@ -106,53 +140,52 @@ function back() {
   uni.navigateBack()
 }
 
-type ModuleField = {
-  id: number | string
-  fieldCode: string
-  fieldName?: string
-  fieldType?: string
-  requiredFlag?: number
-  hiddenFlag?: number
-  tips?: string
-  dictCode?: string
-  multiFlag?: number
-  defaultValue?: string
-  sortNo?: number
-}
-
 const fields = ref<ModuleField[]>([])
 const formData = reactive<Record<string, any>>({})
 const dictOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
 
 const visibleFields = computed(() => {
   return (fields.value || [])
-    .filter((f) => f && f.fieldCode && f.hiddenFlag !== 1)
+    .filter((f): f is ModuleField & { fieldCode: string } => !!(f && f.fieldCode && f.hiddenFlag !== 1))
     .slice()
     .sort((a, b) => Number(a.sortNo ?? 0) - Number(b.sortNo ?? 0))
 })
 
-function isNumberField(f: ModuleField) {
-  const t = String(f.fieldType || '').toLowerCase()
-  return t === 'number' || t === 'int' || t === 'integer' || t === 'long' || t === 'decimal' || t === 'double' || t === 'float'
+function boolValue(f: ModuleField) {
+  const v = formData[f.fieldCode!]
+  if (v === true || v === 1 || v === '1' || v === 'true') return true
+  return false
 }
-function isDateField(f: ModuleField) {
-  const t = String(f.fieldType || '').toLowerCase()
-  return t === 'date' || t === 'datetime' || t === 'time'
+
+function setBool(f: ModuleField, checked: boolean) {
+  if (!f.fieldCode) return
+  formData[f.fieldCode] = checked
 }
-function datePickerType(f: ModuleField): 'date' | 'datetime' | 'time' {
-  const t = String(f.fieldType || '').toLowerCase()
-  if (t === 'datetime') return 'datetime'
-  if (t === 'time') return 'time'
-  return 'date'
+
+function fileIdLabel(f: ModuleField) {
+  const v = formData[f.fieldCode!]
+  if (v == null || v === '') return '-'
+  return String(v)
 }
-function isTextField(f: ModuleField) {
-  return !isNumberField(f) && !isDateField(f) && !f.dictCode
+
+async function pickFileFor(f: ModuleField) {
+  if (!f.fieldCode) return
+  try {
+    const path = await pickSingleFilePath()
+    const r = await uploadOneFile(path)
+    const id = r.data?.fileId
+    if (id) {
+      formData[f.fieldCode] = id
+      uni.showToast({ title: '上传成功', icon: 'success' })
+    }
+  } catch (e: any) {
+    error.value = e?.message ?? String(e)
+  }
 }
-function isDictSingle(f: ModuleField) {
-  return !!f.dictCode && (f.multiFlag ?? 0) !== 1
-}
-function isDictMulti(f: ModuleField) {
-  return !!f.dictCode && (f.multiFlag ?? 0) === 1
+
+function clearFileFor(f: ModuleField) {
+  if (!f.fieldCode) return
+  formData[f.fieldCode] = null
 }
 
 function toggleAdvanced() {
@@ -191,6 +224,10 @@ async function bootstrap() {
           formData[mf.fieldCode] = mf.defaultValue
         } else if (isDictMulti(mf)) {
           formData[mf.fieldCode] = []
+        } else if (isBooleanField(mf)) {
+          formData[mf.fieldCode] = false
+        } else if (isFileField(mf)) {
+          formData[mf.fieldCode] = null
         } else {
           formData[mf.fieldCode] = ''
         }
@@ -247,6 +284,11 @@ function normalizeFormDataValues() {
     if (isDateField(mf)) {
       const nv = normalizeDateValue(formData[code])
       formData[code] = nv ?? ''
+      continue
+    }
+    if (isBooleanField(mf)) {
+      const v = formData[code]
+      formData[code] = v === true || v === 1 || v === '1' || v === 'true'
     }
   }
 }
@@ -296,6 +338,17 @@ function toSubmitData(): any {
     if (isDateField(mf)) {
       v = normalizeDateValue(v)
     }
+    if (isBooleanField(mf)) {
+      v = v === true || v === 1 || v === '1' || v === 'true'
+    }
+    if (isFileField(mf)) {
+      const t = String(v ?? '').trim()
+      if (t === '') v = null
+      else {
+        const n = Number(t)
+        v = Number.isNaN(n) ? t : n
+      }
+    }
     out[code] = v
   }
   return out
@@ -305,7 +358,8 @@ function validateRequired(dataObj: any): string | null {
   for (const mf of visibleFields.value) {
     if (mf.requiredFlag !== 1) continue
     const v = dataObj[mf.fieldCode]
-    const empty = v == null || v === '' || (Array.isArray(v) && v.length === 0)
+    let empty = v == null || v === '' || (Array.isArray(v) && v.length === 0)
+    if (isBooleanField(mf)) empty = false
     if (empty) return `${mf.fieldName || mf.fieldCode} 不能为空`
   }
   return null

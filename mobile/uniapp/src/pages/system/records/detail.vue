@@ -21,7 +21,7 @@
             :title="e.k"
             :note="e.v"
             clickable
-            @click="copyText(`${e.k}=${e.v}`)"
+            @click="onEntryClick(e)"
           />
         </uni-list>
         <EmptyState v-else text="无字段数据" />
@@ -61,12 +61,41 @@ const pretty = computed(() => {
 
 const dataEntries = computed(() => {
   const data = detail.value?.data
+  const files = detail.value?.files as Record<string, any> | undefined
   if (!data || typeof data !== 'object') return []
   return Object.keys(data)
     .slice()
     .sort()
-    .map((k) => ({ k, v: stringifyValue(data[k]) }))
+    .map((k) => {
+      const raw = data[k]
+      const meta = files?.[k]
+      let v = stringifyValue(raw)
+      if (meta && typeof meta === 'object') {
+        const name = meta.originalName || meta.name
+        if (name) v = `${v} (${name})`
+      }
+      return { k, v, raw, meta }
+    })
 })
+
+type DataEntry = { k: string; v: string; raw: any; meta?: any }
+
+function onEntryClick(e: DataEntry) {
+  const fileId = resolveFileId(e.raw)
+  if (fileId) {
+    uni.navigateTo({
+      url: `/pages/system/upload/view?fileId=${fileId}&name=${encodeURIComponent(e.meta?.originalName || '')}`
+    })
+    return
+  }
+  copyText(`${e.k}=${e.v}`)
+}
+
+function resolveFileId(v: any): number | null {
+  if (v == null || v === '') return null
+  const n = Number(v)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
 
 async function load() {
   if (!recordId.value) return

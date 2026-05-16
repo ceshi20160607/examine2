@@ -9,7 +9,17 @@ export type ModuleField = {
   fieldName?: string
   fieldType?: string
   dictCode?: string | null
+  requiredFlag?: number
+  uniqueFlag?: number
   hiddenFlag?: number
+  tips?: string | null
+  maxLength?: number | null
+  minLength?: number | null
+  validateType?: string | null
+  dateFormat?: string | null
+  multiFlag?: number
+  defaultValue?: string | null
+  sortNo?: number
   status?: number
 }
 
@@ -61,7 +71,31 @@ export function listFieldsByModel(modelId: number): Promise<ApiResult<ModuleFiel
   return httpGet<ModuleField[]>(`/v1/system/module/meta/models/${modelId}/fields`)
 }
 
-export function upsertField(cmd: any): Promise<ApiResult<any>> {
-  return httpPost('/v1/system/module/meta/fields/upsert', cmd)
+export function upsertField(cmd: {
+  id?: number | null
+  appId: number
+  modelId: number
+  fieldCode: string
+  fieldName: string
+  fieldType: string
+  requiredFlag?: number
+  uniqueFlag?: number
+  hiddenFlag?: number
+  tips?: string | null
+  maxLength?: number | null
+  minLength?: number | null
+  validateType?: string | null
+  dateFormat?: string | null
+  dictCode?: string | null
+  multiFlag?: number
+  defaultValue?: string | null
+  sortNo?: number
+  status?: number
+}): Promise<ApiResult<ModuleField>> {
+  return httpPost<ModuleField>('/v1/system/module/meta/fields/upsert', cmd)
+}
+
+export function deleteFields(ids: number[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/meta/fields/delete', { ids })
 }
 
