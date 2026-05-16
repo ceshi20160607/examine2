@@ -7,6 +7,10 @@ export function login(username: string, password: string): Promise<ApiResult<{ t
   return httpPost<{ token: string; account: any }>('/v1/platform/auth/login', { username, password })
 }
 
+export function register(username: string, password: string): Promise<ApiResult<{ id?: number; username?: string }>> {
+  return httpPost<{ id?: number; username?: string }>('/v1/platform/auth/register', { username, password })
+}
+
 export function me(): Promise<ApiResult<PlatAccountMe>> {
   return httpGet<PlatAccountMe>('/v1/platform/auth/me')
 }

@@ -3,6 +3,7 @@ package com.unique.examine.web.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
+import com.unique.examine.module.entity.po.ModuleRecordHistory;
 import com.unique.examine.module.manage.ModuleRecordFacadeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "自建系统态-业务数据（record/record_data）")
@@ -66,6 +69,13 @@ public class SystemModuleRecordController {
     @PostMapping("/query")
     public ApiResult<Map<String, Object>> query(@RequestBody ModuleRecordDslQuery body) {
         return ApiResult.ok(moduleRecordFacadeService.queryDsl(body));
+    }
+
+    @Operation(summary = "记录变更历史（按 recordId；最近 N 条）")
+    @GetMapping("/{recordId}/history")
+    public ApiResult<List<ModuleRecordHistory>> history(@PathVariable("recordId") Long recordId,
+                                                        @RequestParam(value = "limit", defaultValue = "50") int limit) {
+        return ApiResult.ok(moduleRecordFacadeService.listHistoryForRecord(recordId, limit));
     }
 }
 

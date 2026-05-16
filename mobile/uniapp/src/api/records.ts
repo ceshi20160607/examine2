@@ -27,3 +27,17 @@ export function deleteRecord(recordId: number): Promise<ApiResult<any>> {
   return httpRequest<any>('DELETE', `/v1/system/records/${recordId}`)
 }
 
+export type RecordHistoryRow = {
+  id?: number
+  recordId?: number
+  action?: string
+  dataJson?: string
+  diffJson?: string
+  createUserId?: number
+  createTime?: string
+}
+
+export function listRecordHistory(recordId: number, limit = 50): Promise<ApiResult<RecordHistoryRow[]>> {
+  return httpGet<RecordHistoryRow[]>(`/v1/system/records/${recordId}/history?limit=${limit}`)
+}
+

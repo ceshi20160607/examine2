@@ -44,6 +44,12 @@
 			}
 		},
 		{
+			"path": "pages/auth/register",
+			"style": {
+				"navigationBarTitleText": "注册"
+			}
+		},
+		{
 			"path": "pages/platform/systems",
 			"style": {
 				"navigationBarTitleText": "系统"
@@ -149,6 +155,12 @@
 			"path": "pages/system/records/form",
 			"style": {
 				"navigationBarTitleText": "Record Form"
+			}
+		},
+		{
+			"path": "pages/system/records/history",
+			"style": {
+				"navigationBarTitleText": "Record History"
 			}
 		},
 		{

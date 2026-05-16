@@ -50,8 +50,8 @@ java -jar examine-web/target/examine-web-*.jar
 
 Flyway **未** 预置默认密码账号。请任选其一：
 
-1. **Swagger**：`POST /v1/platform/auth/register`，body：`{"username":"admin","password":"你的密码"}`
-2. 或在已实现的管理端注册（若后续补充）
+1. **手机端**：登录页 →「注册」，或打开 `pages/auth/register`
+2. **Swagger**：`POST /v1/platform/auth/register`，body：`{"username":"admin","password":"你的密码"}`
 
 然后使用 `POST /v1/platform/auth/login` 获取 token。
 

@@ -6,6 +6,7 @@
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
         <uni-button type="warn" :disabled="!recordId || loading" @click="doDelete">删除</uni-button>
         <uni-button :disabled="!detail" @click="copyJson">复制 JSON</uni-button>
+        <uni-button :disabled="!recordId" @click="goHistory">变更历史</uni-button>
         <uni-button @click="toggleRaw">{{ showRaw ? '结构化' : '原始 JSON' }}</uni-button>
       </ActionBar>
 
@@ -83,6 +84,10 @@ async function load() {
 
 function goEdit() {
   uni.navigateTo({ url: `/pages/system/records/form?recordId=${recordId.value}` })
+}
+
+function goHistory() {
+  uni.navigateTo({ url: `/pages/system/records/history?recordId=${recordId.value}` })
 }
 
 function toggleRaw() {

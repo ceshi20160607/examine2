@@ -259,6 +259,40 @@ public class ModuleRecordFacadeService {
         return m;
     }
 
+    public List<ModuleRecordHistory> listHistoryForRecord(Long recordId, int limit) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        long systemId = AuthContextHolder.getSystemIdOrDefault();
+        if (systemId == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (recordId == null || recordId <= 0L) {
+            throw new BusinessException("recordId 不能为空");
+        }
+
+        ModuleRecord r = moduleRecordService.getById(recordId);
+        if (r == null) {
+            throw new BusinessException(404, "记录不存在");
+        }
+        if (r.getSystemId() == null || r.getTenantId() == null
+                || r.getSystemId() != systemId
+                || r.getTenantId() != tenantId) {
+            throw new BusinessException(403, "无权限访问该记录");
+        }
+
+        int lim = Math.min(Math.max(limit, 1), 100);
+        return moduleRecordHistoryService.lambdaQuery()
+                .eq(ModuleRecordHistory::getRecordId, recordId)
+                .eq(ModuleRecordHistory::getSystemId, systemId)
+                .eq(ModuleRecordHistory::getTenantId, tenantId)
+                .orderByDesc(ModuleRecordHistory::getCreateTime)
+                .last("limit " + lim)
+                .list();
+    }
+
     private Map<String, Object> buildFilesMetaForRecord(long systemId,
                                                         long tenantId,
                                                         Long appId,

@@ -13,6 +13,7 @@
       <view style="margin-top: 12px">
         <ActionBar>
           <uni-button type="primary" :disabled="submitting" @click="doLogin">登录</uni-button>
+          <uni-button :disabled="submitting" @click="goRegister">注册</uni-button>
           <uni-button :disabled="submitting" @click="goHealth">健康检查</uni-button>
         </ActionBar>
       </view>
@@ -63,6 +64,10 @@ async function doLogin() {
 
 function goHealth() {
   uni.navigateTo({ url: '/pages/boot/health' })
+}
+
+function goRegister() {
+  uni.navigateTo({ url: '/pages/auth/register' })
 }
 
 onMounted(() => {

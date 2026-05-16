@@ -46,7 +46,7 @@
 | `POST /v1/system/records/{id}/update` | ✅ | `records/form` 编辑 |
 | `DELETE /v1/system/records/{id}` | ✅ | `records/detail` |
 | `POST /v1/system/records/query` | ✅ | `records/list` |
-| Record 变更历史 | ⚠️ | 后端 EAV 写历史；无系统态查询 API / 无手机页 |
+| `GET /v1/system/records/{id}/history` | ✅ | `records/history` · `api/records` |
 
 ## 流程（flow）
 
