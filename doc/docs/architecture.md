@@ -141,7 +141,6 @@ api/http.ts     统一 baseURL、鉴权头、401 刷新、错误 toast
 |------|------|
 | OpenAPI `/v1/open/*` | 给第三方集成，非手机端 |
 | `/v1/platform/apps` | 对外应用密钥管理 |
-| 记录历史 UI | 无系统态 list API |
 | 图形化流程设计器 | 列表 + JSON 为主 |
 | 记录历史 diff 对比 | 当前为 dataJson 快照列表，无 side-by-side diff |
 
