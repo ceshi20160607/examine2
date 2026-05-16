@@ -58,7 +58,7 @@ public class ModuleField implements Serializable {
     @Schema(description = "字段名称")
     private String fieldName;
 
-    @Schema(description = "字段类型：string|number|date|datetime|bool|enum|ref|json 等")
+    @Schema(description = "字段类型枚举 code，见 ModuleFieldType")
     private String fieldType;
 
     @Schema(description = "是否必填：1=必填 0=可空")
@@ -94,6 +94,12 @@ public class ModuleField implements Serializable {
 
     @Schema(description = "关联展示字段 fieldCode（目标 model）")
     private String refDisplayField;
+
+    @Schema(description = "关联模块展示名（REF_MODULE 时，子表/选择器标题）")
+    private String relationModuleLabel;
+
+    @Schema(description = "字段类型扩展配置 JSON")
+    private String configJson;
 
     @Schema(description = "是否多选：1=多选 0=单选（enum/dict 等）")
     private Integer multiFlag;

@@ -41,7 +41,7 @@ import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { listFieldsByModel, type ModuleField } from '@/api/meta'
 import { deleteRecord, getRecord } from '@/api/records'
-import { isRefField, isRefMultiField } from '@/utils/fieldTypes'
+import { fieldTypeCode, isRefField, isRefMultiField } from '@/utils/fieldTypes'
 import { resolveRefDisplay } from '@/utils/refPicker'
 
 const recordId = ref<number>(0)

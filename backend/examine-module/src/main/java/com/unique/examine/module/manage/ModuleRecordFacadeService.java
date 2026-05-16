@@ -11,6 +11,8 @@ import com.unique.examine.module.entity.po.ModuleField;
 import com.unique.examine.module.entity.po.ModuleRecord;
 import com.unique.examine.module.entity.po.ModuleRecordData;
 import com.unique.examine.module.entity.po.ModuleRecordHistory;
+import com.unique.examine.module.field.ModuleFieldConfigSupport;
+import com.unique.examine.module.field.ModuleFieldType;
 import com.unique.examine.module.mapper.ModuleRecordMapper;
 import com.unique.examine.module.service.IModuleRecordDataService;
 import com.unique.examine.module.service.IModuleFieldService;
@@ -142,12 +144,13 @@ public class ModuleRecordFacadeService {
         if (field == null) {
             return;
         }
-        String ft = field.getFieldType();
-        if (ft == null) {
-            return;
-        }
-        String t = ft.trim().toLowerCase();
-        if (!(t.equals("file") || t.equals("upload") || t.equals("attachment") || t.equals("image"))) {
+        ModuleFieldType type = ModuleFieldConfigSupport.typeOf(field);
+        if (type == null) {
+            String ft = field.getFieldType();
+            if (ft == null) return;
+            String t = ft.trim().toLowerCase();
+            if (!(t.equals("file") || t.equals("upload") || t.equals("attachment") || t.equals("image"))) return;
+        } else if (!type.isFileType()) {
             return;
         }
 
@@ -214,13 +217,13 @@ public class ModuleRecordFacadeService {
         if (field == null || value == null || value.isNull()) {
             return;
         }
-        String ft = field.getFieldType();
-        if (ft == null) {
-            return;
-        }
-        String t = ft.trim().toLowerCase();
-        if (!(t.equals("ref") || t.equals("relation") || t.equals("lookup"))) {
-            return;
+        ModuleFieldType type = ModuleFieldConfigSupport.typeOf(field);
+        boolean isRef = type != null ? type.isRefType() : false;
+        if (!isRef) {
+            String ft = field.getFieldType();
+            if (ft == null) return;
+            String t = ft.trim().toLowerCase();
+            if (!(t.equals("ref") || t.equals("relation") || t.equals("lookup"))) return;
         }
         Long refModelId = field.getRefModelId();
         if (refModelId == null || refModelId <= 0L) {

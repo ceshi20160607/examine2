@@ -18,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.unique.examine.module.field.ModuleFieldTypeRegistry;
+
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "自建系统态-module元数据")
 @RestController
@@ -82,6 +85,12 @@ public class SystemModuleMetaController {
         return ApiResult.ok();
     }
 
+    @Operation(summary = "字段类型枚举定义（前端配置用）")
+    @GetMapping("/field-types")
+    public ApiResult<List<Map<String, Object>>> listFieldTypes() {
+        return ApiResult.ok(ModuleFieldTypeRegistry.listDefinitions());
+    }
+
     @Operation(summary = "字段列表（按 modelId）")
     @GetMapping("/models/{modelId}/fields")
     public ApiResult<List<ModuleField>> listFields(@PathVariable("modelId") Long modelId) {
@@ -106,6 +115,8 @@ public class SystemModuleMetaController {
                                   String dictCode,
                                   Long refModelId,
                                   String refDisplayField,
+                                  String relationModuleLabel,
+                                  String configJson,
                                   Integer multiFlag,
                                   String defaultValue,
                                   Integer sortNo,
@@ -119,7 +130,7 @@ public class SystemModuleMetaController {
                 body.id(), body.appId(), body.modelId(), body.fieldCode(), body.fieldName(), body.fieldType(),
                 body.requiredFlag(), body.uniqueFlag(), body.hiddenFlag(), body.tips(),
                 body.maxLength(), body.minLength(), body.validateType(), body.dateFormat(), body.dictCode(),
-                body.refModelId(), body.refDisplayField(),
+                body.refModelId(), body.refDisplayField(), body.relationModuleLabel(), body.configJson(),
                 body.multiFlag(), body.defaultValue(), body.sortNo(), body.status()
         )));
     }

@@ -7,6 +7,8 @@ import com.unique.examine.module.entity.po.ModuleApp;
 import com.unique.examine.module.entity.po.ModuleField;
 import com.unique.examine.module.entity.po.ModuleModel;
 import com.unique.examine.module.entity.po.ModuleRelation;
+import com.unique.examine.module.field.ModuleFieldConfigSupport;
+import com.unique.examine.module.field.ModuleFieldType;
 import com.unique.examine.module.service.IModuleActionService;
 import com.unique.examine.module.service.IModuleAppService;
 import com.unique.examine.module.service.IModuleFieldService;
@@ -59,6 +61,8 @@ public class SystemModuleMetaService {
             String dictCode,
             Long refModelId,
             String refDisplayField,
+            String relationModuleLabel,
+            String configJson,
             Integer multiFlag,
             String defaultValue,
             Integer sortNo,
@@ -343,7 +347,7 @@ public class SystemModuleMetaService {
         f.setModelId(body.modelId());
         f.setFieldCode(body.fieldCode().trim());
         f.setFieldName(body.fieldName().trim());
-        f.setFieldType(body.fieldType().trim());
+        ModuleFieldType fieldType = ModuleFieldConfigSupport.resolveType(body.fieldType());
         f.setRequiredFlag(body.requiredFlag());
         f.setUniqueFlag(body.uniqueFlag());
         f.setHiddenFlag(body.hiddenFlag());
@@ -353,8 +357,21 @@ public class SystemModuleMetaService {
         f.setValidateType(trimToNull(body.validateType()));
         f.setDateFormat(trimToNull(body.dateFormat()));
         f.setDictCode(trimToNull(body.dictCode()));
-        String ft = body.fieldType().trim().toLowerCase();
-        if (ft.equals("ref") || ft.equals("relation") || ft.equals("lookup")) {
+
+        if (fieldType == ModuleFieldType.TAG) {
+            long tagCnt = moduleFieldService.lambdaQuery()
+                    .eq(ModuleField::getSystemId, systemId)
+                    .eq(ModuleField::getTenantId, tenantId)
+                    .eq(ModuleField::getModelId, body.modelId())
+                    .eq(ModuleField::getFieldType, ModuleFieldType.TAG.getCode())
+                    .ne(body.id() != null, ModuleField::getId, body.id())
+                    .count();
+            if (tagCnt > 0) {
+                throw new BusinessException(400, "每个模块仅允许一个标签字段");
+            }
+        }
+
+        if (fieldType.isRefType()) {
             if (body.refModelId() == null || body.refModelId() <= 0L) {
                 throw new BusinessException(400, "关联字段须指定 refModelId");
             }
@@ -370,12 +387,28 @@ public class SystemModuleMetaService {
             }
             f.setRefModelId(body.refModelId());
             f.setRefDisplayField(trimToNull(body.refDisplayField()));
+            String label = trimToNull(body.relationModuleLabel());
+            if (label == null) {
+                label = trimToNull(refModel.getModelName());
+                if (label == null) {
+                    label = trimToNull(refModel.getModelCode());
+                }
+            }
+            f.setRelationModuleLabel(label);
             f.setDictCode(null);
         } else {
             f.setRefModelId(null);
             f.setRefDisplayField(null);
+            f.setRelationModuleLabel(null);
         }
-        f.setMultiFlag(body.multiFlag());
+
+        ModuleFieldConfigSupport.applyOnUpsert(f, fieldType, body.configJson(), body.validateType(), body.multiFlag());
+        if (fieldType.isRefType()) {
+            ModuleFieldConfigSupport.validateRefConfig(f);
+        }
+        if (body.multiFlag() != null && fieldType.allowsMultiFlag()) {
+            f.setMultiFlag(body.multiFlag());
+        }
         f.setDefaultValue(trimToNull(body.defaultValue()));
         f.setSortNo(body.sortNo());
         f.setStatus(status);

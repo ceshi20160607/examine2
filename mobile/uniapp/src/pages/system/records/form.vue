@@ -95,6 +95,15 @@
                 placeholder="选择关联记录"
               />
 
+              <view v-else-if="isRefTableField(f)" style="display:flex; flex-direction:column; gap:8px;">
+                <view class="u-subtitle">{{ f.relationModuleLabel || '子表/明细' }}（多选关联记录）</view>
+                <uni-data-checkbox
+                  v-model="formData[f.fieldCode]"
+                  multiple
+                  :localdata="refOptionsByCode[f.fieldCode || ''] || []"
+                />
+              </view>
+
               <uni-data-checkbox
                 v-else-if="isRefMultiField(f)"
                 v-model="formData[f.fieldCode]"
@@ -102,10 +111,26 @@
                 :localdata="refOptionsByCode[f.fieldCode || ''] || []"
               />
 
+              <view v-else-if="isAddressField(f)" style="display:flex; flex-direction:column; gap:8px;">
+                <uni-easyinput
+                  v-model="formData[f.fieldCode]"
+                  type="textarea"
+                  :autoHeight="true"
+                  :placeholder="addressPlaceholder(f)"
+                />
+                <uni-button v-if="isAddressMapEnabled(f)" size="mini" @click="pickAddressOnMap(f)">地图选点</uni-button>
+              </view>
+
+              <uni-easyinput
+                v-else-if="isTagField(f)"
+                v-model="formData[f.fieldCode]"
+                placeholder="标签，逗号分隔"
+              />
+
               <uni-easyinput
                 v-else
                 v-model="formData[f.fieldCode]"
-                :placeholder="`${f.fieldType || 'text'}（暂按文本）`"
+                :placeholder="`${f.fieldType || 'TEXT'}（暂按文本）`"
               />
             </view>
           </view>
@@ -150,10 +175,16 @@ import {
   isNumberField,
   isPasswordField,
   isPlainTextField,
+  configFromMeta,
+  isAddressMapEnabled,
   isRefField,
   isRefMultiField,
+  isRefTableField,
   isTextareaField,
-  isValidatedTextField
+  isTitleField,
+  isValidatedTextField,
+  isAddressField,
+  isTagField
 } from '@/utils/fieldTypes'
 import { loadRefSelectOptions } from '@/utils/refPicker'
 
@@ -188,6 +219,33 @@ const formData = reactive<Record<string, any>>({})
 const dictOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
 const refOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
 
+function addressPlaceholder(f: ModuleField) {
+  const cfg = configFromMeta(f)
+  const parts = ['省市区']
+  if (cfg.detailMode === 'manual') parts.push('详细地址')
+  if (isAddressMapEnabled(f)) parts.push('可地图选点')
+  return parts.join(' + ')
+}
+
+function pickAddressOnMap(f: ModuleField) {
+  if (!f.fieldCode) return
+  uni.chooseLocation({
+    success: (res) => {
+      const payload = {
+        region: '',
+        detail: res.address || res.name || '',
+        lat: res.latitude,
+        lng: res.longitude
+      }
+      formData[f.fieldCode!] = JSON.stringify(payload)
+      uni.showToast({ title: '已选点', icon: 'success' })
+    },
+    fail: () => {
+      uni.showToast({ title: '选点取消或不可用', icon: 'none' })
+    }
+  })
+}
+
 function placeholderFor(f: ModuleField) {
   const t = String(f.fieldType || '').toLowerCase()
   if (t === 'email') return 'name@example.com'
@@ -201,7 +259,7 @@ function placeholderFor(f: ModuleField) {
 
 const visibleFields = computed(() => {
   return (fields.value || [])
-    .filter((f): f is ModuleField & { fieldCode: string } => !!(f && f.fieldCode && f.hiddenFlag !== 1))
+    .filter((f): f is ModuleField & { fieldCode: string } => !!(f && f.fieldCode && f.hiddenFlag !== 1 && !isTitleField(f)))
     .slice()
     .sort((a, b) => Number(a.sortNo ?? 0) - Number(b.sortNo ?? 0))
 })

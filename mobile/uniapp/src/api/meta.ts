@@ -11,6 +11,8 @@ export type ModuleField = {
   dictCode?: string | null
   refModelId?: number | null
   refDisplayField?: string | null
+  relationModuleLabel?: string | null
+  configJson?: string | null
   requiredFlag?: number
   uniqueFlag?: number
   hiddenFlag?: number
@@ -73,6 +75,20 @@ export function listFieldsByModel(modelId: number): Promise<ApiResult<ModuleFiel
   return httpGet<ModuleField[]>(`/v1/system/module/meta/models/${modelId}/fields`)
 }
 
+export type FieldTypeDefinition = {
+  code: string
+  label: string
+  needsDict?: boolean
+  needsRef?: boolean
+  allowsMulti?: boolean
+  displayOnly?: boolean
+  configKeys?: string[]
+}
+
+export function listFieldTypeDefinitions(): Promise<ApiResult<FieldTypeDefinition[]>> {
+  return httpGet<FieldTypeDefinition[]>('/v1/system/module/meta/field-types')
+}
+
 export function upsertField(cmd: {
   id?: number | null
   appId: number
@@ -91,6 +107,8 @@ export function upsertField(cmd: {
   dictCode?: string | null
   refModelId?: number | null
   refDisplayField?: string | null
+  relationModuleLabel?: string | null
+  configJson?: string | null
   multiFlag?: number
   defaultValue?: string | null
   sortNo?: number
