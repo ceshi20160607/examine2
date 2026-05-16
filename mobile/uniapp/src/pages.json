@@ -56,6 +56,18 @@
 			}
 		},
 		{
+			"path": "pages/platform/open_apps",
+			"style": {
+				"navigationBarTitleText": "OpenAPI 应用"
+			}
+		},
+		{
+			"path": "pages/platform/open_app_detail",
+			"style": {
+				"navigationBarTitleText": "OpenAPI 详情"
+			}
+		},
+		{
 			"path": "pages/system/module/meta/apps",
 			"style": {
 				"navigationBarTitleText": "Apps"

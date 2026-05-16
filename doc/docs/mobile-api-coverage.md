@@ -23,7 +23,8 @@
 | `POST /v1/platform/systems` | ✅ | 系统列表创建 |
 | `POST /v1/platform/context/enter-system` | ✅ | 进入系统 |
 | `GET /ping` | ✅ | `pages/boot/health` · `api/misc` |
-| `GET/POST /v1/platform/apps` | — | 对外应用 accessKey（运维/OpenAPI） |
+| `GET/POST/PUT/DELETE /v1/platform/apps` | ✅ | `pages/platform/open_apps` · `open_app_detail` · `api/platformApp` |
+| `POST .../rotate-secret` | ✅ | 详情页轮换密钥 |
 | `GET /v1/platform/inbox/*` | — | 平台级收件箱（系统内用 flow inbox） |
 
 ## 低代码元数据（module/meta）

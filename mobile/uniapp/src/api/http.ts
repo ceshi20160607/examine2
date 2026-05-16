@@ -116,6 +116,10 @@ export async function httpPost<T>(path: string, body?: any): Promise<ApiResult<T
   return httpRequest<T>('POST', path, body)
 }
 
+export async function httpPut<T>(path: string, body?: any): Promise<ApiResult<T>> {
+  return httpRequest<T>('PUT', path, body)
+}
+
 export async function httpRequest<T>(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE',
   path: string,

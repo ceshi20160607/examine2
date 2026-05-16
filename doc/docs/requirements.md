@@ -23,6 +23,7 @@
 - [x] 登录 / 注册 / 退出 / me / refresh
 - [x] 系统列表、创建系统、进入系统（上下文写入）
 - [x] 健康检查 `GET /ping`
+- [x] OpenAPI 对外应用：列表、创建、详情、编辑、启停、删除、轮换 secret（手机端）
 
 ### 3.2 低代码
 
@@ -59,7 +60,6 @@
 |----|--------|------|
 | 记录变更历史查看 | P2 | 后端写历史，无系统态查询 API |
 | 手机端注册页 | P2 | 可用 Swagger 注册首账号 |
-| 平台 OpenAPI 应用管理 UI | P3 | `/v1/platform/apps` |
 | 图形化流程设计器 | P3 | 当前列表 + graphJson |
 | 复杂字段（引用、级联、子表） | P3 | 按业务迭代 |
 | test/prod 手机 baseURL | P1 发版前 | 修改 `mobile/uniapp/src/config/env.ts` |

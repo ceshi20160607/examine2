@@ -26,6 +26,14 @@
       </view>
 
       <view style="margin-top: 12px">
+        <view class="u-title" style="margin-bottom: 8px">平台</view>
+        <ActionBar>
+          <uni-button @click="goOpenApps">OpenAPI 应用</uni-button>
+          <uni-button @click="goSystems">我的系统</uni-button>
+        </ActionBar>
+      </view>
+
+      <view style="margin-top: 12px">
         <uni-button type="warn" @click="logout">退出登录</uni-button>
       </view>
 
@@ -40,6 +48,7 @@ import { getBaseURL, type AppEnv } from '@/config/env'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import { ensureLogin } from '@/utils/guard'
 import { me as getMe, refresh as refreshAuthToken, logout as doLogout } from '@/api/platformAuth'
 import { useSessionStore } from '@/stores/session'
 
@@ -89,6 +98,16 @@ async function refreshToken() {
   } finally {
     refreshing.value = false
   }
+}
+
+function goOpenApps() {
+  if (!ensureLogin()) return
+  uni.navigateTo({ url: '/pages/platform/open_apps' })
+}
+
+function goSystems() {
+  if (!ensureLogin()) return
+  uni.navigateTo({ url: '/pages/platform/systems' })
 }
 
 async function logout() {
