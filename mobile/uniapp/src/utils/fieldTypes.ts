@@ -92,7 +92,20 @@ export function datePickerType(f: FieldLike): 'date' | 'datetime' | 'time' {
 }
 
 export function isTextareaField(f: FieldLike): boolean {
-  return fieldTypeCode(f) === 'TEXTAREA' || fieldTypeCode(f) === 'RICH_TEXT'
+  return fieldTypeCode(f) === 'TEXTAREA'
+}
+
+export function isRichTextField(f: FieldLike): boolean {
+  return fieldTypeCode(f) === 'RICH_TEXT'
+}
+
+export function isSignatureField(f: FieldLike): boolean {
+  return fieldTypeCode(f) === 'SIGNATURE'
+}
+
+export function isRatingSelectField(f: FieldLike): boolean {
+  if (fieldTypeCode(f) !== 'SELECT') return false
+  return configFromMeta(f).displayStyle === 'rating'
 }
 
 export function isPasswordField(f: FieldLike): boolean {
@@ -109,8 +122,7 @@ export function isBooleanField(f: FieldLike): boolean {
 }
 
 export function isFileField(f: FieldLike): boolean {
-  const c = fieldTypeCode(f)
-  return c === 'FILE' || c === 'SIGNATURE'
+  return fieldTypeCode(f) === 'FILE'
 }
 
 export function isImageField(f: FieldLike): boolean {
@@ -118,7 +130,14 @@ export function isImageField(f: FieldLike): boolean {
 }
 
 export function isDictSingle(f: FieldLike): boolean {
-  return fieldTypeCode(f) === 'SELECT' && !!f.dictCode
+  if (fieldTypeCode(f) !== 'SELECT' || !f.dictCode) return false
+  const style = String(configFromMeta(f).displayStyle || 'dropdown')
+  return style !== 'rating' && style !== 'radio'
+}
+
+export function isRadioSelectField(f: FieldLike): boolean {
+  if (fieldTypeCode(f) !== 'SELECT' || !f.dictCode) return false
+  return configFromMeta(f).displayStyle === 'radio'
 }
 
 export function isDictMulti(f: FieldLike): boolean {

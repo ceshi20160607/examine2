@@ -90,7 +90,7 @@ function goModels(a: ModuleApp) {
 function openActions(a: ModuleApp) {
   if (!a?.id) return
   uni.showActionSheet({
-    itemList: ['Models', 'Dicts', 'RBAC'],
+    itemList: ['Models', 'Dicts', 'Depts', 'RBAC'],
     success: (res) => {
       if (res.tapIndex === 0) {
         goModels(a)
@@ -101,6 +101,10 @@ function openActions(a: ModuleApp) {
         return
       }
       if (res.tapIndex === 2) {
+        uni.navigateTo({ url: `/pages/system/module/dept/depts?appId=${a.id}` })
+        return
+      }
+      if (res.tapIndex === 3) {
         uni.navigateTo({ url: `/pages/system/module/rbac/index?appId=${a.id}` })
       }
     }

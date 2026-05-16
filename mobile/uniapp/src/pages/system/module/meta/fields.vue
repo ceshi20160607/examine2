@@ -91,8 +91,8 @@
         <uni-forms-item v-if="form.fieldType === 'TAG'" label="允许自定义">
           <switch :checked="typeConfig.allowCustom !== false" @change="(e: any) => (typeConfig.allowCustom = e.detail.value)" />
         </uni-forms-item>
-        <uni-forms-item v-if="form.fieldType === 'SERIAL_NO'" label="编号规则 JSON">
-          <uni-easyinput v-model="typeConfig.segmentsJson" type="textarea" :autoHeight="true" placeholder='[{"type":"fixed","value":"NO-"},{"type":"seq","width":4,"reset":"day"}]' />
+        <uni-forms-item v-if="form.fieldType === 'SERIAL_NO'" label="编号规则">
+          <SerialSegmentBuilder v-model="typeConfig.segments" />
         </uni-forms-item>
         <uni-forms-item label="sortNo">
           <uni-easyinput v-model="form.sortNo" type="number" placeholder="排序，越小越靠前" />
@@ -154,6 +154,7 @@ import {
   upsertField
 } from '@/api/meta'
 import { defaultConfigFor, type ModuleFieldTypeCode } from '@/utils/fieldTypeEnum'
+import SerialSegmentBuilder from '@/components/fields/SerialSegmentBuilder.vue'
 import {
   FIELD_TYPE_OPTIONS,
   buildConfigJson,
@@ -269,7 +270,7 @@ function resetTypeConfig(code: ModuleFieldTypeCode) {
   Object.keys(typeConfig).forEach((k) => delete typeConfig[k])
   Object.assign(typeConfig, d)
   if (code === 'TAG') typeConfig.tagsText = (d.tags as string[])?.join(',') || ''
-  if (code === 'SERIAL_NO') typeConfig.segmentsJson = JSON.stringify(d.segments || [], null, 2)
+  if (code === 'SERIAL_NO') typeConfig.segments = Array.isArray(d.segments) ? [...(d.segments as any[])] : []
 }
 
 function buildTypeConfigPayload(): Record<string, unknown> {
@@ -291,12 +292,8 @@ function buildTypeConfigPayload(): Record<string, unknown> {
   if (code === 'ADDRESS') {
     cfg.mapPicker = cfg.includeLocation === true
   }
-  if (code === 'SERIAL_NO' && typeConfig.segmentsJson) {
-    try {
-      cfg.segments = JSON.parse(String(typeConfig.segmentsJson))
-    } catch {
-      throw new Error('编号规则 JSON 非法')
-    }
+  if (code === 'SERIAL_NO') {
+    cfg.segments = Array.isArray(typeConfig.segments) ? typeConfig.segments : []
     delete cfg.segmentsJson
   }
   if (code === 'TEXT' && typeConfig.maxLength != null) {
@@ -435,7 +432,7 @@ function fillForm(f: ModuleField) {
     typeConfig.listFields = []
   }
   if (form.fieldType === 'TAG') typeConfig.tagsText = ((cfg.tags as string[]) || []).join(',')
-  if (form.fieldType === 'SERIAL_NO') typeConfig.segmentsJson = JSON.stringify(cfg.segments || [], null, 2)
+  if (form.fieldType === 'SERIAL_NO') typeConfig.segments = Array.isArray(cfg.segments) ? [...cfg.segments] : []
   form.dictCode = f.dictCode || ''
   form.refModelId = f.refModelId ? String(f.refModelId) : ''
   form.refDisplayField = f.refDisplayField || ''

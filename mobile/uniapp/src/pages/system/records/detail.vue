@@ -18,7 +18,7 @@
           <uni-list-item
             v-for="e in dataEntries"
             :key="e.k"
-            :title="e.k"
+            :title="e.title"
             :note="e.v"
             clickable
             @click="onEntryClick(e)"
@@ -40,8 +40,16 @@ import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { listFieldsByModel, type ModuleField } from '@/api/meta'
+import { listDepartmentPickerOptions, listMemberPickerOptions } from '@/api/rbac'
 import { deleteRecord, getRecord } from '@/api/records'
-import { fieldTypeCode, isRefField, isRefMultiField } from '@/utils/fieldTypes'
+import {
+  fieldTypeCode,
+  isDepartmentField,
+  isPersonField,
+  isRatingSelectField,
+  isRefField,
+  isRefMultiField
+} from '@/utils/fieldTypes'
 import { resolveRefDisplay } from '@/utils/refPicker'
 
 const recordId = ref<number>(0)
@@ -51,6 +59,8 @@ const detail = ref<any>(null)
 const showRaw = ref(false)
 const fieldMetaByCode = ref<Record<string, ModuleField>>({})
 const refLabelByKey = ref<Record<string, string>>({})
+const memberLabelMap = ref<Record<string, string>>({})
+const deptLabelMap = ref<Record<string, string>>({})
 
 onLoad((opts) => {
   recordId.value = Number((opts as any)?.recordId || 0) || 0
@@ -73,17 +83,20 @@ const dataEntries = computed(() => {
     .sort()
     .map((k) => {
       const raw = data[k]
-      const meta = files?.[k]
+      const mf = fieldMetaByCode.value[k]
+      const title = mf?.fieldName || k
+      const fileId = resolveFileId(raw)
+      const fileMeta = fileId ? files?.[String(fileId)] : undefined
       let v = refLabelByKey.value[k] || stringifyValue(raw)
-      if (meta && typeof meta === 'object') {
-        const name = meta.originalName || meta.name
-        if (name) v = `${v} (${name})`
+      if (fileMeta && typeof fileMeta === 'object') {
+        const name = fileMeta.originalName || fileMeta.name
+        if (name) v = name
       }
-      return { k, v, raw, meta }
+      return { k, title, v, raw, meta: fileMeta }
     })
 })
 
-type DataEntry = { k: string; v: string; raw: any; meta?: any }
+type DataEntry = { k: string; title: string; v: string; raw: any; meta?: any }
 
 function parseRefIds(v: any): number[] {
   if (v == null || v === '') return []
@@ -167,7 +180,10 @@ function copyJson() {
 async function enrichRefLabels() {
   refLabelByKey.value = {}
   fieldMetaByCode.value = {}
+  memberLabelMap.value = {}
+  deptLabelMap.value = {}
   const modelId = Number(detail.value?.record?.modelId || 0)
+  const appId = Number(detail.value?.record?.appId || 0)
   if (!modelId) return
   try {
     const fr = await listFieldsByModel(modelId)
@@ -177,20 +193,81 @@ async function enrichRefLabels() {
   } catch {
     return
   }
+  if (appId) {
+    try {
+      const [m, d] = await Promise.all([
+        listMemberPickerOptions(appId),
+        listDepartmentPickerOptions(appId)
+      ])
+      for (const o of m.data || []) memberLabelMap.value[String(o.value)] = o.text
+      for (const o of d.data || []) deptLabelMap.value[String(o.value)] = o.text
+    } catch {
+      // ignore picker load errors
+    }
+  }
   const data = detail.value?.data || {}
   for (const k of Object.keys(data)) {
     const mf = fieldMetaByCode.value[k]
-    if (!mf || !isRefField(mf)) continue
+    if (!mf) continue
     const raw = data[k]
-    if (isRefMultiField(mf)) {
-      const ids = parseRefIds(raw)
-      const parts: string[] = []
-      for (const id of ids) {
-        parts.push(await resolveRefDisplay(id, mf.refDisplayField))
+    if (isRefField(mf)) {
+      if (isRefMultiField(mf)) {
+        const ids = parseRefIds(raw)
+        const parts: string[] = []
+        for (const id of ids) {
+          parts.push(await resolveRefDisplay(id, mf.refDisplayField))
+        }
+        refLabelByKey.value[k] = parts.join('、') || stringifyValue(raw)
+      } else {
+        refLabelByKey.value[k] = await resolveRefDisplay(raw, mf.refDisplayField)
       }
-      refLabelByKey.value[k] = parts.join('、') || stringifyValue(raw)
-    } else {
-      refLabelByKey.value[k] = await resolveRefDisplay(raw, mf.refDisplayField)
+      continue
+    }
+    if (isPersonField(mf)) {
+      const ids = parseRefIds(raw)
+      if (ids.length) {
+        refLabelByKey.value[k] = ids.map((id) => memberLabelMap.value[String(id)] || `#${id}`).join('、')
+      }
+      continue
+    }
+    if (isDepartmentField(mf)) {
+      const ids = parseRefIds(raw)
+      if (ids.length) {
+        refLabelByKey.value[k] = ids.map((id) => deptLabelMap.value[String(id)] || `#${id}`).join('、')
+      }
+      continue
+    }
+    if (isRatingSelectField(mf)) {
+      const n = Number(raw)
+      if (Number.isFinite(n) && n > 0) refLabelByKey.value[k] = `${n} 星`
+      continue
+    }
+    if (fieldTypeCode(mf) === 'BOOLEAN') {
+      refLabelByKey.value[k] = raw === true || raw === 'true' || raw === 1 || raw === '1' ? '是' : '否'
+      continue
+    }
+    if (fieldTypeCode(mf) === 'ADDRESS') {
+      try {
+        const o = typeof raw === 'string' ? JSON.parse(raw) : raw
+        if (o && typeof o === 'object') {
+          const parts = [o.region, o.detail].filter(Boolean)
+          if (o.lat != null && o.lng != null) parts.push(`(${o.lat},${o.lng})`)
+          refLabelByKey.value[k] = parts.join(' ') || stringifyValue(raw)
+        }
+      } catch {
+        // keep raw
+      }
+      continue
+    }
+    if (fieldTypeCode(mf) === 'DATE_RANGE') {
+      try {
+        const o = typeof raw === 'string' ? JSON.parse(raw) : raw
+        if (o && typeof o === 'object') {
+          refLabelByKey.value[k] = [o.start, o.end].filter(Boolean).join(' ~ ')
+        }
+      } catch {
+        // keep raw
+      }
     }
   }
 }

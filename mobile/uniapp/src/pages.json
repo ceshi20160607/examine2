@@ -92,6 +92,12 @@
 			}
 		},
 		{
+			"path": "pages/system/module/dept/depts",
+			"style": {
+				"navigationBarTitleText": "Depts"
+			}
+		},
+		{
 			"path": "pages/system/module/dict/items",
 			"style": {
 				"navigationBarTitleText": "Dict Items"

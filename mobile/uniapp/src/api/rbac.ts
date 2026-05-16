@@ -8,5 +8,5 @@ export function listMemberPickerOptions(appId: number): Promise<ApiResult<Picker
 }
 
 export function listDepartmentPickerOptions(appId: number): Promise<ApiResult<PickerOption[]>> {
-  return httpGet<PickerOption[]>(`/v1/system/module/rbac/apps/${appId}/picker/departments`)
+  return httpGet<PickerOption[]>(`/v1/system/module/depts/apps/${appId}/picker`)
 }

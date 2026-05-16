@@ -89,6 +89,7 @@ public class ModuleRecordFacadeService {
 
         ObjectNode obj = ensureObjectNode(data);
         fillSerialNumbers(systemId, tenantId, appId, modelId, obj);
+        validateRequiredFields(systemId, tenantId, appId, modelId, obj);
 
         if (obj != null && !obj.isEmpty()) {
             var it = obj.fields();
@@ -132,6 +133,66 @@ public class ModuleRecordFacadeService {
             return (ObjectNode) data;
         }
         return objectMapper.createObjectNode();
+    }
+
+    private void validateRequiredFields(long systemId, long tenantId, Long appId, Long modelId, ObjectNode obj) {
+        List<ModuleField> defs = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getAppId, appId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getStatus, 1)
+                .eq(ModuleField::getRequiredFlag, 1)
+                .list();
+        if (defs == null || defs.isEmpty()) {
+            return;
+        }
+        ObjectNode dataObj = obj == null ? objectMapper.createObjectNode() : obj;
+        for (ModuleField f : defs) {
+            if (f == null || f.getFieldCode() == null || f.getFieldCode().isBlank()) {
+                continue;
+            }
+            if (f.getHiddenFlag() != null && f.getHiddenFlag() == 1) {
+                continue;
+            }
+            ModuleFieldType type = ModuleFieldConfigSupport.typeOf(f);
+            if (type != null && type.isDisplayOnly()) {
+                continue;
+            }
+            JsonNode v = dataObj.get(f.getFieldCode());
+            if (isEmptyFieldValue(v, f)) {
+                String label = f.getFieldName() != null && !f.getFieldName().isBlank()
+                        ? f.getFieldName()
+                        : f.getFieldCode();
+                throw new BusinessException(400, "字段「" + label + "」不能为空");
+            }
+        }
+    }
+
+    private boolean isEmptyFieldValue(JsonNode v, ModuleField field) {
+        if (v == null || v.isNull()) {
+            return true;
+        }
+        ModuleFieldType type = ModuleFieldConfigSupport.typeOf(field);
+        if (type == ModuleFieldType.BOOLEAN) {
+            return false;
+        }
+        if (v.isBoolean()) {
+            return false;
+        }
+        if (v.isNumber()) {
+            return false;
+        }
+        if (v.isArray()) {
+            return v.isEmpty();
+        }
+        if (v.isObject()) {
+            return v.isEmpty();
+        }
+        if (v.isTextual()) {
+            return v.asText().trim().isEmpty();
+        }
+        return false;
     }
 
     private void fillSerialNumbers(long systemId, long tenantId, Long appId, Long modelId, ObjectNode obj) {
@@ -461,15 +522,12 @@ public class ModuleRecordFacadeService {
         }
         HashSet<String> fileFieldCodes = new HashSet<>();
         for (ModuleField f : fields) {
-            String t = f == null ? null : f.getFieldType();
-            if (t == null) {
+            if (f == null || f.getFieldCode() == null) {
                 continue;
             }
-            String lt = t.trim().toLowerCase();
-            if (lt.equals("file") || lt.equals("upload") || lt.equals("attachment")) {
-                if (f.getFieldCode() != null) {
-                    fileFieldCodes.add(f.getFieldCode());
-                }
+            ModuleFieldType type = ModuleFieldConfigSupport.typeOf(f);
+            if (type != null && type.isFileType()) {
+                fileFieldCodes.add(f.getFieldCode());
             }
         }
         if (fileFieldCodes.isEmpty()) {
@@ -604,6 +662,7 @@ public class ModuleRecordFacadeService {
 
         if (data != null && data.isObject()) {
             ObjectNode obj = (ObjectNode) data;
+            validateRequiredFields(systemId, tenantId, r.getAppId(), r.getModelId(), obj);
             var it = obj.fields();
             while (it.hasNext()) {
                 var e = it.next();

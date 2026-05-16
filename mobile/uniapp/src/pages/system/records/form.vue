@@ -48,6 +48,25 @@
               />
 
               <uni-easyinput
+                v-else-if="isRichTextField(f)"
+                v-model="formData[f.fieldCode]"
+                type="textarea"
+                class="rich-text-input"
+                :autoHeight="true"
+                :placeholder="f.tips || '富文本（HTML/长文）'"
+              />
+
+              <SignatureUpload
+                v-else-if="isSignatureField(f)"
+                v-model="formData[f.fieldCode]"
+              />
+
+              <RatingStars
+                v-else-if="isRatingSelectField(f)"
+                v-model="formData[f.fieldCode]"
+              />
+
+              <uni-easyinput
                 v-else-if="isNumberField(f)"
                 v-model="formData[f.fieldCode]"
                 type="number"
@@ -116,6 +135,12 @@
                 </ActionBar>
               </view>
 
+              <uni-data-checkbox
+                v-else-if="isRadioSelectField(f)"
+                v-model="formData[f.fieldCode]"
+                :localdata="dictOptionsByCode[f.dictCode || ''] || []"
+              />
+
               <uni-data-select
                 v-else-if="isDictSingle(f)"
                 v-model="formData[f.fieldCode]"
@@ -137,22 +162,13 @@
                 placeholder="选择关联记录"
               />
 
-              <view v-else-if="isRefTableField(f)" style="display:flex; flex-direction:column; gap:8px;">
-                <view class="u-subtitle">{{ f.relationModuleLabel || '子表/明细' }}（多选关联记录）</view>
-                <uni-data-checkbox
-                  v-model="formData[f.fieldCode]"
-                  multiple
-                  :localdata="refOptionsByCode[f.fieldCode || ''] || []"
-                />
-                <uni-list v-if="refTableRows(f).length">
-                  <uni-list-item
-                    v-for="row in refTableRows(f)"
-                    :key="row.id"
-                    :title="row.title"
-                    :note="row.note"
-                  />
-                </uni-list>
-              </view>
+              <RefSubTableField
+                v-else-if="isRefTableField(f)"
+                :field="f"
+                :app-id="appId"
+                v-model="formData[f.fieldCode]"
+                :options="refOptionsByCode[f.fieldCode || ''] || []"
+              />
 
               <uni-data-checkbox
                 v-else-if="isRefMultiField(f) && !isRefTableField(f)"
@@ -209,6 +225,9 @@ import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
+import RefSubTableField from '@/components/fields/RefSubTableField.vue'
+import RatingStars from '@/components/fields/RatingStars.vue'
+import SignatureUpload from '@/components/fields/SignatureUpload.vue'
 import { listFieldsByModel, type ModuleField } from '@/api/meta'
 import { listDepartmentPickerOptions, listMemberPickerOptions } from '@/api/rbac'
 import { listDictItems, listDictsByApp } from '@/api/module'
@@ -235,6 +254,10 @@ import {
   isRefField,
   isRefMultiField,
   isRefTableField,
+  isRichTextField,
+  isRadioSelectField,
+  isRatingSelectField,
+  isSignatureField,
   isTextareaField,
   isTitleField,
   isValidatedTextField,
@@ -277,7 +300,6 @@ const memberOptions = ref<Array<{ value: any; text: string }>>([])
 const departmentOptions = ref<Array<{ value: any; text: string }>>([])
 const dateRangeStart = reactive<Record<string, string>>({})
 const dateRangeEnd = reactive<Record<string, string>>({})
-const refRowCache = reactive<Record<string, Record<number, { title: string; note: string }>>>({})
 
 function addressPlaceholder(f: ModuleField) {
   const cfg = configFromMeta(f)
@@ -312,27 +334,6 @@ function isPersonMulti(f: ModuleField) {
 
 function isDepartmentMulti(f: ModuleField) {
   return isDepartmentField(f) && (configFromMeta(f).multi === true || (f.multiFlag ?? 0) === 1)
-}
-
-function refTableRows(f: ModuleField) {
-  const code = f.fieldCode || ''
-  const ids = normalizeMultiValue(formData[code]).map((x) => Number(x)).filter((n) => n > 0)
-  return ids.map((id) => {
-    const c = refRowCache[code]?.[id]
-    return { id, title: c?.title || `#${id}`, note: c?.note || '' }
-  })
-}
-
-async function refreshRefTableRows(f: ModuleField) {
-  const code = f.fieldCode
-  if (!code) return
-  const opts = refOptionsByCode[code] || []
-  if (!refRowCache[code]) refRowCache[code] = {}
-  for (const o of opts) {
-    const id = Number(o.value)
-    if (!id) continue
-    refRowCache[code][id] = { title: String(o.text), note: '' }
-  }
 }
 
 function syncDateRangeFromForm() {
@@ -480,9 +481,6 @@ async function bootstrap() {
     await loadRefOptionsIfNeeded()
     await loadPickerOptionsIfNeeded()
     parseDateRangeToPickers()
-    for (const mf of fields.value) {
-      if (isRefTableField(mf)) await refreshRefTableRows(mf)
-    }
   } catch (e: any) {
     error.value = e?.message ?? String(e)
   }
@@ -521,6 +519,12 @@ function normalizeFormDataValues() {
   for (const mf of fields.value || []) {
     const code = mf?.fieldCode
     if (!code) continue
+    if (isRefTableField(mf)) {
+      formData[code] = normalizeMultiValue(formData[code])
+        .map((x) => Number(x))
+        .filter((n) => n > 0)
+      continue
+    }
     if (isDictMulti(mf) || isRefMultiField(mf)) {
       formData[code] = normalizeMultiValue(formData[code])
       continue
@@ -624,11 +628,19 @@ function toSubmitData(): any {
         v = Number.isNaN(n) ? t : n
       }
     }
-    if (isDictMulti(mf) || isRefMultiField(mf)) {
+    if (isRefTableField(mf) || isDictMulti(mf) || isRefMultiField(mf)) {
       v = normalizeMultiValue(v).map((x) => {
         const n = Number(x)
         return Number.isFinite(n) && n > 0 ? n : x
       })
+    }
+    if (isSignatureField(mf) || isFileField(mf)) {
+      const t = String(v ?? '').trim()
+      if (t === '') v = null
+      else {
+        const n = Number(t)
+        v = Number.isNaN(n) ? t : n
+      }
     }
     if (isRefField(mf) && !isRefMultiField(mf)) {
       const t = String(v ?? '').trim()
@@ -652,14 +664,6 @@ function toSubmitData(): any {
     }
     if (isBooleanField(mf)) {
       v = v === true || v === 1 || v === '1' || v === 'true'
-    }
-    if (isFileField(mf)) {
-      const t = String(v ?? '').trim()
-      if (t === '') v = null
-      else {
-        const n = Number(t)
-        v = Number.isNaN(n) ? t : n
-      }
     }
     out[code] = v
   }
@@ -720,4 +724,10 @@ async function submit() {
   }
 }
 </script>
+
+<style scoped>
+:deep(.rich-text-input textarea) {
+  min-height: 120px;
+}
+</style>
 

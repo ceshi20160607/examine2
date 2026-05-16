@@ -82,20 +82,12 @@ public class SystemModuleRbacService {
         return out;
     }
 
-    /** 部门字段选择器：暂用角色作为部门维度 */
+    @Autowired
+    private SystemModuleDeptService systemModuleDeptService;
+
+    /** 部门字段选择器：un_module_dept */
     public List<Map<String, Object>> listDepartmentPickerOptions(Long appId, Long operatorPlatId) {
-        List<ModuleRole> roles = listRoles(appId, operatorPlatId);
-        List<Map<String, Object>> out = new ArrayList<>();
-        for (ModuleRole r : roles) {
-            if (r.getId() == null || r.getStatus() == null || r.getStatus() != 1) {
-                continue;
-            }
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("value", r.getId());
-            row.put("text", r.getRoleName() != null ? r.getRoleName() : r.getRoleCode());
-            out.add(row);
-        }
-        return out;
+        return systemModuleDeptService.listPickerOptions(appId, operatorPlatId);
     }
 
     public List<ModuleRole> listRoles(Long appId, Long operatorPlatId) {

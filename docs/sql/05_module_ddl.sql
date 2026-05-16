@@ -250,6 +250,40 @@ CREATE TABLE un_module_dict_item (
   KEY idx_module_dict_item_query (dict_id, status, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='数据字典项';
 
+CREATE TABLE un_module_dept (
+  id             BIGINT       NOT NULL COMMENT '部门ID',
+  system_id      BIGINT       NOT NULL COMMENT 'systemId',
+  tenant_id      BIGINT       NOT NULL DEFAULT 0 COMMENT 'tenantId',
+  app_id         BIGINT       NOT NULL COMMENT 'un_module_app.id',
+  parent_id      BIGINT       NOT NULL DEFAULT 0 COMMENT '父部门，0=根',
+  dept_code      VARCHAR(64)  NOT NULL COMMENT '部门编码（同 app 内唯一）',
+  dept_name      VARCHAR(128) NOT NULL COMMENT '部门名称',
+  sort_no        INT          NOT NULL DEFAULT 0 COMMENT '排序号',
+  status         TINYINT      NOT NULL DEFAULT 1 COMMENT '状态：1=启用 2=停用',
+  remark         VARCHAR(255) NULL COMMENT '备注',
+  create_user_id BIGINT       NULL COMMENT '创建人 platId',
+  update_user_id BIGINT       NULL COMMENT '更新人 platId',
+  create_time    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  update_time    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_module_dept_code (app_id, dept_code),
+  KEY idx_module_dept_query (app_id, parent_id, status, sort_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='应用部门（DEPARTMENT 字段数据源）';
+
+CREATE TABLE un_module_serial_seq (
+  id          BIGINT       NOT NULL COMMENT '主键',
+  system_id   BIGINT       NOT NULL COMMENT 'systemId',
+  tenant_id   BIGINT       NOT NULL DEFAULT 0 COMMENT 'tenantId',
+  app_id      BIGINT       NOT NULL COMMENT 'un_module_app.id',
+  model_id    BIGINT       NOT NULL COMMENT 'un_module_model.id',
+  field_code  VARCHAR(64)  NOT NULL COMMENT 'SERIAL_NO 字段编码',
+  reset_key   VARCHAR(32)  NOT NULL DEFAULT 'never' COMMENT 'never|yyyyMMdd|yyyyMM',
+  seq_no      BIGINT       NOT NULL DEFAULT 0 COMMENT '当前序号',
+  update_time DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_serial_seq (system_id, tenant_id, model_id, field_code, reset_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='自定义编号序号';
+
 CREATE TABLE un_module_field_option (
   id             BIGINT       NOT NULL COMMENT '字段选项ID',
   system_id      BIGINT       NOT NULL COMMENT 'systemId',
