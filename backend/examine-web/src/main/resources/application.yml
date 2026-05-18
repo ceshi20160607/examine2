@@ -13,9 +13,9 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    url: jdbc:mysql://192.168.0.211:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
     username: root
-    password: password
+    password: Admin001m
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
@@ -24,7 +24,8 @@ spring:
       password: 123456
       database: 0
   flyway:
-    enabled: true
+    # 连接已手工建表的库（如 192.168.0.211）时关闭，避免重复 DDL；空库首次启动改为 true
+    enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: 0

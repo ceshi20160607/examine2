@@ -11,6 +11,11 @@ import java.time.LocalDateTime;
 public class MybatisPlusConfig {
 
     @Bean
+    public AuditInsertInterceptor auditInsertInterceptor() {
+        return new AuditInsertInterceptor();
+    }
+
+    @Bean
     public MetaObjectHandler metaObjectHandler() {
         return new MetaObjectHandler() {
             @Override

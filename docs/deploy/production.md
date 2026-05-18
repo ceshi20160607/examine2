@@ -100,6 +100,26 @@ server {
 
 ## 6. 上线冒烟清单
 
+**自动化脚本**（API 级，覆盖下列主流程）：
+
+```powershell
+# Windows
+cd scripts\smoke
+$env:EXAMINE_HOST = "http://127.0.0.1:9999"
+$env:SMOKE_USER = "your_admin"    # 已有库时必填
+$env:SMOKE_PASS = "your_password"
+.\e2e-smoke.ps1
+```
+
+```bash
+# Git Bash / Linux
+cd scripts/smoke && EXAMINE_HOST=http://127.0.0.1:9999 SMOKE_USER=admin SMOKE_PASS=*** bash e2e-smoke.sh
+```
+
+详见 `scripts/smoke/README.md`。
+
+手工核对：
+
 - [ ] 注册/登录，token 写入 Redis
 - [ ] 创建系统 → 进入系统 →（多租户时）选择租户
 - [ ] 创建 app / model / field，保存一条 record
