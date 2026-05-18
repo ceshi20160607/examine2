@@ -51,8 +51,10 @@ import {
   isRefMultiField
 } from '@/utils/fieldTypes'
 import { resolveRefDisplay } from '@/utils/refPicker'
+import { pageQuerySuffix } from '@/utils/pageRuntime'
 
 const recordId = ref<number>(0)
+const pageId = ref<number>(0)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const detail = ref<any>(null)
@@ -64,6 +66,7 @@ const deptLabelMap = ref<Record<string, string>>({})
 
 onLoad((opts) => {
   recordId.value = Number((opts as any)?.recordId || 0) || 0
+  pageId.value = Number((opts as any)?.pageId || 0) || 0
 })
 
 const pretty = computed(() => {
@@ -158,7 +161,17 @@ async function load() {
 }
 
 function goEdit() {
-  uni.navigateTo({ url: `/pages/system/records/form?recordId=${recordId.value}` })
+  const rec = detail.value?.record
+  const appId = Number(rec?.appId || 0)
+  const modelId = Number(rec?.modelId || 0)
+  const q = pageQuerySuffix(pageId.value)
+  if (appId && modelId) {
+    uni.navigateTo({
+      url: `/pages/system/records/form?recordId=${recordId.value}&appId=${appId}&modelId=${modelId}${q}`
+    })
+    return
+  }
+  uni.navigateTo({ url: `/pages/system/records/form?recordId=${recordId.value}${q}` })
 }
 
 function goHistory() {

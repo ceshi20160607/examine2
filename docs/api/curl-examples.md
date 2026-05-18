@@ -179,6 +179,26 @@ export OPEN_HEADERS_AKSK=(
   -H "X-Acting-Plat-Id: ${ACTING_PLAT_ID}"
 )
 
+# 签名模式（不传 X-Secret；须凭证已轮换 SK 且服务端配置 signing-master-key）
+# canonical = METHOD + "\n" + pathWithQuery + "\n" + timestamp + "\n" + hex(SHA256(body))
+open_sign() {
+  local method="$1" path="$2" body="${3:-}"
+  local ts
+  ts=$(date +%s)
+  local body_hash
+  body_hash=$(printf '%s' "$body" | openssl dgst -sha256 -hex | awk '{print $2}')
+  local canonical="${method}"$'\n'"${path}"$'\n'"${ts}"$'\n'"${body_hash}"
+  local sig
+  sig=$(printf '%s' "$canonical" | openssl dgst -sha256 -hmac "$SK" -binary | openssl base64)
+  OPEN_HEADERS_SIGN=(
+    -H "X-Access-Key: ${AK}"
+    -H "X-Timestamp: ${ts}"
+    -H "X-Signature: ${sig}"
+    -H "X-Signature-Version: v1"
+    -H "X-Acting-Plat-Id: ${ACTING_PLAT_ID}"
+  )
+}
+
 # 平台级 client（system_id=0）额外头：
 #   -H "X-Target-System-Id: ${TARGET_SYSTEM_ID}"
 # 可选：
@@ -304,5 +324,47 @@ curl -s "${HOST}/v1/open/records" \
     "amount": 100
   }
 }'
+
+# 记录详情
+curl -s "${HOST}/v1/open/records/REPLACE_RECORD_ID" \
+  "${OPEN_HEADERS_AKSK[@]}"
+
+# DSL 查询（支持 includeFieldCodes）
+curl -s "${HOST}/v1/open/records/query" \
+  "${OPEN_HEADERS_AKSK[@]}" \
+  -H "Content-Type: application/json" -d '{
+  "appId": 1,
+  "modelId": 1,
+  "page": 1,
+  "limit": 20,
+  "includeFieldCodes": ["name", "amount"]
+}'
+
+# 更新记录
+curl -s "${HOST}/v1/open/records/REPLACE_RECORD_ID/update" \
+  "${OPEN_HEADERS_AKSK[@]}" \
+  -H "Idempotency-Key: idem-record-upd-001" \
+  -H "Content-Type: application/json" -d '{
+  "data": { "amount": 200 }
+}'
+
+# 删除记录
+curl -s "${HOST}/v1/open/records/REPLACE_RECORD_ID" \
+  "${OPEN_HEADERS_AKSK[@]}" \
+  -H "Idempotency-Key: idem-record-del-001" \
+  -X DELETE
+
+# 按关系查子记录
+curl -s "${HOST}/v1/open/records/query-by-relation" \
+  "${OPEN_HEADERS_AKSK[@]}" \
+  -H "Content-Type: application/json" -d '{
+  "relationId": 123,
+  "parentRecordId": 456,
+  "query": { "appId": 1, "modelId": 2, "page": 1, "limit": 50 }
+}'
+
+# 变更历史
+curl -s "${HOST}/v1/open/records/REPLACE_RECORD_ID/history?limit=20" \
+  "${OPEN_HEADERS_AKSK[@]}"
 ```
 

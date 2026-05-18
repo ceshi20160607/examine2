@@ -1,0 +1,50 @@
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.toolbar button,
+.toolbar a.btn {
+  padding: 0.45rem 0.9rem;
+  background: #1677ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.toolbar button.secondary {
+  background: #fff;
+  color: #333;
+  border: 1px solid #d1d5db;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+.table th,
+.table td {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+.muted {
+  color: #666;
+  font-size: 0.9rem;
+}
+.error {
+  color: #c00;
+}
+.json-area {
+  width: 100%;
+  min-height: 120px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}

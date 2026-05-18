@@ -5,6 +5,7 @@ import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
 import com.unique.examine.module.entity.po.ModuleRecordHistory;
 import com.unique.examine.module.manage.ModuleRecordFacadeService;
+import com.unique.examine.module.manage.ModuleRelationRecordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,8 @@ public class SystemModuleRecordController {
 
     @Autowired
     private ModuleRecordFacadeService moduleRecordFacadeService;
+    @Autowired
+    private ModuleRelationRecordService moduleRelationRecordService;
 
     public record CreateRecordBody(Long appId, Long modelId, JsonNode data) {}
     public record UpdateRecordBody(JsonNode data) {}
@@ -69,6 +72,18 @@ public class SystemModuleRecordController {
     @PostMapping("/query")
     public ApiResult<Map<String, Object>> query(@RequestBody ModuleRecordDslQuery body) {
         return ApiResult.ok(moduleRecordFacadeService.queryDsl(body));
+    }
+
+    public record QueryByRelationBody(Long relationId, Long parentRecordId, ModuleRecordDslQuery query) {}
+
+    @Operation(summary = "按模型关系查询子记录（config_json.fkField 指向父记录 ID）")
+    @PostMapping("/query-by-relation")
+    public ApiResult<Map<String, Object>> queryByRelation(@RequestBody QueryByRelationBody body) {
+        if (body == null) {
+            return ApiResult.fail(400, "body 不能为空");
+        }
+        return ApiResult.ok(moduleRelationRecordService.queryByRelation(
+                body.relationId(), body.parentRecordId(), body.query()));
     }
 
     @Operation(summary = "记录变更历史（按 recordId；最近 N 条）")

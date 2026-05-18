@@ -57,6 +57,9 @@ public class ModuleRole implements Serializable {
     @Schema(description = "状态：1=启用 2=停用")
     private Integer status;
 
+    @Schema(description = "数据权限：1本人 2本人及下属 3本部门 4本部门及下级 5全部")
+    private Integer dataScope;
+
     @Schema(description = "创建人 platId")
     @TableField(fill = FieldFill.INSERT)
     @JsonSerialize(using = ToStringSerializer.class)

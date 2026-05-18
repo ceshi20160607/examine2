@@ -14,6 +14,7 @@ import com.unique.examine.module.entity.po.ModuleRecordData;
 import com.unique.examine.module.entity.po.ModuleRecordHistory;
 import com.unique.examine.module.field.ModuleFieldConfigSupport;
 import com.unique.examine.module.field.ModuleFieldType;
+import com.unique.examine.module.mapper.ModuleRecordDataMapper;
 import com.unique.examine.module.mapper.ModuleRecordMapper;
 import com.unique.examine.module.service.IModuleRecordDataService;
 import com.unique.examine.module.service.IModuleFieldService;
@@ -23,14 +24,13 @@ import com.unique.examine.module.entity.po.ModuleDept;
 import com.unique.examine.module.entity.po.ModuleMember;
 import com.unique.examine.module.service.IModuleDeptService;
 import com.unique.examine.module.service.IModuleMemberService;
-import com.unique.examine.plat.entity.po.PlatSystem;
-import com.unique.examine.plat.service.IPlatSystemService;
 import com.unique.examine.upload.entity.po.UploadFile;
 import com.unique.examine.upload.service.IUploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 
 @Service
@@ -57,6 +58,8 @@ public class ModuleRecordFacadeService {
     @Autowired
     private ModuleRecordMapper moduleRecordMapper;
     @Autowired
+    private ModuleRecordDataMapper moduleRecordDataMapper;
+    @Autowired
     private IUploadFileService uploadFileService;
     @Autowired
     private ObjectMapper objectMapper;
@@ -65,7 +68,7 @@ public class ModuleRecordFacadeService {
     @Autowired
     private ModuleSerialNoService moduleSerialNoService;
     @Autowired
-    private IPlatSystemService platSystemService;
+    private ModuleDataScopeService moduleDataScopeService;
     @Autowired
     private IModuleMemberService moduleMemberService;
     @Autowired
@@ -451,7 +454,7 @@ public class ModuleRecordFacadeService {
                 || r.getTenantId() != tenantId) {
             throw new BusinessException(403, "无权限访问该记录");
         }
-        requireRecordDataAccess(r, platId, systemId);
+        requireRecordDataAccess(r, platId, systemId, tenantId, r.getAppId());
 
         List<ModuleRecordData> rows = moduleRecordDataService.lambdaQuery()
                 .eq(ModuleRecordData::getRecordId, recordId)
@@ -669,7 +672,7 @@ public class ModuleRecordFacadeService {
         if (r.getStatus() != null && r.getStatus() != 1) {
             throw new BusinessException(400, "记录已删除/不可更新");
         }
-        requireRecordDataAccess(r, platId, systemId);
+        requireRecordDataAccess(r, platId, systemId, tenantId, r.getAppId());
 
         moduleRecordDataService.lambdaUpdate()
                 .eq(ModuleRecordData::getRecordId, recordId)
@@ -744,7 +747,7 @@ public class ModuleRecordFacadeService {
         if (r.getStatus() != null && r.getStatus() == 2) {
             return;
         }
-        requireRecordDataAccess(r, platId, systemId);
+        requireRecordDataAccess(r, platId, systemId, tenantId, r.getAppId());
 
         // snapshot before delete
         String snapshot = snapshotFromDb(recordId);
@@ -767,6 +770,7 @@ public class ModuleRecordFacadeService {
         List<Map<String, Object>> list = total != null && total > 0
                 ? moduleRecordMapper.listDsl(q, offset, q.getLimit())
                 : List.of();
+        attachListFieldData(q, list);
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("page", q.getPage());
@@ -839,26 +843,109 @@ public class ModuleRecordFacadeService {
                 normalizeAndValidateFilter(body.getModelId(), body.getAppId(), systemId, tenantId, f);
             }
         }
-        if (!isSystemOwner(systemId, platId)) {
-            body.setScopeCreateUserId(platId);
+        normalizeIncludeFieldCodes(body, systemId, tenantId);
+        ModuleDataScopeService.RecordScopeFilter scope = moduleDataScopeService.resolveRecordScope(
+                systemId, tenantId, body.getAppId(), platId);
+        if (scope.unrestricted()) {
+            body.setScopeUnrestricted(true);
+            body.setScopeCreateUserIds(null);
+            body.setScopeCreateUserId(null);
+        } else {
+            body.setScopeUnrestricted(false);
+            body.setScopeCreateUserIds(scope.creatorPlatIds());
+            body.setScopeCreateUserId(null);
         }
         return body;
     }
 
-    private boolean isSystemOwner(long systemId, Long platId) {
-        if (platId == null || systemId <= 0L) {
-            return false;
-        }
-        PlatSystem s = platSystemService.getById(systemId);
-        return s != null && platId.equals(s.getOwnerPlatAccountId());
-    }
-
-    private void requireRecordDataAccess(ModuleRecord r, Long platId, long systemId) {
-        if (isSystemOwner(systemId, platId)) {
+    private void normalizeIncludeFieldCodes(ModuleRecordDslQuery body, long systemId, long tenantId) {
+        List<String> raw = body.getIncludeFieldCodes();
+        if (raw == null || raw.isEmpty()) {
+            body.setIncludeFieldCodes(List.of());
             return;
         }
-        if (r.getCreateUserId() == null || !r.getCreateUserId().equals(platId)) {
-            throw new BusinessException(403, "无权限访问该记录（仅创建人或系统所有者可操作）");
+        if (raw.size() > 30) {
+            throw new BusinessException("includeFieldCodes 最多 30 个");
+        }
+        List<String> codes = new ArrayList<>();
+        for (String fc : raw) {
+            if (fc == null || fc.isBlank()) {
+                continue;
+            }
+            String code = fc.trim();
+            if (RESERVED_RECORD_FIELDS.contains(code)) {
+                throw new BusinessException("includeFieldCodes 不可使用保留字: " + code);
+            }
+            if (!FIELD_CODE.matcher(code).matches()) {
+                throw new BusinessException("includeFieldCodes 非法: " + code);
+            }
+            requireField(systemId, tenantId, body.getAppId(), body.getModelId(), code);
+            if (!codes.contains(code)) {
+                codes.add(code);
+            }
+        }
+        body.setIncludeFieldCodes(codes);
+    }
+
+    private void attachListFieldData(ModuleRecordDslQuery q, List<Map<String, Object>> list) {
+        List<String> fieldCodes = q.getIncludeFieldCodes();
+        if (fieldCodes == null || fieldCodes.isEmpty() || list == null || list.isEmpty()) {
+            return;
+        }
+        List<Long> recordIds = list.stream()
+                .map(row -> parseRecordId(row == null ? null : row.get("id")))
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+        if (recordIds.isEmpty()) {
+            return;
+        }
+        List<ModuleRecordData> eavRows = moduleRecordDataMapper.listByRecordIdsAndFieldCodes(recordIds, fieldCodes);
+        Map<Long, Map<String, String>> dataByRecord = new HashMap<>();
+        if (eavRows != null) {
+            for (ModuleRecordData row : eavRows) {
+                if (row.getRecordId() == null || row.getFieldCode() == null) {
+                    continue;
+                }
+                dataByRecord
+                        .computeIfAbsent(row.getRecordId(), k -> new LinkedHashMap<>())
+                        .put(row.getFieldCode(), row.getValueText() == null ? "" : row.getValueText());
+            }
+        }
+        for (Map<String, Object> row : list) {
+            Long rid = parseRecordId(row.get("id"));
+            if (rid == null) {
+                continue;
+            }
+            Map<String, String> data = dataByRecord.getOrDefault(rid, Map.of());
+            Map<String, String> ordered = new LinkedHashMap<>();
+            for (String fc : fieldCodes) {
+                ordered.put(fc, data.getOrDefault(fc, ""));
+            }
+            row.put("data", ordered);
+        }
+    }
+
+    private static Long parseRecordId(Object id) {
+        if (id == null) {
+            return null;
+        }
+        if (id instanceof Number n) {
+            return n.longValue();
+        }
+        if (id instanceof String s) {
+            try {
+                return Long.parseLong(s.trim());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private void requireRecordDataAccess(ModuleRecord r, Long platId, long systemId, long tenantId, Long appId) {
+        if (appId == null || !moduleDataScopeService.canAccessRecord(r, systemId, tenantId, appId, platId)) {
+            throw new BusinessException(403, "无权限访问该记录（数据权限不足）");
         }
     }
 

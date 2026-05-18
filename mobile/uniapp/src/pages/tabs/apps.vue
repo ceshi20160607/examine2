@@ -5,7 +5,7 @@
         <uni-button type="primary" @click="goApps">Apps</uni-button>
         <uni-button @click="goRecordsTip">Records</uni-button>
       </ActionBar>
-      <view class="u-subtitle">Records 需要先选择 app/model（从 Apps→Models→Fields 进入）。</view>
+      <view class="u-subtitle">配置菜单后：Apps → 运行时菜单 → 进入低代码页面。开发调试可走 Models → Fields → Records。</view>
     </view>
   </Page>
 </template>

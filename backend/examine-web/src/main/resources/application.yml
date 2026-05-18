@@ -55,6 +55,9 @@ management:
       enabled: true
 
 examine:
+  openapi:
+    # 生产环境务必更换；用于加密存库的 SK（签名验签），非客户端传输密钥
+    signing-master-key: change-me-openapi-signing-key-32bytes
   upload:
     local-root-path: data/uploads
     max-size-mb: 50

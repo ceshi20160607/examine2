@@ -95,7 +95,7 @@ function goFields(m: ModuleModel) {
 function openActions(m: ModuleModel) {
   if (!m?.id) return
   uni.showActionSheet({
-    itemList: ['Fields', 'List Views', 'Exports'],
+    itemList: ['Fields', 'List Views', 'Exports', 'Flow Bindings', 'Relations'],
     success: (res) => {
       if (res.tapIndex === 0) {
         goFields(m)
@@ -107,6 +107,14 @@ function openActions(m: ModuleModel) {
       }
       if (res.tapIndex === 2) {
         uni.navigateTo({ url: `/pages/system/module/export/tpls?appId=${appId.value}&modelId=${m.id}` })
+        return
+      }
+      if (res.tapIndex === 3) {
+        uni.navigateTo({ url: `/pages/system/module/flow/bindings?appId=${appId.value}&modelId=${m.id}` })
+        return
+      }
+      if (res.tapIndex === 4) {
+        uni.navigateTo({ url: `/pages/system/module/meta/relations?appId=${appId.value}` })
       }
     }
   })

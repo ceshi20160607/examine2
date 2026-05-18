@@ -21,10 +21,12 @@
 
 ---
 
-## 2. 当前总体结论（对齐你的问题：是否按计划执行？）
+## 2. 当前总体结论
 
-- **执行形态**：目前的提交内容更像是“按里程碑 A→B 推进，同时把 `examine-module` 的 CRUD/元数据相关控制器与实体批量铺开”，与既定里程碑分期并不冲突，但**缺少在文档里回填状态**导致看起来“没按计划走”。
-- **收口动作**：从现在起，进度只在本文更新；需求澄清/变更只追加到 **`docs/requirements-log.md`**，避免分散在多份文档里。
+- **v1 功能面**：里程碑 A–E、上线收口 F、缺口补齐 G/H、收官 I 均已 ✅（见下文各表）。
+- **可部署**：后端 `examine-web` + Web `vue3` + 移动端 `uniapp` 契约对齐；生产见 `docs/deploy/production.md`。
+- **后续迭代（非阻塞上线）**：typed-value EAV 列、Web 列表筛选模板页、移动端流程图形设计器。
+- **维护**：进度只在本文更新；需求变更追加 `docs/requirements-log.md`。
 
 ---
 
@@ -77,8 +79,72 @@
 | ID | 任务 | 状态 | 验收要点 |
 |---|---|---|---|
 | E-1 | 对外应用 CRUD、`appId/secret`、轮换 | ✅ | secret 仅创建/轮换可见；资料可 PUT 更新（不含编码与密钥） | `PlatformAppController`（`/v1/platform/apps` CRUD+`PUT /{id}`）；`PlatformAppManageService`；`un_app_client/un_app_client_credential`（BCrypt `secret_hash`） |
-| E-2 | 开放接口 `/v1/open/**`：AK/SK（BCrypt）+ 目标 system/tenant + 代操作 platId | ✅ | `Basic` 或 `X-Access-Key`+`X-Secret`；全平台 client 须 `X-Target-System-Id`；须 `X-Acting-Plat-Id` | `OpenApiAuthenticationFilter`；`TokenAuthenticationFilter`；`OpenApiFlowController`/`OpenApiModuleRecordController` |
+| E-2 | 开放接口 `/v1/open/**`：AK/SK 或 HMAC 签名 + 目标 system/tenant + 代操作 platId | ✅ | 签名：`X-Timestamp`+`X-Signature`；兼容 `X-Secret`/`Basic`；全平台 client 须 `X-Target-System-Id` | `OpenApiAuthenticationFilter`；`OpenApiFlowController`/`OpenApiModuleRecordController` |
 | E-3 | 开放 API 幂等（`Idempotency-Key` + Redis） | ✅ | 成功响应缓存 24h；重放响应头 `X-Idempotency-Replay: 1` | `OpenApiIdempotencyService` |
+
+---
+
+## 3.0 上线执行策略（2026-05 约定）
+
+**目标**：功能完整、可部署上线。
+
+**推荐节奏（按模块竖切，非「全部后端再全部前端」）**：
+
+1. **后端**：该模块 API + 数据权限 + 示例 `config_json` 定稿 → 可 Postman/Swagger 联调  
+2. **移动端（uniapp）**：管理配置 + 运行时入口 → 真机走通  
+3. **Web（vue3）**：与 uniapp 同契约，可晚一期（管理台大屏）  
+4. **部署**：`application-prod`、Redis/MySQL、手工 SQL 清单、冒烟用例  
+
+里程碑 A–E 主体已在后端；以下为 **F 阶段（上线收口）**。
+
+### F 上线收口（后端优先 → 前端对接）
+
+| ID | 任务 | 状态 | 验收要点 | 证据 |
+|---|---|---|---|---|
+| F-1 | 角色 `data_scope` + 记录数据权限 | ✅ | 非 owner 按角色范围过滤 create_user_id | `ModuleDataScopeService`；`ModuleRecordFacadeService` |
+| F-2 | 流程绑定 `un_flow_binding` | ✅ | create/update 触发 flow | `SystemModuleFlowBindingService` |
+| F-3 | 页面设计器 `/v1/system/module/pages/**` | ✅ | 页面/区块 CRUD + runtime | `SystemModulePageService` |
+| F-4 | 页面运行时 list/form/detail | ✅ | pageId 驱动跳转与字段覆盖 | `GET .../pages/{id}/runtime`；`runtime/entry.vue` |
+| F-5 | 运行时菜单（按角色过滤） | ✅ | `GET .../runtime-menus` | `SystemModuleRbacService#listRuntimeMenus` |
+| F-6 | 角色页面权限 | ✅ | `page-perms` set/list | `SystemModuleRbacService#setRolePagePerms` |
+| F-7 | 关系运行时查询子记录 | ✅ | `POST .../records/query-by-relation` + `fkField` | `ModuleRelationRecordService` |
+| F-8 | 关系/页面移动端管理 UI | ✅ | relations、pages、menus | `meta/relations.vue`；`pages/*`；`runtime/menus.vue` |
+| F-9 | Web 管理端 vue3 | ✅ | 登录/系统/应用配置/记录/流程/平台收件箱/开放应用/上传 | `web/vue3` AdminLayout + 全量 views + API |
+| F-10 | 部署文档与 prod 配置样例 | ✅ | 冒烟清单 + prod profile | `docs/deploy/production.md`；`application-prod.yml` |
+
+手工 SQL（Flyway 可选）：`data_scope` 见 `docs/sql/manual/V21__module_role_data_scope.sql`；`n-n` 配置见 `docs/sql/manual/V22__nn_relation_config_example.md`。
+
+### G 缺口补齐（2026-05 续）
+
+| ID | 任务 | 状态 | 说明 |
+|---|---|---|---|
+| G-1 | n-n 关系 `query-by-relation` | ✅ | `linkModelId` + `srcFkField` + `dstFkField` |
+| G-2 | 平台待办可见系统（owner + 成员） | ✅ | `PlatformSystemAccessService` |
+| G-3 | Web 记录表单（复杂字段+子表） | ✅ | `RecordFormView` + `TagField`/`RegionAddressField`/`RefSubTableField` |
+| G-4 | Web 字典项/流程版本/导出任务/注册/实例详情/开放应用详情 | ✅ | 对应 views + router |
+| G-5 | 流程可视化设计器 | ✅ | `FlowGraphDesignerView` + `graph-designer` API |
+| G-6 | 开放 API 签名校验 | ✅ | `X-Timestamp`+`X-Signature` HMAC v1；`sign_secret_enc`；兼容 `X-Secret` |
+| G-7 | EAV 性能优化 | ✅ | `idx_module_record_data_eq`；`listByRecordIds` 批量查询 |
+
+### H 上线体验（2026-05 续）
+
+| ID | 任务 | 状态 | 说明 |
+|---|---|---|---|
+| H-1 | 列表查询批量附带 EAV 字段 | ✅ | `includeFieldCodes` → `list[].data`；Web/移动端去掉 N+1 `getRecord` |
+| H-2 | Web 开放应用详情 + 签名说明 | ✅ | `OpenAppDetailView` 轮换密钥与签名文档 |
+| H-3 | 关联字段/子表批量 EAV | ✅ | `refPicker` + `RefSubTableField` 用 `includeFieldCodes`/`id in` |
+| H-4 | 子表按关系加载（1-n FK） | ✅ | `relationId` 或自动匹配；`query-by-relation`；新建子行 `linkFkField` |
+| H-5 | 导出任务列表 + 记录列表多列 | ✅ | `ExportJobsView` 状态筛选/轮询/鉴权下载；`RecordsListView` 按 `columnFieldCodes`+`includeFieldCodes`；`RelationsView` 展示关系 ID 与配置提示 |
+
+### I 功能收官（2026-05）
+
+| ID | 任务 | 状态 | 说明 |
+|---|---|---|---|
+| I-1 | 开放 API 记录全链路 | ✅ | `OpenApiModuleRecordController`：detail/query/delete/query-by-relation/history |
+| I-2 | Web 导出发起 + 签名/评分字段 | ✅ | `ExportsView` `createExportJob`；`SignatureField`/`RatingField` |
+| I-3 | Web 平台创建系统 + RBAC dataScope | ✅ | `SystemsView`；`RbacView` 数据权限与 perm-preview |
+| I-4 | Web 平台收件箱抄送已读 | ✅ | `PlatformInboxView` + `readPlatformCc` |
+| I-5 | 文档与契约同步 | ✅ | `openapi-contract.md`、`curl-examples.md`、`mobile-api-coverage.md` |
 
 ---
 

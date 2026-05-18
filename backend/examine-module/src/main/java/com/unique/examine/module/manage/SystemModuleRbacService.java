@@ -7,12 +7,18 @@ import com.unique.examine.module.entity.po.ModuleMember;
 import com.unique.examine.module.entity.po.ModuleMenu;
 import com.unique.examine.module.entity.po.ModuleRole;
 import com.unique.examine.module.entity.po.ModuleRoleMenuPerm;
+import com.unique.examine.module.entity.po.ModuleRolePagePerm;
 import com.unique.examine.plat.entity.po.PlatAccount;
+import com.unique.examine.plat.entity.po.PlatSystem;
 import com.unique.examine.plat.service.IPlatAccountService;
+import com.unique.examine.plat.service.IPlatSystemService;
 import com.unique.examine.module.service.IModuleMemberService;
 import com.unique.examine.module.service.IModuleMenuService;
 import com.unique.examine.module.service.IModuleRoleMenuPermService;
+import com.unique.examine.module.service.IModuleRolePagePermService;
 import com.unique.examine.module.service.IModuleRoleService;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +32,7 @@ import java.util.Objects;
 @Service
 public class SystemModuleRbacService {
 
-    public record UpsertRoleCmd(Long id, Long appId, String roleCode, String roleName, Integer status) {}
+    public record UpsertRoleCmd(Long id, Long appId, String roleCode, String roleName, Integer status, Integer dataScope) {}
     public record UpsertMemberCmd(Long id, Long appId, Long platId, Long roleId, Integer status) {}
     public record UpsertMenuCmd(
             Long id,
@@ -41,6 +47,7 @@ public class SystemModuleRbacService {
     ) {}
     public record UpsertRoleMenuPermCmd(Long id, Long roleId, Long menuId, Integer status) {}
     public record SetRoleMenuPermCmd(Long roleId, List<Long> menuIds, Integer permLevel) {}
+    public record SetRolePagePermCmd(Long roleId, List<Long> pageIds, Integer permLevel) {}
     public record AssignMemberRoleCmd(Long appId, Long memberPlatId, Long roleId, Long deptId) {}
 
     @Autowired
@@ -50,7 +57,11 @@ public class SystemModuleRbacService {
     @Autowired
     private IModuleRoleMenuPermService moduleRoleMenuPermService;
     @Autowired
+    private IModuleRolePagePermService moduleRolePagePermService;
+    @Autowired
     private IModuleMemberService moduleMemberService;
+    @Autowired
+    private IPlatSystemService platSystemService;
     @Autowired
     private ModuleAuthCacheCoordinator moduleAuthCacheCoordinator;
     @Autowired
@@ -102,6 +113,31 @@ public class SystemModuleRbacService {
         return systemModuleDeptService.listPickerOptions(appId, operatorPlatId);
     }
 
+    /** 按用户名搜索平台账号（添加成员） */
+    public List<Map<String, Object>> searchPlatAccounts(String keyword, Long operatorPlatId) {
+        requireOperator(operatorPlatId);
+        if (keyword == null || keyword.trim().length() < 2) {
+            return List.of();
+        }
+        String kw = keyword.trim();
+        List<PlatAccount> list = platAccountService.lambdaQuery()
+                .and(w -> w.like(PlatAccount::getUsername, kw).or().like(PlatAccount::getDisplayName, kw))
+                .eq(PlatAccount::getStatus, 1)
+                .last("limit 20")
+                .list();
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (PlatAccount a : list) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("platId", a.getId());
+            row.put("username", a.getUsername());
+            row.put("text", (a.getDisplayName() != null && !a.getDisplayName().isBlank())
+                    ? a.getDisplayName() + " (" + a.getUsername() + ")"
+                    : a.getUsername());
+            out.add(row);
+        }
+        return out;
+    }
+
     public List<ModuleRole> listRoles(Long appId, Long operatorPlatId) {
         requireOperator(operatorPlatId);
         long systemId = requireSystem();
@@ -115,6 +151,58 @@ public class SystemModuleRbacService {
                 .eq(ModuleRole::getAppId, appId)
                 .orderByAsc(ModuleRole::getRoleCode)
                 .list();
+    }
+
+    /** 运行时：当前用户可见菜单（系统所有者看全部可见菜单；成员看角色授权的菜单） */
+    public List<ModuleMenu> listRuntimeMenus(Long appId, Long operatorPlatId) {
+        requireOperator(operatorPlatId);
+        long systemId = requireSystem();
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (appId == null) {
+            throw new BusinessException(400, "appId 不能为空");
+        }
+        List<ModuleMenu> all = moduleMenuService.lambdaQuery()
+                .eq(ModuleMenu::getSystemId, systemId)
+                .eq(ModuleMenu::getTenantId, tenantId)
+                .eq(ModuleMenu::getAppId, appId)
+                .eq(ModuleMenu::getVisibleFlag, 1)
+                .orderByAsc(ModuleMenu::getSortNo)
+                .orderByAsc(ModuleMenu::getId)
+                .list();
+        if (isSystemOwner(systemId, operatorPlatId)) {
+            return all;
+        }
+        ModuleMember member = moduleMemberService.lambdaQuery()
+                .eq(ModuleMember::getSystemId, systemId)
+                .eq(ModuleMember::getTenantId, tenantId)
+                .eq(ModuleMember::getAppId, appId)
+                .eq(ModuleMember::getPlatId, operatorPlatId)
+                .eq(ModuleMember::getStatus, 1)
+                .last("limit 1")
+                .one();
+        if (member == null || member.getRoleId() == null) {
+            return List.of();
+        }
+        List<ModuleRoleMenuPerm> perms = moduleRoleMenuPermService.lambdaQuery()
+                .eq(ModuleRoleMenuPerm::getRoleId, member.getRoleId())
+                .eq(ModuleRoleMenuPerm::getPermLevel, 1)
+                .list();
+        Set<Long> allowed = new HashSet<>();
+        for (ModuleRoleMenuPerm p : perms) {
+            if (p.getMenuId() != null) {
+                allowed.add(p.getMenuId());
+            }
+        }
+        if (allowed.isEmpty()) {
+            return List.of();
+        }
+        List<ModuleMenu> out = new ArrayList<>();
+        for (ModuleMenu m : all) {
+            if (m.getId() != null && allowed.contains(m.getId())) {
+                out.add(m);
+            }
+        }
+        return out;
     }
 
     public List<ModuleMenu> listMenus(Long appId, Long operatorPlatId) {
@@ -147,6 +235,25 @@ public class SystemModuleRbacService {
                 .eq(ModuleMember::getAppId, appId)
                 .orderByAsc(ModuleMember::getPlatId)
                 .orderByAsc(ModuleMember::getId)
+                .list();
+    }
+
+    public List<ModuleRolePagePerm> listRolePagePerms(Long roleId, Long operatorPlatId) {
+        requireOperator(operatorPlatId);
+        long systemId = requireSystem();
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        ModuleRole role = moduleRoleService.getById(roleId);
+        if (role == null) {
+            throw new BusinessException(404, "role 不存在");
+        }
+        if (!Objects.equals(role.getSystemId(), systemId) || !Objects.equals(role.getTenantId(), tenantId)) {
+            throw new BusinessException(403, "无权访问该角色");
+        }
+        return moduleRolePagePermService.lambdaQuery()
+                .eq(ModuleRolePagePerm::getSystemId, systemId)
+                .eq(ModuleRolePagePerm::getTenantId, tenantId)
+                .eq(ModuleRolePagePerm::getRoleId, roleId)
+                .orderByAsc(ModuleRolePagePerm::getPageId)
                 .list();
     }
 
@@ -209,6 +316,7 @@ public class SystemModuleRbacService {
             role.setRoleCode(roleCode);
             role.setRoleName(roleName);
             role.setStatus(status);
+            role.setDataScope(normalizeDataScope(body.dataScope()));
             role.setUpdateUserId(operatorPlatId);
             moduleRoleService.updateById(role);
         } else {
@@ -228,11 +336,22 @@ public class SystemModuleRbacService {
             role.setRoleCode(roleCode);
             role.setRoleName(roleName);
             role.setStatus(status);
+            role.setDataScope(normalizeDataScope(body.dataScope()));
             role.setCreateUserId(operatorPlatId);
             role.setUpdateUserId(operatorPlatId);
             moduleRoleService.save(role);
         }
+        if (moduleAuthCacheCoordinator != null) {
+            moduleAuthCacheCoordinator.invalidateForRole(systemId, tenantId, role.getId());
+        }
         return role;
+    }
+
+    private static int normalizeDataScope(Integer dataScope) {
+        if (dataScope == null || dataScope < 1 || dataScope > 5) {
+            return ModuleDataScopeService.SCOPE_SELF;
+        }
+        return dataScope;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -350,6 +469,63 @@ public class SystemModuleRbacService {
         if (moduleAuthCacheCoordinator != null) {
             moduleAuthCacheCoordinator.invalidateForRole(systemId, tenantId, role.getId());
         }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void setRolePagePerms(Long operatorPlatId, SetRolePagePermCmd body) {
+        requireOperator(operatorPlatId);
+        long systemId = requireSystem();
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (body == null || body.roleId() == null) {
+            throw new BusinessException(400, "roleId 不能为空");
+        }
+        Integer permLevel = body.permLevel() == null ? 1 : body.permLevel();
+        if (permLevel != 0 && permLevel != 1) {
+            throw new BusinessException(400, "permLevel 须为 1=允许 或 0=禁止");
+        }
+        ModuleRole role = moduleRoleService.getById(body.roleId());
+        if (role == null) {
+            throw new BusinessException(404, "role 不存在");
+        }
+        if (!Objects.equals(role.getSystemId(), systemId) || !Objects.equals(role.getTenantId(), tenantId)) {
+            throw new BusinessException(403, "无权操作该角色");
+        }
+
+        moduleRolePagePermService.lambdaUpdate()
+                .eq(ModuleRolePagePerm::getRoleId, role.getId())
+                .remove();
+
+        List<Long> pageIds = body.pageIds() == null ? List.of() : body.pageIds();
+        List<ModuleRolePagePerm> batch = new ArrayList<>();
+        for (Long pid : pageIds) {
+            if (pid == null || pid <= 0) {
+                continue;
+            }
+            ModuleRolePagePerm rp = new ModuleRolePagePerm();
+            rp.setSystemId(systemId);
+            rp.setTenantId(tenantId);
+            rp.setAppId(role.getAppId());
+            rp.setRoleId(role.getId());
+            rp.setPageId(pid);
+            rp.setPermLevel(permLevel);
+            rp.setCreateUserId(operatorPlatId);
+            rp.setUpdateUserId(operatorPlatId);
+            batch.add(rp);
+        }
+        if (!batch.isEmpty()) {
+            moduleRolePagePermService.saveBatch(batch);
+        }
+        if (moduleAuthCacheCoordinator != null) {
+            moduleAuthCacheCoordinator.invalidateForRole(systemId, tenantId, role.getId());
+        }
+    }
+
+    private boolean isSystemOwner(long systemId, Long platId) {
+        if (platId == null || systemId <= 0L) {
+            return false;
+        }
+        PlatSystem s = platSystemService.getById(systemId);
+        return s != null && platId.equals(s.getOwnerPlatAccountId());
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -34,3 +34,27 @@
 - **结论**：对外语义统一为「字段一行」，不再使用 `data.xxx` 形式的 DSL 字段名。
 - **后续动作**：后续可按模型元数据校验 `field_code` 是否存在、以及扩 typed 列/索引。
 
+---
+
+## 2026-05
+
+### 2026-05-18 列表查询批量附带 EAV + 开放 API 签名
+
+- **背景**：记录列表 Web/移动端对每条记录调 `getRecord` 造成 N+1；开放 API 长期明文传 SK。
+- **变更**：`POST /v1/system/records/query` 增加 `includeFieldCodes`，响应 `list[].data`；开放 API 支持 HMAC v1 签名（`sign_secret_enc`）；EAV 增加等值查询索引。
+- **影响范围**：Flyway `V21`；旧开放凭证需轮换 SK 后可用签名模式。
+- **结论**：列表展示走单次 query；第三方推荐签名头，兼容 `X-Secret`。
+- **后续动作**：typed-value 列、关系列表同样批量附带字段（按需）。
+
+### 2026-05-16 H-5 导出任务与列表多列
+
+- **背景**：导出任务页仅静态列表；记录列表仅「摘要」一列，未用页面 `columnFieldCodes`。
+- **变更**：`ExportJobsView` 状态筛选、3s 轮询待处理任务、鉴权 `fetch` 下载；`RecordsListView` 按 runtime 列 + `includeFieldCodes`；`RelationsView` 展示关系 ID 与 `relationId` 配置提示。
+- **结论**：tracker H-5 ✅；移动端列表此前已支持 `columnFieldCodes`。
+
+### 2026-05-16 I 阶段功能收官
+
+- **背景**：里程碑 A–H 主体完成，但开放 API 记录仅 create/update；Web 缺创建系统、RBAC dataScope、导出发起、签名/评分字段等，无法单独走通生产冒烟。
+- **变更**：`OpenApiModuleRecordController` 补齐 query/detail/delete/query-by-relation/history；Web `ExportsView`/`SystemsView`/`RbacView`/`PlatformInboxView`/`SignatureField`/`RatingField`；契约文档与 `mobile-api-coverage` 同步。
+- **结论**：tracker I-1～I-5 ✅；项目 v1 功能面闭环，typed-value 列与 Web 筛选模板页列为后续迭代。
+

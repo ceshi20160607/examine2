@@ -18,6 +18,9 @@
         <uni-forms-item label="roleName">
           <uni-easyinput v-model="roleForm.roleName" placeholder="roleName" />
         </uni-forms-item>
+        <uni-forms-item label="数据权限 dataScope">
+          <uni-data-select v-model="roleForm.dataScope" :localdata="dataScopeOptions" />
+        </uni-forms-item>
       </uni-forms>
       <ActionBar>
         <uni-button type="primary" :disabled="savingRole" @click="upsertRole">保存</uni-button>
@@ -27,14 +30,23 @@
     <view class="u-card u-section">
       <view class="u-title">成员分配角色</view>
       <uni-forms labelPosition="top">
-        <uni-forms-item label="memberPlatId（平台账号 platId）">
-          <uni-easyinput v-model="memberForm.memberPlatId" placeholder="memberPlatId" />
+        <uni-forms-item label="搜索账号（≥2字符）">
+          <view style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <uni-easyinput v-model="accountKeyword" placeholder="用户名/显示名" style="flex:1; min-width:160px" />
+            <uni-button size="mini" :disabled="searchingAccount" @click="searchAccount">搜索</uni-button>
+          </view>
+        </uni-forms-item>
+        <uni-forms-item v-if="accountHits.length" label="选择账号">
+          <uni-data-select v-model="memberForm.memberPlatId" :localdata="accountHits" placeholder="选择成员" />
+        </uni-forms-item>
+        <uni-forms-item v-else label="memberPlatId">
+          <uni-easyinput v-model="memberForm.memberPlatId" placeholder="平台账号 platId" />
         </uni-forms-item>
         <uni-forms-item label="roleId">
-          <uni-easyinput v-model="memberForm.roleId" placeholder="roleId" />
+          <uni-data-select v-model="memberForm.roleId" :localdata="roleOptions" placeholder="选择角色" />
         </uni-forms-item>
-        <uni-forms-item label="deptId（可选）">
-          <uni-easyinput v-model="memberForm.deptId" type="number" placeholder="un_module_dept.id" />
+        <uni-forms-item label="部门（树形选择）">
+          <uni-data-select v-model="memberForm.deptId" :localdata="deptOptions" placeholder="可选" />
         </uni-forms-item>
       </uni-forms>
       <ActionBar>
@@ -77,7 +89,7 @@
             v-for="r in roles"
             :key="r.id"
             :title="r.roleName || r.roleCode || ('Role#' + r.id)"
-            :note="r.roleCode || ''"
+            :note="`${r.roleCode || ''} scope=${(r as any).dataScope ?? 1}`"
             clickable
             @click="openRoleActions(r)"
           />
@@ -101,8 +113,8 @@
         <uni-forms-item label="apiPattern(可选)">
           <uni-easyinput v-model="menuForm.apiPattern" placeholder="apiPattern(可选)" />
         </uni-forms-item>
-        <uni-forms-item label="pageId(可选)">
-          <uni-easyinput v-model="menuForm.pageId" placeholder="pageId(可选)" />
+        <uni-forms-item label="关联页面 pageId（可选）">
+          <uni-data-select v-model="menuForm.pageId" :localdata="pageOptions" placeholder="选择低代码页面" />
         </uni-forms-item>
       </uni-forms>
       <ActionBar>
@@ -153,11 +165,14 @@ import {
   listRbacRoles,
   permPreview,
   upsertRbacMenu,
+  searchRbacAccounts,
   upsertRbacRole
 } from '@/api/module'
 import { listApps } from '@/api/meta'
+import { listDeptPickerOptions } from '@/api/dept'
+import { listPagePickerOptions } from '@/api/pages'
 
-type RoleRow = { id: number; roleCode?: string; roleName?: string; status?: number }
+type RoleRow = { id: number; roleCode?: string; roleName?: string; status?: number; dataScope?: number }
 type MenuRow = RbacMenuRow
 type MenuFlatRow = RbacMenuFlatRow
 type MemberRow = { id: number; platId?: number; roleId?: number; status?: number }
@@ -170,7 +185,29 @@ const menus = ref<MenuRow[]>([])
 const members = ref<MemberRow[]>([])
 
 const savingRole = ref(false)
-const roleForm = reactive<{ roleCode: string; roleName: string }>({ roleCode: '', roleName: '' })
+const dataScopeOptions = [
+  { value: 1, text: '1 仅本人' },
+  { value: 2, text: '2 本人及下属' },
+  { value: 3, text: '3 本部门' },
+  { value: 4, text: '4 本部门及下级' },
+  { value: 5, text: '5 全部' }
+]
+const roleForm = reactive<{ roleCode: string; roleName: string; dataScope: number }>({
+  roleCode: '',
+  roleName: '',
+  dataScope: 1
+})
+const roleOptions = computed(() =>
+  roles.value.map((r) => ({
+    value: r.id,
+    text: `${r.roleName || r.roleCode || r.id} (scope=${r.dataScope ?? 1})`
+  }))
+)
+const deptOptions = ref<Array<{ value: number | string; text: string }>>([])
+const pageOptions = ref<Array<{ value: number | string; text: string }>>([])
+const accountKeyword = ref('')
+const accountHits = ref<Array<{ value: number | string; text: string }>>([])
+const searchingAccount = ref(false)
 
 const savingMember = ref(false)
 const memberForm = reactive<{ memberPlatId: string; roleId: string; deptId: string }>({
@@ -252,7 +289,13 @@ async function upsertRole() {
   }
   savingRole.value = true
   try {
-    await upsertRbacRole(appId.value, { id: null, roleCode: roleForm.roleCode.trim(), roleName: roleForm.roleName.trim(), status: 1 })
+    await upsertRbacRole(appId.value, {
+      id: null,
+      roleCode: roleForm.roleCode.trim(),
+      roleName: roleForm.roleName.trim(),
+      status: 1,
+      dataScope: Number(roleForm.dataScope) || 1
+    })
     roleForm.roleCode = ''
     roleForm.roleName = ''
     await loadRoles()
@@ -271,8 +314,8 @@ async function assignMemberRole() {
   }
   savingMember.value = true
   try {
-    const deptRaw = memberForm.deptId.trim()
-    const deptId = deptRaw ? Number(deptRaw) : null
+    const deptRaw = String(memberForm.deptId ?? '').trim()
+    const deptId = deptRaw && deptRaw !== '0' ? Number(deptRaw) : null
     await assignRbacMemberRole({
       appId: appId.value,
       memberPlatId,
@@ -347,13 +390,78 @@ async function previewPerm() {
   }
 }
 
+async function loadDeptOptions() {
+  if (!appId.value) return
+  try {
+    const r = await listDeptPickerOptions(appId.value)
+    deptOptions.value = [{ value: '', text: '（不指定部门）' }, ...(r.data || [])]
+  } catch {
+    deptOptions.value = []
+  }
+}
+
+async function loadPageOptions() {
+  if (!appId.value) return
+  try {
+    const r = await listPagePickerOptions(appId.value)
+    pageOptions.value = [{ value: '', text: '（不关联页面）' }, ...(r.data || [])]
+  } catch {
+    pageOptions.value = []
+  }
+}
+
+async function searchAccount() {
+  const kw = accountKeyword.value.trim()
+  if (kw.length < 2) {
+    uni.showToast({ title: '至少输入 2 个字符', icon: 'none' })
+    return
+  }
+  searchingAccount.value = true
+  try {
+    const r = await searchRbacAccounts(kw)
+    accountHits.value = (r.data || []).map((a) => ({ value: a.platId, text: a.text }))
+    if (!accountHits.value.length) uni.showToast({ title: '无匹配账号', icon: 'none' })
+  } finally {
+    searchingAccount.value = false
+  }
+}
+
 function openRoleActions(r: RoleRow) {
   if (!r?.id) return
   uni.showActionSheet({
-    itemList: ['设置菜单权限'],
-    success: (res) => {
-      if (res.tapIndex !== 0) return
-      uni.navigateTo({ url: `/pages/system/module/rbac/role_menus?appId=${appId.value}&roleId=${r.id}` })
+    itemList: ['设置菜单权限', '设置页面权限', '编辑数据权限'],
+    success: async (res) => {
+      if (res.tapIndex === 0) {
+        uni.navigateTo({ url: `/pages/system/module/rbac/role_menus?appId=${appId.value}&roleId=${r.id}` })
+        return
+      }
+      if (res.tapIndex === 1) {
+        uni.navigateTo({ url: `/pages/system/module/rbac/role_pages?appId=${appId.value}&roleId=${r.id}` })
+        return
+      }
+      if (res.tapIndex === 2 && r.roleCode && r.roleName) {
+        uni.showActionSheet({
+          itemList: dataScopeOptions.map((o) => o.text),
+          success: async (s2) => {
+            const picked = dataScopeOptions[s2.tapIndex]
+            if (!picked) return
+            savingRole.value = true
+            try {
+              await upsertRbacRole(appId.value, {
+                id: r.id,
+                roleCode: r.roleCode!,
+                roleName: r.roleName!,
+                status: r.status ?? 1,
+                dataScope: Number(picked.value)
+              })
+              uni.showToast({ title: '数据权限已更新', icon: 'success' })
+              await loadRoles()
+            } finally {
+              savingRole.value = false
+            }
+          }
+        })
+      }
     }
   })
 }
@@ -364,5 +472,7 @@ onMounted(async () => {
   loadRoles()
   loadMenus()
   loadMembers()
+  loadDeptOptions()
+  loadPageOptions()
 })
 </script>

@@ -2,6 +2,7 @@ package com.unique.examine.app.manage;
 
 import com.unique.examine.app.entity.po.AppClient;
 import com.unique.examine.app.entity.po.AppClientCredential;
+import com.unique.examine.app.security.OpenApiSigningSecretCrypto;
 import com.unique.examine.app.service.IAppClientCredentialService;
 import com.unique.examine.app.service.IAppClientService;
 import com.unique.examine.core.exception.BusinessException;
@@ -28,6 +29,9 @@ public class PlatformAppManageService {
     private IAppClientService appClientService;
     @Autowired
     private IAppClientCredentialService appClientCredentialService;
+
+    @Autowired
+    private OpenApiSigningSecretCrypto openApiSigningSecretCrypto;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -133,6 +137,7 @@ public class PlatformAppManageService {
         cred.setClientId(client.getId());
         cred.setAccessKey(accessKey);
         cred.setSecretHash(passwordEncoder.encode(secret));
+        cred.setSignSecretEnc(openApiSigningSecretCrypto.encrypt(secret));
         cred.setStatus(1);
         cred.setCreateUserId(platId);
         cred.setUpdateUserId(platId);
@@ -255,6 +260,7 @@ public class PlatformAppManageService {
         cred.setClientId(clientId);
         cred.setAccessKey(accessKey);
         cred.setSecretHash(passwordEncoder.encode(secret));
+        cred.setSignSecretEnc(openApiSigningSecretCrypto.encrypt(secret));
         cred.setStatus(1);
         cred.setCreateUserId(platId);
         cred.setUpdateUserId(platId);

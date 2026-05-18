@@ -1,5 +1,5 @@
 <template>
-  <Page :title="title" subtitle="按字段元数据生成表单；复杂场景可切换高级 JSON">
+  <Page :title="title" :subtitle="formSubtitle">
     <view class="u-card">
       <uni-forms labelPosition="top">
         <uni-forms-item v-if="!advancedJson" label="字段表单">
@@ -166,6 +166,8 @@
                 v-else-if="isRefTableField(f)"
                 :field="f"
                 :app-id="appId"
+                :parent-record-id="recordId"
+                :parent-model-id="modelId"
                 v-model="formData[f.fieldCode]"
                 :options="refOptionsByCode[f.fieldCode || ''] || []"
               />
@@ -177,26 +179,16 @@
                 :localdata="refOptionsByCode[f.fieldCode || ''] || []"
               />
 
-              <view v-else-if="isAddressField(f)" style="display:flex; flex-direction:column; gap:8px;">
-                <uni-easyinput
-                  v-model="formData[f.fieldCode]"
-                  type="textarea"
-                  :autoHeight="true"
-                  :placeholder="addressPlaceholder(f)"
-                />
-                <uni-button v-if="isAddressMapEnabled(f)" size="mini" @click="pickAddressOnMap(f)">地图选点</uni-button>
-              </view>
-
-              <uni-easyinput
-                v-else-if="isTagField(f)"
+              <RegionAddressField
+                v-else-if="isAddressField(f)"
                 v-model="formData[f.fieldCode]"
-                placeholder="标签，逗号分隔"
+                :field="f"
               />
 
-              <uni-easyinput
-                v-else
+              <TagField
+                v-else-if="isTagField(f)"
                 v-model="formData[f.fieldCode]"
-                :placeholder="`${f.fieldType || 'TEXT'}（暂按文本）`"
+                :field="f"
               />
             </view>
           </view>
@@ -226,6 +218,8 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import RefSubTableField from '@/components/fields/RefSubTableField.vue'
+import RegionAddressField from '@/components/fields/RegionAddressField.vue'
+import TagField from '@/components/fields/TagField.vue'
 import RatingStars from '@/components/fields/RatingStars.vue'
 import SignatureUpload from '@/components/fields/SignatureUpload.vue'
 import { listFieldsByModel, type ModuleField } from '@/api/meta'
@@ -250,7 +244,6 @@ import {
   isPersonField,
   isSerialNoField,
   configFromMeta,
-  isAddressMapEnabled,
   isRefField,
   isRefMultiField,
   isRefTableField,
@@ -265,22 +258,44 @@ import {
   isTagField
 } from '@/utils/fieldTypes'
 import { loadRefSelectOptions } from '@/utils/refPicker'
+import { getPageRuntime } from '@/api/pages'
+import { applyPageFieldOverrides, pageQuerySuffix, type PageRuntime } from '@/utils/pageRuntime'
 
 const appId = ref(0)
 const modelId = ref(0)
 const recordId = ref(0)
+const pageId = ref(0)
+const pageRuntime = ref<PageRuntime | null>(null)
+const embedMode = ref(false)
 
 const advancedJson = ref(false)
 const jsonText = ref('{}')
 const saving = ref(false)
 const error = ref<string | null>(null)
 
-const title = computed(() => (recordId.value ? `编辑 Record #${recordId.value}` : '新建 Record'))
+const title = computed(() => {
+  if (pageRuntime.value?.pageName) {
+    return recordId.value ? `编辑 · ${pageRuntime.value.pageName}` : pageRuntime.value.pageName
+  }
+  return recordId.value ? `编辑 Record #${recordId.value}` : '新建 Record'
+})
+const formSubtitle = computed(() =>
+  pageRuntime.value?.pageCode
+    ? `page=${pageRuntime.value.pageCode} · 可按页面字段配置渲染`
+    : '按字段元数据生成表单；复杂场景可切换高级 JSON'
+)
 
 onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
   modelId.value = Number((opts as any)?.modelId || 0) || 0
   recordId.value = Number((opts as any)?.recordId || 0) || 0
+  pageId.value = Number((opts as any)?.pageId || 0) || 0
+  embedMode.value = String((opts as any)?.embed || '') === '1'
+  const linkFk = String((opts as any)?.linkFkField || '').trim()
+  const linkPid = Number((opts as any)?.linkParentId || 0)
+  if (linkFk && linkPid > 0) {
+    formData[linkFk] = String(linkPid)
+  }
 })
 
 onMounted(() => {
@@ -301,33 +316,6 @@ const memberOptionsByCode = reactive<Record<string, Array<{ value: any; text: st
 const departmentOptions = ref<Array<{ value: any; text: string }>>([])
 const dateRangeStart = reactive<Record<string, string>>({})
 const dateRangeEnd = reactive<Record<string, string>>({})
-
-function addressPlaceholder(f: ModuleField) {
-  const cfg = configFromMeta(f)
-  const parts = ['省市区']
-  if (cfg.detailMode === 'manual') parts.push('详细地址')
-  if (isAddressMapEnabled(f)) parts.push('可地图选点')
-  return parts.join(' + ')
-}
-
-function pickAddressOnMap(f: ModuleField) {
-  if (!f.fieldCode) return
-  uni.chooseLocation({
-    success: (res) => {
-      const payload = {
-        region: '',
-        detail: res.address || res.name || '',
-        lat: res.latitude,
-        lng: res.longitude
-      }
-      formData[f.fieldCode!] = JSON.stringify(payload)
-      uni.showToast({ title: '已选点', icon: 'success' })
-    },
-    fail: () => {
-      uni.showToast({ title: '选点取消或不可用', icon: 'none' })
-    }
-  })
-}
 
 function isPersonMulti(f: ModuleField) {
   return isPersonField(f) && (configFromMeta(f).multi === true || (f.multiFlag ?? 0) === 1)
@@ -386,10 +374,10 @@ function placeholderFor(f: ModuleField) {
 }
 
 const visibleFields = computed(() => {
-  return (fields.value || [])
-    .filter((f): f is ModuleField & { fieldCode: string } => !!(f && f.fieldCode && f.hiddenFlag !== 1 && !isTitleField(f)))
-    .slice()
-    .sort((a, b) => Number(a.sortNo ?? 0) - Number(b.sortNo ?? 0))
+  const base = (fields.value || []).filter(
+    (f): f is ModuleField & { fieldCode: string } => !!(f && f.fieldCode && f.hiddenFlag !== 1 && !isTitleField(f))
+  )
+  return applyPageFieldOverrides(base, pageRuntime.value)
 })
 
 function boolValue(f: ModuleField) {
@@ -436,8 +424,21 @@ function toggleAdvanced() {
   }
 }
 
+async function loadPageRuntime() {
+  if (!pageId.value) return
+  try {
+    const r = await getPageRuntime(pageId.value)
+    pageRuntime.value = r.data || null
+    if (pageRuntime.value?.appId && !appId.value) appId.value = pageRuntime.value.appId
+    if (pageRuntime.value?.modelId && !modelId.value) modelId.value = Number(pageRuntime.value.modelId)
+  } catch {
+    pageRuntime.value = null
+  }
+}
+
 async function bootstrap() {
   try {
+    await loadPageRuntime()
     // 编辑场景：先拿 record，补齐 appId/modelId，并回填 data
     if (recordId.value) {
       const d = await getRecord(recordId.value)
@@ -731,8 +732,14 @@ async function submit() {
     const r = await createRecord({ appId: appId.value, modelId: modelId.value, data: dataObj })
     const id = r.data?.recordId
     uni.showToast({ title: '创建成功', icon: 'success' })
+    if (embedMode.value && id) {
+      const ec = (uni as any).getOpenerEventChannel?.()
+      ec?.emit?.('recordCreated', { recordId: id })
+      uni.navigateBack()
+      return
+    }
     if (id) {
-      uni.redirectTo({ url: `/pages/system/records/detail?recordId=${id}` })
+      uni.redirectTo({ url: `/pages/system/records/detail?recordId=${id}${pageQuerySuffix(pageId.value)}` })
     } else {
       back()
     }

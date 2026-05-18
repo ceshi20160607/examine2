@@ -1,5 +1,5 @@
 <template>
-  <Page :title="`Records（modelId=${modelId}）`" subtitle="支持关键字搜索与详情查看">
+  <Page :title="pageTitle" :subtitle="pageSubtitle">
     <view class="u-card u-section">
       <ActionBar>
         <uni-button type="primary" :disabled="!appId || !modelId" @click="goCreate">新建</uni-button>
@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
@@ -39,23 +39,38 @@ import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { usePageRequest } from '@/composables/usePageRequest'
-import { getRecord, queryRecords } from '@/api/records'
+import { queryRecords } from '@/api/records'
 import { listFieldsByModel } from '@/api/meta'
+import { getPageRuntime } from '@/api/pages'
+import { pageQuerySuffix, type PageRuntime } from '@/utils/pageRuntime'
 
 type Row = { id: number }
 type Summary = { title: string; note: string }
 
 const appId = ref<number>(0)
 const modelId = ref<number>(0)
+const pageId = ref<number>(0)
+const pageRuntime = ref<PageRuntime | null>(null)
 const { loading, error, run } = usePageRequest()
 const rows = ref<Row[]>([])
 const summaries = ref<Record<number, Summary>>({})
 const keyword = ref('')
 const searchFieldCode = ref<string>('')
+const displayFieldCodes = ref<string[]>([])
+
+const pageTitle = computed(() => {
+  if (pageRuntime.value?.pageName) return pageRuntime.value.pageName
+  return `Records（modelId=${modelId.value}）`
+})
+const pageSubtitle = computed(() => {
+  if (pageRuntime.value?.pageCode) return `page=${pageRuntime.value.pageCode} · 关键字搜索`
+  return '支持关键字搜索与详情查看'
+})
 
 onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0
   modelId.value = Number((opts as any)?.modelId || 0) || 0
+  pageId.value = Number((opts as any)?.pageId || 0) || 0
 })
 
 function titleOf(id: number) {
@@ -73,31 +88,28 @@ async function query() {
     if (kw && searchFieldCode.value) {
       filters.push({ field: searchFieldCode.value, op: 'like', value: kw })
     }
+    const cols =
+      displayFieldCodes.value.length > 0
+        ? displayFieldCodes.value
+        : pageRuntime.value?.titleFieldCodes?.length
+          ? pageRuntime.value.titleFieldCodes
+          : []
     const r = await queryRecords({
       appId: appId.value,
       modelId: modelId.value,
       page: 1,
       limit: 20,
-      filters
+      filters,
+      includeFieldCodes: cols.length ? cols.slice(0, 30) : []
     })
-    rows.value = (r.data?.list || []).map((x: any) => ({ id: x.id }))
+    const list = r.data?.list || []
+    rows.value = list.map((x: any) => ({ id: x.id }))
     summaries.value = {}
-    await hydrateSummaries(rows.value.slice(0, 10).map((x) => x.id))
-  })
-}
-
-async function reload() {
-  await query()
-}
-
-async function hydrateSummaries(ids: number[]) {
-  for (const id of ids) {
-    try {
-      const r = await getRecord(id)
-      const d = r.data || {}
-      const data = d.data || {}
-      const keys = Object.keys(data).slice(0, 3)
-      const parts = keys.map((k) => `${k}=${stringifyValue(data[k])}`)
+    for (const item of list) {
+      const id = Number(item.id)
+      const data = item.data || {}
+      const keys = cols.length ? cols : Object.keys(data).slice(0, 3)
+      const parts = keys.map((k: string) => `${k}=${stringifyValue(data[k])}`)
       summaries.value = {
         ...summaries.value,
         [id]: {
@@ -105,10 +117,12 @@ async function hydrateSummaries(ids: number[]) {
           note: parts.slice(1).join(' | ')
         }
       }
-    } catch {
-      // ignore
     }
-  }
+  })
+}
+
+async function reload() {
+  await query()
 }
 
 function stringifyValue(v: any): string {
@@ -125,15 +139,37 @@ function stringifyValue(v: any): string {
 }
 
 function goCreate() {
-  uni.navigateTo({ url: `/pages/system/records/form?appId=${appId.value}&modelId=${modelId.value}` })
+  uni.navigateTo({
+    url: `/pages/system/records/form?appId=${appId.value}&modelId=${modelId.value}${pageQuerySuffix(pageId.value)}`
+  })
 }
 
 function goDetail(recordId: number) {
-  uni.navigateTo({ url: `/pages/system/records/detail?recordId=${recordId}` })
+  uni.navigateTo({
+    url: `/pages/system/records/detail?recordId=${recordId}${pageQuerySuffix(pageId.value)}`
+  })
+}
+
+async function loadPageRuntime() {
+  if (!pageId.value) return
+  try {
+    const r = await getPageRuntime(pageId.value)
+    pageRuntime.value = r.data || null
+    if (pageRuntime.value?.appId && !appId.value) appId.value = pageRuntime.value.appId
+    if (pageRuntime.value?.modelId && !modelId.value) modelId.value = Number(pageRuntime.value.modelId)
+    if (pageRuntime.value?.searchFieldCode) {
+      searchFieldCode.value = pageRuntime.value.searchFieldCode
+    }
+    const cols = pageRuntime.value?.columnFieldCodes || pageRuntime.value?.titleFieldCodes
+    displayFieldCodes.value = cols?.length ? cols : []
+  } catch {
+    pageRuntime.value = null
+  }
 }
 
 async function loadFieldsForSearch() {
   if (!modelId.value) return
+  if (searchFieldCode.value) return
   try {
     const r = await listFieldsByModel(modelId.value)
     const list = (r.data || []) as Array<{ fieldCode?: string; fieldType?: string; dictCode?: string; hiddenFlag?: number }>
@@ -144,9 +180,10 @@ async function loadFieldsForSearch() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!ensureSystemContext()) return
-  loadFieldsForSearch()
+  await loadPageRuntime()
+  await loadFieldsForSearch()
   query()
 })
 </script>

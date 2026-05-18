@@ -176,6 +176,12 @@ public final class ModuleFieldConfigSupport {
                 throw new BusinessException(400, "子表/明细须开启多选(multi)");
             }
         }
+        if (cfg != null && cfg.has("relationId") && !cfg.get("relationId").isNull()) {
+            long rid = cfg.get("relationId").asLong(0L);
+            if (rid <= 0L) {
+                throw new BusinessException(400, "configJson.relationId 须为正整数");
+            }
+        }
     }
 
     private static String mapInputStyleToValidate(String style) {

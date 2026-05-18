@@ -7,6 +7,7 @@ export function queryRecords(cmd: {
   page: number
   limit: number
   filters?: any[]
+  includeFieldCodes?: string[]
 }): Promise<ApiResult<any>> {
   return httpPost<any>('/v1/system/records/query', cmd)
 }
@@ -39,5 +40,20 @@ export type RecordHistoryRow = {
 
 export function listRecordHistory(recordId: number, limit = 50): Promise<ApiResult<RecordHistoryRow[]>> {
   return httpGet<RecordHistoryRow[]>(`/v1/system/records/${recordId}/history?limit=${limit}`)
+}
+
+export function queryRecordsByRelation(cmd: {
+  relationId: number
+  parentRecordId: number
+  query?: {
+    appId?: number
+    modelId?: number
+    page?: number
+    limit?: number
+    filters?: any[]
+    includeFieldCodes?: string[]
+  }
+}): Promise<ApiResult<any>> {
+  return httpPost<any>('/v1/system/records/query-by-relation', cmd)
 }
 

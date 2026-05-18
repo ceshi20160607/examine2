@@ -120,6 +120,10 @@ export async function httpPut<T>(path: string, body?: any): Promise<ApiResult<T>
   return httpRequest<T>('PUT', path, body)
 }
 
+export async function httpDelete<T>(path: string): Promise<ApiResult<T>> {
+  return httpRequest<T>('DELETE', path)
+}
+
 export async function httpRequest<T>(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE',
   path: string,

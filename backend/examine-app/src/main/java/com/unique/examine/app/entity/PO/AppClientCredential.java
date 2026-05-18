@@ -54,6 +54,9 @@ public class AppClientCredential implements Serializable {
     @Schema(description = "secret 哈希（建议 BCrypt，不存明文）")
     private String secretHash;
 
+    @Schema(description = "SK AES-GCM 加密（签名模式验签，不落明文）")
+    private String signSecretEnc;
+
     @Schema(description = "状态：1=启用 2=停用")
     private Integer status;
 

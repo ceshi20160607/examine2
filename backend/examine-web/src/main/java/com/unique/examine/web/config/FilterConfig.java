@@ -1,5 +1,6 @@
 package com.unique.examine.web.config;
 
+import com.unique.examine.app.security.OpenApiSigningSecretCrypto;
 import com.unique.examine.app.service.IAppClientCredentialService;
 import com.unique.examine.app.service.IAppClientService;
 import com.unique.examine.web.security.OpenApiAuthenticationFilter;
@@ -21,8 +22,10 @@ public class FilterConfig {
     @Bean
     public OpenApiAuthenticationFilter openApiAuthenticationFilter(IAppClientCredentialService appClientCredentialService,
                                                                    IAppClientService appClientService,
-                                                                   PasswordEncoder passwordEncoder) {
-        return new OpenApiAuthenticationFilter(appClientCredentialService, appClientService, passwordEncoder);
+                                                                   PasswordEncoder passwordEncoder,
+                                                                   OpenApiSigningSecretCrypto signingSecretCrypto) {
+        return new OpenApiAuthenticationFilter(
+                appClientCredentialService, appClientService, passwordEncoder, signingSecretCrypto);
     }
 
     @Bean

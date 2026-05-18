@@ -1,6 +1,7 @@
 <template>
   <view class="ref-sub-table">
     <view class="u-subtitle">{{ label }}</view>
+    <view v-if="relationHint" class="ref-sub-table__hint">{{ relationHint }}</view>
     <view v-if="rows.length === 0" class="ref-sub-table__empty">暂无明细，点击下方添加</view>
     <scroll-view v-else scroll-x class="ref-sub-table__scroll">
       <view class="ref-sub-table__table">
@@ -20,7 +21,8 @@
       </view>
     </scroll-view>
     <ActionBar>
-      <uni-button size="mini" type="primary" :disabled="!canAdd" @click="pickAdd">添加行</uni-button>
+      <uni-button size="mini" type="primary" :disabled="!canAdd" @click="pickAdd">选择已有</uni-button>
+      <uni-button size="mini" :disabled="!refModelId" @click="createNew">新建并关联</uni-button>
     </ActionBar>
   </view>
 </template>
@@ -28,9 +30,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import ActionBar from '@/ui/ActionBar.vue'
-import { getRecord } from '@/api/records'
 import { listFieldsByModel, type ModuleField } from '@/api/meta'
 import { configFromMeta } from '@/utils/fieldTypes'
+import { buildRowCellsMap, loadSubRowsByRelation } from '@/utils/refPicker'
 
 type Option = { value: number | string; text: string }
 type Col = { code: string; label: string }
@@ -39,6 +41,8 @@ type Row = { id: number; cells: Record<string, string> }
 const props = defineProps<{
   field: ModuleField
   appId: number
+  parentRecordId?: number
+  parentModelId?: number
   options: Option[]
   modelValue: unknown
 }>()
@@ -49,6 +53,16 @@ const label = computed(() => props.field.relationModuleLabel || props.field.fiel
 const refModelId = computed(() => Number(props.field.refModelId) || 0)
 const columns = ref<Col[]>([])
 const rowMap = ref<Record<number, Row>>({})
+const relationHint = ref('')
+const relationFkField = ref('')
+const loadingRelation = ref(false)
+
+const useRelationQuery = computed(
+  () =>
+    Number(props.parentRecordId) > 0 &&
+    Number(props.parentModelId) > 0 &&
+    refModelId.value > 0
+)
 
 const selectedIds = computed(() => {
   const raw = props.modelValue
@@ -94,6 +108,31 @@ function removeRow(id: number) {
 function openRecord(id: number) {
   if (!id) return
   uni.navigateTo({ url: `/pages/system/records/detail?recordId=${id}` })
+}
+
+function createNew() {
+  if (!refModelId.value || !props.appId) {
+    uni.showToast({ title: '未配置关联模型', icon: 'none' })
+    return
+  }
+  let url = `/pages/system/records/form?appId=${props.appId}&modelId=${refModelId.value}&embed=1`
+  const pid = Number(props.parentRecordId)
+  if (pid > 0 && relationFkField.value) {
+    url += `&linkParentId=${pid}&linkFkField=${encodeURIComponent(relationFkField.value)}`
+  }
+  uni.navigateTo({
+    url,
+    events: {
+      recordCreated: (payload: { recordId?: number }) => {
+        const id = Number(payload?.recordId)
+        if (!id) return
+        if (!selectedIds.value.includes(id)) {
+          emitIds([...selectedIds.value, id])
+        }
+        if (useRelationQuery.value) syncDisplay()
+      }
+    }
+  })
 }
 
 function pickAdd() {
@@ -146,34 +185,33 @@ async function loadColumns() {
 }
 
 async function refreshRows(ids: number[]) {
-  const next: Record<number, Row> = {}
-  for (const id of ids) {
-    const cached = rowMap.value[id]
-    if (cached) {
-      next[id] = cached
-      continue
-    }
-    const opt = props.options.find((o) => Number(o.value) === id)
-    let cells: Record<string, string> = { _title: opt?.text || `#${id}` }
-    try {
-      const d = await getRecord(id)
-      const data = d.data?.data || {}
-      const cols = columns.value
-      cells = {}
-      for (const col of cols) {
-        if (col.code === '_title') {
-          cells._title = opt?.text || String(data[props.field.refDisplayField || ''] ?? `#${id}`)
-        } else {
-          const v = data[col.code]
-          cells[col.code] = v == null ? '-' : typeof v === 'object' ? JSON.stringify(v) : String(v)
-        }
-      }
-    } catch {
-      cells = { _title: opt?.text || `#${id}` }
-    }
-    next[id] = { id, cells }
+  if (!ids.length) {
+    rowMap.value = {}
+    return
   }
-  rowMap.value = next
+  if (!refModelId.value || !props.appId) {
+    rowMap.value = Object.fromEntries(
+      ids.map((id) => {
+        const opt = props.options.find((o) => Number(o.value) === id)
+        return [id, { id, cells: { _title: opt?.text || `#${id}` } }]
+      })
+    ) as Record<number, Row>
+    return
+  }
+  try {
+    rowMap.value = await buildRowCellsMap(
+      props.appId,
+      refModelId.value,
+      ids,
+      columns.value,
+      props.field.refDisplayField,
+      props.options
+    )
+  } catch {
+    rowMap.value = Object.fromEntries(
+      ids.map((id) => [id, { id, cells: { _title: `#${id}` } }])
+    ) as Record<number, Row>
+  }
 }
 
 watch(
@@ -184,16 +222,71 @@ watch(
   { immediate: true }
 )
 
+async function loadFromRelation() {
+  if (!useRelationQuery.value || !columns.value.length) {
+    relationHint.value = Number(props.parentRecordId) > 0 ? '' : '保存父记录后可按关系加载子表'
+    return false
+  }
+  loadingRelation.value = true
+  relationHint.value = ''
+  try {
+    const r = await loadSubRowsByRelation({
+      field: props.field,
+      appId: props.appId,
+      parentModelId: Number(props.parentModelId),
+      parentRecordId: Number(props.parentRecordId),
+      columns: columns.value,
+      options: props.options
+    })
+    relationFkField.value = r.fkField || ''
+    if (r.relationId && r.relType !== 'n-n') {
+      rowMap.value = r.rowMap
+      const ids = r.ids || []
+      const cur = selectedIds.value.join(',')
+      const next = ids.join(',')
+      if (cur !== next) emitIds(ids)
+      relationHint.value = `已按关系 #${r.relationId} 加载 ${ids.length} 条`
+      return true
+    }
+    if (r.relType === 'n-n') {
+      relationHint.value = 'n-n 关系请使用父字段中的关联 ID 列表'
+    }
+  } catch (e: any) {
+    relationHint.value = e?.message || '按关系加载失败'
+  } finally {
+    loadingRelation.value = false
+  }
+  return false
+}
+
+async function syncDisplay() {
+  if (loadingRelation.value) return
+  if (useRelationQuery.value) {
+    const ok = await loadFromRelation()
+    if (ok) return
+  }
+  await refreshRows(selectedIds.value)
+}
+
 watch(
-  () => [selectedIds.value.join(','), props.options.length, columns.value.map((c) => c.code).join(',')],
-  () => {
-    refreshRows(selectedIds.value)
-  },
+  () => [
+    props.parentRecordId,
+    props.parentModelId,
+    selectedIds.value.join(','),
+    props.options.length,
+    columns.value.map((c) => c.code).join(',')
+  ],
+  syncDisplay,
   { immediate: true }
 )
 </script>
 
 <style scoped>
+.ref-sub-table__hint {
+  color: #0369a1;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
 .ref-sub-table__empty {
   color: var(--u-text-muted, #888);
   font-size: 13px;

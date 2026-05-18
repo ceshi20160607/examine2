@@ -8,12 +8,31 @@
 - **前缀**：`/v1/open/**`
 - **版本**：`v1` 作为路径的一段；兼容策略（弃用窗口、是否并行 v2）以后续发布说明为准
 
-### 2) 鉴权（AK/SK）
+### 2) 鉴权（AK/SK 或 HMAC 签名）
 
-每次请求必须携带：
+**方式 A — 签名（推荐，不传 SK）**
 
-- `X-Access-Key`: 应用的 AK
-- `X-Secret`: 应用的 SK（当前实现为“请求头传 SK”，后续可升级为签名模式）
+| 头 | 说明 |
+|---|---|
+| `X-Access-Key` | AK |
+| `X-Timestamp` | Unix 秒或毫秒时间戳（与服务器偏差 ≤ 300s） |
+| `X-Signature` | `Base64(HMAC-SHA256(secret, canonical))` |
+| `X-Signature-Version` | 可选，固定 `v1` |
+
+`canonical` 拼接（UTF-8，换行 `\n`）：
+
+```
+HTTP_METHOD + "\n" + pathWithQuery + "\n" + timestamp + "\n" + hex(SHA256(body))
+```
+
+- `pathWithQuery` = `requestURI` + `?queryString`（无 query 则仅 URI）
+- `body` 为空时 SHA256 取空字节数组
+
+凭证须在创建/轮换 SK 后写入 `sign_secret_enc`；旧凭证无该字段时需 **轮换 SK** 后方可走签名模式。
+
+**方式 B — 明文 SK（兼容）**
+
+- `X-Access-Key` + `X-Secret`，或 `Authorization: Basic base64(accessKey:secret)`
 
 鉴权失败返回：
 - HTTP 401 + 业务码（`ApiResult.code`）非 0
@@ -63,7 +82,27 @@
 - 404：资源不存在
 - 409：冲突（例如：一键办理存在多个可办待办；或资源状态不允许）
 
-### 7) Flow OpenAPI（当前已提供的能力）
+### 7) 业务记录（系统态与开放态）
+
+**系统态** `/v1/system/records/**`：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/v1/system/records` | 创建 |
+| GET | `/v1/system/records/{recordId}` | 详情 |
+| POST | `/v1/system/records/{recordId}/update` | 更新 |
+| DELETE | `/v1/system/records/{recordId}` | 软删 |
+| POST | `/v1/system/records/query` | DSL 分页查询 |
+| POST | `/v1/system/records/query-by-relation` | 按关系查子记录 |
+| GET | `/v1/system/records/{recordId}/history` | 变更历史 |
+
+**开放态** `/v1/open/records/**`（鉴权见 §2–§4）：与系统态能力对齐（create/detail/update/delete/query/query-by-relation/history）；写入类接口支持 `Idempotency-Key`。
+
+`POST .../query` 与 `query-by-relation` 内 `query` 均支持可选 `includeFieldCodes`：在 `list[]` 每条记录上附带 `data`（field_code → value_text），避免 N+1 调 detail。
+
+关联下拉、子表行展示（Web `refPicker.js` / 移动端 `refPicker.ts`）通过 `filters: [{ field:'id', op:'in', values:[...] }]` + `includeFieldCodes` 批量拉取。
+
+### 8) Flow OpenAPI（当前已提供的能力）
 
 flow 的 OpenAPI 入口位于：
 - `/v1/open/flow/**`

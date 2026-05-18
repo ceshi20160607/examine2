@@ -121,3 +121,31 @@ export function deleteFields(ids: number[]): Promise<ApiResult<void>> {
   return httpPost<void>('/v1/system/module/meta/fields/delete', { ids })
 }
 
+export type ModuleRelation = {
+  id: number
+  appId?: number
+  srcModelId?: number
+  dstModelId?: number
+  relType?: string
+  configJson?: string | null
+}
+
+export function listRelationsByApp(appId: number): Promise<ApiResult<ModuleRelation[]>> {
+  return httpGet<ModuleRelation[]>(`/v1/system/module/meta/apps/${appId}/relations`)
+}
+
+export function upsertRelation(cmd: {
+  id?: number | null
+  appId: number
+  srcModelId: number
+  dstModelId: number
+  relType: string
+  configJson?: string | null
+}): Promise<ApiResult<ModuleRelation>> {
+  return httpPost<ModuleRelation>('/v1/system/module/meta/relations/upsert', cmd)
+}
+
+export function deleteRelations(ids: number[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/meta/relations/delete', { ids })
+}
+

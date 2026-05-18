@@ -248,7 +248,7 @@ export function buildExportTplCsvUrl(tplId: string | number, limit = 200): strin
 }
 
 // ---- RBAC ----
-export type ModuleRbacRoleRow = { id: number; roleCode?: string; roleName?: string; status?: number }
+export type ModuleRbacRoleRow = { id: number; roleCode?: string; roleName?: string; status?: number; dataScope?: number }
 export type ModuleRbacMemberRow = { id: number; platId?: number; roleId?: number; status?: number }
 export type ModuleRbacMenuRow = {
   id: number
@@ -265,17 +265,30 @@ export function listRbacRoles(appId: number): Promise<ApiResult<ModuleRbacRoleRo
   return httpGet<ModuleRbacRoleRow[]>(`/v1/system/module/rbac/apps/${appId}/roles`)
 }
 
-export function upsertRbacRole(appId: number, cmd: { id?: number | null; roleCode: string; roleName: string; status?: number }): Promise<ApiResult<any>> {
+export function upsertRbacRole(
+  appId: number,
+  cmd: { id?: number | null; roleCode: string; roleName: string; status?: number; dataScope?: number }
+): Promise<ApiResult<any>> {
   return httpPost(`/v1/system/module/rbac/apps/${appId}/roles/upsert`, {
     id: cmd.id ?? null,
     roleCode: cmd.roleCode,
     roleName: cmd.roleName,
-    status: cmd.status ?? 1
+    status: cmd.status ?? 1,
+    dataScope: cmd.dataScope ?? 1
   })
+}
+
+export function searchRbacAccounts(keyword: string): Promise<ApiResult<Array<{ platId: number; username?: string; text: string }>>> {
+  return httpGet(`/v1/system/module/rbac/account-search?keyword=${encodeURIComponent(keyword)}`)
 }
 
 export function listRbacMenus(appId: number): Promise<ApiResult<ModuleRbacMenuRow[]>> {
   return httpGet<ModuleRbacMenuRow[]>(`/v1/system/module/rbac/apps/${appId}/menus`)
+}
+
+/** 运行时：当前用户可见菜单（已按角色过滤） */
+export function listRuntimeMenus(appId: number): Promise<ApiResult<ModuleRbacMenuRow[]>> {
+  return httpGet<ModuleRbacMenuRow[]>(`/v1/system/module/rbac/apps/${appId}/runtime-menus`)
 }
 
 export function upsertRbacMenu(
@@ -322,6 +335,14 @@ export function listRoleMenuPerms(roleId: number): Promise<ApiResult<any[]>> {
 
 export function setRoleMenuPerms(cmd: { roleId: number; menuIds: number[]; permLevel: number }): Promise<ApiResult<any>> {
   return httpPost('/v1/system/module/rbac/roles/menu-perms/set', cmd)
+}
+
+export function listRolePagePerms(roleId: number): Promise<ApiResult<any[]>> {
+  return httpGet<any[]>(`/v1/system/module/rbac/roles/${roleId}/page-perms`)
+}
+
+export function setRolePagePerms(cmd: { roleId: number; pageIds: number[]; permLevel: number }): Promise<ApiResult<any>> {
+  return httpPost('/v1/system/module/rbac/roles/page-perms/set', cmd)
 }
 
 export function permPreview(uri: string): Promise<ApiResult<Record<string, any>>> {

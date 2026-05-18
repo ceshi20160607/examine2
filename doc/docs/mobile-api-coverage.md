@@ -88,7 +88,8 @@
 
 ## v1 已知缺口（可后续版本）
 
-- 记录变更历史查看（需系统态 history API + 手机页）  
-- 平台对外应用 ` /v1/platform/apps` 管理  
-- 图形化流程设计器（当前以列表编辑 + graphJson 为主）  
-- 更完整字段类型与表单校验  
+- 图形化流程设计器（Web 已提供 `FlowGraphDesignerView`；手机端仍以 graphJson 列表编辑为主）  
+- typed-value EAV 列与索引（当前 value_text + 等值索引）  
+- 列表筛选模板管理页（Web 可后续补 `filter_tpls` 路由）  
+
+已实现（勿再标为缺口）：记录 history（`records/history`）、平台开放应用（`platform/open_apps`）、导出任务发起（`export/tpls`）。

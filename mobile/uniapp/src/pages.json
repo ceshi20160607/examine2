@@ -140,6 +140,48 @@
 			}
 		},
 		{
+			"path": "pages/system/module/rbac/role_pages",
+			"style": {
+				"navigationBarTitleText": "Role Pages"
+			}
+		},
+		{
+			"path": "pages/system/module/flow/bindings",
+			"style": {
+				"navigationBarTitleText": "Flow Bindings"
+			}
+		},
+		{
+			"path": "pages/system/module/meta/relations",
+			"style": {
+				"navigationBarTitleText": "Model Relations"
+			}
+		},
+		{
+			"path": "pages/system/module/pages/index",
+			"style": {
+				"navigationBarTitleText": "Pages"
+			}
+		},
+		{
+			"path": "pages/system/module/pages/edit",
+			"style": {
+				"navigationBarTitleText": "Page Edit"
+			}
+		},
+		{
+			"path": "pages/system/runtime/entry",
+			"style": {
+				"navigationBarTitleText": "Open Page"
+			}
+		},
+		{
+			"path": "pages/system/runtime/menus",
+			"style": {
+				"navigationBarTitleText": "App Menus"
+			}
+		},
+		{
 			"path": "pages/system/module/export/jobs",
 			"style": {
 				"navigationBarTitleText": "Export Jobs"
