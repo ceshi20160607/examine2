@@ -56,6 +56,12 @@
 			}
 		},
 		{
+			"path": "pages/platform/tenant-select",
+			"style": {
+				"navigationBarTitleText": "选择租户"
+			}
+		},
+		{
 			"path": "pages/platform/open_apps",
 			"style": {
 				"navigationBarTitleText": "OpenAPI 应用"

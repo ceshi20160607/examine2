@@ -41,7 +41,7 @@ public class SystemModuleRbacService {
     ) {}
     public record UpsertRoleMenuPermCmd(Long id, Long roleId, Long menuId, Integer status) {}
     public record SetRoleMenuPermCmd(Long roleId, List<Long> menuIds, Integer permLevel) {}
-    public record AssignMemberRoleCmd(Long appId, Long memberPlatId, Long roleId) {}
+    public record AssignMemberRoleCmd(Long appId, Long memberPlatId, Long roleId, Long deptId) {}
 
     @Autowired
     private IModuleRoleService moduleRoleService;
@@ -58,12 +58,16 @@ public class SystemModuleRbacService {
     @Autowired
     private IPlatAccountService platAccountService;
 
-    /** 人员字段选择器：platId + 展示名 */
-    public List<Map<String, Object>> listMemberPickerOptions(Long appId, Long operatorPlatId) {
+    /** 人员字段选择器：platId + 展示名；scope=app 时可按 deptId 过滤 */
+    public List<Map<String, Object>> listMemberPickerOptions(Long appId, Long operatorPlatId, String scope, Long deptId) {
         List<ModuleMember> members = listMembers(appId, operatorPlatId);
         List<Map<String, Object>> out = new ArrayList<>();
+        boolean filterByDept = "app".equalsIgnoreCase(scope != null ? scope.trim() : "") && deptId != null && deptId > 0L;
         for (ModuleMember m : members) {
             if (m.getPlatId() == null || m.getStatus() == null || m.getStatus() != 1) {
+                continue;
+            }
+            if (filterByDept && !Objects.equals(m.getDeptId(), deptId)) {
                 continue;
             }
             PlatAccount acc = platAccountService.getById(m.getPlatId());
@@ -77,6 +81,7 @@ public class SystemModuleRbacService {
             }
             row.put("text", label);
             row.put("roleId", m.getRoleId());
+            row.put("deptId", m.getDeptId());
             out.add(row);
         }
         return out;
@@ -376,11 +381,13 @@ public class SystemModuleRbacService {
             member.setPlatId(body.memberPlatId());
             member.setStatus(1);
             member.setRoleId(role.getId());
+            member.setDeptId(body.deptId());
             member.setCreateUserId(operatorPlatId);
             member.setUpdateUserId(operatorPlatId);
             moduleMemberService.save(member);
         } else {
             member.setRoleId(role.getId());
+            member.setDeptId(body.deptId());
             member.setStatus(1);
             member.setUpdateUserId(operatorPlatId);
             moduleMemberService.updateById(member);

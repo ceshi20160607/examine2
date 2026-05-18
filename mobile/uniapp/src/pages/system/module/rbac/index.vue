@@ -33,6 +33,9 @@
         <uni-forms-item label="roleId">
           <uni-easyinput v-model="memberForm.roleId" placeholder="roleId" />
         </uni-forms-item>
+        <uni-forms-item label="deptId（可选）">
+          <uni-easyinput v-model="memberForm.deptId" type="number" placeholder="un_module_dept.id" />
+        </uni-forms-item>
       </uni-forms>
       <ActionBar>
         <uni-button type="primary" :disabled="savingMember" @click="assignMemberRole">分配</uni-button>
@@ -57,7 +60,7 @@
             v-for="m in members"
             :key="m.id"
             :title="`platId=${m.platId}`"
-            :note="`roleId=${m.roleId || ''} status=${m.status || ''}`"
+            :note="`roleId=${m.roleId || ''} deptId=${(m as any).deptId || ''} status=${m.status || ''}`"
             clickable
             @click="quickFillMember(m)"
           />
@@ -170,7 +173,11 @@ const savingRole = ref(false)
 const roleForm = reactive<{ roleCode: string; roleName: string }>({ roleCode: '', roleName: '' })
 
 const savingMember = ref(false)
-const memberForm = reactive<{ memberPlatId: string; roleId: string }>({ memberPlatId: '', roleId: '' })
+const memberForm = reactive<{ memberPlatId: string; roleId: string; deptId: string }>({
+  memberPlatId: '',
+  roleId: '',
+  deptId: ''
+})
 
 const savingMenu = ref(false)
 const menuForm = reactive<{ parentId: string; menuName: string; permKey: string; apiPattern: string; pageId: string }>({
@@ -234,6 +241,7 @@ function quickFillMember(m: MemberRow) {
   if (!m?.platId) return
   memberForm.memberPlatId = String(m.platId)
   if (m.roleId) memberForm.roleId = String(m.roleId)
+  if ((m as any).deptId) memberForm.deptId = String((m as any).deptId)
 }
 
 async function upsertRole() {
@@ -263,10 +271,19 @@ async function assignMemberRole() {
   }
   savingMember.value = true
   try {
-    await assignRbacMemberRole({ appId: appId.value, memberPlatId, roleId })
+    const deptRaw = memberForm.deptId.trim()
+    const deptId = deptRaw ? Number(deptRaw) : null
+    await assignRbacMemberRole({
+      appId: appId.value,
+      memberPlatId,
+      roleId,
+      deptId: deptId && !Number.isNaN(deptId) ? deptId : null
+    })
     uni.showToast({ title: '分配成功', icon: 'success' })
     memberForm.memberPlatId = ''
     memberForm.roleId = ''
+    memberForm.deptId = ''
+    await loadMembers()
   } finally {
     savingMember.value = false
   }

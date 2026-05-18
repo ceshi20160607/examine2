@@ -420,6 +420,7 @@ CREATE TABLE un_module_member (
   app_id         BIGINT       NOT NULL COMMENT 'un_module_app.id',
   plat_id        BIGINT       NOT NULL COMMENT '平台账号 platId',
   role_id        BIGINT       NULL COMMENT '角色ID（un_module_role.id，可为空）',
+  dept_id        BIGINT       NULL COMMENT '部门ID（un_module_dept.id，可为空）',
   status         TINYINT      NOT NULL DEFAULT 1 COMMENT '状态：1=正常 2=禁用/移除',
   create_user_id BIGINT       NULL COMMENT '创建人 platId',
   update_user_id BIGINT       NULL COMMENT '更新人 platId',

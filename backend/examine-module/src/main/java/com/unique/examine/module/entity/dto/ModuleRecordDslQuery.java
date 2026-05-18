@@ -25,5 +25,10 @@ public class ModuleRecordDslQuery {
     private String sortDir = "desc";
 
     private List<ModuleRecordDslFilter> filters = new ArrayList<>();
+
+    /**
+     * 非系统所有者查询时由后端注入：仅可见本人创建的记录（create_user_id）。
+     */
+    private Long scopeCreateUserId;
 }
 

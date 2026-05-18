@@ -307,7 +307,12 @@ export function listRbacMembers(appId: number): Promise<ApiResult<ModuleRbacMemb
   return httpGet<ModuleRbacMemberRow[]>(`/v1/system/module/rbac/apps/${appId}/members`)
 }
 
-export function assignRbacMemberRole(cmd: { appId: number; memberPlatId: number; roleId: number }): Promise<ApiResult<any>> {
+export function assignRbacMemberRole(cmd: {
+  appId: number
+  memberPlatId: number
+  roleId: number
+  deptId?: number | null
+}): Promise<ApiResult<any>> {
   return httpPost('/v1/system/module/rbac/members/assign-role', cmd)
 }
 

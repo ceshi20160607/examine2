@@ -13,6 +13,9 @@
         and r.app_id = #{q.appId}
         and r.model_id = #{q.modelId}
         and r.status = 1
+        <if test="q.scopeCreateUserId != null">
+            and r.create_user_id = #{q.scopeCreateUserId}
+        </if>
         <if test="q.filters != null and q.filters.size() &gt; 0">
             <foreach collection="q.filters" item="f">
                 <choose>

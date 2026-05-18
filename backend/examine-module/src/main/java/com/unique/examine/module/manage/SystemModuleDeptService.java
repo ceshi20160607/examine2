@@ -3,8 +3,11 @@ package com.unique.examine.module.manage;
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.module.entity.po.ModuleDept;
+import com.unique.examine.module.entity.po.ModuleMember;
 import com.unique.examine.module.service.IModuleDeptService;
+import com.unique.examine.module.service.IModuleMemberService;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,8 @@ public class SystemModuleDeptService {
 
     @Autowired
     private IModuleDeptService moduleDeptService;
+    @Autowired
+    private IModuleMemberService moduleMemberService;
 
     public List<ModuleDept> listDepts(Long appId, Long operatorPlatId) {
         requireOperator(operatorPlatId);
@@ -45,18 +50,39 @@ public class SystemModuleDeptService {
     }
 
     public List<Map<String, Object>> listPickerOptions(Long appId, Long operatorPlatId) {
+        List<ModuleDept> depts = listDepts(appId, operatorPlatId);
+        Map<Long, ModuleDept> byId = new HashMap<>();
+        for (ModuleDept d : depts) {
+            if (d.getId() != null) {
+                byId.put(d.getId(), d);
+            }
+        }
         List<Map<String, Object>> out = new ArrayList<>();
-        for (ModuleDept d : listDepts(appId, operatorPlatId)) {
+        for (ModuleDept d : depts) {
             if (d.getId() == null || d.getStatus() == null || d.getStatus() != 1) {
                 continue;
             }
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("value", d.getId());
-            row.put("text", d.getDeptName() != null ? d.getDeptName() : d.getDeptCode());
+            row.put("text", buildDeptLabel(d, byId));
             row.put("parentId", d.getParentId());
             out.add(row);
         }
         return out;
+    }
+
+    private static String buildDeptLabel(ModuleDept d, Map<Long, ModuleDept> byId) {
+        String name = d.getDeptName() != null ? d.getDeptName() : d.getDeptCode();
+        if (name == null) {
+            name = "部门";
+        }
+        Long pid = d.getParentId();
+        if (pid == null || pid <= 0L || !byId.containsKey(pid)) {
+            return name;
+        }
+        ModuleDept parent = byId.get(pid);
+        String pn = parent != null && parent.getDeptName() != null ? parent.getDeptName() : parent != null ? parent.getDeptCode() : null;
+        return pn != null && !pn.isBlank() ? pn + " / " + name : name;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -140,6 +166,20 @@ public class SystemModuleDeptService {
             }
             if (!Objects.equals(d.getSystemId(), systemId) || !Objects.equals(d.getTenantId(), tenantId)) {
                 throw new BusinessException(403, "无权删除部门");
+            }
+            long children = moduleDeptService.lambdaQuery()
+                    .eq(ModuleDept::getAppId, d.getAppId())
+                    .eq(ModuleDept::getParentId, id)
+                    .count();
+            if (children > 0) {
+                throw new BusinessException(400, "请先删除子部门: " + (d.getDeptName() != null ? d.getDeptName() : id));
+            }
+            long members = moduleMemberService.lambdaQuery()
+                    .eq(ModuleMember::getAppId, d.getAppId())
+                    .eq(ModuleMember::getDeptId, id)
+                    .count();
+            if (members > 0) {
+                throw new BusinessException(400, "部门下仍有成员，无法删除");
             }
             moduleDeptService.removeById(id);
         }

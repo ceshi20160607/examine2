@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -51,12 +52,15 @@ public class SystemModuleRbacController {
 
     @Operation(summary = "人员字段选择项（PERSON）")
     @GetMapping("/apps/{appId}/picker/members")
-    public ApiResult<List<Map<String, Object>>> memberPicker(@PathVariable("appId") Long appId) {
+    public ApiResult<List<Map<String, Object>>> memberPicker(
+            @PathVariable("appId") Long appId,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestParam(value = "deptId", required = false) Long deptId) {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(systemModuleRbacService.listMemberPickerOptions(appId, platId));
+        return ApiResult.ok(systemModuleRbacService.listMemberPickerOptions(appId, platId, scope, deptId));
     }
 
-    @Operation(summary = "部门字段选择项（DEPARTMENT，当前映射为角色）")
+    @Operation(summary = "部门字段选择项（DEPARTMENT）")
     @GetMapping("/apps/{appId}/picker/departments")
     public ApiResult<List<Map<String, Object>>> departmentPicker(@PathVariable("appId") Long appId) {
         Long platId = AuthContextHolder.getPlatId();
@@ -109,14 +113,14 @@ public class SystemModuleRbacController {
         return ApiResult.ok();
     }
 
-    public record AssignMemberRoleBody(Long appId, Long memberPlatId, Long roleId) {}
+    public record AssignMemberRoleBody(Long appId, Long memberPlatId, Long roleId, Long deptId) {}
 
-    @Operation(summary = "给成员分配角色（按 appId + memberPlatId；覆盖写 roleId）")
+    @Operation(summary = "给成员分配角色/部门（按 appId + memberPlatId）")
     @PostMapping("/members/assign-role")
     public ApiResult<ModuleMember> assignMemberRole(@RequestBody AssignMemberRoleBody body) {
         Long operatorPlatId = AuthContextHolder.getPlatId();
         return ApiResult.ok(systemModuleRbacService.assignMemberRole(operatorPlatId, new SystemModuleRbacService.AssignMemberRoleCmd(
-                body.appId(), body.memberPlatId(), body.roleId()
+                body.appId(), body.memberPlatId(), body.roleId(), body.deptId()
         )));
     }
 }

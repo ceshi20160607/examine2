@@ -7,6 +7,10 @@ export function getEnv(): AppEnv {
 }
 
 export function getBaseURL(): string {
+  const custom = uni.getStorageSync('apiBaseUrl')
+  if (typeof custom === 'string' && custom.trim().startsWith('http')) {
+    return custom.trim().replace(/\/$/, '')
+  }
   const env = getEnv()
   if (env === 'dev') return 'http://127.0.0.1:9999'
   if (env === 'test') return 'https://test.example.com'

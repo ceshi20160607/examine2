@@ -41,11 +41,7 @@ import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { useSessionStore } from '@/stores/session'
 
-type PlatSystem = {
-  id: number
-  name?: string
-  ownerPlatAccountId?: number
-}
+import type { PlatSystem } from '@/api/platform'
 
 const systems = ref<PlatSystem[]>([])
 const loading = ref(false)
@@ -93,6 +89,12 @@ async function enterSystem(s: PlatSystem) {
     const r = await apiEnterSystem(s.id)
     if (r?.data) {
       session.setPayload(r.data as any)
+    }
+    if (s.multiTenantEnabled === 1) {
+      uni.navigateTo({
+        url: `/pages/platform/tenant-select?systemId=${s.id}&systemName=${encodeURIComponent(s.name || '')}`
+      })
+      return
     }
     uni.showToast({ title: `已进入系统: ${s.name || s.id}`, icon: 'success' })
     uni.switchTab({ url: '/pages/tabs/workbench' })

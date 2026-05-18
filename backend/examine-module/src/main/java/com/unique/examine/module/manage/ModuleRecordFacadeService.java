@@ -19,6 +19,12 @@ import com.unique.examine.module.service.IModuleRecordDataService;
 import com.unique.examine.module.service.IModuleFieldService;
 import com.unique.examine.module.service.IModuleRecordHistoryService;
 import com.unique.examine.module.service.IModuleRecordService;
+import com.unique.examine.module.entity.po.ModuleDept;
+import com.unique.examine.module.entity.po.ModuleMember;
+import com.unique.examine.module.service.IModuleDeptService;
+import com.unique.examine.module.service.IModuleMemberService;
+import com.unique.examine.plat.entity.po.PlatSystem;
+import com.unique.examine.plat.service.IPlatSystemService;
 import com.unique.examine.upload.entity.po.UploadFile;
 import com.unique.examine.upload.service.IUploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +64,12 @@ public class ModuleRecordFacadeService {
     private ModuleFlowTriggerService moduleFlowTriggerService;
     @Autowired
     private ModuleSerialNoService moduleSerialNoService;
+    @Autowired
+    private IPlatSystemService platSystemService;
+    @Autowired
+    private IModuleMemberService moduleMemberService;
+    @Autowired
+    private IModuleDeptService moduleDeptService;
 
     @Transactional(rollbackFor = Exception.class)
     public ModuleRecord createWithData(Long appId, Long modelId, JsonNode data) {
@@ -103,6 +115,7 @@ public class ModuleRecordFacadeService {
                 ModuleField f = requireField(systemId, tenantId, appId, modelId, fieldCode);
                 validateFileFieldValue(systemId, tenantId, appId, modelId, f, v);
                 validateRefFieldValue(systemId, tenantId, f, v);
+                validateTypedFieldValue(systemId, tenantId, appId, f, v);
                 String text = valueToText(v);
                 if (text != null && text.length() > 65535) {
                     throw new BusinessException("字段 " + fieldCode + " 值过长");
@@ -438,6 +451,7 @@ public class ModuleRecordFacadeService {
                 || r.getTenantId() != tenantId) {
             throw new BusinessException(403, "无权限访问该记录");
         }
+        requireRecordDataAccess(r, platId, systemId);
 
         List<ModuleRecordData> rows = moduleRecordDataService.lambdaQuery()
                 .eq(ModuleRecordData::getRecordId, recordId)
@@ -655,6 +669,7 @@ public class ModuleRecordFacadeService {
         if (r.getStatus() != null && r.getStatus() != 1) {
             throw new BusinessException(400, "记录已删除/不可更新");
         }
+        requireRecordDataAccess(r, platId, systemId);
 
         moduleRecordDataService.lambdaUpdate()
                 .eq(ModuleRecordData::getRecordId, recordId)
@@ -674,6 +689,7 @@ public class ModuleRecordFacadeService {
                 ModuleField f = requireField(systemId, tenantId, r.getAppId(), r.getModelId(), fieldCode);
                 validateFileFieldValue(systemId, tenantId, r.getAppId(), r.getModelId(), f, v);
                 validateRefFieldValue(systemId, tenantId, f, v);
+                validateTypedFieldValue(systemId, tenantId, r.getAppId(), f, v);
                 String text = valueToText(v);
                 if (text != null && text.length() > 65535) {
                     throw new BusinessException("字段 " + fieldCode + " 值过长");
@@ -728,6 +744,7 @@ public class ModuleRecordFacadeService {
         if (r.getStatus() != null && r.getStatus() == 2) {
             return;
         }
+        requireRecordDataAccess(r, platId, systemId);
 
         // snapshot before delete
         String snapshot = snapshotFromDb(recordId);
@@ -822,7 +839,158 @@ public class ModuleRecordFacadeService {
                 normalizeAndValidateFilter(body.getModelId(), body.getAppId(), systemId, tenantId, f);
             }
         }
+        if (!isSystemOwner(systemId, platId)) {
+            body.setScopeCreateUserId(platId);
+        }
         return body;
+    }
+
+    private boolean isSystemOwner(long systemId, Long platId) {
+        if (platId == null || systemId <= 0L) {
+            return false;
+        }
+        PlatSystem s = platSystemService.getById(systemId);
+        return s != null && platId.equals(s.getOwnerPlatAccountId());
+    }
+
+    private void requireRecordDataAccess(ModuleRecord r, Long platId, long systemId) {
+        if (isSystemOwner(systemId, platId)) {
+            return;
+        }
+        if (r.getCreateUserId() == null || !r.getCreateUserId().equals(platId)) {
+            throw new BusinessException(403, "无权限访问该记录（仅创建人或系统所有者可操作）");
+        }
+    }
+
+    private void validateTypedFieldValue(long systemId, long tenantId, Long appId, ModuleField field, JsonNode value) {
+        if (field == null || value == null || value.isNull()) {
+            return;
+        }
+        ModuleFieldType type = ModuleFieldConfigSupport.typeOf(field);
+        if (type == null) {
+            return;
+        }
+        if (type == ModuleFieldType.PERSON) {
+            validatePersonFieldValue(systemId, tenantId, appId, field, value);
+        } else if (type == ModuleFieldType.DEPARTMENT) {
+            validateDepartmentFieldValue(systemId, tenantId, appId, field, value);
+        } else if (type == ModuleFieldType.TEXT) {
+            validateTextFieldValue(field, value);
+        }
+    }
+
+    private void validateTextFieldValue(ModuleField field, JsonNode value) {
+        String text = value.isTextual() ? value.asText() : value.asText("");
+        if (text.isBlank()) {
+            return;
+        }
+        if (field.getMaxLength() != null && text.length() > field.getMaxLength()) {
+            throw new BusinessException(400, "字段 " + field.getFieldCode() + " 超过最大长度 " + field.getMaxLength());
+        }
+        String vt = field.getValidateType();
+        if (vt == null || vt.isBlank()) {
+            return;
+        }
+        String code = field.getFieldCode();
+        switch (vt.trim().toLowerCase()) {
+            case "email" -> {
+                if (!text.matches("^[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}$")) {
+                    throw new BusinessException(400, "字段 " + code + " 须为合法邮箱");
+                }
+            }
+            case "phone" -> {
+                if (!text.matches("^1\\d{10}$")) {
+                    throw new BusinessException(400, "字段 " + code + " 须为 11 位手机号");
+                }
+            }
+            case "url" -> {
+                if (!text.matches("^https?://.+")) {
+                    throw new BusinessException(400, "字段 " + code + " 须为 http(s) 网址");
+                }
+            }
+            default -> { }
+        }
+    }
+
+    private void validatePersonFieldValue(long systemId, long tenantId, Long appId, ModuleField field, JsonNode value) {
+        for (Long id : collectLongIds(value, field.getFieldCode())) {
+            Long cnt = moduleMemberService.lambdaQuery()
+                    .eq(ModuleMember::getSystemId, systemId)
+                    .eq(ModuleMember::getTenantId, tenantId)
+                    .eq(ModuleMember::getAppId, appId)
+                    .eq(ModuleMember::getPlatId, id)
+                    .eq(ModuleMember::getStatus, 1)
+                    .count();
+            if (cnt == null || cnt == 0L) {
+                throw new BusinessException(400, "人员字段 " + field.getFieldCode() + " 引用了非本应用成员: " + id);
+            }
+        }
+    }
+
+    private void validateDepartmentFieldValue(long systemId, long tenantId, Long appId, ModuleField field, JsonNode value) {
+        for (Long id : collectLongIds(value, field.getFieldCode())) {
+            Long cnt = moduleDeptService.lambdaQuery()
+                    .eq(ModuleDept::getSystemId, systemId)
+                    .eq(ModuleDept::getTenantId, tenantId)
+                    .eq(ModuleDept::getAppId, appId)
+                    .eq(ModuleDept::getId, id)
+                    .eq(ModuleDept::getStatus, 1)
+                    .count();
+            if (cnt == null || cnt == 0L) {
+                throw new BusinessException(400, "部门字段 " + field.getFieldCode() + " 引用了无效部门: " + id);
+            }
+        }
+    }
+
+    private java.util.List<Long> collectLongIds(JsonNode value, String fieldCode) {
+        java.util.ArrayList<Long> ids = new java.util.ArrayList<>();
+        if (value.isNumber()) {
+            long v = value.asLong();
+            if (v > 0) {
+                ids.add(v);
+            }
+        } else if (value.isArray()) {
+            for (JsonNode it : value) {
+                if (it != null && it.isNumber() && it.asLong() > 0) {
+                    ids.add(it.asLong());
+                } else if (it != null && it.isTextual()) {
+                    try {
+                        long v = Long.parseLong(it.asText().trim());
+                        if (v > 0) {
+                            ids.add(v);
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new BusinessException(400, "字段 " + fieldCode + " ID 非法");
+                    }
+                }
+            }
+        } else if (value.isTextual()) {
+            String s = value.asText().trim();
+            if (s.startsWith("[")) {
+                try {
+                    JsonNode arr = objectMapper.readTree(s);
+                    if (arr.isArray()) {
+                        for (JsonNode it : arr) {
+                            if (it.isNumber() && it.asLong() > 0) {
+                                ids.add(it.asLong());
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new BusinessException(400, "字段 " + fieldCode + " 数组非法");
+                }
+            } else if (!s.isEmpty()) {
+                try {
+                    long v = Long.parseLong(s);
+                    if (v > 0) {
+                        ids.add(v);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new BusinessException(400, "字段 " + fieldCode + " ID 非法");
+                }
+            }
+        }
+        return ids;
     }
 
     private void normalizeAndValidateFilter(Long modelId, Long appId, long systemId, long tenantId, ModuleRecordDslFilter f) {

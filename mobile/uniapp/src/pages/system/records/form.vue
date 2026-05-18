@@ -96,7 +96,7 @@
               <uni-data-select
                 v-else-if="isPersonField(f) && !isPersonMulti(f)"
                 v-model="formData[f.fieldCode]"
-                :localdata="memberOptions"
+                :localdata="memberOptionsFor(f)"
                 placeholder="选择人员"
               />
 
@@ -104,7 +104,7 @@
                 v-else-if="isPersonField(f) && isPersonMulti(f)"
                 v-model="formData[f.fieldCode]"
                 multiple
-                :localdata="memberOptions"
+                :localdata="memberOptionsFor(f)"
               />
 
               <uni-data-select
@@ -297,6 +297,7 @@ const formData = reactive<Record<string, any>>({})
 const dictOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
 const refOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
 const memberOptions = ref<Array<{ value: any; text: string }>>([])
+const memberOptionsByCode = reactive<Record<string, Array<{ value: any; text: string }>>>({})
 const departmentOptions = ref<Array<{ value: any; text: string }>>([])
 const dateRangeStart = reactive<Record<string, string>>({})
 const dateRangeEnd = reactive<Record<string, string>>({})
@@ -334,6 +335,11 @@ function isPersonMulti(f: ModuleField) {
 
 function isDepartmentMulti(f: ModuleField) {
   return isDepartmentField(f) && (configFromMeta(f).multi === true || (f.multiFlag ?? 0) === 1)
+}
+
+function memberOptionsFor(f: ModuleField) {
+  const code = f.fieldCode || ''
+  return memberOptionsByCode[code]?.length ? memberOptionsByCode[code] : memberOptions.value
 }
 
 function syncDateRangeFromForm() {
@@ -562,12 +568,23 @@ function normalizeFormDataValues() {
 async function loadPickerOptionsIfNeeded() {
   if (!appId.value) return
   try {
-    const [m, d] = await Promise.all([
-      listMemberPickerOptions(appId.value),
-      listDepartmentPickerOptions(appId.value)
-    ])
-    memberOptions.value = (m.data || []).map((x) => ({ value: x.value, text: x.text }))
+    const d = await listDepartmentPickerOptions(appId.value)
     departmentOptions.value = (d.data || []).map((x) => ({ value: x.value, text: x.text }))
+    const m = await listMemberPickerOptions(appId.value)
+    memberOptions.value = (m.data || []).map((x) => ({ value: x.value, text: x.text }))
+    for (const mf of fields.value || []) {
+      if (!mf?.fieldCode || !isPersonField(mf)) continue
+      const cfg = configFromMeta(mf)
+      const scope = String(cfg.scope || 'system')
+      const deptId = cfg.deptId != null ? Number(cfg.deptId) : undefined
+      const pr =
+        scope === 'app' && deptId
+          ? await listMemberPickerOptions(appId.value, scope, deptId)
+          : scope === 'app'
+            ? await listMemberPickerOptions(appId.value, scope)
+            : await listMemberPickerOptions(appId.value)
+      memberOptionsByCode[mf.fieldCode] = (pr.data || []).map((x) => ({ value: x.value, text: x.text }))
+    }
   } catch {
     memberOptions.value = []
     departmentOptions.value = []

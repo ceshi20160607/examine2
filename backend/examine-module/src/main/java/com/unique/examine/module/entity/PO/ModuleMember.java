@@ -56,6 +56,10 @@ public class ModuleMember implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long roleId;
 
+    @Schema(description = "部门ID（un_module_dept.id，可为空）")
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long deptId;
+
     @Schema(description = "状态：1=正常 2=禁用/移除")
     private Integer status;
 
