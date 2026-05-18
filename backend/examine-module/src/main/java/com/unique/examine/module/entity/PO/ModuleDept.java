@@ -37,6 +37,9 @@ public class ModuleDept implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long parentId;
 
+    @Schema(description = "祖先至本级部门ID路径，逗号分隔有序，如 1,5,23")
+    private String depth;
+
     private String deptCode;
     private String deptName;
     private Integer sortNo;

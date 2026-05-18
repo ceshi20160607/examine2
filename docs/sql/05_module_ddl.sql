@@ -256,6 +256,7 @@ CREATE TABLE un_module_dept (
   tenant_id      BIGINT       NOT NULL DEFAULT 0 COMMENT 'tenantId',
   app_id         BIGINT       NOT NULL COMMENT 'un_module_app.id',
   parent_id      BIGINT       NOT NULL DEFAULT 0 COMMENT '父部门，0=根',
+  depth          VARCHAR(512) NULL COMMENT '祖先至本级部门ID路径，逗号分隔有序，如 1,5,23',
   dept_code      VARCHAR(64)  NOT NULL COMMENT '部门编码（同 app 内唯一）',
   dept_name      VARCHAR(128) NOT NULL COMMENT '部门名称',
   sort_no        INT          NOT NULL DEFAULT 0 COMMENT '排序号',
@@ -267,7 +268,8 @@ CREATE TABLE un_module_dept (
   update_time    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   PRIMARY KEY (id),
   UNIQUE KEY uk_module_dept_code (app_id, dept_code),
-  KEY idx_module_dept_query (app_id, parent_id, status, sort_no)
+  KEY idx_module_dept_query (app_id, parent_id, status, sort_no),
+  KEY idx_module_dept_depth (app_id, depth(128))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='应用部门（DEPARTMENT 字段数据源）';
 
 CREATE TABLE un_module_serial_seq (

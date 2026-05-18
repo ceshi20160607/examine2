@@ -63,12 +63,19 @@ public class SystemModuleRbacService {
         List<ModuleMember> members = listMembers(appId, operatorPlatId);
         List<Map<String, Object>> out = new ArrayList<>();
         boolean filterByDept = "app".equalsIgnoreCase(scope != null ? scope.trim() : "") && deptId != null && deptId > 0L;
+        java.util.Set<Long> allowedDeptIds = null;
+        if (filterByDept) {
+            allowedDeptIds = new java.util.HashSet<>(systemModuleDeptService.listSubtreeDeptIds(appId, deptId, operatorPlatId));
+        }
         for (ModuleMember m : members) {
             if (m.getPlatId() == null || m.getStatus() == null || m.getStatus() != 1) {
                 continue;
             }
-            if (filterByDept && !Objects.equals(m.getDeptId(), deptId)) {
-                continue;
+            if (allowedDeptIds != null) {
+                Long md = m.getDeptId();
+                if (md == null || !allowedDeptIds.contains(md)) {
+                    continue;
+                }
             }
             PlatAccount acc = platAccountService.getById(m.getPlatId());
             Map<String, Object> row = new LinkedHashMap<>();

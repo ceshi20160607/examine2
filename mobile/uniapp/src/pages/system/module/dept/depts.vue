@@ -27,7 +27,7 @@
             v-for="d in rows"
             :key="d.id"
             :title="d.deptName || d.deptCode"
-            :note="`code=${d.deptCode} parent=${d.parentId ?? 0}`"
+            :note="deptNote(d)"
             clickable
             @click="openActions(d)"
           />
@@ -56,6 +56,12 @@ const { loading, error, run, capture, clearError } = usePageRequest()
 const rows = ref<ModuleDept[]>([])
 
 const form = reactive({ deptCode: '', deptName: '', parentId: '0' })
+
+function deptNote(d: ModuleDept) {
+  const parts = [`code=${d.deptCode}`, `parent=${d.parentId ?? 0}`]
+  if (d.depth) parts.push(`depth=${d.depth}`)
+  return parts.join(' · ')
+}
 
 onLoad((opts) => {
   appId.value = Number((opts as any)?.appId || 0) || 0

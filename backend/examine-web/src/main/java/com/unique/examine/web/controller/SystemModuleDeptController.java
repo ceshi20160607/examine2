@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "自建系统态-module部门")
@@ -34,6 +35,14 @@ public class SystemModuleDeptController {
     @GetMapping("/apps/{appId}/picker")
     public ApiResult<List<Map<String, Object>>> picker(@PathVariable Long appId) {
         return ApiResult.ok(systemModuleDeptService.listPickerOptions(appId, AuthContextHolder.getPlatId()));
+    }
+
+    @Operation(summary = "某部门子树 ID 列表（含自身，依赖 depth 路径）")
+    @GetMapping("/apps/{appId}/subtree-ids")
+    public ApiResult<List<Long>> subtreeIds(
+            @PathVariable Long appId,
+            @RequestParam("deptId") Long deptId) {
+        return ApiResult.ok(systemModuleDeptService.listSubtreeDeptIds(appId, deptId, AuthContextHolder.getPlatId()));
     }
 
     public record UpsertDeptBody(

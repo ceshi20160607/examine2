@@ -66,6 +66,7 @@ public class SystemModuleDeptService {
             row.put("value", d.getId());
             row.put("text", buildDeptLabel(d, byId));
             row.put("parentId", d.getParentId());
+            row.put("depth", d.getDepth());
             out.add(row);
         }
         return out;
@@ -76,13 +77,18 @@ public class SystemModuleDeptService {
         if (name == null) {
             name = "部门";
         }
-        Long pid = d.getParentId();
-        if (pid == null || pid <= 0L || !byId.containsKey(pid)) {
-            return name;
+        int level = depthLevel(d.getDepth());
+        if (level > 0) {
+            name = "  ".repeat(Math.min(level, 8)) + name;
         }
-        ModuleDept parent = byId.get(pid);
-        String pn = parent != null && parent.getDeptName() != null ? parent.getDeptName() : parent != null ? parent.getDeptCode() : null;
-        return pn != null && !pn.isBlank() ? pn + " / " + name : name;
+        return name;
+    }
+
+    private static int depthLevel(String depth) {
+        if (depth == null || depth.isBlank()) {
+            return 0;
+        }
+        return depth.split(",", -1).length - 1;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -109,6 +115,7 @@ public class SystemModuleDeptService {
         String deptName = body.deptName().trim();
 
         ModuleDept dept;
+        Long oldParentId = null;
         if (body.id() != null) {
             dept = moduleDeptService.getById(body.id());
             if (dept == null) {
@@ -119,6 +126,8 @@ public class SystemModuleDeptService {
                     || !Objects.equals(dept.getAppId(), appId)) {
                 throw new BusinessException(403, "无权操作该部门");
             }
+            oldParentId = dept.getParentId();
+            validateParentNotCycle(dept.getId(), parentId, appId);
         } else {
             long existed = moduleDeptService.lambdaQuery()
                     .eq(ModuleDept::getAppId, appId)
@@ -145,7 +154,122 @@ public class SystemModuleDeptService {
         } else {
             moduleDeptService.save(dept);
         }
+        boolean parentChanged = body.id() != null && !Objects.equals(oldParentId, parentId);
+        applyDepthPath(dept, appId, parentId);
+        if (parentChanged) {
+            refreshSubtreeDepth(appId, dept.getId());
+        }
         return dept;
+    }
+
+    /** 按 parentId 解析并写入 depth（祖先 ID + 本级 ID，逗号分隔） */
+    private void applyDepthPath(ModuleDept dept, Long appId, long parentId) {
+        if (dept == null || dept.getId() == null) {
+            return;
+        }
+        String path = resolveDepthPath(appId, parentId, dept.getId());
+        dept.setDepth(path);
+        moduleDeptService.lambdaUpdate()
+                .eq(ModuleDept::getId, dept.getId())
+                .set(ModuleDept::getDepth, path)
+                .update();
+    }
+
+    private String resolveDepthPath(Long appId, long parentId, long selfId) {
+        if (parentId <= 0L) {
+            return String.valueOf(selfId);
+        }
+        ModuleDept parent = moduleDeptService.getById(parentId);
+        if (parent == null || !Objects.equals(parent.getAppId(), appId)) {
+            throw new BusinessException(400, "父部门不存在或不属于当前应用");
+        }
+        if (parent.getDepth() == null || parent.getDepth().isBlank()) {
+            applyDepthPath(parent, appId, parent.getParentId() == null ? 0L : parent.getParentId());
+            parent = moduleDeptService.getById(parentId);
+        }
+        String parentPath = parent.getDepth();
+        if (parentPath == null || parentPath.isBlank()) {
+            throw new BusinessException(400, "父部门路径未初始化");
+        }
+        return parentPath + "," + selfId;
+    }
+
+    private void validateParentNotCycle(Long selfId, long newParentId, Long appId) {
+        if (selfId == null || newParentId <= 0L) {
+            return;
+        }
+        if (Objects.equals(selfId, newParentId)) {
+            throw new BusinessException(400, "父部门不能是自己");
+        }
+        ModuleDept newParent = moduleDeptService.getById(newParentId);
+        if (newParent == null || !Objects.equals(newParent.getAppId(), appId)) {
+            return;
+        }
+        ModuleDept self = moduleDeptService.getById(selfId);
+        if (self == null || self.getDepth() == null || self.getDepth().isBlank()) {
+            return;
+        }
+        String selfPath = self.getDepth();
+        String np = newParent.getDepth();
+        if (np == null || np.isBlank()) {
+            return;
+        }
+        if (np.equals(selfPath) || np.startsWith(selfPath + ",")) {
+            throw new BusinessException(400, "不能将父部门设为自己的子部门");
+        }
+    }
+
+    private void refreshSubtreeDepth(Long appId, Long parentDeptId) {
+        if (parentDeptId == null) {
+            return;
+        }
+        ModuleDept parent = moduleDeptService.getById(parentDeptId);
+        if (parent == null || parent.getDepth() == null || parent.getDepth().isBlank()) {
+            return;
+        }
+        List<ModuleDept> children = moduleDeptService.lambdaQuery()
+                .eq(ModuleDept::getAppId, appId)
+                .eq(ModuleDept::getParentId, parentDeptId)
+                .list();
+        for (ModuleDept child : children) {
+            if (child.getId() == null) {
+                continue;
+            }
+            String childPath = parent.getDepth() + "," + child.getId();
+            child.setDepth(childPath);
+            moduleDeptService.lambdaUpdate()
+                    .eq(ModuleDept::getId, child.getId())
+                    .set(ModuleDept::getDepth, childPath)
+                    .update();
+            refreshSubtreeDepth(appId, child.getId());
+        }
+    }
+
+    /**
+     * 查询某部门及其全部下级（含自身）的部门 ID 列表，依赖 depth 前缀匹配。
+     */
+    public List<Long> listSubtreeDeptIds(Long appId, Long deptId, Long operatorPlatId) {
+        requireOperator(operatorPlatId);
+        requireAppId(appId);
+        if (deptId == null || deptId <= 0L) {
+            return List.of();
+        }
+        ModuleDept root = moduleDeptService.getById(deptId);
+        if (root == null || root.getDepth() == null || root.getDepth().isBlank()) {
+            return List.of(deptId);
+        }
+        String prefix = root.getDepth();
+        List<ModuleDept> all = listDepts(appId, operatorPlatId);
+        List<Long> ids = new ArrayList<>();
+        for (ModuleDept d : all) {
+            if (d.getId() == null || d.getDepth() == null) {
+                continue;
+            }
+            if (d.getDepth().equals(prefix) || d.getDepth().startsWith(prefix + ",")) {
+                ids.add(d.getId());
+            }
+        }
+        return ids;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -167,10 +291,18 @@ public class SystemModuleDeptService {
             if (!Objects.equals(d.getSystemId(), systemId) || !Objects.equals(d.getTenantId(), tenantId)) {
                 throw new BusinessException(403, "无权删除部门");
             }
-            long children = moduleDeptService.lambdaQuery()
-                    .eq(ModuleDept::getAppId, d.getAppId())
-                    .eq(ModuleDept::getParentId, id)
-                    .count();
+            long children;
+            if (d.getDepth() != null && !d.getDepth().isBlank()) {
+                children = moduleDeptService.lambdaQuery()
+                        .eq(ModuleDept::getAppId, d.getAppId())
+                        .likeRight(ModuleDept::getDepth, d.getDepth() + ",")
+                        .count();
+            } else {
+                children = moduleDeptService.lambdaQuery()
+                        .eq(ModuleDept::getAppId, d.getAppId())
+                        .eq(ModuleDept::getParentId, id)
+                        .count();
+            }
             if (children > 0) {
                 throw new BusinessException(400, "请先删除子部门: " + (d.getDeptName() != null ? d.getDeptName() : id));
             }

@@ -5,6 +5,8 @@ export type ModuleDept = {
   id: number
   appId?: number
   parentId?: number
+  /** 祖先至本级 ID 路径，如 1,5,23 */
+  depth?: string | null
   deptCode?: string
   deptName?: string
   sortNo?: number
@@ -12,7 +14,12 @@ export type ModuleDept = {
   remark?: string | null
 }
 
-export type PickerOption = { value: number | string; text: string; parentId?: number }
+export type PickerOption = {
+  value: number | string
+  text: string
+  parentId?: number
+  depth?: string | null
+}
 
 export function listDepts(appId: number): Promise<ApiResult<ModuleDept[]>> {
   return httpGet<ModuleDept[]>(`/v1/system/module/depts/apps/${appId}`)
