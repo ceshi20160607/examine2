@@ -45,13 +45,10 @@ public class PlatAuthManageService {
             throw new BusinessException("用户名已存在");
         }
         long existedBefore = platAccountService.count();
-        LocalDateTime now = LocalDateTime.now();
         PlatAccount acc = new PlatAccount();
         acc.setUsername(u);
         acc.setPasswordHash(passwordEncoder.encode(rawPassword));
         acc.setStatus(1);
-        acc.setCreateTime(now);
-        acc.setUpdateTime(now);
         platAccountService.save(acc);
         platRbacManageService.bindDefaultRoleOnRegister(acc.getId(), existedBefore == 0);
         return acc;
@@ -62,16 +59,13 @@ public class PlatAuthManageService {
 
         PlatAccount acc = platAccountService.getOne(eq);
         if (acc == null || !passwordEncoder.matches(rawPassword, acc.getPasswordHash())) {
-            LocalDateTime now = LocalDateTime.now();
             PlatLoginLog log = new PlatLoginLog();
             log.setUsernameAttempt(username);
             log.setSuccessFlag(0);
             log.setFailReason("用户名或密码错误");
             log.setIp(ip);
             log.setUa(ua);
-            log.setLoginTime(now);
-            log.setCreateTime(now);
-            log.setUpdateTime(now);
+            log.setLoginTime(LocalDateTime.now());
             platLoginLogService.save(log);
             throw new BusinessException(401, "用户名或密码错误");
         }
@@ -82,16 +76,13 @@ public class PlatAuthManageService {
         acc.setLastLoginIp(ip);
         platAccountService.updateById(acc);
 
-        LocalDateTime now = LocalDateTime.now();
         PlatLoginLog ok = new PlatLoginLog();
         ok.setPlatAccountId(acc.getId());
         ok.setUsernameAttempt(acc.getUsername());
         ok.setSuccessFlag(1);
         ok.setIp(ip);
         ok.setUa(ua);
-        ok.setLoginTime(now);
-        ok.setCreateTime(now);
-        ok.setUpdateTime(now);
+        ok.setLoginTime(LocalDateTime.now());
         platLoginLogService.save(ok);
 
         String token = sessionService.createSession(new SessionPayload(acc.getId(), acc.getUsername(), 0L, 0L));

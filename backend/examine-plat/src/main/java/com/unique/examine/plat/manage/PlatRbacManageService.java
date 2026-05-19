@@ -9,7 +9,6 @@ import com.unique.examine.plat.service.IPlatAccountRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -37,9 +36,6 @@ public class PlatRbacManageService {
         bind.setRoleId(firstAccount ? ROLE_PLAT_SUPER_ADMIN : ROLE_PLAT_USER);
         bind.setCreateUserId(platAccountId);
         bind.setUpdateUserId(platAccountId);
-        LocalDateTime now = LocalDateTime.now();
-        bind.setCreateTime(now);
-        bind.setUpdateTime(now);
         platAccountRoleService.save(bind);
     }
 

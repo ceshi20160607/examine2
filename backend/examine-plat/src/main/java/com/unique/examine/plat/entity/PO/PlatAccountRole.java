@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 平台账号与角色关联
+ * å¹³å°è´¦å·ä¸Žè§’è‰²å…³è”
  * </p>
  *
  * @author UNIQUE
@@ -26,12 +26,12 @@ import lombok.experimental.Accessors;
 @Setter
 @Accessors(chain = true)
 @TableName("un_plat_account_role")
-@Schema(name = "PlatAccountRole对象", description = "平台账号与角色关联")
+@Schema(name = "PlatAccountRoleå¯¹è±¡", description = "å¹³å°è´¦å·ä¸Žè§’è‰²å…³è”")
 public class PlatAccountRole implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "主键")
+    @Schema(description = "ä¸»é”®")
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;

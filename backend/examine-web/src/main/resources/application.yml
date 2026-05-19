@@ -24,7 +24,7 @@ spring:
       password: 123456
       database: 0
   flyway:
-    # 连接已手工建表的库（如 192.168.0.211）时关闭，避免重复 DDL；空库首次启动改为 true
+    # 远程库若曾 Flyway 失败（如 V14），可先关；schema 以 docs/sql 或库内已有表为准
     enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true

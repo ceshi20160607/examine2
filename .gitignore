@@ -23,8 +23,3 @@ mobile/uniappsrc/
 **/.packages
 **/build/
 **/.metadata
-
-# Local backend run logs
-backend/examine-web/run.log
-backend/examine-web/run.err.log
-scripts/smoke/_dbq/
