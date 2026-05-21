@@ -54,6 +54,8 @@
 | 后端路径 | 手机端 | 页面 |
 |----------|--------|------|
 | 模板 / 版本 / 节点 / 线 / 条件 / 设置 | ✅ | `pages/system/flow/temp_*` · `api/flow` |
+| `GET /v1/system/flow/temp-vers/{id}`（graphJson 只读预览） | ✅ | `pages/system/flow/temp_ver_graph_preview` |
+| `GET/POST .../temp-vers/{id}/graph-designer`（与 Web 画布同源） | ✅ | `temp_ver_graph_designer`（画布）、`temp_ver_graph_edit`（列表） |
 | `POST .../instances/start` | ✅ | `flow/start` |
 | Inbox pending/cc | ✅ | `flow/inbox`、Tab 待办预览 |
 | 实例分页 / 详情 / tasks / actions / traces | ✅ | `flow/instances`、`flow/instance` |
@@ -81,15 +83,13 @@
 1. Health → Login → 系统列表 → 进入系统 → 工作台  
 2. Apps → Models → Fields → Records 增删改查  
 3. Dict（下拉）→ Records 表单字典字段  
-4. Flow：模板 → 发布 → 发起 → 待办处理  
+4. Flow：模板 → 版本 →（可选）简易设计/预览 → 发布 → 发起 → 待办处理  
 5. Upload：上传 / 列表 / 预览  
 6. Export：模板 → 任务 → 详情下载  
 7. RBAC：角色 / 菜单 / 成员 / URI 权限预览  
 
 ## v1 已知缺口（可后续版本）
 
-- 图形化流程设计器（Web 已提供 `FlowGraphDesignerView`；手机端仍以 graphJson 列表编辑为主）  
-- typed-value EAV 列与索引（当前 value_text + 等值索引）  
-- 列表筛选模板管理页（Web 可后续补 `filter_tpls` 路由）  
+（当前无阻塞缺口；大屏精细排版仍以 Web `FlowGraphDesignerView` 为首选。）
 
-已实现（勿再标为缺口）：记录 history（`records/history`）、平台开放应用（`platform/open_apps`）、导出任务发起（`export/tpls`）。
+已实现（勿再标为缺口）：记录 history、平台开放应用、导出任务发起、EAV typed 列、Web 列表筛选模板、流程图画布/列表/预览（`temp_ver_graph_*`）。

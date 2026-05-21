@@ -7,6 +7,17 @@
 *.iml
 *.class
 
+# Local run logs
+**/*.log
+**/*.err.log
+**/*.out.log
+backend/run*.log
+backend/startup*.log
+backend/examine-web/run*.log
+backend/examine-web/startup*.log
+tmp-body.json
+scripts/db/tmp/
+
 # Web
 **/node_modules/
 **/dist/

@@ -58,3 +58,39 @@
 - **变更**：`OpenApiModuleRecordController` 补齐 query/detail/delete/query-by-relation/history；Web `ExportsView`/`SystemsView`/`RbacView`/`PlatformInboxView`/`SignatureField`/`RatingField`；契约文档与 `mobile-api-coverage` 同步。
 - **结论**：tracker I-1～I-5 ✅；项目 v1 功能面闭环，typed-value 列与 Web 筛选模板页列为后续迭代。
 
+### 2026-05-20 EAV typed 列（value_num / value_dt）
+
+- **背景**：记录 DSL `eq` 与索引更稳妥地支持数值、日期；纯 `value_text` 难以优化。
+- **变更**：`un_module_record_data` 增加 `value_num`、`value_dt` 及索引；`ModuleRecordFacadeService` 写入双写、详情/历史快照 JSON 强类型输出、列表 `includeFieldCodes` 展示走 typed；DSL `eq` 按字段元类型解析为 NUM/DT 条件。Flyway `V23`；手工增量见 `docs/sql/17_module_record_data_typed_alter.sql`（列已存在则勿重复执行）。Web `ListViewsView.vue` 增加筛选模板列表/新建/删除（`deleteFilterTpls` API）。
+- **结论**：旧行仅 `value_text` 仍可读；新写入自动填 typed；大范围历史 backfill 为可选后续。
+
+### 2026-05-20 移动端流程图只读预览
+
+- **背景**：移动端缺少对 `graphJson` 的结构化展示。
+- **变更**：`mobile/uniapp` 新增 `pages/system/flow/temp_ver_graph_preview`；流程版本编辑页增加「图形预览」；解析 Web 设计器 `nodes`/`edges`（`fromNodeKey`/`toNodeKey`）与 MVP 简式节点。
+- **结论**：拖拽编辑仍以 Web「流程图设计器」为准；移动端为只读预览。
+
+### 2026-05-21 移动端 graph-designer 同源简易编辑
+
+- **背景**：仅预览无法在手机上维护节点/连线；与 Web 分岔两套编辑路径易不一致。
+- **变更**：`loadGraphDesigner` / `saveGraphDesigner` 接入 `mobile/uniapp`；新增 `temp_ver_graph_edit`（节点列表 + 连线 + 保存/发布）；版本编辑页入口「图形简易设计」。预览页副文案指向该入口。
+- **画布**：后续由 `temp_ver_graph_designer` 补齐（与列表编辑同源 API）。
+
+### 2026-05-21 契约与冒烟补 graph-designer
+
+- **背景**：移动端已接 `graph-designer`，发版需可自动验证保存/加载。
+- **变更**：`docs/api/openapi-contract.md` §9、`curl-examples.md` 模板与设计器示例；`e2e-smoke.ps1` / `e2e-smoke.sh` 增加「flow graph-designer」步骤；`mobile-api-coverage` 缺口列表同步 EAV typed / Web 筛选模板已实现。
+- **结论**：冒烟覆盖模板 upsert → 版本 → graph-designer POST/GET → 版本详情。
+
+### 2026-05-21 移动端流程图画布设计器
+
+- **背景**：列表编辑可用，但缺少与 Web 类似的拖拽布局体验。
+- **变更**：`temp_ver_graph_designer`：双轴滚动画布、SVG 连线、触摸拖拽节点、选择/连线模式、属性弹层、保存/发布；版本页入口「图形画布」；与 `temp_ver_graph_edit` 互跳。
+- **结论**：移动端流程图维护三件套：画布 / 列表 / 预览，均同源 `graph-designer`。
+
+### 2026-05-21 v1 开发面收口（文档与冒烟）
+
+- **背景**：tracker A–I/P 均已 ✅，需统一对外说明与自动化验证。
+- **变更**：`simple-run.md` / `development-tracker` C-5 与 typed 列对齐；版本列表增加画布/预览入口；冒烟增加 graph-designer **发布**；`.gitignore` 忽略本地 `*.log`。
+- **结论**：v1 无阻塞待开发项；新需求走 `requirements-log` + tracker 新行。
+

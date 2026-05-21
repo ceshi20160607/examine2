@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -59,6 +60,14 @@ public class ModuleRecordData implements Serializable {
     @Schema(description = "字段值（字符串存储）")
     private String valueText;
 
+    @Schema(description = "数值/金额/百分比/布尔（0/1）等 typed 列；与 value_text 同步维护")
+    @TableField("value_num")
+    private BigDecimal valueNum;
+
+    @Schema(description = "日期时间 typed 列；与 value_text 同步维护")
+    @TableField("value_dt")
+    private LocalDateTime valueDt;
+
     @Schema(description = "创建人 platId")
     @TableField(fill = FieldFill.INSERT)
     @JsonSerialize(using = ToStringSerializer.class)
@@ -74,6 +83,6 @@ public class ModuleRecordData implements Serializable {
     private LocalDateTime createTime;
 
     @Schema(description = "更新时间")
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }

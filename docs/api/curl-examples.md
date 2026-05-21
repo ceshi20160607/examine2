@@ -65,6 +65,39 @@ curl -s "${HOST}/v1/system/module/rbac/apps/1/roles" -H "${AUTH}"
 - **会签**：节点 `type=approve`，配置 `config.sign_mode=all` + `config.plat_ids`
 - **或签**：节点 `type=approve`，配置 `config.sign_mode=any` + `config.plat_ids`
 
+### flow：模板与 graph-designer（/v1/system/flow）
+
+```bash
+# 新建模板
+curl -s "${HOST}/v1/system/flow/temps/upsert" -H "${AUTH}" -H "Content-Type: application/json" -d '{
+  "tempCode":"my_flow","tempName":"我的流程","status":1
+}'
+
+# 新建版本（草稿）
+curl -s "${HOST}/v1/system/flow/temp-vers/upsert" -H "${AUTH}" -H "Content-Type: application/json" -d '{
+  "tempId":REPLACE_TEMP_ID,"publishStatus":1,"formJson":"{}"
+}'
+
+# 保存可视化设计器（写节点/边表并生成 graphJson）
+curl -s "${HOST}/v1/system/flow/temp-vers/REPLACE_TEMP_VER_ID/graph-designer" -H "${AUTH}" -H "Content-Type: application/json" -d '{
+  "nodes":[
+    {"nodeKey":"start_1","nodeType":"start","nodeName":"开始","x":120,"y":120,"configJson":"{}"},
+    {"nodeKey":"approve_1","nodeType":"approve","nodeName":"审批","x":320,"y":120,"configJson":"{}"},
+    {"nodeKey":"end_1","nodeType":"end","nodeName":"结束","x":520,"y":120,"configJson":"{}"}
+  ],
+  "edges":[
+    {"fromNodeKey":"start_1","toNodeKey":"approve_1","priority":1,"isDefault":0,"cond":""},
+    {"fromNodeKey":"approve_1","toNodeKey":"end_1","priority":1,"isDefault":0,"cond":""}
+  ]
+}'
+
+# 加载设计器数据
+curl -s "${HOST}/v1/system/flow/temp-vers/REPLACE_TEMP_VER_ID/graph-designer" -H "${AUTH}"
+
+# 发布版本（须已有 graphJson）
+curl -s -X POST "${HOST}/v1/system/flow/temp-vers/REPLACE_TEMP_VER_ID/publish" -H "${AUTH}"
+```
+
 ### flow：系统态调用链（/v1/system/flow）
 
 ```bash

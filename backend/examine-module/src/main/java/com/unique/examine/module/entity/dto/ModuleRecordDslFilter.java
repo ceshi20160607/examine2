@@ -1,7 +1,10 @@
 package com.unique.examine.module.entity.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -26,5 +29,15 @@ public class ModuleRecordDslFilter {
      * 多值（in）
      */
     private List<Object> values;
+
+    /** 服务端解析：NONE | NUM | DT，用于 EAV typed 列条件（不接受客户端传入）。 */
+    @JsonIgnore
+    private String typedKind = "NONE";
+
+    @JsonIgnore
+    private BigDecimal valueNum;
+
+    @JsonIgnore
+    private LocalDateTime valueDt;
 }
 

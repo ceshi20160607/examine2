@@ -56,6 +56,20 @@ export function publishTempVer(id: number | string): Promise<ApiResult<any>> {
   return httpPost<any>(`/v1/system/flow/temp-vers/${encodeURIComponent(String(id))}/publish`)
 }
 
+/** 流程图可视化设计器负载（写节点/边表并生成 graphJson） */
+export function loadGraphDesigner(tempVerId: number | string): Promise<ApiResult<any>> {
+  return httpGet<any>(
+    `/v1/system/flow/temp-vers/${encodeURIComponent(String(tempVerId))}/graph-designer`
+  )
+}
+
+export function saveGraphDesigner(tempVerId: number | string, body: any): Promise<ApiResult<any>> {
+  return httpPost<any>(
+    `/v1/system/flow/temp-vers/${encodeURIComponent(String(tempVerId))}/graph-designer`,
+    body
+  )
+}
+
 export function startInstance(cmd: any): Promise<ApiResult<any>> {
   return httpPost<any>('/v1/system/flow/instances/start', cmd)
 }

@@ -17,7 +17,7 @@ cd scripts\smoke
 $env:EXAMINE_HOST = "http://127.0.0.1:9999"
 # 已有库时用管理员（首个注册账号或 plat_super_admin）
 $env:SMOKE_USER = "admin"
-$env:SMOKE_PASS = "your-password"
+$env:SMOKE_PASS = "123123aa"
 .\e2e-smoke.ps1
 ```
 
@@ -51,6 +51,7 @@ bash e2e-smoke.sh
 4. app / model / field → record CRUD + `includeFieldCodes` 查询
 5. RBAC 角色 `data_scope`、运行时菜单
 6. 上传、平台收件箱、流程待办列表
-7. 可选：开放 API records query（需 AK/SK）
+7. 流程模板 → 版本 → `graph-designer` 保存/加载 → **发布**（与 Web/移动端同源 API）
+8. 可选：开放 API records query（需 AK/SK）
 
 失败时以非 0 退出码结束，并打印失败步骤名称。

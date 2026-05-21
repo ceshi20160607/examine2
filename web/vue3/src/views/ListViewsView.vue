@@ -21,6 +21,27 @@
     </table>
     <p v-else class="muted">输入 modelId 后加载</p>
 
+    <template v-if="views.length && modelIdText">
+      <h3>筛选模板 · model {{ modelIdText }}</h3>
+      <div class="toolbar">
+        <button type="button" @click="loadFilterTpls">刷新筛选模板</button>
+        <button type="button" @click="addFilterTpl">新建筛选模板</button>
+      </div>
+      <table v-if="filterTpls.length" class="table">
+        <thead><tr><th>ID</th><th>编码</th><th>名称</th><th>menuId</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr v-for="t in filterTpls" :key="t.id">
+            <td>{{ t.id }}</td>
+            <td>{{ t.tplCode }}</td>
+            <td>{{ t.tplName }}</td>
+            <td>{{ t.menuId ?? '—' }}</td>
+            <td><button type="button" class="danger" @click="removeFilterTpl(t)">删除</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <p v-else class="muted">暂无筛选模板，点击「刷新」或「新建」</p>
+    </template>
+
     <template v-if="activeView">
       <h3>列 · view #{{ activeView.id }}</h3>
       <div class="toolbar">
@@ -46,12 +67,13 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '../layouts/AdminLayout.vue'
-import { listViewCols, listViewsByModel, upsertListView, upsertViewCol } from '../api/module'
+import { listFilterTpls, listViewCols, listViewsByModel, upsertListView, upsertViewCol, upsertFilterTpl, deleteFilterTpls } from '../api/module'
 
 const route = useRoute()
 const appId = computed(() => Number(route.params.appId))
 const modelIdText = ref(String(route.query.modelId || ''))
 const views = ref([])
+const filterTpls = ref([])
 const cols = ref([])
 const activeView = ref(null)
 const error = ref('')
@@ -66,6 +88,7 @@ async function loadViews() {
   try {
     const r = await listViewsByModel(modelId)
     views.value = r.data || []
+    await loadFilterTpls()
   } catch (e) {
     error.value = e?.message || String(e)
   }
@@ -96,6 +119,43 @@ async function loadCols() {
   try {
     const r = await listViewCols(activeView.value.id)
     cols.value = r.data || []
+  } catch (e) {
+    error.value = e?.message || String(e)
+  }
+}
+
+async function loadFilterTpls() {
+  const modelId = Number(modelIdText.value)
+  if (!modelId) return
+  error.value = ''
+  try {
+    const r = await listFilterTpls(modelId)
+    filterTpls.value = r.data || []
+  } catch (e) {
+    error.value = e?.message || String(e)
+  }
+}
+
+async function addFilterTpl() {
+  const modelId = Number(modelIdText.value)
+  const tplCode = prompt('tplCode（唯一编码）')
+  const tplName = prompt('tplName')
+  if (!modelId || !tplCode || !tplName) return
+  error.value = ''
+  try {
+    await upsertFilterTpl({ appId: appId.value, modelId, tplCode, tplName })
+    await loadFilterTpls()
+  } catch (e) {
+    error.value = e?.message || String(e)
+  }
+}
+
+async function removeFilterTpl(t) {
+  if (!t?.id || !confirm('删除筛选模板 ' + (t.tplCode || t.id) + '?')) return
+  error.value = ''
+  try {
+    await deleteFilterTpls([t.id])
+    await loadFilterTpls()
   } catch (e) {
     error.value = e?.message || String(e)
   }

@@ -12,6 +12,7 @@ import com.unique.examine.module.entity.po.ModuleField;
 import com.unique.examine.module.entity.po.ModuleRecord;
 import com.unique.examine.module.entity.po.ModuleRecordData;
 import com.unique.examine.module.entity.po.ModuleRecordHistory;
+import com.unique.examine.module.field.EavTypedValueSupport;
 import com.unique.examine.module.field.ModuleFieldConfigSupport;
 import com.unique.examine.module.field.ModuleFieldType;
 import com.unique.examine.module.mapper.ModuleRecordDataMapper;
@@ -131,6 +132,7 @@ public class ModuleRecordFacadeService {
                 row.setRecordId(r.getId());
                 row.setFieldCode(fieldCode);
                 row.setValueText(text);
+                EavTypedValueSupport.applyTypedColumns(f, v, text, row);
                 row.setCreateUserId(platId);
                 row.setUpdateUserId(platId);
                 moduleRecordDataService.save(row);
@@ -461,14 +463,15 @@ public class ModuleRecordFacadeService {
                 .orderByAsc(ModuleRecordData::getFieldCode)
                 .list();
 
+        Map<String, ModuleField> fieldByCode = loadActiveFieldMap(systemId, tenantId, r.getAppId(), r.getModelId());
         ObjectNode dataNode = objectMapper.createObjectNode();
         if (rows != null) {
             for (ModuleRecordData row : rows) {
                 if (row.getFieldCode() == null) {
                     continue;
                 }
-                String vt = row.getValueText();
-                dataNode.put(row.getFieldCode(), vt == null ? "" : vt);
+                ModuleField mf = fieldByCode.get(row.getFieldCode());
+                dataNode.set(row.getFieldCode(), EavTypedValueSupport.toJsonNode(objectMapper, mf, row));
             }
         }
 
@@ -705,6 +708,7 @@ public class ModuleRecordFacadeService {
                 row.setRecordId(r.getId());
                 row.setFieldCode(fieldCode);
                 row.setValueText(text);
+                EavTypedValueSupport.applyTypedColumns(f, v, text, row);
                 row.setCreateUserId(platId);
                 row.setUpdateUserId(platId);
                 moduleRecordDataService.save(row);
@@ -750,7 +754,7 @@ public class ModuleRecordFacadeService {
         requireRecordDataAccess(r, platId, systemId, tenantId, r.getAppId());
 
         // snapshot before delete
-        String snapshot = snapshotFromDb(recordId);
+        String snapshot = snapshotFromDb(r);
 
         r.setStatus(2);
         r.setUpdateUserId(platId);
@@ -900,6 +904,9 @@ public class ModuleRecordFacadeService {
         if (recordIds.isEmpty()) {
             return;
         }
+        long systemId = q.getSystemId();
+        long tenantId = q.getTenantId();
+        Map<String, ModuleField> fieldByCode = loadActiveFieldMap(systemId, tenantId, q.getAppId(), q.getModelId());
         List<ModuleRecordData> eavRows = moduleRecordDataMapper.listByRecordIdsAndFieldCodes(recordIds, fieldCodes);
         Map<Long, Map<String, String>> dataByRecord = new HashMap<>();
         if (eavRows != null) {
@@ -907,9 +914,11 @@ public class ModuleRecordFacadeService {
                 if (row.getRecordId() == null || row.getFieldCode() == null) {
                     continue;
                 }
+                ModuleField mf = fieldByCode.get(row.getFieldCode());
+                String display = EavTypedValueSupport.toDisplayString(mf, row);
                 dataByRecord
                         .computeIfAbsent(row.getRecordId(), k -> new LinkedHashMap<>())
-                        .put(row.getFieldCode(), row.getValueText() == null ? "" : row.getValueText());
+                        .put(row.getFieldCode(), display == null ? "" : display);
             }
         }
         for (Map<String, Object> row : list) {
@@ -963,6 +972,9 @@ public class ModuleRecordFacadeService {
             validateDepartmentFieldValue(systemId, tenantId, appId, field, value);
         } else if (type == ModuleFieldType.TEXT) {
             validateTextFieldValue(field, value);
+        } else if (type == ModuleFieldType.NUMBER || type == ModuleFieldType.MONEY || type == ModuleFieldType.PERCENT
+                || type == ModuleFieldType.BOOLEAN || type == ModuleFieldType.DATETIME) {
+            EavTypedValueSupport.validateJsonValue(field, value);
         }
     }
 
@@ -1115,7 +1127,7 @@ public class ModuleRecordFacadeService {
             if (modelId == null || modelId <= 0L || appId == null || appId <= 0L) {
                 throw new BusinessException("modelId/appId 不能为空");
             }
-            requireFieldExists(systemId, tenantId, appId, modelId, field);
+            ModuleField mf = requireField(systemId, tenantId, appId, modelId, field);
             if (!(op.equals("eq") || op.equals("like"))) {
                 throw new BusinessException("field_code 条件仅支持 eq/like");
             }
@@ -1126,6 +1138,7 @@ public class ModuleRecordFacadeService {
             if (s.length() > 200) {
                 throw new BusinessException(field + " 的 value 太长");
             }
+            resolveDslTypedEqFilter(f, mf);
         }
 
         if (op.equals("in")) {
@@ -1145,21 +1158,51 @@ public class ModuleRecordFacadeService {
         f.setOp(op);
     }
 
-    private void requireFieldExists(long systemId, long tenantId, Long appId, Long modelId, String fieldCode) {
-        if (fieldCode == null || fieldCode.isBlank()) {
-            throw new BusinessException("fieldCode 不能为空");
+    private void resolveDslTypedEqFilter(ModuleRecordDslFilter f, ModuleField mf) {
+        f.setTypedKind("NONE");
+        f.setValueNum(null);
+        f.setValueDt(null);
+        if (f == null || mf == null || !"eq".equals(f.getOp())) {
+            return;
         }
-        Long cnt = moduleFieldService.lambdaQuery()
+        ModuleFieldType t = ModuleFieldConfigSupport.typeOf(mf);
+        if (t == null) {
+            return;
+        }
+        String label = mf.getFieldCode();
+        if (t == ModuleFieldType.NUMBER || t == ModuleFieldType.MONEY || t == ModuleFieldType.PERCENT) {
+            f.setTypedKind("NUM");
+            f.setValueNum(EavTypedValueSupport.parseDecimalForFilter(f.getValue(), label));
+        } else if (t == ModuleFieldType.BOOLEAN) {
+            f.setTypedKind("NUM");
+            f.setValueNum(EavTypedValueSupport.parseBooleanFilterForEq(f.getValue(), label));
+        } else if (t == ModuleFieldType.DATETIME) {
+            f.setTypedKind("DT");
+            f.setValueDt(EavTypedValueSupport.parseDateTimeForFilter(f.getValue(), label));
+        }
+    }
+
+    private Map<String, ModuleField> loadActiveFieldMap(long systemId, long tenantId, Long appId, Long modelId) {
+        if (appId == null || modelId == null) {
+            return Map.of();
+        }
+        List<ModuleField> defs = moduleFieldService.lambdaQuery()
                 .eq(ModuleField::getSystemId, systemId)
                 .eq(ModuleField::getTenantId, tenantId)
                 .eq(ModuleField::getAppId, appId)
                 .eq(ModuleField::getModelId, modelId)
-                .eq(ModuleField::getFieldCode, fieldCode)
                 .eq(ModuleField::getStatus, 1)
-                .count();
-        if (cnt == null || cnt == 0L) {
-            throw new BusinessException("字段不存在或已停用: " + fieldCode);
+                .list();
+        if (defs == null || defs.isEmpty()) {
+            return Map.of();
         }
+        Map<String, ModuleField> m = new LinkedHashMap<>();
+        for (ModuleField def : defs) {
+            if (def != null && def.getFieldCode() != null && !def.getFieldCode().isBlank()) {
+                m.put(def.getFieldCode(), def);
+            }
+        }
+        return m;
     }
 
     private ModuleField requireField(long systemId, long tenantId, Long appId, Long modelId, String fieldCode) {
@@ -1211,17 +1254,26 @@ public class ModuleRecordFacadeService {
         }
     }
 
-    private String snapshotFromDb(Long recordId) {
+    private String snapshotFromDb(ModuleRecord r) {
         ObjectNode dataNode = objectMapper.createObjectNode();
+        if (r == null || r.getId() == null) {
+            return "{}";
+        }
+        Map<String, ModuleField> fieldByCode = loadActiveFieldMap(
+                r.getSystemId() == null ? 0L : r.getSystemId(),
+                r.getTenantId() == null ? 0L : r.getTenantId(),
+                r.getAppId(),
+                r.getModelId());
         List<ModuleRecordData> rows = moduleRecordDataService.lambdaQuery()
-                .eq(ModuleRecordData::getRecordId, recordId)
+                .eq(ModuleRecordData::getRecordId, r.getId())
                 .list();
         if (rows != null) {
             for (ModuleRecordData row : rows) {
                 if (row == null || row.getFieldCode() == null) {
                     continue;
                 }
-                dataNode.put(row.getFieldCode(), row.getValueText() == null ? "" : row.getValueText());
+                ModuleField mf = fieldByCode.get(row.getFieldCode());
+                dataNode.set(row.getFieldCode(), EavTypedValueSupport.toJsonNode(objectMapper, mf, row));
             }
         }
         try {

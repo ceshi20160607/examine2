@@ -34,7 +34,7 @@ function Invoke-ExamineApi {
     if (-not $NoAuth -and $script:Token) { $headers['Authorization'] = "Bearer $($script:Token)" }
     if ($ExtraHeaders) { foreach ($k in $ExtraHeaders.Keys) { $headers[$k] = $ExtraHeaders[$k] } }
 
-    $params = @{ Uri = $uri; Method = $Method; Headers = $headers }
+    $params = @{ Uri = $uri; Method = $Method; Headers = $headers; TimeoutSec = 15 }
     if ($null -ne $Body) { $params['Body'] = ($Body | ConvertTo-Json -Depth 12 -Compress) }
     try {
         $resp = Invoke-RestMethod @params
@@ -77,11 +77,9 @@ try {
 
     Run-Step 'auth' {
         if ($AuthMode -eq 'register') {
-            try {
-                $null = Invoke-ExamineApi -Method POST -Path "/v1/platform/auth/register" -NoAuth -Body @{
-                    username = $SmokeUser; password = $SmokePass
-                }
-            } catch { }
+            $null = Invoke-ExamineApi -Method POST -Path "/v1/platform/auth/register" -NoAuth -Body @{
+                username = $SmokeUser; password = $SmokePass
+            }
         }
         $login = Invoke-ExamineApi -Method POST -Path "/v1/platform/auth/login" -NoAuth -Body @{
             username = $SmokeUser; password = $SmokePass
@@ -93,15 +91,19 @@ try {
 
     Run-Step 'system' {
         if (-not $script:SystemId) {
-            try {
+            $perm = Invoke-ExamineApi -Path "/v1/platform/permissions/me"
+            $canCreate = ($perm.canCreateSystem -eq 1)
+            if ($canCreate) {
                 $sys = Invoke-ExamineApi -Method POST -Path "/v1/platform/systems" -Body @{
                     name = "smoke_sys_$Ts"; multiTenantEnabled = 0
                 }
                 $script:SystemId = [long]$sys.id
-            } catch {
+            } else {
                 $list = @(Invoke-ExamineApi -Path "/v1/platform/systems")
                 if ($list.Count -gt 0) { $script:SystemId = [long]$list[0].id }
-                else { throw "Cannot create system (need SYSTEM_CREATE). Set SMOKE_USER/SMOKE_PASS or SMOKE_SYSTEM_ID" }
+                else {
+                    throw "无 SYSTEM_CREATE 且尚无自建系统。请设置 SMOKE_USER/SMOKE_PASS（平台超管）或 SMOKE_SYSTEM_ID"
+                }
             }
         }
         $null = Invoke-ExamineApi -Method POST -Path "/v1/platform/context/enter-system" -Body @{ systemId = $script:SystemId }
@@ -145,6 +147,35 @@ try {
     Run-Step 'inbox' {
         $null = Invoke-ExamineApi -Path "/v1/platform/messages?limit=5"
         $null = Invoke-ExamineApi -Path "/v1/system/flow/inbox/tasks/pending?limit=5"
+    }
+
+    Run-Step 'flow graph-designer' {
+        $temp = Invoke-ExamineApi -Method POST -Path '/v1/system/flow/temps/upsert' -Body @{
+            tempCode = "smoke_flow_$Ts"; tempName = 'Smoke Flow'; status = 1
+        }
+        $tempId = [long]$temp.id
+        $ver = Invoke-ExamineApi -Method POST -Path '/v1/system/flow/temp-vers/upsert' -Body @{
+            tempId = $tempId; publishStatus = 1; formJson = '{}'
+        }
+        $verId = [long]$ver.id
+        $graphBody = @{
+            nodes = @(
+                @{ nodeKey = 'start_1'; nodeType = 'start'; nodeName = '开始'; x = 120; y = 120; configJson = '{}' },
+                @{ nodeKey = 'approve_1'; nodeType = 'approve'; nodeName = '审批'; x = 320; y = 120; configJson = '{}' },
+                @{ nodeKey = 'end_1'; nodeType = 'end'; nodeName = '结束'; x = 520; y = 120; configJson = '{}' }
+            )
+            edges = @(
+                @{ fromNodeKey = 'start_1'; toNodeKey = 'approve_1'; priority = 1; isDefault = 0; cond = '' },
+                @{ fromNodeKey = 'approve_1'; toNodeKey = 'end_1'; priority = 1; isDefault = 0; cond = '' }
+            )
+        }
+        $saved = Invoke-ExamineApi -Method POST -Path "/v1/system/flow/temp-vers/$verId/graph-designer" -Body $graphBody
+        if (-not $saved.graphJson) { throw 'save graph-designer: graphJson missing' }
+        $loaded = Invoke-ExamineApi -Path "/v1/system/flow/temp-vers/$verId/graph-designer"
+        $nodeCount = @($loaded.nodes).Count
+        if ($nodeCount -lt 3) { throw "load graph-designer: expected >=3 nodes, got $nodeCount" }
+        $null = Invoke-ExamineApi -Path "/v1/system/flow/temp-vers/$verId"
+        $null = Invoke-ExamineApi -Method POST -Path "/v1/system/flow/temp-vers/$verId/publish"
     }
 } catch {
     Write-Host "---"; Write-Host "Passed: $($script:Pass) Failed: $($script:Fail)"

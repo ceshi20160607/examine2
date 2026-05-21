@@ -100,17 +100,28 @@ function edit(id: any) {
 function openActions(v: TempVer) {
   if (!v?.id) return
   uni.showActionSheet({
-    itemList: ['编辑', '发布', '填充MVP并发布', '删除'],
+    itemList: ['编辑', '图形画布', '列表编辑', '图形预览', '发布', '填充MVP并发布', '删除'],
     success: (res) => {
-      if (res.tapIndex === 0) {
-        edit(v.id)
-        return
-      }
-      if (res.tapIndex === 1) return publish(v.id)
-      if (res.tapIndex === 2) return fillMvpAndPublish(v.id)
-      if (res.tapIndex === 3) return del(v.id)
+      const id = v.id
+      if (res.tapIndex === 0) return edit(id)
+      if (res.tapIndex === 1) return goDesigner(id)
+      if (res.tapIndex === 2) return goListEdit(id)
+      if (res.tapIndex === 3) return goPreview(id)
+      if (res.tapIndex === 4) return publish(id)
+      if (res.tapIndex === 5) return fillMvpAndPublish(id)
+      if (res.tapIndex === 6) return del(id)
     }
   })
+}
+
+function goDesigner(id: any) {
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_designer?tempVerId=${encodeURIComponent(String(id))}` })
+}
+function goListEdit(id: any) {
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_edit?tempVerId=${encodeURIComponent(String(id))}` })
+}
+function goPreview(id: any) {
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_preview?tempVerId=${encodeURIComponent(String(id))}` })
 }
 
 async function publish(id: any) {

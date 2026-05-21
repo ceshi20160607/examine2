@@ -24,7 +24,9 @@
         <uni-button v-if="id" @click="goNodes">节点</uni-button>
         <uni-button v-if="id" @click="goLines">连线</uni-button>
         <uni-button v-if="id" @click="goSettings">全局设置</uni-button>
-        <uni-button v-if="id" @click="goNodeSettings">节点设置</uni-button>
+        <uni-button v-if="id" @click="goGraphPreview">图形预览</uni-button>
+        <uni-button v-if="id" type="primary" @click="goGraphDesigner">图形画布</uni-button>
+        <uni-button v-if="id" plain @click="goGraphEdit">列表编辑</uni-button>
       </ActionBar>
 
       <ErrorBlock :text="error" />
@@ -84,6 +86,18 @@ function goSettings() {
 function goNodeSettings() {
   if (!id.value) return
   uni.navigateTo({ url: `/pages/system/flow/temp_ver_node_settings?tempVerId=${id.value}` })
+}
+function goGraphPreview() {
+  if (!id.value) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_preview?tempVerId=${id.value}` })
+}
+function goGraphDesigner() {
+  if (!id.value) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_designer?tempVerId=${id.value}` })
+}
+function goGraphEdit() {
+  if (!id.value) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_edit?tempVerId=${id.value}` })
 }
 
 async function loadDetail() {

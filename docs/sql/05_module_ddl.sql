@@ -366,7 +366,9 @@ CREATE TABLE un_module_record_data (
   model_id       BIGINT       NOT NULL COMMENT 'un_module_model.id',
   record_id      BIGINT       NOT NULL COMMENT 'un_module_record.id',
   field_code     VARCHAR(64)  NOT NULL COMMENT '字段编码，与 un_module_field.field_code 对齐；EAV 一行一字段',
-  value_text     MEDIUMTEXT   NULL COMMENT '字段值（字符串存储；数值/时间可存字面量，后续可扩 typed 列）',
+  value_text     MEDIUMTEXT   NULL COMMENT '字段值（字符串存储；与 value_num/value_dt 同步）',
+  value_num      DECIMAL(38,10) NULL COMMENT '数值/金额/百分比/布尔 typed 列',
+  value_dt       DATETIME(3)  NULL COMMENT '日期时间 typed 列',
   create_user_id BIGINT       NULL COMMENT '创建人 platId',
   update_user_id BIGINT       NULL COMMENT '更新人 platId',
   create_time    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
@@ -374,7 +376,9 @@ CREATE TABLE un_module_record_data (
   PRIMARY KEY (id),
   UNIQUE KEY uk_module_record_data_field (record_id, field_code),
   KEY idx_module_record_data_model (model_id, record_id),
-  KEY idx_module_record_data_lookup (model_id, field_code, record_id)
+  KEY idx_module_record_data_lookup (model_id, field_code, record_id),
+  KEY idx_module_record_data_num (model_id, field_code, value_num),
+  KEY idx_module_record_data_dt (model_id, field_code, value_dt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型记录数据（EAV：一行一字段）';
 
 CREATE TABLE un_module_record_history (

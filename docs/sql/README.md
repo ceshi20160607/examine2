@@ -31,6 +31,12 @@
 - `14_plat_rbac_backfill_account_role.sql`
   - 适用：**老库上线 RBAC** 后，为历史账号补 `un_plat_account_role` 绑定
   - 依赖：必须先执行 `12_plat_rbac_ddl.sql`、`13_plat_rbac_seed.sql`
+- `16_plat_admin_seed.sql`
+  - 固定平台超管：**admin / 123123aa**（BCrypt），并绑定 `plat_super_admin` 角色
+  - 可重复执行；依赖 `13_plat_rbac_seed.sql` 中角色 id=1 已存在
+- `17_module_record_data_typed_alter.sql`
+  - 为 `un_module_record_data` 增加 `value_num`、`value_dt` 及索引（**不可重复执行**；列已存在则跳过本脚本）
+  - 新库直接使用当前 `05_module_ddl.sql` 即可，一般不必再跑本脚本
 - `15_module_record_data_eav_alter.sql`
   - 适用：曾用**旧版** `05_module_ddl.sql`（`un_module_record_data` 为单行 `data_json`）的库，需迁到 **EAV（`record_id` + `field_code`）**
   - **全新安装**直接使用当前 `05_module_ddl.sql` 即可，一般**不必**执行本脚本

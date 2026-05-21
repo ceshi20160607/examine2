@@ -1,6 +1,6 @@
 # examine2 生产部署指南
 
-本文说明如何将 **examine-web（后端）**、**mobile/uniapp**、**web/vue3（管理台）** 部署到生产环境。数据库变更以 **手工 SQL** 为准（Flyway 可在 prod 关闭）。
+本文说明如何将 **examine-web（后端）**、**mobile/uniapp**、**web/vue3（管理台）** 部署到生产环境。数据库变更默认由 **Flyway** 在启动时执行（`application-prod.yml` 已开启）；亦可用 `spring.flyway.enabled=false` 改回纯手工 SQL，见 `docs/deploy/flyway-existing-db.md`。
 
 ## 1. 环境要求
 
@@ -125,7 +125,7 @@ cd scripts/smoke && EXAMINE_HOST=http://127.0.0.1:9999 SMOKE_USER=admin SMOKE_PA
 - [ ] 创建 app / model / field，保存一条 record
 - [ ] RBAC：角色 data_scope、菜单权限、运行时菜单可见
 - [ ] 页面：配置 list 页 `config_json.modelId`，菜单绑定 pageId，运行时菜单进入列表
-- [ ] 流程：模板 + binding，新建 record 触发实例（若已配）
+- [ ] 流程：模板 + 版本 `graph-designer` 保存/发布（脚本已覆盖 POST/GET）；binding + 新建 record 触发实例（若已配）
 - [ ] 上传附件字段
 - [ ] OpenAPI（若启用）：`appId/secret` 调 `/v1/open/flow/**` 与 `/v1/open/records/**`（含 query/detail）
 - [ ] Web 管理台：创建系统、导出任务、平台收件箱抄送已读（可与移动端二选一冒烟）

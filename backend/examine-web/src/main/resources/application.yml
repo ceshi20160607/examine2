@@ -24,11 +24,14 @@ spring:
       password: 123456
       database: 0
   flyway:
-    # 远程库若曾 Flyway 失败（如 V14），可先关；schema 以 docs/sql 或库内已有表为准
-    enabled: false
+    # 已有库曾手工执行 docs/sql 或部分 migration 时：无 flyway_schema_history 会先 baseline，
+    # 默认 baseline-version=22 表示 V1～V22 视为已就绪，仅从 V23 起执行（可调环境变量）。
+    enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
-    baseline-version: 0
+    baseline-version: ${EXAMINE_FLYWAY_BASELINE_VERSION:22}
+    # 若历史版本脚本文本变更导致校验失败，可临时设为 false 或执行 flyway repair
+    validate-on-migrate: ${EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE:true}
 
 mybatis-plus:
   configuration:

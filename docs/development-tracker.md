@@ -25,7 +25,8 @@
 
 - **v1 功能面**：里程碑 A–E、上线收口 F、缺口补齐 G/H、收官 I 均已 ✅（见下文各表）。
 - **可部署**：后端 `examine-web` + Web `vue3` + 移动端 `uniapp` 契约对齐；生产见 `docs/deploy/production.md`。
-- **后续迭代（非阻塞上线）**：typed-value EAV 列、Web 列表筛选模板页、移动端流程图形设计器。
+- **后续迭代（非阻塞上线）**：无阻塞项；移动端已提供 **画布设计**（`temp_ver_graph_designer`，触摸拖拽 + 连线模式）、**列表编辑**（`temp_ver_graph_edit`）、**只读预览**（`temp_ver_graph_preview`），均写同一 `graph-designer` API。
+- **只想能跑、不要 CI/CD**：见 **`docs/deploy/simple-run.md`**；Windows 可在仓库根执行 `.\scripts\deploy\run-backend.ps1`。
 - **维护**：进度只在本文更新；需求变更追加 `docs/requirements-log.md`。
 
 ---
@@ -59,7 +60,7 @@
 | C-2 | 字典/字典项 | ✅ | 字典与字典项可维护；提供 `/v1/system/module/dicts/**` 供系统态联调 | `SystemModuleDictController`；`SystemModuleDictService` |
 | C-3 | 列表视图/列配置/筛选模板 | ✅ | 视图/列/筛选模板可维护；提供 `/v1/system/module/list-views/**` 供系统态联调 | `SystemModuleListViewController`；`SystemModuleListViewService` |
 | C-4 | 导出模板/字段（导出配置） | ✅ | 导出配置可维护（先不要求真实导出实现）；提供 `/v1/system/module/exports/**` 供系统态联调 | `SystemModuleExportController`；`SystemModuleExportService` |
-| C-5 | 业务行数据 CRUD、`*_data` / EAV、DSL 白名单 | ✅ | 数据可写可查；查询不允许任意 SQL | `SystemModuleRecordController`（create/detail/query/update/delete）；`un_module_record_data` 为 **EAV**（`field_code`+`value_text`）；变更写入 `un_module_record_history`；DSL 动态条件用 **field_code**；写入/查询均校验 `field_code` 存在于 `un_module_field`（注：typed-value/索引优化后续迭代） |
+| C-5 | 业务行数据 CRUD、`*_data` / EAV、DSL 白名单 | ✅ | 数据可写可查；查询不允许任意 SQL | `SystemModuleRecordController`；EAV 含 `value_text` + typed `value_num`/`value_dt`（V23）；`EavTypedValueSupport`；DSL `eq` 按字段类型解析 |
 
 ### D flow（审批引擎主链路）
 
@@ -144,7 +145,7 @@
 | I-2 | Web 导出发起 + 签名/评分字段 | ✅ | `ExportsView` `createExportJob`；`SignatureField`/`RatingField` |
 | I-3 | Web 平台创建系统 + RBAC dataScope | ✅ | `SystemsView`；`RbacView` 数据权限与 perm-preview |
 | I-4 | Web 平台收件箱抄送已读 | ✅ | `PlatformInboxView` + `readPlatformCc` |
-| I-5 | 文档与契约同步 | ✅ | `openapi-contract.md`、`curl-examples.md`、`mobile-api-coverage.md` |
+| I-5 | 文档与契约同步 | ✅ | `openapi-contract.md`（含 §9 graph-designer）、`curl-examples.md`、`mobile-api-coverage.md`；冒烟 `e2e-smoke` 含 graph-designer |
 
 ---
 
@@ -163,4 +164,15 @@
 - **需求根本**：`README.md`
 - **执行清单（唯一进度表）**：`docs/development-tracker.md`（本文）
 - **需求记录（变更日志）**：`docs/requirements-log.md`
+
+### 4.1 v1 交付核对（2026-05-21）
+
+| 端 | 范围 | 状态 |
+|----|------|------|
+| 后端 | A–E + P（Flyway/指标/requestId） | ✅ |
+| Web | 管理台全视图 + `FlowGraphDesignerView` + 筛选模板 | ✅ |
+| 移动端 | 元数据/记录/流程/上传/RBAC + 流程图画布·列表·预览 | ✅ |
+| 契约/冒烟 | `openapi-contract` §9、`curl-examples`、`e2e-smoke`（含 graph-designer 发布） | ✅ |
+
+**新开功能**：仅通过 `requirements-log.md` 追加 + tracker 新任务行。
 

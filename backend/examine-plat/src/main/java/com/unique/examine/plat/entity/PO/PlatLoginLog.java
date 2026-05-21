@@ -76,7 +76,7 @@ public class PlatLoginLog implements Serializable {
     private LocalDateTime createTime;
 
     @Schema(description = "更新时间")
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
 

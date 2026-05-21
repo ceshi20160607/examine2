@@ -118,3 +118,36 @@ flow 的 OpenAPI 入口位于：
 具体可运行示例见：
 - `docs/api/curl-examples.md`
 
+### 9) Flow 系统态（模板 / 可视化设计器）
+
+**前缀**：`/v1/system/flow/**`（需 token 且已进入自建系统）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/v1/system/flow/temps/upsert` | 模板 `tempCode` / `tempName` |
+| POST | `/v1/system/flow/temp-vers/upsert` | 版本草稿；可带 `graphJson` / `formJson` |
+| GET | `/v1/system/flow/temp-vers/{tempVerId}` | 版本详情（含 `graphJson`） |
+| GET | `/v1/system/flow/temp-vers/{tempVerId}/graph-designer` | 加载设计器：`nodes` / `edges` / `graphJson` |
+| POST | `/v1/system/flow/temp-vers/{tempVerId}/graph-designer` | 保存设计器：写节点/边表并生成 `graphJson` |
+| POST | `/v1/system/flow/temp-vers/{id}/publish` | 发布（要求已有非空 `graphJson`） |
+
+**`POST .../graph-designer` 请求体**（与 Web `FlowGraphDesignerView`、移动端 `temp_ver_graph_edit` 一致）：
+
+```json
+{
+  "nodes": [
+    { "nodeKey": "start_1", "nodeType": "start", "nodeName": "开始", "x": 120, "y": 120, "configJson": "{}" }
+  ],
+  "edges": [
+    { "fromNodeKey": "start_1", "toNodeKey": "approve_1", "priority": 1, "isDefault": 0, "cond": "" }
+  ],
+  "graphConfigJson": null
+}
+```
+
+- `nodes[].configJson` 可含布局 `x`/`y` 及业务配置（如 subflow 的 `sub_temp_code`、approve 的 `plat_ids` / `sign_mode`）。
+- `edges[].cond` 为条件表达式字符串；服务端会同步到连线条件表。
+- 仅存在 `graphJson`、节点表为空时，**GET graph-designer** 会尝试从 `graphJson` 导入节点/边（MVP 形：`nodes[].id` / `edges[].from|to`）。
+
+运行时实例、待办、办理等仍见 `curl-examples.md` §flow 系统态。
+

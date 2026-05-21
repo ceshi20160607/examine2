@@ -71,7 +71,17 @@
                                     select 1 from un_module_record_data rdf
                                     where rdf.record_id = r.id
                                       and rdf.field_code = #{f.field}
-                                      and rdf.value_text = #{f.value}
+                                      <choose>
+                                        <when test="'NUM'.equals(f.typedKind)">
+                                          and rdf.value_num = #{f.valueNum}
+                                        </when>
+                                        <when test="'DT'.equals(f.typedKind)">
+                                          and rdf.value_dt = #{f.valueDt}
+                                        </when>
+                                        <otherwise>
+                                          and rdf.value_text = #{f.value}
+                                        </otherwise>
+                                      </choose>
                                 )
                             </when>
                             <when test="f.op == 'like'">

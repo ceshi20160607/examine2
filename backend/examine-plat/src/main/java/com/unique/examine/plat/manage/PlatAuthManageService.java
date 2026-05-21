@@ -45,10 +45,13 @@ public class PlatAuthManageService {
             throw new BusinessException("用户名已存在");
         }
         long existedBefore = platAccountService.count();
+        LocalDateTime now = LocalDateTime.now();
         PlatAccount acc = new PlatAccount();
         acc.setUsername(u);
         acc.setPasswordHash(passwordEncoder.encode(rawPassword));
         acc.setStatus(1);
+        acc.setCreateTime(now);
+        acc.setUpdateTime(now);
         platAccountService.save(acc);
         platRbacManageService.bindDefaultRoleOnRegister(acc.getId(), existedBefore == 0);
         return acc;
@@ -65,7 +68,10 @@ public class PlatAuthManageService {
             log.setFailReason("用户名或密码错误");
             log.setIp(ip);
             log.setUa(ua);
-            log.setLoginTime(LocalDateTime.now());
+            LocalDateTime now = LocalDateTime.now();
+            log.setLoginTime(now);
+            log.setCreateTime(now);
+            log.setUpdateTime(now);
             platLoginLogService.save(log);
             throw new BusinessException(401, "用户名或密码错误");
         }
@@ -82,7 +88,10 @@ public class PlatAuthManageService {
         ok.setSuccessFlag(1);
         ok.setIp(ip);
         ok.setUa(ua);
-        ok.setLoginTime(LocalDateTime.now());
+        LocalDateTime loginAt = LocalDateTime.now();
+        ok.setLoginTime(loginAt);
+        ok.setCreateTime(loginAt);
+        ok.setUpdateTime(loginAt);
         platLoginLogService.save(ok);
 
         String token = sessionService.createSession(new SessionPayload(acc.getId(), acc.getUsername(), 0L, 0L));

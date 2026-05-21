@@ -68,6 +68,9 @@ function upsertFilterTpl(cmd) {
     status: cmd.status ?? 1
   });
 }
+function deleteFilterTpls(ids) {
+  return httpPost("/v1/system/module/list-views/filter-tpls/delete", { ids });
+}
 function listExportTplsByModel(modelId) {
   return httpGet(`/v1/system/module/exports/models/${modelId}/tpls`);
 }
@@ -203,6 +206,7 @@ export {
   upsertExportTpl,
   upsertExportTplField,
   upsertFilterTpl,
+  deleteFilterTpls,
   upsertListView,
   upsertRbacMenu,
   upsertRbacRole,

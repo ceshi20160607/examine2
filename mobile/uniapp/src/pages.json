@@ -296,6 +296,24 @@
 			}
 		},
 		{
+			"path": "pages/system/flow/temp_ver_graph_preview",
+			"style": {
+				"navigationBarTitleText": "流程图预览"
+			}
+		},
+		{
+			"path": "pages/system/flow/temp_ver_graph_edit",
+			"style": {
+				"navigationBarTitleText": "流程图简易设计"
+			}
+		},
+		{
+			"path": "pages/system/flow/temp_ver_graph_designer",
+			"style": {
+				"navigationBarTitleText": "流程图画布"
+			}
+		},
+		{
 			"path": "pages/system/flow/by_biz",
 			"style": {
 				"navigationBarTitleText": "Flow By Biz"

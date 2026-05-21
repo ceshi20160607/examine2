@@ -204,7 +204,7 @@ async function refreshRows(ids: number[]) {
       refModelId.value,
       ids,
       columns.value,
-      props.field.refDisplayField,
+      props.field.refDisplayField ?? undefined,
       props.options
     )
   } catch {

@@ -169,6 +169,33 @@ step_inbox_flow() {
   return 0
 }
 
+step_flow_graph() {
+  SMOKE_ERR=""
+  local temp ver ver_id saved loaded
+  temp="$(api POST /v1/system/flow/temps/upsert "{\"tempCode\":\"smoke_flow_${TS}\",\"tempName\":\"Smoke Flow\",\"status\":1}")" || { SMOKE_ERR="flow temp upsert"; return 1; }
+  local temp_id
+  temp_id="$(echo "$temp" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")"
+  ver="$(api POST /v1/system/flow/temp-vers/upsert "{\"tempId\":${temp_id},\"publishStatus\":1,\"formJson\":\"{}\"}")" || { SMOKE_ERR="flow ver upsert"; return 1; }
+  ver_id="$(echo "$ver" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")"
+  saved="$(api POST "/v1/system/flow/temp-vers/${ver_id}/graph-designer" '{
+    "nodes":[
+      {"nodeKey":"start_1","nodeType":"start","nodeName":"开始","x":120,"y":120,"configJson":"{}"},
+      {"nodeKey":"approve_1","nodeType":"approve","nodeName":"审批","x":320,"y":120,"configJson":"{}"},
+      {"nodeKey":"end_1","nodeType":"end","nodeName":"结束","x":520,"y":120,"configJson":"{}"}
+    ],
+    "edges":[
+      {"fromNodeKey":"start_1","toNodeKey":"approve_1","priority":1,"isDefault":0,"cond":""},
+      {"fromNodeKey":"approve_1","toNodeKey":"end_1","priority":1,"isDefault":0,"cond":""}
+    ]
+  }')" || { SMOKE_ERR="graph-designer save"; return 1; }
+  echo "$saved" | python3 -c "import sys,json; d=json.load(sys.stdin); assert d.get('graphJson'), 'graphJson missing'" || { SMOKE_ERR="graphJson"; return 1; }
+  loaded="$(api GET "/v1/system/flow/temp-vers/${ver_id}/graph-designer")" || { SMOKE_ERR="graph-designer load"; return 1; }
+  echo "$loaded" | python3 -c "import sys,json; d=json.load(sys.stdin); assert len(d.get('nodes') or [])>=3" || { SMOKE_ERR="nodes count"; return 1; }
+  api GET "/v1/system/flow/temp-vers/${ver_id}" >/dev/null || { SMOKE_ERR="temp-ver get"; return 1; }
+  api POST "/v1/system/flow/temp-vers/${ver_id}/publish" '{}' >/dev/null || { SMOKE_ERR="temp-ver publish"; return 1; }
+  return 0
+}
+
 step_open_api() {
   SMOKE_ERR=""
   [[ "$SKIP_OPEN_API" == "1" ]] && return 0
@@ -210,6 +237,7 @@ main() {
   run_step "rbac + runtime menus" step_rbac || { summary; exit 1; }
   run_step "upload" step_upload || { summary; exit 1; }
   run_step "inbox + flow pending" step_inbox_flow || { summary; exit 1; }
+  run_step "flow graph-designer" step_flow_graph || { summary; exit 1; }
   run_step "open api (optional)" step_open_api || true
   set -e
   summary
