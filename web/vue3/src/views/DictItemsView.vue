@@ -27,8 +27,8 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { listDictItems, upsertDictItem } from '../api/module.js'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
-const dictId = computed(() => Number(route.params.dictId))
+const appId = computed(() => String(route.params.appId || ''))
+const dictId = computed(() => String(route.params.dictId || ''))
 const dictCode = computed(() => route.query.code || '')
 const rows = ref([])
 const error = ref('')

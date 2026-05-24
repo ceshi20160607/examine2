@@ -52,8 +52,8 @@ import {
 } from '../api/flow.js'
 
 const route = useRoute()
-const tempId = computed(() => Number(route.params.tempId))
-const tempVerId = ref(0)
+const tempId = computed(() => String(route.params.tempId || ''))
+const tempVerId = ref('')
 const vers = ref([])
 const nodes = ref([])
 const lines = ref([])

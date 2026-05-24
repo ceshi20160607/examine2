@@ -83,7 +83,7 @@ import {
 } from '../api/module'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
+const appId = computed(() => String(route.params.appId || ''))
 const roles = ref([])
 const members = ref([])
 const accountKw = ref('')
@@ -199,8 +199,8 @@ function fillMember(m) {
 }
 
 async function assignMember() {
-  const pid = Number(memberPlatId.value)
-  const rid = Number(memberRoleId.value)
+  const pid = memberPlatId.value.trim()
+  const rid = memberRoleId.value.trim()
   if (!pid || !rid) {
     error.value = '请输入 memberPlatId 与 roleId'
     return

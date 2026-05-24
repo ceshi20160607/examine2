@@ -148,9 +148,28 @@ public class SystemFlowTempVerController {
         }
         if (body.verNo() != null) {
             v.setVerNo(body.verNo());
+        } else if (v.getVerNo() == null || v.getVerNo() <= 0) {
+            Integer max = flowTempVerService.lambdaQuery()
+                    .eq(FlowTempVer::getSystemId, systemId)
+                    .eq(FlowTempVer::getTenantId, tenantId)
+                    .eq(FlowTempVer::getTempId, body.tempId())
+                    .select(FlowTempVer::getVerNo)
+                    .orderByDesc(FlowTempVer::getVerNo)
+                    .last("limit 1")
+                    .oneOpt()
+                    .map(FlowTempVer::getVerNo)
+                    .orElse(0);
+            v.setVerNo((max == null ? 0 : max) + 1);
         }
         v.setPublishStatus(pub);
-        v.setGraphJson(body.graphJson());
+        String graphJson = body.graphJson();
+        if (graphJson == null || graphJson.isBlank()) {
+            graphJson = v.getGraphJson();
+        }
+        if (graphJson == null || graphJson.isBlank()) {
+            graphJson = "{}";
+        }
+        v.setGraphJson(graphJson);
         v.setFormJson(body.formJson());
         v.setUpdateUserId(platId);
 

@@ -6,6 +6,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 @Aspect
 @Component
+@ConditionalOnProperty(prefix = "examine.trace", name = "enabled", havingValue = "true")
 public class ControllerParamLoggingAspect {
 
     private static final int MAX_LEN = 2000;

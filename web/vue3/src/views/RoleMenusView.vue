@@ -26,8 +26,8 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { listRbacMenus, listRoleMenuPerms, setRoleMenuPerms } from '../api/module'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
-const roleId = computed(() => Number(route.params.roleId))
+const appId = computed(() => String(route.params.appId || ''))
+const roleId = computed(() => String(route.params.roleId || ''))
 const menus = ref([])
 const selected = ref({})
 const permLevel = ref('1')
@@ -61,7 +61,7 @@ async function reload() {
     menus.value = mr.data || []
     const sel = {}
     for (const p of pr.data || []) {
-      if (p?.menuId && p?.permLevel === 1) sel[Number(p.menuId)] = true
+      if (p?.menuId && p?.permLevel === 1) sel[String(p.menuId)] = true
     }
     selected.value = sel
   } catch (e) {

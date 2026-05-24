@@ -26,8 +26,8 @@ import { actTask } from '../api/flow'
 
 const route = useRoute()
 const router = useRouter()
-const instanceId = computed(() => Number(route.query.instanceId) || 0)
-const taskId = computed(() => Number(route.query.taskId) || 0)
+const instanceId = computed(() => String(route.query.instanceId || ''))
+const taskId = computed(() => String(route.query.taskId || ''))
 const commentText = ref('')
 const error = ref('')
 const resultText = ref('')
@@ -42,7 +42,7 @@ async function act(path, body) {
   try {
     const r = await actTask(path, body)
     resultText.value = JSON.stringify(r?.data ?? null, null, 2)
-    const nextTaskId = Number(r?.data?.nextTaskId || 0)
+    const nextTaskId = String(r?.data?.nextTaskId || '')
     if (nextTaskId && confirm('打开下一任务?')) {
       router.replace({ path: '/flow/task', query: { instanceId: instanceId.value, taskId: nextTaskId } })
     }

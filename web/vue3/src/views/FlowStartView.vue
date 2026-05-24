@@ -44,7 +44,7 @@ async function start(t) {
   if (!title) return
   error.value = ''
   try {
-    const r = await startInstance({ tempCode: t.tempCode, title })
+    const r = await startInstance({ defCode: t.tempCode, title: title.trim() })
     resultText.value = JSON.stringify(r.data || null, null, 2)
     alert('已发起')
   } catch (e) {

@@ -50,13 +50,13 @@ public class ModuleDept implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long createUserId;
 
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long updateUserId;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }

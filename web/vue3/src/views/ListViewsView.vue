@@ -70,7 +70,7 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { listFilterTpls, listViewCols, listViewsByModel, upsertListView, upsertViewCol, upsertFilterTpl, deleteFilterTpls } from '../api/module'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
+const appId = computed(() => String(route.params.appId || ''))
 const modelIdText = ref(String(route.query.modelId || ''))
 const views = ref([])
 const filterTpls = ref([])
@@ -79,7 +79,7 @@ const activeView = ref(null)
 const error = ref('')
 
 async function loadViews() {
-  const modelId = Number(modelIdText.value)
+  const modelId = modelIdText.value.trim()
   if (!modelId) {
     error.value = '请输入 modelId'
     return
@@ -95,7 +95,7 @@ async function loadViews() {
 }
 
 async function addView() {
-  const modelId = Number(modelIdText.value)
+  const modelId = modelIdText.value.trim()
   const viewCode = prompt('viewCode')
   const viewName = prompt('viewName')
   if (!modelId || !viewCode || !viewName) return
@@ -125,7 +125,7 @@ async function loadCols() {
 }
 
 async function loadFilterTpls() {
-  const modelId = Number(modelIdText.value)
+  const modelId = modelIdText.value.trim()
   if (!modelId) return
   error.value = ''
   try {
@@ -137,7 +137,7 @@ async function loadFilterTpls() {
 }
 
 async function addFilterTpl() {
-  const modelId = Number(modelIdText.value)
+  const modelId = modelIdText.value.trim()
   const tplCode = prompt('tplCode（唯一编码）')
   const tplName = prompt('tplName')
   if (!modelId || !tplCode || !tplName) return
@@ -163,7 +163,7 @@ async function removeFilterTpl(t) {
 
 async function addCol() {
   if (!activeView.value) return
-  const fieldId = Number(prompt('fieldId'))
+  const fieldId = String(prompt('fieldId') || '').trim()
   const colTitle = prompt('colTitle')
   if (!fieldId || !colTitle) return
   error.value = ''

@@ -41,6 +41,16 @@
 
 详见 **`docs/deploy/flyway-existing-db.md`**。
 
+**V14 / 17 已手工执行**：重新打包启动即可；`FlywayStartupConfig` 会按列是否存在自动写入 `flyway_schema_history`（V14、V23），再执行 V15+。
+
+**启动报 `failed migration to version 14`（旧 JAR / 未登记历史）**：
+
+1. 在 MySQL 执行 `docs/sql/manual/flyway_repair_v14_force.sql`（删除 version=14 失败记录）
+2. 仓库根执行：`.\scripts\startup-dev.ps1`（repair → 打包 → 启动）  
+   或分步：`.\scripts\db\repair-flyway-failed.ps1` 后 `.\scripts\deploy\run-backend.ps1`
+3. dev 已配置：`FlywayDevConfig`（先 repair 再 migrate）、`validate-on-migrate` 默认 **false**（可用 `EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE=true` 恢复）
+4. 已手工跑 `17` typed 列：`$env:EXAMINE_FLYWAY_BASELINE_VERSION = '23'`
+
 ### 方式 B：继续关 Flyway、只用手工 SQL
 
 将 `spring.flyway.enabled` 设为 `false`，仍按 `docs/sql/README.md` 维护。
@@ -62,7 +72,8 @@ mvn -pl examine-web -am package -DskipTests
 
 ```bash
 cd backend/examine-web
-java -jar target/examine-web-0.0.1-SNAPSHOT.jar
+# 建议显式小堆 + SerialGC，并勿依赖系统 JAVA_TOOL_OPTIONS（易触发 G1 native OOM）
+java -Xmx256m -XX:+UseSerialGC -jar target/examine-web-0.0.1-SNAPSHOT.jar
 ```
 
 默认 **dev** profile（见 `application.yml`）：改其中的 **MySQL URL / 账号 / Redis** 指向你的环境。
@@ -72,6 +83,25 @@ java -jar target/examine-web-0.0.1-SNAPSHOT.jar
 ```bash
 curl -s http://127.0.0.1:9999/ping
 ```
+
+### 日志（Logback 滚动文件 + 控制台简要）
+
+| 项 | dev 行为 |
+|----|----------|
+| 文件 | `backend/examine-web/logs/examine-web.log`，**单文件 ≤10MB**，保留约 14 天、总上限 100MB（gzip 滚动） |
+| 控制台 | 仅 INFO 摘要，**不刷 SQL / TRACE** |
+| TRACE 入参/出参/链路 | **默认开启**，只写入滚动文件（`examine.trace.enabled=true`） |
+| MyBatis SQL | **默认开启**，只写入滚动文件（`Slf4jImpl` + mapper DEBUG） |
+| 导出任务轮询 | **30s**（减少空转） |
+
+关闭详细追踪（仍保留错误日志文件）：
+
+```powershell
+$env:EXAMINE_TRACE_ENABLED = 'false'
+$env:EXAMINE_MYBATIS_LOG_IMPL = 'org.apache.ibatis.logging.nologging.NoLoggingImpl'
+```
+
+**不要**再用 `RedirectStandardOutput` 重定向到仓库内 `live.out.log`。清理历史调试文件：`.\scripts\clean-logs.ps1`。
 
 ---
 
@@ -111,7 +141,7 @@ npm run build
 ## 8. 冒烟（验证「能跑通」）
 
 ```powershell
-cd scripts\smoke
+cd tests\api
 $env:EXAMINE_HOST = "http://127.0.0.1:9999"
 $env:SMOKE_USER = "admin"
 $env:SMOKE_PASS = "123123aa"

@@ -132,14 +132,14 @@ public class SystemModulePageService {
         List<Map<String, Object>> fieldOverrides = parseFieldOverrides(page.getFormFieldsJson());
 
         Map<String, Object> runtime = new LinkedHashMap<>();
-        runtime.put("pageId", page.getId());
-        runtime.put("appId", page.getAppId());
+        runtime.put("pageId", page.getId() == null ? null : String.valueOf(page.getId()));
+        runtime.put("appId", page.getAppId() == null ? null : String.valueOf(page.getAppId()));
         runtime.put("pageCode", page.getPageCode());
         runtime.put("pageName", page.getPageName());
         runtime.put("pageType", page.getPageType());
         runtime.put("routePath", page.getRoutePath());
-        runtime.put("modelId", modelId);
-        runtime.put("listViewId", listViewId);
+        runtime.put("modelId", modelId == null ? null : String.valueOf(modelId));
+        runtime.put("listViewId", listViewId == null ? null : String.valueOf(listViewId));
         runtime.put("searchFieldCode", searchFieldCode);
         runtime.put("titleFieldCodes", titleFieldCodes == null ? List.of() : titleFieldCodes);
         runtime.put("columnFieldCodes", columnFieldCodes == null ? List.of() : columnFieldCodes);

@@ -31,13 +31,28 @@ spring:
     baseline-on-migrate: true
     baseline-version: ${EXAMINE_FLYWAY_BASELINE_VERSION:22}
     # 若历史版本脚本文本变更导致校验失败，可临时设为 false 或执行 flyway repair
-    validate-on-migrate: ${EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE:true}
+    # dev 默认关闭 validate；启动时 FlywayStartupConfig 先把手工版本标 success 再 migrate
+    validate-on-migrate: ${EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE:false}
+    repair-on-migrate: ${EXAMINE_FLYWAY_REPAIR_ON_MIGRATE:true}
 
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # dev：SQL 经 Slf4j 写入 logs/examine-web.log（见 logback），不刷控制台；prod 用 NoLoggingImpl
+    log-impl: ${EXAMINE_MYBATIS_LOG_IMPL:org.apache.ibatis.logging.slf4j.Slf4jImpl}
   mapper-locations: classpath*:/com/unique/examine/**/mapper/xml/**/*.xml
+
+logging:
+  file:
+    name: ${LOG_FILE:logs/examine-web.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 14
+      total-size-cap: 100MB
+  level:
+    root: INFO
+    com.unique.examine: INFO
 
 springdoc:
   api-docs:
@@ -59,6 +74,15 @@ management:
       enabled: true
 
 examine:
+  flyway:
+    # 手工已执行版本：写入 schema_history success=1，不跑 DDL；17 已跑则 EXAMINE_FLYWAY_MARK_APPLIED=14,23
+    mark-applied: ${EXAMINE_FLYWAY_MARK_APPLIED:14}
+  # 导出任务轮询（毫秒）；dev 默认 30s，避免空转刷 SQL 日志
+  export-job:
+    poll-ms: ${EXAMINE_EXPORT_JOB_POLL_MS:30000}
+  # HTTP 入参/出参/链路 TRACE（dev 默认开，写入滚动日志文件；关：EXAMINE_TRACE_ENABLED=false）
+  trace:
+    enabled: ${EXAMINE_TRACE_ENABLED:true}
   openapi:
     # 生产环境务必更换；用于加密存库的 SK（签名验签），非客户端传输密钥
     signing-master-key: change-me-openapi-signing-key-32bytes

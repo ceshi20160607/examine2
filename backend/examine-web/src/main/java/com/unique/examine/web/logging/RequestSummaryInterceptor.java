@@ -6,12 +6,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.List;
 
+@Component
+@ConditionalOnProperty(prefix = "examine.trace", name = "enabled", havingValue = "true")
 public class RequestSummaryInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger("TRACE.CHAIN");

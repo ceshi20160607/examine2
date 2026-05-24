@@ -25,6 +25,15 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
 
+logging:
+  file:
+    name: ${LOG_FILE:/var/log/examine/examine-web.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 20MB
+      max-history: 30
+      total-size-cap: 500MB
+
 springdoc:
   api-docs:
     enabled: false
@@ -39,6 +48,10 @@ management:
         include: health,info,prometheus
 
 examine:
+  export-job:
+    poll-ms: ${EXAMINE_EXPORT_JOB_POLL_MS:10000}
+  trace:
+    enabled: false
   openapi:
     signing-master-key: ${EXAMINE_OPENAPI_SIGNING_MASTER_KEY:change-me-openapi-signing-key-32bytes}
   upload:

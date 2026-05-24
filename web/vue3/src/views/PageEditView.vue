@@ -44,8 +44,8 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { deletePageBlocks, getPageDetail, upsertPage, upsertPageBlock } from '../api/pages'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
-const pageId = computed(() => Number(route.params.pageId))
+const appId = computed(() => String(route.params.appId || ''))
+const pageId = computed(() => String(route.params.pageId || ''))
 const page = ref(null)
 const blocks = ref([])
 const error = ref('')

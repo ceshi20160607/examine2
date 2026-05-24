@@ -65,7 +65,7 @@ public class FlowNodeTemp implements Serializable {
     private Long createUserId;
 
     @Schema(description = "更新人 platId")
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long updateUserId;
 
@@ -74,7 +74,7 @@ public class FlowNodeTemp implements Serializable {
     private LocalDateTime createTime;
 
     @Schema(description = "更新时间")
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
 

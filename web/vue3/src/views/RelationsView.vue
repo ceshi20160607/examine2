@@ -30,7 +30,7 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { deleteRelations, listModelsByApp, listRelationsByApp, upsertRelation } from '../api/meta'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
+const appId = computed(() => String(route.params.appId || ''))
 const rows = ref([])
 const models = ref([])
 const error = ref('')

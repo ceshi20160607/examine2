@@ -48,7 +48,7 @@ public class PlatAccountRole implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long createUserId;
 
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long updateUserId;
 

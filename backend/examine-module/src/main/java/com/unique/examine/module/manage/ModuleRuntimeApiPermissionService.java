@@ -71,9 +71,13 @@ public class ModuleRuntimeApiPermissionService {
             if (pattern == null || pattern.isBlank()) {
                 continue;
             }
-            if (matcher.match(pattern.trim(), requestUri)) {
-                String key = row.getPermKey();
-                return Optional.ofNullable(key == null ? null : key.trim()).filter(s -> !s.isEmpty());
+            try {
+                if (matcher.match(pattern.trim(), requestUri)) {
+                    String key = row.getPermKey();
+                    return Optional.ofNullable(key == null ? null : key.trim()).filter(s -> !s.isEmpty());
+                }
+            } catch (IllegalArgumentException ignored) {
+                // skip invalid api_pattern rows
             }
         }
         return Optional.empty();

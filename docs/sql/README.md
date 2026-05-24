@@ -40,6 +40,12 @@
 - `15_module_record_data_eav_alter.sql`
   - 适用：曾用**旧版** `05_module_ddl.sql`（`un_module_record_data` 为单行 `data_json`）的库，需迁到 **EAV（`record_id` + `field_code`）**
   - **全新安装**直接使用当前 `05_module_ddl.sql` 即可，一般**不必**执行本脚本
+- `19_flow_task_column_align.sql`
+  - 适用：旧库 `un_flow_task` 仍为 `instance_id`/`node_id` 时，对齐为 `record_id`/`node_key`（与 Flyway **V26** 相同，幂等）
+  - 新库执行 `07_flow_ddl.sql` 即可，一般不必再跑
+- `20_app_client_credential_sign_secret_enc.sql`
+  - 适用：旧库 baseline 到 V22 导致 Flyway V21 被跳过，但开放应用创建已写 `sign_secret_enc` 时补列（与 Flyway **V27** 相同，幂等）
+  - 新库执行当前 Flyway 或 `09_app_ddl.sql` + 后续增量即可，一般不必手工跑
 
 ---
 

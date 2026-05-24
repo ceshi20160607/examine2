@@ -11,12 +11,14 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 @Component
 @ControllerAdvice
+@ConditionalOnProperty(prefix = "examine.trace", name = "enabled", havingValue = "true")
 public class ResponseLoggingAdvice implements ResponseBodyAdvice<Object> {
 
     private static final int MAX_LEN = 2000;
@@ -34,9 +36,10 @@ public class ResponseLoggingAdvice implements ResponseBodyAdvice<Object> {
                                  Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                  ServerHttpRequest request, ServerHttpResponse response) {
         try {
-            if (!(request instanceof ServletServerHttpRequest sr) || !(response instanceof ServletServerHttpResponse)) {
+            if (!(request instanceof ServletServerHttpRequest) || !(response instanceof ServletServerHttpResponse)) {
                 return body;
             }
+            ServletServerHttpRequest sr = (ServletServerHttpRequest) request;
             HttpServletRequest servletReq = sr.getServletRequest();
             Object rid = servletReq.getAttribute(com.unique.examine.web.security.RequestContextFilter.ATTR_REQUEST_ID);
             String requestId = rid == null ? "" : String.valueOf(rid);

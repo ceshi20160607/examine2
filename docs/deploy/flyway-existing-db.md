@@ -30,10 +30,17 @@ $env:EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE = "true"
 
 Baseline **不会重复执行**。Flyway 只跑 **success 表中尚未成功**的版本。此时不必改 `baseline-version`，除非你改用新库重装。
 
-## 校验失败（常见：改过历史 migration 正文）
+## 校验失败 / failed migration（success=0）
 
-优先：`flyway repair`（或使用带 Flyway 的插件对目标库 repair）。  
-应急：短时 `EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE=false`，修完脚本 / 历史后再改回 `true`。
+**现象**：启动报错 `Detected failed migration to version N` 或 `Validate failed`。
+
+**推荐顺序**：
+
+1. **dev 默认**已开 `repair-on-migrate=true`（`EXAMINE_FLYWAY_REPAIR_ON_MIGRATE`），会先清理失败记录再迁移。
+2. 仍失败时执行手工 SQL：`docs/sql/manual/flyway_repair_failed_migration.sql`  
+   或 Windows：`.\scripts\db\repair-flyway-failed.ps1`
+3. **V14**（`ref_model_id` / `ref_display_field`）脚本已改为**幂等**。**列已手工执行**时：跑 `docs/sql/manual/flyway_repair_v14_already_applied.sql` 清失败记录即可，**不要重复 ALTER**；重启后 Flyway 仅登记 V14 成功并继续更高版本。
+4. 改过已成功版本的脚本文本导致 checksum 不一致：对目标库 `flyway repair`，或短时 `EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE=false` 启动后再改回 `true`。
 
 ## 与本仓库手工脚本的关系
 

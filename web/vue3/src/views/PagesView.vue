@@ -33,7 +33,7 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { deletePages, listPagesByApp, upsertPage } from '../api/pages'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
+const appId = computed(() => String(route.params.appId || ''))
 const rows = ref([])
 const error = ref('')
 

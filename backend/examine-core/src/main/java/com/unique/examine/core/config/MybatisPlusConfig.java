@@ -17,7 +17,16 @@ public class MybatisPlusConfig {
             public void insertFill(MetaObject metaObject) {
                 LocalDateTime now = LocalDateTime.now();
                 strictInsertFill(metaObject, "createTime", LocalDateTime.class, now);
-                strictInsertFill(metaObject, "updateTime", LocalDateTime.class, now);
+                if (metaObject.hasSetter("updateTime")) {
+                    strictInsertFill(metaObject, "updateTime", LocalDateTime.class, now);
+                }
+                if (metaObject.hasSetter("updateUserId") && metaObject.hasSetter("createUserId")) {
+                    Object updateUserId = getFieldValByName("updateUserId", metaObject);
+                    Object createUserId = getFieldValByName("createUserId", metaObject);
+                    if (updateUserId == null && createUserId != null) {
+                        strictInsertFill(metaObject, "updateUserId", Long.class, (Long) createUserId);
+                    }
+                }
             }
 
             @Override
@@ -27,4 +36,3 @@ public class MybatisPlusConfig {
         };
     }
 }
-

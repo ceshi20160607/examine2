@@ -35,7 +35,7 @@ import { getRecord, listRecordHistory } from '../api/records'
 const route = useRoute()
 const appId = computed(() => route.query.appId)
 const modelId = computed(() => route.query.modelId)
-const recordId = computed(() => Number(route.query.recordId) || 0)
+const recordId = computed(() => String(route.query.recordId || ''))
 const recordText = ref('')
 const history = ref([])
 const error = ref('')

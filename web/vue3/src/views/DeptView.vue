@@ -29,7 +29,7 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { deleteDepts, listDepts, upsertDept } from '../api/dept'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
+const appId = computed(() => String(route.params.appId || ''))
 const rows = ref([])
 const error = ref('')
 

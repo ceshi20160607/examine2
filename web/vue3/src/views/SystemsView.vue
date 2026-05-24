@@ -4,12 +4,12 @@
     <p class="muted">进入自建系统后才能管理应用与数据。</p>
 
     <div class="create-box">
-      <input v-model="newSystemName" placeholder="新系统名称" class="name-input" />
+      <input v-model="newSystemName" data-testid="system-name-input" placeholder="新系统名称" class="name-input" />
       <label class="check-label">
         <input v-model="newMultiTenant" type="checkbox" />
         多租户
       </label>
-      <button type="button" :disabled="creating || !newSystemName.trim()" @click="createNew">
+      <button type="button" data-testid="system-create-btn" :disabled="creating || !newSystemName.trim()" @click="createNew">
         {{ creating ? '创建中…' : '创建系统' }}
       </button>
     </div>

@@ -13,7 +13,7 @@
 | **[需求记录（变更日志）](docs/requirements-log.md)** | 产品/研发/测试 | 需求澄清、范围变更、关键决策的时间线（只追加） |
 | **[最简运行与部署（无 CI/CD）](docs/deploy/simple-run.md)** | 运维/本机联调 | MySQL+Redis+JAR 跑起来；可选前端构建与冒烟 |
 | **[Flyway + 已有手工 SQL](docs/deploy/flyway-existing-db.md)** | 运维 | baseline 跳过已执行版本、环境变量与 repair |
-| **[API 冒烟脚本](scripts/smoke/README.md)** | 研发/运维 | `e2e-smoke.ps1` / `e2e-smoke.sh`，覆盖 graph-designer 等主流程 |
+| **[测试（API + Web UI）](tests/README.md)** | 研发/运维 | `tests/api` 冒烟、`tests/web` Playwright |
 
 ---
 

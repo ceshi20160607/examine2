@@ -24,7 +24,7 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { getInstance, listInstanceTasks, listInstanceTraces } from '../api/flow.js'
 
 const route = useRoute()
-const instanceId = computed(() => Number(route.params.instanceId))
+const instanceId = computed(() => String(route.params.instanceId || ''))
 const detail = ref(null)
 const tasks = ref([])
 const error = ref('')

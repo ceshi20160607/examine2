@@ -72,7 +72,7 @@ public class PlatAccount implements Serializable {
     private Long createUserId;
 
     @Schema(description = "更新人 platId")
-    @TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long updateUserId;
 

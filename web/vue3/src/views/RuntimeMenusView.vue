@@ -24,7 +24,7 @@ import { getPageRuntime } from '../api/pages'
 
 const route = useRoute()
 const router = useRouter()
-const appId = computed(() => Number(route.params.appId))
+const appId = computed(() => String(route.params.appId || ''))
 const menus = ref([])
 const loading = ref(false)
 const error = ref('')

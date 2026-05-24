@@ -35,7 +35,7 @@ import {
 } from '../api/flowBinding'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
+const appId = computed(() => String(route.params.appId || ''))
 const modelIdText = ref(String(route.query.modelId || ''))
 const rows = ref([])
 const tempOptions = ref([])
@@ -56,7 +56,7 @@ async function loadTemps() {
 }
 
 async function load() {
-  const modelId = Number(modelIdText.value)
+  const modelId = modelIdText.value.trim()
   if (!modelId) {
     error.value = '请输入 modelId'
     return
@@ -71,7 +71,7 @@ async function load() {
 }
 
 async function add() {
-  const modelId = Number(modelIdText.value)
+  const modelId = modelIdText.value.trim()
   const triggerAction = prompt('triggerAction (如 on_create)', 'on_create')
   const opts = tempOptions.value.map((t, i) => `${i + 1}. ${t.text || t.label || t.tempCode} (#${t.value ?? t.id})`).join('\n')
   const idx = Number(prompt(`流程模板序号:\n${opts}`)) - 1

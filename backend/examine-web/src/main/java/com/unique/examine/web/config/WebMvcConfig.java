@@ -22,6 +22,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     private ModuleAuthContextInterceptor moduleAuthContextInterceptor;
     @Autowired
     private ModuleApiPathPermissionInterceptor moduleApiPathPermissionInterceptor;
+    @Autowired(required = false)
+    private RequestSummaryInterceptor requestSummaryInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -41,9 +43,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/v1/system/**")
                 .order(25);
 
-        registry.addInterceptor(new RequestSummaryInterceptor())
-                .addPathPatterns("/v1/**")
-                .order(30);
+        if (requestSummaryInterceptor != null) {
+            registry.addInterceptor(requestSummaryInterceptor)
+                    .addPathPatterns("/v1/**")
+                    .order(30);
+        }
 
         registry.addInterceptor(platOperLogInterceptor)
                 .addPathPatterns("/v1/**")

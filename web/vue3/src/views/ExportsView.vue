@@ -53,7 +53,7 @@ import { createExportJob, listExportTplFields, listExportTplsByModel, upsertExpo
 
 const route = useRoute()
 const router = useRouter()
-const appId = computed(() => Number(route.params.appId))
+const appId = computed(() => String(route.params.appId || ''))
 const modelIdText = ref(String(route.query.modelId || ''))
 const tpls = ref([])
 const fields = ref([])
@@ -62,7 +62,7 @@ const error = ref('')
 const exportingId = ref(0)
 
 async function loadTpls() {
-  const modelId = Number(modelIdText.value)
+  const modelId = modelIdText.value.trim()
   if (!modelId) {
     error.value = '请输入 modelId'
     return
@@ -77,7 +77,7 @@ async function loadTpls() {
 }
 
 async function addTpl() {
-  const modelId = Number(modelIdText.value)
+  const modelId = modelIdText.value.trim()
   const tplCode = prompt('tplCode')
   const tplName = prompt('tplName')
   if (!modelId || !tplCode || !tplName) return
@@ -102,7 +102,7 @@ async function loadFields(t) {
 }
 
 async function startExport(t) {
-  const modelId = Number(modelIdText.value)
+  const modelId = modelIdText.value.trim()
   if (!appId.value || !modelId) {
     error.value = '需要 appId 与 modelId'
     return

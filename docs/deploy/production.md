@@ -104,7 +104,7 @@ server {
 
 ```powershell
 # Windows
-cd scripts\smoke
+cd tests\api
 $env:EXAMINE_HOST = "http://127.0.0.1:9999"
 $env:SMOKE_USER = "your_admin"    # 已有库时必填
 $env:SMOKE_PASS = "your_password"
@@ -113,10 +113,10 @@ $env:SMOKE_PASS = "your_password"
 
 ```bash
 # Git Bash / Linux
-cd scripts/smoke && EXAMINE_HOST=http://127.0.0.1:9999 SMOKE_USER=admin SMOKE_PASS=*** bash e2e-smoke.sh
+cd tests/api && EXAMINE_HOST=http://127.0.0.1:9999 SMOKE_USER=admin SMOKE_PASS=*** bash e2e-smoke.sh
 ```
 
-详见 `scripts/smoke/README.md`。
+详见 `tests/README.md`、`tests/api/README.md`。
 
 手工核对：
 

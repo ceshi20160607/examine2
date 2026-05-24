@@ -29,8 +29,8 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { deleteFields, listFieldsByModel, upsertField } from '../api/meta'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
-const modelId = computed(() => Number(route.params.modelId))
+const appId = computed(() => String(route.params.appId || ''))
+const modelId = computed(() => String(route.params.modelId || ''))
 const rows = ref([])
 const error = ref('')
 

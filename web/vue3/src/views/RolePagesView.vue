@@ -31,8 +31,8 @@ import { listPagesByApp } from '../api/pages'
 import { listRolePagePerms, setRolePagePerms } from '../api/module'
 
 const route = useRoute()
-const appId = computed(() => Number(route.params.appId))
-const roleId = computed(() => Number(route.params.roleId))
+const appId = computed(() => String(route.params.appId || ''))
+const roleId = computed(() => String(route.params.roleId || ''))
 const pages = ref([])
 const selected = ref({})
 const permLevel = ref('1')
@@ -55,7 +55,7 @@ async function reload() {
     pages.value = pr.data || []
     const sel = {}
     for (const row of permR.data || []) {
-      if (row?.pageId && row?.permLevel === 1) sel[Number(row.pageId)] = true
+      if (row?.pageId && row?.permLevel === 1) sel[String(row.pageId)] = true
     }
     selected.value = sel
   } catch (e) {

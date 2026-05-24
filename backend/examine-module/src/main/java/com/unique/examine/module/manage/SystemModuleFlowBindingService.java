@@ -47,6 +47,10 @@ public class SystemModuleFlowBindingService {
         for (FlowBinding b : list) {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("binding", b);
+            row.put("id", b.getId() == null ? null : String.valueOf(b.getId()));
+            row.put("triggerAction", b.getTriggerAction());
+            row.put("tempId", b.getTempId() == null ? null : String.valueOf(b.getTempId()));
+            row.put("status", b.getStatus());
             if (b.getTempId() != null) {
                 FlowTemp t = flowTempService.getById(b.getTempId());
                 row.put("tempCode", t != null ? t.getTempCode() : null);
@@ -70,7 +74,7 @@ public class SystemModuleFlowBindingService {
         List<Map<String, Object>> out = new ArrayList<>();
         for (FlowTemp t : temps) {
             Map<String, Object> m = new LinkedHashMap<>();
-            m.put("id", t.getId());
+            m.put("id", t.getId() == null ? null : String.valueOf(t.getId()));
             m.put("tempCode", t.getTempCode());
             m.put("tempName", t.getTempName());
             out.add(m);

@@ -9,7 +9,8 @@ public class TraceInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        if (handler instanceof HandlerMethod hm) {
+        if (handler instanceof HandlerMethod) {
+            HandlerMethod hm = (HandlerMethod) handler;
             String sig = hm.getBeanType().getSimpleName() + "#" + hm.getMethod().getName();
             request.setAttribute("handlerSig", sig);
         }

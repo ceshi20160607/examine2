@@ -28,6 +28,7 @@
 - **后续迭代（非阻塞上线）**：无阻塞项；移动端已提供 **画布设计**（`temp_ver_graph_designer`，触摸拖拽 + 连线模式）、**列表编辑**（`temp_ver_graph_edit`）、**只读预览**（`temp_ver_graph_preview`），均写同一 `graph-designer` API。
 - **只想能跑、不要 CI/CD**：见 **`docs/deploy/simple-run.md`**；Windows 可在仓库根执行 `.\scripts\deploy\run-backend.ps1`。
 - **维护**：进度只在本文更新；需求变更追加 `docs/requirements-log.md`。
+- **自动化测试**：与 `backend` / `web` / `mobile` 平级的 **`tests/`**（`tests/api` 冒烟、`tests/web` Playwright）；旧 `scripts/smoke` 转发兼容。
 
 ---
 

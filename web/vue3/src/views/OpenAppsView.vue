@@ -7,12 +7,12 @@
     </div>
     <p v-if="error" class="error">{{ error }}</p>
     <table v-if="rows.length" class="table">
-      <thead><tr><th>ID</th><th>名称</th><th>AppKey</th><th>状态</th><th>操作</th></tr></thead>
+      <thead><tr><th>ID</th><th>名称</th><th>ClientCode</th><th>状态</th><th>操作</th></tr></thead>
       <tbody>
         <tr v-for="a in rows" :key="a.id">
           <td>{{ a.id }}</td>
-          <td>{{ a.appName }}</td>
-          <td class="mono">{{ a.appKey }}</td>
+          <td>{{ a.clientName }}</td>
+          <td class="mono">{{ a.clientCode }}</td>
           <td>{{ a.status }}</td>
           <td>
             <router-link :to="`/platform/open-apps/${a.id}`">详情</router-link>
@@ -46,13 +46,13 @@ async function load() {
 }
 
 async function create() {
-  const appName = prompt('appName')
-  const appKey = prompt('appKey (可选)', '')
-  if (!appName) return
+  const clientName = prompt('clientName')
+  const clientCode = prompt('clientCode (可选)', '')
+  if (!clientName) return
   error.value = ''
   secretText.value = ''
   try {
-    const r = await createOpenApp({ appName, appKey: appKey || undefined })
+    const r = await createOpenApp({ clientName, clientCode: clientCode || undefined })
     secretText.value = JSON.stringify(r.data || null, null, 2)
     load()
   } catch (e) {

@@ -6,14 +6,14 @@
       <form @submit.prevent="submit">
         <label>
           <span>用户名</span>
-          <input v-model="username" autocomplete="username" />
+          <input v-model="username" autocomplete="username" aria-label="用户名" />
         </label>
         <label>
           <span>密码</span>
-          <input v-model="password" type="password" autocomplete="current-password" />
+          <input v-model="password" type="password" autocomplete="current-password" aria-label="密码" />
         </label>
         <p v-if="error" class="error">{{ error }}</p>
-        <button type="submit" :disabled="loading">{{ loading ? '登录中…' : '登录' }}</button>
+        <button type="submit" data-testid="login-submit" :disabled="loading">{{ loading ? '登录中…' : '登录' }}</button>
         <p class="muted" style="margin-top: 0.75rem">
           <router-link to="/register">注册账号</router-link>
         </p>

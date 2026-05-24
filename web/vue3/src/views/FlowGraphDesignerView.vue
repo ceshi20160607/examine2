@@ -96,8 +96,8 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { loadGraphDesigner, publishTempVer, saveGraphDesigner } from '../api/flow.js'
 
 const route = useRoute()
-const tempId = computed(() => Number(route.params.tempId))
-const tempVerId = computed(() => Number(route.params.tempVerId))
+const tempId = computed(() => String(route.params.tempId || ''))
+const tempVerId = computed(() => String(route.params.tempVerId || ''))
 
 const nodes = ref([])
 const edges = ref([])

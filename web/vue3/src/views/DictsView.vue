@@ -28,7 +28,7 @@ import { listDictsByApp, upsertDict } from '../api/module'
 
 const route = useRoute()
 const router = useRouter()
-const appId = computed(() => Number(route.params.appId))
+const appId = computed(() => String(route.params.appId || ''))
 const dicts = ref([])
 const error = ref('')
 

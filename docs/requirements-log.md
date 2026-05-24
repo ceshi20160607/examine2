@@ -94,3 +94,9 @@
 - **变更**：`simple-run.md` / `development-tracker` C-5 与 typed 列对齐；版本列表增加画布/预览入口；冒烟增加 graph-designer **发布**；`.gitignore` 忽略本地 `*.log`。
 - **结论**：v1 无阻塞待开发项；新需求走 `requirements-log` + tracker 新行。
 
+### 2026-05-21 Flyway V14 失败修复（启动阻塞）
+
+- **背景**：dev 启动失败 `Detected failed migration to version 14`；半执行库无法再起。
+- **变更**：`V14__module_field_ref.sql` 改为幂等 ADD COLUMN；dev `repair-on-migrate=true`；`docs/sql/manual/flyway_repair_failed_migration.sql` + `scripts/db/repair-flyway-failed.ps1`；`flyway-existing-db.md` 补充失败迁移处理。
+- **结论**：清除 `success=0` 记录后重启即可；已成功执行旧 V14 的库若 checksum 变更，需 `flyway repair` 或短时关闭 validate。
+

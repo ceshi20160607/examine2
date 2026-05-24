@@ -8,6 +8,8 @@
 *.class
 
 # Local run logs
+logs/
+**/logs/
 **/*.log
 **/*.err.log
 **/*.out.log

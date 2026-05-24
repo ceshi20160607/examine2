@@ -49,9 +49,9 @@ import { getPageRuntime } from '../api/pages'
 import { queryRecords } from '../api/records'
 
 const route = useRoute()
-const appId = ref(0)
-const modelId = ref(0)
-const pageId = ref(0)
+const appId = ref('')
+const modelId = ref('')
+const pageId = ref('')
 const pageRuntime = ref(null)
 const fieldLabels = ref({})
 const rows = ref([])
@@ -157,9 +157,9 @@ async function load() {
 }
 
 function syncFromRoute() {
-  appId.value = Number(route.query.appId) || 0
-  modelId.value = Number(route.query.modelId) || 0
-  pageId.value = Number(route.query.pageId) || 0
+  appId.value = String(route.query.appId || '')
+  modelId.value = String(route.query.modelId || '')
+  pageId.value = String(route.query.pageId || '')
 }
 
 watch(() => route.query, async () => {

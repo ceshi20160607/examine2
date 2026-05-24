@@ -1,6 +1,7 @@
 # 最简：打包并启动 examine-web（无 CI/CD）
 # 用法：在仓库根目录  .\scripts\deploy\run-backend.ps1
 # 可选：$env:SPRING_PROFILES_ACTIVE = "prod"
+# 可选：$env:SKIP_FLYWAY_REPAIR = "1"  跳过启动前 DB 修复
 $ErrorActionPreference = 'Stop'
 
 $Root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
@@ -13,24 +14,51 @@ if (-not $env:JAVA_HOME) {
 }
 $java = Join-Path $env:JAVA_HOME 'bin\java.exe'
 if (-not (Test-Path $java)) {
-    Write-Error "JAVA_HOME 无效: $env:JAVA_HOME ，请设置 JAVA_HOME 后重试。"
+    Write-Error "JAVA_HOME invalid: $env:JAVA_HOME"
 }
 
-Get-NetTCPConnection -LocalPort 9999 -ErrorAction SilentlyContinue |
-    ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }
+if (-not $env:MAVEN_OPTS) {
+    $env:MAVEN_OPTS = '-Xmx512m -XX:+UseSerialGC'
+}
+# 运行时堆用命令行 -Xmx，避免系统 JAVA_TOOL_OPTIONS 触发 G1 导致 native OOM
+$heapMx = if ($env:EXAMINE_JAVA_XMX) { $env:EXAMINE_JAVA_XMX } else { '256m' }
+$javaArgs = @("-Xmx$heapMx", '-XX:+UseSerialGC', '-jar', $Jar)
+
+netstat -ano | Select-String ':\s*9999\s' | ForEach-Object {
+    if ($_ -match '\s+(\d+)\s*$') {
+        Stop-Process -Id $Matches[1] -Force -ErrorAction SilentlyContinue
+    }
+}
 Start-Sleep -Seconds 1
+
+if ($env:SKIP_FLYWAY_REPAIR -ne '1') {
+    $repairScript = Join-Path $Root 'scripts\db\repair-flyway-failed.ps1'
+    if (Test-Path $repairScript) {
+        Write-Host 'Running Flyway repair SQL (clear success=0 only) ...' -ForegroundColor Cyan
+        try {
+            & $repairScript
+        } catch {
+            Write-Warning "Flyway repair skipped: $($_.Exception.Message)"
+        }
+    }
+}
 
 Push-Location $Backend
 try {
+    Write-Host 'Building examine-web ...' -ForegroundColor Cyan
     & mvn -pl examine-web -am package -DskipTests -q
 } finally {
     Pop-Location
 }
 
 if (-not (Test-Path $Jar)) {
-    Write-Error "未找到 JAR: $Jar"
+    Write-Error "JAR not found: $Jar"
 }
 
 $profile = if ($env:SPRING_PROFILES_ACTIVE) { $env:SPRING_PROFILES_ACTIVE } else { 'dev' }
-Write-Host "Starting examine-web (profile=$profile) ..." -ForegroundColor Cyan
-& $java -jar $Jar "--spring.profiles.active=$profile"
+Write-Host "Starting examine-web (profile=$profile, -Xmx$heapMx SerialGC) ..." -ForegroundColor Cyan
+Write-Host 'Manual V14/17: flyway_schema_history marked success; Flyway runs V15+ only.' -ForegroundColor DarkYellow
+$env:JAVA_TOOL_OPTIONS = $null
+Remove-Item Env:JAVA_TOOL_OPTIONS -ErrorAction SilentlyContinue
+$javaArgs += @("--spring.profiles.active=$profile", '--spring.flyway.validate-on-migrate=false')
+& $java @javaArgs

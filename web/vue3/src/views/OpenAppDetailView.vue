@@ -37,7 +37,7 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import { getOpenApp, rotateOpenAppSecret } from '../api/platformApp.js'
 
 const route = useRoute()
-const id = computed(() => Number(route.params.id))
+const id = computed(() => String(route.params.id || ''))
 const detail = ref(null)
 const credential = ref(null)
 const error = ref('')

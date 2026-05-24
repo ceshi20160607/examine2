@@ -265,9 +265,9 @@ import {
 const route = useRoute()
 const router = useRouter()
 
-const appId = computed(() => Number(route.query.appId) || 0)
-const modelId = computed(() => Number(route.query.modelId) || 0)
-const recordId = computed(() => Number(route.query.recordId) || 0)
+const appId = computed(() => String(route.query.appId || ''))
+const modelId = computed(() => String(route.query.modelId || ''))
+const recordId = computed(() => String(route.query.recordId || ''))
 const embedMode = computed(() => route.query.embed === '1')
 
 const advancedJson = ref(false)

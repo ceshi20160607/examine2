@@ -49,11 +49,11 @@ public class SystemModuleAuthController {
         } else {
             allowed = ModuleAuthContextHolder.isOwnerWildcard() || ModuleAuthContextHolder.getPermKeys().contains(requiredKey);
         }
-        return ApiResult.ok(Map.of(
-                "uri", requestUri,
-                "requiredPermKey", requiredKey,
-                "ownerWildcard", ModuleAuthContextHolder.isOwnerWildcard(),
-                "allowed", allowed
-        ));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("uri", requestUri);
+        out.put("requiredPermKey", requiredKey);
+        out.put("ownerWildcard", ModuleAuthContextHolder.isOwnerWildcard());
+        out.put("allowed", allowed);
+        return ApiResult.ok(out);
     }
 }
