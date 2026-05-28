@@ -1,0 +1,57 @@
+# 复制为 application.yml 后修改（目录：与 JAR 同级的 config/）
+# 启动时自动加载，覆盖 JAR 内默认配置
+#
+#   cp application.yml.example application.yml
+
+spring:
+  profiles:
+    active: prod
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: change-me
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: ""
+      database: 0
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 22
+    validate-on-migrate: true
+    repair-on-migrate: true
+
+server:
+  port: 9999
+
+logging:
+  file:
+    name: /var/log/examine/examine-web.log
+  level:
+    root: INFO
+    com.unique.examine: INFO
+
+examine:
+  session:
+    store: redis
+  flyway:
+    mark-applied: "14"
+  export-job:
+    poll-ms: 10000
+  trace:
+    enabled: false
+  openapi:
+    signing-master-key: change-me-openapi-signing-key-32bytes
+  upload:
+    local-root-path: /data/examine/uploads
+    max-size-mb: 50
+
+springdoc:
+  api-docs:
+    enabled: false
+
+knife4j:
+  enable: false

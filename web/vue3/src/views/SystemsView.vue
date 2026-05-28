@@ -1,7 +1,9 @@
 <template>
   <AppLayout>
-    <h2>选择系统</h2>
-    <p class="muted">进入自建系统后才能管理应用与数据。</p>
+    <div class="page-head">
+      <h2>选择系统</h2>
+      <p class="muted">进入自建系统后才能管理应用与数据。</p>
+    </div>
 
     <div class="create-box">
       <input v-model="newSystemName" data-testid="system-name-input" placeholder="新系统名称" class="name-input" />
@@ -124,29 +126,38 @@ onMounted(load)
 
 <style scoped>
 .muted {
-  color: #666;
+  color: var(--color-muted);
   font-size: 0.9rem;
 }
 .error {
-  color: #c00;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border: 1px solid #ffd3cf;
+  border-radius: 7px;
+  padding: 0.55rem 0.7rem;
+}
+.page-head {
+  margin-bottom: 1rem;
 }
 .create-box {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.7rem;
   align-items: center;
-  margin: 1rem 0;
-  padding: 0.75rem;
-  background: #f8fafc;
+  margin: 1rem 0 1.25rem;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.78);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 .name-input {
   flex: 1;
   min-width: 160px;
+  min-height: 38px;
   padding: 0.5rem 0.65rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 7px;
 }
 .check-label {
   font-size: 0.9rem;
@@ -158,19 +169,28 @@ onMounted(load)
   list-style: none;
   padding: 0;
   margin: 1rem 0;
+  display: grid;
+  gap: 0.65rem;
 }
 .list__btn {
   width: 100%;
   text-align: left;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #e5e7eb;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   background: #fff;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
 .list__btn:hover {
-  border-color: #1677ff;
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(31, 41, 51, 0.08);
+}
+.list__btn strong {
+  display: block;
+  margin-bottom: 0.15rem;
 }
 .tenant-box {
   margin-top: 1rem;
@@ -178,5 +198,28 @@ onMounted(load)
   gap: 0.5rem;
   align-items: center;
   flex-wrap: wrap;
+  padding: 0.75rem;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+.tenant-box select,
+.tenant-box button,
+.create-box button {
+  min-height: 38px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 7px;
+}
+.tenant-box select {
+  border: 1px solid var(--color-border-strong);
+  background: #fff;
+}
+.tenant-box button,
+.create-box button {
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
 }
 </style>

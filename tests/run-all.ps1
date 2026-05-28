@@ -2,6 +2,24 @@
 $ErrorActionPreference = 'Stop'
 $Root = $PSScriptRoot
 
+# 与 run-backend.ps1 一致：避免 JAVA_HOME=JDK8 导致运行时 ClassFormatError
+if (-not $env:JAVA_HOME -or $env:JAVA_HOME -match 'jdk8|jre8') {
+    $env:JAVA_HOME = if ($env:EXAMINE_JAVA_HOME) { $env:EXAMINE_JAVA_HOME } else { 'D:\java\jdk\jdk21' }
+}
+
+$redisUp = $false
+try {
+    $redisUp = (Test-NetConnection 127.0.0.1 -Port 6379 -WarningAction SilentlyContinue).TcpTestSucceeded
+} catch {}
+if (-not $redisUp) {
+    Write-Host 'Redis 6379 down -> EXAMINE_SESSION_STORE=memory (restart backend with this env if login fails)' -ForegroundColor Yellow
+    $env:EXAMINE_SESSION_STORE = 'memory'
+} else {
+    Remove-Item Env:EXAMINE_SESSION_STORE -ErrorAction SilentlyContinue
+    if (-not $env:SKIP_OPEN_API) { $env:SKIP_OPEN_API = '0' }
+    Write-Host 'Redis up -> session store redis, open api smoke enabled (SKIP_OPEN_API=0)' -ForegroundColor DarkCyan
+}
+
 Write-Host '=== API smoke ===' -ForegroundColor Cyan
 & (Join-Path $Root 'api\e2e-smoke.ps1')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

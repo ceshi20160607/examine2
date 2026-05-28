@@ -22,23 +22,28 @@ const links = computed(() => appHubLinks(appId.value).filter((l) => l.to !== `/a
 <style scoped>
 .hub {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.75rem;
   margin-top: 1rem;
 }
 .hub__card {
+  min-height: 76px;
   padding: 1rem;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   text-decoration: none;
-  color: #111;
-  font-weight: 500;
+  color: var(--color-text);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
 .hub__card:hover {
-  border-color: #1677ff;
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(31, 41, 51, 0.08);
 }
 .muted {
-  color: #666;
+  color: var(--color-muted);
 }
 </style>

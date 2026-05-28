@@ -7,7 +7,7 @@
 
 ---
 
-## API 冒烟（`tests/api/e2e-smoke.ps1`）— 19 步 ✅
+## API 冒烟（`tests/api/e2e-smoke.ps1`）— 21 步 ✅
 
 | 步骤 | 覆盖能力 |
 |------|----------|
@@ -24,11 +24,13 @@
 | dict + pages + list-views | 字典、页面、列表视图 |
 | flow-bindings + instances | 流程绑定、流程实例 |
 | flow lifecycle | 发起实例、领取、同意、轨迹/任务查询 |
+| flow reject | 另起实例、领取、拒绝 |
 | rbac menus members perms | 菜单权限覆盖写、成员、账号搜索 |
 | pages runtime + list-view cols | 页面 runtime/detail、列表视图列、perm-preview |
 | uploads + export-jobs + platform apps | 上传、导出任务、开放应用 CRUD/轮换密钥 |
+| open api records | `X-Access-Key` + `X-Secret` 查询记录（Redis 可用时 `run-all` 默认开启） |
 
-**未覆盖（API）**：OpenAPI AK/SK 全链路、流程拒绝/转办/撤回、集成事件、导出 CSV 下载二进制、全部 CRUD 删除路径等。
+**未覆盖（API）**：OpenAPI HMAC 签名模式、流程转办/撤回、集成事件、导出 CSV 下载二进制、全部 CRUD 删除路径等。
 
 ---
 
@@ -101,10 +103,15 @@
 | 问题 | 修复 |
 |------|------|
 | `FlowStartView` 传 `tempCode` 后端要 `defCode` | 改为 `defCode` |
+| UI 发起流程缺 `bizType`/`bizId` | `FlowStartView` 默认 `ui_flow` + 时间戳 `bizId` |
+| 任务页「领取」按钮 strict 冲突 | 测试用 `exact: true` |
 | 流程绑定 API 返回嵌套结构 UI 读不到 | `SystemModuleFlowBindingService` 扁平字段 + 字符串 id |
 | 页面 runtime Long id 精度丢失 | `SystemModulePageService` 返回字符串 id |
 | `perm-preview` `Map.of(null)` NPE | 改用 `LinkedHashMap` |
 | Playwright `postApi` Long id 精度丢失 | `tests/web/fixtures/api.ts` 响应 patch |
+| JDK `JAVA_HOME=jdk8` 时 `ClassFormatError`（Tomcat/JMX） | `ExamineWebApplication` 排除 `TomcatMetricsAutoConfiguration` + `MetricsAutoConfiguration`；`run-backend.ps1` 强制 JDK21 |
+| 新建系统 bootstrap 未完成导致 `/apps` 无应用 | `tests/web/fixtures/app.ts` 增加 `ensureDefaultApp` |
+| API 冒烟每次新建系统易 500 | `e2e-smoke.ps1` 优先复用已有系统 |
 
 ---
 
@@ -114,7 +121,7 @@
 |----|------|
 | 搭建 `tests/`、API + UI 脚手架 | ✅ |
 | BUGS.md 历史项 | ✅ |
-| API 冒烟 19 步 | ✅ |
+| API 冒烟 21 步 | ✅ |
 | UI 覆盖全部管理台路由（基础） | ✅ |
 | UI 覆盖所有复杂编辑/删除 | ❌ |
 | API 覆盖所有 `/v1` | ❌ |
@@ -127,6 +134,11 @@
 ```powershell
 $env:SMOKE_USER = 'admin'
 $env:SMOKE_PASS = '123123aa'
+# 后端须 JDK21（勿用 JAVA_HOME=jdk8 启动）
+# $env:EXAMINE_JAVA_HOME = 'D:\java\jdk\jdk21'
+# Redis 未启动时由 run-all.ps1 自动设 memory；Redis 已启动则默认 redis 会话 + OpenAPI 冒烟
 cd tests
 .\run-all.ps1
 ```
+
+**最近回归（2026-05-24）**：API 21/21、UI 39/39（Redis 会话 + OpenAPI）；此前 memory 会话 19/19。

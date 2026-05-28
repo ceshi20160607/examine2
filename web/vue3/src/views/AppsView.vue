@@ -42,19 +42,24 @@ onMounted(async () => {
 .list {
   list-style: none;
   padding: 0;
+  display: grid;
+  gap: 0.65rem;
 }
 .list__link {
   display: block;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #e5e7eb;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   text-decoration: none;
   color: inherit;
   background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
 .list__link:hover {
-  border-color: #1677ff;
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(31, 41, 51, 0.08);
 }
 .list__link .muted {
   display: block;

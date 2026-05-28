@@ -55,4 +55,4 @@ async function add() {
 onMounted(load)
 </script>
 
-<style scoped src="./admin-shared.css"></style>
+<style src="./admin-shared.css"></style>

@@ -16,6 +16,8 @@ $script:RecordId = 0
 $script:FlowInstanceId = 0
 $script:FlowTaskId = 0
 $script:PlatId = 0
+$script:OpenAccessKey = ''
+$script:OpenSecret = ''
 $script:Pass = 0
 $script:Fail = 0
 $FieldCode = 'smoke_title'
@@ -36,6 +38,52 @@ function Invoke-ExamineApi {
     if (-not $NoAuth -and $script:Token) { $headers['Authorization'] = "Bearer $($script:Token)" }
     if ($ExtraHeaders) { foreach ($k in $ExtraHeaders.Keys) { $headers[$k] = $ExtraHeaders[$k] } }
 
+    $params = @{ Uri = $uri; Method = $Method; Headers = $headers; TimeoutSec = 15 }
+    if ($null -ne $Body) { $params['Body'] = ($Body | ConvertTo-Json -Depth 12 -Compress) }
+    try {
+        $resp = Invoke-RestMethod @params
+    } catch {
+        $detail = $_.Exception.Message
+        if ($_.ErrorDetails.Message) {
+            try {
+                $errJson = $_.ErrorDetails.Message | ConvertFrom-Json
+                if ($errJson.message) { $detail = $errJson.message }
+            } catch { $detail = $_.ErrorDetails.Message }
+        }
+        throw $detail
+    }
+    if ($null -eq $resp) { return $null }
+    if ($resp.PSObject.Properties.Name -contains 'code') {
+        if ($resp.code -ne 0) {
+            $msg = if ($resp.message) { $resp.message } else { "API code=$($resp.code)" }
+            throw $msg
+        }
+        return $resp.data
+    }
+    return $resp
+}
+
+function Invoke-OpenExamineApi {
+    param(
+        [string]$Method = 'POST',
+        [string]$Path,
+        $Body = $null,
+        [string]$AccessKey,
+        [string]$Secret,
+        [long]$ActingPlatId,
+        [long]$TargetSystemId,
+        [long]$TargetTenantId = 0
+    )
+    if (-not $AccessKey -or -not $Secret) { throw 'open api credentials missing' }
+    $uri = "$HostUrl$Path"
+    $headers = @{
+        'Content-Type'     = 'application/json'
+        'X-Access-Key'     = $AccessKey
+        'X-Secret'         = $Secret
+        'X-Acting-Plat-Id' = "$ActingPlatId"
+        'X-Target-System-Id' = "$TargetSystemId"
+        'X-Target-Tenant-Id' = "$TargetTenantId"
+    }
     $params = @{ Uri = $uri; Method = $Method; Headers = $headers; TimeoutSec = 15 }
     if ($null -ne $Body) { $params['Body'] = ($Body | ConvertTo-Json -Depth 12 -Compress) }
     try {
@@ -93,19 +141,19 @@ try {
 
     Run-Step 'system' {
         if (-not $script:SystemId) {
-            $perm = Invoke-ExamineApi -Path "/v1/platform/permissions/me"
-            $canCreate = ($perm.canCreateSystem -eq 1)
-            if ($canCreate) {
+            $list = @(Invoke-ExamineApi -Path "/v1/platform/systems")
+            if ($list.Count -gt 0) {
+                $script:SystemId = [long]$list[0].id
+            } else {
+                $perm = Invoke-ExamineApi -Path "/v1/platform/permissions/me"
+                $canCreate = ($perm.canCreateSystem -eq 1)
+                if (-not $canCreate) {
+                    throw "无 SYSTEM_CREATE 且尚无自建系统。请设置 SMOKE_USER/SMOKE_PASS（平台超管）或 SMOKE_SYSTEM_ID"
+                }
                 $sys = Invoke-ExamineApi -Method POST -Path "/v1/platform/systems" -Body @{
                     name = "smoke_sys_$Ts"; multiTenantEnabled = 0
                 }
                 $script:SystemId = [long]$sys.id
-            } else {
-                $list = @(Invoke-ExamineApi -Path "/v1/platform/systems")
-                if ($list.Count -gt 0) { $script:SystemId = [long]$list[0].id }
-                else {
-                    throw "无 SYSTEM_CREATE 且尚无自建系统。请设置 SMOKE_USER/SMOKE_PASS（平台超管）或 SMOKE_SYSTEM_ID"
-                }
             }
         }
         $null = Invoke-ExamineApi -Method POST -Path "/v1/platform/context/enter-system" -Body @{ systemId = $script:SystemId }
@@ -260,6 +308,19 @@ try {
         $null = Invoke-ExamineApi -Method POST -Path "/v1/system/flow/instances/$($script:FlowInstanceId)/tasks/$($script:FlowTaskId)/approve" -Body @{ commentText = 'smoke ok' }
     }
 
+    Run-Step 'flow reject' {
+        if (-not $script:FlowTempId) { throw 'FlowTempId missing' }
+        $temp = Invoke-ExamineApi -Path "/v1/system/flow/temps/$($script:FlowTempId)"
+        $defCode = $temp.tempCode
+        $start = Invoke-ExamineApi -Method POST -Path '/v1/system/flow/instances/start' -Body @{
+            defCode = $defCode; title = "smoke-rej-$Ts"; bizType = 'smoke'; bizId = "biz-rej-$Ts"
+        }
+        $instId = [long]$start.instanceId
+        $taskId = [long]$start.taskId
+        $null = Invoke-ExamineApi -Method POST -Path "/v1/system/flow/instances/$instId/tasks/$taskId/claim"
+        $null = Invoke-ExamineApi -Method POST -Path "/v1/system/flow/instances/$instId/tasks/$taskId/reject" -Body @{ commentText = 'smoke reject' }
+    }
+
     Run-Step 'rbac menus members perms' {
         $role = Invoke-ExamineApi -Method POST -Path "/v1/system/module/rbac/apps/$($script:AppId)/roles/upsert" -Body @{
             roleCode = "smoke_role2_$Ts"; roleName = 'Smoke Role2'; dataScope = 5; status = 1
@@ -307,7 +368,24 @@ try {
         $null = Invoke-ExamineApi -Path "/v1/platform/apps/$clientId"
         $rotated = Invoke-ExamineApi -Method POST -Path "/v1/platform/apps/$clientId/rotate-secret" -Body @{}
         if (-not $rotated.secret) { throw 'rotate platform app secret missing' }
+        $script:OpenAccessKey = [string]$rotated.accessKey
+        $script:OpenSecret = [string]$rotated.secret
         $null = Invoke-ExamineApi -Path "/v1/system/module/exports/models/$($script:ModelId)/tpls"
+    }
+
+    if ($SkipOpenApi -ne '1') {
+        Run-Step 'open api records' {
+            if (-not $script:OpenAccessKey -or -not $script:OpenSecret) {
+                throw 'OPEN AK/SK missing (run platform apps step first or set OPEN_AK/OPEN_SK)'
+            }
+            $ak = if ($env:OPEN_AK) { $env:OPEN_AK } else { $script:OpenAccessKey }
+            $sk = if ($env:OPEN_SK) { $env:OPEN_SK } else { $script:OpenSecret }
+            $acting = if ($env:OPEN_ACTING_PLAT_ID) { [long]$env:OPEN_ACTING_PLAT_ID } else { $script:PlatId }
+            $targetSys = if ($env:OPEN_TARGET_SYSTEM_ID) { [long]$env:OPEN_TARGET_SYSTEM_ID } else { $script:SystemId }
+            $null = Invoke-OpenExamineApi -Method POST -Path '/v1/open/records/query' -Body @{
+                appId = $script:AppId; modelId = $script:ModelId; page = 1; limit = 5
+            } -AccessKey $ak -Secret $sk -ActingPlatId $acting -TargetSystemId $targetSys
+        }
     }
 } catch {
     Write-Host "---"; Write-Host "Passed: $($script:Pass) Failed: $($script:Fail)"

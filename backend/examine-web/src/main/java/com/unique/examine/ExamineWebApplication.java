@@ -2,10 +2,15 @@ package com.unique.examine;
 
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(scanBasePackages = "com.unique.examine")
+@SpringBootApplication(scanBasePackages = "com.unique.examine", exclude = {
+        TomcatMetricsAutoConfiguration.class,
+        MetricsAutoConfiguration.class
+})
 @EnableScheduling
 @MapperScan({
         "com.unique.examine.plat.mapper",

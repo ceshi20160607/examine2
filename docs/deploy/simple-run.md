@@ -107,20 +107,21 @@ $env:EXAMINE_MYBATIS_LOG_IMPL = 'org.apache.ibatis.logging.nologging.NoLoggingIm
 
 ## 6. 启动后端（生产 profile，仍可无 CI/CD）
 
-用环境变量覆盖敏感信息（示例）：
+**推荐：外部配置文件**（与 JAR 同目录 `config/application.yml`）：
 
 ```bash
-export SPRING_DATASOURCE_URL="jdbc:mysql://你的主机:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false"
-export SPRING_DATASOURCE_USERNAME="root"
-export SPRING_DATASOURCE_PASSWORD="你的密码"
-export SPRING_DATA_REDIS_HOST="127.0.0.1"
-export SPRING_DATA_REDIS_PORT="6379"
-export SPRING_DATA_REDIS_PASSWORD="你的Redis密码"
-
-java -jar examine-web/target/examine-web-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+cd backend/examine-web
+mkdir -p config
+cp ../../scripts/deploy/release/config/application.yml.example config/application.yml
+# 编辑 MySQL / Redis / examine.openapi.signing-master-key 等
+java -jar target/examine-web-0.0.1-SNAPSHOT.jar
 ```
 
-`application-prod.yml` 里可再调端口、日志、Actuator 等。
+JAR 内已配置 `spring.config.import: optional:file:./config/`，在 `examine-web` 目录启动即可加载。
+
+发布包中：`backend/config/application.yml.example` → 复制为 `application.yml` 后 `./start.sh`。
+
+仍可用环境变量覆盖（可选），见 `application-prod.yml` 中的 `${SPRING_DATASOURCE_*}` 占位。
 
 ---
 

@@ -41,7 +41,12 @@ public class ModuleAuthService implements ModuleAuthCacheCoordinator {
             return Set.of(ModuleAuthContextHolder.OWNER_WILDCARD);
         }
         String key = cacheKey(systemId, tenantId, platId);
-        String json = stringRedisTemplate.opsForValue().get(key);
+        String json = null;
+        try {
+            json = stringRedisTemplate.opsForValue().get(key);
+        } catch (Exception ignore) {
+            // Redis 不可用时跳过缓存，直接查库
+        }
         if (json != null && !json.isBlank()) {
             try {
                 List<String> list = objectMapper.readValue(json, new TypeReference<>() {});

@@ -6,7 +6,9 @@
       <span v-if="embedMode"> · 嵌入模式（保存后返回）</span>
     </p>
     <div class="toolbar">
-      <button type="button" @click="submit">{{ recordId ? '更新' : '创建' }}</button>
+      <button type="button" :disabled="saving" @click="submit">
+        {{ saving ? '保存中…' : (recordId ? '更新' : '创建') }}
+      </button>
       <button type="button" class="secondary" @click="goBack">返回</button>
       <button v-if="!embedMode" type="button" class="secondary" @click="toggleAdvanced">
         {{ advancedJson ? '切回表单' : '高级 JSON' }}
@@ -613,30 +615,46 @@ onMounted(() => bootstrap())
 
 <style scoped>
 .form-fields {
-  max-width: 720px;
+  max-width: 860px;
+  display: grid;
+  gap: 0.95rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
 }
 .form-row {
-  margin-bottom: 1.25rem;
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
 }
 .form-label {
   display: block;
   font-weight: 500;
-  margin-bottom: 0.35rem;
+  padding-top: 0.5rem;
+  color: #43524b;
 }
 .form-title {
-  margin: 1rem 0 0.5rem;
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 0;
   font-size: 1rem;
-  color: #374151;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.55rem;
 }
 .req {
-  color: #c00;
+  color: var(--color-danger);
 }
 .field-input {
   width: 100%;
-  padding: 0.45rem 0.55rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  min-height: 38px;
+  padding: 0.48rem 0.6rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 7px;
   box-sizing: border-box;
+  background: #fff;
 }
 .date-range {
   display: flex;
@@ -660,34 +678,53 @@ onMounted(() => bootstrap())
   font-family: ui-monospace, monospace;
   font-size: 0.85rem;
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 7px;
   box-sizing: border-box;
 }
 .muted {
-  color: #666;
+  color: var(--color-muted);
   font-size: 0.9rem;
 }
 .error {
-  color: #c00;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border: 1px solid #ffd3cf;
+  border-radius: 7px;
+  padding: 0.55rem 0.7rem;
 }
 .toolbar {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.65rem;
   margin: 1rem 0;
   flex-wrap: wrap;
 }
 .toolbar button {
-  padding: 0.45rem 0.9rem;
-  background: #1677ff;
+  min-height: 36px;
+  padding: 0.45rem 0.85rem;
+  background: var(--color-primary);
   color: #fff;
-  border: none;
-  border-radius: 6px;
+  border: 1px solid var(--color-primary);
+  border-radius: 7px;
   cursor: pointer;
+  font-weight: 700;
 }
 .toolbar button.secondary {
   background: #fff;
-  color: #333;
-  border: 1px solid #d1d5db;
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+}
+
+@media (max-width: 760px) {
+  .form-fields {
+    padding: 0.85rem;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+  .form-label {
+    padding-top: 0;
+  }
 }
 </style>

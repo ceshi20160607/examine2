@@ -1,9 +1,16 @@
 <template>
-  <div class="auth">
-    <h1>注册</h1>
-    <form @submit.prevent="submit">
-      <label>用户名<input v-model="username" required /></label>
-      <label>密码<input v-model="password" type="password" required /></label>
+  <div class="auth-page">
+    <form class="auth" @submit.prevent="submit">
+      <h1>注册账号</h1>
+      <p class="muted">创建平台账号后继续登录。</p>
+      <label>
+        <span>用户名</span>
+        <input v-model="username" required autocomplete="username" />
+      </label>
+      <label>
+        <span>密码</span>
+        <input v-model="password" type="password" required autocomplete="new-password" />
+      </label>
       <button type="submit">注册</button>
       <p v-if="error" class="error">{{ error }}</p>
       <router-link to="/login">已有账号？登录</router-link>
@@ -34,34 +41,69 @@ async function submit() {
 </script>
 
 <style scoped>
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    linear-gradient(145deg, rgba(22, 115, 111, 0.12), rgba(240, 184, 75, 0.12)),
+    var(--color-bg);
+}
 .auth {
   max-width: 360px;
-  margin: 4rem auto;
+  width: 100%;
   padding: 2rem;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.45rem;
+}
+.muted {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
 }
 label {
   display: block;
   margin-bottom: 1rem;
+  color: #43524b;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+label span {
+  display: block;
+  margin-bottom: 0.35rem;
 }
 input {
   width: 100%;
-  margin-top: 0.35rem;
-  padding: 0.5rem;
+  min-height: 40px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 7px;
   box-sizing: border-box;
 }
 button {
   width: 100%;
-  padding: 0.6rem;
-  background: #1677ff;
+  min-height: 42px;
+  padding: 0.65rem;
+  background: var(--color-primary);
   color: #fff;
-  border: none;
-  border-radius: 6px;
+  border: 1px solid var(--color-primary);
+  border-radius: 7px;
   cursor: pointer;
+  font-weight: 800;
 }
 .error {
-  color: #c00;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border: 1px solid #ffd3cf;
+  border-radius: 7px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.9rem;
 }
 </style>

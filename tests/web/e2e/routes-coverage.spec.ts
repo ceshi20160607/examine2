@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures/auth';
 import { openFirstApp } from '../fixtures/app';
 import { enterFirstSystem } from '../fixtures/system';
 import { postApi } from '../fixtures/api';
+import { publishMinimalFlow, startFlowInstance, tokenFromPage } from '../fixtures/flow-api';
 
 test.describe('remaining router paths', () => {
   test('model fields page opens via model link', async ({ loggedInPage: page }) => {
@@ -36,38 +37,13 @@ test.describe('remaining router paths', () => {
     await expect(page.getByRole('heading', { name: new RegExp(`字典项 · ${dictCode}`) })).toBeVisible({ timeout: 15_000 });
   });
 
-  test('flow instance detail page loads for started instance', async ({ loggedInPage: page }) => {
+  test('flow instance detail page loads for started instance', async ({ loggedInPage: page, request }) => {
     await enterFirstSystem(page);
+    const token = await tokenFromPage(page);
     const suffix = Date.now();
     const tempCode = `ui_inst_flow_${suffix}`;
-    const temp = await postApi<{ id: string }>(page, '/v1/system/flow/temps/upsert', {
-      tempCode,
-      tempName: `UI Instance Flow ${suffix}`,
-      status: 1,
-    });
-    const ver = await postApi<{ id: string }>(page, '/v1/system/flow/temp-vers/upsert', {
-      tempId: temp.id,
-      publishStatus: 1,
-      formJson: '{}',
-    });
-    await postApi(page, `/v1/system/flow/temp-vers/${ver.id}/graph-designer`, {
-      nodes: [
-        { nodeKey: 'start_1', nodeType: 'start', nodeName: 'Start', x: 120, y: 120, configJson: '{}' },
-        { nodeKey: 'approve_1', nodeType: 'approve', nodeName: 'Approve', x: 320, y: 120, configJson: '{}' },
-        { nodeKey: 'end_1', nodeType: 'end', nodeName: 'End', x: 520, y: 120, configJson: '{}' },
-      ],
-      edges: [
-        { fromNodeKey: 'start_1', toNodeKey: 'approve_1', priority: 1, isDefault: 0, cond: '' },
-        { fromNodeKey: 'approve_1', toNodeKey: 'end_1', priority: 1, isDefault: 0, cond: '' },
-      ],
-    });
-    await postApi(page, `/v1/system/flow/temp-vers/${ver.id}/publish`);
-    const started = await postApi<{ instanceId: string; taskId: string }>(page, '/v1/system/flow/instances/start', {
-      defCode: tempCode,
-      title: `UI Instance ${suffix}`,
-      bizType: 'ui_test',
-      bizId: `biz_${suffix}`,
-    });
+    await publishMinimalFlow(request, token, tempCode, `UI Instance Flow ${suffix}`);
+    const started = await startFlowInstance(request, token, tempCode, `UI Instance ${suffix}`, `biz_${suffix}`);
 
     await page.goto(`/flow/instances/${started.instanceId}`);
     await expect(page.getByRole('heading', { name: new RegExp(`流程实例 #${started.instanceId}`) })).toBeVisible({
@@ -76,38 +52,13 @@ test.describe('remaining router paths', () => {
     await expect(page.locator('.json-pre')).toBeVisible({ timeout: 15_000 });
   });
 
-  test('flow inbox links to task page when pending exists', async ({ loggedInPage: page }) => {
+  test('flow inbox links to task page when pending exists', async ({ loggedInPage: page, request }) => {
     await enterFirstSystem(page);
+    const token = await tokenFromPage(page);
     const suffix = Date.now();
     const tempCode = `ui_inbox_flow_${suffix}`;
-    const temp = await postApi<{ id: string }>(page, '/v1/system/flow/temps/upsert', {
-      tempCode,
-      tempName: `UI Inbox Flow ${suffix}`,
-      status: 1,
-    });
-    const ver = await postApi<{ id: string }>(page, '/v1/system/flow/temp-vers/upsert', {
-      tempId: temp.id,
-      publishStatus: 1,
-      formJson: '{}',
-    });
-    await postApi(page, `/v1/system/flow/temp-vers/${ver.id}/graph-designer`, {
-      nodes: [
-        { nodeKey: 'start_1', nodeType: 'start', nodeName: 'Start', x: 120, y: 120, configJson: '{}' },
-        { nodeKey: 'approve_1', nodeType: 'approve', nodeName: 'Approve', x: 320, y: 120, configJson: '{}' },
-        { nodeKey: 'end_1', nodeType: 'end', nodeName: 'End', x: 520, y: 120, configJson: '{}' },
-      ],
-      edges: [
-        { fromNodeKey: 'start_1', toNodeKey: 'approve_1', priority: 1, isDefault: 0, cond: '' },
-        { fromNodeKey: 'approve_1', toNodeKey: 'end_1', priority: 1, isDefault: 0, cond: '' },
-      ],
-    });
-    await postApi(page, `/v1/system/flow/temp-vers/${ver.id}/publish`);
-    const started = await postApi<{ instanceId: string; taskId: string }>(page, '/v1/system/flow/instances/start', {
-      defCode: tempCode,
-      title: `UI Inbox ${suffix}`,
-      bizType: 'ui_test',
-      bizId: `inbox_${suffix}`,
-    });
+    await publishMinimalFlow(request, token, tempCode, `UI Inbox Flow ${suffix}`);
+    const started = await startFlowInstance(request, token, tempCode, `UI Inbox ${suffix}`, `inbox_${suffix}`);
 
     await page.goto('/flow/inbox');
     await expect(page.getByRole('heading', { name: '流程待办箱' })).toBeVisible({ timeout: 15_000 });

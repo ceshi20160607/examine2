@@ -10,13 +10,24 @@ export function getEnv(): AppEnv {
   return 'dev'
 }
 
+function viteApiBase(): string {
+  const v = import.meta.env.VITE_API_BASE
+  if (typeof v === 'string' && v.trim()) {
+    return v.trim().replace(/\/$/, '')
+  }
+  return ''
+}
+
 export function getBaseURL(): string {
   const custom = uni.getStorageSync('apiBaseUrl')
-  if (typeof custom === 'string' && custom.trim().startsWith('http')) {
-    return custom.trim().replace(/\/$/, '')
+  if (typeof custom === 'string' && custom.trim()) {
+    const c = custom.trim().replace(/\/$/, '')
+    if (c.startsWith('http') || c.startsWith('/')) return c
   }
   const env = getEnv()
   if (env === 'dev') return 'http://127.0.0.1:9999'
-  // test/prod：须通过 uni.setStorageSync('apiBaseUrl', 'https://api.example.com') 配置
-  return 'http://127.0.0.1:9999'
+  const built = viteApiBase()
+  if (built) return built
+  // prod H5 默认同域 /api；小程序须 storage 配置 https://域名/api
+  return '/api'
 }

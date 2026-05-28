@@ -6,6 +6,12 @@ spring:
     name: examine-web
   profiles:
     active: dev
+  # 部署时在同目录 config/application.yml 写配置（优先于 JAR 内默认值）
+  config:
+    import: optional:file:./config/
+  # 部分 JDK 21 安装访问 Platform MBeanServer 会 ClassFormatError
+  jmx:
+    enabled: false
 
 ---
 spring:
@@ -62,10 +68,16 @@ knife4j:
   enable: true
 
 management:
+  metrics:
+    enable:
+      jvm: false
+      process: false
+      system: false
+      tomcat: false
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info
   endpoint:
     health:
       probes:
@@ -74,6 +86,9 @@ management:
       enabled: true
 
 examine:
+  session:
+    # redis | memory（本地无 Redis 时设 EXAMINE_SESSION_STORE=memory）
+    store: ${EXAMINE_SESSION_STORE:redis}
   flyway:
     # 手工已执行版本：写入 schema_history success=1，不跑 DDL；17 已跑则 EXAMINE_FLYWAY_MARK_APPLIED=14,23
     mark-applied: ${EXAMINE_FLYWAY_MARK_APPLIED:14}

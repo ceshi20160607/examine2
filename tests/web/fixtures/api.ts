@@ -21,7 +21,8 @@ export async function postApi<T = Record<string, unknown>>(
       const patched = text.replace(/"([A-Za-z]*[iI]d|[iI]d)":\s*(\d{15,})/g, '"$1":"$2"');
       const json = JSON.parse(patched);
       if (!json || json.code !== 0) {
-        throw new Error(json?.message || `API ${path} failed`);
+        const msg = json?.message || `HTTP error`;
+        throw new Error(`${msg} (${path}, code=${json?.code ?? '?'})`);
       }
       return json.data;
     },

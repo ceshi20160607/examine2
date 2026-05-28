@@ -71,26 +71,19 @@ npm run build
 
 产物在 `web/vue3/dist/`，由 Nginx 托管静态文件。
 
-### 4.2 Nginx 示例
+### 4.2 Nginx 示例（推荐 `/api` 前缀）
+
+构建时 `VITE_API_BASE=/api`（`build-release.ps1` 已默认）。完整示例见 `scripts/deploy/nginx/examine.conf`。
 
 ```nginx
-server {
-  listen 443 ssl;
-  server_name admin.example.com;
-  root /var/www/examine-admin;
-  index index.html;
-  location / {
-    try_files $uri $uri/ /index.html;
-  }
-  location /v1/ {
-    proxy_pass http://127.0.0.1:9999;
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-  }
+location /api/ {
+  proxy_pass http://127.0.0.1:9999/;   # /api/v1/foo → 后端 /v1/foo
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
 ```
 
-若 API 与静态站同域，可将 `VITE_API_BASE` 留空，由 Nginx 反代 `/v1`。
+管理台静态 `root` 指向发布包 `web/`；手机 H5 可选 `location /m/` 指向 `mobile/h5/`。
 
 ## 5. 移动端 uniapp
 
