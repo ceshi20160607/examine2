@@ -25,8 +25,16 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String uri = request.getRequestURI();
         try {
+            if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             if (isPublic(uri)) {
                 filterChain.doFilter(request, response);
+                return;
+            }
+            if (!uri.startsWith("/v1/")) {
+                writeJson(response, HttpStatus.NOT_FOUND, "legacy api disabled; use /v1/**");
                 return;
             }
             // 对外开放：已由 OpenApiAuthenticationFilter 写入 AuthContextHolder（Bearer 非必需）
@@ -35,23 +43,17 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             if (uri.startsWith("/v1/open/")) {
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"code\":401,\"message\":\"开放接口未通过 AK/SK 认证\"}");
+                writeJson(response, HttpStatus.UNAUTHORIZED, "开放接口未通过 AK/SK 认证");
                 return;
             }
             String token = resolveToken(request);
             if (token == null) {
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"code\":401,\"message\":\"未登录或 token 缺失\"}");
+                writeJson(response, HttpStatus.UNAUTHORIZED, "未登录或 token 缺失");
                 return;
             }
             var session = sessionService.getSession(token);
             if (session.isEmpty()) {
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"code\":401,\"message\":\"登录已过期\"}");
+                writeJson(response, HttpStatus.UNAUTHORIZED, "登录已过期");
                 return;
             }
             SessionPayload p = session.get();
@@ -80,6 +82,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private static boolean isPublic(String uri) {
+        if ("/".equals(uri) || "/ping".equals(uri) || "/favicon.ico".equals(uri)) {
+            return true;
+        }
         if (uri.startsWith("/v1/platform/auth/register") || uri.startsWith("/v1/platform/auth/login")) {
             return true;
         }
@@ -90,6 +95,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             return true;
         }
         return false;
+    }
+
+    private static void writeJson(HttpServletResponse response, HttpStatus status, String message) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType("application/json;charset=UTF-8");
+        String escaped = message == null ? "" : message.replace("\\", "\\\\").replace("\"", "\\\"");
+        response.getWriter().write("{\"code\":" + status.value() + ",\"message\":\"" + escaped + "\"}");
     }
 
 }

@@ -14,7 +14,10 @@
           <td>{{ modelLabel(r.srcModelId) }}</td>
           <td>{{ modelLabel(r.dstModelId) }}</td>
           <td>{{ r.relType }}</td>
-          <td><button type="button" class="secondary" @click="remove(r)">删除</button></td>
+          <td class="actions">
+            <button type="button" class="secondary" @click="edit(r)">编辑</button>
+            <button type="button" class="secondary" @click="remove(r)">删除</button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -28,6 +31,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '../layouts/AdminLayout.vue'
 import { deleteRelations, listModelsByApp, listRelationsByApp, upsertRelation } from '../api/meta'
+import { confirmDialog, promptText } from '../utils/dialog.js'
+import { notify } from '../utils/notify.js'
 
 const route = useRoute()
 const appId = computed(() => String(route.params.appId || ''))
@@ -36,7 +41,7 @@ const models = ref([])
 const error = ref('')
 
 function modelLabel(id) {
-  const m = models.value.find((x) => x.id === id)
+  const m = models.value.find((x) => String(x.id) === String(id))
   return m ? `${m.modelName || m.modelCode} (#${id})` : id
 }
 
@@ -55,43 +60,76 @@ async function load() {
 }
 
 async function add() {
+  await saveRelation()
+}
+
+async function edit(r) {
+  await saveRelation(r)
+}
+
+function modelIndexById(id) {
+  return models.value.findIndex((m) => String(m.id) === String(id))
+}
+
+async function saveRelation(existing = null) {
   if (!models.value.length) {
     error.value = '请先创建模型'
     return
   }
   const opts = models.value.map((m, i) => `${i + 1}. ${m.modelCode} (#${m.id})`).join('\n')
-  const srcIdx = Number(prompt(`源模型序号:\n${opts}`)) - 1
-  const dstIdx = Number(prompt(`目标模型序号:\n${opts}`)) - 1
-  const relType = prompt('relType (1-1 / 1-n / n-n)', '1-n')
+  const srcIdx = Number(await promptText('源模型序号', {
+    defaultValue: existing ? String(modelIndexById(existing.srcModelId) + 1) : '',
+    message: opts
+  })) - 1
+  const dstIdx = Number(await promptText('目标模型序号', {
+    defaultValue: existing ? String(modelIndexById(existing.dstModelId) + 1) : '',
+    message: opts
+  })) - 1
+  const relType = await promptText('关系类型', { defaultValue: existing?.relType || '1-n', message: '1-1 / 1-n / n-n' })
   if (srcIdx < 0 || dstIdx < 0 || !relType) return
   const srcModelId = models.value[srcIdx]?.id
   const dstModelId = models.value[dstIdx]?.id
   if (!srcModelId || !dstModelId) return
   let configJson = null
   if (relType === 'n-n') {
-    configJson = prompt(
-      'n-n config_json',
-      '{"linkModelId":0,"srcFkField":"srcId","dstFkField":"dstId"}'
-    )
+    configJson = await promptText('n-n config_json', {
+      defaultValue: existing?.configJson || '{"linkModelId":0,"srcFkField":"srcId","dstFkField":"dstId"}',
+      multiline: true
+    })
   } else {
-    const fk = prompt('fkField（子表外键字段编码）', 'parentId')
+    let defaultFk = 'parentId'
+    try {
+      defaultFk = JSON.parse(existing?.configJson || '{}')?.fkField || defaultFk
+    } catch {
+      /* keep default */
+    }
+    const fk = await promptText('fkField（子表外键字段编码）', { defaultValue: defaultFk })
     if (fk) configJson = JSON.stringify({ fkField: fk })
   }
   error.value = ''
   try {
-    await upsertRelation({ appId: appId.value, srcModelId, dstModelId, relType, configJson })
-    load()
+    await upsertRelation({
+      id: existing?.id ?? null,
+      appId: appId.value,
+      srcModelId,
+      dstModelId,
+      relType,
+      configJson
+    })
+    notify.success('关系已保存')
+    await load()
   } catch (e) {
     error.value = e?.message || String(e)
   }
 }
 
 async function remove(r) {
-  if (!confirm(`删除关系 #${r.id}?`)) return
+  if (!(await confirmDialog(`删除关系 #${r.id}?`, { danger: true, confirmText: '删除' }))) return
   error.value = ''
   try {
     await deleteRelations([r.id])
-    load()
+    notify.success('关系已删除')
+    await load()
   } catch (e) {
     error.value = e?.message || String(e)
   }
@@ -100,4 +138,10 @@ async function remove(r) {
 onMounted(load)
 </script>
 
-<style src="./admin-shared.css"></style>
+<style scoped>
+.actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+</style>

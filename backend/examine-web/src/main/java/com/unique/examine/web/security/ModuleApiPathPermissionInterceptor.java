@@ -19,8 +19,9 @@ import java.util.Optional;
 @Component
 public class ModuleApiPathPermissionInterceptor implements HandlerInterceptor {
 
-    private static final String MODULE_API_PREFIX = "/v1/system/module";
+    private static final String SYSTEM_API_PREFIX = "/v1/system/";
     private static final String AUTH_PREFIX = "/v1/system/auth/";
+    private static final String MODULE_AUTH_PREFIX = "/v1/system/module/auth/";
 
     @Autowired
     private ModuleRuntimeApiPermissionService moduleRuntimeApiPermissionService;
@@ -28,10 +29,10 @@ public class ModuleApiPathPermissionInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String uri = request.getRequestURI();
-        if (!uri.startsWith(MODULE_API_PREFIX)) {
+        if (!uri.startsWith(SYSTEM_API_PREFIX)) {
             return true;
         }
-        if (uri.startsWith(AUTH_PREFIX)) {
+        if (uri.startsWith(AUTH_PREFIX) || uri.startsWith(MODULE_AUTH_PREFIX)) {
             return true;
         }
         long sid = AuthContextHolder.getSystemIdOrDefault();

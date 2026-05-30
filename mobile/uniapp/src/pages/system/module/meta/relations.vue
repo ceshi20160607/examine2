@@ -61,8 +61,9 @@ import {
   type ModuleRelation,
   upsertRelation
 } from '@/api/meta'
+import { hasId, idToString, sameId, type IdValue } from '@/utils/id'
 
-const appId = ref(0)
+const appId = ref('')
 const models = ref<ModuleModel[]>([])
 const rows = ref<ModuleRelation[]>([])
 const saving = ref(false)
@@ -75,9 +76,9 @@ const relTypeOptions = [
 ]
 
 const form = reactive<{
-  id: number | null
-  srcModelId: number | string
-  dstModelId: number | string
+  id: string | null
+  srcModelId: string
+  dstModelId: string
   relType: string
   configJson: string
 }>({
@@ -96,31 +97,34 @@ const modelOptions = computed(() =>
 )
 
 const modelNameById = computed(() => {
-  const map = new Map<number, string>()
+  const map = new Map<string, string>()
   for (const m of models.value) {
-    if (m.id) map.set(m.id, m.modelName || m.modelCode || String(m.id))
+    const id = idToString(m.id as IdValue)
+    if (hasId(id)) map.set(id, m.modelName || m.modelCode || id)
   }
   return map
 })
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
 })
 
 function relationTitle(r: ModuleRelation) {
-  const src = modelNameById.value.get(Number(r.srcModelId)) || r.srcModelId
-  const dst = modelNameById.value.get(Number(r.dstModelId)) || r.dstModelId
+  const srcId = idToString(r.srcModelId as IdValue)
+  const dstId = idToString(r.dstModelId as IdValue)
+  const src = modelNameById.value.get(srcId) || srcId
+  const dst = modelNameById.value.get(dstId) || dstId
   return `${src} → ${dst}`
 }
 
 async function loadModels() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   const r = await listModelsByApp(appId.value)
   models.value = r.data || []
 }
 
 async function load() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   await run(async () => {
     await loadModels()
     const r = await listRelationsByApp(appId.value)
@@ -137,11 +141,15 @@ function resetForm() {
 }
 
 async function save() {
-  if (!appId.value) return
-  const srcModelId = Number(form.srcModelId)
-  const dstModelId = Number(form.dstModelId)
-  if (!srcModelId || !dstModelId) {
+  if (!hasId(appId.value)) return
+  const srcModelId = idToString(form.srcModelId)
+  const dstModelId = idToString(form.dstModelId)
+  if (!hasId(srcModelId) || !hasId(dstModelId)) {
     uni.showToast({ title: '请选择源/目标模型', icon: 'none' })
+    return
+  }
+  if (sameId(srcModelId, dstModelId)) {
+    uni.showToast({ title: '源模型和目标模型不能相同', icon: 'none' })
     return
   }
   saving.value = true
@@ -170,9 +178,9 @@ function editRelation(r: ModuleRelation) {
     itemList: ['编辑', '删除'],
     success: async (res) => {
       if (res.tapIndex === 0) {
-        form.id = r.id
-        form.srcModelId = r.srcModelId || ''
-        form.dstModelId = r.dstModelId || ''
+        form.id = idToString(r.id as IdValue)
+        form.srcModelId = idToString(r.srcModelId as IdValue)
+        form.dstModelId = idToString(r.dstModelId as IdValue)
         form.relType = r.relType || '1-n'
         form.configJson = r.configJson || ''
         return

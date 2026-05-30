@@ -62,10 +62,11 @@ import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { deleteTempVerLines, pageTempVerLines, upsertTempVerLine } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
 type LineRow = { id: number | string; fromNodeKey?: string; toNodeKey?: string; priority?: number; isDefault?: number; status?: number; remark?: string }
 
-const tempVerId = ref<number>(0)
+const tempVerId = ref('')
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref<LineRow[]>([])
@@ -86,11 +87,11 @@ const form = reactive<{ fromNodeKey: string; toNodeKey: string; priority: string
 })
 
 onLoad((opts) => {
-  tempVerId.value = Number((opts as any)?.tempVerId || 0) || 0
+  tempVerId.value = idToString((opts as any)?.tempVerId)
 })
 
 async function load() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   loading.value = true
   try {
     const r = await pageTempVerLines(tempVerId.value)
@@ -120,7 +121,7 @@ function closePopup() {
 }
 
 function openActions(l: LineRow) {
-  if (!l?.id) return
+  if (!hasId(l?.id)) return
   uni.showActionSheet({
     itemList: ['编辑', '条件(conds)', '删除'],
     success: (res) => {
@@ -132,7 +133,9 @@ function openActions(l: LineRow) {
 }
 
 function goConds(lineId: any) {
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_line_conds?lineId=${encodeURIComponent(String(lineId))}` })
+  const id = idToString(lineId)
+  if (!id) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_line_conds?lineId=${encodeURIComponent(id)}` })
 }
 
 function del(id: any) {
@@ -149,7 +152,7 @@ function del(id: any) {
 }
 
 async function save() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   error.value = null
   if (!form.fromNodeKey.trim() || !form.toNodeKey.trim()) {
     error.value = 'from/to 不能为空'
@@ -184,7 +187,7 @@ async function save() {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  if (!tempVerId.value) {
+  if (!hasId(tempVerId.value)) {
     uni.showToast({ title: '缺少 tempVerId', icon: 'none' })
     return
   }

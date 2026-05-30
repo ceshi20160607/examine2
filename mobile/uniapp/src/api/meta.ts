@@ -1,15 +1,16 @@
 import { httpGet, httpPost } from '@/api/http'
 import type { ApiResult } from '@/api/http'
+import { idToString, type IdValue } from '@/utils/id'
 
-export type ModuleApp = { id: number; appCode?: string; appName?: string; status?: number }
-export type ModuleModel = { id: number; appId?: number; modelCode?: string; modelName?: string; status?: number }
+export type ModuleApp = { id: string; appCode?: string; appName?: string; status?: number }
+export type ModuleModel = { id: string; appId?: string; modelCode?: string; modelName?: string; status?: number }
 export type ModuleField = {
-  id: number
+  id: string
   fieldCode?: string
   fieldName?: string
   fieldType?: string
   dictCode?: string | null
-  refModelId?: number | null
+  refModelId?: IdValue | null
   refDisplayField?: string | null
   relationModuleLabel?: string | null
   configJson?: string | null
@@ -32,6 +33,7 @@ export function listApps(): Promise<ApiResult<ModuleApp[]>> {
 }
 
 export function upsertApp(cmd: {
+  id?: IdValue | null
   appCode: string
   appName: string
   iconUrl?: string | null
@@ -40,6 +42,7 @@ export function upsertApp(cmd: {
   status?: number
 }): Promise<ApiResult<any>> {
   return httpPost('/v1/system/module/meta/apps/upsert', {
+    id: cmd.id ?? null,
     appCode: cmd.appCode,
     appName: cmd.appName,
     iconUrl: cmd.iconUrl ?? null,
@@ -49,13 +52,17 @@ export function upsertApp(cmd: {
   })
 }
 
-export function listModelsByApp(appId: number): Promise<ApiResult<ModuleModel[]>> {
-  return httpGet<ModuleModel[]>(`/v1/system/module/meta/apps/${appId}/models`)
+export function deleteApps(ids: IdValue[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/meta/apps/delete', { ids })
+}
+
+export function listModelsByApp(appId: IdValue): Promise<ApiResult<ModuleModel[]>> {
+  return httpGet<ModuleModel[]>(`/v1/system/module/meta/apps/${pathId(appId)}/models`)
 }
 
 export function upsertModel(cmd: {
-  id?: number | null
-  appId: number
+  id?: IdValue | null
+  appId: IdValue
   modelCode: string
   modelName: string
   status?: number
@@ -71,8 +78,12 @@ export function upsertModel(cmd: {
   })
 }
 
-export function listFieldsByModel(modelId: number): Promise<ApiResult<ModuleField[]>> {
-  return httpGet<ModuleField[]>(`/v1/system/module/meta/models/${modelId}/fields`)
+export function listFieldsByModel(modelId: IdValue): Promise<ApiResult<ModuleField[]>> {
+  return httpGet<ModuleField[]>(`/v1/system/module/meta/models/${pathId(modelId)}/fields`)
+}
+
+export function deleteModels(ids: IdValue[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/meta/models/delete', { ids })
 }
 
 export type FieldTypeDefinition = {
@@ -90,9 +101,9 @@ export function listFieldTypeDefinitions(): Promise<ApiResult<FieldTypeDefinitio
 }
 
 export function upsertField(cmd: {
-  id?: number | null
-  appId: number
-  modelId: number
+  id?: IdValue | null
+  appId: IdValue
+  modelId: IdValue
   fieldCode: string
   fieldName: string
   fieldType: string
@@ -105,7 +116,7 @@ export function upsertField(cmd: {
   validateType?: string | null
   dateFormat?: string | null
   dictCode?: string | null
-  refModelId?: number | null
+  refModelId?: IdValue | null
   refDisplayField?: string | null
   relationModuleLabel?: string | null
   configJson?: string | null
@@ -117,35 +128,39 @@ export function upsertField(cmd: {
   return httpPost<ModuleField>('/v1/system/module/meta/fields/upsert', cmd)
 }
 
-export function deleteFields(ids: number[]): Promise<ApiResult<void>> {
+export function deleteFields(ids: IdValue[]): Promise<ApiResult<void>> {
   return httpPost<void>('/v1/system/module/meta/fields/delete', { ids })
 }
 
 export type ModuleRelation = {
-  id: number
-  appId?: number
-  srcModelId?: number
-  dstModelId?: number
+  id: string
+  appId?: string
+  srcModelId?: string
+  dstModelId?: string
   relType?: string
   configJson?: string | null
 }
 
-export function listRelationsByApp(appId: number): Promise<ApiResult<ModuleRelation[]>> {
-  return httpGet<ModuleRelation[]>(`/v1/system/module/meta/apps/${appId}/relations`)
+export function listRelationsByApp(appId: IdValue): Promise<ApiResult<ModuleRelation[]>> {
+  return httpGet<ModuleRelation[]>(`/v1/system/module/meta/apps/${pathId(appId)}/relations`)
 }
 
 export function upsertRelation(cmd: {
-  id?: number | null
-  appId: number
-  srcModelId: number
-  dstModelId: number
+  id?: IdValue | null
+  appId: IdValue
+  srcModelId: IdValue
+  dstModelId: IdValue
   relType: string
   configJson?: string | null
 }): Promise<ApiResult<ModuleRelation>> {
   return httpPost<ModuleRelation>('/v1/system/module/meta/relations/upsert', cmd)
 }
 
-export function deleteRelations(ids: number[]): Promise<ApiResult<void>> {
+export function deleteRelations(ids: IdValue[]): Promise<ApiResult<void>> {
   return httpPost<void>('/v1/system/module/meta/relations/delete', { ids })
+}
+
+function pathId(value: IdValue): string {
+  return encodeURIComponent(idToString(value))
 }
 

@@ -59,10 +59,11 @@ import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { deleteTempVerNodeSettings, pageTempVerNodeSettings, upsertTempVerNodeSetting } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
-type NodeSettingRow = { id: number | string; nodeKey?: string; exceptionMode?: string; exceptionAdminPlatId?: number; exceptionEndReason?: string; status?: number }
+type NodeSettingRow = { id: number | string; nodeKey?: string; exceptionMode?: string; exceptionAdminPlatId?: string | number; exceptionEndReason?: string; status?: number }
 
-const tempVerId = ref<number>(0)
+const tempVerId = ref('')
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref<NodeSettingRow[]>([])
@@ -78,11 +79,11 @@ const form = reactive<{ nodeKey: string; exceptionMode: string; exceptionAdminPl
 })
 
 onLoad((opts) => {
-  tempVerId.value = Number((opts as any)?.tempVerId || 0) || 0
+  tempVerId.value = idToString((opts as any)?.tempVerId)
 })
 
 async function load() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   loading.value = true
   try {
     const r = await pageTempVerNodeSettings(tempVerId.value)
@@ -111,7 +112,7 @@ function closePopup() {
 }
 
 function openActions(s: NodeSettingRow) {
-  if (!s?.id) return
+  if (!hasId(s?.id)) return
   uni.showActionSheet({
     itemList: ['编辑', '删除'],
     success: (res) => {
@@ -135,15 +136,15 @@ function del(id: any) {
 }
 
 async function save() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   error.value = null
   if (!form.nodeKey.trim()) {
     error.value = 'nodeKey 不能为空'
     return
   }
   const adminRaw = form.exceptionAdminPlatId.trim()
-  const admin = adminRaw ? Number(adminRaw) : null
-  if (adminRaw && (!admin || Number.isNaN(admin))) {
+  const admin = hasId(adminRaw) ? adminRaw : null
+  if (adminRaw && !/^\d+$/.test(adminRaw)) {
     error.value = 'exceptionAdminPlatId 非法'
     return
   }
@@ -170,7 +171,7 @@ async function save() {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  if (!tempVerId.value) {
+  if (!hasId(tempVerId.value)) {
     uni.showToast({ title: '缺少 tempVerId', icon: 'none' })
     return
   }

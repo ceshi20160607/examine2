@@ -49,8 +49,9 @@ import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { usePageRequest } from '@/composables/usePageRequest'
 import { ensureSystemContext } from '@/utils/guard'
 import { deletePages, listPagesByApp, type ModulePage, upsertPage } from '@/api/pages'
+import { hasId, idToString, type IdValue } from '@/utils/id'
 
-const appId = ref(0)
+const appId = ref('')
 const rows = ref<ModulePage[]>([])
 const saving = ref(false)
 const { loading, error, run, capture, clearError } = usePageRequest()
@@ -70,11 +71,11 @@ const form = reactive({
 })
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
 })
 
 async function load() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   await run(async () => {
     const r = await listPagesByApp(appId.value)
     rows.value = r.data || []
@@ -82,7 +83,7 @@ async function load() {
 }
 
 async function create() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   if (!form.pageCode.trim() || !form.pageName.trim()) {
     uni.showToast({ title: '请输入 pageCode/pageName', icon: 'none' })
     return
@@ -112,20 +113,22 @@ async function create() {
 }
 
 function openPage(p: ModulePage) {
+  const pageId = idToString(p.id as IdValue)
+  if (!hasId(pageId)) return
   uni.showActionSheet({
     itemList: ['预览运行', '编辑区块', '删除'],
     success: async (res) => {
       if (res.tapIndex === 0) {
-        uni.navigateTo({ url: `/pages/system/runtime/entry?pageId=${p.id}` })
+        uni.navigateTo({ url: `/pages/system/runtime/entry?pageId=${encodeURIComponent(pageId)}` })
         return
       }
       if (res.tapIndex === 1) {
-        uni.navigateTo({ url: `/pages/system/module/pages/edit?appId=${appId.value}&pageId=${p.id}` })
+        uni.navigateTo({ url: `/pages/system/module/pages/edit?appId=${encodeURIComponent(appId.value)}&pageId=${encodeURIComponent(pageId)}` })
         return
       }
       if (res.tapIndex === 2) {
         try {
-          await deletePages([p.id])
+          await deletePages([pageId])
           uni.showToast({ title: '已删除', icon: 'success' })
           await load()
         } catch (e: unknown) {

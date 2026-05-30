@@ -1,22 +1,7 @@
-import { listRelationsByApp } from "../api/meta.js";
-import { getRecord, queryRecords, queryRecordsByRelation } from "../api/records.js";
-import { configFromMeta } from "./fieldTypeEnum.js";
-
-/** 关联字段列表/下拉需要批量拉取的 EAV 列 */
-function fieldIncludeCodes(field) {
-  const cfg = configFromMeta(field);
-  const codes = [];
-  const show = field?.refDisplayField;
-  if (show) codes.push(String(show));
-  const listFields = cfg.listFields;
-  if (Array.isArray(listFields)) {
-    for (const c of listFields) {
-      if (c && !codes.includes(c)) codes.push(String(c));
-    }
-  }
-  return codes.slice(0, 30);
-}
-
+import { getRecord, queryRecords, queryRecordsByRelation } from "../api/records";
+import { listRelationsByApp } from "../api/meta";
+import { configFromMeta } from "./fieldTypes";
+import { hasId, idToString, sameId, uniqueIds } from "./id";
 function recordDisplayLabel(detail, displayField, inlineData) {
   const data = inlineData || detail?.data || {};
   const id = detail?.record?.id;
@@ -32,21 +17,23 @@ function recordDisplayLabel(detail, displayField, inlineData) {
   }
   return id ? `#${id}` : "-";
 }
-
-function formatCellValue(v) {
-  if (v == null || v === "") return "-";
-  if (typeof v === "object") return JSON.stringify(v);
-  return String(v);
+function fieldIncludeCodes(field) {
+  const cfg = configFromMeta(field);
+  const codes = [];
+  const show = field.refDisplayField;
+  if (show) codes.push(String(show));
+  const listFields = cfg.listFields;
+  if (Array.isArray(listFields)) {
+    for (const c of listFields) {
+      if (c && !codes.includes(c)) codes.push(String(c));
+    }
+  }
+  return codes.slice(0, 30);
 }
-
-/**
- * 按 recordId 批量拉 EAV（一次 query + includeFieldCodes），返回 id → data。
- */
 async function batchLoadRecordDataMap(appId, modelId, recordIds, fieldCodes) {
-  const ids = [...new Set(recordIds.map(Number).filter((n) => n > 0))];
-  const codes = (fieldCodes || []).filter(Boolean).slice(0, 30);
+  const ids = uniqueIds(recordIds);
+  const codes = fieldCodes.filter(Boolean).slice(0, 30);
   if (!appId || !modelId || !ids.length || !codes.length) return {};
-
   const r = await queryRecords({
     appId,
     modelId,
@@ -57,12 +44,11 @@ async function batchLoadRecordDataMap(appId, modelId, recordIds, fieldCodes) {
   });
   const map = {};
   for (const row of r.data?.list || []) {
-    const id = Number(row.id);
-    if (id > 0) map[id] = row.data || {};
+    const id = idToString(row.id);
+    if (hasId(id)) map[id] = row.data || {};
   }
   return map;
 }
-
 async function loadRefSelectOptions(params) {
   const refModelId = params.field.refModelId;
   if (!refModelId || !params.appId) return [];
@@ -76,19 +62,18 @@ async function loadRefSelectOptions(params) {
   });
   const list = r.data?.list || [];
   const displayField = params.field.refDisplayField;
-  return list
-    .map((row) => {
-      const id = Number(row.id);
-      if (!id) return null;
-      const text = recordDisplayLabel(null, displayField, row.data);
-      return { value: id, text };
-    })
-    .filter(Boolean);
+  return list.map((row) => {
+    const id = idToString(row.id);
+    if (!hasId(id)) return null;
+    return {
+      value: id,
+      text: recordDisplayLabel(null, displayField, row.data)
+    };
+  }).filter((x) => x != null);
 }
-
 async function resolveRefDisplay(recordId, displayField) {
-  const id = Number(recordId);
-  if (!id || !Number.isFinite(id)) return "-";
+  const id = idToString(recordId);
+  if (!hasId(id)) return "-";
   try {
     const d = await getRecord(id);
     return recordDisplayLabel(d.data, displayField);
@@ -96,45 +81,35 @@ async function resolveRefDisplay(recordId, displayField) {
     return `#${id}`;
   }
 }
-
-/**
- * 子表行展示：批量填充 cells（避免每行 getRecord）。
- */
+function formatCellValue(v) {
+  if (v == null || v === "") return "-";
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
 function relationIdFromField(field) {
   const cfg = configFromMeta(field);
-  const rid = Number(cfg.relationId);
-  return rid > 0 ? rid : 0;
+  const rid = idToString(cfg.relationId);
+  return hasId(rid) ? rid : "";
 }
-
-/**
- * 解析子表用的关系 ID：优先 field.config_json.relationId，否则按 源模型→目标模型 自动匹配 1-n/1-1。
- */
 async function resolveRelationId(field, parentModelId, appId) {
   const explicit = relationIdFromField(field);
-  if (explicit > 0) return explicit;
-  const dstId = Number(field?.refModelId);
-  const srcId = Number(parentModelId);
-  if (!appId || !dstId || !srcId) return 0;
+  if (hasId(explicit)) return explicit;
+  const dstId = idToString(field.refModelId);
+  const srcId = idToString(parentModelId);
+  if (!appId || !dstId || !srcId) return "";
   try {
     const r = await listRelationsByApp(appId);
     const list = r.data || [];
     const hit = list.find((rel) => {
       const t = String(rel.relType || "").toLowerCase();
       if (t !== "1-n" && t !== "1-1" && t !== "1n" && t !== "11") return false;
-      return Number(rel.srcModelId) === srcId && Number(rel.dstModelId) === dstId;
+      return sameId(rel.srcModelId, srcId) && sameId(rel.dstModelId, dstId);
     });
-    return hit?.id ? Number(hit.id) : 0;
+    return hit?.id ? idToString(hit.id) : "";
   } catch {
-    return 0;
+    return "";
   }
 }
-
-async function getRelationMeta(relationId, appId) {
-  if (!relationId || !appId) return null;
-  const r = await listRelationsByApp(appId);
-  return (r.data || []).find((x) => Number(x.id) === Number(relationId)) || null;
-}
-
 function fkFieldFromRelation(rel) {
   if (!rel?.configJson) return "";
   try {
@@ -144,19 +119,17 @@ function fkFieldFromRelation(rel) {
     return "";
   }
 }
-
 function rowMapFromQueryList(list, columns, field, options) {
-  const optById = new Map((options || []).map((o) => [Number(o.value), o.text]));
+  const optById = new Map(options.map((o) => [idToString(o.value), o.text]));
   const map = {};
-  for (const row of list || []) {
-    const id = Number(row.id);
-    if (!id) continue;
+  for (const row of list) {
+    const id = idToString(row.id);
+    if (!hasId(id)) continue;
     const data = row.data || {};
     const cells = {};
     for (const col of columns) {
       if (col.code === "_title") {
-        cells._title =
-          optById.get(id) || recordDisplayLabel(null, field?.refDisplayField, data) || `#${id}`;
+        cells._title = optById.get(id) || recordDisplayLabel(null, field.refDisplayField, data) || `#${id}`;
       } else {
         cells[col.code] = formatCellValue(data[col.code]);
       }
@@ -165,59 +138,47 @@ function rowMapFromQueryList(list, columns, field, options) {
   }
   return map;
 }
-
-/**
- * 1-n/1-1：按关系 + 父记录 ID 拉子表行（含 includeFieldCodes）。
- */
 async function loadSubRowsByRelation(params) {
-  const { field, appId, parentModelId, parentRecordId, columns, options, limit = 200 } = params;
-  const pid = Number(parentRecordId);
-  if (!pid || !appId) return { ids: [], rowMap: {} };
-
-  const relationId = await resolveRelationId(field, parentModelId, appId);
+  const pid = idToString(params.parentRecordId);
+  if (!hasId(pid) || !params.appId) return { ids: [], rowMap: {} };
+  const relationId = await resolveRelationId(params.field, params.parentModelId, params.appId);
   if (!relationId) return { ids: [], rowMap: {} };
-
-  const rel = await getRelationMeta(relationId, appId);
+  const r = await listRelationsByApp(params.appId);
+  const rel = (r.data || []).find((x) => sameId(x.id, relationId)) || null;
   const relType = String(rel?.relType || "1-n").toLowerCase();
   if (relType === "n-n") {
     return { ids: [], rowMap: {}, relationId, relType };
   }
-
-  const includeFieldCodes = fieldIncludeCodes(field);
-  const r = await queryRecordsByRelation({
+  const includeFieldCodes = fieldIncludeCodes(params.field);
+  const qr = await queryRecordsByRelation({
     relationId,
     parentRecordId: pid,
-    query: {
-      page: 1,
-      limit,
-      includeFieldCodes
-    }
+    query: { page: 1, limit: params.limit ?? 200, includeFieldCodes }
   });
-  const list = r.data?.list || [];
-  const ids = list.map((x) => Number(x.id)).filter((n) => n > 0);
-  const rowMap = rowMapFromQueryList(list, columns, field, options);
-  return { ids, rowMap, relationId, relType, fkField: fkFieldFromRelation(rel) };
+  const list = qr.data?.list || [];
+  const ids = uniqueIds(list.map((x) => x.id));
+  return {
+    ids,
+    rowMap: rowMapFromQueryList(list, params.columns, params.field, params.options),
+    relationId,
+    relType,
+    fkField: fkFieldFromRelation(rel)
+  };
 }
-
 async function buildRowCellsMap(appId, modelId, recordIds, columns, displayField, options) {
-  const codes = columns
-    .map((c) => c.code)
-    .filter((code) => code && code !== "_title");
+  const codes = columns.map((c) => c.code).filter((code) => code && code !== "_title");
   if (displayField && !codes.includes(displayField)) codes.unshift(displayField);
-
   const dataMap = await batchLoadRecordDataMap(appId, modelId, recordIds, codes);
-  const optById = new Map((options || []).map((o) => [Number(o.value), o.text]));
+  const optById = new Map(options.map((o) => [idToString(o.value), o.text]));
   const out = {};
-
-  for (const id of recordIds) {
+  for (const rawId of recordIds) {
+    const id = idToString(rawId);
+    if (!hasId(id)) continue;
     const data = dataMap[id] || {};
     const cells = {};
     for (const col of columns) {
       if (col.code === "_title") {
-        cells._title =
-          optById.get(id) ||
-          recordDisplayLabel(null, displayField, data) ||
-          `#${id}`;
+        cells._title = optById.get(id) || recordDisplayLabel(null, displayField, data) || `#${id}`;
       } else {
         cells[col.code] = formatCellValue(data[col.code]);
       }
@@ -226,13 +187,10 @@ async function buildRowCellsMap(appId, modelId, recordIds, columns, displayField
   }
   return out;
 }
-
 export {
   batchLoadRecordDataMap,
   buildRowCellsMap,
   fieldIncludeCodes,
-  fkFieldFromRelation,
-  getRelationMeta,
   loadRefSelectOptions,
   loadSubRowsByRelation,
   recordDisplayLabel,

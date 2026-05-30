@@ -1,9 +1,10 @@
 import { httpGet, httpPost } from '@/api/http'
 import type { ApiResult } from '@/api/http'
+import { idToString, type IdValue } from '@/utils/id'
 
 export type ModulePage = {
-  id: number
-  appId?: number
+  id: string
+  appId?: string
   pageCode?: string
   pageName?: string
   pageType?: string
@@ -14,55 +15,55 @@ export type ModulePage = {
 }
 
 export type ModulePageBlock = {
-  id: number
-  appId?: number
-  pageId?: number
+  id: string
+  appId?: string
+  pageId?: string
   blockType?: string
   sortNo?: number
   configJson?: string | null
 }
 
 export type PagePickerOption = {
-  value: number
+  value: string
   text: string
   pageCode?: string
   pageType?: string
 }
 
-export function listPagesByApp(appId: number): Promise<ApiResult<ModulePage[]>> {
-  return httpGet<ModulePage[]>(`/v1/system/module/pages/apps/${appId}`)
+export function listPagesByApp(appId: IdValue): Promise<ApiResult<ModulePage[]>> {
+  return httpGet<ModulePage[]>(`/v1/system/module/pages/apps/${pathId(appId)}`)
 }
 
-export function listPagePickerOptions(appId: number): Promise<ApiResult<PagePickerOption[]>> {
-  return httpGet<PagePickerOption[]>(`/v1/system/module/pages/apps/${appId}/picker`)
+export function listPagePickerOptions(appId: IdValue): Promise<ApiResult<PagePickerOption[]>> {
+  return httpGet<PagePickerOption[]>(`/v1/system/module/pages/apps/${pathId(appId)}/picker`)
 }
 
-export function getPageDetail(pageId: number): Promise<ApiResult<{ page: ModulePage; blocks: ModulePageBlock[] }>> {
-  return httpGet<{ page: ModulePage; blocks: ModulePageBlock[] }>(`/v1/system/module/pages/${pageId}/detail`)
+export function getPageDetail(pageId: IdValue): Promise<ApiResult<{ page: ModulePage; blocks: ModulePageBlock[] }>> {
+  return httpGet<{ page: ModulePage; blocks: ModulePageBlock[] }>(`/v1/system/module/pages/${pathId(pageId)}/detail`)
 }
 
 export type PageRuntime = {
-  pageId: number
-  appId: number
+  pageId: string
+  appId: string
   pageCode?: string
   pageName?: string
   pageType?: string
   routePath?: string | null
-  modelId?: number | null
-  listViewId?: number | null
+  modelId?: string | null
+  listViewId?: string | null
   searchFieldCode?: string | null
   titleFieldCodes?: string[]
   columnFieldCodes?: string[]
   fieldOverrides?: Array<{ fieldCode: string; hidden?: boolean; required?: boolean; sortNo?: number }>
 }
 
-export function getPageRuntime(pageId: number): Promise<ApiResult<PageRuntime>> {
-  return httpGet<PageRuntime>(`/v1/system/module/pages/${pageId}/runtime`)
+export function getPageRuntime(pageId: IdValue): Promise<ApiResult<PageRuntime>> {
+  return httpGet<PageRuntime>(`/v1/system/module/pages/${pathId(pageId)}/runtime`)
 }
 
 export function upsertPage(cmd: {
-  id?: number | null
-  appId: number
+  id?: IdValue | null
+  appId: IdValue
   pageCode: string
   pageName: string
   pageType: string
@@ -84,14 +85,14 @@ export function upsertPage(cmd: {
   })
 }
 
-export function deletePages(ids: number[]): Promise<ApiResult<void>> {
+export function deletePages(ids: IdValue[]): Promise<ApiResult<void>> {
   return httpPost<void>('/v1/system/module/pages/delete', { ids })
 }
 
 export function upsertPageBlock(cmd: {
-  id?: number | null
-  appId: number
-  pageId: number
+  id?: IdValue | null
+  appId: IdValue
+  pageId: IdValue
   blockType: string
   sortNo?: number
   configJson?: string | null
@@ -106,6 +107,10 @@ export function upsertPageBlock(cmd: {
   })
 }
 
-export function deletePageBlocks(ids: number[]): Promise<ApiResult<void>> {
+export function deletePageBlocks(ids: IdValue[]): Promise<ApiResult<void>> {
   return httpPost<void>('/v1/system/module/pages/blocks/delete', { ids })
+}
+
+function pathId(value: IdValue): string {
+  return encodeURIComponent(idToString(value))
 }

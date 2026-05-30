@@ -1,9 +1,10 @@
-import { buildApiUrl, httpGet, httpPost } from "./http";
+import { buildApiUrl, httpGet, httpPost } from "../api/http";
+import { idToString } from "../utils/id.js";
 function listDictsByApp(appId) {
-  return httpGet(`/v1/system/module/dicts/apps/${appId}`);
+  return httpGet(`/v1/system/module/dicts/apps/${pathId(appId)}`);
 }
 function upsertDict(appId, cmd) {
-  return httpPost(`/v1/system/module/dicts/apps/${appId}/upsert`, {
+  return httpPost(`/v1/system/module/dicts/apps/${pathId(appId)}/upsert`, {
     id: cmd.id ?? null,
     dictCode: cmd.dictCode,
     dictName: cmd.dictName,
@@ -11,11 +12,14 @@ function upsertDict(appId, cmd) {
     remark: cmd.remark ?? null
   });
 }
+function deleteDicts(ids) {
+  return httpPost("/v1/system/module/dicts/delete", { ids });
+}
 function listDictItems(dictId) {
-  return httpGet(`/v1/system/module/dicts/${dictId}/items`);
+  return httpGet(`/v1/system/module/dicts/${pathId(dictId)}/items`);
 }
 function upsertDictItem(dictId, cmd) {
-  return httpPost(`/v1/system/module/dicts/${dictId}/items/upsert`, {
+  return httpPost(`/v1/system/module/dicts/${pathId(dictId)}/items/upsert`, {
     id: cmd.id ?? null,
     itemValue: cmd.itemValue,
     itemLabel: cmd.itemLabel,
@@ -23,8 +27,11 @@ function upsertDictItem(dictId, cmd) {
     status: cmd.status ?? 1
   });
 }
+function deleteDictItems(ids) {
+  return httpPost("/v1/system/module/dicts/items/delete", { ids });
+}
 function listViewsByModel(modelId) {
-  return httpGet(`/v1/system/module/list-views/models/${modelId}`);
+  return httpGet(`/v1/system/module/list-views/models/${pathId(modelId)}`);
 }
 function upsertListView(cmd) {
   return httpPost("/v1/system/module/list-views/upsert", {
@@ -38,8 +45,11 @@ function upsertListView(cmd) {
     status: cmd.status ?? 1
   });
 }
+function deleteListViews(ids) {
+  return httpPost("/v1/system/module/list-views/delete", { ids });
+}
 function listViewCols(viewId) {
-  return httpGet(`/v1/system/module/list-views/${viewId}/cols`);
+  return httpGet(`/v1/system/module/list-views/${pathId(viewId)}/cols`);
 }
 function upsertViewCol(cmd) {
   return httpPost("/v1/system/module/list-views/cols/upsert", {
@@ -54,8 +64,11 @@ function upsertViewCol(cmd) {
     formatJson: cmd.formatJson ?? null
   });
 }
+function deleteViewCols(ids) {
+  return httpPost("/v1/system/module/list-views/cols/delete", { ids });
+}
 function listFilterTpls(modelId) {
-  return httpGet(`/v1/system/module/list-views/models/${modelId}/filter-tpls`);
+  return httpGet(`/v1/system/module/list-views/models/${pathId(modelId)}/filter-tpls`);
 }
 function upsertFilterTpl(cmd) {
   return httpPost("/v1/system/module/list-views/filter-tpls/upsert", {
@@ -71,8 +84,25 @@ function upsertFilterTpl(cmd) {
 function deleteFilterTpls(ids) {
   return httpPost("/v1/system/module/list-views/filter-tpls/delete", { ids });
 }
+function listFilterFields(tplId) {
+  return httpGet(`/v1/system/module/list-views/filter-tpls/${pathId(tplId)}/fields`);
+}
+function upsertFilterField(cmd) {
+  return httpPost("/v1/system/module/list-views/filter-fields/upsert", {
+    id: cmd.id ?? null,
+    tplId: cmd.tplId,
+    fieldId: cmd.fieldId,
+    opCode: cmd.opCode ?? "eq",
+    defaultValue: cmd.defaultValue ?? null,
+    requiredFlag: cmd.requiredFlag ?? 0,
+    sortNo: cmd.sortNo ?? 0
+  });
+}
+function deleteFilterFields(ids) {
+  return httpPost("/v1/system/module/list-views/filter-fields/delete", { ids });
+}
 function listExportTplsByModel(modelId) {
-  return httpGet(`/v1/system/module/exports/models/${modelId}/tpls`);
+  return httpGet(`/v1/system/module/exports/models/${pathId(modelId)}/tpls`);
 }
 function upsertExportTpl(cmd) {
   return httpPost("/v1/system/module/exports/tpls/upsert", {
@@ -90,7 +120,7 @@ function deleteExportTpl(ids) {
   return httpPost("/v1/system/module/exports/tpls/delete", { ids });
 }
 function listExportTplFields(tplId) {
-  return httpGet(`/v1/system/module/exports/tpls/${tplId}/fields`);
+  return httpGet(`/v1/system/module/exports/tpls/${pathId(tplId)}/fields`);
 }
 function upsertExportTplField(cmd) {
   return httpPost("/v1/system/module/exports/fields/upsert", {
@@ -111,22 +141,26 @@ function pageExportJobs(params) {
   if (params.modelId?.trim()) q.push(`modelId=${encodeURIComponent(params.modelId.trim())}`);
   if (params.status?.trim()) q.push(`status=${encodeURIComponent(params.status.trim())}`);
   const ext = q.length ? "&" + q.join("&") : "";
-  return httpGet(`/v1/system/module/export-jobs/page?page=${params.page}&size=${params.size}${ext}`);
+  return httpGet(`/v1/system/module/export-jobs/page?page=${q(params.page)}&size=${q(params.size)}${ext}`);
 }
 function getExportJobDetail(jobId) {
-  return httpGet(`/v1/system/module/export-jobs/${jobId}`);
+  return httpGet(`/v1/system/module/export-jobs/${pathId(jobId)}`);
 }
 function createExportJob(tplId, query) {
-  return httpPost(`/v1/system/module/export-jobs/tpls/${tplId}`, query);
+  return httpPost(`/v1/system/module/export-jobs/tpls/${pathId(tplId)}`, query);
+}
+function buildExportTplUrl(tplId, limit = 200, fileType) {
+  const suffix = fileType === "csv" || fileType === "xlsx" ? `/${fileType}` : "";
+  return buildApiUrl(`/v1/system/module/exports/tpls/${pathId(tplId)}/export${suffix}?limit=${q(limit)}`);
 }
 function buildExportTplCsvUrl(tplId, limit = 200) {
-  return buildApiUrl(`/v1/system/module/exports/tpls/${tplId}/export/csv?limit=${limit}`);
+  return buildExportTplUrl(tplId, limit, "csv");
 }
 function listRbacRoles(appId) {
-  return httpGet(`/v1/system/module/rbac/apps/${appId}/roles`);
+  return httpGet(`/v1/system/module/rbac/apps/${pathId(appId)}/roles`);
 }
 function upsertRbacRole(appId, cmd) {
-  return httpPost(`/v1/system/module/rbac/apps/${appId}/roles/upsert`, {
+  return httpPost(`/v1/system/module/rbac/apps/${pathId(appId)}/roles/upsert`, {
     id: cmd.id ?? null,
     roleCode: cmd.roleCode,
     roleName: cmd.roleName,
@@ -138,13 +172,13 @@ function searchRbacAccounts(keyword) {
   return httpGet(`/v1/system/module/rbac/account-search?keyword=${encodeURIComponent(keyword)}`);
 }
 function listRbacMenus(appId) {
-  return httpGet(`/v1/system/module/rbac/apps/${appId}/menus`);
+  return httpGet(`/v1/system/module/rbac/apps/${pathId(appId)}/menus`);
 }
 function listRuntimeMenus(appId) {
-  return httpGet(`/v1/system/module/rbac/apps/${appId}/runtime-menus`);
+  return httpGet(`/v1/system/module/rbac/apps/${pathId(appId)}/runtime-menus`);
 }
 function upsertRbacMenu(appId, cmd) {
-  return httpPost(`/v1/system/module/rbac/apps/${appId}/menus/upsert`, {
+  return httpPost(`/v1/system/module/rbac/apps/${pathId(appId)}/menus/upsert`, {
     id: cmd.id ?? null,
     parentId: cmd.parentId,
     menuName: cmd.menuName,
@@ -156,37 +190,51 @@ function upsertRbacMenu(appId, cmd) {
   });
 }
 function listRbacMembers(appId) {
-  return httpGet(`/v1/system/module/rbac/apps/${appId}/members`);
+  return httpGet(`/v1/system/module/rbac/apps/${pathId(appId)}/members`);
 }
 function assignRbacMemberRole(cmd) {
   return httpPost("/v1/system/module/rbac/members/assign-role", cmd);
 }
 function listRoleMenuPerms(roleId) {
-  return httpGet(`/v1/system/module/rbac/roles/${roleId}/menu-perms`);
+  return httpGet(`/v1/system/module/rbac/roles/${pathId(roleId)}/menu-perms`);
 }
 function setRoleMenuPerms(cmd) {
   return httpPost("/v1/system/module/rbac/roles/menu-perms/set", cmd);
 }
 function listRolePagePerms(roleId) {
-  return httpGet(`/v1/system/module/rbac/roles/${roleId}/page-perms`);
+  return httpGet(`/v1/system/module/rbac/roles/${pathId(roleId)}/page-perms`);
 }
 function setRolePagePerms(cmd) {
   return httpPost("/v1/system/module/rbac/roles/page-perms/set", cmd);
 }
 function permPreview(uri) {
-  return httpGet(`/v1/system/module/auth/perm-preview?uri=${encodeURIComponent(uri)}`);
+  return httpGet(`/v1/system/auth/perm-preview?uri=${encodeURIComponent(uri)}`);
+}
+function pathId(value) {
+  return encodeURIComponent(idToString(value));
+}
+function q(value) {
+  return encodeURIComponent(String(value));
 }
 export {
   assignRbacMemberRole,
   buildExportTplCsvUrl,
+  buildExportTplUrl,
   createExportJob,
+  deleteDictItems,
+  deleteDicts,
   deleteExportTpl,
   deleteExportTplField,
+  deleteFilterFields,
+  deleteFilterTpls,
+  deleteListViews,
+  deleteViewCols,
   getExportJobDetail,
   listDictItems,
   listDictsByApp,
   listExportTplFields,
   listExportTplsByModel,
+  listFilterFields,
   listFilterTpls,
   listRbacMembers,
   listRbacMenus,
@@ -205,8 +253,8 @@ export {
   upsertDictItem,
   upsertExportTpl,
   upsertExportTplField,
+  upsertFilterField,
   upsertFilterTpl,
-  deleteFilterTpls,
   upsertListView,
   upsertRbacMenu,
   upsertRbacRole,

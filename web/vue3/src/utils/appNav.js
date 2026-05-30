@@ -1,5 +1,7 @@
+import { idToString } from './id.js'
+
 export function appHubLinks(appId) {
-  const id = Number(appId)
+  const id = idToString(appId)
   const p = (suffix, label) => ({ to: `/apps/${id}${suffix}`, label })
   return [
     p('', '概览'),

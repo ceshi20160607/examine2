@@ -24,14 +24,16 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { buildApiUrl, buildAuthHeaders } from '@/api/http'
+import { buildApiUrl, downloadAuthedToTemp } from '@/api/http'
 import { ensureSystemContext, hasToken } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { getExportJobDetail } from '@/api/module'
+import { hasId, idToString } from '@/utils/id'
+import { openTempDocument } from '@/utils/document'
 
-const jobId = ref<number>(0)
+const jobId = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
 
@@ -42,7 +44,7 @@ const downloadUrl = ref<string>('')
 const pollTimer = ref<any>(null)
 
 onLoad((opts) => {
-  jobId.value = Number((opts as any)?.jobId || 0) || 0
+  jobId.value = idToString((opts as any)?.jobId)
 })
 
 function pretty(v: any) {
@@ -62,7 +64,7 @@ function toAbsUrl(u: string) {
 }
 
 async function reload() {
-  if (!jobId.value) return
+  if (!hasId(jobId.value)) return
   loading.value = true
   error.value = null
   try {
@@ -121,16 +123,7 @@ async function download() {
   if (!hasToken() || !downloadUrl.value) return
   uni.showLoading({ title: '下载中...' })
   try {
-    const dl: any = await new Promise((resolve, reject) => {
-      uni.downloadFile({
-        url: downloadUrl.value,
-        header: buildAuthHeaders(),
-        success: resolve,
-        fail: reject
-      })
-    })
-    const tempFilePath = dl?.tempFilePath
-    if (!tempFilePath) throw new Error('下载失败')
+    const tempFilePath = await downloadAuthedToTemp(downloadUrl.value, '下载失败')
     uni.saveFile({
       tempFilePath,
       success: () => uni.showToast({ title: '已保存', icon: 'success' }),
@@ -147,23 +140,9 @@ async function preview() {
   if (!hasToken() || !viewUrl.value) return
   uni.showLoading({ title: '加载预览...' })
   try {
-    const dl: any = await new Promise((resolve, reject) => {
-      uni.downloadFile({
-        url: viewUrl.value,
-        header: buildAuthHeaders(),
-        success: resolve,
-        fail: reject
-      })
-    })
-    const filePath = dl?.tempFilePath
-    if (!filePath) throw new Error('预览下载失败')
-    // @ts-ignore
-    uni.openDocument?.({
-      filePath,
-      showMenu: true,
-      fail: () => {
-        uni.showToast({ title: '无法直接预览', icon: 'none' })
-      }
+    const filePath = await downloadAuthedToTemp(viewUrl.value, '预览下载失败')
+    openTempDocument(filePath, () => {
+      uni.showToast({ title: '无法直接预览', icon: 'none' })
     })
   } catch (e: any) {
     error.value = e?.message ?? String(e)
@@ -174,7 +153,7 @@ async function preview() {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  if (!jobId.value) {
+  if (!hasId(jobId.value)) {
     uni.showToast({ title: '缺少 jobId', icon: 'none' })
     return
   }

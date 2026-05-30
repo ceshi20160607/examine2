@@ -56,7 +56,7 @@ public class ModuleApp implements Serializable {
     @Schema(description = "状态：1=启用 2=停用")
     private Integer status;
 
-    @Schema(description = "是否已发布：0=否 1=是（MVP 可选）")
+    @Schema(description = "是否已发布：0=否 1=是")
     private Integer publishedFlag;
 
     @Schema(description = "备注")

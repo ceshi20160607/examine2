@@ -48,6 +48,7 @@ import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { usePageRequest } from '@/composables/usePageRequest'
 import { createOpenApp, listOpenApps, type OpenAppClient } from '@/api/platformApp'
+import { hasId, idToString, type IdValue } from '@/utils/id'
 
 const rows = ref<OpenAppClient[]>([])
 const creating = ref(false)
@@ -107,8 +108,10 @@ async function create() {
   }
 }
 
-function goDetail(id: number) {
-  uni.navigateTo({ url: `/pages/platform/open_app_detail?id=${id}` })
+function goDetail(id: IdValue) {
+  const appId = idToString(id)
+  if (!hasId(appId)) return
+  uni.navigateTo({ url: `/pages/platform/open_app_detail?id=${encodeURIComponent(appId)}` })
 }
 
 onMounted(() => {

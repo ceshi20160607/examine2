@@ -6,6 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 与 vite --host 127.0.0.1 一致；localhost 在部分 Windows 环境下代理 /v1 会异常
 const baseURL = process.env.WEB_BASE_URL || 'http://127.0.0.1:5173';
 const authFile = path.join(__dirname, '.auth', 'admin.json');
+const npmCommand = process.platform === 'win32' ? 'npm.cmd run dev' : 'npm run dev';
+const outputDir = process.env.PLAYWRIGHT_OUTPUT_DIR || 'test-results';
+const htmlReportDir = process.env.PLAYWRIGHT_HTML_REPORT || 'playwright-report';
 
 export default defineConfig({
   testDir: './e2e',
@@ -14,7 +17,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: 1,
   timeout: 60_000,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  outputDir,
+  reporter: [['list'], ['html', { open: 'never', outputFolder: htmlReportDir }]],
   use: {
     baseURL,
     trace: 'on-first-retry',
@@ -38,7 +42,7 @@ export default defineConfig({
     ? {}
     : {
         webServer: {
-          command: 'npm run dev',
+          command: npmCommand,
           cwd: '../../web/vue3',
           url: baseURL,
           reuseExistingServer: !process.env.CI,

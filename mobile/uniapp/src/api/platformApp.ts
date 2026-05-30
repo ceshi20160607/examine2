@@ -1,8 +1,9 @@
 import { httpGet, httpPost, httpPut, httpRequest } from '@/api/http'
 import type { ApiResult } from '@/api/http'
+import { idToString, type IdValue } from '@/utils/id'
 
 export type OpenAppClient = {
-  id: number
+  id: string
   clientCode?: string
   clientName?: string
   contactName?: string
@@ -20,7 +21,7 @@ export type OpenAppClientDetail = {
 }
 
 export type OpenAppCredential = {
-  clientId?: number
+  clientId?: string
   accessKey?: string
   secret?: string
 }
@@ -29,8 +30,8 @@ export function listOpenApps(): Promise<ApiResult<OpenAppClient[]>> {
   return httpGet<OpenAppClient[]>('/v1/platform/apps')
 }
 
-export function getOpenApp(id: number): Promise<ApiResult<OpenAppClientDetail>> {
-  return httpGet<OpenAppClientDetail>(`/v1/platform/apps/${id}`)
+export function getOpenApp(id: IdValue): Promise<ApiResult<OpenAppClientDetail>> {
+  return httpGet<OpenAppClientDetail>(`/v1/platform/apps/${pathId(id)}`)
 }
 
 export function createOpenApp(body: {
@@ -45,7 +46,7 @@ export function createOpenApp(body: {
 }
 
 export function updateOpenApp(
-  id: number,
+  id: IdValue,
   body: {
     clientName: string
     contactName?: string | null
@@ -54,17 +55,21 @@ export function updateOpenApp(
     remark?: string | null
   }
 ): Promise<ApiResult<void>> {
-  return httpPut<void>(`/v1/platform/apps/${id}`, body)
+  return httpPut<void>(`/v1/platform/apps/${pathId(id)}`, body)
 }
 
-export function setOpenAppStatus(id: number, status: 1 | 2): Promise<ApiResult<void>> {
-  return httpPost<void>(`/v1/platform/apps/${id}/status`, { status })
+export function setOpenAppStatus(id: IdValue, status: 1 | 2): Promise<ApiResult<void>> {
+  return httpPost<void>(`/v1/platform/apps/${pathId(id)}/status`, { status })
 }
 
-export function deleteOpenApp(id: number): Promise<ApiResult<void>> {
-  return httpRequest<void>('DELETE', `/v1/platform/apps/${id}`)
+export function deleteOpenApp(id: IdValue): Promise<ApiResult<void>> {
+  return httpRequest<void>('DELETE', `/v1/platform/apps/${pathId(id)}`)
 }
 
-export function rotateOpenAppSecret(id: number): Promise<ApiResult<OpenAppCredential>> {
-  return httpPost<OpenAppCredential>(`/v1/platform/apps/${id}/rotate-secret`, {})
+export function rotateOpenAppSecret(id: IdValue): Promise<ApiResult<OpenAppCredential>> {
+  return httpPost<OpenAppCredential>(`/v1/platform/apps/${pathId(id)}/rotate-secret`, {})
+}
+
+function pathId(value: IdValue): string {
+  return encodeURIComponent(idToString(value))
 }

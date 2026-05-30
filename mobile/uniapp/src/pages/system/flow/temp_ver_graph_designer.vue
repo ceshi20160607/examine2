@@ -103,6 +103,7 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { loadGraphDesigner, publishTempVer, saveGraphDesigner } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
 type DesNode = {
   nodeKey: string
@@ -127,7 +128,7 @@ const canvasViewH = 420
 const NODE_W = 110
 const NODE_H = 48
 
-const tempVerId = ref(0)
+const tempVerId = ref('')
 const nodes = ref<DesNode[]>([])
 const edges = ref<DesEdge[]>([])
 const error = ref<string | null>(null)
@@ -333,14 +334,16 @@ function back() {
   uni.navigateBack()
 }
 function goListEdit() {
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_edit?tempVerId=${tempVerId.value}` })
+  if (!hasId(tempVerId.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_edit?tempVerId=${encodeURIComponent(tempVerId.value)}` })
 }
 function goPreview() {
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_preview?tempVerId=${tempVerId.value}` })
+  if (!hasId(tempVerId.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_preview?tempVerId=${encodeURIComponent(tempVerId.value)}` })
 }
 
 async function doReload() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   busy.value = true
   error.value = null
   loadError.value = null
@@ -378,7 +381,7 @@ async function doSave(silentToast: boolean) {
     uni.showToast({ title: v, icon: 'none' })
     return false
   }
-  if (!tempVerId.value) return false
+  if (!hasId(tempVerId.value)) return false
   busy.value = true
   try {
     await saveGraphDesigner(tempVerId.value, {
@@ -410,7 +413,7 @@ async function doSave(silentToast: boolean) {
 }
 
 async function doPublish() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   publishing.value = true
   try {
     const ok = await doSave(true)
@@ -426,7 +429,7 @@ async function doPublish() {
 }
 
 onLoad((opts) => {
-  tempVerId.value = Number((opts as any)?.tempVerId || 0) || 0
+  tempVerId.value = idToString((opts as any)?.tempVerId)
 })
 
 onMounted(() => {

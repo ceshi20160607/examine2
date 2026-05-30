@@ -2,6 +2,7 @@ package com.unique.examine.web.controller;
 
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.core.web.ApiResult;
+import com.unique.examine.module.entity.po.ModuleListFilterField;
 import com.unique.examine.module.entity.po.ModuleListFilterTpl;
 import com.unique.examine.module.entity.po.ModuleListView;
 import com.unique.examine.module.entity.po.ModuleListViewCol;
@@ -124,6 +125,38 @@ public class SystemModuleListViewController {
     public ApiResult<Void> deleteFilterTpls(@RequestBody DeleteIdsBody body) {
         Long platId = AuthContextHolder.getPlatId();
         systemModuleListViewService.deleteFilterTpls(platId, body == null ? null : body.ids());
+        return ApiResult.ok();
+    }
+
+    @Operation(summary = "筛选项列表（按 tplId）")
+    @GetMapping("/filter-tpls/{tplId}/fields")
+    public ApiResult<List<ModuleListFilterField>> listFilterFields(@PathVariable("tplId") Long tplId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleListViewService.listFilterFields(tplId, platId));
+    }
+
+    public record UpsertFilterFieldBody(Long id,
+                                        Long tplId,
+                                        Long fieldId,
+                                        String opCode,
+                                        String defaultValue,
+                                        Integer requiredFlag,
+                                        Integer sortNo) {}
+
+    @Operation(summary = "新增/更新筛选项")
+    @PostMapping("/filter-fields/upsert")
+    public ApiResult<ModuleListFilterField> upsertFilterField(@RequestBody UpsertFilterFieldBody body) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleListViewService.upsertFilterField(platId, new SystemModuleListViewService.UpsertFilterFieldCmd(
+                body.id(), body.tplId(), body.fieldId(), body.opCode(), body.defaultValue(), body.requiredFlag(), body.sortNo()
+        )));
+    }
+
+    @Operation(summary = "删除筛选项（按 id 列表）")
+    @PostMapping("/filter-fields/delete")
+    public ApiResult<Void> deleteFilterFields(@RequestBody DeleteIdsBody body) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleListViewService.deleteFilterFields(platId, body == null ? null : body.ids());
         return ApiResult.ok();
     }
 }

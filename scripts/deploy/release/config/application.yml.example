@@ -1,5 +1,6 @@
-# 复制为 application.yml 后修改（目录：与 JAR 同级的 config/）
-# 启动时自动加载，覆盖 JAR 内默认配置
+# Copy this file to application.yml and edit it before starting.
+# Location in release package: backend/config/application.yml
+# The launcher loads this directory with spring.config.additional-location.
 #
 #   cp application.yml.example application.yml
 
@@ -29,7 +30,7 @@ server:
 
 logging:
   file:
-    name: /var/log/examine/examine-web.log
+    name: /var/log/examine/unexamine.log
   level:
     root: INFO
     com.unique.examine: INFO
@@ -44,7 +45,8 @@ examine:
   trace:
     enabled: false
   openapi:
-    signing-master-key: change-me-openapi-signing-key-32bytes
+    # Required in production. Replace with a random 32+ character value.
+    signing-master-key: replace-with-random-32-plus-chars
   upload:
     local-root-path: /data/examine/uploads
     max-size-mb: 50

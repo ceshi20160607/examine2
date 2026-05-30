@@ -1,26 +1,81 @@
-# 一键打开发布包：后端 JAR + Web 静态 + 手机 H5（+ 可选微信小程序）
-# 用法（仓库根）: .\scripts\deploy\build-release.ps1
-# 产物: dist\release\  与 dist\examine2-release-<时间戳>.zip
+# Build a deployable release package:
+# backend JAR + web static assets + mobile H5 assets.
+# Usage from repository root:
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\deploy\build-release.ps1
 
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $Stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$OutRoot = Join-Path $Root 'dist\release'
-$ZipPath = Join-Path $Root "dist\examine2-release-$Stamp.zip"
+$DistRoot = Join-Path $Root 'dist'
+$OutRoot = Join-Path $DistRoot 'release'
+$ZipPath = Join-Path $DistRoot "unexamine-release-$Stamp.zip"
 
-if (-not $env:JAVA_HOME -or $env:JAVA_HOME -match 'jdk8|jre8') {
-    $env:JAVA_HOME = if ($env:EXAMINE_JAVA_HOME) { $env:EXAMINE_JAVA_HOME } else { 'D:\java\jdk\jdk21' }
+function Get-JavaMajor([string]$javaExe) {
+    if (-not $javaExe -or -not (Test-Path $javaExe)) { return 0 }
+    $line = (& cmd /c "`"$javaExe`" -version 2>&1" | Select-Object -First 1)
+    if ($line -match 'version "1\.([0-9]+)') { return [int]$Matches[1] }
+    if ($line -match 'version "([0-9]+)') { return [int]$Matches[1] }
+    return 0
 }
+
+function Resolve-JavaHome {
+    $candidates = @()
+    if ($env:EXAMINE_JAVA_HOME) { $candidates += $env:EXAMINE_JAVA_HOME }
+    if ($env:JAVA_HOME) { $candidates += $env:JAVA_HOME }
+    $candidates += @(
+        'D:\java\jdk\jdk21',
+        'D:\java\jdk\jdk17',
+        'C:\Program Files\Java\latest\jdk-21',
+        'C:\Program Files\Java\jdk-21',
+        'C:\Program Files\Java\jdk-17'
+    )
+
+    foreach ($candidateHome in $candidates | Where-Object { $_ } | Select-Object -Unique) {
+        $java = Join-Path $candidateHome 'bin\java.exe'
+        if ((Get-JavaMajor $java) -ge 17) {
+            return $candidateHome
+        }
+    }
+
+    $javaCmd = Get-Command java -ErrorAction SilentlyContinue
+    if ($javaCmd -and (Get-JavaMajor $javaCmd.Source) -ge 17) {
+        return Split-Path (Split-Path $javaCmd.Source -Parent) -Parent
+    }
+
+    throw 'Java 17+ is required to build examine2. Set EXAMINE_JAVA_HOME or JAVA_HOME to a JDK 17/21 directory.'
+}
+
+function Resolve-NodeCommand([string]$Name, [switch]$Optional) {
+    $candidates = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
+        @("$Name.cmd", "$Name.exe", $Name)
+    } else {
+        @($Name)
+    }
+    foreach ($candidate in $candidates) {
+        $cmd = Get-Command $candidate -ErrorAction SilentlyContinue
+        if ($cmd) { return $cmd.Source }
+    }
+    if ($Optional) { return $null }
+    throw "$Name is required. Install Node.js and ensure $Name is on PATH."
+}
+
+$env:JAVA_HOME = Resolve-JavaHome
+$env:Path = (Join-Path $env:JAVA_HOME 'bin') + [IO.Path]::PathSeparator + $env:Path
 $env:MAVEN_OPTS = '-Xmx512m -XX:+UseSerialGC'
+Write-Host "Using JAVA_HOME=$env:JAVA_HOME" -ForegroundColor DarkGreen
+$npm = Resolve-NodeCommand 'npm'
+$pnpm = Resolve-NodeCommand 'pnpm' -Optional
 
 Write-Host '=== 1/4 Backend JAR ===' -ForegroundColor Cyan
 Push-Location (Join-Path $Root 'backend')
 try {
-    & mvn -pl examine-web -am package -DskipTests -q
+    & mvn -pl examine-web -am clean package -DskipTests -q
     if ($LASTEXITCODE -ne 0) { throw "mvn failed $LASTEXITCODE" }
-} finally { Pop-Location }
+} finally {
+    Pop-Location
+}
 
-$jarSrc = Join-Path $Root 'backend\examine-web\target\examine-web-0.0.1-SNAPSHOT.jar'
+$jarSrc = Join-Path $Root 'backend\examine-web\target\unexamine-0.0.1.jar'
 if (-not (Test-Path $jarSrc)) { throw "JAR not found: $jarSrc" }
 
 Write-Host '=== 2/4 Web (vue3) ===' -ForegroundColor Cyan
@@ -28,36 +83,41 @@ $Vue = Join-Path $Root 'web\vue3'
 $env:VITE_API_BASE = '/api'
 Push-Location $Vue
 try {
-    if (-not (Test-Path 'node_modules')) { npm install --no-fund --no-audit }
-    npm run build
-    if ($LASTEXITCODE -ne 0) { throw "web build failed" }
-} finally { Pop-Location }
+    if (-not (Test-Path 'node_modules')) { & $npm install --no-fund --no-audit }
+    & $npm run build
+    if ($LASTEXITCODE -ne 0) { throw 'web build failed' }
+} finally {
+    Pop-Location
+}
 
 Write-Host '=== 3/4 Mobile H5 (uniapp) ===' -ForegroundColor Cyan
 $Uni = Join-Path $Root 'mobile\uniapp'
 $env:VITE_API_BASE = '/api'
 Push-Location $Uni
 try {
-    $pnpm = Get-Command pnpm -ErrorAction SilentlyContinue
-    $npmCmd = if ($pnpm) { 'pnpm' } else { 'npm' }
     if (-not (Test-Path 'node_modules')) {
-        if ($pnpm) { corepack pnpm install --no-fund } else { npm install --no-fund --no-audit }
+        if ($pnpm) { & $pnpm install --no-fund } else { & $npm install --no-fund --no-audit }
     }
     if ($pnpm) {
-        corepack pnpm run build:h5
+        & $pnpm run build:h5
     } else {
-        npm run build:h5
+        & $npm run build:h5
     }
-    if ($LASTEXITCODE -ne 0) { throw "mobile h5 build failed" }
-} finally { Pop-Location }
+    if ($LASTEXITCODE -ne 0) { throw 'mobile h5 build failed' }
+} finally {
+    Pop-Location
+}
 
 $buildMp = $env:BUILD_MP_WEIXIN -eq '1'
 if ($buildMp) {
     Write-Host '=== 3b WeChat mini program ===' -ForegroundColor Cyan
     Push-Location $Uni
     try {
-        if ($pnpm) { corepack pnpm run build:mp-weixin } else { npm run build:mp-weixin }
-    } finally { Pop-Location }
+        if ($pnpm) { & $pnpm run build:mp-weixin } else { & $npm run build:mp-weixin }
+        if ($LASTEXITCODE -ne 0) { throw 'mp-weixin build failed' }
+    } finally {
+        Pop-Location
+    }
 }
 
 Write-Host '=== 4/4 Assemble dist/release ===' -ForegroundColor Cyan
@@ -67,33 +127,34 @@ $webOut = Join-Path $OutRoot 'web'
 $mobH5 = Join-Path $OutRoot 'mobile\h5'
 New-Item -ItemType Directory -Force -Path $beOut, $webOut, $mobH5 | Out-Null
 
-$jarDst = Join-Path $beOut 'examine-web-0.0.1-SNAPSHOT.jar'
+$jarDst = Join-Path $beOut 'unexamine-0.0.1.jar'
 Copy-Item $jarSrc $jarDst -Force
-# 校验 JAR 为有效 ZIP（损坏包常见：上传中断、文本模式 FTP）
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 try {
-    $z = [System.IO.Compression.ZipFile]::OpenRead($jarDst)
-    if ($z.Entries.Count -lt 10) { throw 'too few entries' }
-    $z.Dispose()
+    $jarZip = [System.IO.Compression.ZipFile]::OpenRead($jarDst)
+    if ($jarZip.Entries.Count -lt 10) { throw 'too few entries' }
+    $jarZip.Dispose()
 } catch {
     throw "JAR corrupt: $jarDst ($_). Re-run mvn package."
 }
 Write-Host "JAR verified OK ($((Get-Item $jarDst).Length) bytes)" -ForegroundColor DarkGreen
+
 $relTpl = Join-Path $PSScriptRoot 'release\backend'
 function Copy-ShellLf([string]$name) {
     $src = Join-Path $relTpl $name
     $dst = Join-Path $beOut $name
     $utf8 = New-Object System.Text.UTF8Encoding $false
-    $text = (Get-Content $src -Raw) -replace "`r`n", "`n" -replace "`r", ""
+    $text = (Get-Content $src -Raw) -replace "`r`n", "`n" -replace "`r", ''
     [System.IO.File]::WriteAllText($dst, $text, $utf8)
 }
-foreach ($sh in @('start.sh', 'stop.sh', 'status.sh')) { Copy-ShellLf $sh }
-Copy-Item (Join-Path $relTpl 'start.ps1') $beOut
-Copy-Item (Join-Path $relTpl 'application.env.example') $beOut
+Copy-ShellLf 'unexamine.sh'
+Copy-Item (Join-Path $relTpl 'unexamine.ps1') $beOut
+
 $configTpl = Join-Path $PSScriptRoot 'release\config'
 $configOut = Join-Path $beOut 'config'
 New-Item -ItemType Directory -Force -Path $configOut | Out-Null
 Copy-Item (Join-Path $configTpl 'application.yml.example') (Join-Path $configOut 'application.yml.example')
+
 $nginxOut = Join-Path $OutRoot 'nginx'
 New-Item -ItemType Directory -Force -Path $nginxOut | Out-Null
 Copy-Item (Join-Path $PSScriptRoot 'nginx\examine.conf') (Join-Path $nginxOut 'examine.conf')
@@ -119,52 +180,67 @@ if ($buildMp) {
     }
 }
 
-$readme = @"
-# examine2 发布包 ($Stamp)
+$readme = @'
+# unexamine release package ({{STAMP}})
 
-## 目录
+## Contents
 
-| 路径 | 说明 |
-|------|------|
-| ``backend/`` | ``examine-web-0.0.1-SNAPSHOT.jar`` + 启动脚本 |
-| ``web/`` | 管理台静态资源（Nginx root） |
-| ``mobile/h5/`` | 手机 H5 静态（可选 Nginx ``/m/``） |
-| ``nginx/examine.conf`` | Nginx 示例：``/api/`` 反代后端 |
+| Path | Description |
+|------|-------------|
+| `backend/` | `unexamine-0.0.1.jar`, `unexamine.sh`, `unexamine.ps1`, and `config/application.yml.example` |
+| `web/` | Admin web static files, suitable for an Nginx root |
+| `mobile/h5/` | Mobile H5 static files, usually mounted under `/m/` |
+| `nginx/examine.conf` | Nginx example, including `/api/` reverse proxy |
 
-## API 路径约定
+## API Path
 
-- 前端构建 ``VITE_API_BASE=/api``
-- 浏览器请求：``/api/v1/...``
-- Nginx：``location /api/ { proxy_pass http://127.0.0.1:9999/; }`` → 后端 ``/v1/...``
+- Frontend builds use `VITE_API_BASE=/api`.
+- Browser requests use `/api/v1/...`.
+- Nginx should proxy `/api/` to `http://127.0.0.1:9999/`, so backend receives `/v1/...`.
 
-## 后端启动
+## Backend
+
+Linux:
 
 ```bash
 cd backend
-cp application.env.example application.env
-# 编辑 MySQL / Redis / 密钥
-chmod +x start.sh
-./start.sh
+chmod +x unexamine.sh
+./unexamine.sh init-config
+# Edit MySQL / Redis settings in config/application.yml.
+./unexamine.sh start
+./unexamine.sh status
+./unexamine.sh stop
 ```
 
-Windows: ``.\start.ps1``（先配置 ``application.env``）
+Windows:
 
-## Nginx 部署
+```powershell
+cd backend
+.\unexamine.ps1 init-config
+# Edit MySQL / Redis settings in config\application.yml.
+.\unexamine.ps1 start
+.\unexamine.ps1 status
+.\unexamine.ps1 stop
+```
 
-1. 将 ``web/`` 放到 ``/opt/examine/web``（或改 nginx 内 root）
-2. 将 ``mobile/h5/`` 放到 ``/opt/examine/mobile-h5``（若启用 ``/m/``）
-3. ``include`` 或复制 ``nginx/examine.conf``
-4. ``nginx -t && systemctl reload nginx``
+## Nginx
 
-## 手机端
+1. Put `web/` under `/opt/examine/web` or your preferred Nginx root.
+2. Put `mobile/h5/` under `/opt/examine/mobile-h5` if `/m/` is enabled.
+3. Copy or include `nginx/examine.conf`.
+4. Run `nginx -t && systemctl reload nginx`.
 
-- **H5**：与站点同域访问 ``/m/`` 时 API 使用 ``/api``（已写入构建）
-- **微信小程序**：用微信开发者工具打开 ``mobile/mp-weixin``（需 ``BUILD_MP_WEIXIN=1`` 构建）；在 App「我的」配置 API 为 ``https://你的域名/api``
+## Mobile
 
-"@
+- H5 uses `/api` when hosted on the same domain.
+- WeChat mini program output is generated only when `BUILD_MP_WEIXIN=1`.
+'@
+$readme = $readme.Replace('{{STAMP}}', $Stamp)
 Set-Content -Path (Join-Path $OutRoot 'README-DEPLOY.md') -Value $readme -Encoding UTF8
 
-if (Test-Path $ZipPath) { Remove-Item $ZipPath -Force }
+if (-not (Test-Path $DistRoot)) { New-Item -ItemType Directory -Force -Path $DistRoot | Out-Null }
+Get-ChildItem -Path $DistRoot -Filter 'unexamine-release-*.zip' -File -ErrorAction SilentlyContinue | Remove-Item -Force
+Get-ChildItem -Path $DistRoot -Filter 'examine2-release-*.zip' -File -ErrorAction SilentlyContinue | Remove-Item -Force
 Compress-Archive -Path (Join-Path $OutRoot '*') -DestinationPath $ZipPath -Force
 
 Write-Host "Release folder: $OutRoot" -ForegroundColor Green

@@ -50,8 +50,9 @@ import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { getInstance, listInstanceActions, listInstanceTasks, listInstanceTraces } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
-const instanceId = ref<number>(0)
+const instanceId = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
 
@@ -61,7 +62,7 @@ const actions = ref<any[]>([])
 const traces = ref<any[]>([])
 
 onLoad((opts) => {
-  instanceId.value = Number((opts as any)?.id || 0) || 0
+  instanceId.value = idToString((opts as any)?.id)
 })
 
 function pretty(v: any) {
@@ -73,12 +74,15 @@ function pretty(v: any) {
 }
 
 function goTask(t: any) {
-  if (!instanceId.value || !t?.id) return
-  uni.navigateTo({ url: `/pages/system/flow/task?instanceId=${instanceId.value}&taskId=${t.id}` })
+  const taskId = idToString(t?.id)
+  if (!hasId(instanceId.value) || !hasId(taskId)) return
+  uni.navigateTo({
+    url: `/pages/system/flow/task?instanceId=${encodeURIComponent(instanceId.value)}&taskId=${encodeURIComponent(taskId)}`
+  })
 }
 
 async function reload() {
-  if (!instanceId.value) return
+  if (!hasId(instanceId.value)) return
   loading.value = true
   error.value = null
   try {
@@ -101,7 +105,7 @@ async function reload() {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  if (!instanceId.value) {
+  if (!hasId(instanceId.value)) {
     uni.showToast({ title: '缺少 id', icon: 'none' })
     return
   }

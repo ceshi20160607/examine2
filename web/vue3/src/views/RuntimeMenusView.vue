@@ -29,6 +29,14 @@ const menus = ref([])
 const loading = ref(false)
 const error = ref('')
 
+function runtimePath(rt) {
+  const routePath = String(rt?.routePath || '').trim()
+  if (routePath === '/records' || routePath === '/records/form') return routePath
+  const type = String(rt?.pageType || 'list').toLowerCase()
+  if (type === 'form') return '/records/form'
+  return '/records'
+}
+
 async function openPage(m) {
   if (!m.pageId) return
   error.value = ''
@@ -39,13 +47,9 @@ async function openPage(m) {
       error.value = '页面未配置 modelId'
       return
     }
-    const type = String(rt.pageType || 'list').toLowerCase()
     const base = { appId: rt.appId, modelId: rt.modelId, pageId: rt.pageId }
-    if (type === 'form') {
-      router.push({ path: '/records/form', query: base })
-    } else {
-      router.push({ path: '/records', query: base })
-    }
+    const path = runtimePath(rt)
+    router.push({ path, query: base })
   } catch (e) {
     error.value = e?.message || String(e)
   }
@@ -64,7 +68,6 @@ onMounted(async () => {
 })
 </script>
 
-<style src="./admin-shared.css"></style>
 <style scoped>
 .list {
   list-style: none;

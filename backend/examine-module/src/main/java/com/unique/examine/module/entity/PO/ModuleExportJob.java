@@ -44,7 +44,7 @@ public class ModuleExportJob implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long tplId;
 
-    @Schema(description = "fileType: csv|xlsx（当前仅 csv）")
+    @Schema(description = "fileType: csv|xlsx")
     private String fileType;
 
     @Schema(description = "任务状态：0=pending 1=running 2=success 3=failed")

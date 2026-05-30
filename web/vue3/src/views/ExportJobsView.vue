@@ -69,7 +69,7 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import AdminLayout from '../layouts/AdminLayout.vue'
 import { getExportJobDetail, pageExportJobs } from '../api/module.js'
-import { buildApiUrl, getToken } from '../api/http.js'
+import { httpBlob, saveBlob } from '../api/http.js'
 
 const rows = ref([])
 const total = ref(0)
@@ -138,17 +138,11 @@ async function downloadJob(jobId) {
       error.value = '文件尚未生成'
       return
     }
-    const res = await fetch(buildApiUrl(path), {
-      headers: { Authorization: `Bearer ${getToken()}` }
-    })
-    if (!res.ok) throw new Error(`下载失败 HTTP ${res.status}`)
-    const blob = await res.blob()
-    const name = r.data?.file?.origName || r.data?.file?.fileName || `export-${jobId}.csv`
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = name
-    a.click()
-    URL.revokeObjectURL(a.href)
+    const r2 = await httpBlob(path)
+    const file = r.data?.file || {}
+    const ext = file.fileExt || r.data?.job?.fileType || 'csv'
+    const name = r2.filename || file.originalName || file.origName || file.fileName || `export-${jobId}.${ext}`
+    saveBlob(r2.blob, name)
   } catch (e) {
     error.value = e?.message || String(e)
   } finally {
@@ -229,4 +223,3 @@ onUnmounted(() => clearInterval(pollTimer))
   display: inline-block;
 }
 </style>
-<style src="./admin-shared.css"></style>

@@ -13,13 +13,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import ActionBar from '@/ui/ActionBar.vue'
-import { pickSingleFilePath, uploadOneFile } from '@/api/upload'
+import { buildUploadViewUrl, downloadUploadToTemp, pickSingleFilePath, uploadOneFile } from '@/api/upload'
 
 const props = defineProps<{ modelValue?: number | string | null }>()
-const emit = defineEmits<{ (e: 'update:modelValue', v: number | null): void }>()
+const emit = defineEmits<{ (e: 'update:modelValue', v: string | null): void }>()
 
 const previewUrl = ref('')
 const localPath = ref('')
+let previewSeq = 0
 
 const fileIdLabel = computed(() => {
   const v = props.modelValue
@@ -29,9 +30,10 @@ const fileIdLabel = computed(() => {
 
 watch(
   () => props.modelValue,
-  () => {
-    if (!props.modelValue) previewUrl.value = localPath.value || ''
-  }
+  (value) => {
+    loadPreview(value)
+  },
+  { immediate: true }
 )
 
 function clear() {
@@ -53,6 +55,27 @@ async function choose() {
     }
   } catch (e: any) {
     uni.showToast({ title: e?.message || '上传失败', icon: 'none' })
+  }
+}
+
+async function loadPreview(value?: number | string | null) {
+  const seq = ++previewSeq
+  if (!value) {
+    previewUrl.value = localPath.value || ''
+    return
+  }
+  if (localPath.value && previewUrl.value === localPath.value) {
+    return
+  }
+  try {
+    const tempPath = await downloadUploadToTemp(buildUploadViewUrl(value))
+    if (seq === previewSeq) {
+      previewUrl.value = tempPath
+    }
+  } catch {
+    if (seq === previewSeq) {
+      previewUrl.value = ''
+    }
   }
 }
 </script>

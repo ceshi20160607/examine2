@@ -25,7 +25,7 @@
           </view>
         </view>
 
-        <view v-if="!parseError && !nodeList.length && !rawEmpty" class="muted">graphJson 无 nodes，可回版本页填写或点「填充 MVP」</view>
+        <view v-if="!parseError && !nodeList.length && !rawEmpty" class="muted">graphJson 无 nodes，可回版本页填写或点「填充默认流程」</view>
         <view v-if="rawEmpty" class="muted">当前版本无 graphJson</view>
       </template>
       <ActionBar>
@@ -46,8 +46,9 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { getTempVer } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
-const tempVerId = ref(0)
+const tempVerId = ref('')
 const error = ref<string | null>(null)
 const parseError = ref<string | null>(null)
 const rawGraph = ref<any>(null)
@@ -159,7 +160,7 @@ async function load() {
   parseError.value = null
   rawGraph.value = null
   rawEmpty.value = true
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   try {
     const r = await getTempVer(tempVerId.value)
     const v = r.data || {}
@@ -180,7 +181,7 @@ async function load() {
 }
 
 onLoad((opts) => {
-  tempVerId.value = Number((opts as any)?.tempVerId || 0) || 0
+  tempVerId.value = idToString((opts as any)?.tempVerId)
 })
 
 onMounted(() => {

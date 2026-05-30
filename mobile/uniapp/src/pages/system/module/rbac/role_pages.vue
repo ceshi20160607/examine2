@@ -8,6 +8,8 @@
       </uni-forms>
       <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="save">保存（覆盖写）</uni-button>
+        <uni-button @click="selectAll">全选</uni-button>
+        <uni-button @click="clearAll">清空</uni-button>
         <uni-button :disabled="loading" @click="reload">刷新</uni-button>
       </ActionBar>
     </view>
@@ -38,53 +40,74 @@ import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import { listPagesByApp } from '@/api/pages'
 import { listRolePagePerms, setRolePagePerms } from '@/api/module'
+import { hasId, idToString } from '@/utils/id'
 
-const appId = ref(0)
-const roleId = ref(0)
+const appId = ref('')
+const roleId = ref('')
 const loading = ref(false)
 const saving = ref(false)
-const pages = ref<Array<{ id: number; pageCode?: string; pageName?: string; pageType?: string }>>([])
-const selected = ref<Record<number, boolean>>({})
+const pages = ref<Array<{ id: string; pageCode?: string; pageName?: string; pageType?: string }>>([])
+const selected = ref<Record<string, boolean>>({})
 const permLevelText = ref('1')
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
-  roleId.value = Number((opts as any)?.roleId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
+  roleId.value = idToString((opts as any)?.roleId)
 })
 
-function isSelected(id: number) {
+function isSelected(id: string) {
   return !!selected.value[id]
 }
 
-function toggle(id: number) {
+function toggle(id: string) {
+  const key = idToString(id)
   const next = { ...selected.value }
-  if (next[id]) delete next[id]
-  else next[id] = true
+  if (next[key]) delete next[key]
+  else next[key] = true
   selected.value = next
 }
 
+function selectAll() {
+  const next: Record<string, boolean> = {}
+  for (const p of pages.value) {
+    const id = idToString(p.id)
+    if (hasId(id)) next[id] = true
+  }
+  selected.value = next
+}
+
+function clearAll() {
+  selected.value = {}
+}
+
 async function reload() {
-  if (!appId.value || !roleId.value) return
+  if (!hasId(appId.value) || !hasId(roleId.value)) return
   loading.value = true
   try {
     const [pr, permR] = await Promise.all([listPagesByApp(appId.value), listRolePagePerms(roleId.value)])
     pages.value = pr.data || []
-    const sel: Record<number, boolean> = {}
-    for (const row of permR.data || []) {
-      if (row?.pageId && row?.permLevel === 1) sel[Number(row.pageId)] = true
+    const sel: Record<string, boolean> = {}
+    const perms = permR.data || []
+    for (const row of perms) {
+      const id = idToString(row?.pageId)
+      if (hasId(id)) sel[id] = true
     }
     selected.value = sel
+    const first = perms.find((row) => row?.permLevel != null)
+    permLevelText.value = first ? String(first.permLevel) : '1'
   } finally {
     loading.value = false
   }
 }
 
 async function save() {
-  if (!roleId.value) return
+  if (!hasId(roleId.value)) return
   const permLevel = Number(permLevelText.value.trim() || '1')
-  const pageIds = Object.keys(selected.value)
-    .map((k) => Number(k))
-    .filter((n) => n > 0)
+  if (Number.isNaN(permLevel) || (permLevel !== 0 && permLevel !== 1)) {
+    uni.showToast({ title: 'permLevel 仅支持 0 或 1', icon: 'none' })
+    return
+  }
+  const pageIds = Object.keys(selected.value).filter((id) => hasId(id))
   saving.value = true
   try {
     await setRolePagePerms({ roleId: roleId.value, pageIds, permLevel })

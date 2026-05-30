@@ -1,4 +1,5 @@
 import type { ModuleField } from '@/api/meta'
+import { hasId, idToString, type IdValue } from '@/utils/id'
 
 export type PageFieldOverride = {
   fieldCode: string
@@ -7,18 +8,35 @@ export type PageFieldOverride = {
   sortNo?: number
 }
 
+export type PageRuntimeColumn = {
+  fieldCode: string
+  label?: string
+  fieldId?: IdValue | null
+  fieldType?: string | null
+  width?: number | null
+  sortNo?: number | null
+  visibleFlag?: number | null
+  fixedType?: string | null
+  formatJson?: string | null
+}
+
 export type PageRuntime = {
-  pageId: number
-  appId: number
+  pageId: string
+  appId: string
   pageCode?: string
   pageName?: string
   pageType?: string
   routePath?: string | null
-  modelId?: number | null
-  listViewId?: number | null
+  menuId?: IdValue | null
+  modelId?: IdValue | null
+  listViewId?: IdValue | null
+  filterTplId?: IdValue | null
+  filterTplName?: string | null
+  filterTplCode?: string | null
   searchFieldCode?: string | null
   titleFieldCodes?: string[]
   columnFieldCodes?: string[]
+  columns?: PageRuntimeColumn[]
   fieldOverrides?: PageFieldOverride[]
 }
 
@@ -65,7 +83,8 @@ export function applyPageFieldOverrides<T extends ModuleField>(
   })
 }
 
-export function pageQuerySuffix(pageId?: number | null): string {
-  if (!pageId) return ''
-  return `&pageId=${pageId}`
+export function pageQuerySuffix(pageId?: IdValue | null): string {
+  const id = idToString(pageId)
+  if (!hasId(id)) return ''
+  return `&pageId=${encodeURIComponent(id)}`
 }

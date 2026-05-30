@@ -22,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,7 +41,7 @@ import java.util.HashSet;
 @RequestMapping("/v1/system/uploads")
 public class SystemUploadController {
 
-    // MVP：先做 local 存储；后续可接入 UploadStorageConfig（minio/oss）
+    // 生产包默认使用 local 存储；下载和预览统一从本表记录校验权限。
     @Value("${examine.upload.local-root-path:data/uploads}")
     private String localRootPath;
 
@@ -124,12 +126,12 @@ public class SystemUploadController {
         uf.setUpdateUserId(platId);
         uploadFileService.save(uf);
 
-        return ApiResult.ok(Map.of(
-                "fileId", uf.getId(),
-                "originalName", uf.getOriginalName(),
-                "contentType", uf.getContentType(),
-                "fileSize", uf.getFileSize()
-        ));
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("fileId", String.valueOf(uf.getId()));
+        data.put("originalName", uf.getOriginalName());
+        data.put("contentType", uf.getContentType());
+        data.put("fileSize", uf.getFileSize());
+        return ApiResult.ok(data);
     }
 
     @Operation(summary = "文件分页列表（按 system/tenant 隔离；可选 keyword；默认仅 status=1）")
@@ -197,7 +199,8 @@ public class SystemUploadController {
     public void download(@PathVariable("fileId") Long fileId, HttpServletResponse response) {
         UploadFile uf = requireFileInScope(fileId, false);
         if (!Objects.equals(uf.getStorageType(), "local") || !StringUtils.hasText(uf.getLocalAbsPath())) {
-            throw new BusinessException(400, "仅支持 local 存储文件下载");
+            redirectRemoteFile(uf, response);
+            return;
         }
         Path p = Paths.get(uf.getLocalAbsPath());
         if (!Files.exists(p)) {
@@ -205,7 +208,7 @@ public class SystemUploadController {
         }
         String ct = StringUtils.hasText(uf.getContentType()) ? uf.getContentType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
         response.setContentType(ct);
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + sanitizeFilename(uf.getOriginalName()) + "\"");
+        response.setHeader("Content-Disposition", contentDisposition("attachment", uf.getOriginalName()));
         try (InputStream in = Files.newInputStream(p); OutputStream out = response.getOutputStream()) {
             in.transferTo(out);
             out.flush();
@@ -219,7 +222,8 @@ public class SystemUploadController {
     public void view(@PathVariable("fileId") Long fileId, HttpServletResponse response) {
         UploadFile uf = requireFileInScope(fileId, false);
         if (!Objects.equals(uf.getStorageType(), "local") || !StringUtils.hasText(uf.getLocalAbsPath())) {
-            throw new BusinessException(400, "仅支持 local 存储文件预览");
+            redirectRemoteFile(uf, response);
+            return;
         }
         Path p = Paths.get(uf.getLocalAbsPath());
         if (!Files.exists(p)) {
@@ -227,7 +231,7 @@ public class SystemUploadController {
         }
         String ct = StringUtils.hasText(uf.getContentType()) ? uf.getContentType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
         response.setContentType(ct);
-        response.setHeader("Content-Disposition", "inline; filename=\"" + sanitizeFilename(uf.getOriginalName()) + "\"");
+        response.setHeader("Content-Disposition", contentDisposition("inline", uf.getOriginalName()));
         try (InputStream in = Files.newInputStream(p); OutputStream out = response.getOutputStream()) {
             in.transferTo(out);
             out.flush();
@@ -340,6 +344,40 @@ public class SystemUploadController {
             return "file";
         }
         return s.replace("\\", "_").replace("/", "_").replace("\"", "");
+    }
+
+    private static String contentDisposition(String disposition, String filename) {
+        String safe = sanitizeFilename(filename);
+        String ascii = safe.replaceAll("[^\\x20-\\x7E]", "_");
+        if (!StringUtils.hasText(ascii)) {
+            ascii = "file";
+        }
+        String encoded = URLEncoder.encode(safe, StandardCharsets.UTF_8).replace("+", "%20");
+        return disposition + "; filename=\"" + ascii + "\"; filename*=UTF-8''" + encoded;
+    }
+
+    private static void redirectRemoteFile(UploadFile uf, HttpServletResponse response) {
+        String url = firstNonBlank(uf.getPublicUrl(), uf.getInternalUrl());
+        if (!StringUtils.hasText(url)) {
+            throw new BusinessException(400, "文件没有可访问的存储地址");
+        }
+        String trimmed = url.trim();
+        String lower = trimmed.toLowerCase();
+        if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+            throw new BusinessException(400, "文件存储地址必须是 http/https");
+        }
+        try {
+            response.sendRedirect(trimmed);
+        } catch (Exception e) {
+            throw new BusinessException(500, "跳转文件地址失败: " + e.getMessage());
+        }
+    }
+
+    private static String firstNonBlank(String first, String second) {
+        if (StringUtils.hasText(first)) {
+            return first;
+        }
+        return second;
     }
 }
 

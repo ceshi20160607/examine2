@@ -47,6 +47,8 @@ public class ModuleRecordFacadeService {
 
     private static final Pattern FIELD_CODE = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]{0,63}$");
     private static final Set<String> RESERVED_RECORD_FIELDS = Set.of("id", "createTime", "updateTime");
+    private static final Set<String> RECORD_LIST_ID_COLUMNS = Set.of(
+            "id", "system_id", "tenant_id", "app_id", "model_id", "create_user_id", "update_user_id");
 
     @Autowired
     private IModuleRecordService moduleRecordService;
@@ -614,12 +616,12 @@ public class ModuleRecordFacadeService {
             if (uf == null || uf.getId() == null) {
                 continue;
             }
-            out.put(String.valueOf(uf.getId()), Map.of(
-                    "id", uf.getId(),
-                    "originalName", uf.getOriginalName(),
-                    "contentType", uf.getContentType(),
-                    "fileSize", uf.getFileSize()
-            ));
+            Map<String, Object> meta = new LinkedHashMap<>();
+            meta.put("id", String.valueOf(uf.getId()));
+            meta.put("originalName", uf.getOriginalName());
+            meta.put("contentType", uf.getContentType());
+            meta.put("fileSize", uf.getFileSize());
+            out.put(String.valueOf(uf.getId()), meta);
         }
         return out;
     }
@@ -775,6 +777,7 @@ public class ModuleRecordFacadeService {
                 ? moduleRecordMapper.listDsl(q, offset, q.getLimit())
                 : List.of();
         attachListFieldData(q, list);
+        stringifyRecordListIds(list);
 
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("page", q.getPage());
@@ -782,6 +785,23 @@ public class ModuleRecordFacadeService {
         m.put("total", total == null ? 0L : total);
         m.put("list", list);
         return m;
+    }
+
+    private static void stringifyRecordListIds(List<Map<String, Object>> list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        for (Map<String, Object> row : list) {
+            if (row == null || row.isEmpty()) {
+                continue;
+            }
+            for (String key : RECORD_LIST_ID_COLUMNS) {
+                Object value = row.get(key);
+                if (value != null) {
+                    row.put(key, String.valueOf(value));
+                }
+            }
+        }
     }
 
     /**
@@ -1102,23 +1122,26 @@ public class ModuleRecordFacadeService {
             throw new BusinessException("filter.field/op 不能为空");
         }
 
-        Set<String> opAllow = Set.of("eq", "in", "like", "gte", "lte");
+        if (op.equals("ge")) {
+            op = "gte";
+        } else if (op.equals("le")) {
+            op = "lte";
+        }
+        Set<String> opAllow = Set.of("eq", "ne", "in", "like", "gt", "gte", "lt", "lte", "between");
         if (!opAllow.contains(op)) {
             throw new BusinessException("filter.op 不在白名单");
         }
 
         if (RESERVED_RECORD_FIELDS.contains(field)) {
             if (field.equals("id")) {
-                if (!(op.equals("eq") || op.equals("in"))) {
-                    throw new BusinessException("id 仅支持 eq/in");
+                if (!(op.equals("eq") || op.equals("ne") || op.equals("in"))) {
+                    throw new BusinessException("id 仅支持 eq/ne/in");
                 }
             } else if (field.equals("createTime") || field.equals("updateTime")) {
-                if (!(op.equals("gte") || op.equals("lte"))) {
-                    throw new BusinessException(field + " 仅支持 gte/lte");
+                if (!(op.equals("gt") || op.equals("gte") || op.equals("lt") || op.equals("lte") || op.equals("between"))) {
+                    throw new BusinessException(field + " 仅支持 gt/gte/lt/lte/between");
                 }
-                if (f.getValue() == null) {
-                    throw new BusinessException(field + " 的 value 不能为空");
-                }
+                normalizeBetweenValue(f, field);
             }
         } else {
             if (!FIELD_CODE.matcher(field).matches()) {
@@ -1128,16 +1151,8 @@ public class ModuleRecordFacadeService {
                 throw new BusinessException("modelId/appId 不能为空");
             }
             ModuleField mf = requireField(systemId, tenantId, appId, modelId, field);
-            if (!(op.equals("eq") || op.equals("like"))) {
-                throw new BusinessException("field_code 条件仅支持 eq/like");
-            }
-            if (f.getValue() == null) {
-                throw new BusinessException(field + " 的 value 不能为空");
-            }
-            String s = String.valueOf(f.getValue());
-            if (s.length() > 200) {
-                throw new BusinessException(field + " 的 value 太长");
-            }
+            normalizeBetweenValue(f, field);
+            validateFilterValueLength(f, field);
             resolveDslTypedEqFilter(f, mf);
         }
 
@@ -1148,7 +1163,7 @@ public class ModuleRecordFacadeService {
             if (f.getValues().size() > 200) {
                 throw new BusinessException("in 的 values 超限（最多 200）");
             }
-        } else {
+        } else if (!op.equals("between")) {
             if (f.getValue() == null) {
                 throw new BusinessException("value 不能为空");
             }
@@ -1162,23 +1177,82 @@ public class ModuleRecordFacadeService {
         f.setTypedKind("NONE");
         f.setValueNum(null);
         f.setValueDt(null);
-        if (f == null || mf == null || !"eq".equals(f.getOp())) {
+        f.setValueNumEnd(null);
+        f.setValueDtEnd(null);
+        if (f == null || mf == null) {
             return;
         }
         ModuleFieldType t = ModuleFieldConfigSupport.typeOf(mf);
         if (t == null) {
             return;
         }
+        String op = f.getOp();
         String label = mf.getFieldCode();
         if (t == ModuleFieldType.NUMBER || t == ModuleFieldType.MONEY || t == ModuleFieldType.PERCENT) {
+            if (!(op.equals("eq") || op.equals("ne") || op.equals("gt") || op.equals("gte") || op.equals("lt") || op.equals("lte") || op.equals("between"))) {
+                if (op.equals("in") || op.equals("like")) {
+                    return;
+                }
+                throw new BusinessException(label + " 仅支持 eq/ne/in/like/gt/gte/lt/lte/between");
+            }
             f.setTypedKind("NUM");
             f.setValueNum(EavTypedValueSupport.parseDecimalForFilter(f.getValue(), label));
+            if (op.equals("between")) {
+                f.setValueNumEnd(EavTypedValueSupport.parseDecimalForFilter(f.getValues().get(1), label));
+            }
         } else if (t == ModuleFieldType.BOOLEAN) {
+            if (!(op.equals("eq") || op.equals("ne") || op.equals("in"))) {
+                throw new BusinessException(label + " 仅支持 eq/ne/in");
+            }
+            if (op.equals("in")) {
+                return;
+            }
             f.setTypedKind("NUM");
             f.setValueNum(EavTypedValueSupport.parseBooleanFilterForEq(f.getValue(), label));
         } else if (t == ModuleFieldType.DATETIME) {
+            if (!(op.equals("eq") || op.equals("ne") || op.equals("gt") || op.equals("gte") || op.equals("lt") || op.equals("lte") || op.equals("between"))) {
+                throw new BusinessException(label + " 仅支持 eq/ne/gt/gte/lt/lte/between");
+            }
             f.setTypedKind("DT");
             f.setValueDt(EavTypedValueSupport.parseDateTimeForFilter(f.getValue(), label));
+            if (op.equals("between")) {
+                f.setValueDtEnd(EavTypedValueSupport.parseDateTimeForFilter(f.getValues().get(1), label));
+            }
+        } else if (!(op.equals("eq") || op.equals("ne") || op.equals("like") || op.equals("in"))) {
+            throw new BusinessException(label + " 仅支持 eq/ne/like/in");
+        }
+    }
+
+    private void normalizeBetweenValue(ModuleRecordDslFilter f, String field) {
+        if (!"between".equals(f.getOp())) {
+            return;
+        }
+        if (f.getValues() == null || f.getValues().size() < 2) {
+            throw new BusinessException(field + " 的 between values 至少需要 2 个值");
+        }
+        f.setValue(f.getValues().get(0));
+    }
+
+    private void validateFilterValueLength(ModuleRecordDslFilter f, String field) {
+        if ("in".equals(f.getOp()) || "between".equals(f.getOp())) {
+            List<Object> values = f.getValues();
+            if (values == null) {
+                return;
+            }
+            for (Object v : values) {
+                String s = String.valueOf(v == null ? "" : v);
+                if (s.length() > 200) {
+                    throw new BusinessException(field + " 的过滤值太长");
+                }
+            }
+            return;
+        }
+        if (f.getValue() == null) {
+            throw new BusinessException(field + " 的 value 不能为空");
+        }
+        String s = String.valueOf(f.getValue());
+        if (s.length() > 200) {
+            throw new BusinessException(field + " 的 value 太长");
         }
     }
 

@@ -8,14 +8,15 @@
     </div>
     <p v-if="error" class="error">{{ error }}</p>
     <table v-if="rows.length" class="table">
-      <thead><tr><th>ID</th><th>标题</th><th>状态</th><th>创建时间</th></tr></thead>
+      <thead><tr><th>ID</th><th>标题</th><th>状态</th><th>业务</th><th>创建时间</th></tr></thead>
       <tbody>
         <tr v-for="i in rows" :key="i.id">
           <td>
             <router-link :to="`/flow/instances/${i.id}`">{{ i.id }}</router-link>
           </td>
           <td>{{ i.title }}</td>
-          <td>{{ i.status }}</td>
+          <td>{{ statusLabel(i.status) }}</td>
+          <td>{{ i.bizType || '-' }} / {{ i.bizId || '-' }}</td>
           <td>{{ i.createdAt || i.createTime }}</td>
         </tr>
       </tbody>
@@ -34,6 +35,17 @@ const keyword = ref('')
 const rows = ref([])
 const error = ref('')
 
+const STATUS_MAP = {
+  1: '运行中',
+  2: '已结束',
+  3: '已撤回',
+  4: '已终止'
+}
+
+function statusLabel(status) {
+  return STATUS_MAP[Number(status)] || status || '-'
+}
+
 async function load() {
   error.value = ''
   try {
@@ -49,7 +61,6 @@ async function load() {
 onMounted(load)
 </script>
 
-<style src="./admin-shared.css"></style>
 <style scoped>
 input[type="text"], input:not([type]) { padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; }
 </style>

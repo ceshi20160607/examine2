@@ -6,8 +6,8 @@ const routes = [
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { public: true } },
   { path: '/register', name: 'register', component: () => import('../views/RegisterView.vue'), meta: { public: true } },
   { path: '/systems', name: 'systems', component: () => import('../views/SystemsView.vue') },
-  { path: '/platform/inbox', name: 'platform-inbox', component: () => import('../views/PlatformInboxView.vue') },
-  { path: '/platform/open-apps', name: 'open-apps', component: () => import('../views/OpenAppsView.vue') },
+  { path: '/platform/inbox', name: 'platform-inbox', component: () => import('../views/PlatformInboxView.vue'), meta: { platform: true } },
+  { path: '/platform/open-apps', name: 'open-apps', component: () => import('../views/OpenAppsView.vue'), meta: { platform: true } },
   { path: '/upload', name: 'upload', component: () => import('../views/UploadView.vue') },
   { path: '/apps', name: 'apps', component: () => import('../views/AppsView.vue') },
   { path: '/apps/:appId', name: 'app-hub', component: () => import('../views/AppHubView.vue') },
@@ -42,19 +42,19 @@ const routes = [
   },
   { path: '/flow/instances/:instanceId', name: 'flow-instance-detail', component: () => import('../views/FlowInstanceDetailView.vue') },
   { path: '/export-jobs', name: 'export-jobs', component: () => import('../views/ExportJobsView.vue') },
-  { path: '/platform/open-apps/:id', name: 'open-app-detail', component: () => import('../views/OpenAppDetailView.vue') },
+  { path: '/platform/open-apps/:id', name: 'open-app-detail', component: () => import('../views/OpenAppDetailView.vue'), meta: { platform: true } },
   { path: '/', redirect: '/systems' }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
 
 router.beforeEach((to) => {
   if (to.meta.public) return true
   if (!getToken()) return { path: '/login', query: { redirect: to.fullPath } }
-  if (to.name !== 'systems' && to.name !== 'login' && !hasSystemContext()) {
+  if (!to.meta.platform && to.name !== 'systems' && to.name !== 'login' && !hasSystemContext()) {
     return { path: '/systems' }
   }
   return true

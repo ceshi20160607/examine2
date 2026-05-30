@@ -2,6 +2,8 @@ package com.unique.examine.web.controller;
 
 import com.unique.examine.core.web.ApiResult;
 import com.unique.examine.flow.entity.po.FlowTask;
+import com.unique.examine.module.entity.po.ModuleMember;
+import com.unique.examine.module.service.IModuleMemberService;
 import com.unique.examine.plat.entity.po.PlatSystem;
 import com.unique.examine.plat.entity.po.PlatMsg;
 import com.unique.examine.plat.service.IPlatMsgService;
@@ -17,13 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * 平台级消息 / 待办占位（README 阶段 A-4）：后续按 systemId、租户与 AuthContext 过滤，对接独立表或服务。
+ * 平台级消息与跨系统待办聚合。
  */
-@Tag(name = "平台态-消息与待办（占位）")
+@Tag(name = "平台态-消息与待办")
 @RestController
 @RequestMapping("/v1/platform")
 public class PlatformInboxController {
@@ -37,7 +39,10 @@ public class PlatformInboxController {
     @Autowired
     private FlowTaskInboxService flowTaskInboxService;
 
-    @Operation(summary = "平台消息列表（MVP：查询 un_plat_msg；后续多系统聚合与权限过滤）")
+    @Autowired
+    private IModuleMemberService moduleMemberService;
+
+    @Operation(summary = "平台消息列表")
     @GetMapping("/messages")
     public ApiResult<List<PlatMsg>> messages(
             @RequestParam(name = "limit", defaultValue = "50") int limit
@@ -57,7 +62,7 @@ public class PlatformInboxController {
         return ApiResult.ok(list);
     }
 
-    @Operation(summary = "平台待办列表（MVP：聚合 flow 待办；后续多系统权限过滤）")
+    @Operation(summary = "平台待办列表（聚合当前账号可见系统的 flow 待办）")
     @GetMapping("/todos")
     public ApiResult<List<FlowTask>> todos(
             @RequestParam(name = "limit", defaultValue = "50") int limit,
@@ -69,7 +74,7 @@ public class PlatformInboxController {
         return ApiResult.ok(flowTaskInboxService.listMyPendingTasksAcrossSystems(safeLimit, systemId, tenantId, allowed));
     }
 
-    @Operation(summary = "平台抄送列表（cc；onlyUnread=1 仅未读；后续多系统权限过滤）")
+    @Operation(summary = "平台抄送列表（cc；onlyUnread=1 仅未读）")
     @GetMapping("/cc")
     public ApiResult<List<FlowTask>> cc(
             @RequestParam(name = "limit", defaultValue = "50") int limit,
@@ -90,22 +95,36 @@ public class PlatformInboxController {
     }
 
     private Set<Long> listMyAllowedSystemIds() {
-        // MVP：系统权限模型是“系统所有者可进入/可见”。
         Long platId = com.unique.examine.core.security.AuthContextHolder.getPlatId();
         if (platId == null) {
             return Set.of();
         }
 
+        Set<Long> allowed = new LinkedHashSet<>();
         List<PlatSystem> systems = platSystemService.lambdaQuery()
                 .eq(PlatSystem::getOwnerPlatAccountId, platId)
                 .eq(PlatSystem::getStatus, 1)
                 .list();
-        if (systems == null || systems.isEmpty()) {
-            return Set.of();
+        if (systems != null) {
+            for (PlatSystem s : systems) {
+                if (s.getId() != null && s.getId() > 0) {
+                    allowed.add(s.getId());
+                }
+            }
         }
-        return systems.stream()
-                .map(PlatSystem::getId)
-                .filter(id -> id != null && id > 0)
-                .collect(Collectors.toSet());
+
+        List<ModuleMember> memberRows = moduleMemberService.lambdaQuery()
+                .select(ModuleMember::getSystemId)
+                .eq(ModuleMember::getPlatId, platId)
+                .eq(ModuleMember::getStatus, 1)
+                .list();
+        if (memberRows != null) {
+            for (ModuleMember m : memberRows) {
+                if (m.getSystemId() != null && m.getSystemId() > 0) {
+                    allowed.add(m.getSystemId());
+                }
+            }
+        }
+        return allowed;
     }
 }

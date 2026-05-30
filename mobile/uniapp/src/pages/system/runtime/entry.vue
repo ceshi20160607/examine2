@@ -16,6 +16,7 @@ import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { ensureSystemContext } from '@/utils/guard'
 import { getPageRuntime } from '@/api/pages'
 import { pageQuerySuffix } from '@/utils/pageRuntime'
+import { hasId, idToString } from '@/utils/id'
 
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -25,8 +26,8 @@ onLoad(async (opts) => {
     loading.value = false
     return
   }
-  const pageId = Number((opts as any)?.pageId || 0) || 0
-  if (!pageId) {
+  const pageId = idToString((opts as any)?.pageId)
+  if (!hasId(pageId)) {
     error.value = '缺少 pageId'
     loading.value = false
     return
@@ -34,38 +35,38 @@ onLoad(async (opts) => {
   try {
     const r = await getPageRuntime(pageId)
     const rt = r.data
-    if (!rt?.appId) {
+    if (!hasId(rt?.appId)) {
       error.value = '页面配置无效'
       return
     }
     const pq = pageQuerySuffix(pageId)
-    const appId = rt.appId
-    const modelId = Number(rt.modelId || 0)
+    const appId = idToString(rt.appId)
+    const modelId = idToString(rt.modelId)
     const type = String(rt.pageType || 'list').toLowerCase()
 
     if (type === 'form') {
-      if (!modelId) {
+      if (!hasId(modelId)) {
         error.value = '表单页未配置 modelId（请在页面 config_json 或区块中设置）'
         return
       }
-      uni.redirectTo({ url: `/pages/system/records/form?appId=${appId}&modelId=${modelId}${pq}` })
+      uni.redirectTo({ url: `/pages/system/records/form?appId=${encodeURIComponent(appId)}&modelId=${encodeURIComponent(modelId)}${pq}` })
       return
     }
     if (type === 'detail') {
-      const recordId = Number((opts as any)?.recordId || 0) || 0
-      if (!recordId) {
+      const recordId = idToString((opts as any)?.recordId)
+      if (!hasId(recordId)) {
         error.value = '详情页需要 recordId 参数'
         return
       }
-      uni.redirectTo({ url: `/pages/system/records/detail?recordId=${recordId}${pq}` })
+      uni.redirectTo({ url: `/pages/system/records/detail?recordId=${encodeURIComponent(recordId)}${pq}` })
       return
     }
     if (type === 'list' || type === 'custom') {
-      if (!modelId) {
+      if (!hasId(modelId)) {
         error.value = '列表页未配置 modelId'
         return
       }
-      uni.redirectTo({ url: `/pages/system/records/list?appId=${appId}&modelId=${modelId}${pq}` })
+      uni.redirectTo({ url: `/pages/system/records/list?appId=${encodeURIComponent(appId)}&modelId=${encodeURIComponent(modelId)}${pq}` })
       return
     }
     error.value = `未知 pageType: ${type}`

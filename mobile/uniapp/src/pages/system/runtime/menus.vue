@@ -38,13 +38,14 @@ import {
   rbacMenuTitleIndented,
   type RbacMenuFlatRow
 } from '@/utils/rbacMenuTree'
+import { hasId, idToString } from '@/utils/id'
 
-const appId = ref(0)
+const appId = ref('')
 const menusFlat = ref<RbacMenuFlatRow[]>([])
 const { loading, error, run } = usePageRequest()
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
 })
 
 function menuNote(m: RbacMenuFlatRow) {
@@ -55,16 +56,16 @@ function menuNote(m: RbacMenuFlatRow) {
 }
 
 function openMenu(m: RbacMenuFlatRow) {
-  const pid = Number(m.pageId || 0)
-  if (!pid) {
+  const pid = idToString(m.pageId)
+  if (!hasId(pid)) {
     uni.showToast({ title: '该菜单未绑定页面', icon: 'none' })
     return
   }
-  uni.navigateTo({ url: `/pages/system/runtime/entry?pageId=${pid}` })
+  uni.navigateTo({ url: `/pages/system/runtime/entry?pageId=${encodeURIComponent(pid)}` })
 }
 
 async function load() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   await run(async () => {
     const r = await listRuntimeMenus(appId.value)
     menusFlat.value = flattenRbacMenusTree(r.data || [])

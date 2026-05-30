@@ -58,8 +58,9 @@ import {
   updateOpenApp,
   type OpenAppClient
 } from '@/api/platformApp'
+import { hasId, idToString } from '@/utils/id'
 
-const id = ref(0)
+const id = ref('')
 const client = ref<OpenAppClient | null>(null)
 const activeAccessKey = ref('')
 const saving = ref(false)
@@ -76,7 +77,7 @@ const editForm = reactive({
 const title = computed(() => client.value?.clientName || `OpenApp #${id.value}`)
 
 onLoad((opts) => {
-  id.value = Number((opts as any)?.id || 0) || 0
+  id.value = idToString((opts as any)?.id)
 })
 
 function statusText(st?: number) {
@@ -94,7 +95,7 @@ function fillEdit(c: OpenAppClient) {
 }
 
 async function load() {
-  if (!id.value) return
+  if (!hasId(id.value)) return
   await run(async () => {
     const r = await getOpenApp(id.value)
     client.value = r.data?.client || null
@@ -118,7 +119,7 @@ function showCredential(title: string, accessKey?: string, secret?: string) {
 }
 
 async function setStatus(status: 1 | 2) {
-  if (!id.value) return
+  if (!hasId(id.value)) return
   clearError()
   try {
     await setOpenAppStatus(id.value, status)
@@ -129,7 +130,7 @@ async function setStatus(status: 1 | 2) {
 }
 
 async function rotate() {
-  if (!id.value) return
+  if (!hasId(id.value)) return
   uni.showModal({
     title: '轮换 secret？',
     content: '旧凭证将停用，新 secret 仅展示一次',
@@ -148,7 +149,7 @@ async function rotate() {
 }
 
 async function save() {
-  if (!id.value || !editForm.clientName.trim()) {
+  if (!hasId(id.value) || !editForm.clientName.trim()) {
     uni.showToast({ title: 'clientName 不能为空', icon: 'none' })
     return
   }
@@ -172,7 +173,7 @@ async function save() {
 }
 
 function remove() {
-  if (!id.value) return
+  if (!hasId(id.value)) return
   uni.showModal({
     title: '确认删除？',
     success: async (m) => {

@@ -2,8 +2,10 @@ package com.unique.examine.flow.manage;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.flow.entity.po.FlowLogAction;
@@ -76,18 +78,22 @@ public class FlowEngineService {
     /**
      * @param instanceId 实为 {@code FlowRecord.id}
      */
-    public record StartResult(Long instanceId, Long taskId, String nodeId, String nodeName) {}
+    public record StartResult(
+            @JsonSerialize(using = ToStringSerializer.class) Long instanceId,
+            @JsonSerialize(using = ToStringSerializer.class) Long taskId,
+            String nodeId,
+            String nodeName) {}
 
     /**
      * @param instanceId 实为 {@code FlowRecord.id}
      */
-    public record TaskActionResult(Long instanceId,
-                                   Long currentTaskId,
+    public record TaskActionResult(@JsonSerialize(using = ToStringSerializer.class) Long instanceId,
+                                   @JsonSerialize(using = ToStringSerializer.class) Long currentTaskId,
                                    Integer currentTaskStatus,
                                    Integer instanceStatus,
                                    String nextNodeId,
                                    String nextNodeName,
-                                   Long nextTaskId,
+                                   @JsonSerialize(using = ToStringSerializer.class) Long nextTaskId,
                                    Integer nextTaskStatus,
                                    String note) {}
 
@@ -151,8 +157,6 @@ public class FlowEngineService {
             throw new BusinessException(400, "发布版本缺少 graphJson");
         }
 
-        NodeInfo firstApprove = resolveFirstApproveNode(ver.getGraphJson());
-
         LocalDateTime now = LocalDateTime.now();
         FlowRecord rec = new FlowRecord();
         rec.setSystemId(systemId);
@@ -170,7 +174,7 @@ public class FlowEngineService {
         rec.setTitle(title == null ? null : title.trim());
         rec.setStarterPlatId(platId);
         rec.setStatus(1);
-        rec.setCurrentNodeKey(firstApprove.nodeKey());
+        rec.setCurrentNodeKey(null);
         rec.setStartTime(now);
         rec.setCreateUserId(platId);
         rec.setUpdateUserId(platId);
@@ -183,6 +187,11 @@ public class FlowEngineService {
         saveVars(systemId, tenantId, rec.getId(), platId, vars);
 
         flowRecordGraphSyncService.syncFromGraphJson(rec, platId, ver.getId());
+
+        NodeInfo firstApprove = resolveInitialApproveNode(rec, ver.getGraphJson(), platId, systemId, tenantId, now);
+        rec.setCurrentNodeKey(firstApprove.nodeKey());
+        rec.setUpdateUserId(platId);
+        flowRecordService.updateById(rec);
 
         FlowTask task = createApproveTasksForNode(rec, firstApprove.nodeKey(), firstApprove.nodeName(), platId, systemId, tenantId, now, null);
 
@@ -234,7 +243,55 @@ public class FlowEngineService {
         } catch (Exception ignore) {
             // fall through
         }
-        throw new BusinessException(400, "graphJson 未包含可用的 approve 节点（MVP 规则）");
+        throw new BusinessException(400, "graphJson 未包含可用的 approve 节点");
+    }
+
+    private NodeInfo resolveInitialApproveNode(FlowRecord rec,
+                                               String graphJson,
+                                               Long platId,
+                                               long systemId,
+                                               long tenantId,
+                                               LocalDateTime now) {
+        String startNodeKey = resolveStartNodeKey(graphJson);
+        if (startNodeKey == null) {
+            return resolveFirstApproveNode(graphJson);
+        }
+        AdvanceResult advance = advanceFromNode(rec, startNodeKey);
+        advance = consumeCcChain(rec, advance, platId, systemId, tenantId, now);
+        if (advance.end()) {
+            throw new BusinessException(400, "流程启动后直接结束，未找到可办理审批节点");
+        }
+        JsonNode node = findNodeByKey(graphJson, advance.nextNodeKey());
+        String type = node == null ? "" : normalizeNodeType(node.path("type").asText(""));
+        if (!"approve".equals(type)) {
+            throw new BusinessException(400, "流程首个办理节点必须是 approve，当前为: " + type);
+        }
+        return new NodeInfo(advance.nextNodeKey(), advance.nextNodeName());
+    }
+
+    private String resolveStartNodeKey(String graphJson) {
+        if (graphJson == null || graphJson.isBlank()) {
+            return null;
+        }
+        try {
+            JsonNode root = objectMapper.readTree(graphJson);
+            JsonNode nodes = root.path("nodes");
+            if (!nodes.isArray()) {
+                return null;
+            }
+            for (JsonNode n : nodes) {
+                String id = n.path("id").asText(null);
+                if (id == null || id.isBlank()) {
+                    continue;
+                }
+                if ("start".equals(normalizeNodeType(n.path("type").asText("")))) {
+                    return id.trim();
+                }
+            }
+            return null;
+        } catch (Exception ignore) {
+            return null;
+        }
     }
 
     private void saveVars(long systemId, long tenantId, long recordId, long platId, Map<String, Object> vars) {
@@ -646,54 +703,31 @@ public class FlowEngineService {
             throw new BusinessException(400, "当前节点不存在于 graphJson");
         }
         Map<String, JsonNode> vars = loadVarsAsJsonNodes(rec.getSystemId(), rec.getTenantId(), rec.getId());
-        List<FlowRecordLine> lines = flowRecordLineService.lambdaQuery()
-                .eq(FlowRecordLine::getRecordId, rec.getId())
-                .eq(FlowRecordLine::getFromNodeKey, currentNodeKey)
-                .eq(FlowRecordLine::getStatus, 1)
-                .list();
-        if (lines == null || lines.isEmpty()) {
-            throw new BusinessException(400, "当前节点无可用出边");
-        }
-        lines.sort(Comparator
-                .comparingInt((FlowRecordLine l) -> l.getPriority() == null ? Integer.MAX_VALUE : l.getPriority()));
-
-        String nextId = null;
-        for (FlowRecordLine line : lines) {
-            String cond = null;
-            if (line.getRemark() != null && !line.getRemark().isBlank()) {
-                try {
-                    JsonNode rj = objectMapper.readTree(line.getRemark());
-                    cond = rj.path("cond").asText(null);
-                } catch (Exception ignore) {
-                    cond = null;
-                }
+        String cursor = currentNodeKey;
+        LinkedHashSet<String> visited = new LinkedHashSet<>();
+        while (true) {
+            if (!visited.add(cursor)) {
+                throw new BusinessException(400, "流程图存在循环路由: " + String.join(" -> ", visited));
             }
-            if (cond == null || cond.isBlank()) {
-                nextId = line.getToNodeKey();
-                break;
+            String nextId = selectNextRelationalNode(rec, cursor, vars);
+            JsonNode nextNode = nodeById.get(nextId);
+            if (nextNode == null) {
+                throw new BusinessException(400, "下一节点不存在于 graphJson: " + nextId);
             }
-            if (evalCond(cond, vars)) {
-                nextId = line.getToNodeKey();
-                break;
+            String nextType = normalizeNodeType(nextNode.path("type").asText(""));
+            String nextName = nextNode.path("name").asText(null);
+            if ("end".equals(nextType)) {
+                return new AdvanceResult(true, nextId, nextName);
             }
+            if (isWaitNodeType(nextType)) {
+                return new AdvanceResult(false, nextId, nextName);
+            }
+            if (isPassThroughNodeType(nextType)) {
+                cursor = nextId;
+                continue;
+            }
+            throw new BusinessException(400, "节点类型不支持: " + nextType + " (" + nextId + ")");
         }
-        if (nextId == null) {
-            throw new BusinessException(400, "未命中任何分支");
-        }
-        JsonNode nextNode = nodeById.get(nextId);
-        if (nextNode == null) {
-            throw new BusinessException(400, "下一节点不存在于 graphJson");
-        }
-        String nextType = nextNode.path("type").asText("");
-        String nextName = nextNode.path("name").asText(null);
-        if ("end".equalsIgnoreCase(nextType)) {
-            return new AdvanceResult(true, nextId, nextName);
-        }
-        if ("approve".equalsIgnoreCase(nextType) || "subflow".equalsIgnoreCase(nextType)
-                || "cc".equalsIgnoreCase(nextType)) {
-            return new AdvanceResult(false, nextId, nextName);
-        }
-        throw new BusinessException(400, "下一节点类型暂不支持：" + nextType);
     }
 
     private AdvanceResult advanceFromGraphJsonEdges(FlowRecord rec, String currentNodeKey) {
@@ -724,12 +758,72 @@ public class FlowEngineService {
         }
 
         Map<String, JsonNode> vars = loadVarsAsJsonNodes(rec.getSystemId(), rec.getTenantId(), rec.getId());
+        String cursor = currentNodeKey;
+        LinkedHashSet<String> visited = new LinkedHashSet<>();
+        while (true) {
+            if (!visited.add(cursor)) {
+                throw new BusinessException(400, "流程图存在循环路由: " + String.join(" -> ", visited));
+            }
+            String nextId = selectNextGraphNode(edges, cursor, vars);
+            JsonNode nextNode = nodeById.get(nextId);
+            if (nextNode == null) {
+                throw new BusinessException(400, "下一节点不存在于 graphJson: " + nextId);
+            }
+            String nextType = normalizeNodeType(nextNode.path("type").asText(""));
+            String nextName = nextNode.path("name").asText(null);
+            if ("end".equals(nextType)) {
+                return new AdvanceResult(true, nextId, nextName);
+            }
+            if (isWaitNodeType(nextType)) {
+                return new AdvanceResult(false, nextId, nextName);
+            }
+            if (isPassThroughNodeType(nextType)) {
+                cursor = nextId;
+                continue;
+            }
+            throw new BusinessException(400, "节点类型不支持: " + nextType + " (" + nextId + ")");
+        }
+    }
+
+    private record EdgeCandidate(String to, Integer priority, int index, String cond) {}
+
+    private String selectNextRelationalNode(FlowRecord rec, String fromNodeKey, Map<String, JsonNode> vars) {
+        List<FlowRecordLine> lines = flowRecordLineService.lambdaQuery()
+                .eq(FlowRecordLine::getRecordId, rec.getId())
+                .eq(FlowRecordLine::getFromNodeKey, fromNodeKey)
+                .eq(FlowRecordLine::getStatus, 1)
+                .list();
+        if (lines == null || lines.isEmpty()) {
+            throw new BusinessException(400, "当前节点无可用出边: " + fromNodeKey);
+        }
+        lines.sort(Comparator
+                .comparingInt((FlowRecordLine l) -> l.getPriority() == null ? Integer.MAX_VALUE : l.getPriority()));
+
+        String nextId = null;
+        for (FlowRecordLine line : lines) {
+            String cond = readLineCondition(line.getRemark());
+            if (cond == null || cond.isBlank()) {
+                nextId = line.getToNodeKey();
+                break;
+            }
+            if (evalCond(cond, vars)) {
+                nextId = line.getToNodeKey();
+                break;
+            }
+        }
+        if (nextId == null || nextId.isBlank()) {
+            throw new BusinessException(400, "未命中任何分支: " + fromNodeKey);
+        }
+        return nextId;
+    }
+
+    private String selectNextGraphNode(JsonNode edges, String fromNodeKey, Map<String, JsonNode> vars) {
         List<EdgeCandidate> outgoing = new ArrayList<>();
         int idx = 0;
         for (JsonNode e : edges) {
             String from = e.path("from").asText(null);
             String to = e.path("to").asText(null);
-            if (!Objects.equals(from, currentNodeKey) || to == null || to.isBlank()) {
+            if (!Objects.equals(from, fromNodeKey) || to == null || to.isBlank()) {
                 idx++;
                 continue;
             }
@@ -739,7 +833,7 @@ public class FlowEngineService {
             idx++;
         }
         if (outgoing.isEmpty()) {
-            throw new BusinessException(400, "当前节点无可用出边");
+            throw new BusinessException(400, "当前节点无可用出边: " + fromNodeKey);
         }
 
         outgoing.sort(Comparator
@@ -757,26 +851,55 @@ public class FlowEngineService {
                 break;
             }
         }
-        if (nextId == null) {
-            throw new BusinessException(400, "未命中任何分支");
+        if (nextId == null || nextId.isBlank()) {
+            throw new BusinessException(400, "未命中任何分支: " + fromNodeKey);
         }
-        JsonNode nextNode = nodeById.get(nextId);
-        if (nextNode == null) {
-            throw new BusinessException(400, "下一节点不存在于 graphJson");
-        }
-        String nextType = nextNode.path("type").asText("");
-        String nextName = nextNode.path("name").asText(null);
-        if ("end".equalsIgnoreCase(nextType)) {
-            return new AdvanceResult(true, nextId, nextName);
-        }
-        if ("approve".equalsIgnoreCase(nextType) || "subflow".equalsIgnoreCase(nextType)
-                || "cc".equalsIgnoreCase(nextType)) {
-            return new AdvanceResult(false, nextId, nextName);
-        }
-        throw new BusinessException(400, "下一节点类型暂不支持：" + nextType);
+        return nextId;
     }
 
-    private record EdgeCandidate(String to, Integer priority, int index, String cond) {}
+    private String readLineCondition(String remark) {
+        if (remark == null || remark.isBlank()) {
+            return null;
+        }
+        try {
+            JsonNode rj = objectMapper.readTree(remark);
+            String cond = rj.path("cond").asText(null);
+            return cond == null || cond.isBlank() ? null : cond.trim();
+        } catch (Exception ignore) {
+            String raw = remark.trim();
+            return raw.isEmpty() ? null : raw;
+        }
+    }
+
+    private static String normalizeNodeType(String type) {
+        String t = type == null ? "" : type.trim().toLowerCase(Locale.ROOT);
+        t = t.replace('-', '_').replace(' ', '_');
+        return switch (t) {
+            case "user_task", "usertask", "task", "approval", "approve_node" -> "approve";
+            case "copy", "carbon_copy", "carboncopy", "cc_node" -> "cc";
+            case "sub_flow", "subprocess", "sub_process", "subflow_node" -> "subflow";
+            case "finish", "stop", "end_event", "end_node" -> "end";
+            case "start_event", "start_node" -> "start";
+            case "exclusive_gateway", "gateway_exclusive", "xor" -> "exclusive";
+            case "condition_gateway", "conditional", "branch" -> "condition";
+            case "auto_task", "service_task", "script_task", "system_task" -> "auto";
+            default -> t;
+        };
+    }
+
+    private static boolean isWaitNodeType(String type) {
+        return "approve".equals(type) || "subflow".equals(type) || "cc".equals(type);
+    }
+
+    private static boolean isPassThroughNodeType(String type) {
+        return "start".equals(type)
+                || "route".equals(type)
+                || "gateway".equals(type)
+                || "exclusive".equals(type)
+                || "condition".equals(type)
+                || "auto".equals(type)
+                || "custom".equals(type);
+    }
 
     private Map<String, JsonNode> loadVarsAsJsonNodes(long systemId, long tenantId, long recordId) {
         List<FlowRecordVar> list = flowRecordVarService.lambdaQuery()
@@ -1427,7 +1550,6 @@ public class FlowEngineService {
             throw new BusinessException(400, "子流程发布版本缺少 graphJson");
         }
 
-        NodeInfo firstApprove = resolveFirstApproveNode(ver.getGraphJson());
         Long rootId = parentRec.getRootRecordId() != null ? parentRec.getRootRecordId() : parentRec.getId();
         String childBizId = parentRec.getBizId() + ":sub:" + parentRec.getId() + ":" + advance.nextNodeKey() + ":" + System.nanoTime();
 
@@ -1448,7 +1570,7 @@ public class FlowEngineService {
         child.setTitle(pt == null || pt.isBlank() ? "[子流程]" : pt.trim() + " [子流程]");
         child.setStarterPlatId(parentRec.getStarterPlatId());
         child.setStatus(1);
-        child.setCurrentNodeKey(firstApprove.nodeKey());
+        child.setCurrentNodeKey(null);
         child.setStartTime(now);
         child.setCreateUserId(platId);
         child.setUpdateUserId(platId);
@@ -1459,6 +1581,11 @@ public class FlowEngineService {
         }
 
         flowRecordGraphSyncService.syncFromGraphJson(child, platId, ver.getId());
+
+        NodeInfo firstApprove = resolveInitialApproveNode(child, ver.getGraphJson(), platId, systemId, tenantId, now);
+        child.setCurrentNodeKey(firstApprove.nodeKey());
+        child.setUpdateUserId(platId);
+        flowRecordService.updateById(child);
 
         Long assigneePlatId;
         if (completedParentTask != null && completedParentTask.getAssigneePlatId() != null) {

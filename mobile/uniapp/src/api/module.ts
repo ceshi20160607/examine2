@@ -1,26 +1,27 @@
 import { buildApiUrl, httpGet, httpPost } from '@/api/http'
 import type { ApiResult } from '@/api/http'
+import { idToString, type IdValue } from '@/utils/id'
 
 // ---- Dict ----
-export type ModuleDictRow = { id: number; dictCode?: string; dictName?: string; status?: number; remark?: string }
+export type ModuleDictRow = { id: string; dictCode?: string; dictName?: string; status?: number; remark?: string }
 export type ModuleDictItemRow = {
-  id: number
-  dictId?: number
+  id: string
+  dictId?: string
   itemValue?: string
   itemLabel?: string
   sortNo?: number
   status?: number
 }
 
-export function listDictsByApp(appId: number): Promise<ApiResult<ModuleDictRow[]>> {
-  return httpGet<ModuleDictRow[]>(`/v1/system/module/dicts/apps/${appId}`)
+export function listDictsByApp(appId: IdValue): Promise<ApiResult<ModuleDictRow[]>> {
+  return httpGet<ModuleDictRow[]>(`/v1/system/module/dicts/apps/${pathId(appId)}`)
 }
 
 export function upsertDict(
-  appId: number,
-  cmd: { id?: number | null; dictCode: string; dictName: string; status?: number; remark?: string | null }
+  appId: IdValue,
+  cmd: { id?: IdValue | null; dictCode: string; dictName: string; status?: number; remark?: string | null }
 ): Promise<ApiResult<any>> {
-  return httpPost(`/v1/system/module/dicts/apps/${appId}/upsert`, {
+  return httpPost(`/v1/system/module/dicts/apps/${pathId(appId)}/upsert`, {
     id: cmd.id ?? null,
     dictCode: cmd.dictCode,
     dictName: cmd.dictName,
@@ -29,15 +30,19 @@ export function upsertDict(
   })
 }
 
-export function listDictItems(dictId: number): Promise<ApiResult<ModuleDictItemRow[]>> {
-  return httpGet<ModuleDictItemRow[]>(`/v1/system/module/dicts/${dictId}/items`)
+export function deleteDicts(ids: IdValue[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/dicts/delete', { ids })
+}
+
+export function listDictItems(dictId: IdValue): Promise<ApiResult<ModuleDictItemRow[]>> {
+  return httpGet<ModuleDictItemRow[]>(`/v1/system/module/dicts/${pathId(dictId)}/items`)
 }
 
 export function upsertDictItem(
-  dictId: number,
-  cmd: { id?: number | null; itemValue: string; itemLabel: string; sortNo?: number; status?: number }
+  dictId: IdValue,
+  cmd: { id?: IdValue | null; itemValue: string; itemLabel: string; sortNo?: number; status?: number }
 ): Promise<ApiResult<any>> {
-  return httpPost(`/v1/system/module/dicts/${dictId}/items/upsert`, {
+  return httpPost(`/v1/system/module/dicts/${pathId(dictId)}/items/upsert`, {
     id: cmd.id ?? null,
     itemValue: cmd.itemValue,
     itemLabel: cmd.itemLabel,
@@ -46,28 +51,43 @@ export function upsertDictItem(
   })
 }
 
+export function deleteDictItems(ids: IdValue[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/dicts/items/delete', { ids })
+}
+
 // ---- List Views ----
-export type ModuleListViewRow = { id: number; viewCode?: string; viewName?: string; defaultFlag?: number; status?: number }
+export type ModuleListViewRow = { id: string; viewCode?: string; viewName?: string; defaultFlag?: number; status?: number }
 export type ModuleListViewColRow = {
-  id: number
-  viewId?: number
-  fieldId?: number
+  id: string
+  viewId?: string
+  fieldId?: string
   colTitle?: string
   width?: number
   sortNo?: number
   visibleFlag?: number
+  fixedType?: string | null
+  formatJson?: string | null
 }
-export type ModuleFilterTplRow = { id: number; tplCode?: string; tplName?: string; menuId?: number; status?: number }
+export type ModuleFilterTplRow = { id: string; tplCode?: string; tplName?: string; menuId?: string; status?: number }
+export type ModuleFilterFieldRow = {
+  id: string
+  tplId?: string
+  fieldId?: string
+  opCode?: string
+  defaultValue?: string | null
+  requiredFlag?: number
+  sortNo?: number
+}
 
-export function listViewsByModel(modelId: number): Promise<ApiResult<ModuleListViewRow[]>> {
-  return httpGet<ModuleListViewRow[]>(`/v1/system/module/list-views/models/${modelId}`)
+export function listViewsByModel(modelId: IdValue): Promise<ApiResult<ModuleListViewRow[]>> {
+  return httpGet<ModuleListViewRow[]>(`/v1/system/module/list-views/models/${pathId(modelId)}`)
 }
 
 export function upsertListView(cmd: {
-  id?: number | null
-  appId: number
-  modelId: number
-  platId?: number | null
+  id?: IdValue | null
+  appId: IdValue
+  modelId: IdValue
+  platId?: IdValue | null
   viewCode: string
   viewName: string
   defaultFlag?: number
@@ -85,14 +105,18 @@ export function upsertListView(cmd: {
   })
 }
 
-export function listViewCols(viewId: number): Promise<ApiResult<ModuleListViewColRow[]>> {
-  return httpGet<ModuleListViewColRow[]>(`/v1/system/module/list-views/${viewId}/cols`)
+export function deleteListViews(ids: IdValue[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/list-views/delete', { ids })
+}
+
+export function listViewCols(viewId: IdValue): Promise<ApiResult<ModuleListViewColRow[]>> {
+  return httpGet<ModuleListViewColRow[]>(`/v1/system/module/list-views/${pathId(viewId)}/cols`)
 }
 
 export function upsertViewCol(cmd: {
-  id?: number | null
-  viewId: number
-  fieldId: number
+  id?: IdValue | null
+  viewId: IdValue
+  fieldId: IdValue
   colTitle: string
   width?: number | null
   sortNo?: number
@@ -113,15 +137,19 @@ export function upsertViewCol(cmd: {
   })
 }
 
-export function listFilterTpls(modelId: number): Promise<ApiResult<ModuleFilterTplRow[]>> {
-  return httpGet<ModuleFilterTplRow[]>(`/v1/system/module/list-views/models/${modelId}/filter-tpls`)
+export function deleteViewCols(ids: IdValue[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/list-views/cols/delete', { ids })
+}
+
+export function listFilterTpls(modelId: IdValue): Promise<ApiResult<ModuleFilterTplRow[]>> {
+  return httpGet<ModuleFilterTplRow[]>(`/v1/system/module/list-views/models/${pathId(modelId)}/filter-tpls`)
 }
 
 export function upsertFilterTpl(cmd: {
-  id?: number | null
-  appId: number
-  modelId: number
-  menuId?: number | null
+  id?: IdValue | null
+  appId: IdValue
+  modelId: IdValue
+  menuId?: IdValue | null
   tplCode: string
   tplName: string
   status?: number
@@ -137,32 +165,64 @@ export function upsertFilterTpl(cmd: {
   })
 }
 
+export function deleteFilterTpls(ids: IdValue[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/list-views/filter-tpls/delete', { ids })
+}
+
+export function listFilterFields(tplId: IdValue): Promise<ApiResult<ModuleFilterFieldRow[]>> {
+  return httpGet<ModuleFilterFieldRow[]>(`/v1/system/module/list-views/filter-tpls/${pathId(tplId)}/fields`)
+}
+
+export function upsertFilterField(cmd: {
+  id?: IdValue | null
+  tplId: IdValue
+  fieldId: IdValue
+  opCode?: string
+  defaultValue?: string | null
+  requiredFlag?: number
+  sortNo?: number
+}): Promise<ApiResult<any>> {
+  return httpPost('/v1/system/module/list-views/filter-fields/upsert', {
+    id: cmd.id ?? null,
+    tplId: cmd.tplId,
+    fieldId: cmd.fieldId,
+    opCode: cmd.opCode ?? 'eq',
+    defaultValue: cmd.defaultValue ?? null,
+    requiredFlag: cmd.requiredFlag ?? 0,
+    sortNo: cmd.sortNo ?? 0
+  })
+}
+
+export function deleteFilterFields(ids: IdValue[]): Promise<ApiResult<void>> {
+  return httpPost<void>('/v1/system/module/list-views/filter-fields/delete', { ids })
+}
+
 // ---- Export ----
 export type ModuleExportTplRow = {
-  id: number | string
+  id: IdValue
   tplCode?: string
   tplName?: string
   fileType?: string
   status?: number
 }
 export type ModuleExportTplFieldRow = {
-  id: number | string
-  tplId?: number | string
-  fieldId?: number | string
+  id: IdValue
+  tplId?: IdValue
+  fieldId?: IdValue
   colTitle?: string
   sortNo?: number
   formatJson?: string
 }
 
-export function listExportTplsByModel(modelId: number): Promise<ApiResult<ModuleExportTplRow[]>> {
-  return httpGet<ModuleExportTplRow[]>(`/v1/system/module/exports/models/${modelId}/tpls`)
+export function listExportTplsByModel(modelId: IdValue): Promise<ApiResult<ModuleExportTplRow[]>> {
+  return httpGet<ModuleExportTplRow[]>(`/v1/system/module/exports/models/${pathId(modelId)}/tpls`)
 }
 
 export function upsertExportTpl(cmd: {
-  id?: number | null
-  appId: number
-  modelId: number
-  menuId?: number | null
+  id?: IdValue | null
+  appId: IdValue
+  modelId: IdValue
+  menuId?: IdValue | null
   tplCode: string
   tplName: string
   fileType?: string
@@ -180,18 +240,18 @@ export function upsertExportTpl(cmd: {
   })
 }
 
-export function deleteExportTpl(ids: Array<string | number>): Promise<ApiResult<any>> {
+export function deleteExportTpl(ids: IdValue[]): Promise<ApiResult<any>> {
   return httpPost('/v1/system/module/exports/tpls/delete', { ids })
 }
 
-export function listExportTplFields(tplId: number): Promise<ApiResult<ModuleExportTplFieldRow[]>> {
-  return httpGet<ModuleExportTplFieldRow[]>(`/v1/system/module/exports/tpls/${tplId}/fields`)
+export function listExportTplFields(tplId: IdValue): Promise<ApiResult<ModuleExportTplFieldRow[]>> {
+  return httpGet<ModuleExportTplFieldRow[]>(`/v1/system/module/exports/tpls/${pathId(tplId)}/fields`)
 }
 
 export function upsertExportTplField(cmd: {
-  id?: string | number | null
-  tplId: number
-  fieldId: number
+  id?: IdValue | null
+  tplId: IdValue
+  fieldId: IdValue
   colTitle: string
   sortNo?: number
   formatJson?: any
@@ -206,16 +266,16 @@ export function upsertExportTplField(cmd: {
   })
 }
 
-export function deleteExportTplField(ids: Array<string | number>): Promise<ApiResult<any>> {
+export function deleteExportTplField(ids: IdValue[]): Promise<ApiResult<any>> {
   return httpPost('/v1/system/module/exports/fields/delete', { ids })
 }
 
 export type ModuleExportJobRow = {
-  id: number | string
+  id: IdValue
   status?: number
-  tplId?: number | string
-  modelId?: number | string
-  resultFileId?: number | string
+  tplId?: IdValue
+  modelId?: IdValue
+  resultFileId?: IdValue
   errorMsg?: string
 }
 
@@ -226,50 +286,55 @@ export function pageExportJobs(params: {
   modelId?: string
   status?: string
 }): Promise<ApiResult<any>> {
-  const q: string[] = []
-  if (params.tplId?.trim()) q.push(`tplId=${encodeURIComponent(params.tplId.trim())}`)
-  if (params.modelId?.trim()) q.push(`modelId=${encodeURIComponent(params.modelId.trim())}`)
-  if (params.status?.trim()) q.push(`status=${encodeURIComponent(params.status.trim())}`)
-  const ext = q.length ? '&' + q.join('&') : ''
-  return httpGet<any>(`/v1/system/module/export-jobs/page?page=${params.page}&size=${params.size}${ext}`)
+  const qs: string[] = []
+  if (params.tplId?.trim()) qs.push(`tplId=${encodeURIComponent(params.tplId.trim())}`)
+  if (params.modelId?.trim()) qs.push(`modelId=${encodeURIComponent(params.modelId.trim())}`)
+  if (params.status?.trim()) qs.push(`status=${encodeURIComponent(params.status.trim())}`)
+  const ext = qs.length ? '&' + qs.join('&') : ''
+  return httpGet<any>(`/v1/system/module/export-jobs/page?page=${q(params.page)}&size=${q(params.size)}${ext}`)
 }
 
-export function getExportJobDetail(jobId: number): Promise<ApiResult<any>> {
-  return httpGet<any>(`/v1/system/module/export-jobs/${jobId}`)
+export function getExportJobDetail(jobId: IdValue): Promise<ApiResult<any>> {
+  return httpGet<any>(`/v1/system/module/export-jobs/${pathId(jobId)}`)
 }
 
-export function createExportJob(tplId: string | number, query: any): Promise<ApiResult<any>> {
-  return httpPost<any>(`/v1/system/module/export-jobs/tpls/${tplId}`, query)
+export function createExportJob(tplId: IdValue, query: any): Promise<ApiResult<any>> {
+  return httpPost<any>(`/v1/system/module/export-jobs/tpls/${pathId(tplId)}`, query)
 }
 
-export function buildExportTplCsvUrl(tplId: string | number, limit = 200): string {
+export function buildExportTplUrl(tplId: IdValue, limit = 200, fileType?: string): string {
   // for uni.downloadFile
-  return buildApiUrl(`/v1/system/module/exports/tpls/${tplId}/export/csv?limit=${limit}`)
+  const suffix = fileType === 'csv' || fileType === 'xlsx' ? `/${fileType}` : ''
+  return buildApiUrl(`/v1/system/module/exports/tpls/${pathId(tplId)}/export${suffix}?limit=${q(limit)}`)
+}
+
+export function buildExportTplCsvUrl(tplId: IdValue, limit = 200): string {
+  return buildExportTplUrl(tplId, limit, 'csv')
 }
 
 // ---- RBAC ----
-export type ModuleRbacRoleRow = { id: number; roleCode?: string; roleName?: string; status?: number; dataScope?: number }
-export type ModuleRbacMemberRow = { id: number; platId?: number; roleId?: number; status?: number }
+export type ModuleRbacRoleRow = { id: string; roleCode?: string; roleName?: string; status?: number; dataScope?: number }
+export type ModuleRbacMemberRow = { id: string; platId?: string; roleId?: string; status?: number }
 export type ModuleRbacMenuRow = {
-  id: number
-  parentId?: number
+  id: string
+  parentId?: IdValue
   menuName?: string
   permKey?: string
   apiPattern?: string
-  pageId?: number
+  pageId?: IdValue
   sortNo?: number
   visibleFlag?: number
 }
 
-export function listRbacRoles(appId: number): Promise<ApiResult<ModuleRbacRoleRow[]>> {
-  return httpGet<ModuleRbacRoleRow[]>(`/v1/system/module/rbac/apps/${appId}/roles`)
+export function listRbacRoles(appId: IdValue): Promise<ApiResult<ModuleRbacRoleRow[]>> {
+  return httpGet<ModuleRbacRoleRow[]>(`/v1/system/module/rbac/apps/${pathId(appId)}/roles`)
 }
 
 export function upsertRbacRole(
-  appId: number,
-  cmd: { id?: number | null; roleCode: string; roleName: string; status?: number; dataScope?: number }
+  appId: IdValue,
+  cmd: { id?: IdValue | null; roleCode: string; roleName: string; status?: number; dataScope?: number }
 ): Promise<ApiResult<any>> {
-  return httpPost(`/v1/system/module/rbac/apps/${appId}/roles/upsert`, {
+  return httpPost(`/v1/system/module/rbac/apps/${pathId(appId)}/roles/upsert`, {
     id: cmd.id ?? null,
     roleCode: cmd.roleCode,
     roleName: cmd.roleName,
@@ -278,33 +343,33 @@ export function upsertRbacRole(
   })
 }
 
-export function searchRbacAccounts(keyword: string): Promise<ApiResult<Array<{ platId: number; username?: string; text: string }>>> {
+export function searchRbacAccounts(keyword: string): Promise<ApiResult<Array<{ platId: string; username?: string; text: string }>>> {
   return httpGet(`/v1/system/module/rbac/account-search?keyword=${encodeURIComponent(keyword)}`)
 }
 
-export function listRbacMenus(appId: number): Promise<ApiResult<ModuleRbacMenuRow[]>> {
-  return httpGet<ModuleRbacMenuRow[]>(`/v1/system/module/rbac/apps/${appId}/menus`)
+export function listRbacMenus(appId: IdValue): Promise<ApiResult<ModuleRbacMenuRow[]>> {
+  return httpGet<ModuleRbacMenuRow[]>(`/v1/system/module/rbac/apps/${pathId(appId)}/menus`)
 }
 
 /** 运行时：当前用户可见菜单（已按角色过滤） */
-export function listRuntimeMenus(appId: number): Promise<ApiResult<ModuleRbacMenuRow[]>> {
-  return httpGet<ModuleRbacMenuRow[]>(`/v1/system/module/rbac/apps/${appId}/runtime-menus`)
+export function listRuntimeMenus(appId: IdValue): Promise<ApiResult<ModuleRbacMenuRow[]>> {
+  return httpGet<ModuleRbacMenuRow[]>(`/v1/system/module/rbac/apps/${pathId(appId)}/runtime-menus`)
 }
 
 export function upsertRbacMenu(
-  appId: number,
+  appId: IdValue,
   cmd: {
-    id?: number | null
-    parentId: number
+    id?: IdValue | null
+    parentId: IdValue
     menuName: string
-    pageId?: number | null
+    pageId?: IdValue | null
     sortNo?: number
     visibleFlag?: number
     permKey?: string | null
     apiPattern?: string | null
   }
 ): Promise<ApiResult<any>> {
-  return httpPost(`/v1/system/module/rbac/apps/${appId}/menus/upsert`, {
+  return httpPost(`/v1/system/module/rbac/apps/${pathId(appId)}/menus/upsert`, {
     id: cmd.id ?? null,
     parentId: cmd.parentId,
     menuName: cmd.menuName,
@@ -316,36 +381,44 @@ export function upsertRbacMenu(
   })
 }
 
-export function listRbacMembers(appId: number): Promise<ApiResult<ModuleRbacMemberRow[]>> {
-  return httpGet<ModuleRbacMemberRow[]>(`/v1/system/module/rbac/apps/${appId}/members`)
+export function listRbacMembers(appId: IdValue): Promise<ApiResult<ModuleRbacMemberRow[]>> {
+  return httpGet<ModuleRbacMemberRow[]>(`/v1/system/module/rbac/apps/${pathId(appId)}/members`)
 }
 
 export function assignRbacMemberRole(cmd: {
-  appId: number
-  memberPlatId: number
-  roleId: number
-  deptId?: number | null
+  appId: IdValue
+  memberPlatId: IdValue
+  roleId: IdValue
+  deptId?: IdValue | null
 }): Promise<ApiResult<any>> {
   return httpPost('/v1/system/module/rbac/members/assign-role', cmd)
 }
 
-export function listRoleMenuPerms(roleId: number): Promise<ApiResult<any[]>> {
-  return httpGet<any[]>(`/v1/system/module/rbac/roles/${roleId}/menu-perms`)
+export function listRoleMenuPerms(roleId: IdValue): Promise<ApiResult<any[]>> {
+  return httpGet<any[]>(`/v1/system/module/rbac/roles/${pathId(roleId)}/menu-perms`)
 }
 
-export function setRoleMenuPerms(cmd: { roleId: number; menuIds: number[]; permLevel: number }): Promise<ApiResult<any>> {
+export function setRoleMenuPerms(cmd: { roleId: IdValue; menuIds: IdValue[]; permLevel: number }): Promise<ApiResult<any>> {
   return httpPost('/v1/system/module/rbac/roles/menu-perms/set', cmd)
 }
 
-export function listRolePagePerms(roleId: number): Promise<ApiResult<any[]>> {
-  return httpGet<any[]>(`/v1/system/module/rbac/roles/${roleId}/page-perms`)
+export function listRolePagePerms(roleId: IdValue): Promise<ApiResult<any[]>> {
+  return httpGet<any[]>(`/v1/system/module/rbac/roles/${pathId(roleId)}/page-perms`)
 }
 
-export function setRolePagePerms(cmd: { roleId: number; pageIds: number[]; permLevel: number }): Promise<ApiResult<any>> {
+export function setRolePagePerms(cmd: { roleId: IdValue; pageIds: IdValue[]; permLevel: number }): Promise<ApiResult<any>> {
   return httpPost('/v1/system/module/rbac/roles/page-perms/set', cmd)
 }
 
 export function permPreview(uri: string): Promise<ApiResult<Record<string, any>>> {
-  return httpGet<Record<string, any>>(`/v1/system/module/auth/perm-preview?uri=${encodeURIComponent(uri)}`)
+  return httpGet<Record<string, any>>(`/v1/system/auth/perm-preview?uri=${encodeURIComponent(uri)}`)
+}
+
+function pathId(value: IdValue): string {
+  return encodeURIComponent(idToString(value))
+}
+
+function q(value: string | number): string {
+  return encodeURIComponent(String(value))
 }
 

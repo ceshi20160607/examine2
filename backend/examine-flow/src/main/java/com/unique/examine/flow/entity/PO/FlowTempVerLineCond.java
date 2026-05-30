@@ -43,7 +43,7 @@ public class FlowTempVerLineCond implements Serializable {
     @Schema(description = "分组号（用于 AND/OR 组合；语义由引擎固定）")
     private Integer groupNo;
 
-    @Schema(description = "逻辑：AND|OR（MVP 可固定同组 AND、组间 OR）")
+    @Schema(description = "逻辑：AND|OR（同组 AND、组间 OR）")
     private String logicOp;
 
     @Schema(description = "变量名（从 un_flow_record_var.var_key 取值）")

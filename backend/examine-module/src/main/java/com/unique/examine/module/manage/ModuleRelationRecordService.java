@@ -86,8 +86,8 @@ public class ModuleRelationRecordService {
 
         Map<String, Object> result = moduleRecordFacadeService.queryDsl(q);
         Map<String, Object> out = new LinkedHashMap<>(result);
-        out.put("relationId", relationId);
-        out.put("parentRecordId", parentRecordId);
+        out.put("relationId", relationId == null ? null : String.valueOf(relationId));
+        out.put("parentRecordId", parentRecordId == null ? null : String.valueOf(parentRecordId));
         out.put("fkField", fkField);
         return out;
     }
@@ -127,7 +127,7 @@ public class ModuleRelationRecordService {
         if (linkRows == null || linkRows.isEmpty()) {
             Map<String, Object> empty = emptyQueryResult(body, rel);
             empty.put("relType", "n-n");
-            empty.put("linkModelId", linkModelId);
+            empty.put("linkModelId", String.valueOf(linkModelId));
             empty.put("dstIds", List.of());
             return empty;
         }
@@ -137,6 +137,11 @@ public class ModuleRelationRecordService {
             Object id = row.get("id");
             if (id instanceof Number n) {
                 linkRecordIds.add(n.longValue());
+            } else {
+                Long parsed = parseRecordId(id == null ? null : String.valueOf(id));
+                if (parsed != null) {
+                    linkRecordIds.add(parsed);
+                }
             }
         }
 
@@ -156,7 +161,7 @@ public class ModuleRelationRecordService {
         if (dstIds.isEmpty()) {
             Map<String, Object> empty = emptyQueryResult(body, rel);
             empty.put("relType", "n-n");
-            empty.put("linkModelId", linkModelId);
+            empty.put("linkModelId", String.valueOf(linkModelId));
             empty.put("dstIds", List.of());
             return empty;
         }
@@ -175,13 +180,13 @@ public class ModuleRelationRecordService {
 
         Map<String, Object> result = moduleRecordFacadeService.queryDsl(dstQ);
         Map<String, Object> out = new LinkedHashMap<>(result);
-        out.put("relationId", rel.getId());
-        out.put("parentRecordId", parentRecordId);
+        out.put("relationId", rel.getId() == null ? null : String.valueOf(rel.getId()));
+        out.put("parentRecordId", parentRecordId == null ? null : String.valueOf(parentRecordId));
         out.put("relType", "n-n");
-        out.put("linkModelId", linkModelId);
+        out.put("linkModelId", String.valueOf(linkModelId));
         out.put("srcFkField", srcFkField);
         out.put("dstFkField", dstFkField);
-        out.put("dstIds", new ArrayList<>(dstIds));
+        out.put("dstIds", stringifyIds(dstIds));
         return out;
     }
 
@@ -192,10 +197,23 @@ public class ModuleRelationRecordService {
         m.put("limit", q.getLimit() == null ? 20L : q.getLimit());
         m.put("total", 0L);
         m.put("list", List.of());
-        m.put("relationId", rel.getId());
-        m.put("appId", rel.getAppId());
-        m.put("modelId", rel.getDstModelId());
+        m.put("relationId", rel.getId() == null ? null : String.valueOf(rel.getId()));
+        m.put("appId", rel.getAppId() == null ? null : String.valueOf(rel.getAppId()));
+        m.put("modelId", rel.getDstModelId() == null ? null : String.valueOf(rel.getDstModelId()));
         return m;
+    }
+
+    private static List<String> stringifyIds(Set<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<String> out = new ArrayList<>(ids.size());
+        for (Long id : ids) {
+            if (id != null) {
+                out.add(String.valueOf(id));
+            }
+        }
+        return out;
     }
 
     private Long parseRecordId(String text) {

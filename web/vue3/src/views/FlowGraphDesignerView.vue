@@ -94,6 +94,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '../layouts/AdminLayout.vue'
 import { loadGraphDesigner, publishTempVer, saveGraphDesigner } from '../api/flow.js'
+import { notify } from '../utils/notify.js'
 
 const route = useRoute()
 const tempId = computed(() => String(route.params.tempId || ''))
@@ -274,7 +275,7 @@ async function publish() {
   saving.value = true
   try {
     await publishTempVer(tempVerId.value)
-    alert('已发布')
+    notify.success('已发布')
   } catch (e) {
     error.value = e?.message || String(e)
   } finally {
@@ -297,7 +298,7 @@ async function save() {
       })),
       edges: edges.value
     })
-    alert('已保存并生成 graphJson')
+    notify.success('已保存并生成 graphJson')
   } catch (e) {
     error.value = e?.message || String(e)
   } finally {

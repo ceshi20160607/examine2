@@ -48,10 +48,11 @@ import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { usePageRequest } from '@/composables/usePageRequest'
 import { deleteDepts, listDepts, type ModuleDept, upsertDept } from '@/api/dept'
+import { hasId, idToString, type IdValue } from '@/utils/id'
 
-const appId = ref(0)
+const appId = ref('')
 const saving = ref(false)
-const editingId = ref<number | null>(null)
+const editingId = ref<string | null>(null)
 const { loading, error, run, capture, clearError } = usePageRequest()
 const rows = ref<ModuleDept[]>([])
 
@@ -64,11 +65,11 @@ function deptNote(d: ModuleDept) {
 }
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
 })
 
 async function load() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   await run(async () => {
     rows.value = (await listDepts(appId.value)).data || []
   })
@@ -82,14 +83,14 @@ function resetForm() {
 }
 
 function fillForm(d: ModuleDept) {
-  editingId.value = d.id
+  editingId.value = idToString(d.id as IdValue)
   form.deptCode = d.deptCode || ''
   form.deptName = d.deptName || ''
   form.parentId = String(d.parentId ?? 0)
 }
 
 async function save() {
-  if (!appId.value || !form.deptCode.trim() || !form.deptName.trim()) {
+  if (!hasId(appId.value) || !form.deptCode.trim() || !form.deptName.trim()) {
     uni.showToast({ title: '请填写 deptCode/deptName', icon: 'none' })
     return
   }
@@ -98,7 +99,7 @@ async function save() {
   try {
     await upsertDept(appId.value, {
       id: editingId.value,
-      parentId: Number(form.parentId) || 0,
+      parentId: idToString(form.parentId) || '0',
       deptCode: form.deptCode.trim(),
       deptName: form.deptName.trim(),
       sortNo: 0,
@@ -128,7 +129,7 @@ function openActions(d: ModuleDept) {
           success: async (m) => {
             if (!m.confirm) return
             await deleteDepts([d.id])
-            if (editingId.value === d.id) resetForm()
+            if (editingId.value === idToString(d.id as IdValue)) resetForm()
             await load()
           }
         })

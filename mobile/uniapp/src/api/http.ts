@@ -12,7 +12,7 @@ function genRequestId(): string {
   return Math.random().toString(16).slice(2) + Date.now().toString(16)
 }
 
-function getToken(): string | null {
+export function getToken(): string | null {
   const t = uni.getStorageSync('token')
   return typeof t === 'string' && t.trim() ? t.trim() : null
 }
@@ -45,6 +45,42 @@ export function buildAuthHeaders(extra?: Record<string, string>): Record<string,
   return header
 }
 
+export async function downloadAuthedToTemp(
+  url: string,
+  fallbackMessage = '下载失败',
+  opts?: { retryOnUnauthorized?: boolean }
+): Promise<string> {
+  const dl: any = await new Promise((resolve, reject) => {
+    uni.downloadFile({
+      url,
+      header: buildAuthHeaders(),
+      success: resolve,
+      fail: reject
+    })
+  })
+  const statusCode = Number(dl?.statusCode || 0)
+  if (statusCode === 401) {
+    const token = getToken()
+    const canRetry = (opts?.retryOnUnauthorized ?? true) && !!token
+    if (canRetry) {
+      const newToken = await refreshAuthToken(token as string)
+      if (newToken) {
+        return downloadAuthedToTemp(url, fallbackMessage, { retryOnUnauthorized: false })
+      }
+    }
+    onUnauthorized()
+    throw new Error('未登录或会话已过期')
+  }
+  if (statusCode < 200 || statusCode >= 300) {
+    throw new Error(`${fallbackMessage} HTTP ${statusCode || 'unknown'}`)
+  }
+  const tempFilePath = dl?.tempFilePath
+  if (!tempFilePath) {
+    throw new Error(fallbackMessage)
+  }
+  return tempFilePath
+}
+
 function failMessage(err: any, fallback: string) {
   const m =
     (err && (err.errMsg as string)) ||
@@ -54,15 +90,25 @@ function failMessage(err: any, fallback: string) {
   return m?.trim() ? m : fallback
 }
 
-function onUnauthorized() {
+let unauthorizedHandler: (() => void) | null = null
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = typeof handler === 'function' ? handler : null
+}
+
+export function onUnauthorized() {
   uni.removeStorageSync('token')
   clearSessionPayload()
+  if (unauthorizedHandler) {
+    unauthorizedHandler()
+    return
+  }
   uni.reLaunch({ url: '/pages/auth/login' })
 }
 
 let refreshing: Promise<string | null> | null = null
 
-function refreshToken(currentToken: string): Promise<string | null> {
+export function refreshAuthToken(currentToken: string): Promise<string | null> {
   if (refreshing) return refreshing
   const requestId = genRequestId()
   const url = getBaseURL().replace(/\/$/, '') + '/v1/platform/auth/refresh'
@@ -108,6 +154,22 @@ function toast(message: string) {
   }
 }
 
+function parseApiResult<T>(value: unknown): ApiResult<T> | null {
+  if (typeof value === 'string') {
+    const text = value.trim()
+    if (!text) return null
+    try {
+      return JSON.parse(text) as ApiResult<T>
+    } catch {
+      return null
+    }
+  }
+  if (value && typeof value === 'object') {
+    return value as ApiResult<T>
+  }
+  return null
+}
+
 export async function httpGet<T>(path: string): Promise<ApiResult<T>> {
   return httpRequest<T>('GET', path)
 }
@@ -151,11 +213,11 @@ export async function httpRequest<T>(
       data,
       header,
       success: (res) => {
-        const r = res.data as ApiResult<T>
+        const r = parseApiResult<T>(res.data)
         if (res.statusCode === 401 || r?.code === 401) {
           const canRetry = (opts?.retryOnUnauthorized ?? true) && !!token
           if (canRetry) {
-            refreshToken(token as string)
+            refreshAuthToken(token as string)
               .then((newToken) => {
                 if (!newToken) {
                   onUnauthorized()
@@ -172,6 +234,12 @@ export async function httpRequest<T>(
           }
           onUnauthorized()
           reject(new Error('unauthorized'))
+          return
+        }
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          const msg = r?.message || `HTTP ${res.statusCode || 'unknown'}`
+          toast(msg)
+          reject(new Error(msg))
           return
         }
         if (!r || typeof r.code !== 'number') {

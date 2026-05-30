@@ -67,7 +67,6 @@ async function load() {
 onMounted(load)
 </script>
 
-<style src="./admin-shared.css"></style>
 <style scoped>
 h3 { margin-top: 1.25rem; }
 </style>

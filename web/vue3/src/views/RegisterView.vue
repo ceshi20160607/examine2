@@ -22,6 +22,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { register } from '../api/platformAuth.js'
+import { notify } from '../utils/notify.js'
 
 const router = useRouter()
 const username = ref('')
@@ -32,7 +33,7 @@ async function submit() {
   error.value = ''
   try {
     await register(username.value.trim(), password.value)
-    alert('注册成功，请登录')
+    notify.success('注册成功，请登录')
     router.push('/login')
   } catch (e) {
     error.value = e?.message || String(e)

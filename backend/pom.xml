@@ -66,6 +66,8 @@
                         <release>${java.version}</release>
                         <encoding>UTF-8</encoding>
                         <parameters>true</parameters>
+                        <fork>true</fork>
+                        <executable>javac</executable>
                     </configuration>
                 </plugin>
                 <plugin>

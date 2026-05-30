@@ -19,9 +19,11 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { buildUploadViewUrl, downloadUploadToTemp } from '@/api/upload'
+import { hasId, idToString } from '@/utils/id'
+import { openTempDocument } from '@/utils/document'
 
 const nameRef = ref('')
-const fileIdRef = ref<number>(0)
+const fileIdRef = ref('')
 const opening = ref(false)
 const error = ref<string | null>(null)
 
@@ -29,12 +31,12 @@ const name = computed(() => nameRef.value)
 
 onLoad((opts) => {
   nameRef.value = decodeURIComponent(String((opts as any)?.name || ''))
-  fileIdRef.value = Number((opts as any)?.fileId || 0) || 0
+  fileIdRef.value = idToString((opts as any)?.fileId)
 })
 
 function copyUrl() {
   error.value = null
-  if (!hasToken() || !fileIdRef.value) return
+  if (!hasToken() || !hasId(fileIdRef.value)) return
   const url = buildUploadViewUrl(fileIdRef.value)
   uni.setClipboardData({ data: url })
 }
@@ -42,22 +44,16 @@ function copyUrl() {
 async function openPreview() {
   error.value = null
   if (!ensureSystemContext()) return
-  if (!hasToken() || !fileIdRef.value) return
+  if (!hasToken() || !hasId(fileIdRef.value)) return
   const url = buildUploadViewUrl(fileIdRef.value)
 
   opening.value = true
   uni.showLoading({ title: '加载预览...' })
   try {
     const filePath = await downloadUploadToTemp(url)
-    // 尝试用系统打开
-    // @ts-ignore
-    uni.openDocument?.({
-      filePath,
-      showMenu: true,
-      fail: () => {
-        error.value = '无法直接预览，已复制预览链接'
-        copyUrl()
-      }
+    openTempDocument(filePath, () => {
+      error.value = '无法直接预览，已复制预览链接'
+      copyUrl()
     })
   } catch (e: any) {
     error.value = e?.message ?? '预览失败'

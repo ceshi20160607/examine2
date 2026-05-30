@@ -65,7 +65,7 @@ public class OpenApiModuleRecordController {
                     }
                     ModuleRecord r = moduleRecordFacadeService.createWithData(body.appId(), body.modelId(), body.data());
                     Map<String, Object> m = new LinkedHashMap<>();
-                    m.put("recordId", r.getId());
+                    m.put("recordId", r.getId() == null ? null : String.valueOf(r.getId()));
                     m.put("record", r);
                     return ApiResult.ok(m);
                 });

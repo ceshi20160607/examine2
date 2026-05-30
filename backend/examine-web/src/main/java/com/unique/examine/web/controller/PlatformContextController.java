@@ -14,6 +14,8 @@ import com.unique.examine.plat.manage.PlatRbacManageService;
 import com.unique.examine.plat.entity.dto.PlatMenuTreeNode;
 import com.unique.examine.plat.manage.PlatPermissionManageService;
 import com.unique.examine.module.manage.SystemModuleBootstrapService;
+import com.unique.examine.module.entity.po.ModuleMember;
+import com.unique.examine.module.service.IModuleMemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,8 @@ public class PlatformContextController {
     private PlatRbacManageService platRbacManageService;
     @Autowired
     private SystemModuleBootstrapService systemModuleBootstrapService;
+    @Autowired
+    private IModuleMemberService moduleMemberService;
 
     @Operation(summary = "当前账号的平台级权限（RBAC：角色+菜单树+权限码；无绑定角色时回退账号列 plat_perm_codes；不含系统内 module 权限）")
     @GetMapping("/permissions/me")
@@ -69,14 +73,45 @@ public class PlatformContextController {
         return ApiResult.ok(m);
     }
 
-    @Operation(summary = "我创建的系统列表")
+    @Operation(summary = "我可进入的系统列表（所有者 + 已启用应用成员）")
     @GetMapping("/systems")
     public ApiResult<List<PlatSystem>> mySystems() {
         Long platId = AuthContextHolder.getPlatId();
-        return ApiResult.ok(platSystemService.lambdaQuery()
+        Map<Long, PlatSystem> visible = new LinkedHashMap<>();
+        List<PlatSystem> owned = platSystemService.lambdaQuery()
                 .eq(PlatSystem::getOwnerPlatAccountId, platId)
                 .orderByDesc(PlatSystem::getCreateTime)
-                .list());
+                .list();
+        for (PlatSystem s : owned) {
+            if (s.getId() != null) {
+                visible.put(s.getId(), s);
+            }
+        }
+
+        List<Long> memberSystemIds = moduleMemberService.lambdaQuery()
+                .select(ModuleMember::getSystemId)
+                .eq(ModuleMember::getPlatId, platId)
+                .eq(ModuleMember::getStatus, 1)
+                .list()
+                .stream()
+                .map(ModuleMember::getSystemId)
+                .filter(id -> id != null && id > 0 && !visible.containsKey(id))
+                .distinct()
+                .toList();
+        if (!memberSystemIds.isEmpty()) {
+            List<PlatSystem> memberSystems = platSystemService.lambdaQuery()
+                    .in(PlatSystem::getId, memberSystemIds)
+                    .eq(PlatSystem::getStatus, 1)
+                    .orderByDesc(PlatSystem::getCreateTime)
+                    .list();
+            for (PlatSystem s : memberSystems) {
+                if (s.getId() != null) {
+                    visible.put(s.getId(), s);
+                }
+            }
+        }
+
+        return ApiResult.ok(new ArrayList<>(visible.values()));
     }
 
     public record CreateSystemBody(String name, Integer multiTenantEnabled) {}
@@ -156,7 +191,9 @@ public class PlatformContextController {
             throw new BusinessException("系统不存在或已停用");
         }
         Long platId = AuthContextHolder.getPlatId();
-        if (platId == null || !platId.equals(s.getOwnerPlatAccountId())) {
+        boolean owner = platId != null && platId.equals(s.getOwnerPlatAccountId());
+        ModuleMember firstMember = owner ? null : findFirstActiveMember(body.systemId(), platId);
+        if (!owner && firstMember == null) {
             throw new BusinessException("无权限进入该系统");
         }
 
@@ -165,7 +202,11 @@ public class PlatformContextController {
 
         long tenantId;
         if (s.getMultiTenantEnabled() != null && s.getMultiTenantEnabled() == 1) {
-            tenantId = s.getDefaultTenantId() == null ? 0L : s.getDefaultTenantId();
+            if (owner) {
+                tenantId = s.getDefaultTenantId() == null ? 0L : s.getDefaultTenantId();
+            } else {
+                tenantId = firstMember.getTenantId() == null ? 0L : firstMember.getTenantId();
+            }
         } else {
             tenantId = 0L;
         }
@@ -188,14 +229,31 @@ public class PlatformContextController {
         if (s == null || s.getStatus() == null || s.getStatus() != 1) {
             throw new BusinessException("系统不存在或已停用");
         }
-        if (platId == null || !platId.equals(s.getOwnerPlatAccountId())) {
+        boolean owner = platId != null && platId.equals(s.getOwnerPlatAccountId());
+        if (!owner && findFirstActiveMember(systemId, platId) == null) {
             throw new BusinessException("无权限查看该系统租户");
         }
-        return ApiResult.ok(platTenantService.lambdaQuery()
+        var query = platTenantService.lambdaQuery()
                 .eq(PlatTenant::getSystemId, systemId)
-                .eq(PlatTenant::getStatus, 1)
-                .orderByDesc(PlatTenant::getCreateTime)
-                .list());
+                .eq(PlatTenant::getStatus, 1);
+        if (!owner) {
+            List<Long> tenantIds = moduleMemberService.lambdaQuery()
+                    .select(ModuleMember::getTenantId)
+                    .eq(ModuleMember::getSystemId, systemId)
+                    .eq(ModuleMember::getPlatId, platId)
+                    .eq(ModuleMember::getStatus, 1)
+                    .list()
+                    .stream()
+                    .map(ModuleMember::getTenantId)
+                    .filter(id -> id != null && id > 0)
+                    .distinct()
+                    .toList();
+            if (tenantIds.isEmpty()) {
+                return ApiResult.ok(List.of());
+            }
+            query.in(PlatTenant::getId, tenantIds);
+        }
+        return ApiResult.ok(query.orderByDesc(PlatTenant::getCreateTime).list());
     }
 
     public record SelectTenantBody(Long tenantId) {}
@@ -224,6 +282,10 @@ public class PlatformContextController {
         if (s.getMultiTenantEnabled() == null || s.getMultiTenantEnabled() != 1) {
             throw new BusinessException("该系统未开启多租户");
         }
+        boolean owner = cur.platId() != null && cur.platId().equals(s.getOwnerPlatAccountId());
+        if (!owner && !hasActiveMember(cur.systemId(), body.tenantId(), cur.platId())) {
+            throw new BusinessException("无权限选择该租户");
+        }
         PlatTenant t = platTenantService.getById(body.tenantId());
         if (t == null || t.getStatus() == null || t.getStatus() != 1 || t.getSystemId() == null || !t.getSystemId().equals(cur.systemId())) {
             throw new BusinessException("租户不存在或不属于当前系统");
@@ -242,6 +304,31 @@ public class PlatformContextController {
         if (platId == null || !platId.equals(s.getOwnerPlatAccountId())) {
             throw new BusinessException(403, "仅系统所有者可操作");
         }
+    }
+
+    private ModuleMember findFirstActiveMember(Long systemId, Long platId) {
+        if (systemId == null || platId == null) {
+            return null;
+        }
+        return moduleMemberService.lambdaQuery()
+                .eq(ModuleMember::getSystemId, systemId)
+                .eq(ModuleMember::getPlatId, platId)
+                .eq(ModuleMember::getStatus, 1)
+                .orderByAsc(ModuleMember::getTenantId)
+                .last("limit 1")
+                .one();
+    }
+
+    private boolean hasActiveMember(Long systemId, Long tenantId, Long platId) {
+        if (systemId == null || tenantId == null || platId == null) {
+            return false;
+        }
+        return moduleMemberService.lambdaQuery()
+                .eq(ModuleMember::getSystemId, systemId)
+                .eq(ModuleMember::getTenantId, tenantId)
+                .eq(ModuleMember::getPlatId, platId)
+                .eq(ModuleMember::getStatus, 1)
+                .count() > 0;
     }
 
     private static String resolveBearerToken(String authorization) {

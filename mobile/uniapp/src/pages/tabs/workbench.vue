@@ -3,6 +3,7 @@
     <view class="u-card">
       <ActionBar>
         <uni-button type="primary" @click="goSystems">系统</uni-button>
+        <uni-button @click="goOpenApps">OpenAPI</uni-button>
         <uni-button @click="goApps">元数据</uni-button>
         <uni-button @click="goInbox">待办</uni-button>
         <uni-button @click="goFlowStart">发起流程</uni-button>
@@ -38,13 +39,17 @@ function goSystems() {
   if (!ensureLogin()) return
   uni.navigateTo({ url: '/pages/platform/systems' })
 }
+function goOpenApps() {
+  if (!ensureLogin()) return
+  uni.navigateTo({ url: '/pages/platform/open_apps' })
+}
 function goApps() {
   if (!ensureSystemContext()) return
   uni.navigateTo({ url: '/pages/system/module/meta/apps' })
 }
 function goInbox() {
-  if (!ensureSystemContext()) return
-  uni.navigateTo({ url: '/pages/system/flow/inbox' })
+  if (!ensureLogin()) return
+  uni.switchTab({ url: '/pages/tabs/inbox' })
 }
 function goFlowStart() {
   if (!ensureSystemContext()) return

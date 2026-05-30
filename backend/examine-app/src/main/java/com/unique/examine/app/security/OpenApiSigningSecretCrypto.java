@@ -4,11 +4,13 @@ import com.unique.examine.core.exception.BusinessException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,17 +21,28 @@ public class OpenApiSigningSecretCrypto {
 
     private static final int GCM_TAG_BITS = 128;
     private static final int NONCE_BYTES = 12;
+    private static final String DEV_ONLY_MASTER_KEY = "dev-only-openapi-signing-key-32bytes";
+    private static final String LEGACY_PLACEHOLDER_MASTER_KEY = "change" + "-me-openapi-signing-key-32bytes";
 
     private final byte[] aesKey;
 
     public OpenApiSigningSecretCrypto(
-            @Value("${examine.openapi.signing-master-key:change-me-openapi-signing-key-32bytes}") String masterKey) {
+            @Value("${examine.openapi.signing-master-key:}") String masterKey,
+            Environment environment) {
         if (masterKey == null || masterKey.isBlank()) {
             throw new IllegalStateException("examine.openapi.signing-master-key 未配置");
         }
+        boolean prod = Arrays.asList(environment.getActiveProfiles()).contains("prod");
+        String normalized = masterKey.trim();
+        if (prod && (DEV_ONLY_MASTER_KEY.equals(normalized) || LEGACY_PLACEHOLDER_MASTER_KEY.equals(normalized))) {
+            throw new IllegalStateException("生产环境必须替换 examine.openapi.signing-master-key");
+        }
+        if (prod && normalized.length() < 32) {
+            throw new IllegalStateException("生产环境 examine.openapi.signing-master-key 长度至少 32 位");
+        }
         try {
             MessageDigest sha = MessageDigest.getInstance("SHA-256");
-            this.aesKey = sha.digest(masterKey.trim().getBytes(StandardCharsets.UTF_8));
+            this.aesKey = sha.digest(normalized.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw new IllegalStateException("初始化签名密钥失败", e);
         }

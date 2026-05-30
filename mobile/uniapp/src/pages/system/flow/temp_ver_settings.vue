@@ -56,10 +56,11 @@ import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { deleteTempVerSettings, pageTempVerSettings, upsertTempVerSetting } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
-type SettingRow = { id: number | string; exceptionMode?: string; exceptionAdminPlatId?: number; exceptionEndReason?: string; status?: number }
+type SettingRow = { id: number | string; exceptionMode?: string; exceptionAdminPlatId?: string | number; exceptionEndReason?: string; status?: number }
 
-const tempVerId = ref<number>(0)
+const tempVerId = ref('')
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref<SettingRow[]>([])
@@ -74,11 +75,11 @@ const form = reactive<{ exceptionMode: string; exceptionAdminPlatId: string; exc
 })
 
 onLoad((opts) => {
-  tempVerId.value = Number((opts as any)?.tempVerId || 0) || 0
+  tempVerId.value = idToString((opts as any)?.tempVerId)
 })
 
 async function load() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   loading.value = true
   try {
     const r = await pageTempVerSettings(tempVerId.value)
@@ -106,7 +107,7 @@ function closePopup() {
 }
 
 function openActions(s: SettingRow) {
-  if (!s?.id) return
+  if (!hasId(s?.id)) return
   uni.showActionSheet({
     itemList: ['编辑', '删除'],
     success: (res) => {
@@ -130,11 +131,11 @@ function del(id: any) {
 }
 
 async function save() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   error.value = null
   const adminRaw = form.exceptionAdminPlatId.trim()
-  const admin = adminRaw ? Number(adminRaw) : null
-  if (adminRaw && (!admin || Number.isNaN(admin))) {
+  const admin = hasId(adminRaw) ? adminRaw : null
+  if (adminRaw && !/^\d+$/.test(adminRaw)) {
     error.value = 'exceptionAdminPlatId 非法'
     return
   }
@@ -160,7 +161,7 @@ async function save() {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  if (!tempVerId.value) {
+  if (!hasId(tempVerId.value)) {
     uni.showToast({ title: '缺少 tempVerId', icon: 'none' })
     return
   }

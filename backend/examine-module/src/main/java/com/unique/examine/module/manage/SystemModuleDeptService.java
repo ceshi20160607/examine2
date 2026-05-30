@@ -63,9 +63,9 @@ public class SystemModuleDeptService {
                 continue;
             }
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("value", d.getId());
+            row.put("value", String.valueOf(d.getId()));
             row.put("text", buildDeptLabel(d, byId));
-            row.put("parentId", d.getParentId());
+            row.put("parentId", d.getParentId() == null ? null : String.valueOf(d.getParentId()));
             row.put("depth", d.getDepth());
             out.add(row);
         }

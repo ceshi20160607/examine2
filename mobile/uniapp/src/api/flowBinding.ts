@@ -1,22 +1,23 @@
 import { httpDelete, httpGet, httpPost } from '@/api/http'
 import type { ApiResult } from '@/api/http'
+import { idToString, type IdValue } from '@/utils/id'
 
 export type FlowBindingRow = {
   binding: {
-    id: number
+    id: string
     bizType?: string
     triggerAction?: string
-    tempId?: number
+    tempId?: string
     status?: number
   }
   tempCode?: string
   tempName?: string
 }
 
-export type FlowTempOption = { id: number; tempCode?: string; tempName?: string }
+export type FlowTempOption = { id: string; tempCode?: string; tempName?: string }
 
-export function listModelFlowBindings(appId: number, modelId: number): Promise<ApiResult<FlowBindingRow[]>> {
-  return httpGet<FlowBindingRow[]>(`/v1/system/module/flow-bindings/apps/${appId}/models/${modelId}`)
+export function listModelFlowBindings(appId: IdValue, modelId: IdValue): Promise<ApiResult<FlowBindingRow[]>> {
+  return httpGet<FlowBindingRow[]>(`/v1/system/module/flow-bindings/apps/${pathId(appId)}/models/${pathId(modelId)}`)
 }
 
 export function listFlowTempOptions(): Promise<ApiResult<FlowTempOption[]>> {
@@ -24,11 +25,11 @@ export function listFlowTempOptions(): Promise<ApiResult<FlowTempOption[]>> {
 }
 
 export function upsertModelFlowBinding(cmd: {
-  id?: number | null
-  appId: number
-  modelId: number
+  id?: IdValue | null
+  appId: IdValue
+  modelId: IdValue
   triggerAction: string
-  tempId: number
+  tempId: IdValue
   status?: number
 }): Promise<ApiResult<any>> {
   return httpPost('/v1/system/module/flow-bindings/upsert', {
@@ -41,6 +42,10 @@ export function upsertModelFlowBinding(cmd: {
   })
 }
 
-export function deleteModelFlowBinding(id: number): Promise<ApiResult<void>> {
-  return httpDelete(`/v1/system/module/flow-bindings/${id}`)
+export function deleteModelFlowBinding(id: IdValue): Promise<ApiResult<void>> {
+  return httpDelete(`/v1/system/module/flow-bindings/${pathId(id)}`)
+}
+
+function pathId(value: IdValue): string {
+  return encodeURIComponent(idToString(value))
 }

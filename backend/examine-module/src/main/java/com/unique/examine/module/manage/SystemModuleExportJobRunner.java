@@ -77,12 +77,14 @@ public class SystemModuleExportJobRunner {
             q = objectMapper.readValue(job.getQueryJson(), ModuleRecordDslQuery.class);
         }
 
-        byte[] bytes = systemModuleExportService.exportCsvBytes(job.getTplId(), job.getCreateUserId(), q);
+        SystemModuleExportService.ExportFile exportFile = systemModuleExportService.exportFile(
+                job.getTplId(), job.getCreateUserId(), q, job.getFileType());
+        byte[] bytes = exportFile.bytes();
 
         LocalDate d = LocalDate.now();
         String dir = d.getYear() + "/" + String.format("%02d", d.getMonthValue()) + "/" + String.format("%02d", d.getDayOfMonth());
         String safeName = UUID.randomUUID().toString().replace("-", "");
-        String filename = "export_" + safeName + ".csv";
+        String filename = "export_" + safeName + "." + exportFile.extension();
 
         String rootStr = StringUtils.hasText(localRootPath) ? localRootPath.trim() : "data/uploads";
         Path root = Paths.get(rootStr).toAbsolutePath().normalize();
@@ -97,8 +99,8 @@ public class SystemModuleExportJobRunner {
         uf.setTenantId(job.getTenantId());
         uf.setUploaderPlatId(job.getCreateUserId());
         uf.setOriginalName(filename);
-        uf.setFileExt("csv");
-        uf.setContentType("text/csv");
+        uf.setFileExt(exportFile.extension());
+        uf.setContentType(exportFile.contentType());
         uf.setFileSize((long) bytes.length);
         uf.setStorageType("local");
         uf.setLocalAbsPath(absPath.toString());

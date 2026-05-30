@@ -1,5 +1,5 @@
 <template>
-  <Page title="流程模板管理" subtitle="创建/编辑/版本管理/一键发布 MVP">
+  <Page title="流程模板管理" subtitle="创建/编辑/版本管理/一键发布">
     <view class="u-card u-section">
       <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="createNew">新建模板</uni-button>
@@ -36,6 +36,7 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import { deleteTemps, pageTemps, publishTempVer, type FlowTemp, upsertTempVer } from '@/api/flow'
+import { idToString, type IdValue } from '@/utils/id'
 
 const loading = ref(false)
 const page = ref(1)
@@ -78,14 +79,16 @@ function createNew() {
   uni.navigateTo({ url: '/pages/system/flow/temp_edit' })
 }
 
-function editTemp(id: any) {
-  uni.navigateTo({ url: `/pages/system/flow/temp_edit?id=${encodeURIComponent(String(id))}` })
+function editTemp(id: IdValue) {
+  const sid = idToString(id)
+  if (!sid) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_edit?id=${encodeURIComponent(sid)}` })
 }
 
 function openActions(t: FlowTemp) {
   if (!t?.id) return
   uni.showActionSheet({
-    itemList: ['版本管理', '一键发布MVP', '编辑', '删除'],
+    itemList: ['版本管理', '一键发布', '编辑', '删除'],
     success: (res) => {
       if (res.tapIndex === 0) {
         goVers(t.id)
@@ -106,14 +109,16 @@ function openActions(t: FlowTemp) {
   })
 }
 
-function goVers(id: any) {
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_list?tempId=${encodeURIComponent(String(id))}` })
+function goVers(id: IdValue) {
+  const sid = idToString(id)
+  if (!sid) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_list?tempId=${encodeURIComponent(sid)}` })
 }
 
 async function quickPublishMvp(t: FlowTemp) {
   if (!t?.id) return
   uni.showModal({
-    title: '一键发布 MVP？',
+    title: '一键发布？',
     content: '将自动创建一个版本，填充最小 graphJson，并发布为可发起状态。',
     success: async (m) => {
       if (!m.confirm) return

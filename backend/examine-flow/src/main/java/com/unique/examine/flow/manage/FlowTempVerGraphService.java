@@ -299,7 +299,7 @@ public class FlowTempVerGraphService {
 
     private Map<String, Object> toDesignerNode(FlowTempVerNode n, int idx) {
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", n.getId());
+        m.put("id", n.getId() == null ? null : String.valueOf(n.getId()));
         m.put("nodeKey", n.getNodeKey());
         m.put("nodeType", n.getNodeType());
         m.put("nodeName", n.getNodeName());
@@ -314,7 +314,7 @@ public class FlowTempVerGraphService {
 
     private Map<String, Object> toDesignerEdge(FlowTempVerLine l, List<FlowTempVerLineCond> conds) {
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", l.getId());
+        m.put("id", l.getId() == null ? null : String.valueOf(l.getId()));
         m.put("fromNodeKey", l.getFromNodeKey());
         m.put("toNodeKey", l.getToNodeKey());
         m.put("priority", l.getPriority());

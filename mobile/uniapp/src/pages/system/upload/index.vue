@@ -45,11 +45,12 @@ import {
   uploadOneFile,
   downloadUploadToTemp
 } from '@/api/upload'
+import { hasId, idToString, type IdValue } from '@/utils/id'
 
 const uploading = ref(false)
 const loading = ref(false)
 const error = ref<string | null>(null)
-const lastFileId = ref<number | null>(null)
+const lastFileId = ref('')
 
 const rows = ref<UploadRow[]>([])
 
@@ -63,7 +64,7 @@ async function chooseAndUpload() {
     const filePath = await pickSingleFilePath()
 
     const r = await uploadOneFile(filePath)
-    lastFileId.value = r?.data?.fileId ?? null
+    lastFileId.value = idToString(r?.data?.fileId)
     uni.showToast({ title: '上传成功', icon: 'success' })
     await loadPage()
   } catch (e: any) {
@@ -89,26 +90,27 @@ async function loadPage() {
 }
 
 function openActions(f: UploadRow) {
-  if (!f?.id) return
+  const fileId = idToString(f?.id)
+  if (!hasId(fileId)) return
   uni.showActionSheet({
     itemList: ['预览(view)', '下载(download)', '删除(软删)'],
     success: (res) => {
       if (res.tapIndex === 0) {
-        uni.navigateTo({ url: `/pages/system/upload/view?fileId=${f.id}&name=${encodeURIComponent(f.originalName || '')}` })
+        uni.navigateTo({ url: `/pages/system/upload/view?fileId=${encodeURIComponent(fileId)}&name=${encodeURIComponent(f.originalName || '')}` })
         return
       }
       if (res.tapIndex === 1) {
-        downloadFile(f.id, f.originalName || `file-${f.id}`)
+        downloadFile(fileId, f.originalName || `file-${fileId}`)
         return
       }
       if (res.tapIndex === 2) {
-        deleteFile(f.id)
+        deleteFile(fileId)
       }
     }
   })
 }
 
-async function downloadFile(fileId: number, filename: string) {
+async function downloadFile(fileId: IdValue, filename: string) {
   if (!ensureSystemContext()) return
   if (!hasToken()) return
   const url = buildUploadDownloadUrl(fileId)
@@ -132,7 +134,7 @@ async function downloadFile(fileId: number, filename: string) {
   }
 }
 
-async function deleteFile(fileId: number) {
+async function deleteFile(fileId: IdValue) {
   if (!ensureSystemContext()) return
   if (!hasToken()) return
   loading.value = true

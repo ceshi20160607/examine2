@@ -1,9 +1,10 @@
 import { httpGet, httpPost, httpRequest } from '@/api/http'
 import type { ApiResult } from '@/api/http'
+import { idToString, type IdValue } from '@/utils/id'
 
 export function queryRecords(cmd: {
-  appId: number
-  modelId: number
+  appId: IdValue
+  modelId: IdValue
   page: number
   limit: number
   filters?: any[]
@@ -12,42 +13,42 @@ export function queryRecords(cmd: {
   return httpPost<any>('/v1/system/records/query', cmd)
 }
 
-export function getRecord(recordId: number): Promise<ApiResult<any>> {
-  return httpGet<any>(`/v1/system/records/${recordId}`)
+export function getRecord(recordId: IdValue): Promise<ApiResult<any>> {
+  return httpGet<any>(`/v1/system/records/${pathId(recordId)}`)
 }
 
-export function createRecord(cmd: { appId: number; modelId: number; data: any }): Promise<ApiResult<any>> {
+export function createRecord(cmd: { appId: IdValue; modelId: IdValue; data: any }): Promise<ApiResult<any>> {
   return httpPost<any>('/v1/system/records', cmd)
 }
 
-export function updateRecord(recordId: number, data: any): Promise<ApiResult<any>> {
-  return httpPost<any>(`/v1/system/records/${recordId}/update`, { data })
+export function updateRecord(recordId: IdValue, data: any): Promise<ApiResult<any>> {
+  return httpPost<any>(`/v1/system/records/${pathId(recordId)}/update`, { data })
 }
 
-export function deleteRecord(recordId: number): Promise<ApiResult<any>> {
-  return httpRequest<any>('DELETE', `/v1/system/records/${recordId}`)
+export function deleteRecord(recordId: IdValue): Promise<ApiResult<any>> {
+  return httpRequest<any>('DELETE', `/v1/system/records/${pathId(recordId)}`)
 }
 
 export type RecordHistoryRow = {
-  id?: number
-  recordId?: number
+  id?: IdValue
+  recordId?: IdValue
   action?: string
   dataJson?: string
   diffJson?: string
-  createUserId?: number
+  createUserId?: IdValue
   createTime?: string
 }
 
-export function listRecordHistory(recordId: number, limit = 50): Promise<ApiResult<RecordHistoryRow[]>> {
-  return httpGet<RecordHistoryRow[]>(`/v1/system/records/${recordId}/history?limit=${limit}`)
+export function listRecordHistory(recordId: IdValue, limit = 50): Promise<ApiResult<RecordHistoryRow[]>> {
+  return httpGet<RecordHistoryRow[]>(`/v1/system/records/${pathId(recordId)}/history?limit=${encodeURIComponent(String(limit))}`)
 }
 
 export function queryRecordsByRelation(cmd: {
-  relationId: number
-  parentRecordId: number
+  relationId: IdValue
+  parentRecordId: IdValue
   query?: {
-    appId?: number
-    modelId?: number
+    appId?: IdValue
+    modelId?: IdValue
     page?: number
     limit?: number
     filters?: any[]
@@ -57,3 +58,6 @@ export function queryRecordsByRelation(cmd: {
   return httpPost<any>('/v1/system/records/query-by-relation', cmd)
 }
 
+function pathId(value: IdValue): string {
+  return encodeURIComponent(idToString(value))
+}

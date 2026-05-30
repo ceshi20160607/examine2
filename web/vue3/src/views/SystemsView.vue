@@ -2,7 +2,7 @@
   <AppLayout>
     <div class="page-head">
       <h2>选择系统</h2>
-      <p class="muted">进入自建系统后才能管理应用与数据。</p>
+      <p class="muted">进入自建系统后，可继续管理应用、模型、页面、流程与数据。</p>
     </div>
 
     <div class="create-box">
@@ -18,11 +18,14 @@
 
     <p v-if="error" class="error">{{ error }}</p>
     <ul v-if="systems.length" class="list">
-      <li v-for="s in systems" :key="s.id">
-        <button type="button" class="list__btn" :disabled="entering === s.id" @click="enter(s)">
+      <li v-for="s in systems" :key="s.id" class="system-row">
+        <button type="button" class="list__btn" :disabled="entering === s.id || s.status !== 1" @click="enter(s)">
           <strong>{{ s.name || `System#${s.id}` }}</strong>
-          <span class="muted">id={{ s.id }}</span>
+          <span class="muted">id={{ s.id }} · {{ s.multiTenantEnabled === 1 ? '多租户' : '单租户' }}</span>
         </button>
+        <span :class="['status', s.status === 1 ? 'ok' : 'off']">{{ s.status === 1 ? '启用' : '停用' }}</span>
+        <button type="button" class="secondary" @click="toggleStatus(s)">{{ s.status === 1 ? '停用' : '启用' }}</button>
+        <button type="button" class="danger" @click="remove(s)">删除</button>
       </li>
     </ul>
     <p v-else-if="!loading" class="muted">暂无系统，请在上方创建。</p>
@@ -40,7 +43,17 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppLayout from '../layouts/AppLayout.vue'
-import { createSystem, enterSystem, listSystems, listTenants, selectTenant } from '../api/platform'
+import {
+  createSystem,
+  deleteSystem,
+  enterSystem,
+  listSystems,
+  listTenants,
+  selectTenant,
+  setSystemStatus
+} from '../api/platform'
+import { confirmDialog } from '../utils/dialog.js'
+import { notify } from '../utils/notify.js'
 
 const router = useRouter()
 const systems = ref([])
@@ -77,6 +90,7 @@ async function createNew() {
     await createSystem(name, newMultiTenant.value ? 1 : 0)
     newSystemName.value = ''
     newMultiTenant.value = false
+    notify.success('系统已创建')
     await load()
   } catch (e) {
     error.value = e?.message || String(e)
@@ -86,6 +100,10 @@ async function createNew() {
 }
 
 async function enter(s) {
+  if (s.status !== 1) {
+    error.value = '系统已停用，请先启用后再进入'
+    return
+  }
   entering.value = s.id
   error.value = ''
   try {
@@ -115,7 +133,39 @@ async function confirmTenant() {
   try {
     await selectTenant(selectedTenantId.value)
     tenantStep.value = false
+    pendingSystem = null
     router.push('/apps')
+  } catch (e) {
+    error.value = e?.message || String(e)
+  }
+}
+
+async function toggleStatus(s) {
+  const next = s.status === 1 ? 2 : 1
+  if (!(await confirmDialog(`确认${next === 1 ? '启用' : '停用'}系统 ${s.name || s.id}？`, {
+    danger: next !== 1,
+    confirmText: next === 1 ? '启用' : '停用'
+  }))) return
+  error.value = ''
+  try {
+    await setSystemStatus(s.id, next)
+    notify.success(`系统已${next === 1 ? '启用' : '停用'}`)
+    await load()
+  } catch (e) {
+    error.value = e?.message || String(e)
+  }
+}
+
+async function remove(s) {
+  if (!(await confirmDialog(`删除系统 ${s.name || s.id}？该操作会停用系统入口。`, {
+    danger: true,
+    confirmText: '删除'
+  }))) return
+  error.value = ''
+  try {
+    await deleteSystem(s.id)
+    notify.success('系统已删除')
+    await load()
   } catch (e) {
     error.value = e?.message || String(e)
   }
@@ -172,6 +222,12 @@ onMounted(load)
   display: grid;
   gap: 0.65rem;
 }
+.system-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 0.5rem;
+}
 .list__btn {
   width: 100%;
   text-align: left;
@@ -183,15 +239,26 @@ onMounted(load)
   box-shadow: var(--shadow-sm);
   transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
-.list__btn:hover {
+.list__btn:hover:not(:disabled) {
   border-color: var(--color-primary);
   transform: translateY(-1px);
   box-shadow: 0 8px 20px rgba(31, 41, 51, 0.08);
+}
+.list__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 .list__btn strong {
   display: block;
   margin-bottom: 0.15rem;
 }
+.status {
+  min-width: 3rem;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+.status.ok { color: #047857; }
+.status.off { color: #b45309; }
 .tenant-box {
   margin-top: 1rem;
   display: flex;
@@ -221,5 +288,13 @@ onMounted(load)
   color: #fff;
   font-weight: 700;
   cursor: pointer;
+}
+@media (max-width: 720px) {
+  .system-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .list__btn {
+    grid-column: 1 / -1;
+  }
 }
 </style>

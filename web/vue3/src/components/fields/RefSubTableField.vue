@@ -16,7 +16,7 @@
           <td>{{ idx + 1 }}</td>
           <td v-for="col in columns" :key="col.code">{{ row.cells[col.code] ?? '-' }}</td>
           <td>
-            <router-link :to="`/records/detail?recordId=${row.id}`" target="_blank">查看</router-link>
+            <router-link :to="recordDetailTo(row.id)" target="_blank">查看</router-link>
             <button type="button" class="link danger" @click="removeRow(row.id)">移除</button>
           </td>
         </tr>
@@ -36,12 +36,15 @@ import { listFieldsByModel } from '../../api/meta.js'
 import { configFromMeta } from '../../utils/fieldTypes.js'
 import { buildRowCellsMap, loadSubRowsByRelation } from '../../utils/refPicker.js'
 import { takeEmbedRecordCreated } from '../../utils/embedRecord.js'
+import { hasId, idToString, sameId, uniqueIds } from '../../utils/id.js'
+import { promptText } from '../../utils/dialog.js'
+import { notify } from '../../utils/notify.js'
 
 const props = defineProps({
   field: { type: Object, required: true },
-  appId: { type: Number, required: true },
-  parentRecordId: { type: Number, default: 0 },
-  parentModelId: { type: Number, default: 0 },
+  appId: { type: [String, Number], required: true },
+  parentRecordId: { type: [String, Number], default: '0' },
+  parentModelId: { type: [String, Number], default: '0' },
   modelValue: { default: null },
   options: { type: Array, default: () => [] }
 })
@@ -49,7 +52,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const router = useRouter()
 const label = computed(() => props.field.relationModuleLabel || props.field.fieldName || '子表/明细')
-const refModelId = computed(() => Number(props.field.refModelId) || 0)
+const refModelId = computed(() => idToString(props.field.refModelId))
 const columns = ref([])
 const rowMap = ref({})
 const relationHint = ref('')
@@ -58,22 +61,22 @@ const loadingRelation = ref(false)
 
 function parseIds(raw) {
   if (raw == null || raw === '') return []
-  if (Array.isArray(raw)) return raw.map(Number).filter((n) => n > 0)
+  if (Array.isArray(raw)) return uniqueIds(raw)
   if (typeof raw === 'string') {
     const t = raw.trim()
     if (!t) return []
     if (t.startsWith('[')) {
       try {
         const arr = JSON.parse(t)
-        return Array.isArray(arr) ? arr.map(Number).filter((n) => n > 0) : []
+        return Array.isArray(arr) ? uniqueIds(arr) : []
       } catch {
-        return t.split(',').map((x) => Number(x.trim())).filter((n) => n > 0)
+        return uniqueIds(t.split(','))
       }
     }
-    return t.split(',').map((x) => Number(x.trim())).filter((n) => n > 0)
+    return uniqueIds(t.split(','))
   }
-  const n = Number(raw)
-  return n > 0 ? [n] : []
+  const id = idToString(raw)
+  return hasId(id) ? [id] : []
 }
 
 const selectedIds = computed(() => parseIds(props.modelValue))
@@ -82,13 +85,13 @@ const rows = computed(() => selectedIds.value.map((id) => rowMap.value[id]).filt
 const canAdd = computed(() => {
   const used = new Set(selectedIds.value)
   return props.options.some((o) => {
-    const id = Number(o.value)
-    return id > 0 && !used.has(id)
+    const id = idToString(o.value)
+    return hasId(id) && !used.has(id)
   })
 })
 
 const useRelationQuery = computed(
-  () => Number(props.parentRecordId) > 0 && Number(props.parentModelId) > 0 && refModelId.value > 0
+  () => hasId(props.parentRecordId) && hasId(props.parentModelId) && hasId(refModelId.value)
 )
 
 function emitIds(ids) {
@@ -99,33 +102,40 @@ function removeRow(id) {
   emitIds(selectedIds.value.filter((x) => x !== id))
 }
 
-function pickAdd() {
+function recordDetailTo(id) {
+  return { path: '/records/detail', query: { recordId: idToString(id) } }
+}
+
+async function pickAdd() {
   const used = new Set(selectedIds.value)
   const candidates = props.options.filter((o) => {
-    const id = Number(o.value)
-    return id > 0 && !used.has(id)
+    const id = idToString(o.value)
+    return hasId(id) && !used.has(id)
   })
   if (!candidates.length) {
-    alert('没有可添加的记录')
+    notify.warn('没有可添加的记录')
     return
   }
   const names = candidates.slice(0, 20).map((o) => o.text)
-  const idx = Number(prompt(`选择序号:\n${names.map((n, i) => `${i + 1}. ${n}`).join('\n')}`)) - 1
+  const pickedIndex = await promptText('选择记录序号', {
+    message: names.map((n, i) => `${i + 1}. ${n}`).join('\n')
+  })
+  const idx = Number(pickedIndex) - 1
   const picked = candidates[idx]
   if (!picked) return
-  const id = Number(picked.value)
-  if (id) emitIds([...selectedIds.value, id])
+  const id = idToString(picked.value)
+  if (hasId(id)) emitIds([...selectedIds.value, id])
 }
 
 function createNew() {
   if (!refModelId.value || !props.appId) {
-    alert('未配置关联模型')
+    notify.warn('未配置关联模型')
     return
   }
   const q = { appId: props.appId, modelId: refModelId.value, embed: '1' }
-  const pid = Number(props.parentRecordId)
-  if (pid > 0 && relationFkField.value) {
-    q.linkParentId = String(pid)
+  const pid = idToString(props.parentRecordId)
+  if (hasId(pid) && relationFkField.value) {
+    q.linkParentId = pid
     q.linkFkField = relationFkField.value
   }
   router.push({ path: '/records/form', query: q })
@@ -170,7 +180,7 @@ async function loadColumns() {
 
 async function loadFromRelation() {
   if (!useRelationQuery.value || !columns.value.length) {
-    relationHint.value = Number(props.parentRecordId) > 0 ? '' : '保存父记录后可按关系加载子表'
+    relationHint.value = hasId(props.parentRecordId) ? '' : '保存父记录后可按关系加载子表'
     return false
   }
   loadingRelation.value = true
@@ -213,7 +223,7 @@ async function refreshRows(ids) {
   if (!refModelId.value || !props.appId) {
     rowMap.value = Object.fromEntries(
       ids.map((id) => {
-        const opt = props.options.find((o) => Number(o.value) === id)
+        const opt = props.options.find((o) => sameId(o.value, id))
         return [id, { id, cells: { _title: opt?.text || `#${id}` } }]
       })
     )

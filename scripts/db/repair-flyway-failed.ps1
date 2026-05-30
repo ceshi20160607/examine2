@@ -8,15 +8,36 @@ $SqlFiles = @((Join-Path $ManualDir 'flyway_mark_v14_success.sql'))
 if ($env:EXAMINE_FLYWAY_MARK_APPLIED -match '23') {
     $SqlFiles += (Join-Path $ManualDir 'flyway_mark_v23_success.sql')
 }
-$Jdbc = if ($env:JDBC_URL) { $env:JDBC_URL } else { 'jdbc:mysql://192.168.0.211:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false' }
-$User = if ($env:DB_USER) { $env:DB_USER } else { 'root' }
-$Pass = if ($env:DB_PASS) { $env:DB_PASS } else { 'Admin001m' }
-
-$mysqlJar = Get-ChildItem -Path (Join-Path $Root 'scripts\db\tmp\BOOT-INF\lib\mysql-connector-j-*.jar') -ErrorAction SilentlyContinue | Select-Object -First 1
-if (-not $mysqlJar) {
-    Write-Error 'mysql-connector-j jar not found under scripts/db/tmp/BOOT-INF/lib/'
+if (-not $env:JDBC_URL) {
+    throw 'JDBC_URL is required. Example: jdbc:mysql://host:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false'
 }
-$cp = $mysqlJar.FullName
+$Jdbc = $env:JDBC_URL
+$User = if ($env:DB_USER) { $env:DB_USER } else { 'root' }
+if (-not $env:DB_PASS) {
+    throw 'DB_PASS is required. Set the database password in the environment before running this repair script.'
+}
+$Pass = $env:DB_PASS
+
+function Resolve-MysqlConnectorJar {
+    if ($env:MYSQL_CONNECTOR_JAR -and (Test-Path $env:MYSQL_CONNECTOR_JAR)) {
+        return (Resolve-Path $env:MYSQL_CONNECTOR_JAR).Path
+    }
+    $candidates = @()
+    $m2 = Join-Path $env:USERPROFILE '.m2\repository\com\mysql\mysql-connector-j'
+    if (Test-Path $m2) {
+        $candidates += Get-ChildItem -Path $m2 -Recurse -Filter 'mysql-connector-j-*.jar' -ErrorAction SilentlyContinue
+    }
+    $tmp = Join-Path $Root 'scripts\db\tmp\BOOT-INF\lib'
+    if (Test-Path $tmp) {
+        $candidates += Get-ChildItem -Path $tmp -Filter 'mysql-connector-j-*.jar' -ErrorAction SilentlyContinue
+    }
+    $jar = $candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if (-not $jar) {
+        throw 'mysql-connector-j jar not found. Run Maven once or set MYSQL_CONNECTOR_JAR to the connector jar path.'
+    }
+    return $jar.FullName
+}
+$cp = Resolve-MysqlConnectorJar
 
 Push-Location (Join-Path $Root 'scripts\db')
 try {
@@ -25,7 +46,8 @@ try {
     foreach ($f in $SqlFiles) {
         if (Test-Path $f) {
             Write-Host "Flyway mark success: $f" -ForegroundColor Cyan
-            java -cp $cp RunSqlFile $Jdbc $User $Pass $f
+            java -cp ".;$cp" RunSqlFile $Jdbc $User $Pass $f
+            if ($LASTEXITCODE -ne 0) { throw "SQL execution failed: $f" }
         }
     }
     Write-Host 'Done. V14/V23 registered as success; start backend for V15+ migrate.' -ForegroundColor Green

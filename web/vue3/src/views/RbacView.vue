@@ -13,25 +13,30 @@
       <select v-model.number="roleForm.dataScope">
         <option v-for="o in dataScopeOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
+      <select v-model.number="roleForm.status">
+        <option :value="1">启用</option>
+        <option :value="2">停用</option>
+      </select>
       <button type="button" @click="saveRole">保存角色</button>
       <button type="button" class="secondary" @click="resetRoleForm">清空</button>
     </div>
 
     <h3>角色列表</h3>
     <table v-if="roles.length" class="table">
-      <thead><tr><th>ID</th><th>编码</th><th>名称</th><th>数据权限</th><th>操作</th></tr></thead>
+      <thead><tr><th>ID</th><th>编码</th><th>名称</th><th>数据权限</th><th>状态</th><th>操作</th></tr></thead>
       <tbody>
         <tr v-for="r in roles" :key="r.id">
           <td>{{ r.id }}</td>
           <td>{{ r.roleCode }}</td>
           <td>{{ r.roleName }}</td>
           <td>{{ dataScopeLabel(r.dataScope) }}</td>
+          <td>{{ r.status === 2 ? '停用' : '启用' }}</td>
           <td>
             <button type="button" class="link" @click="editRole(r)">编辑</button>
             ·
-            <router-link :to="`/apps/${appId}/rbac/roles/${r.id}/menus`">菜单</router-link>
+            <router-link :to="{ name: 'role-menus', params: { appId, roleId: idToString(r.id) } }">菜单</router-link>
             ·
-            <router-link :to="`/apps/${appId}/rbac/roles/${r.id}/pages`">页面</router-link>
+            <router-link :to="{ name: 'role-pages', params: { appId, roleId: idToString(r.id) } }">页面</router-link>
           </td>
         </tr>
       </tbody>
@@ -51,7 +56,16 @@
       <button type="button" @click="searchAccount">搜索</button>
       <button type="button" @click="assignMember">分配角色</button>
     </div>
-    <p class="muted">memberPlatId: <input v-model="memberPlatId" style="width:120px" /> roleId: <input v-model="memberRoleId" style="width:80px" /></p>
+    <p class="muted member-row">
+      memberPlatId: <input v-model="memberPlatId" />
+      role:
+      <select v-model="memberRoleId">
+        <option value="">选择角色</option>
+        <option v-for="r in roles" :key="r.id" :value="idToString(r.id)">
+          {{ r.roleName || r.roleCode }} (#{{ r.id }})
+        </option>
+      </select>
+    </p>
     <ul v-if="accountHits.length" class="hits">
       <li v-for="a in accountHits" :key="a.platId"><button type="button" class="secondary" @click="pickAccount(a)">{{ a.text }}</button></li>
     </ul>
@@ -81,6 +95,8 @@ import {
   searchRbacAccounts,
   upsertRbacRole
 } from '../api/module'
+import { idToString } from '../utils/id.js'
+import { notify } from '../utils/notify.js'
 
 const route = useRoute()
 const appId = computed(() => String(route.params.appId || ''))
@@ -103,9 +119,11 @@ const dataScopeOptions = [
 ]
 
 const roleForm = reactive({
+  id: null,
   roleCode: '',
   roleName: '',
-  dataScope: 1
+  dataScope: 1,
+  status: 1
 })
 
 function dataScopeLabel(v) {
@@ -113,15 +131,19 @@ function dataScopeLabel(v) {
 }
 
 function resetRoleForm() {
+  roleForm.id = null
   roleForm.roleCode = ''
   roleForm.roleName = ''
   roleForm.dataScope = 1
+  roleForm.status = 1
 }
 
 function editRole(r) {
+  roleForm.id = r.id ?? null
   roleForm.roleCode = r.roleCode || ''
   roleForm.roleName = r.roleName || ''
   roleForm.dataScope = Number(r.dataScope) || 1
+  roleForm.status = Number(r.status) || 1
 }
 
 async function loadRoles() {
@@ -151,12 +173,15 @@ async function saveRole() {
   error.value = ''
   try {
     await upsertRbacRole(appId.value, {
+      id: roleForm.id,
       roleCode: roleForm.roleCode.trim(),
       roleName: roleForm.roleName.trim(),
-      dataScope: Number(roleForm.dataScope) || 1
+      dataScope: Number(roleForm.dataScope) || 1,
+      status: Number(roleForm.status) || 1
     })
+    notify.success('角色已保存')
     resetRoleForm()
-    loadRoles()
+    await loadRoles()
   } catch (e) {
     error.value = e?.message || String(e)
   }
@@ -190,12 +215,12 @@ async function searchAccount() {
 }
 
 function pickAccount(a) {
-  memberPlatId.value = String(a.platId ?? a.value ?? '')
+  memberPlatId.value = idToString(a.platId ?? a.value)
 }
 
 function fillMember(m) {
-  if (m.platId) memberPlatId.value = String(m.platId)
-  if (m.roleId) memberRoleId.value = String(m.roleId)
+  if (m.platId) memberPlatId.value = idToString(m.platId)
+  if (m.roleId) memberRoleId.value = idToString(m.roleId)
 }
 
 async function assignMember() {
@@ -208,9 +233,10 @@ async function assignMember() {
   error.value = ''
   try {
     await assignRbacMemberRole({ appId: appId.value, memberPlatId: pid, roleId: rid })
+    notify.success('成员角色已保存')
     memberPlatId.value = ''
     memberRoleId.value = ''
-    loadMembers()
+    await loadMembers()
   } catch (e) {
     error.value = e?.message || String(e)
   }
@@ -224,8 +250,16 @@ onMounted(loadAll)
 input, select { padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; }
 h3 { margin-top: 1.25rem; }
 .role-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+.member-row input {
+  width: 150px;
+}
 .wide { flex: 1; min-width: 220px; }
 .pre { background: #f8fafc; border: 1px solid #e5e7eb; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; overflow: auto; }
 .link { background: none; border: none; color: #1677ff; cursor: pointer; padding: 0; }
 </style>
-<style src="./admin-shared.css"></style>

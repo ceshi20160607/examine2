@@ -46,10 +46,19 @@
 **启动报 `failed migration to version 14`（旧 JAR / 未登记历史）**：
 
 1. 在 MySQL 执行 `docs/sql/manual/flyway_repair_v14_force.sql`（删除 version=14 失败记录）
-2. 仓库根执行：`.\scripts\startup-dev.ps1`（repair → 打包 → 启动）  
-   或分步：`.\scripts\db\repair-flyway-failed.ps1` 后 `.\scripts\deploy\run-backend.ps1`
-3. dev 已配置：`FlywayDevConfig`（先 repair 再 migrate）、`validate-on-migrate` 默认 **false**（可用 `EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE=true` 恢复）
-4. 已手工跑 `17` typed 列：`$env:EXAMINE_FLYWAY_BASELINE_VERSION = '23'`
+2. 如需执行修复脚本，先显式指定目标库，避免误连其他环境：
+
+```powershell
+$env:JDBC_URL = "jdbc:mysql://你的数据库:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false"
+$env:DB_USER = "root"
+$env:DB_PASS = "你的密码"
+.\scripts\db\repair-flyway-failed.ps1
+```
+
+3. 仓库根执行：`.\scripts\startup-dev.ps1`（有 `JDBC_URL` + `DB_PASS` 时会先 repair，否则跳过 repair 后打包启动）  
+   或分步：`.\scripts\deploy\run-backend.ps1`
+4. dev 已配置：`FlywayDevConfig`（先 repair 再 migrate）、`validate-on-migrate` 默认 **false**（可用 `EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE=true` 恢复）
+5. 已手工跑 `17` typed 列：`$env:EXAMINE_FLYWAY_BASELINE_VERSION = '23'`
 
 ### 方式 B：继续关 Flyway、只用手工 SQL
 
@@ -61,10 +70,10 @@
 
 ```bash
 cd backend
-mvn -pl examine-web -am package -DskipTests
+mvn -pl examine-web -am clean package -DskipTests
 ```
 
-产物：`backend/examine-web/target/examine-web-0.0.1-SNAPSHOT.jar`
+产物：`backend/examine-web/target/unexamine-0.0.1.jar`
 
 ---
 
@@ -73,7 +82,7 @@ mvn -pl examine-web -am package -DskipTests
 ```bash
 cd backend/examine-web
 # 建议显式小堆 + SerialGC，并勿依赖系统 JAVA_TOOL_OPTIONS（易触发 G1 native OOM）
-java -Xmx256m -XX:+UseSerialGC -jar target/examine-web-0.0.1-SNAPSHOT.jar
+java -Xmx256m -XX:+UseSerialGC -jar target/unexamine-0.0.1.jar
 ```
 
 默认 **dev** profile（见 `application.yml`）：改其中的 **MySQL URL / 账号 / Redis** 指向你的环境。
@@ -114,12 +123,12 @@ cd backend/examine-web
 mkdir -p config
 cp ../../scripts/deploy/release/config/application.yml.example config/application.yml
 # 编辑 MySQL / Redis / examine.openapi.signing-master-key 等
-java -jar target/examine-web-0.0.1-SNAPSHOT.jar
+java -jar target/unexamine-0.0.1.jar
 ```
 
 JAR 内已配置 `spring.config.import: optional:file:./config/`，在 `examine-web` 目录启动即可加载。
 
-发布包中：`backend/config/application.yml.example` → 复制为 `application.yml` 后 `./start.sh`。
+发布包中：`backend/config/application.yml.example` → 复制为 `application.yml` 后 `./unexamine.sh start`。
 
 仍可用环境变量覆盖（可选），见 `application-prod.yml` 中的 `${SPRING_DATASOURCE_*}` 占位。
 
@@ -139,7 +148,9 @@ npm run build
 
 ---
 
-## 8. 冒烟（验证「能跑通」）
+## 8. 可选 API 脚本核对
+
+不要求每次修改后都跑冒烟；需要上线前快速核对时，可使用 API 脚本。
 
 ```powershell
 cd tests\api

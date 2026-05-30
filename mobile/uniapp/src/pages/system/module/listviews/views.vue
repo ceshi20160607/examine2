@@ -2,15 +2,20 @@
   <Page :title="`List Views（modelId=${modelId}）`" subtitle="列表视图 + 列配置 + 筛选模板">
     <view class="u-card u-section">
       <uni-forms labelPosition="top">
-        <uni-forms-item label="viewCode">
+        <uni-forms-item :label="editingId ? '编辑视图' : '新增视图'">
           <uni-easyinput v-model="form.viewCode" placeholder="viewCode" />
-        </uni-forms-item>
-        <uni-forms-item label="viewName">
           <uni-easyinput v-model="form.viewName" placeholder="viewName" />
+        </uni-forms-item>
+        <uni-forms-item label="默认视图">
+          <uni-data-select v-model="form.defaultFlag" :localdata="flagOptions" />
+        </uni-forms-item>
+        <uni-forms-item label="状态">
+          <uni-data-select v-model="form.status" :localdata="statusOptions" />
         </uni-forms-item>
       </uni-forms>
       <ActionBar>
-        <uni-button type="primary" :disabled="saving" @click="upsert">创建</uni-button>
+        <uni-button type="primary" :disabled="saving" @click="upsert">{{ editingId ? '保存' : '创建' }}</uni-button>
+        <uni-button v-if="editingId" @click="resetForm">取消编辑</uni-button>
         <uni-button :disabled="loading" @click="load">刷新</uni-button>
         <uni-button :disabled="!modelId" @click="goFilterTpls">筛选模板</uni-button>
       </ActionBar>
@@ -24,7 +29,7 @@
             v-for="v in rows"
             :key="v.id"
             :title="v.viewName || v.viewCode || ('View#' + v.id)"
-            :note="v.viewCode || ''"
+            :note="`${v.viewCode || ''} · ${v.defaultFlag === 1 ? '默认' : '普通'} · ${v.status === 1 ? '启用' : '停用'}`"
             clickable
             @click="openViewActions(v)"
           />
@@ -42,23 +47,38 @@ import { ensureSystemContext } from '@/utils/guard'
 import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
-import { listViewsByModel, type ModuleListViewRow, upsertListView } from '@/api/module'
+import { deleteListViews, listViewsByModel, type ModuleListViewRow, upsertListView } from '@/api/module'
+import { hasId, idToString, type IdValue } from '@/utils/id'
 
-const appId = ref<number>(0)
-const modelId = ref<number>(0)
+const appId = ref('')
+const modelId = ref('')
 const loading = ref(false)
 const saving = ref(false)
+const editingId = ref<string | null>(null)
 const rows = ref<ModuleListViewRow[]>([])
 
-const form = reactive<{ viewCode: string; viewName: string }>({ viewCode: '', viewName: '' })
+const form = reactive<{ viewCode: string; viewName: string; defaultFlag: number; status: number }>({
+  viewCode: '',
+  viewName: '',
+  defaultFlag: 0,
+  status: 1
+})
+const flagOptions = [
+  { value: 0, text: '否' },
+  { value: 1, text: '是' }
+]
+const statusOptions = [
+  { value: 1, text: '启用' },
+  { value: 2, text: '停用' }
+]
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
-  modelId.value = Number((opts as any)?.modelId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
+  modelId.value = idToString((opts as any)?.modelId)
 })
 
 async function load() {
-  if (!modelId.value) return
+  if (!hasId(modelId.value)) return
   loading.value = true
   try {
     const r = await listViewsByModel(modelId.value)
@@ -69,46 +89,88 @@ async function load() {
 }
 
 async function upsert() {
-  if (!appId.value || !modelId.value) return
+  if (!hasId(appId.value) || !hasId(modelId.value)) return
   if (!form.viewCode.trim() || !form.viewName.trim()) {
     uni.showToast({ title: '请输入 viewCode/viewName', icon: 'none' })
     return
   }
   saving.value = true
   try {
-    await upsertListView({
-      id: null,
+  await upsertListView({
+    id: editingId.value,
       appId: appId.value,
       modelId: modelId.value,
       platId: null,
       viewCode: form.viewCode.trim(),
       viewName: form.viewName.trim(),
-      defaultFlag: 0,
-      status: 1
+      defaultFlag: form.defaultFlag,
+      status: form.status
     })
-    form.viewCode = ''
-    form.viewName = ''
+    resetForm()
+    uni.showToast({ title: '已保存', icon: 'success' })
     await load()
   } finally {
     saving.value = false
   }
 }
 
+function resetForm() {
+  editingId.value = null
+  form.viewCode = ''
+  form.viewName = ''
+  form.defaultFlag = 0
+  form.status = 1
+}
+
+function fillForm(v: ModuleListViewRow) {
+  editingId.value = idToString(v.id as IdValue)
+  form.viewCode = v.viewCode || ''
+  form.viewName = v.viewName || ''
+  form.defaultFlag = v.defaultFlag === 1 ? 1 : 0
+  form.status = v.status === 2 ? 2 : 1
+}
+
 function goFilterTpls() {
-  if (!appId.value || !modelId.value) return
-  uni.navigateTo({ url: `/pages/system/module/listviews/filter_tpls?appId=${appId.value}&modelId=${modelId.value}` })
+  if (!hasId(appId.value) || !hasId(modelId.value)) return
+  uni.navigateTo({ url: `/pages/system/module/listviews/filter_tpls?appId=${encodeURIComponent(appId.value)}&modelId=${encodeURIComponent(modelId.value)}` })
 }
 
 function openViewActions(v: ModuleListViewRow) {
-  if (!v?.id) return
+  const viewId = idToString(v?.id as IdValue)
+  if (!hasId(viewId)) return
   uni.showActionSheet({
-    itemList: ['Cols（列配置）'],
+    itemList: ['Cols（列配置）', '编辑', '删除'],
     success: (res) => {
-      if (res.tapIndex !== 0) return
-      if (!appId.value || !modelId.value) return
-      uni.navigateTo({
-        url: `/pages/system/module/listviews/cols?viewId=${v.id}&appId=${appId.value}&modelId=${modelId.value}`
-      })
+      if (res.tapIndex === 0) {
+        if (!hasId(appId.value) || !hasId(modelId.value)) return
+        uni.navigateTo({
+          url: `/pages/system/module/listviews/cols?viewId=${encodeURIComponent(viewId)}&appId=${encodeURIComponent(appId.value)}&modelId=${encodeURIComponent(modelId.value)}`
+        })
+        return
+      }
+      if (res.tapIndex === 1) {
+        fillForm(v)
+        return
+      }
+      if (res.tapIndex === 2) {
+        remove(v)
+      }
+    }
+  })
+}
+
+function remove(v: ModuleListViewRow) {
+  const id = idToString(v.id as IdValue)
+  if (!hasId(id)) return
+  uni.showModal({
+    title: '删除视图？',
+    content: v.viewName || v.viewCode || id,
+    success: async (m) => {
+      if (!m.confirm) return
+      await deleteListViews([id])
+      if (editingId.value === id) resetForm()
+      uni.showToast({ title: '已删除', icon: 'success' })
+      await load()
     }
   })
 }

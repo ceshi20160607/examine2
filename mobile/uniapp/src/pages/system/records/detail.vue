@@ -52,9 +52,10 @@ import {
 } from '@/utils/fieldTypes'
 import { resolveRefDisplay } from '@/utils/refPicker'
 import { pageQuerySuffix } from '@/utils/pageRuntime'
+import { hasId, idToString, uniqueIds, type IdValue } from '@/utils/id'
 
-const recordId = ref<number>(0)
-const pageId = ref<number>(0)
+const recordId = ref('')
+const pageId = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
 const detail = ref<any>(null)
@@ -65,8 +66,8 @@ const memberLabelMap = ref<Record<string, string>>({})
 const deptLabelMap = ref<Record<string, string>>({})
 
 onLoad((opts) => {
-  recordId.value = Number((opts as any)?.recordId || 0) || 0
-  pageId.value = Number((opts as any)?.pageId || 0) || 0
+  recordId.value = idToString((opts as any)?.recordId)
+  pageId.value = idToString((opts as any)?.pageId)
 })
 
 const pretty = computed(() => {
@@ -101,23 +102,22 @@ const dataEntries = computed(() => {
 
 type DataEntry = { k: string; title: string; v: string; raw: any; meta?: any }
 
-function parseRefIds(v: any): number[] {
+function parseRefIds(v: any): string[] {
   if (v == null || v === '') return []
   if (Array.isArray(v)) {
-    return v.map((x) => Number(x)).filter((n) => Number.isFinite(n) && n > 0)
+    return uniqueIds(v as IdValue[])
   }
   const s = String(v).trim()
   if (!s) return []
   if (s.startsWith('[')) {
     try {
       const arr = JSON.parse(s)
-      if (Array.isArray(arr)) return arr.map((x) => Number(x)).filter((n) => Number.isFinite(n) && n > 0)
+      if (Array.isArray(arr)) return uniqueIds(arr as IdValue[])
     } catch {
       return []
     }
   }
-  const n = Number(s)
-  return Number.isFinite(n) && n > 0 ? [n] : []
+  return hasId(s) ? [s] : []
 }
 
 function onEntryClick(e: DataEntry) {
@@ -125,28 +125,28 @@ function onEntryClick(e: DataEntry) {
   if (mf && isRefField(mf)) {
     const ids = parseRefIds(e.raw)
     if (ids.length === 1) {
-      uni.navigateTo({ url: `/pages/system/records/detail?recordId=${ids[0]}` })
+      uni.navigateTo({ url: `/pages/system/records/detail?recordId=${encodeURIComponent(ids[0])}` })
       return
     }
   }
   const fileId = resolveFileId(e.raw)
   if (fileId) {
     uni.navigateTo({
-      url: `/pages/system/upload/view?fileId=${fileId}&name=${encodeURIComponent(e.meta?.originalName || '')}`
+      url: `/pages/system/upload/view?fileId=${encodeURIComponent(fileId)}&name=${encodeURIComponent(e.meta?.originalName || '')}`
     })
     return
   }
   copyText(`${e.k}=${e.v}`)
 }
 
-function resolveFileId(v: any): number | null {
+function resolveFileId(v: any): string | null {
   if (v == null || v === '') return null
-  const n = Number(v)
-  return Number.isFinite(n) && n > 0 ? n : null
+  const id = idToString(v)
+  return hasId(id) ? id : null
 }
 
 async function load() {
-  if (!recordId.value) return
+  if (!hasId(recordId.value)) return
   loading.value = true
   error.value = null
   try {
@@ -162,20 +162,20 @@ async function load() {
 
 function goEdit() {
   const rec = detail.value?.record
-  const appId = Number(rec?.appId || 0)
-  const modelId = Number(rec?.modelId || 0)
+  const appId = idToString(rec?.appId)
+  const modelId = idToString(rec?.modelId)
   const q = pageQuerySuffix(pageId.value)
-  if (appId && modelId) {
+  if (hasId(appId) && hasId(modelId)) {
     uni.navigateTo({
-      url: `/pages/system/records/form?recordId=${recordId.value}&appId=${appId}&modelId=${modelId}${q}`
+      url: `/pages/system/records/form?recordId=${encodeURIComponent(recordId.value)}&appId=${encodeURIComponent(appId)}&modelId=${encodeURIComponent(modelId)}${q}`
     })
     return
   }
-  uni.navigateTo({ url: `/pages/system/records/form?recordId=${recordId.value}${q}` })
+  uni.navigateTo({ url: `/pages/system/records/form?recordId=${encodeURIComponent(recordId.value)}${q}` })
 }
 
 function goHistory() {
-  uni.navigateTo({ url: `/pages/system/records/history?recordId=${recordId.value}` })
+  uni.navigateTo({ url: `/pages/system/records/history?recordId=${encodeURIComponent(recordId.value)}` })
 }
 
 function toggleRaw() {
@@ -195,9 +195,9 @@ async function enrichRefLabels() {
   fieldMetaByCode.value = {}
   memberLabelMap.value = {}
   deptLabelMap.value = {}
-  const modelId = Number(detail.value?.record?.modelId || 0)
-  const appId = Number(detail.value?.record?.appId || 0)
-  if (!modelId) return
+  const modelId = idToString(detail.value?.record?.modelId)
+  const appId = idToString(detail.value?.record?.appId)
+  if (!hasId(modelId)) return
   try {
     const fr = await listFieldsByModel(modelId)
     for (const mf of fr.data || []) {
@@ -206,7 +206,7 @@ async function enrichRefLabels() {
   } catch {
     return
   }
-  if (appId) {
+  if (hasId(appId)) {
     try {
       const [m, d] = await Promise.all([
         listMemberPickerOptions(appId),
@@ -299,7 +299,7 @@ function stringifyValue(v: any): string {
 }
 
 function doDelete() {
-  if (!recordId.value) return
+  if (!hasId(recordId.value)) return
   uni.showModal({
     title: '确认删除？',
     content: `将删除记录 #${recordId.value}`,

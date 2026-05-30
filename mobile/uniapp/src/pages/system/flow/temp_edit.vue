@@ -35,8 +35,9 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { getTemp, upsertTemp } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
-const id = ref<number>(0)
+const id = ref('')
 const saving = ref(false)
 const error = ref<string | null>(null)
 
@@ -53,7 +54,7 @@ const form = reactive<{ tempCode: string; tempName: string; status: number; rema
 })
 
 onLoad((opts) => {
-  id.value = Number((opts as any)?.id || 0) || 0
+  id.value = idToString((opts as any)?.id)
 })
 
 function back() {
@@ -61,12 +62,12 @@ function back() {
 }
 
 function goVers() {
-  if (!id.value) return
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_list?tempId=${id.value}` })
+  if (!hasId(id.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_list?tempId=${encodeURIComponent(id.value)}` })
 }
 
 async function loadDetail() {
-  if (!id.value) return
+  if (!hasId(id.value)) return
   const r = await getTemp(id.value)
   const t = r.data || {}
   form.tempCode = String(t.tempCode || '')

@@ -4,7 +4,7 @@ import {
   fieldTypeDef,
   fieldTypeOptionsForSelect,
   parseFieldTypeCode
-} from "./fieldTypeEnum.js";
+} from "./fieldTypeEnum";
 function fieldTypeCode(f) {
   return parseFieldTypeCode(f.fieldType);
 }

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { SessionPayload } from '@/api/platform'
 import { clearSessionPayload, getSessionPayload, setSessionPayload } from '@/store/context'
+import { hasId } from '@/utils/id'
 
 const TOKEN_KEY = 'token'
 
@@ -14,7 +15,7 @@ export const useSessionStore = defineStore('session', {
   }),
   getters: {
     hasToken: (s) => typeof s.token === 'string' && !!s.token.trim(),
-    hasSystem: (s) => !!(s.payload && (s.payload as any).systemId)
+    hasSystem: (s) => !!(s.payload && hasId((s.payload as any).systemId))
   },
   actions: {
     setToken(token: string | null) {

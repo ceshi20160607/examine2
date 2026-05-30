@@ -51,6 +51,7 @@ import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { usePageRequest } from '@/composables/usePageRequest'
 import { inboxCc, inboxPending, type FlowTask } from '@/api/flow'
+import { idToString } from '@/utils/id'
 
 const { loading, error, run } = usePageRequest()
 const pending = ref<FlowTask[]>([])
@@ -71,8 +72,10 @@ async function loadCc() {
 }
 
 function goTask(t: FlowTask) {
-  if (!t?.id || !t?.recordId) return
-  uni.navigateTo({ url: `/pages/system/flow/task?instanceId=${t.recordId}&taskId=${t.id}` })
+  const taskId = idToString(t?.id)
+  const instanceId = idToString(t?.recordId)
+  if (!taskId || !instanceId) return
+  uni.navigateTo({ url: `/pages/system/flow/task?instanceId=${encodeURIComponent(instanceId)}&taskId=${encodeURIComponent(taskId)}` })
 }
 
 onMounted(() => {

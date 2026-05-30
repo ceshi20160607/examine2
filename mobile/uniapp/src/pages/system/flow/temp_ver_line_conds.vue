@@ -65,10 +65,11 @@ import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { deleteTempVerLineConds, pageTempVerLineConds, upsertTempVerLineCond } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
 type CondRow = { id: number | string; groupNo?: number; logicOp?: string; leftVar?: string; cmpOp?: string; rightType?: string; rightValue?: string; status?: number }
 
-const lineId = ref<number>(0)
+const lineId = ref('')
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref<CondRow[]>([])
@@ -86,11 +87,11 @@ const form = reactive<{ groupNo: string; logicOp: string; leftVar: string; cmpOp
 })
 
 onLoad((opts) => {
-  lineId.value = Number((opts as any)?.lineId || 0) || 0
+  lineId.value = idToString((opts as any)?.lineId)
 })
 
 async function load() {
-  if (!lineId.value) return
+  if (!hasId(lineId.value)) return
   loading.value = true
   try {
     const r = await pageTempVerLineConds(lineId.value)
@@ -121,7 +122,7 @@ function closePopup() {
 }
 
 function openActions(c: CondRow) {
-  if (!c?.id) return
+  if (!hasId(c?.id)) return
   uni.showActionSheet({
     itemList: ['编辑', '删除'],
     success: (res) => {
@@ -145,7 +146,7 @@ function del(id: any) {
 }
 
 async function save() {
-  if (!lineId.value) return
+  if (!hasId(lineId.value)) return
   error.value = null
   const g = Number((form.groupNo || '0').trim() || '0')
   if (Number.isNaN(g)) {
@@ -177,7 +178,7 @@ async function save() {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  if (!lineId.value) {
+  if (!hasId(lineId.value)) {
     uni.showToast({ title: '缺少 lineId', icon: 'none' })
     return
   }

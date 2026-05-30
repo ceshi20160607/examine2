@@ -260,11 +260,12 @@ import {
 import { loadRefSelectOptions } from '@/utils/refPicker'
 import { getPageRuntime } from '@/api/pages'
 import { applyPageFieldOverrides, pageQuerySuffix, type PageRuntime } from '@/utils/pageRuntime'
+import { hasId, idToString, uniqueIds, type IdValue } from '@/utils/id'
 
-const appId = ref(0)
-const modelId = ref(0)
-const recordId = ref(0)
-const pageId = ref(0)
+const appId = ref('')
+const modelId = ref('')
+const recordId = ref('')
+const pageId = ref('')
 const pageRuntime = ref<PageRuntime | null>(null)
 const embedMode = ref(false)
 
@@ -286,15 +287,15 @@ const formSubtitle = computed(() =>
 )
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
-  modelId.value = Number((opts as any)?.modelId || 0) || 0
-  recordId.value = Number((opts as any)?.recordId || 0) || 0
-  pageId.value = Number((opts as any)?.pageId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
+  modelId.value = idToString((opts as any)?.modelId)
+  recordId.value = idToString((opts as any)?.recordId)
+  pageId.value = idToString((opts as any)?.pageId)
   embedMode.value = String((opts as any)?.embed || '') === '1'
   const linkFk = String((opts as any)?.linkFkField || '').trim()
-  const linkPid = Number((opts as any)?.linkParentId || 0)
-  if (linkFk && linkPid > 0) {
-    formData[linkFk] = String(linkPid)
+  const linkPid = idToString((opts as any)?.linkParentId)
+  if (linkFk && hasId(linkPid)) {
+    formData[linkFk] = linkPid
   }
 })
 
@@ -425,12 +426,12 @@ function toggleAdvanced() {
 }
 
 async function loadPageRuntime() {
-  if (!pageId.value) return
+  if (!hasId(pageId.value)) return
   try {
     const r = await getPageRuntime(pageId.value)
     pageRuntime.value = r.data || null
-    if (pageRuntime.value?.appId && !appId.value) appId.value = pageRuntime.value.appId
-    if (pageRuntime.value?.modelId && !modelId.value) modelId.value = Number(pageRuntime.value.modelId)
+    if (pageRuntime.value?.appId && !appId.value) appId.value = idToString(pageRuntime.value.appId)
+    if (pageRuntime.value?.modelId && !modelId.value) modelId.value = idToString(pageRuntime.value.modelId)
   } catch {
     pageRuntime.value = null
   }
@@ -440,12 +441,12 @@ async function bootstrap() {
   try {
     await loadPageRuntime()
     // 编辑场景：先拿 record，补齐 appId/modelId，并回填 data
-    if (recordId.value) {
+    if (hasId(recordId.value)) {
       const d = await getRecord(recordId.value)
       const rec = d.data?.record
       const data = d.data?.data
-      if (!appId.value) appId.value = Number(rec?.appId || 0) || 0
-      if (!modelId.value) modelId.value = Number(rec?.modelId || 0) || 0
+      if (!appId.value) appId.value = idToString(rec?.appId)
+      if (!modelId.value) modelId.value = idToString(rec?.modelId)
       if (data && typeof data === 'object') {
         for (const k of Object.keys(data)) {
           formData[k] = data[k]
@@ -453,12 +454,12 @@ async function bootstrap() {
       }
     }
 
-    if (!modelId.value) return
+    if (!hasId(modelId.value)) return
     const f = await listFieldsByModel(modelId.value)
     fields.value = (f.data || []) as any
 
     // 新建：填默认值
-    if (!recordId.value) {
+    if (!hasId(recordId.value)) {
       for (const mf of fields.value) {
         if (!mf?.fieldCode) continue
         if (formData[mf.fieldCode] != null) continue
@@ -512,6 +513,10 @@ function normalizeMultiValue(v: any): any[] {
   return [v]
 }
 
+function normalizeIdMultiValue(v: any): string[] {
+  return uniqueIds(normalizeMultiValue(v) as IdValue[])
+}
+
 function normalizeDateValue(v: any): string | null {
   if (v == null) return null
   if (Array.isArray(v)) {
@@ -527,9 +532,7 @@ function normalizeFormDataValues() {
     const code = mf?.fieldCode
     if (!code) continue
     if (isRefTableField(mf)) {
-      formData[code] = normalizeMultiValue(formData[code])
-        .map((x) => Number(x))
-        .filter((n) => n > 0)
+      formData[code] = normalizeIdMultiValue(formData[code])
       continue
     }
     if (isDictMulti(mf) || isRefMultiField(mf)) {
@@ -539,8 +542,8 @@ function normalizeFormDataValues() {
     if (isRefField(mf) && !isRefMultiField(mf)) {
       const raw = formData[code]
       if (raw != null && raw !== '') {
-        const n = Number(raw)
-        formData[code] = Number.isFinite(n) && n > 0 ? n : raw
+        const id = idToString(raw)
+        formData[code] = hasId(id) ? id : raw
       }
       continue
     }
@@ -567,7 +570,7 @@ function normalizeFormDataValues() {
 }
 
 async function loadPickerOptionsIfNeeded() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   try {
     const d = await listDepartmentPickerOptions(appId.value)
     departmentOptions.value = (d.data || []).map((x) => ({ value: x.value, text: x.text }))
@@ -577,7 +580,7 @@ async function loadPickerOptionsIfNeeded() {
       if (!mf?.fieldCode || !isPersonField(mf)) continue
       const cfg = configFromMeta(mf)
       const scope = String(cfg.scope || 'system')
-      const deptId = cfg.deptId != null ? Number(cfg.deptId) : undefined
+      const deptId = cfg.deptId != null ? idToString(cfg.deptId as IdValue) : undefined
       const pr =
         scope === 'app' && deptId
           ? await listMemberPickerOptions(appId.value, scope, deptId)
@@ -593,7 +596,7 @@ async function loadPickerOptionsIfNeeded() {
 }
 
 async function loadRefOptionsIfNeeded() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   for (const mf of fields.value || []) {
     const code = mf?.fieldCode
     if (!code || !isRefField(mf)) continue
@@ -607,14 +610,14 @@ async function loadRefOptionsIfNeeded() {
 }
 
 async function loadDictOptionsIfNeeded() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   const dictCodes = Array.from(
     new Set((fields.value || []).map((x) => String(x?.dictCode || '')).filter((x) => !!x))
   )
   if (dictCodes.length === 0) return
 
   const dictsResp = await listDictsByApp(appId.value)
-  const dicts = (dictsResp.data || []) as Array<{ id: number | string; dictCode?: string }>
+  const dicts = (dictsResp.data || []) as Array<{ id: IdValue; dictCode?: string }>
   const codeToId: Record<string, any> = {}
   for (const d of dicts) {
     if (d?.dictCode) codeToId[String(d.dictCode)] = d.id
@@ -624,7 +627,7 @@ async function loadDictOptionsIfNeeded() {
     if (dictOptionsByCode[code]?.length) continue
     const dictId = codeToId[code]
     if (!dictId) continue
-    const itemsResp = await listDictItems(Number(dictId))
+    const itemsResp = await listDictItems(dictId)
     const items = (itemsResp.data || []) as Array<{ itemValue?: any; itemLabel?: string }>
     dictOptionsByCode[code] = items.map((it) => ({ value: it.itemValue ?? '', text: it.itemLabel || String(it.itemValue ?? '') }))
   }
@@ -647,26 +650,17 @@ function toSubmitData(): any {
       }
     }
     if (isRefTableField(mf) || isDictMulti(mf) || isRefMultiField(mf)) {
-      v = normalizeMultiValue(v).map((x) => {
-        const n = Number(x)
-        return Number.isFinite(n) && n > 0 ? n : x
-      })
+      v = isDictMulti(mf) ? normalizeMultiValue(v) : normalizeIdMultiValue(v)
     }
     if (isSignatureField(mf) || isFileField(mf)) {
       const t = String(v ?? '').trim()
       if (t === '') v = null
-      else {
-        const n = Number(t)
-        v = Number.isNaN(n) ? t : n
-      }
+      else v = t
     }
     if (isRefField(mf) && !isRefMultiField(mf)) {
       const t = String(v ?? '').trim()
       if (t === '') v = null
-      else {
-        const n = Number(t)
-        v = Number.isFinite(n) && n > 0 ? n : t
-      }
+      else v = t
     }
     if (isDateField(mf)) {
       v = normalizeDateValue(v)
@@ -676,7 +670,7 @@ function toSubmitData(): any {
       const end = dateRangeEnd[mf.fieldCode!] || ''
       v = start || end ? { start, end } : null
     }
-    if (isSerialNoField(mf) && !recordId.value) {
+    if (isSerialNoField(mf) && !hasId(recordId.value)) {
       const t = String(v ?? '').trim()
       v = t === '' ? null : t
     }
@@ -723,7 +717,7 @@ async function submit() {
 
   saving.value = true
   try {
-    if (recordId.value) {
+    if (hasId(recordId.value)) {
       await updateRecord(recordId.value, dataObj)
       uni.showToast({ title: '更新成功', icon: 'success' })
       back()
@@ -739,7 +733,7 @@ async function submit() {
       return
     }
     if (id) {
-      uni.redirectTo({ url: `/pages/system/records/detail?recordId=${id}${pageQuerySuffix(pageId.value)}` })
+      uni.redirectTo({ url: `/pages/system/records/detail?recordId=${encodeURIComponent(idToString(id))}${pageQuerySuffix(pageId.value)}` })
     } else {
       back()
     }

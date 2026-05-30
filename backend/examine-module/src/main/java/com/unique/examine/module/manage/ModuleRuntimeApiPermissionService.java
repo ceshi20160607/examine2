@@ -5,11 +5,14 @@ import com.unique.examine.module.entity.po.ModuleApp;
 import com.unique.examine.module.entity.po.ModuleMenu;
 import com.unique.examine.module.mapper.ModuleMenuMapper;
 import com.unique.examine.module.service.IModuleAppService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class ModuleRuntimeApiPermissionService {
+
+    private static final Logger log = LoggerFactory.getLogger(ModuleRuntimeApiPermissionService.class);
 
     private static final String DEFAULT_APP_CODE = "default";
     private static final long CACHE_TTL_MS = 60_000L;
@@ -54,11 +59,18 @@ public class ModuleRuntimeApiPermissionService {
         if (systemId == 0L) {
             return Optional.empty();
         }
-        ModuleApp app = moduleAppService.getOne(new LambdaQueryWrapper<ModuleApp>()
-                .eq(ModuleApp::getSystemId, systemId)
-                .eq(ModuleApp::getTenantId, tenantId)
-                .eq(ModuleApp::getAppCode, DEFAULT_APP_CODE)
-                .last("LIMIT 1"));
+        ModuleApp app;
+        try {
+            app = moduleAppService.getOne(new LambdaQueryWrapper<ModuleApp>()
+                    .eq(ModuleApp::getSystemId, systemId)
+                    .eq(ModuleApp::getTenantId, tenantId)
+                    .eq(ModuleApp::getAppCode, DEFAULT_APP_CODE)
+                    .last("LIMIT 1"));
+        } catch (RuntimeException e) {
+            log.warn("Module API permission default app lookup failed, skip menu ACL. uri={} systemId={} tenantId={} ex={} msg={}",
+                    requestUri, systemId, tenantId, e.getClass().getName(), e.getMessage());
+            return Optional.empty();
+        }
         if (app == null) {
             return Optional.empty();
         }
@@ -89,13 +101,30 @@ public class ModuleRuntimeApiPermissionService {
         if (cached != null && now < cached.expiresAtMs) {
             return cached.rows;
         }
-        List<ModuleMenu> list = moduleMenuMapper.selectMenusWithApiPatternForAcl(appId);
+        List<ModuleMenu> list;
+        try {
+            list = moduleMenuMapper.selectMenusWithApiPatternForAcl(appId);
+        } catch (RuntimeException e) {
+            log.warn("Module API permission menu lookup failed, skip menu ACL. appId={} ex={} msg={}",
+                    appId, e.getClass().getName(), e.getMessage());
+            rowsByApp.put(appId, new CacheEntry(List.of(), now + CACHE_TTL_MS));
+            return List.of();
+        }
         if (list == null || list.isEmpty()) {
             rowsByApp.put(appId, new CacheEntry(List.of(), now + CACHE_TTL_MS));
             return List.of();
         }
-        List<ModuleMenu> frozen = Collections.unmodifiableList(list);
+        List<ModuleMenu> frozen = Collections.unmodifiableList(list.stream()
+                .sorted(Comparator
+                        .comparingInt((ModuleMenu m) -> patternLength(m.getApiPattern())).reversed()
+                        .thenComparing(ModuleMenu::getSortNo, Comparator.nullsLast(Integer::compareTo))
+                        .thenComparing(ModuleMenu::getId, Comparator.nullsLast(Long::compareTo)))
+                .toList());
         rowsByApp.put(appId, new CacheEntry(frozen, now + CACHE_TTL_MS));
         return frozen;
+    }
+
+    private static int patternLength(String pattern) {
+        return pattern == null ? 0 : pattern.trim().length();
     }
 }

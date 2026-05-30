@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-@Tag(name = "自建系统态-flow（MVP）")
+@Tag(name = "自建系统态-flow")
 @RestController
 @RequestMapping("/v1/system/flow")
 public class SystemFlowController {
@@ -30,7 +30,7 @@ public class SystemFlowController {
     public record TransferBody(Long toPlatId) {}
     public record BizActionBody(String bizType, String bizId, Long taskId, String commentText) {}
 
-    @Operation(summary = "发起审批（MVP-1：defCode 对应 un_flow_temp.temp_code；落库 un_flow_record + vars + 首条待办）")
+    @Operation(summary = "发起审批（defCode 对应 un_flow_temp.temp_code；落库 un_flow_record + vars + 首条待办）")
     @PostMapping("/instances/start")
     public ApiResult<FlowEngineService.StartResult> start(@RequestBody StartBody body) {
         if (body == null) {
@@ -49,7 +49,7 @@ public class SystemFlowController {
         return ApiResult.ok(flowEngineService.approve(instanceId, taskId, body == null ? null : body.commentText()));
     }
 
-    @Operation(summary = "办理-拒绝（MVP-1：拒绝后直接终态）")
+    @Operation(summary = "办理-拒绝（拒绝后直接终态）")
     @PostMapping("/instances/{instanceId}/tasks/{taskId}/reject")
     public ApiResult<FlowEngineService.TaskActionResult> reject(
             @PathVariable("instanceId") Long instanceId,

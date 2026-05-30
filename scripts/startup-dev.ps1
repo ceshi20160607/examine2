@@ -12,8 +12,12 @@ $env:MAVEN_OPTS = '-Xmx512m -XX:+UseSerialGC'
 $env:EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE = 'false'
 $env:EXAMINE_FLYWAY_REPAIR_ON_MIGRATE = 'true'
 
-Write-Host '=== 1) Flyway DB repair (V14 manual + clear failed) ===' -ForegroundColor Cyan
-& (Join-Path $Root 'scripts\db\repair-flyway-failed.ps1')
+if ($env:JDBC_URL -and $env:DB_PASS) {
+    Write-Host '=== 1) Flyway DB repair (V14 manual + clear failed) ===' -ForegroundColor Cyan
+    & (Join-Path $Root 'scripts\db\repair-flyway-failed.ps1')
+} else {
+    Write-Host '=== 1) Flyway DB repair skipped (set JDBC_URL + DB_PASS to run it) ===' -ForegroundColor Yellow
+}
 
 Write-Host '=== 2) Build JAR ===' -ForegroundColor Cyan
 Push-Location (Join-Path $Root 'backend')

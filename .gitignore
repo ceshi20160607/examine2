@@ -17,7 +17,11 @@ backend/run*.log
 backend/startup*.log
 backend/examine-web/run*.log
 backend/examine-web/startup*.log
+backend/examine-web/startup*.err
+backend/examine-web/startup*.out
+backend/examine-web/startup-test.*
 tmp-body.json
+tmp/
 scripts/db/tmp/
 
 # Web

@@ -94,13 +94,31 @@ public class SystemModuleExportController {
         return ApiResult.ok();
     }
 
-    @Operation(summary = "按导出模板导出 CSV（最小闭环；支持传入 DSL filters）")
+    @Operation(summary = "按导出模板导出 CSV（支持传入 DSL filters）")
     @PostMapping("/tpls/{tplId}/export/csv")
     public void exportCsv(@PathVariable("tplId") Long tplId,
                           @RequestBody(required = false) ModuleRecordDslQuery query,
                           HttpServletResponse response) {
         Long platId = AuthContextHolder.getPlatId();
         systemModuleExportService.exportCsv(tplId, platId, query, response);
+    }
+
+    @Operation(summary = "按导出模板导出 XLSX（支持传入 DSL filters）")
+    @PostMapping("/tpls/{tplId}/export/xlsx")
+    public void exportXlsx(@PathVariable("tplId") Long tplId,
+                           @RequestBody(required = false) ModuleRecordDslQuery query,
+                           HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleExportService.exportXlsx(tplId, platId, query, response);
+    }
+
+    @Operation(summary = "按导出模板类型导出（csv/xlsx）")
+    @PostMapping("/tpls/{tplId}/export")
+    public void exportByTemplateType(@PathVariable("tplId") Long tplId,
+                                     @RequestBody(required = false) ModuleRecordDslQuery query,
+                                     HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleExportService.exportByTemplateType(tplId, platId, query, response);
     }
 
     @Operation(summary = "按导出模板导出 CSV（GET；便于移动端直接下载；可选 limit）")
@@ -112,6 +130,28 @@ public class SystemModuleExportController {
         ModuleRecordDslQuery q = new ModuleRecordDslQuery();
         q.setLimit(limit == null ? 200L : limit);
         systemModuleExportService.exportCsv(tplId, platId, q, response);
+    }
+
+    @Operation(summary = "按导出模板导出 XLSX（GET；便于移动端直接下载；可选 limit）")
+    @GetMapping("/tpls/{tplId}/export/xlsx")
+    public void exportXlsxGet(@PathVariable("tplId") Long tplId,
+                              @RequestParam(value = "limit", required = false) Long limit,
+                              HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        ModuleRecordDslQuery q = new ModuleRecordDslQuery();
+        q.setLimit(limit == null ? 200L : limit);
+        systemModuleExportService.exportXlsx(tplId, platId, q, response);
+    }
+
+    @Operation(summary = "按导出模板类型导出（GET；便于移动端直接下载；可选 limit）")
+    @GetMapping("/tpls/{tplId}/export")
+    public void exportByTemplateTypeGet(@PathVariable("tplId") Long tplId,
+                                        @RequestParam(value = "limit", required = false) Long limit,
+                                        HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        ModuleRecordDslQuery q = new ModuleRecordDslQuery();
+        q.setLimit(limit == null ? 200L : limit);
+        systemModuleExportService.exportByTemplateType(tplId, platId, q, response);
     }
 }
 

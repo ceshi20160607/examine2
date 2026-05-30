@@ -10,15 +10,15 @@
       </router-link>
       <nav class="admin__nav">
         <p class="admin__section">平台</p>
-        <router-link v-for="l in platformLinks" :key="l.to" :to="l.to">{{ l.label }}</router-link>
+        <router-link v-for="l in platformLinks" :key="l.to" :to="l.to" :class="{ 'is-active': isNavActive(l.to) }">{{ l.label }}</router-link>
         <p class="admin__section">应用</p>
-        <router-link to="/apps">应用列表</router-link>
+        <router-link to="/apps" :class="{ 'is-active': isNavActive('/apps') }">应用列表</router-link>
         <template v-if="appId">
           <p class="admin__section">应用 #{{ appId }}</p>
-          <router-link v-for="l in appLinks" :key="l.to" :to="l.to">{{ l.label }}</router-link>
+          <router-link v-for="l in appLinks" :key="l.to" :to="l.to" :class="{ 'is-active': isNavActive(l.to) }">{{ l.label }}</router-link>
         </template>
         <p class="admin__section">流程</p>
-        <router-link v-for="l in flowLinks" :key="l.to" :to="l.to">{{ l.label }}</router-link>
+        <router-link v-for="l in flowLinks" :key="l.to" :to="l.to" :class="{ 'is-active': isNavActive(l.to) }">{{ l.label }}</router-link>
       </nav>
     </aside>
     <div class="admin__body">
@@ -50,10 +50,24 @@ const route = useRoute()
 const router = useRouter()
 const session = computed(() => getSession())
 const appId = computed(() => {
-  const m = route.path.match(/^\/apps\/(\d+)/)
-  return m ? m[1] : ''
+  const m = route.path.match(/^\/apps\/([^/]+)/)
+  if (m) return m[1]
+  const q = route.query.appId
+  if (Array.isArray(q)) return q[0] ? String(q[0]) : ''
+  return q ? String(q) : ''
 })
 const appLinks = computed(() => (appId.value ? appHubLinks(appId.value) : []))
+
+function isNavActive(to) {
+  const path = route.path
+  if (to === '/apps') {
+    return path === '/apps'
+  }
+  if (appId.value && to === `/apps/${appId.value}`) {
+    return path === to
+  }
+  return path === to || path.startsWith(`${to}/`)
+}
 
 function logout() {
   setToken('')
@@ -129,16 +143,13 @@ export default { name: 'AdminLayout' }
 .admin__nav a:hover {
   background: rgba(255, 255, 255, 0.08);
 }
-.admin__nav a.router-link-active {
+.admin__nav a.is-active {
   background: #e4f3f0;
   border-color: rgba(228, 243, 240, 0.65);
   color: #0f3f3c;
   font-weight: 700;
 }
-.admin__nav a.router-link-exact-active {
-  color: #0f3f3c;
-}
-.admin__nav a.router-link-active::before {
+.admin__nav a.is-active::before {
   content: '';
   display: inline-block;
   width: 6px;
@@ -148,7 +159,7 @@ export default { name: 'AdminLayout' }
   background: #16736f;
   vertical-align: 0.08rem;
 }
-.admin__nav a:not(.router-link-active)::before {
+.admin__nav a:not(.is-active)::before {
   content: '';
   display: inline-block;
   width: 6px;

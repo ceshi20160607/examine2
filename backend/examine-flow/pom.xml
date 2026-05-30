@@ -11,7 +11,7 @@
     <artifactId>examine-flow</artifactId>
     <name>examine-flow</name>
     <packaging>jar</packaging>
-    <description>流程/审批（占位）</description>
+    <description>流程/审批</description>
 
     <dependencies>
         <dependency>

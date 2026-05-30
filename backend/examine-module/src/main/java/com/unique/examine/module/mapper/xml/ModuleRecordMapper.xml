@@ -33,6 +33,9 @@
                             <when test="f.op == 'eq'">
                                 and r.id = #{f.value}
                             </when>
+                            <when test="f.op == 'ne'">
+                                and r.id != #{f.value}
+                            </when>
                             <when test="f.op == 'in'">
                                 and r.id in
                                 <foreach collection="f.values" item="v" open="(" separator="," close=")">
@@ -44,22 +47,40 @@
 
                     <when test="f.field == 'createTime'">
                         <choose>
+                            <when test="f.op == 'gt'">
+                                and r.create_time &gt; #{f.value}
+                            </when>
                             <when test="f.op == 'gte'">
                                 and r.create_time &gt;= #{f.value}
                             </when>
+                            <when test="f.op == 'lt'">
+                                and r.create_time &lt; #{f.value}
+                            </when>
                             <when test="f.op == 'lte'">
                                 and r.create_time &lt;= #{f.value}
+                            </when>
+                            <when test="f.op == 'between'">
+                                and r.create_time between #{f.value} and #{f.values[1]}
                             </when>
                         </choose>
                     </when>
 
                     <when test="f.field == 'updateTime'">
                         <choose>
+                            <when test="f.op == 'gt'">
+                                and r.update_time &gt; #{f.value}
+                            </when>
                             <when test="f.op == 'gte'">
                                 and r.update_time &gt;= #{f.value}
                             </when>
+                            <when test="f.op == 'lt'">
+                                and r.update_time &lt; #{f.value}
+                            </when>
                             <when test="f.op == 'lte'">
                                 and r.update_time &lt;= #{f.value}
+                            </when>
+                            <when test="f.op == 'between'">
+                                and r.update_time between #{f.value} and #{f.values[1]}
                             </when>
                         </choose>
                     </when>
@@ -84,12 +105,116 @@
                                       </choose>
                                 )
                             </when>
+                            <when test="f.op == 'ne'">
+                                and exists (
+                                    select 1 from un_module_record_data rdf
+                                    where rdf.record_id = r.id
+                                      and rdf.field_code = #{f.field}
+                                      <choose>
+                                        <when test="'NUM'.equals(f.typedKind)">
+                                          and rdf.value_num != #{f.valueNum}
+                                        </when>
+                                        <when test="'DT'.equals(f.typedKind)">
+                                          and rdf.value_dt != #{f.valueDt}
+                                        </when>
+                                        <otherwise>
+                                          and rdf.value_text != #{f.value}
+                                        </otherwise>
+                                      </choose>
+                                )
+                            </when>
+                            <when test="f.op == 'in'">
+                                and exists (
+                                    select 1 from un_module_record_data rdf
+                                    where rdf.record_id = r.id
+                                      and rdf.field_code = #{f.field}
+                                      and rdf.value_text in
+                                      <foreach collection="f.values" item="v" open="(" separator="," close=")">
+                                          #{v}
+                                      </foreach>
+                                )
+                            </when>
                             <when test="f.op == 'like'">
                                 and exists (
                                     select 1 from un_module_record_data rdf
                                     where rdf.record_id = r.id
                                       and rdf.field_code = #{f.field}
                                       and rdf.value_text like concat('%', #{f.value}, '%')
+                                )
+                            </when>
+                            <when test="f.op == 'gt'">
+                                and exists (
+                                    select 1 from un_module_record_data rdf
+                                    where rdf.record_id = r.id
+                                      and rdf.field_code = #{f.field}
+                                      <choose>
+                                        <when test="'NUM'.equals(f.typedKind)">
+                                          and rdf.value_num &gt; #{f.valueNum}
+                                        </when>
+                                        <when test="'DT'.equals(f.typedKind)">
+                                          and rdf.value_dt &gt; #{f.valueDt}
+                                        </when>
+                                      </choose>
+                                )
+                            </when>
+                            <when test="f.op == 'gte'">
+                                and exists (
+                                    select 1 from un_module_record_data rdf
+                                    where rdf.record_id = r.id
+                                      and rdf.field_code = #{f.field}
+                                      <choose>
+                                        <when test="'NUM'.equals(f.typedKind)">
+                                          and rdf.value_num &gt;= #{f.valueNum}
+                                        </when>
+                                        <when test="'DT'.equals(f.typedKind)">
+                                          and rdf.value_dt &gt;= #{f.valueDt}
+                                        </when>
+                                      </choose>
+                                )
+                            </when>
+                            <when test="f.op == 'lt'">
+                                and exists (
+                                    select 1 from un_module_record_data rdf
+                                    where rdf.record_id = r.id
+                                      and rdf.field_code = #{f.field}
+                                      <choose>
+                                        <when test="'NUM'.equals(f.typedKind)">
+                                          and rdf.value_num &lt; #{f.valueNum}
+                                        </when>
+                                        <when test="'DT'.equals(f.typedKind)">
+                                          and rdf.value_dt &lt; #{f.valueDt}
+                                        </when>
+                                      </choose>
+                                )
+                            </when>
+                            <when test="f.op == 'lte'">
+                                and exists (
+                                    select 1 from un_module_record_data rdf
+                                    where rdf.record_id = r.id
+                                      and rdf.field_code = #{f.field}
+                                      <choose>
+                                        <when test="'NUM'.equals(f.typedKind)">
+                                          and rdf.value_num &lt;= #{f.valueNum}
+                                        </when>
+                                        <when test="'DT'.equals(f.typedKind)">
+                                          and rdf.value_dt &lt;= #{f.valueDt}
+                                        </when>
+                                      </choose>
+                                )
+                            </when>
+                            <when test="f.op == 'between'">
+                                and exists (
+                                    select 1 from un_module_record_data rdf
+                                    where rdf.record_id = r.id
+                                      and rdf.field_code = #{f.field}
+                                      <choose>
+                                        <when test="'NUM'.equals(f.typedKind)">
+                                          and rdf.value_num between #{f.valueNum} and #{f.valueNumEnd}
+                                        </when>
+                                        <when test="'DT'.equals(f.typedKind)">
+                                          and rdf.value_dt between #{f.valueDt} and #{f.valueDtEnd}
+                                        </when>
+                                      </choose>
                                 )
                             </when>
                         </choose>

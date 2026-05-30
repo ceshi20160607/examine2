@@ -36,6 +36,7 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import { pageMyInstances, type FlowRecord } from '@/api/flow'
+import { idToString, type IdValue } from '@/utils/id'
 
 const loading = ref(false)
 const page = ref(1)
@@ -76,8 +77,10 @@ async function next() {
   await load()
 }
 
-function goDetail(id: any) {
-  uni.navigateTo({ url: `/pages/system/flow/instance?id=${encodeURIComponent(String(id))}` })
+function goDetail(id: IdValue) {
+  const sid = idToString(id)
+  if (!sid) return
+  uni.navigateTo({ url: `/pages/system/flow/instance?id=${encodeURIComponent(sid)}` })
 }
 
 onMounted(() => {

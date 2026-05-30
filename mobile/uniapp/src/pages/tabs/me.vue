@@ -50,13 +50,17 @@ import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { ensureLogin } from '@/utils/guard'
 import { me as getMe, refresh as refreshAuthToken, logout as doLogout } from '@/api/platformAuth'
+import type { PlatAccountMe } from '@/api/platformAuth'
 import { useSessionStore } from '@/stores/session'
 
 const session = useSessionStore()
 const env = computed(() => session.env)
-const baseURL = computed(() => getBaseURL())
+const baseURL = computed(() => {
+  env.value
+  return getBaseURL()
+})
 
-const me = ref<{ id?: number; username?: string } | null>(null)
+const me = ref<PlatAccountMe | null>(null)
 const loadingMe = ref(false)
 const refreshing = ref(false)
 const error = ref<string | null>(null)

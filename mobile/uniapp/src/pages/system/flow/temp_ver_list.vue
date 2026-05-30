@@ -1,5 +1,5 @@
 <template>
-  <Page :title="`模板版本（tempId=${tempId}）`" subtitle="创建/编辑/发布/填充 MVP">
+  <Page :title="`模板版本（tempId=${tempId}）`" subtitle="创建/编辑/发布/填充默认流程">
     <view class="u-card u-section">
       <ActionBar>
         <uni-button type="primary" :disabled="loading" @click="createNew">新建版本</uni-button>
@@ -37,10 +37,11 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import { deleteTempVers, getTempVer, pageTempVers, publishTempVer, upsertTempVer } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
 type TempVer = { id: number | string; verNo?: number; publishStatus?: number }
 
-const tempId = ref<number>(0)
+const tempId = ref('')
 const loading = ref(false)
 const page = ref(1)
 const size = ref(20)
@@ -50,7 +51,7 @@ const rows = ref<TempVer[]>([])
 const hasNext = computed(() => page.value * size.value < total.value)
 
 onLoad((opts) => {
-  tempId.value = Number((opts as any)?.tempId || 0) || 0
+  tempId.value = idToString((opts as any)?.tempId)
 })
 
 function publishText(st: any) {
@@ -61,7 +62,7 @@ function publishText(st: any) {
 }
 
 async function load() {
-  if (!tempId.value) return
+  if (!hasId(tempId.value)) return
   loading.value = true
   try {
     const r = await pageTempVers(tempId.value, page.value, size.value)
@@ -89,18 +90,20 @@ async function next() {
 }
 
 function createNew() {
-  if (!tempId.value) return
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_edit?tempId=${tempId.value}` })
+  if (!hasId(tempId.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_edit?tempId=${encodeURIComponent(tempId.value)}` })
 }
 
 function edit(id: any) {
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_edit?id=${encodeURIComponent(String(id))}&tempId=${tempId.value}` })
+  uni.navigateTo({
+    url: `/pages/system/flow/temp_ver_edit?id=${encodeURIComponent(idToString(id))}&tempId=${encodeURIComponent(tempId.value)}`
+  })
 }
 
 function openActions(v: TempVer) {
-  if (!v?.id) return
+  if (!hasId(v?.id)) return
   uni.showActionSheet({
-    itemList: ['编辑', '图形画布', '列表编辑', '图形预览', '发布', '填充MVP并发布', '删除'],
+    itemList: ['编辑', '图形画布', '列表编辑', '图形预览', '发布', '填充默认流程并发布', '删除'],
     success: (res) => {
       const id = v.id
       if (res.tapIndex === 0) return edit(id)
@@ -115,13 +118,19 @@ function openActions(v: TempVer) {
 }
 
 function goDesigner(id: any) {
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_designer?tempVerId=${encodeURIComponent(String(id))}` })
+  const sid = idToString(id)
+  if (!sid) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_designer?tempVerId=${encodeURIComponent(sid)}` })
 }
 function goListEdit(id: any) {
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_edit?tempVerId=${encodeURIComponent(String(id))}` })
+  const sid = idToString(id)
+  if (!sid) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_edit?tempVerId=${encodeURIComponent(sid)}` })
 }
 function goPreview(id: any) {
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_preview?tempVerId=${encodeURIComponent(String(id))}` })
+  const sid = idToString(id)
+  if (!sid) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_preview?tempVerId=${encodeURIComponent(sid)}` })
 }
 
 async function publish(id: any) {
@@ -172,7 +181,7 @@ function del(id: any) {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  if (!tempId.value) {
+  if (!hasId(tempId.value)) {
     uni.showToast({ title: '缺少 tempId', icon: 'none' })
     return
   }

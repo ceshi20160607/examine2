@@ -1,15 +1,13 @@
 server:
-  port: 9999
+  port: ${SERVER_PORT:9999}
 
 spring:
   application:
     name: examine-web
   profiles:
-    active: dev
-  # 部署时在同目录 config/application.yml 写配置（优先于 JAR 内默认值）
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   config:
     import: optional:file:./config/
-  # 部分 JDK 21 安装访问 Platform MBeanServer 会 ClassFormatError
   jmx:
     enabled: false
 
@@ -19,32 +17,27 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:mysql://192.168.0.211:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
-    username: root
-    password: Admin001m
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
-      password: 123456
-      database: 0
+      host: ${SPRING_DATA_REDIS_HOST:127.0.0.1}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      database: ${SPRING_DATA_REDIS_DATABASE:0}
   flyway:
-    # 已有库曾手工执行 docs/sql 或部分 migration 时：无 flyway_schema_history 会先 baseline，
-    # 默认 baseline-version=22 表示 V1～V22 视为已就绪，仅从 V23 起执行（可调环境变量）。
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: ${EXAMINE_FLYWAY_BASELINE_VERSION:22}
-    # 若历史版本脚本文本变更导致校验失败，可临时设为 false 或执行 flyway repair
-    # dev 默认关闭 validate；启动时 FlywayStartupConfig 先把手工版本标 success 再 migrate
     validate-on-migrate: ${EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE:false}
     repair-on-migrate: ${EXAMINE_FLYWAY_REPAIR_ON_MIGRATE:true}
 
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
-    # dev：SQL 经 Slf4j 写入 logs/examine-web.log（见 logback），不刷控制台；prod 用 NoLoggingImpl
     log-impl: ${EXAMINE_MYBATIS_LOG_IMPL:org.apache.ibatis.logging.slf4j.Slf4jImpl}
   mapper-locations: classpath*:/com/unique/examine/**/mapper/xml/**/*.xml
 
@@ -87,22 +80,17 @@ management:
 
 examine:
   session:
-    # redis | memory（本地无 Redis 时设 EXAMINE_SESSION_STORE=memory）
     store: ${EXAMINE_SESSION_STORE:redis}
   flyway:
-    # 手工已执行版本：写入 schema_history success=1，不跑 DDL；17 已跑则 EXAMINE_FLYWAY_MARK_APPLIED=14,23
     mark-applied: ${EXAMINE_FLYWAY_MARK_APPLIED:14}
-  # 导出任务轮询（毫秒）；dev 默认 30s，避免空转刷 SQL 日志
   export-job:
     poll-ms: ${EXAMINE_EXPORT_JOB_POLL_MS:30000}
-  # HTTP 入参/出参/链路 TRACE（dev 默认开，写入滚动日志文件；关：EXAMINE_TRACE_ENABLED=false）
   trace:
     enabled: ${EXAMINE_TRACE_ENABLED:true}
   openapi:
-    # 生产环境务必更换；用于加密存库的 SK（签名验签），非客户端传输密钥
-    signing-master-key: change-me-openapi-signing-key-32bytes
+    signing-master-key: ${EXAMINE_OPENAPI_SIGNING_MASTER_KEY:dev-only-openapi-signing-key-32bytes}
   upload:
-    local-root-path: data/uploads
-    max-size-mb: 50
-    allowed-exts: "jpg,jpeg,png,gif,webp,pdf,txt,csv,xlsx"
-    allowed-content-types: "image/jpeg,image/png,image/gif,image/webp,application/pdf,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    local-root-path: ${EXAMINE_UPLOAD_LOCAL_ROOT:data/uploads}
+    max-size-mb: ${EXAMINE_UPLOAD_MAX_SIZE_MB:50}
+    allowed-exts: ${EXAMINE_UPLOAD_ALLOWED_EXTS:jpg,jpeg,png,gif,webp,pdf,txt,csv,xlsx}
+    allowed-content-types: ${EXAMINE_UPLOAD_ALLOWED_CONTENT_TYPES:image/jpeg,image/png,image/gif,image/webp,application/pdf,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet}

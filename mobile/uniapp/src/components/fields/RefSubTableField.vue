@@ -33,42 +33,43 @@ import ActionBar from '@/ui/ActionBar.vue'
 import { listFieldsByModel, type ModuleField } from '@/api/meta'
 import { configFromMeta } from '@/utils/fieldTypes'
 import { buildRowCellsMap, loadSubRowsByRelation } from '@/utils/refPicker'
+import { hasId, idToString, uniqueIds, type IdValue } from '@/utils/id'
 
-type Option = { value: number | string; text: string }
+type Option = { value: string | number; text: string }
 type Col = { code: string; label: string }
-type Row = { id: number; cells: Record<string, string> }
+type Row = { id: string; cells: Record<string, string> }
 
 const props = defineProps<{
   field: ModuleField
-  appId: number
-  parentRecordId?: number
-  parentModelId?: number
+  appId: IdValue
+  parentRecordId?: IdValue
+  parentModelId?: IdValue
   options: Option[]
   modelValue: unknown
 }>()
 
-const emit = defineEmits<{ (e: 'update:modelValue', v: number[]): void }>()
+const emit = defineEmits<{ (e: 'update:modelValue', v: string[]): void }>()
 
 const label = computed(() => props.field.relationModuleLabel || props.field.fieldName || '子表/明细')
-const refModelId = computed(() => Number(props.field.refModelId) || 0)
+const refModelId = computed(() => idToString(props.field.refModelId))
 const columns = ref<Col[]>([])
-const rowMap = ref<Record<number, Row>>({})
+const rowMap = ref<Record<string, Row>>({})
 const relationHint = ref('')
 const relationFkField = ref('')
 const loadingRelation = ref(false)
 
 const useRelationQuery = computed(
   () =>
-    Number(props.parentRecordId) > 0 &&
-    Number(props.parentModelId) > 0 &&
-    refModelId.value > 0
+    hasId(props.parentRecordId) &&
+    hasId(props.parentModelId) &&
+    hasId(refModelId.value)
 )
 
 const selectedIds = computed(() => {
   const raw = props.modelValue
-  if (raw == null || raw === '') return [] as number[]
+  if (raw == null || raw === '') return [] as string[]
   if (Array.isArray(raw)) {
-    return raw.map((x) => Number(x)).filter((n) => n > 0)
+    return uniqueIds(raw as IdValue[])
   }
   if (typeof raw === 'string') {
     const t = raw.trim()
@@ -76,15 +77,15 @@ const selectedIds = computed(() => {
     if (t.startsWith('[')) {
       try {
         const arr = JSON.parse(t)
-        return Array.isArray(arr) ? arr.map((x) => Number(x)).filter((n) => n > 0) : []
+        return Array.isArray(arr) ? uniqueIds(arr as IdValue[]) : []
       } catch {
         return []
       }
     }
-    return t.split(',').map((x) => Number(x.trim())).filter((n) => n > 0)
+    return uniqueIds(t.split(',').map((x) => x.trim()))
   }
-  const n = Number(raw)
-  return n > 0 ? [n] : []
+  const id = idToString(raw as IdValue)
+  return hasId(id) ? [id] : []
 })
 
 const rows = computed(() => selectedIds.value.map((id) => rowMap.value[id]).filter(Boolean) as Row[])
@@ -92,40 +93,40 @@ const rows = computed(() => selectedIds.value.map((id) => rowMap.value[id]).filt
 const canAdd = computed(() => {
   const used = new Set(selectedIds.value)
   return props.options.some((o) => {
-    const id = Number(o.value)
-    return id > 0 && !used.has(id)
+    const id = idToString(o.value)
+    return hasId(id) && !used.has(id)
   })
 })
 
-function emitIds(ids: number[]) {
-  emit('update:modelValue', ids)
+function emitIds(ids: string[]) {
+  emit('update:modelValue', uniqueIds(ids))
 }
 
-function removeRow(id: number) {
+function removeRow(id: string) {
   emitIds(selectedIds.value.filter((x) => x !== id))
 }
 
-function openRecord(id: number) {
-  if (!id) return
-  uni.navigateTo({ url: `/pages/system/records/detail?recordId=${id}` })
+function openRecord(id: string) {
+  if (!hasId(id)) return
+  uni.navigateTo({ url: `/pages/system/records/detail?recordId=${encodeURIComponent(id)}` })
 }
 
 function createNew() {
-  if (!refModelId.value || !props.appId) {
+  if (!hasId(refModelId.value) || !hasId(props.appId)) {
     uni.showToast({ title: '未配置关联模型', icon: 'none' })
     return
   }
-  let url = `/pages/system/records/form?appId=${props.appId}&modelId=${refModelId.value}&embed=1`
-  const pid = Number(props.parentRecordId)
-  if (pid > 0 && relationFkField.value) {
-    url += `&linkParentId=${pid}&linkFkField=${encodeURIComponent(relationFkField.value)}`
+  let url = `/pages/system/records/form?appId=${encodeURIComponent(idToString(props.appId))}&modelId=${encodeURIComponent(refModelId.value)}&embed=1`
+  const pid = idToString(props.parentRecordId)
+  if (hasId(pid) && relationFkField.value) {
+    url += `&linkParentId=${encodeURIComponent(pid)}&linkFkField=${encodeURIComponent(relationFkField.value)}`
   }
   uni.navigateTo({
     url,
     events: {
-      recordCreated: (payload: { recordId?: number }) => {
-        const id = Number(payload?.recordId)
-        if (!id) return
+      recordCreated: (payload: { recordId?: IdValue }) => {
+        const id = idToString(payload?.recordId)
+        if (!hasId(id)) return
         if (!selectedIds.value.includes(id)) {
           emitIds([...selectedIds.value, id])
         }
@@ -138,8 +139,8 @@ function createNew() {
 function pickAdd() {
   const used = new Set(selectedIds.value)
   const candidates = props.options.filter((o) => {
-    const id = Number(o.value)
-    return id > 0 && !used.has(id)
+    const id = idToString(o.value)
+    return hasId(id) && !used.has(id)
   })
   if (!candidates.length) {
     uni.showToast({ title: '没有可添加的记录', icon: 'none' })
@@ -150,8 +151,8 @@ function pickAdd() {
     success: (res) => {
       const picked = candidates[res.tapIndex]
       if (!picked) return
-      const id = Number(picked.value)
-      if (!id) return
+      const id = idToString(picked.value)
+      if (!hasId(id)) return
       emitIds([...selectedIds.value, id])
     }
   })
@@ -160,7 +161,7 @@ function pickAdd() {
 async function loadColumns() {
   const cfg = configFromMeta(props.field)
   const listFields = (cfg.listFields as string[]) || []
-  if (!refModelId.value) {
+  if (!hasId(refModelId.value)) {
     columns.value = [{ code: '_title', label: '标题' }]
     return
   }
@@ -184,18 +185,18 @@ async function loadColumns() {
   }
 }
 
-async function refreshRows(ids: number[]) {
+async function refreshRows(ids: string[]) {
   if (!ids.length) {
     rowMap.value = {}
     return
   }
-  if (!refModelId.value || !props.appId) {
+  if (!hasId(refModelId.value) || !hasId(props.appId)) {
     rowMap.value = Object.fromEntries(
       ids.map((id) => {
-        const opt = props.options.find((o) => Number(o.value) === id)
+        const opt = props.options.find((o) => idToString(o.value) === id)
         return [id, { id, cells: { _title: opt?.text || `#${id}` } }]
       })
-    ) as Record<number, Row>
+    ) as Record<string, Row>
     return
   }
   try {
@@ -210,7 +211,7 @@ async function refreshRows(ids: number[]) {
   } catch {
     rowMap.value = Object.fromEntries(
       ids.map((id) => [id, { id, cells: { _title: `#${id}` } }])
-    ) as Record<number, Row>
+    ) as Record<string, Row>
   }
 }
 
@@ -224,7 +225,7 @@ watch(
 
 async function loadFromRelation() {
   if (!useRelationQuery.value || !columns.value.length) {
-    relationHint.value = Number(props.parentRecordId) > 0 ? '' : '保存父记录后可按关系加载子表'
+    relationHint.value = hasId(props.parentRecordId) ? '' : '保存父记录后可按关系加载子表'
     return false
   }
   loadingRelation.value = true
@@ -233,8 +234,8 @@ async function loadFromRelation() {
     const r = await loadSubRowsByRelation({
       field: props.field,
       appId: props.appId,
-      parentModelId: Number(props.parentModelId),
-      parentRecordId: Number(props.parentRecordId),
+      parentModelId: props.parentModelId,
+      parentRecordId: props.parentRecordId,
       columns: columns.value,
       options: props.options
     })

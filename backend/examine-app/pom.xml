@@ -11,7 +11,7 @@
     <artifactId>examine-app</artifactId>
     <name>examine-app</name>
     <packaging>jar</packaging>
-    <description>对外开放 API（占位，启动入口在 examine-web）</description>
+    <description>对外开放 API（启动入口在 examine-web）</description>
 
     <dependencies>
         <dependency>

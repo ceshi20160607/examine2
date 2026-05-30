@@ -1,10 +1,12 @@
+import { hasId, idToString, sameId, type IdValue } from '@/utils/id'
+
 export type RbacMenuRow = {
-  id: number
-  parentId?: number
+  id: string
+  parentId?: IdValue
   menuName?: string
   permKey?: string
   apiPattern?: string
-  pageId?: number
+  pageId?: IdValue
   sortNo?: number
 }
 
@@ -14,13 +16,13 @@ function menuCmp(a: RbacMenuRow, b: RbacMenuRow) {
   const sa = Number(a.sortNo ?? 0)
   const sb = Number(b.sortNo ?? 0)
   if (sa !== sb) return sa - sb
-  return Number(a.id) - Number(b.id)
+  return idToString(a.id).localeCompare(idToString(b.id))
 }
 
-function buildChildrenMap(rows: RbacMenuRow[]): Map<number, RbacMenuRow[]> {
-  const map = new Map<number, RbacMenuRow[]>()
+function buildChildrenMap(rows: RbacMenuRow[]): Map<string, RbacMenuRow[]> {
+  const map = new Map<string, RbacMenuRow[]>()
   for (const m of rows) {
-    const pid = Number(m.parentId ?? 0) || 0
+    const pid = idToString(m.parentId) || '0'
     const list = map.get(pid) || []
     list.push(m)
     map.set(pid, list)
@@ -39,36 +41,36 @@ export function flattenRbacMenusTree(rows: RbacMenuRow[]): RbacMenuFlatRow[] {
   if (!rows.length) return []
   const byParent = buildChildrenMap(rows)
   const out: RbacMenuFlatRow[] = []
-  const seen = new Set<number>()
+  const seen = new Set<string>()
 
-  const visit = (parentId: number, depth: number) => {
+  const visit = (parentId: string, depth: number) => {
     const kids = byParent.get(parentId) || []
     for (const m of kids) {
-      const id = Number(m.id)
-      if (!id || seen.has(id)) continue
+      const id = idToString(m.id)
+      if (!hasId(id) || seen.has(id)) continue
       seen.add(id)
       out.push({ ...m, depth })
       visit(id, depth + 1)
     }
   }
 
-  visit(0, 0)
+  visit('0', 0)
 
-  const idSet = new Set(rows.map((x) => Number(x.id)).filter((x) => !!x))
+  const idSet = new Set(rows.map((x) => idToString(x.id)).filter((x) => hasId(x)))
   const orphans = rows.filter((m) => {
-    const pid = Number(m.parentId ?? 0) || 0
-    const id = Number(m.id)
-    if (!id) return false
+    const pid = idToString(m.parentId) || '0'
+    const id = idToString(m.id)
+    if (!hasId(id)) return false
     if (seen.has(id)) return false
-    if (pid === 0) return false
+    if (sameId(pid, '0')) return false
     return !idSet.has(pid)
   })
 
   if (orphans.length) {
     orphans.sort(menuCmp)
     for (const m of orphans) {
-      const id = Number(m.id)
-      if (!id || seen.has(id)) continue
+      const id = idToString(m.id)
+      if (!hasId(id) || seen.has(id)) continue
       seen.add(id)
       out.push({
         ...m,
@@ -91,7 +93,7 @@ export function rbacMenuTitleIndented(m: RbacMenuFlatRow) {
 export function rbacMenuNote(m: RbacMenuFlatRow) {
   const bits: string[] = []
   bits.push(`id=${m.id}`)
-  bits.push(`parent=${Number(m.parentId ?? 0) || 0}`)
+  bits.push(`parent=${idToString(m.parentId) || '0'}`)
   if (m.permKey) bits.push(`perm=${m.permKey}`)
   if (m.apiPattern) bits.push(`api=${m.apiPattern}`)
   return bits.join(' ')

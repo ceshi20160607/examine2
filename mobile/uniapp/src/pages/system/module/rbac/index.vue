@@ -58,7 +58,7 @@
     <view class="u-card u-section">
       <view class="u-title">权限验证（按 URI）</view>
       <ActionBar>
-        <uni-easyinput v-model="permPreviewUri" placeholder="/v1/system/records/page" style="flex:1; min-width: 220px" />
+        <uni-easyinput v-model="permPreviewUri" placeholder="/v1/system/records/query" style="flex:1; min-width: 220px" />
         <uni-button type="primary" :disabled="previewingPerm" @click="previewPerm">验证</uni-button>
       </ActionBar>
       <view v-if="permPreviewText" style="margin-top: 12px; font-family: monospace; white-space: pre-wrap;">{{ permPreviewText }}</view>
@@ -171,13 +171,14 @@ import {
 import { listApps } from '@/api/meta'
 import { listDeptPickerOptions } from '@/api/dept'
 import { listPagePickerOptions } from '@/api/pages'
+import { hasId, idToString } from '@/utils/id'
 
-type RoleRow = { id: number; roleCode?: string; roleName?: string; status?: number; dataScope?: number }
+type RoleRow = { id: string; roleCode?: string; roleName?: string; status?: number; dataScope?: number }
 type MenuRow = RbacMenuRow
 type MenuFlatRow = RbacMenuFlatRow
-type MemberRow = { id: number; platId?: number; roleId?: number; status?: number }
+type MemberRow = { id: string; platId?: string; roleId?: string; status?: number }
 
-const appId = ref<number>(0)
+const appId = ref('')
 const { loading, error, run, capture, clearError } = usePageRequest()
 
 const roles = ref<RoleRow[]>([])
@@ -203,8 +204,8 @@ const roleOptions = computed(() =>
     text: `${r.roleName || r.roleCode || r.id} (scope=${r.dataScope ?? 1})`
   }))
 )
-const deptOptions = ref<Array<{ value: number | string; text: string }>>([])
-const pageOptions = ref<Array<{ value: number | string; text: string }>>([])
+const deptOptions = ref<Array<{ value: string; text: string }>>([])
+const pageOptions = ref<Array<{ value: string; text: string }>>([])
 const accountKeyword = ref('')
 const accountHits = ref<Array<{ value: number | string; text: string }>>([])
 const searchingAccount = ref(false)
@@ -226,32 +227,32 @@ const menuForm = reactive<{ parentId: string; menuName: string; permKey: string;
 })
 
 const previewingPerm = ref(false)
-const permPreviewUri = ref('/v1/system/records/page')
+const permPreviewUri = ref('/v1/system/records/query')
 const permPreviewText = ref('')
 
 const menusFlat = computed(() => flattenRbacMenusTree(menus.value || []))
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
 })
 
 async function ensureAppIdFromFirstApp() {
-  if (appId.value) return
+  if (hasId(appId.value)) return
   try {
     const r = await listApps()
     const apps = r.data || []
-    if (apps.length && apps[0]?.id) appId.value = Number(apps[0].id)
+    if (apps.length && apps[0]?.id) appId.value = idToString(apps[0].id)
   } catch {
     /* ignore */
   }
 }
 
 function quickFillParentMenu(m: MenuFlatRow) {
-  menuForm.parentId = String(Number(m.id) || 0)
+  menuForm.parentId = idToString(m.id) || '0'
 }
 
 async function loadRoles() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   await run(async () => {
     const r = await listRbacRoles(appId.value)
     roles.value = r.data || []
@@ -259,7 +260,7 @@ async function loadRoles() {
 }
 
 async function loadMenus() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   await run(async () => {
     const r = await listRbacMenus(appId.value)
     menus.value = r.data || []
@@ -267,7 +268,7 @@ async function loadMenus() {
 }
 
 async function loadMembers() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   await run(async () => {
     const r = await listRbacMembers(appId.value)
     members.value = r.data || []
@@ -282,7 +283,7 @@ function quickFillMember(m: MemberRow) {
 }
 
 async function upsertRole() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   if (!roleForm.roleCode.trim() || !roleForm.roleName.trim()) {
     uni.showToast({ title: '请输入 roleCode/roleName', icon: 'none' })
     return
@@ -305,22 +306,22 @@ async function upsertRole() {
 }
 
 async function assignMemberRole() {
-  if (!appId.value) return
-  const memberPlatId = Number(memberForm.memberPlatId.trim())
-  const roleId = Number(memberForm.roleId.trim())
-  if (!memberPlatId || Number.isNaN(memberPlatId) || !roleId || Number.isNaN(roleId)) {
+  if (!hasId(appId.value)) return
+  const memberPlatId = idToString(memberForm.memberPlatId)
+  const roleId = idToString(memberForm.roleId)
+  if (!hasId(memberPlatId) || !hasId(roleId)) {
     uni.showToast({ title: '请输入合法 memberPlatId/roleId', icon: 'none' })
     return
   }
   savingMember.value = true
   try {
     const deptRaw = String(memberForm.deptId ?? '').trim()
-    const deptId = deptRaw && deptRaw !== '0' ? Number(deptRaw) : null
+    const deptId = hasId(deptRaw) ? deptRaw : null
     await assignRbacMemberRole({
       appId: appId.value,
       memberPlatId,
       roleId,
-      deptId: deptId && !Number.isNaN(deptId) ? deptId : null
+      deptId
     })
     uni.showToast({ title: '分配成功', icon: 'success' })
     memberForm.memberPlatId = ''
@@ -333,19 +334,19 @@ async function assignMemberRole() {
 }
 
 async function upsertMenu() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   if (!menuForm.menuName.trim()) {
     uni.showToast({ title: '请输入 menuName', icon: 'none' })
     return
   }
-  const parentId = Number((menuForm.parentId || '0').trim() || '0')
-  if (Number.isNaN(parentId)) {
+  const parentId = idToString(menuForm.parentId) || '0'
+  if (!/^\d+$/.test(parentId)) {
     uni.showToast({ title: 'parentId 非法', icon: 'none' })
     return
   }
   const pageIdRaw = menuForm.pageId.trim()
-  const pageId = pageIdRaw ? Number(pageIdRaw) : null
-  if (pageIdRaw && (!pageId || Number.isNaN(pageId))) {
+  const pageId = hasId(pageIdRaw) ? pageIdRaw : null
+  if (pageIdRaw && !/^\d+$/.test(pageIdRaw)) {
     uni.showToast({ title: 'pageId 非法', icon: 'none' })
     return
   }
@@ -391,20 +392,24 @@ async function previewPerm() {
 }
 
 async function loadDeptOptions() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   try {
     const r = await listDeptPickerOptions(appId.value)
-    deptOptions.value = [{ value: '', text: '（不指定部门）' }, ...(r.data || [])]
+    deptOptions.value = [{ value: '', text: '（不指定部门）' }].concat(
+      (r.data || []).map((x) => ({ value: idToString(x.value), text: x.text }))
+    )
   } catch {
     deptOptions.value = []
   }
 }
 
 async function loadPageOptions() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   try {
     const r = await listPagePickerOptions(appId.value)
-    pageOptions.value = [{ value: '', text: '（不关联页面）' }, ...(r.data || [])]
+    pageOptions.value = [{ value: '', text: '（不关联页面）' }].concat(
+      (r.data || []).map((x) => ({ value: idToString(x.value), text: x.text }))
+    )
   } catch {
     pageOptions.value = []
   }
@@ -427,16 +432,20 @@ async function searchAccount() {
 }
 
 function openRoleActions(r: RoleRow) {
-  if (!r?.id) return
+  if (!hasId(r?.id)) return
   uni.showActionSheet({
     itemList: ['设置菜单权限', '设置页面权限', '编辑数据权限'],
     success: async (res) => {
       if (res.tapIndex === 0) {
-        uni.navigateTo({ url: `/pages/system/module/rbac/role_menus?appId=${appId.value}&roleId=${r.id}` })
+        uni.navigateTo({
+          url: `/pages/system/module/rbac/role_menus?appId=${encodeURIComponent(appId.value)}&roleId=${encodeURIComponent(idToString(r.id))}`
+        })
         return
       }
       if (res.tapIndex === 1) {
-        uni.navigateTo({ url: `/pages/system/module/rbac/role_pages?appId=${appId.value}&roleId=${r.id}` })
+        uni.navigateTo({
+          url: `/pages/system/module/rbac/role_pages?appId=${encodeURIComponent(appId.value)}&roleId=${encodeURIComponent(idToString(r.id))}`
+        })
         return
       }
       if (res.tapIndex === 2 && r.roleCode && r.roleName) {

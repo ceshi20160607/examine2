@@ -63,7 +63,7 @@ public class SystemModuleExportJobService {
         job.setAppId(tpl.getAppId());
         job.setModelId(tpl.getModelId());
         job.setTplId(tpl.getId());
-        job.setFileType("csv");
+        job.setFileType(tpl.getFileType() == null || tpl.getFileType().isBlank() ? "csv" : tpl.getFileType().trim().toLowerCase());
         job.setStatus(0);
         job.setQueryJson(queryJson);
         job.setCreateUserId(operatorPlatId);

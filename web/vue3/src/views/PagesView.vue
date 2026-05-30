@@ -30,11 +30,15 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '../layouts/AdminLayout.vue'
+import { listModelsByApp } from '../api/meta.js'
 import { deletePages, listPagesByApp, upsertPage } from '../api/pages'
+import { confirmDialog, promptText } from '../utils/dialog.js'
+import { notify } from '../utils/notify.js'
 
 const route = useRoute()
 const appId = computed(() => String(route.params.appId || ''))
 const rows = ref([])
+const models = ref([])
 const error = ref('')
 
 async function load() {
@@ -47,32 +51,72 @@ async function load() {
   }
 }
 
+async function loadModels() {
+  try {
+    const r = await listModelsByApp(appId.value)
+    models.value = r.data || []
+  } catch {
+    models.value = []
+  }
+}
+
+function defaultRouteForType(type) {
+  const normalized = String(type || '').toLowerCase()
+  if (normalized === 'form') return '/records/form'
+  if (normalized === 'detail') return '/records/detail'
+  return '/records'
+}
+
+function modelOptionMessage() {
+  if (!models.value.length) return '请输入模型 ID。页面运行态必须绑定模型，否则菜单无法打开。'
+  return models.value
+    .slice(0, 20)
+    .map((m) => `${m.id} - ${m.modelName || m.modelCode || '未命名模型'}`)
+    .join('\n')
+}
+
 async function add() {
-  const pageCode = prompt('pageCode')
-  const pageName = prompt('pageName')
-  const pageType = prompt('pageType (list/form/detail)', 'list')
+  const pageCode = await promptText('页面编码')
+  const pageName = await promptText('页面名称')
+  const pageType = await promptText('页面类型', { defaultValue: 'list', message: 'list / form / detail' })
   if (!pageCode || !pageName || !pageType) return
+  if (!models.value.length) await loadModels()
+  const defaultModelId = models.value[0]?.id ? String(models.value[0].id) : ''
+  const modelId = await promptText('绑定模型 ID', {
+    defaultValue: defaultModelId,
+    message: modelOptionMessage()
+  })
+  if (!modelId) return
   error.value = ''
   try {
-    await upsertPage({ appId: appId.value, pageCode, pageName, pageType })
-    load()
+    await upsertPage({
+      appId: appId.value,
+      pageCode,
+      pageName,
+      pageType,
+      routePath: defaultRouteForType(pageType),
+      configJson: JSON.stringify({ modelId: String(modelId).trim() }, null, 2)
+    })
+    notify.success('页面已创建')
+    await load()
   } catch (e) {
     error.value = e?.message || String(e)
   }
 }
 
 async function remove(p) {
-  if (!confirm(`删除页面 #${p.id}?`)) return
+  if (!(await confirmDialog(`删除页面 #${p.id}?`, { danger: true, confirmText: '删除' }))) return
   error.value = ''
   try {
     await deletePages([p.id])
-    load()
+    notify.success('页面已删除')
+    await load()
   } catch (e) {
     error.value = e?.message || String(e)
   }
 }
 
-onMounted(load)
+onMounted(async () => {
+  await Promise.all([load(), loadModels()])
+})
 </script>
-
-<style src="./admin-shared.css"></style>

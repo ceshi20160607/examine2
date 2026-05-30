@@ -90,7 +90,7 @@ public class SystemModuleRbacService {
             }
             PlatAccount acc = platAccountService.getById(m.getPlatId());
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("value", m.getPlatId());
+            row.put("value", String.valueOf(m.getPlatId()));
             String label = acc != null && acc.getDisplayName() != null && !acc.getDisplayName().isBlank()
                     ? acc.getDisplayName()
                     : (acc != null ? acc.getUsername() : null);
@@ -98,8 +98,8 @@ public class SystemModuleRbacService {
                 label = "用户#" + m.getPlatId();
             }
             row.put("text", label);
-            row.put("roleId", m.getRoleId());
-            row.put("deptId", m.getDeptId());
+            row.put("roleId", m.getRoleId() == null ? null : String.valueOf(m.getRoleId()));
+            row.put("deptId", m.getDeptId() == null ? null : String.valueOf(m.getDeptId()));
             out.add(row);
         }
         return out;
@@ -128,7 +128,7 @@ public class SystemModuleRbacService {
         List<Map<String, Object>> out = new ArrayList<>();
         for (PlatAccount a : list) {
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("platId", a.getId());
+            row.put("platId", a.getId() == null ? null : String.valueOf(a.getId()));
             row.put("username", a.getUsername());
             row.put("text", (a.getDisplayName() != null && !a.getDisplayName().isBlank())
                     ? a.getDisplayName() + " (" + a.getUsername() + ")"

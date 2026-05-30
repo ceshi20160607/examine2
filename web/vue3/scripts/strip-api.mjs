@@ -35,5 +35,7 @@ for (const [fromRel, toRel] of pairs) {
   })
   fs.mkdirSync(path.dirname(to), { recursive: true })
   fs.writeFileSync(to, code)
-  console.log('wrote', toRel)
+  if (process.env.VERBOSE_API_SYNC === '1') {
+    console.info('wrote', toRel)
+  }
 }

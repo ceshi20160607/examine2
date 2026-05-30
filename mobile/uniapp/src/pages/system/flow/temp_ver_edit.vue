@@ -19,7 +19,7 @@
       <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="save">保存</uni-button>
         <uni-button v-if="id" type="warn" :disabled="saving || publishing" @click="publish">发布</uni-button>
-        <uni-button v-if="id" :disabled="saving" @click="fillGraphMvp">填充 graphJson(MVP)</uni-button>
+        <uni-button v-if="id" :disabled="saving" @click="fillGraphMvp">填充默认 graphJson</uni-button>
         <uni-button @click="back">返回</uni-button>
         <uni-button v-if="id" @click="goNodes">节点</uni-button>
         <uni-button v-if="id" @click="goLines">连线</uni-button>
@@ -42,9 +42,10 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { getTempVer, publishTempVer, upsertTempVer } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
-const id = ref<number>(0)
-const tempId = ref<number>(0)
+const id = ref('')
+const tempId = ref('')
 const saving = ref(false)
 const publishing = ref(false)
 const error = ref<string | null>(null)
@@ -63,8 +64,8 @@ const form = reactive<{ verNo: string; publishStatus: number; graphJson: string;
 })
 
 onLoad((opts) => {
-  id.value = Number((opts as any)?.id || 0) || 0
-  tempId.value = Number((opts as any)?.tempId || 0) || 0
+  id.value = idToString((opts as any)?.id)
+  tempId.value = idToString((opts as any)?.tempId)
 })
 
 function back() {
@@ -72,39 +73,39 @@ function back() {
 }
 
 function goNodes() {
-  if (!id.value) return
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_nodes?tempVerId=${id.value}` })
+  if (!hasId(id.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_nodes?tempVerId=${encodeURIComponent(id.value)}` })
 }
 function goLines() {
-  if (!id.value) return
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_lines?tempVerId=${id.value}` })
+  if (!hasId(id.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_lines?tempVerId=${encodeURIComponent(id.value)}` })
 }
 function goSettings() {
-  if (!id.value) return
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_settings?tempVerId=${id.value}` })
+  if (!hasId(id.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_settings?tempVerId=${encodeURIComponent(id.value)}` })
 }
 function goNodeSettings() {
-  if (!id.value) return
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_node_settings?tempVerId=${id.value}` })
+  if (!hasId(id.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_node_settings?tempVerId=${encodeURIComponent(id.value)}` })
 }
 function goGraphPreview() {
-  if (!id.value) return
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_preview?tempVerId=${id.value}` })
+  if (!hasId(id.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_preview?tempVerId=${encodeURIComponent(id.value)}` })
 }
 function goGraphDesigner() {
-  if (!id.value) return
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_designer?tempVerId=${id.value}` })
+  if (!hasId(id.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_designer?tempVerId=${encodeURIComponent(id.value)}` })
 }
 function goGraphEdit() {
-  if (!id.value) return
-  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_edit?tempVerId=${id.value}` })
+  if (!hasId(id.value)) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_ver_graph_edit?tempVerId=${encodeURIComponent(id.value)}` })
 }
 
 async function loadDetail() {
-  if (!id.value) return
+  if (!hasId(id.value)) return
   const r = await getTempVer(id.value)
   const v = r.data || {}
-  tempId.value = Number(v.tempId || tempId.value || 0) || 0
+  tempId.value = idToString(v.tempId) || tempId.value
   form.verNo = v.verNo == null ? '' : String(v.verNo)
   form.publishStatus = Number(v.publishStatus || 1) || 1
   form.graphJson = v.graphJson == null ? '' : String(v.graphJson)
@@ -142,7 +143,7 @@ function fillGraphMvp() {
 
 async function save() {
   error.value = null
-  if (!tempId.value) {
+  if (!hasId(tempId.value)) {
     error.value = 'tempId 不能为空'
     return
   }
@@ -187,7 +188,7 @@ async function save() {
 }
 
 async function publish() {
-  if (!id.value) return
+  if (!hasId(id.value)) return
   error.value = null
   publishing.value = true
   try {

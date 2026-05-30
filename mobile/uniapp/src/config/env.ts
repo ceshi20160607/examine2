@@ -2,7 +2,8 @@ export type AppEnv = 'dev' | 'test' | 'prod'
 
 /**
  * API 根地址优先级：本地缓存 apiBaseUrl > 环境默认。
- * test/prod 未配置 apiBaseUrl 时回退 dev（127.0.0.1:9999），发布前请在「Me」页或构建变量写入真实地址。
+ * dev 默认 127.0.0.1:9999；test/prod 优先使用 VITE_API_BASE，未配置时按 H5 同域 /api 处理。
+ * App/小程序发布包请通过缓存 apiBaseUrl 或构建变量写入真实 HTTPS API 地址。
  */
 export function getEnv(): AppEnv {
   const saved = uni.getStorageSync('env')

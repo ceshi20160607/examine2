@@ -9,7 +9,7 @@ import { getSessionPayload } from '@/store/context'
 
 onMounted(() => {
   if (!hasToken()) {
-    uni.reLaunch({ url: '/pages/boot/health' })
+    uni.reLaunch({ url: '/pages/auth/login' })
     return
   }
   const p = getSessionPayload()

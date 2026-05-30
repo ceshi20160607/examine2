@@ -1,6 +1,7 @@
 package com.unique.examine.web.config;
 
 import com.unique.examine.web.flyway.FlywayManualMark;
+import com.unique.examine.web.flyway.SchemaCompatibilityRepair;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class FlywayStartupConfig {
             DataSource dataSource,
             @Value("${examine.flyway.mark-applied:14}") String markApplied) {
         return (Flyway flyway) -> {
+            SchemaCompatibilityRepair.repair(dataSource);
             log.info("Flyway startup: mark manual versions [{}] as success, then migrate rest", markApplied);
             FlywayManualMark.markAppliedVersions(dataSource, markApplied);
             flyway.repair();

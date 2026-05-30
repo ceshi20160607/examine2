@@ -16,7 +16,7 @@ public class ModuleRecordDslFilter {
     private String field;
 
     /**
-     * 操作符（白名单）：eq/in/like/gte/lte
+     * 操作符（白名单）：eq/ne/in/like/gt/gte/lt/lte/between
      */
     private String op;
 
@@ -39,5 +39,10 @@ public class ModuleRecordDslFilter {
 
     @JsonIgnore
     private LocalDateTime valueDt;
-}
 
+    @JsonIgnore
+    private BigDecimal valueNumEnd;
+
+    @JsonIgnore
+    private LocalDateTime valueDtEnd;
+}

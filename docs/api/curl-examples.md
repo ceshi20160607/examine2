@@ -6,7 +6,7 @@
 
 ```bash
 # 按需修改
-export HOST="http://localhost:8080"
+export HOST="http://127.0.0.1:9999"
 export TOKEN="REPLACE_ME"
 export AUTH="Authorization: Bearer ${TOKEN}"
 ```

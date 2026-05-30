@@ -30,6 +30,7 @@ public class ModuleRecordDslQuery {
      * 非系统所有者查询时由后端注入：仅可见本人创建的记录（create_user_id）。
      * @deprecated 使用 scopeCreateUserIds
      */
+    @Deprecated
     private Long scopeCreateUserId;
 
     /** 数据权限：可见记录的 create_user_id 白名单（空且 unrestricted 时不加条件） */
@@ -43,4 +44,3 @@ public class ModuleRecordDslQuery {
      */
     private List<String> includeFieldCodes = new ArrayList<>();
 }
-

@@ -1,15 +1,16 @@
-import { httpGet, httpPost } from "./http";
+import { httpGet, httpPost } from "../api/http";
+import { idToString } from "../utils/id.js";
 function listPagesByApp(appId) {
-  return httpGet(`/v1/system/module/pages/apps/${appId}`);
+  return httpGet(`/v1/system/module/pages/apps/${pathId(appId)}`);
 }
 function listPagePickerOptions(appId) {
-  return httpGet(`/v1/system/module/pages/apps/${appId}/picker`);
+  return httpGet(`/v1/system/module/pages/apps/${pathId(appId)}/picker`);
 }
 function getPageDetail(pageId) {
-  return httpGet(`/v1/system/module/pages/${pageId}/detail`);
+  return httpGet(`/v1/system/module/pages/${pathId(pageId)}/detail`);
 }
 function getPageRuntime(pageId) {
-  return httpGet(`/v1/system/module/pages/${pageId}/runtime`);
+  return httpGet(`/v1/system/module/pages/${pathId(pageId)}/runtime`);
 }
 function upsertPage(cmd) {
   return httpPost("/v1/system/module/pages/upsert", {
@@ -39,6 +40,9 @@ function upsertPageBlock(cmd) {
 }
 function deletePageBlocks(ids) {
   return httpPost("/v1/system/module/pages/blocks/delete", { ids });
+}
+function pathId(value) {
+  return encodeURIComponent(idToString(value));
 }
 export {
   deletePageBlocks,

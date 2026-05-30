@@ -5,11 +5,15 @@ import com.unique.examine.core.security.AuthContextHolder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.examine.module.entity.po.ModuleField;
+import com.unique.examine.module.entity.po.ModuleListFilterTpl;
 import com.unique.examine.module.entity.po.ModuleListViewCol;
+import com.unique.examine.module.entity.po.ModuleMenu;
 import com.unique.examine.module.entity.po.ModulePage;
 import com.unique.examine.module.entity.po.ModulePageBlock;
 import com.unique.examine.module.service.IModuleFieldService;
+import com.unique.examine.module.service.IModuleListFilterTplService;
 import com.unique.examine.module.service.IModuleListViewColService;
+import com.unique.examine.module.service.IModuleMenuService;
 import com.unique.examine.module.service.IModulePageBlockService;
 import com.unique.examine.module.service.IModulePageService;
 import java.util.ArrayList;
@@ -59,6 +63,10 @@ public class SystemModulePageService {
     private IModuleListViewColService moduleListViewColService;
     @Autowired
     private IModuleFieldService moduleFieldService;
+    @Autowired
+    private IModuleMenuService moduleMenuService;
+    @Autowired
+    private IModuleListFilterTplService moduleListFilterTplService;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -114,6 +122,7 @@ public class SystemModulePageService {
         JsonNode pageConfig = parseJsonNode(page.getConfigJson());
         Long modelId = longFromJson(pageConfig, "modelId");
         Long listViewId = longFromJson(pageConfig, "listViewId");
+        Long configFilterTplId = longFromJson(pageConfig, "filterTplId");
         if (modelId == null) {
             modelId = resolveModelIdFromBlocks(blocks);
         }
@@ -121,15 +130,23 @@ public class SystemModulePageService {
         List<String> titleFieldCodes = stringListFromJson(pageConfig, "titleFieldCodes");
         List<String> columnFieldCodes = stringListFromJson(pageConfig, "columnFieldCodes");
         String searchFieldCode = textFromJson(pageConfig, "searchFieldCode");
+        List<Map<String, Object>> columns = List.of();
 
         if ((columnFieldCodes == null || columnFieldCodes.isEmpty()) && listViewId != null) {
-            columnFieldCodes = resolveColumnCodesFromListView(listViewId, systemId, tenantId);
+            columns = resolveColumnsFromListView(listViewId, systemId, tenantId);
+            columnFieldCodes = columnCodes(columns);
+        }
+        if ((columns == null || columns.isEmpty()) && columnFieldCodes != null && !columnFieldCodes.isEmpty()) {
+            columns = buildColumnsFromCodes(columnFieldCodes, modelId, systemId, tenantId);
         }
         if ((titleFieldCodes == null || titleFieldCodes.isEmpty()) && columnFieldCodes != null && !columnFieldCodes.isEmpty()) {
             titleFieldCodes = columnFieldCodes.size() > 2 ? columnFieldCodes.subList(0, 2) : columnFieldCodes;
         }
 
         List<Map<String, Object>> fieldOverrides = parseFieldOverrides(page.getFormFieldsJson());
+        Long menuId = resolveMenuIdForPage(page, systemId, tenantId);
+        ModuleListFilterTpl filterTpl = resolveRuntimeFilterTpl(
+                page.getAppId(), modelId, menuId, configFilterTplId, systemId, tenantId);
 
         Map<String, Object> runtime = new LinkedHashMap<>();
         runtime.put("pageId", page.getId() == null ? null : String.valueOf(page.getId()));
@@ -138,11 +155,16 @@ public class SystemModulePageService {
         runtime.put("pageName", page.getPageName());
         runtime.put("pageType", page.getPageType());
         runtime.put("routePath", page.getRoutePath());
+        runtime.put("menuId", menuId == null ? null : String.valueOf(menuId));
         runtime.put("modelId", modelId == null ? null : String.valueOf(modelId));
         runtime.put("listViewId", listViewId == null ? null : String.valueOf(listViewId));
+        runtime.put("filterTplId", filterTpl == null ? null : String.valueOf(filterTpl.getId()));
+        runtime.put("filterTplName", filterTpl == null ? null : filterTpl.getTplName());
+        runtime.put("filterTplCode", filterTpl == null ? null : filterTpl.getTplCode());
         runtime.put("searchFieldCode", searchFieldCode);
         runtime.put("titleFieldCodes", titleFieldCodes == null ? List.of() : titleFieldCodes);
         runtime.put("columnFieldCodes", columnFieldCodes == null ? List.of() : columnFieldCodes);
+        runtime.put("columns", columns == null ? List.of() : columns);
         runtime.put("fieldOverrides", fieldOverrides);
         runtime.put("blocks", blocks);
         return runtime;
@@ -280,7 +302,7 @@ public class SystemModulePageService {
         List<Map<String, Object>> out = new ArrayList<>();
         for (ModulePage p : pages) {
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("value", p.getId());
+            row.put("value", p.getId() == null ? null : String.valueOf(p.getId()));
             row.put("text", (p.getPageName() != null ? p.getPageName() : p.getPageCode())
                     + " [" + p.getPageType() + "]");
             row.put("pageCode", p.getPageCode());
@@ -424,7 +446,74 @@ public class SystemModulePageService {
         return null;
     }
 
-    private List<String> resolveColumnCodesFromListView(Long viewId, long systemId, long tenantId) {
+    private Long resolveMenuIdForPage(ModulePage page, long systemId, long tenantId) {
+        if (page == null || page.getId() == null || page.getAppId() == null) {
+            return null;
+        }
+        List<ModuleMenu> menus = moduleMenuService.lambdaQuery()
+                .eq(ModuleMenu::getSystemId, systemId)
+                .eq(ModuleMenu::getTenantId, tenantId)
+                .eq(ModuleMenu::getAppId, page.getAppId())
+                .eq(ModuleMenu::getPageId, page.getId())
+                .eq(ModuleMenu::getVisibleFlag, 1)
+                .orderByAsc(ModuleMenu::getSortNo)
+                .orderByAsc(ModuleMenu::getId)
+                .list();
+        if (menus == null || menus.isEmpty()) {
+            return null;
+        }
+        return menus.get(0).getId();
+    }
+
+    private ModuleListFilterTpl resolveRuntimeFilterTpl(Long appId,
+                                                        Long modelId,
+                                                        Long menuId,
+                                                        Long configFilterTplId,
+                                                        long systemId,
+                                                        long tenantId) {
+        if (appId == null || modelId == null) {
+            return null;
+        }
+        if (configFilterTplId != null) {
+            ModuleListFilterTpl configured = moduleListFilterTplService.getById(configFilterTplId);
+            if (configured != null
+                    && Objects.equals(configured.getSystemId(), systemId)
+                    && Objects.equals(configured.getTenantId(), tenantId)
+                    && Objects.equals(configured.getAppId(), appId)
+                    && Objects.equals(configured.getModelId(), modelId)
+                    && Objects.equals(configured.getStatus(), 1)) {
+                return configured;
+            }
+        }
+        if (menuId != null) {
+            List<ModuleListFilterTpl> scoped = moduleListFilterTplService.lambdaQuery()
+                    .eq(ModuleListFilterTpl::getSystemId, systemId)
+                    .eq(ModuleListFilterTpl::getTenantId, tenantId)
+                    .eq(ModuleListFilterTpl::getAppId, appId)
+                    .eq(ModuleListFilterTpl::getModelId, modelId)
+                    .eq(ModuleListFilterTpl::getMenuId, menuId)
+                    .eq(ModuleListFilterTpl::getStatus, 1)
+                    .orderByAsc(ModuleListFilterTpl::getTplCode)
+                    .orderByAsc(ModuleListFilterTpl::getId)
+                    .list();
+            if (scoped != null && !scoped.isEmpty()) {
+                return scoped.get(0);
+            }
+        }
+        List<ModuleListFilterTpl> defaults = moduleListFilterTplService.lambdaQuery()
+                .eq(ModuleListFilterTpl::getSystemId, systemId)
+                .eq(ModuleListFilterTpl::getTenantId, tenantId)
+                .eq(ModuleListFilterTpl::getAppId, appId)
+                .eq(ModuleListFilterTpl::getModelId, modelId)
+                .isNull(ModuleListFilterTpl::getMenuId)
+                .eq(ModuleListFilterTpl::getStatus, 1)
+                .orderByAsc(ModuleListFilterTpl::getTplCode)
+                .orderByAsc(ModuleListFilterTpl::getId)
+                .list();
+        return defaults == null || defaults.isEmpty() ? null : defaults.get(0);
+    }
+
+    private List<Map<String, Object>> resolveColumnsFromListView(Long viewId, long systemId, long tenantId) {
         List<ModuleListViewCol> cols = moduleListViewColService.lambdaQuery()
                 .eq(ModuleListViewCol::getSystemId, systemId)
                 .eq(ModuleListViewCol::getTenantId, tenantId)
@@ -442,7 +531,7 @@ public class SystemModulePageService {
                 fieldIds.add(c.getFieldId());
             }
         }
-        Map<Long, String> codeByFieldId = new LinkedHashMap<>();
+        Map<Long, ModuleField> fieldById = new LinkedHashMap<>();
         if (!fieldIds.isEmpty()) {
             List<ModuleField> fields = moduleFieldService.lambdaQuery()
                     .eq(ModuleField::getSystemId, systemId)
@@ -451,18 +540,89 @@ public class SystemModulePageService {
                     .list();
             for (ModuleField f : fields) {
                 if (f.getId() != null && f.getFieldCode() != null) {
-                    codeByFieldId.put(f.getId(), f.getFieldCode());
+                    fieldById.put(f.getId(), f);
                 }
             }
         }
-        List<String> codes = new ArrayList<>();
+        List<Map<String, Object>> runtimeCols = new ArrayList<>();
         for (ModuleListViewCol c : cols) {
             if (c.getFieldId() == null) {
                 continue;
             }
-            String code = codeByFieldId.get(c.getFieldId());
+            ModuleField field = fieldById.get(c.getFieldId());
+            String code = field == null ? null : field.getFieldCode();
             if (code != null && !code.isBlank()) {
-                codes.add(code);
+                runtimeCols.add(toRuntimeColumn(code, field, c));
+            }
+        }
+        return runtimeCols;
+    }
+
+    private List<Map<String, Object>> buildColumnsFromCodes(List<String> codes, Long modelId, long systemId, long tenantId) {
+        if (codes == null || codes.isEmpty()) {
+            return List.of();
+        }
+        Map<String, ModuleField> fieldByCode = new LinkedHashMap<>();
+        if (modelId != null) {
+            List<ModuleField> fields = moduleFieldService.lambdaQuery()
+                    .eq(ModuleField::getSystemId, systemId)
+                    .eq(ModuleField::getTenantId, tenantId)
+                    .eq(ModuleField::getModelId, modelId)
+                    .in(ModuleField::getFieldCode, codes)
+                    .list();
+            for (ModuleField f : fields) {
+                if (f.getFieldCode() != null) {
+                    fieldByCode.put(f.getFieldCode(), f);
+                }
+            }
+        }
+        List<Map<String, Object>> out = new ArrayList<>();
+        int index = 0;
+        for (String code : codes) {
+            if (code == null || code.isBlank()) {
+                continue;
+            }
+            ModuleField field = fieldByCode.get(code);
+            Map<String, Object> col = new LinkedHashMap<>();
+            col.put("fieldCode", code);
+            col.put("label", field != null && field.getFieldName() != null && !field.getFieldName().isBlank() ? field.getFieldName() : code);
+            col.put("fieldId", field == null || field.getId() == null ? null : String.valueOf(field.getId()));
+            col.put("fieldType", field == null ? null : field.getFieldType());
+            col.put("width", null);
+            col.put("sortNo", index++);
+            col.put("visibleFlag", 1);
+            col.put("fixedType", null);
+            col.put("formatJson", null);
+            out.add(col);
+        }
+        return out;
+    }
+
+    private static Map<String, Object> toRuntimeColumn(String code, ModuleField field, ModuleListViewCol c) {
+        Map<String, Object> col = new LinkedHashMap<>();
+        col.put("fieldCode", code);
+        col.put("label", c.getColTitle() != null && !c.getColTitle().isBlank()
+                ? c.getColTitle()
+                : field != null && field.getFieldName() != null && !field.getFieldName().isBlank() ? field.getFieldName() : code);
+        col.put("fieldId", c.getFieldId() == null ? null : String.valueOf(c.getFieldId()));
+        col.put("fieldType", field == null ? null : field.getFieldType());
+        col.put("width", c.getWidth());
+        col.put("sortNo", c.getSortNo());
+        col.put("visibleFlag", c.getVisibleFlag());
+        col.put("fixedType", c.getFixedType());
+        col.put("formatJson", c.getFormatJson());
+        return col;
+    }
+
+    private static List<String> columnCodes(List<Map<String, Object>> columns) {
+        if (columns == null || columns.isEmpty()) {
+            return List.of();
+        }
+        List<String> codes = new ArrayList<>();
+        for (Map<String, Object> col : columns) {
+            Object code = col.get("fieldCode");
+            if (code != null && !String.valueOf(code).isBlank()) {
+                codes.add(String.valueOf(code));
             }
         }
         return codes;

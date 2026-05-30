@@ -8,6 +8,7 @@ import {
   parseFieldTypeCode,
   type ModuleFieldTypeCode
 } from '@/utils/fieldTypeEnum'
+import type { IdValue } from '@/utils/id'
 
 export type FieldLike = {
   fieldCode?: string
@@ -17,7 +18,7 @@ export type FieldLike = {
   hiddenFlag?: number
   tips?: string | null
   dictCode?: string | null
-  refModelId?: number | null
+  refModelId?: IdValue | null
   refDisplayField?: string | null
   relationModuleLabel?: string | null
   configJson?: string | null

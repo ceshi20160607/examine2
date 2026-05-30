@@ -37,13 +37,14 @@ import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { usePageRequest } from '@/composables/usePageRequest'
 import { listRecordHistory, type RecordHistoryRow } from '@/api/records'
+import { hasId, idToString } from '@/utils/id'
 
-const recordId = ref(0)
+const recordId = ref('')
 const rows = ref<RecordHistoryRow[]>([])
 const { loading, error, run } = usePageRequest()
 
 onLoad((opts) => {
-  recordId.value = Number((opts as any)?.recordId || 0) || 0
+  recordId.value = idToString((opts as any)?.recordId)
 })
 
 function noteOf(h: RecordHistoryRow) {
@@ -54,7 +55,7 @@ function noteOf(h: RecordHistoryRow) {
 }
 
 async function load() {
-  if (!recordId.value) return
+  if (!hasId(recordId.value)) return
   await run(async () => {
     const r = await listRecordHistory(recordId.value, 50)
     rows.value = r.data || []
@@ -79,7 +80,7 @@ function showJson(h: RecordHistoryRow) {
 function goDetail() {
   uni.navigateBack({
     fail: () => {
-      uni.redirectTo({ url: `/pages/system/records/detail?recordId=${recordId.value}` })
+      uni.redirectTo({ url: `/pages/system/records/detail?recordId=${encodeURIComponent(recordId.value)}` })
     }
   })
 }

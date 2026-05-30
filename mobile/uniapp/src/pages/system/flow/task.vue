@@ -40,17 +40,18 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { actTask } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
-const instanceId = ref<number>(0)
-const taskId = ref<number>(0)
+const instanceId = ref('')
+const taskId = ref('')
 const commentText = ref<string>('')
 const acting = ref(false)
 const error = ref<string | null>(null)
 const actionResultText = ref<string>('')
 
 onLoad((opts) => {
-  instanceId.value = Number((opts as any)?.instanceId || 0) || 0
-  taskId.value = Number((opts as any)?.taskId || 0) || 0
+  instanceId.value = idToString((opts as any)?.instanceId)
+  taskId.value = idToString((opts as any)?.taskId)
 })
 
 onMounted(() => {
@@ -77,8 +78,8 @@ async function terminate() {
 }
 
 async function act(path: string, body?: any) {
-  if (!instanceId.value) return
-  if (path.includes('/tasks/') && !taskId.value) return
+  if (!hasId(instanceId.value)) return
+  if (path.includes('/tasks/') && !hasId(taskId.value)) return
   acting.value = true
   error.value = null
   actionResultText.value = ''
@@ -92,10 +93,10 @@ async function act(path: string, body?: any) {
     }
 
     const d = r?.data || {}
-    const nextTaskId = Number(d.nextTaskId || 0) || 0
+    const nextTaskId = idToString(d.nextTaskId)
     const nextNodeName = String(d.nextNodeName || '').trim()
     const items: string[] = []
-    if (nextTaskId) {
+    if (hasId(nextTaskId)) {
       items.push(`打开下一任务${nextNodeName ? `：${nextNodeName}` : ''}`)
     }
     items.push('返回待办箱')
@@ -104,8 +105,8 @@ async function act(path: string, body?: any) {
       itemList: items,
       success: (res) => {
         const pick = items[res.tapIndex]
-        if (pick?.startsWith('打开下一任务') && nextTaskId) {
-          uni.redirectTo({ url: `/pages/system/flow/task?instanceId=${instanceId.value}&taskId=${nextTaskId}` })
+        if (pick?.startsWith('打开下一任务') && hasId(nextTaskId)) {
+          uni.redirectTo({ url: `/pages/system/flow/task?instanceId=${encodeURIComponent(instanceId.value)}&taskId=${encodeURIComponent(nextTaskId)}` })
           return
         }
         if (pick === '返回待办箱') {

@@ -1,4 +1,5 @@
 import { getSessionPayload } from '@/store/context'
+import { hasId } from '@/utils/id'
 
 export function hasToken(): boolean {
   const t = uni.getStorageSync('token')
@@ -14,7 +15,7 @@ export function ensureLogin(): boolean {
 export function ensureSystemContext(): boolean {
   if (!ensureLogin()) return false
   const p = getSessionPayload()
-  if (p && typeof p.systemId === 'number' && p.systemId > 0) return true
+  if (p && hasId(p.systemId)) return true
   uni.reLaunch({ url: '/pages/platform/systems' })
   return false
 }

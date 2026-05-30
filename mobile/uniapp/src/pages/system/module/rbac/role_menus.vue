@@ -8,6 +8,8 @@
       </uni-forms>
       <ActionBar>
         <uni-button type="primary" :disabled="saving" @click="save">保存（覆盖写）</uni-button>
+        <uni-button @click="selectAll">全选</uni-button>
+        <uni-button @click="clearAll">清空</uni-button>
         <uni-button :disabled="loading" @click="reload">刷新</uni-button>
       </ActionBar>
       <view class="u-subtitle">点击菜单行切换选中；保存会调用 `/v1/system/module/rbac/roles/menu-perms/set`。</view>
@@ -47,40 +49,55 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import { listRbacMenus, listRoleMenuPerms, setRoleMenuPerms } from '@/api/module'
+import { hasId, idToString } from '@/utils/id'
 
 type MenuRow = RbacMenuRow
 type MenuFlatRow = RbacMenuFlatRow
 
-const appId = ref<number>(0)
-const roleId = ref<number>(0)
+const appId = ref('')
+const roleId = ref('')
 
 const loading = ref(false)
 const saving = ref(false)
 
 const menus = ref<MenuRow[]>([])
-const selected = ref<Record<number, boolean>>({})
+const selected = ref<Record<string, boolean>>({})
 const permLevelText = ref('1')
 
 const menusFlat = computed(() => flattenRbacMenusTree(menus.value || []))
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
-  roleId.value = Number((opts as any)?.roleId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
+  roleId.value = idToString((opts as any)?.roleId)
 })
 
-function isSelected(id: number) {
+function isSelected(id: string) {
   return !!selected.value[id]
 }
 
-function toggle(id: number) {
+function toggle(id: string) {
+  const key = idToString(id)
   const next = { ...selected.value }
-  if (next[id]) delete next[id]
-  else next[id] = true
+  if (next[key]) delete next[key]
+  else next[key] = true
   selected.value = next
 }
 
+function selectAll() {
+  const next: Record<string, boolean> = {}
+  for (const m of menusFlat.value) {
+    const id = idToString(m.id)
+    if (hasId(id)) next[id] = true
+  }
+  selected.value = next
+}
+
+function clearAll() {
+  selected.value = {}
+}
+
 async function loadMenus() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   loading.value = true
   try {
     const r = await listRbacMenus(appId.value)
@@ -91,23 +108,18 @@ async function loadMenus() {
 }
 
 async function loadCurrentPerms() {
-  if (!roleId.value) return
+  if (!hasId(roleId.value)) return
   const r = await listRoleMenuPerms(roleId.value)
-  const perms = (r.data || []) as Array<{ menuId?: number; permLevel?: number }>
-  const next: Record<number, boolean> = {}
-  let anyLevel0 = false
-  let anyLevel1 = false
+  const perms = (r.data || []) as Array<{ menuId?: string | number; permLevel?: number }>
+  const next: Record<string, boolean> = {}
   for (const p of perms) {
-    const mid = Number(p?.menuId || 0)
-    if (!mid) continue
-    if (p?.permLevel === 0) anyLevel0 = true
-    if (p?.permLevel === 1 || p?.permLevel == null) anyLevel1 = true
-    // UI 只回显允许列表（permLevel=1）
-    if (p?.permLevel === 1) next[mid] = true
+    const mid = idToString(p?.menuId)
+    if (!hasId(mid)) continue
+    next[mid] = true
   }
   selected.value = next
-  // 默认：如果历史里有 0 级别，仍用 1（UI 当前只支持覆盖写一个级别）
-  if (anyLevel1 && !anyLevel0) permLevelText.value = '1'
+  const first = perms.find((p) => p?.permLevel != null)
+  permLevelText.value = first ? String(first.permLevel) : '1'
 }
 
 async function reload() {
@@ -116,15 +128,13 @@ async function reload() {
 }
 
 async function save() {
-  if (!roleId.value) return
+  if (!hasId(roleId.value)) return
   const permLevel = Number((permLevelText.value || '1').trim() || '1')
-  if (!permLevel || Number.isNaN(permLevel)) {
-    uni.showToast({ title: 'permLevel 非法', icon: 'none' })
+  if (Number.isNaN(permLevel) || (permLevel !== 0 && permLevel !== 1)) {
+    uni.showToast({ title: 'permLevel 仅支持 0 或 1', icon: 'none' })
     return
   }
-  const menuIds = Object.keys(selected.value)
-    .map((k) => Number(k))
-    .filter((id) => !!id && !Number.isNaN(id))
+  const menuIds = Object.keys(selected.value).filter((id) => hasId(id))
 
   saving.value = true
   try {
@@ -137,7 +147,7 @@ async function save() {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  if (!appId.value || !roleId.value) {
+  if (!hasId(appId.value) || !hasId(roleId.value)) {
     uni.showToast({ title: '缺少 appId/roleId', icon: 'none' })
     return
   }

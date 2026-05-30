@@ -2,13 +2,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.Statement;
-import java.util.regex.Pattern;
 
 /** One-off: java -cp mysql-connector.jar RunSqlFile <jdbcUrl> <user> <pass> <sqlFile> */
 public class RunSqlFile {
-    private static final Pattern GO = Pattern.compile(";\\s*(?:\\r?\\n|$)");
-
     public static void main(String[] args) throws Exception {
         if (args.length < 4) {
             System.err.println("Usage: RunSqlFile <jdbcUrl> <user> <password> <sqlFile>");
@@ -28,11 +27,29 @@ public class RunSqlFile {
                     String q = stmt.toString().trim();
                     stmt.setLength(0);
                     if (!q.isEmpty()) {
-                        st.execute(q.substring(0, q.length() - 1));
+                        boolean hasResult = st.execute(q.substring(0, q.length() - 1));
+                        if (hasResult) {
+                            printResult(st.getResultSet());
+                        }
                     }
                 }
             }
         }
         System.out.println("OK: " + args[3]);
+    }
+
+    private static void printResult(ResultSet rs) throws Exception {
+        ResultSetMetaData md = rs.getMetaData();
+        int cols = md.getColumnCount();
+        while (rs.next()) {
+            StringBuilder row = new StringBuilder();
+            for (int i = 1; i <= cols; i++) {
+                if (i > 1) {
+                    row.append('\t');
+                }
+                row.append(md.getColumnLabel(i)).append('=').append(rs.getString(i));
+            }
+            System.out.println(row);
+        }
     }
 }

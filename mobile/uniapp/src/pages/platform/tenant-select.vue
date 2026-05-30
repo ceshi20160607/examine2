@@ -28,20 +28,21 @@ import Page from '@/ui/Page.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { useSessionStore } from '@/stores/session'
+import { hasId, idToString } from '@/utils/id'
 
-const systemId = ref(0)
+const systemId = ref('')
 const systemName = ref('')
 const tenants = ref<PlatTenant[]>([])
 const error = ref<string | null>(null)
 const session = useSessionStore()
 
 onLoad((opts) => {
-  systemId.value = Number((opts as any)?.systemId || 0) || 0
+  systemId.value = idToString((opts as any)?.systemId)
   systemName.value = decodeURIComponent(String((opts as any)?.systemName || ''))
 })
 
 async function load() {
-  if (!systemId.value) return
+  if (!hasId(systemId.value)) return
   error.value = null
   try {
     const r = await listTenants(systemId.value)

@@ -57,7 +57,7 @@ public class FilterConfig {
     public FilterRegistrationBean<TokenAuthenticationFilter> tokenFilterRegistration(TokenAuthenticationFilter filter) {
         FilterRegistrationBean<TokenAuthenticationFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(filter);
-        bean.addUrlPatterns("/v1/*");
+        bean.addUrlPatterns("/*");
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 20);
         return bean;
     }

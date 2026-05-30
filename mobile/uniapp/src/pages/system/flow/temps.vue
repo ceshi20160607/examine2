@@ -35,6 +35,7 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import { pageTemps, type FlowTemp } from '@/api/flow'
+import { idToString } from '@/utils/id'
 
 const loading = ref(false)
 const page = ref(1)
@@ -106,7 +107,9 @@ function goTempManage() {
 }
 
 function goTempEdit(id: FlowTemp['id']) {
-  uni.navigateTo({ url: `/pages/system/flow/temp_edit?id=${encodeURIComponent(String(id))}` })
+  const sid = idToString(id)
+  if (!sid) return
+  uni.navigateTo({ url: `/pages/system/flow/temp_edit?id=${encodeURIComponent(sid)}` })
 }
 
 function onClick(t: FlowTemp) {

@@ -54,7 +54,7 @@ public class ModuleAppVersion implements Serializable {
     @Schema(description = "状态：1=草稿 2=已发布 3=已废弃")
     private Integer status;
 
-    @Schema(description = "发布快照（页面/模型等聚合 JSON；MVP 可为空）")
+    @Schema(description = "发布快照（页面/模型等聚合 JSON）")
     private String snapshotJson;
 
     @Schema(description = "创建人 platId")

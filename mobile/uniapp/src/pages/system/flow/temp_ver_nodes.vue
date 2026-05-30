@@ -65,10 +65,11 @@ import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { deleteTempVerNodes, pageTempVerNodes, upsertTempVerNode } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
 type NodeRow = { id: number | string; nodeKey?: string; parentNodeKey?: string; nodeType?: string; nodeName?: string; configJson?: string; sortNo?: number }
 
-const tempVerId = ref<number>(0)
+const tempVerId = ref('')
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref<NodeRow[]>([])
@@ -86,11 +87,11 @@ const form = reactive<{ nodeKey: string; parentNodeKey: string; nodeType: string
 })
 
 onLoad((opts) => {
-  tempVerId.value = Number((opts as any)?.tempVerId || 0) || 0
+  tempVerId.value = idToString((opts as any)?.tempVerId)
 })
 
 async function load() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   loading.value = true
   try {
     const r = await pageTempVerNodes(tempVerId.value)
@@ -121,7 +122,7 @@ function closePopup() {
 }
 
 function openActions(n: NodeRow) {
-  if (!n?.id) return
+  if (!hasId(n?.id)) return
   uni.showActionSheet({
     itemList: ['编辑', '删除'],
     success: (res) => {
@@ -152,7 +153,7 @@ function normalizeJson(s: string): string | null {
 }
 
 async function save() {
-  if (!tempVerId.value) return
+  if (!hasId(tempVerId.value)) return
   error.value = null
   if (!form.nodeKey.trim() || !form.nodeType.trim()) {
     error.value = 'nodeKey/nodeType 不能为空'
@@ -195,7 +196,7 @@ async function save() {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  if (!tempVerId.value) {
+  if (!hasId(tempVerId.value)) {
     uni.showToast({ title: '缺少 tempVerId', icon: 'none' })
     return
   }

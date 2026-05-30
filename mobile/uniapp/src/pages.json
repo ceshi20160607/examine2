@@ -8,9 +8,9 @@
 	},
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
-			"path": "pages/boot/health",
+			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "Health"
+				"navigationBarTitleText": "Unexamine"
 			}
 		},
 		{
@@ -76,37 +76,37 @@
 		{
 			"path": "pages/system/module/meta/apps",
 			"style": {
-				"navigationBarTitleText": "Apps"
+				"navigationBarTitleText": "应用管理"
 			}
 		},
 		{
 			"path": "pages/system/module/meta/models",
 			"style": {
-				"navigationBarTitleText": "Models"
+				"navigationBarTitleText": "模型管理"
 			}
 		},
 		{
 			"path": "pages/system/module/meta/fields",
 			"style": {
-				"navigationBarTitleText": "Fields"
+				"navigationBarTitleText": "字段管理"
 			}
 		},
 		{
 			"path": "pages/system/module/dict/dicts",
 			"style": {
-				"navigationBarTitleText": "Dicts"
+				"navigationBarTitleText": "字典管理"
 			}
 		},
 		{
 			"path": "pages/system/module/dept/depts",
 			"style": {
-				"navigationBarTitleText": "Depts"
+				"navigationBarTitleText": "部门管理"
 			}
 		},
 		{
 			"path": "pages/system/module/dict/items",
 			"style": {
-				"navigationBarTitleText": "Dict Items"
+				"navigationBarTitleText": "字典项"
 			}
 		},
 		{
@@ -118,181 +118,181 @@
 		{
 			"path": "pages/system/module/listviews/views",
 			"style": {
-				"navigationBarTitleText": "List Views"
+				"navigationBarTitleText": "列表视图"
 			}
 		},
 		{
 			"path": "pages/system/module/listviews/filter_tpls",
 			"style": {
-				"navigationBarTitleText": "Filter Tpls"
+				"navigationBarTitleText": "筛选模板"
 			}
 		},
 		{
 			"path": "pages/system/module/listviews/cols",
 			"style": {
-				"navigationBarTitleText": "List View Cols"
+				"navigationBarTitleText": "列表列配置"
 			}
 		},
 		{
 			"path": "pages/system/module/rbac/role_menus",
 			"style": {
-				"navigationBarTitleText": "Role Menus"
+				"navigationBarTitleText": "角色菜单权限"
 			}
 		},
 		{
 			"path": "pages/system/module/rbac/role_pages",
 			"style": {
-				"navigationBarTitleText": "Role Pages"
+				"navigationBarTitleText": "角色页面权限"
 			}
 		},
 		{
 			"path": "pages/system/module/flow/bindings",
 			"style": {
-				"navigationBarTitleText": "Flow Bindings"
+				"navigationBarTitleText": "流程绑定"
 			}
 		},
 		{
 			"path": "pages/system/module/meta/relations",
 			"style": {
-				"navigationBarTitleText": "Model Relations"
+				"navigationBarTitleText": "模型关系"
 			}
 		},
 		{
 			"path": "pages/system/module/pages/index",
 			"style": {
-				"navigationBarTitleText": "Pages"
+				"navigationBarTitleText": "页面管理"
 			}
 		},
 		{
 			"path": "pages/system/module/pages/edit",
 			"style": {
-				"navigationBarTitleText": "Page Edit"
+				"navigationBarTitleText": "页面编辑"
 			}
 		},
 		{
 			"path": "pages/system/runtime/entry",
 			"style": {
-				"navigationBarTitleText": "Open Page"
+				"navigationBarTitleText": "打开页面"
 			}
 		},
 		{
 			"path": "pages/system/runtime/menus",
 			"style": {
-				"navigationBarTitleText": "App Menus"
+				"navigationBarTitleText": "应用菜单"
 			}
 		},
 		{
 			"path": "pages/system/module/export/jobs",
 			"style": {
-				"navigationBarTitleText": "Export Jobs"
+				"navigationBarTitleText": "导出任务"
 			}
 		},
 		{
 			"path": "pages/system/module/export/tpls",
 			"style": {
-				"navigationBarTitleText": "Export Tpls"
+				"navigationBarTitleText": "导出模板"
 			}
 		},
 		{
 			"path": "pages/system/module/export/tpl_fields",
 			"style": {
-				"navigationBarTitleText": "Export Tpl Fields"
+				"navigationBarTitleText": "导出字段"
 			}
 		},
 		{
 			"path": "pages/system/module/export/job_detail",
 			"style": {
-				"navigationBarTitleText": "Export Job Detail"
+				"navigationBarTitleText": "导出详情"
 			}
 		},
 		{
 			"path": "pages/system/records/list",
 			"style": {
-				"navigationBarTitleText": "Records"
+				"navigationBarTitleText": "数据列表"
 			}
 		},
 		{
 			"path": "pages/system/records/detail",
 			"style": {
-				"navigationBarTitleText": "Record Detail"
+				"navigationBarTitleText": "数据详情"
 			}
 		},
 		{
 			"path": "pages/system/records/form",
 			"style": {
-				"navigationBarTitleText": "Record Form"
+				"navigationBarTitleText": "数据表单"
 			}
 		},
 		{
 			"path": "pages/system/records/history",
 			"style": {
-				"navigationBarTitleText": "Record History"
+				"navigationBarTitleText": "数据历史"
 			}
 		},
 		{
 			"path": "pages/system/flow/inbox",
 			"style": {
-				"navigationBarTitleText": "Flow Inbox"
+				"navigationBarTitleText": "流程待办"
 			}
 		},
 		{
 			"path": "pages/system/flow/temps",
 			"style": {
-				"navigationBarTitleText": "Flow Temps"
+				"navigationBarTitleText": "流程模板"
 			}
 		},
 		{
 			"path": "pages/system/flow/temp_list",
 			"style": {
-				"navigationBarTitleText": "Flow Temp Manage"
+				"navigationBarTitleText": "流程模板管理"
 			}
 		},
 		{
 			"path": "pages/system/flow/temp_edit",
 			"style": {
-				"navigationBarTitleText": "Flow Temp Edit"
+				"navigationBarTitleText": "流程模板编辑"
 			}
 		},
 		{
 			"path": "pages/system/flow/temp_ver_list",
 			"style": {
-				"navigationBarTitleText": "Flow Temp Vers"
+				"navigationBarTitleText": "流程版本"
 			}
 		},
 		{
 			"path": "pages/system/flow/temp_ver_edit",
 			"style": {
-				"navigationBarTitleText": "Flow Temp Ver Edit"
+				"navigationBarTitleText": "流程版本编辑"
 			}
 		},
 		{
 			"path": "pages/system/flow/temp_ver_nodes",
 			"style": {
-				"navigationBarTitleText": "Flow Ver Nodes"
+				"navigationBarTitleText": "流程节点"
 			}
 		},
 		{
 			"path": "pages/system/flow/temp_ver_lines",
 			"style": {
-				"navigationBarTitleText": "Flow Ver Lines"
+				"navigationBarTitleText": "流程连线"
 			}
 		},
 		{
 			"path": "pages/system/flow/temp_ver_line_conds",
 			"style": {
-				"navigationBarTitleText": "Flow Line Conds"
+				"navigationBarTitleText": "连线条件"
 			}
 		},
 		{
 			"path": "pages/system/flow/temp_ver_settings",
 			"style": {
-				"navigationBarTitleText": "Flow Ver Settings"
+				"navigationBarTitleText": "流程设置"
 			}
 		},
 		{
 			"path": "pages/system/flow/temp_ver_node_settings",
 			"style": {
-				"navigationBarTitleText": "Flow Ver Node Settings"
+				"navigationBarTitleText": "节点设置"
 			}
 		},
 		{
@@ -316,61 +316,61 @@
 		{
 			"path": "pages/system/flow/by_biz",
 			"style": {
-				"navigationBarTitleText": "Flow By Biz"
+				"navigationBarTitleText": "业务流程"
 			}
 		},
 		{
 			"path": "pages/system/flow/start",
 			"style": {
-				"navigationBarTitleText": "Flow Start"
+				"navigationBarTitleText": "发起流程"
 			}
 		},
 		{
 			"path": "pages/system/flow/instances",
 			"style": {
-				"navigationBarTitleText": "Flow Instances"
+				"navigationBarTitleText": "流程实例"
 			}
 		},
 		{
 			"path": "pages/system/flow/my_instances",
 			"style": {
-				"navigationBarTitleText": "My Flow Instances"
+				"navigationBarTitleText": "我的流程"
 			}
 		},
 		{
 			"path": "pages/system/flow/instance",
 			"style": {
-				"navigationBarTitleText": "Flow Instance"
+				"navigationBarTitleText": "流程实例"
 			}
 		},
 		{
 			"path": "pages/system/flow/task",
 			"style": {
-				"navigationBarTitleText": "Flow Task"
+				"navigationBarTitleText": "流程任务"
 			}
 		},
 		{
 			"path": "pages/system/upload/index",
 			"style": {
-				"navigationBarTitleText": "Upload"
+				"navigationBarTitleText": "文件上传"
 			}
 		},
 		{
 			"path": "pages/system/upload/view",
 			"style": {
-				"navigationBarTitleText": "Upload View"
+				"navigationBarTitleText": "文件预览"
 			}
 		},
 		{
-			"path": "pages/index/index",
+			"path": "pages/boot/health",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "后端健康"
 			}
 		}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app",
+		"navigationBarTitleText": "Unexamine",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
 	},

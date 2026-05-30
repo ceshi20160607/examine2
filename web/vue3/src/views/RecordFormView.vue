@@ -235,6 +235,8 @@ import { listDepartmentPickerOptions, listMemberPickerOptions } from '../api/rba
 import { uploadFile } from '../api/upload.js'
 import { setEmbedRecordCreated } from '../utils/embedRecord.js'
 import { loadRefSelectOptions } from '../utils/refPicker.js'
+import { uniqueIds } from '../utils/id.js'
+import { notify } from '../utils/notify.js'
 import {
   configFromMeta,
   inputTypeForField,
@@ -269,6 +271,7 @@ const router = useRouter()
 
 const appId = computed(() => String(route.query.appId || ''))
 const modelId = computed(() => String(route.query.modelId || ''))
+const pageId = computed(() => String(route.query.pageId || ''))
 const recordId = computed(() => String(route.query.recordId || ''))
 const embedMode = computed(() => route.query.embed === '1')
 
@@ -467,7 +470,7 @@ async function loadRecord() {
       formData[code] = normalizeMultiValue(data[code])
     }
     if (isRefTableField(mf)) {
-      formData[code] = normalizeMultiValue(data[code]).map(Number).filter((n) => n > 0)
+      formData[code] = uniqueIds(normalizeMultiValue(data[code]))
     }
   }
   jsonText.value = JSON.stringify(data, null, 2)
@@ -485,19 +488,16 @@ function toSubmitData() {
       const t = String(v ?? '').trim()
       v = t === '' ? null : Number.isNaN(Number(t)) ? t : Number(t)
     }
-    if (isRefTableField(mf) || isDictMulti(mf) || (isRefMultiField(mf) && !isRefTableField(mf))) {
-      v = normalizeMultiValue(v).map((x) => {
-        const n = Number(x)
-        return Number.isFinite(n) && n > 0 ? n : x
-      })
+    if (isRefTableField(mf) || (isRefMultiField(mf) && !isRefTableField(mf))) {
+      v = uniqueIds(normalizeMultiValue(v))
+    }
+    if (isDictMulti(mf)) {
+      v = normalizeMultiValue(v)
     }
     if (isFileField(mf) || (isRefField(mf) && !isRefMultiField(mf))) {
       const t = String(v ?? '').trim()
       if (t === '') v = null
-      else {
-        const n = Number(t)
-        v = Number.isFinite(n) && !Number.isNaN(n) ? n : t
-      }
+      else v = t
     }
     if (isBooleanField(mf)) {
       v = v === true || v === 1 || v === '1' || v === 'true'
@@ -534,7 +534,7 @@ async function uploadFor(f, ev) {
     const r = await uploadFile(file)
     const id = r.data?.id ?? r.data?.fileId
     formData[f.fieldCode] = id != null ? id : null
-    alert('上传成功')
+    notify.success('上传成功')
   } catch (e) {
     error.value = e?.message || String(e)
   }
@@ -557,7 +557,7 @@ function toggleAdvanced() {
 
 function goBack() {
   if (embedMode.value) router.back()
-  else router.push({ path: '/records', query: { appId: appId.value, modelId: modelId.value } })
+  else router.push({ path: '/records', query: { appId: appId.value, modelId: modelId.value, pageId: pageId.value } })
 }
 
 async function submit() {
@@ -583,13 +583,13 @@ async function submit() {
   try {
     if (recordId.value) {
       await updateRecord(recordId.value, dataObj)
-      alert('更新成功')
+      notify.success('更新成功')
       if (!embedMode.value) goBack()
       return
     }
     const r = await createRecord({ appId: appId.value, modelId: modelId.value, data: dataObj })
     const id = r.data?.recordId || r.data?.record?.id || r.data?.id
-    alert('创建成功')
+    notify.success('创建成功')
     if (embedMode.value && id) {
       setEmbedRecordCreated(id)
       router.back()

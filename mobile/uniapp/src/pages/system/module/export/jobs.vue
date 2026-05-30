@@ -47,6 +47,7 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import EmptyState from '@/ui/EmptyState.vue'
 import { pageExportJobs, type ModuleExportJobRow } from '@/api/module'
+import { idToString, type IdValue } from '@/utils/id'
 
 const loading = ref(false)
 const page = ref(1)
@@ -118,8 +119,10 @@ async function next() {
   await load()
 }
 
-function goDetail(jobId: any) {
-  uni.navigateTo({ url: `/pages/system/module/export/job_detail?jobId=${encodeURIComponent(String(jobId))}` })
+function goDetail(jobId: IdValue) {
+  const sid = idToString(jobId)
+  if (!sid) return
+  uni.navigateTo({ url: `/pages/system/module/export/job_detail?jobId=${encodeURIComponent(sid)}` })
 }
 
 onMounted(() => {

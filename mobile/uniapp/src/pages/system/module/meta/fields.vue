@@ -166,12 +166,13 @@ import {
   uiFieldTypeFromMeta,
   validateTypeForFieldType
 } from '@/utils/fieldTypes'
+import { hasId, idToString, type IdValue } from '@/utils/id'
 
-const appId = ref(0)
-const modelId = ref(0)
+const appId = ref('')
+const modelId = ref('')
 const fields = ref<ModuleField[]>([])
 const saving = ref(false)
-const editingId = ref<number | null>(null)
+const editingId = ref<string | null>(null)
 const { loading, error, run, capture, clearError } = usePageRequest()
 
 const fieldTypeOptions = FIELD_TYPE_OPTIONS
@@ -306,8 +307,8 @@ function buildTypeConfigPayload(): Record<string, unknown> {
 }
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
-  modelId.value = Number((opts as any)?.modelId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
+  modelId.value = idToString((opts as any)?.modelId)
 })
 
 function fieldNote(f: ModuleField) {
@@ -334,7 +335,7 @@ function onFieldTypeChange() {
 }
 
 async function loadModelOptions() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   try {
     const r = await listModelsByApp(appId.value)
     modelOptions.value = (r.data || [])
@@ -348,13 +349,14 @@ async function loadModelOptions() {
   }
 }
 
-async function loadRefDisplayFieldOptions(targetModelId: number) {
-  if (!targetModelId) {
+async function loadRefDisplayFieldOptions(targetModelId: IdValue) {
+  const model = idToString(targetModelId)
+  if (!hasId(model)) {
     refDisplayFieldOptions.value = []
     return
   }
   try {
-    const r = await listFieldsByModel(targetModelId)
+    const r = await listFieldsByModel(model)
     refDisplayFieldOptions.value = (r.data || [])
       .filter((x) => x?.fieldCode)
       .map((x) => ({
@@ -368,11 +370,11 @@ async function loadRefDisplayFieldOptions(targetModelId: number) {
 
 function onRefModelChange() {
   form.refDisplayField = ''
-  const mid = Number(form.refModelId) || 0
-  if (mid) {
-    const m = modelOptions.value.find((o) => o.value === String(mid))
+  const mid = idToString(form.refModelId)
+  if (hasId(mid)) {
+    const m = modelOptions.value.find((o) => o.value === mid)
     if (m && !form.relationModuleLabel.trim()) {
-      form.relationModuleLabel = String(m.text).replace(/\s*\(#\d+\)\s*$/, '')
+      form.relationModuleLabel = String(m.text).replace(/\s*\(#.+\)\s*$/, '')
     }
     loadRefDisplayFieldOptions(mid)
   } else {
@@ -381,7 +383,7 @@ function onRefModelChange() {
 }
 
 async function loadDictOptions() {
-  if (!appId.value) return
+  if (!hasId(appId.value)) return
   try {
     const r = await listDictsByApp(appId.value)
     dictCodeOptions.value = (r.data || [])
@@ -393,7 +395,7 @@ async function loadDictOptions() {
 }
 
 async function load() {
-  if (!modelId.value) {
+  if (!hasId(modelId.value)) {
     uni.showToast({ title: '缺少 modelId', icon: 'none' })
     return
   }
@@ -421,7 +423,7 @@ function resetForm() {
 }
 
 function fillForm(f: ModuleField) {
-  editingId.value = Number(f.id)
+  editingId.value = idToString(f.id as IdValue)
   form.fieldCode = f.fieldCode || ''
   form.fieldName = f.fieldName || ''
   form.fieldType = uiFieldTypeFromMeta(f)
@@ -437,7 +439,7 @@ function fillForm(f: ModuleField) {
   form.refModelId = f.refModelId ? String(f.refModelId) : ''
   form.refDisplayField = f.refDisplayField || ''
   form.relationModuleLabel = f.relationModuleLabel || ''
-  if (f.refModelId) loadRefDisplayFieldOptions(Number(f.refModelId))
+  if (f.refModelId) loadRefDisplayFieldOptions(f.refModelId)
   form.sortNo = String(f.sortNo ?? 0)
   form.tips = f.tips || ''
   form.defaultValue = f.defaultValue || ''
@@ -448,7 +450,7 @@ function fillForm(f: ModuleField) {
 }
 
 async function save() {
-  if (!appId.value || !modelId.value) return
+  if (!hasId(appId.value) || !hasId(modelId.value)) return
   if (!form.fieldCode.trim() || !form.fieldName.trim()) {
     uni.showToast({ title: '请填写 fieldCode/fieldName', icon: 'none' })
     return
@@ -483,7 +485,7 @@ async function save() {
       validateType: validateTypeForFieldType(form.fieldType, cfgPayload),
       dateFormat: null,
       dictCode: needsDict.value ? form.dictCode.trim() : null,
-      refModelId: needsRef.value ? Number(form.refModelId) || null : null,
+      refModelId: needsRef.value ? idToString(form.refModelId) || null : null,
       refDisplayField: needsRef.value ? form.refDisplayField.trim() || null : null,
       relationModuleLabel: needsRef.value ? form.relationModuleLabel.trim() || null : null,
       configJson: buildConfigJson(form.fieldType, cfgPayload),
@@ -518,9 +520,9 @@ function openFieldActions(f: ModuleField) {
             if (!m.confirm || !f.id) return
             clearError()
             try {
-              await deleteFields([Number(f.id)])
+              await deleteFields([idToString(f.id as IdValue)])
               uni.showToast({ title: '已删除', icon: 'success' })
-              if (editingId.value === f.id) resetForm()
+              if (editingId.value === idToString(f.id as IdValue)) resetForm()
               await load()
             } catch (e: unknown) {
               capture(e)
@@ -533,7 +535,7 @@ function openFieldActions(f: ModuleField) {
 }
 
 function goRecords() {
-  uni.navigateTo({ url: `/pages/system/records/list?appId=${appId.value}&modelId=${modelId.value}` })
+  uni.navigateTo({ url: `/pages/system/records/list?appId=${encodeURIComponent(appId.value)}&modelId=${encodeURIComponent(modelId.value)}` })
 }
 
 onMounted(async () => {

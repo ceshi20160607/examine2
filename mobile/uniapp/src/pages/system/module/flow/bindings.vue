@@ -48,6 +48,7 @@ import EmptyState from '@/ui/EmptyState.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { usePageRequest } from '@/composables/usePageRequest'
 import { ensureSystemContext } from '@/utils/guard'
+import { hasId, idToString } from '@/utils/id'
 import {
   deleteModelFlowBinding,
   listFlowTempOptions,
@@ -57,8 +58,8 @@ import {
   type FlowTempOption
 } from '@/api/flowBinding'
 
-const appId = ref(0)
-const modelId = ref(0)
+const appId = ref('')
+const modelId = ref('')
 const rows = ref<FlowBindingRow[]>([])
 const temps = ref<FlowTempOption[]>([])
 const { loading, error, run, capture, clearError } = usePageRequest()
@@ -69,30 +70,30 @@ const triggerOptions = [
   { value: 'update', text: 'update（更新记录）' }
 ]
 
-const form = reactive<{ id: number | null; triggerAction: string; tempId: number | string }>({
+const form = reactive<{ id: string | null; triggerAction: string; tempId: string }>({
   id: null,
   triggerAction: 'create',
   tempId: ''
 })
 
-const tempOptions = ref<Array<{ value: number; text: string }>>([])
+const tempOptions = ref<Array<{ value: string; text: string }>>([])
 
 onLoad((opts) => {
-  appId.value = Number((opts as any)?.appId || 0) || 0
-  modelId.value = Number((opts as any)?.modelId || 0) || 0
+  appId.value = idToString((opts as any)?.appId)
+  modelId.value = idToString((opts as any)?.modelId)
 })
 
 async function loadTemps() {
   const r = await listFlowTempOptions()
   temps.value = r.data || []
   tempOptions.value = temps.value.map((t) => ({
-    value: Number(t.id),
+    value: idToString(t.id),
     text: `${t.tempName || t.tempCode || t.id}`
   }))
 }
 
 async function load() {
-  if (!appId.value || !modelId.value) return
+  if (!hasId(appId.value) || !hasId(modelId.value)) return
   await run(async () => {
     await loadTemps()
     const r = await listModelFlowBindings(appId.value, modelId.value)
@@ -125,9 +126,9 @@ function editRow(row: FlowBindingRow) {
 }
 
 async function save() {
-  if (!appId.value || !modelId.value) return
-  const tempId = Number(form.tempId)
-  if (!tempId) {
+  if (!hasId(appId.value) || !hasId(modelId.value)) return
+  const tempId = idToString(form.tempId)
+  if (!hasId(tempId)) {
     uni.showToast({ title: '请选择流程模板', icon: 'none' })
     return
   }

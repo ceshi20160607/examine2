@@ -142,3 +142,4 @@ cd tests
 ```
 
 **最近回归（2026-05-24）**：API 21/21、UI 39/39（Redis 会话 + OpenAPI）；此前 memory 会话 19/19。
+> 2026-05-28 update: `tests/run-all.ps1` now defaults to the seeded admin smoke account when no smoke user/system is supplied, starts the local backend if `127.0.0.1:9999` is down, and the current verified gates include backend Maven tests, API smoke, Web Playwright, mobile `vue-tsc`, mobile H5 build, mobile H5 browser smoke, and release-package script checks.

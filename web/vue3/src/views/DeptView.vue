@@ -13,8 +13,11 @@
           <td>{{ d.id }}</td>
           <td>{{ d.deptCode }}</td>
           <td>{{ d.deptName }}</td>
-          <td>{{ d.parentId || 0 }}</td>
-          <td><button type="button" class="secondary" @click="remove(d)">删除</button></td>
+          <td>{{ deptLabel(d.parentId) }}</td>
+          <td class="actions">
+            <button type="button" class="secondary" @click="edit(d)">编辑</button>
+            <button type="button" class="secondary" @click="remove(d)">删除</button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -27,6 +30,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '../layouts/AdminLayout.vue'
 import { deleteDepts, listDepts, upsertDept } from '../api/dept'
+import { idToString } from '../utils/id'
+import { confirmDialog, promptText } from '../utils/dialog.js'
+import { notify } from '../utils/notify.js'
 
 const route = useRoute()
 const appId = computed(() => String(route.params.appId || ''))
@@ -43,26 +49,64 @@ async function load() {
   }
 }
 
+function deptLabel(id) {
+  const sid = String(id || '0')
+  if (sid === '0') return '根部门'
+  const d = rows.value.find((x) => String(x.id) === sid)
+  return d ? `${d.deptName || d.deptCode} (#${sid})` : `#${sid}`
+}
+
+function deptOptionMessage(currentId = null) {
+  const opts = ['0 - 根部门']
+  for (const d of rows.value) {
+    if (currentId && String(d.id) === String(currentId)) continue
+    opts.push(`${d.id} - ${d.deptName || d.deptCode}`)
+  }
+  return opts.join('\n')
+}
+
 async function add() {
-  const deptCode = prompt('deptCode')
-  const deptName = prompt('deptName')
-  const parentId = Number(prompt('parentId (0=根)', '0') || '0')
+  await saveDept()
+}
+
+async function edit(d) {
+  await saveDept(d)
+}
+
+async function saveDept(existing = null) {
+  const deptCode = await promptText('部门编码', { defaultValue: existing?.deptCode || '' })
+  const deptName = await promptText('部门名称', { defaultValue: existing?.deptName || '' })
+  const parentId = idToString(await promptText('上级部门 ID', {
+    defaultValue: String(existing?.parentId || '0'),
+    message: deptOptionMessage(existing?.id)
+  })) || '0'
+  const sortNo = await promptText('排序号', { defaultValue: String(existing?.sortNo ?? rows.value.length + 1) })
   if (!deptCode || !deptName) return
   error.value = ''
   try {
-    await upsertDept(appId.value, { deptCode, deptName, parentId: parentId || 0 })
-    load()
+    await upsertDept(appId.value, {
+      id: existing?.id ?? null,
+      deptCode,
+      deptName,
+      parentId,
+      sortNo: Number.isNaN(Number(sortNo)) ? 0 : Number(sortNo),
+      status: existing?.status ?? 1,
+      remark: existing?.remark ?? null
+    })
+    notify.success('部门已保存')
+    await load()
   } catch (e) {
     error.value = e?.message || String(e)
   }
 }
 
 async function remove(d) {
-  if (!confirm(`删除部门 #${d.id}?`)) return
+  if (!(await confirmDialog(`删除部门 #${d.id}?`, { danger: true, confirmText: '删除' }))) return
   error.value = ''
   try {
     await deleteDepts([d.id])
-    load()
+    notify.success('部门已删除')
+    await load()
   } catch (e) {
     error.value = e?.message || String(e)
   }
@@ -71,4 +115,10 @@ async function remove(d) {
 onMounted(load)
 </script>
 
-<style src="./admin-shared.css"></style>
+<style scoped>
+.actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+</style>

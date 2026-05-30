@@ -32,7 +32,14 @@
           <td>{{ t.title || t.nodeName }}</td>
           <td>{{ t.systemId }}</td>
           <td>
-            <router-link :to="{ path: '/flow/task', query: { taskId: t.id, instanceId: t.instanceId } }">办理</router-link>
+            <button
+              type="button"
+              class="link"
+              :disabled="sameId(openingId, t.id)"
+              @click="openTask(t)"
+            >
+              {{ sameId(openingId, t.id) ? '进入中…' : '办理' }}
+            </button>
           </td>
         </tr>
       </tbody>
@@ -57,7 +64,14 @@
             >
               {{ readingId === c.id ? '…' : '标记已读' }}
             </button>
-            <router-link :to="{ path: '/flow/task', query: { taskId: c.id, instanceId: c.instanceId } }">查看</router-link>
+            <button
+              type="button"
+              class="link"
+              :disabled="sameId(openingId, c.id)"
+              @click="openTask(c)"
+            >
+              {{ sameId(openingId, c.id) ? '进入中…' : '查看' }}
+            </button>
           </td>
         </tr>
       </tbody>
@@ -68,15 +82,19 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import AdminLayout from '../layouts/AdminLayout.vue'
-import { listPlatformCc, listPlatformMessages, listPlatformTodos, readPlatformCc } from '../api/platform'
+import { enterSystem, listPlatformCc, listPlatformMessages, listPlatformTodos, readPlatformCc, selectTenant } from '../api/platform'
+import { idToString, sameId } from '../utils/id'
 
+const router = useRouter()
 const messages = ref([])
 const todos = ref([])
 const cc = ref([])
 const error = ref('')
 const ccOnlyUnread = ref(false)
 const readingId = ref(0)
+const openingId = ref('')
 
 async function load() {
   error.value = ''
@@ -108,6 +126,35 @@ async function markCcRead(taskId) {
   }
 }
 
+async function openTask(task) {
+  const taskId = idToString(task?.id)
+  const instanceId = idToString(task?.instanceId)
+  const systemId = idToString(task?.systemId)
+  const tenantId = idToString(task?.tenantId || '0') || '0'
+  if (!taskId || !instanceId) {
+    error.value = '任务缺少 taskId 或 instanceId'
+    return
+  }
+  openingId.value = taskId
+  error.value = ''
+  try {
+    if (systemId) {
+      await enterSystem(systemId)
+      if (tenantId && !sameId(tenantId, '0')) {
+        await selectTenant(tenantId)
+      }
+    }
+    await router.push({
+      path: '/flow/task',
+      query: { taskId, instanceId, systemId, tenantId }
+    })
+  } catch (e) {
+    error.value = e?.message || String(e)
+  } finally {
+    openingId.value = ''
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -116,4 +163,3 @@ h3 { margin-top: 1.25rem; }
 .check-label { font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem; }
 .link { background: none; border: none; color: #1677ff; cursor: pointer; padding: 0; margin-right: 0.5rem; }
 </style>
-<style src="./admin-shared.css"></style>

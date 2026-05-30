@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "自建系统态-module权限")
 @RestController
-@RequestMapping("/v1/system/auth")
+@RequestMapping({"/v1/system/auth", "/v1/system/module/auth"})
 public class SystemModuleAuthController {
 
     @Autowired

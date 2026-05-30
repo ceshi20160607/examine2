@@ -1,6 +1,6 @@
-# examine2 生产部署指南
+# unexamine 生产部署指南
 
-本文说明如何将 **examine-web（后端）**、**mobile/uniapp**、**web/vue3（管理台）** 部署到生产环境。数据库变更默认由 **Flyway** 在启动时执行（`application-prod.yml` 已开启）；亦可用 `spring.flyway.enabled=false` 改回纯手工 SQL，见 `docs/deploy/flyway-existing-db.md`。
+本文说明如何将 **unexamine 后端**、**mobile/uniapp**、**web/vue3（管理台）** 部署到生产环境。数据库变更默认由 **Flyway** 在启动时执行（`application-prod.yml` 已开启）；亦可用 `spring.flyway.enabled=false` 改回纯手工 SQL，见 `docs/deploy/flyway-existing-db.md`。
 
 ## 1. 环境要求
 
@@ -23,7 +23,7 @@
 
 确认库字符集 `utf8mb4`，时区与应用一致（建议 `Asia/Shanghai`）。
 
-## 3. 后端 examine-web
+## 3. 后端 unexamine
 
 ### 3.1 配置
 
@@ -40,17 +40,40 @@ export SPRING_DATA_REDIS_PASSWORD="***"
 export EXAMINE_OPENAPI_SIGNING_MASTER_KEY="***"   # 开放 API 签名密钥加密主密钥（生产必改）
 ```
 
-### 3.2 构建与启动
+### 3.2 构建发布包
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\deploy\build-release.ps1
+```
+
+产物为 `dist/unexamine-release-YYYYMMDD-HHmmss.zip`，后端目录内固定包含 `unexamine-0.0.1.jar`、`unexamine.sh`、`unexamine.ps1` 与 `config/application.yml.example`。
+
+### 3.3 启动后端
+
+Linux：
 
 ```bash
 cd backend
-mvn -pl examine-web -am package -DskipTests
-java -jar examine-web/target/examine-web-*.jar --spring.profiles.active=prod
+chmod +x unexamine.sh
+./unexamine.sh init-config
+# 编辑 config/application.yml：MySQL / Redis / signing-master-key
+./unexamine.sh start
+./unexamine.sh status
 ```
 
-默认端口 **9999**（可在 `application-prod.yml` 修改）。
+Windows：
 
-### 3.3 健康检查
+```powershell
+cd backend
+.\unexamine.ps1 init-config
+# 编辑 config\application.yml：MySQL / Redis / signing-master-key
+.\unexamine.ps1 start
+.\unexamine.ps1 status
+```
+
+默认端口 **9999**（可在 `config/application.yml` 或 `SERVER_PORT` 修改）。
+
+### 3.4 健康检查
 
 - `GET /actuator/health`
 - `GET /actuator/prometheus`（若开启监控）
@@ -91,9 +114,9 @@ location /api/ {
 - 在应用内或构建前配置 `apiBaseUrl`（见 `mobile/uniapp/src/config/env.ts`），指向 `https://api.example.com`。
 - 勿将测试地址 `test.example.com` 打入正式包。
 
-## 6. 上线冒烟清单
+## 6. 可选功能核对
 
-**自动化脚本**（API 级，覆盖下列主流程）：
+不要求每次修改后都跑自动化冒烟；需要上线前人工或脚本核对时，可按下列清单检查。API 脚本仍保留在 `tests/api`，作为可选工具。
 
 ```powershell
 # Windows
@@ -111,8 +134,6 @@ cd tests/api && EXAMINE_HOST=http://127.0.0.1:9999 SMOKE_USER=admin SMOKE_PASS=*
 
 详见 `tests/README.md`、`tests/api/README.md`。
 
-手工核对：
-
 - [ ] 注册/登录，token 写入 Redis
 - [ ] 创建系统 → 进入系统 →（多租户时）选择租户
 - [ ] 创建 app / model / field，保存一条 record
@@ -121,7 +142,7 @@ cd tests/api && EXAMINE_HOST=http://127.0.0.1:9999 SMOKE_USER=admin SMOKE_PASS=*
 - [ ] 流程：模板 + 版本 `graph-designer` 保存/发布（脚本已覆盖 POST/GET）；binding + 新建 record 触发实例（若已配）
 - [ ] 上传附件字段
 - [ ] OpenAPI（若启用）：`appId/secret` 调 `/v1/open/flow/**` 与 `/v1/open/records/**`（含 query/detail）
-- [ ] Web 管理台：创建系统、导出任务、平台收件箱抄送已读（可与移动端二选一冒烟）
+- [ ] Web 管理台：创建系统、导出任务、平台收件箱抄送已读（可与移动端二选一核对）
 
 ## 7. 常见问题
 

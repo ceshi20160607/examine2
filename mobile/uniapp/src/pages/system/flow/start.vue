@@ -55,12 +55,13 @@ import Page from '@/ui/Page.vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import ErrorBlock from '@/ui/ErrorBlock.vue'
 import { pageTemps, startInstance, type FlowTemp } from '@/api/flow'
+import { hasId, idToString } from '@/utils/id'
 
 const starting = ref(false)
 const error = ref<string | null>(null)
 const resultText = ref<string>('')
 const hint = ref<string>('')
-const lastStart = reactive<{ instanceId: number; taskId: number }>({ instanceId: 0, taskId: 0 })
+const lastStart = reactive<{ instanceId: string; taskId: string }>({ instanceId: '', taskId: '' })
 
 const form = reactive({
   defCode: '',
@@ -147,15 +148,17 @@ function goInbox() {
 }
 
 function goLastTask() {
-  if (!lastStart.instanceId || !lastStart.taskId) return
-  uni.navigateTo({ url: `/pages/system/flow/task?instanceId=${lastStart.instanceId}&taskId=${lastStart.taskId}` })
+  if (!hasId(lastStart.instanceId) || !hasId(lastStart.taskId)) return
+  uni.navigateTo({
+    url: `/pages/system/flow/task?instanceId=${encodeURIComponent(lastStart.instanceId)}&taskId=${encodeURIComponent(lastStart.taskId)}`
+  })
 }
 
 async function start() {
   error.value = null
   resultText.value = ''
-  lastStart.instanceId = 0
-  lastStart.taskId = 0
+  lastStart.instanceId = ''
+  lastStart.taskId = ''
 
   if (!form.defCode.trim()) {
     error.value = 'defCode 不能为空'
@@ -190,8 +193,8 @@ async function start() {
       vars
     })
     uni.showToast({ title: '已发起', icon: 'success' })
-    lastStart.instanceId = Number(r?.data?.instanceId || 0) || 0
-    lastStart.taskId = Number(r?.data?.taskId || 0) || 0
+    lastStart.instanceId = idToString(r?.data?.instanceId)
+    lastStart.taskId = idToString(r?.data?.taskId)
     try {
       resultText.value = JSON.stringify(r.data, null, 2)
     } catch {

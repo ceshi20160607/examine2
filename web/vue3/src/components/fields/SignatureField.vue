@@ -12,8 +12,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { buildApiUrl, getToken } from '../../api/http.js'
+import { onBeforeUnmount, ref, watch } from 'vue'
+import { fetchUploadViewBlob, uploadFile } from '../../api/upload.js'
+import { notify } from '../../utils/notify.js'
 
 const props = defineProps({
   modelValue: { type: [Number, String], default: null }
@@ -22,49 +23,67 @@ const emit = defineEmits(['update:modelValue'])
 
 const fileInput = ref(null)
 const previewUrl = ref('')
+let previewObjectUrl = ''
+let loadSeq = 0
 
 watch(
   () => props.modelValue,
-  (id) => {
+  async (id) => {
+    const seq = ++loadSeq
     if (!id) {
-      if (!previewUrl.value.startsWith('blob:')) previewUrl.value = ''
+      revokePreviewObjectUrl()
+      previewUrl.value = ''
       return
     }
-    if (!previewUrl.value.startsWith('blob:')) {
-      previewUrl.value = buildApiUrl(`/v1/system/uploads/${id}/view`)
+    try {
+      const r = await fetchUploadViewBlob(id)
+      if (seq !== loadSeq) return
+      const url = URL.createObjectURL(r.blob)
+      revokePreviewObjectUrl()
+      previewObjectUrl = url
+      previewUrl.value = url
+    } catch (err) {
+      if (seq === loadSeq) {
+        revokePreviewObjectUrl()
+        previewUrl.value = ''
+      }
     }
   },
   { immediate: true }
 )
 
 function clear() {
+  revokePreviewObjectUrl()
   previewUrl.value = ''
   emit('update:modelValue', null)
+}
+
+function revokePreviewObjectUrl() {
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl)
+    previewObjectUrl = ''
+  }
 }
 
 async function onPick(e) {
   const file = e.target.files?.[0]
   if (!file) return
-  const url = buildApiUrl('/v1/system/uploads')
-  const headers = {}
-  const token = getToken()
-  if (token) headers.Authorization = `Bearer ${token}`
-  const form = new FormData()
-  form.append('file', file)
   try {
-    const res = await fetch(url, { method: 'POST', headers, body: form })
-    const data = await res.json()
-    if (!data || data.code !== 0) throw new Error(data?.message || '上传失败')
+    const data = await uploadFile(file)
     const id = data.data?.fileId
     if (!id) throw new Error('无 fileId')
-    previewUrl.value = URL.createObjectURL(file)
+    revokePreviewObjectUrl()
+    previewObjectUrl = URL.createObjectURL(file)
+    previewUrl.value = previewObjectUrl
     emit('update:modelValue', id)
   } catch (err) {
-    alert(err?.message || String(err))
+    notify.error(err?.message || String(err))
   } finally {
     if (fileInput.value) fileInput.value.value = ''
   }
 }
+
+onBeforeUnmount(revokePreviewObjectUrl)
 </script>
 
 <style scoped>

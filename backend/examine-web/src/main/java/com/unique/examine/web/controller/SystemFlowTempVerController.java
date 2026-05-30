@@ -1,5 +1,7 @@
 package com.unique.examine.web.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.core.security.AuthContextHolder;
 import com.unique.examine.core.web.ApiResult;
@@ -20,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Tag(name = "自建系统态-flow模板版本（CRUD封装）")
 @RestController
@@ -33,6 +37,8 @@ public class SystemFlowTempVerController {
     private IFlowTempVerService flowTempVerService;
     @Autowired
     private IFlowTempService flowTempService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Operation(summary = "版本分页（按 tempId；system/tenant 隔离）")
     @GetMapping("/page")
@@ -230,6 +236,7 @@ public class SystemFlowTempVerController {
         if (v.getGraphJson() == null || v.getGraphJson().isBlank()) {
             throw new BusinessException(400, "发布前必须填写 graphJson");
         }
+        validatePublishableGraph(v.getGraphJson());
         FlowTemp t = flowTempService.getById(v.getTempId());
         if (t == null) {
             throw new BusinessException(404, "模板不存在");
@@ -271,6 +278,59 @@ public class SystemFlowTempVerController {
         flowTempService.updateById(t);
 
         return ApiResult.ok(v);
+    }
+
+    private void validatePublishableGraph(String graphJson) {
+        JsonNode root;
+        try {
+            root = objectMapper.readTree(graphJson);
+        } catch (Exception e) {
+            throw new BusinessException(400, "graphJson 解析失败");
+        }
+        JsonNode nodes = root.path("nodes");
+        JsonNode edges = root.path("edges");
+        if (!nodes.isArray() || nodes.isEmpty()) {
+            throw new BusinessException(400, "发布前必须配置流程节点");
+        }
+        if (!edges.isArray() || edges.isEmpty()) {
+            throw new BusinessException(400, "发布前必须配置流程连线");
+        }
+
+        Set<String> nodeKeys = new HashSet<>();
+        boolean hasStart = false;
+        boolean hasApprove = false;
+        boolean hasEnd = false;
+        for (JsonNode n : nodes) {
+            String id = n.path("id").asText(null);
+            if (id == null || id.isBlank()) {
+                throw new BusinessException(400, "流程节点缺少 id");
+            }
+            if (!nodeKeys.add(id.trim())) {
+                throw new BusinessException(400, "流程节点 id 重复: " + id.trim());
+            }
+            String type = n.path("type").asText("").trim().toLowerCase();
+            if ("start".equals(type)) {
+                hasStart = true;
+            } else if ("approve".equals(type)) {
+                hasApprove = true;
+            } else if ("end".equals(type)) {
+                hasEnd = true;
+            }
+        }
+        if (!hasStart || !hasApprove || !hasEnd) {
+            throw new BusinessException(400, "发布前必须包含 start、approve、end 节点");
+        }
+
+        for (JsonNode e : edges) {
+            String from = e.path("from").asText(null);
+            String to = e.path("to").asText(null);
+            if (from == null || from.isBlank() || to == null || to.isBlank()) {
+                throw new BusinessException(400, "流程连线缺少 from/to");
+            }
+            if (!nodeKeys.contains(from.trim()) || !nodeKeys.contains(to.trim())) {
+                throw new BusinessException(400, "流程连线引用了不存在的节点: " + from + " -> " + to);
+            }
+        }
     }
 }
 

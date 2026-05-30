@@ -210,7 +210,6 @@ public class FlowTaskInboxService {
 
     /**
      * 平台态待办聚合：不要求已进入系统，直接聚合所有 system/tenant 下属于我的待办（status=1）。
-     * 说明：MVP 仅按处理人/候选人匹配，不做“我是否有该 system 权限”的二次校验（后续对接 AuthContext）。
      */
     public List<FlowTask> listMyPendingTasksAcrossSystems(Integer limit) {
         return listMyPendingTasksAcrossSystems(limit, null, null);
@@ -408,4 +407,3 @@ public class FlowTaskInboxService {
         return false;
     }
 }
-
