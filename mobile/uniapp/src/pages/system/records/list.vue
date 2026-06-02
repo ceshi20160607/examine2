@@ -61,6 +61,7 @@ import { listFilterFields, listFilterTpls, type ModuleFilterFieldRow, type Modul
 import { getPageRuntime } from '@/api/pages'
 import { pageQuerySuffix, type PageRuntime, type PageRuntimeColumn } from '@/utils/pageRuntime'
 import { hasId, idToString, type IdValue } from '@/utils/id'
+import { createModulePermState, MODULE_PERMS } from '@/utils/modulePerms'
 
 type Row = { id: string }
 type Summary = { title: string; note: string }
@@ -81,6 +82,8 @@ const filterTpls = ref<ModuleFilterTplRow[]>([])
 const activeFilterTplIndex = ref(0)
 const filterFields = ref<ModuleFilterFieldRow[]>([])
 const filterValues = ref<Record<string, string>>({})
+const { loadModulePerms, hasModulePerm } = createModulePermState()
+const canManageRecords = computed(() => hasModulePerm(MODULE_PERMS.records))
 
 const pageTitle = computed(() => {
   if (pageRuntime.value?.pageName) return pageRuntime.value.pageName
@@ -263,6 +266,10 @@ function formatCellValue(v: any, col: PageRuntimeColumn): string {
 }
 
 function goCreate() {
+  if (!canManageRecords.value) {
+    error.value = '当前账号没有记录维护权限'
+    return
+  }
   uni.navigateTo({
     url: `/pages/system/records/form?appId=${encodeURIComponent(appId.value)}&modelId=${encodeURIComponent(modelId.value)}${pageQuerySuffix(pageId.value)}`
   })
@@ -358,6 +365,7 @@ function applyDefaultFilterValues() {
 
 onMounted(async () => {
   if (!ensureSystemContext()) return
+  await loadModulePerms()
   await loadPageRuntime()
   await loadFieldsForSearch()
   await loadFilterTpls()

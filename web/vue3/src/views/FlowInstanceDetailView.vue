@@ -95,7 +95,8 @@ const TASK_STATUS = {
   1: '待处理',
   2: '已同意',
   3: '已拒绝',
-  4: '已取消'
+  4: '已转交',
+  5: '已取消/跳过'
 }
 
 function statusLabel(status) {

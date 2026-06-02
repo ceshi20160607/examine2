@@ -8,10 +8,11 @@
           <text>多租户</text>
         </label>
         <ActionBar>
-          <uni-button type="primary" :disabled="creating" @click="createSystem">创建</uni-button>
+          <uni-button type="primary" :disabled="creating || !canCreateSystem" @click="createSystem">创建</uni-button>
           <uni-button :disabled="loading" @click="load">刷新</uni-button>
         </ActionBar>
       </view>
+      <view v-if="permissionsLoaded && !canCreateSystem" class="u-subtitle">当前账号没有创建系统权限，可进入已授权的系统。</view>
       <ErrorBlock :text="error" />
     </view>
 
@@ -29,9 +30,9 @@
               <view v-if="s.ownerPlatAccountId" class="u-subtitle">owner={{ s.ownerPlatAccountId }}</view>
             </view>
             <ActionBar>
-              <uni-button size="mini" :disabled="s.status === 1" @click="setStatus(s, 1)">启用</uni-button>
-              <uni-button size="mini" :disabled="s.status === 2" @click="setStatus(s, 2)">停用</uni-button>
-              <uni-button size="mini" type="warn" @click="removeSystem(s)">删除</uni-button>
+              <uni-button v-if="canChangeSystemStatus" size="mini" :disabled="s.status === 1" @click="setStatus(s, 1)">启用</uni-button>
+              <uni-button v-if="canChangeSystemStatus" size="mini" :disabled="s.status === 2" @click="setStatus(s, 2)">停用</uni-button>
+              <uni-button v-if="canDeleteSystem" size="mini" type="warn" @click="removeSystem(s)">删除</uni-button>
             </ActionBar>
           </view>
         </view>
@@ -48,6 +49,7 @@ import {
   deleteSystem as apiDeleteSystem,
   enterSystem as apiEnterSystem,
   listMySystems,
+  listPlatformPermissions,
   setSystemStatus,
   type PlatSystem
 } from '@/api/platform'
@@ -66,6 +68,32 @@ const newSystemName = ref('')
 const newMultiTenant = ref(false)
 const error = ref<string | null>(null)
 const session = useSessionStore()
+const permissionsLoaded = ref(false)
+const platformPermCodes = ref<string[]>([])
+const canCreateSystem = ref(true)
+const canChangeSystemStatus = ref(true)
+const canDeleteSystem = ref(true)
+
+function hasPlatformPerm(code: string) {
+  return platformPermCodes.value.includes(code)
+}
+
+async function loadPermissions() {
+  try {
+    const r = await listPlatformPermissions()
+    const data = r.data || {}
+    platformPermCodes.value = Array.isArray(data.platPermCodes) ? data.platPermCodes : []
+    canCreateSystem.value = Number(data.canCreateSystem || 0) === 1 || hasPlatformPerm('SYSTEM_CREATE')
+    canChangeSystemStatus.value = hasPlatformPerm('SYSTEM_STATUS')
+    canDeleteSystem.value = hasPlatformPerm('SYSTEM_DELETE')
+  } catch {
+    canCreateSystem.value = true
+    canChangeSystemStatus.value = true
+    canDeleteSystem.value = true
+  } finally {
+    permissionsLoaded.value = true
+  }
+}
 
 function statusText(status?: number) {
   if (status === 1) return '启用'
@@ -170,6 +198,7 @@ function removeSystem(s: PlatSystem) {
 
 onMounted(() => {
   if (!ensureLogin()) return
+  loadPermissions()
   load()
 })
 </script>

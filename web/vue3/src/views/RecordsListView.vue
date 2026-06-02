@@ -7,6 +7,7 @@
       <button type="button" @click="load">查询</button>
       <button v-if="activeFilterItems.length" type="button" @click="resetFilters">重置筛选</button>
       <router-link
+        v-if="canManageRecords"
         class="btn"
         :to="{ path: '/records/form', query: { appId, modelId, pageId } }"
       >新建</router-link>
@@ -51,6 +52,7 @@
             >详情</router-link>
             ·
             <router-link
+              v-if="canManageRecords"
               :to="{ path: '/records/form', query: { appId, modelId, pageId, recordId: row.id } }"
             >编辑</router-link>
             ·
@@ -74,6 +76,7 @@ import { getPageRuntime } from '../api/pages'
 import { deleteRecord, queryRecords } from '../api/records'
 import { confirmDialog } from '../utils/dialog.js'
 import { notify } from '../utils/notify.js'
+import { createModulePermState, MODULE_PERMS } from '../utils/modulePerms.js'
 
 const route = useRoute()
 const appId = ref('')
@@ -91,8 +94,11 @@ const total = ref(0)
 const keyword = ref('')
 const loading = ref(false)
 const error = ref('')
+const { loadModulePerms, hasModulePerm } = createModulePermState()
 
 const title = computed(() => pageRuntime.value?.pageName || '记录列表')
+
+const canManageRecords = computed(() => hasModulePerm(MODULE_PERMS.records))
 
 const displayColumns = computed(() => {
   const runtimeCols = Array.isArray(pageRuntime.value?.columns) ? pageRuntime.value.columns : []
@@ -367,6 +373,10 @@ function resetFilters() {
 }
 
 async function remove(row) {
+  if (!canManageRecords.value) {
+    error.value = '当前账号没有记录维护权限'
+    return
+  }
   if (!row?.id || !(await confirmDialog(`删除记录 #${row.id}？`, { danger: true, confirmText: '删除' }))) return
   error.value = ''
   try {
@@ -394,6 +404,7 @@ watch(() => route.query, async () => {
 
 onMounted(async () => {
   syncFromRoute()
+  await loadModulePerms()
   await loadRuntime()
   await loadFieldLabels()
   await loadFilterTpls()

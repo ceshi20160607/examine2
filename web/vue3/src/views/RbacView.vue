@@ -43,6 +43,16 @@
     </table>
     <p v-else class="muted">暂无角色</p>
 
+    <h3>当前会话权限</h3>
+    <div class="toolbar">
+      <button type="button" @click="loadPermissions">刷新权限</button>
+      <span class="muted">ownerWildcard={{ permissionInfo.ownerWildcard ? '是' : '否' }}</span>
+    </div>
+    <p v-if="permissionKeys.length" class="perm-list">
+      <span v-for="key in permissionKeys" :key="key" class="perm-key">{{ key }}</span>
+    </p>
+    <p v-else class="muted">暂无显式权限键</p>
+
     <h3>权限验证（URI）</h3>
     <div class="toolbar">
       <input v-model="permPreviewUri" placeholder="/v1/system/records/query" class="wide" />
@@ -89,6 +99,7 @@ import { useRoute } from 'vue-router'
 import AdminLayout from '../layouts/AdminLayout.vue'
 import {
   assignRbacMemberRole,
+  listModulePermissions,
   listRbacMembers,
   listRbacRoles,
   permPreview,
@@ -109,6 +120,8 @@ const memberRoleId = ref('')
 const error = ref('')
 const permPreviewUri = ref('/v1/system/records/query')
 const permPreviewText = ref('')
+const permissionInfo = ref({})
+const permissionKeys = ref([])
 
 const dataScopeOptions = [
   { value: 1, label: '1 仅本人' },
@@ -159,10 +172,16 @@ async function loadMembers() {
 async function loadAll() {
   error.value = ''
   try {
-    await Promise.all([loadRoles(), loadMembers()])
+    await Promise.all([loadRoles(), loadMembers(), loadPermissions()])
   } catch (e) {
     error.value = e?.message || String(e)
   }
+}
+
+async function loadPermissions() {
+  const r = await listModulePermissions()
+  permissionInfo.value = r.data || {}
+  permissionKeys.value = Array.isArray(r.data?.permKeys) ? r.data.permKeys : []
 }
 
 async function saveRole() {
@@ -262,4 +281,6 @@ h3 { margin-top: 1.25rem; }
 .wide { flex: 1; min-width: 220px; }
 .pre { background: #f8fafc; border: 1px solid #e5e7eb; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; overflow: auto; }
 .link { background: none; border: none; color: #1677ff; cursor: pointer; padding: 0; }
+.perm-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.perm-key { border: 1px solid #d1d5db; border-radius: 999px; padding: 0.2rem 0.45rem; background: #f8fafc; font-size: 0.85rem; }
 </style>

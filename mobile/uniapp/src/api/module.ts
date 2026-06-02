@@ -414,6 +414,15 @@ export function permPreview(uri: string): Promise<ApiResult<Record<string, any>>
   return httpGet<Record<string, any>>(`/v1/system/auth/perm-preview?uri=${encodeURIComponent(uri)}`)
 }
 
+export type ModulePermissionInfo = {
+  permKeys?: string[]
+  ownerWildcard?: boolean
+}
+
+export function listModulePermissions(): Promise<ApiResult<ModulePermissionInfo>> {
+  return httpGet<ModulePermissionInfo>('/v1/system/auth/permissions')
+}
+
 function pathId(value: IdValue): string {
   return encodeURIComponent(idToString(value))
 }

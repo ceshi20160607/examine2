@@ -31,6 +31,7 @@
 import { computed, ref, watch } from 'vue'
 import ActionBar from '@/ui/ActionBar.vue'
 import { listFieldsByModel, type ModuleField } from '@/api/meta'
+import { attachRelation, detachRelation } from '@/api/records'
 import { configFromMeta } from '@/utils/fieldTypes'
 import { buildRowCellsMap, loadSubRowsByRelation } from '@/utils/refPicker'
 import { hasId, idToString, uniqueIds, type IdValue } from '@/utils/id'
@@ -56,6 +57,8 @@ const columns = ref<Col[]>([])
 const rowMap = ref<Record<string, Row>>({})
 const relationHint = ref('')
 const relationFkField = ref('')
+const relationId = ref('')
+const relationRelType = ref('')
 const loadingRelation = ref(false)
 
 const useRelationQuery = computed(
@@ -102,7 +105,33 @@ function emitIds(ids: string[]) {
   emit('update:modelValue', uniqueIds(ids))
 }
 
-function removeRow(id: string) {
+function isNnRelation() {
+  const t = String(relationRelType.value || '').toLowerCase()
+  return t === 'n-n' || t === 'nn'
+}
+
+async function ensureRelationLoaded() {
+  if (!useRelationQuery.value || relationId.value) return
+  await loadFromRelation()
+}
+
+async function removeRow(id: string) {
+  await ensureRelationLoaded()
+  if (isNnRelation() && relationId.value) {
+    const pid = idToString(props.parentRecordId)
+    if (!hasId(pid)) {
+      uni.showToast({ title: '父记录保存后才能移除关联', icon: 'none' })
+      return
+    }
+    try {
+      await detachRelation({ relationId: relationId.value, parentRecordId: pid, childRecordId: id })
+      await loadFromRelation()
+      uni.showToast({ title: '关联已移除', icon: 'success' })
+    } catch (e: any) {
+      uni.showToast({ title: e?.message || '移除关联失败', icon: 'none' })
+    }
+    return
+  }
   emitIds(selectedIds.value.filter((x) => x !== id))
 }
 
@@ -118,15 +147,28 @@ function createNew() {
   }
   let url = `/pages/system/records/form?appId=${encodeURIComponent(idToString(props.appId))}&modelId=${encodeURIComponent(refModelId.value)}&embed=1`
   const pid = idToString(props.parentRecordId)
-  if (hasId(pid) && relationFkField.value) {
+  if (hasId(pid) && relationFkField.value && !isNnRelation()) {
     url += `&linkParentId=${encodeURIComponent(pid)}&linkFkField=${encodeURIComponent(relationFkField.value)}`
   }
   uni.navigateTo({
     url,
     events: {
-      recordCreated: (payload: { recordId?: IdValue }) => {
+      recordCreated: async (payload: { recordId?: IdValue }) => {
         const id = idToString(payload?.recordId)
         if (!hasId(id)) return
+        await ensureRelationLoaded()
+        if (isNnRelation() && relationId.value) {
+          const parentId = idToString(props.parentRecordId)
+          if (hasId(parentId)) {
+            try {
+              await attachRelation({ relationId: relationId.value, parentRecordId: parentId, childRecordId: id })
+              await loadFromRelation()
+              return
+            } catch (e: any) {
+              uni.showToast({ title: e?.message || '新建记录已保存，但关联写入失败', icon: 'none' })
+            }
+          }
+        }
         if (!selectedIds.value.includes(id)) {
           emitIds([...selectedIds.value, id])
         }
@@ -148,11 +190,27 @@ function pickAdd() {
   }
   uni.showActionSheet({
     itemList: candidates.slice(0, 12).map((o) => o.text),
-    success: (res) => {
+    success: async (res) => {
       const picked = candidates[res.tapIndex]
       if (!picked) return
       const id = idToString(picked.value)
       if (!hasId(id)) return
+      await ensureRelationLoaded()
+      if (isNnRelation() && relationId.value) {
+        const pid = idToString(props.parentRecordId)
+        if (!hasId(pid)) {
+          uni.showToast({ title: '父记录保存后才能添加关联', icon: 'none' })
+          return
+        }
+        try {
+          await attachRelation({ relationId: relationId.value, parentRecordId: pid, childRecordId: id })
+          await loadFromRelation()
+          uni.showToast({ title: '关联已添加', icon: 'success' })
+        } catch (e: any) {
+          uni.showToast({ title: e?.message || '添加关联失败', icon: 'none' })
+        }
+        return
+      }
       emitIds([...selectedIds.value, id])
     }
   })
@@ -240,20 +298,23 @@ async function loadFromRelation() {
       options: props.options
     })
     relationFkField.value = r.fkField || ''
-    if (r.relationId && r.relType !== 'n-n') {
+    relationId.value = r.relationId || ''
+    relationRelType.value = String(r.relType || '').toLowerCase()
+    if (r.relationId) {
       rowMap.value = r.rowMap
       const ids = r.ids || []
       const cur = selectedIds.value.join(',')
       const next = ids.join(',')
       if (cur !== next) emitIds(ids)
-      relationHint.value = `已按关系 #${r.relationId} 加载 ${ids.length} 条`
+      relationHint.value = r.relType === 'n-n'
+        ? `已按 n-n 关系 #${r.relationId} 加载 ${ids.length} 条关联记录`
+        : `已按关系 #${r.relationId} 加载 ${ids.length} 条`
       return true
-    }
-    if (r.relType === 'n-n') {
-      relationHint.value = 'n-n 关系请使用父字段中的关联 ID 列表'
     }
   } catch (e: any) {
     relationHint.value = e?.message || '按关系加载失败'
+    relationId.value = ''
+    relationRelType.value = ''
   } finally {
     loadingRelation.value = false
   }

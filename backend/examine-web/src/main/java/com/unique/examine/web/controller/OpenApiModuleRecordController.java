@@ -45,6 +45,8 @@ public class OpenApiModuleRecordController {
 
     public record QueryByRelationBody(Long relationId, Long parentRecordId, ModuleRecordDslQuery query) {}
 
+    public record RelationLinkBody(Long relationId, Long parentRecordId, Long childRecordId) {}
+
     @Operation(summary = "创建记录（EAV）")
     @PostMapping("")
     public ApiResult<Map<String, Object>> create(
@@ -129,6 +131,52 @@ public class OpenApiModuleRecordController {
         }
         return ApiResult.ok(moduleRelationRecordService.queryByRelation(
                 body.relationId(), body.parentRecordId(), body.query()));
+    }
+
+    @Operation(summary = "创建 n-n 模型关系关联")
+    @PostMapping("/relations/attach")
+    public ApiResult<Map<String, Object>> attachRelation(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @RequestBody RelationLinkBody body) {
+        Long clientId = (Long) request.getAttribute("openApiClientId");
+        return openApiIdempotencyService.execute(
+                response,
+                clientId,
+                request.getMethod(),
+                request.getRequestURI(),
+                idempotencyKey,
+                () -> {
+                    if (body == null) {
+                        return ApiResult.fail(400, "body 不能为空");
+                    }
+                    return ApiResult.ok(moduleRelationRecordService.attachNn(
+                            body.relationId(), body.parentRecordId(), body.childRecordId()));
+                });
+    }
+
+    @Operation(summary = "删除 n-n 模型关系关联")
+    @PostMapping("/relations/detach")
+    public ApiResult<Map<String, Object>> detachRelation(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @RequestBody RelationLinkBody body) {
+        Long clientId = (Long) request.getAttribute("openApiClientId");
+        return openApiIdempotencyService.execute(
+                response,
+                clientId,
+                request.getMethod(),
+                request.getRequestURI(),
+                idempotencyKey,
+                () -> {
+                    if (body == null) {
+                        return ApiResult.fail(400, "body 不能为空");
+                    }
+                    return ApiResult.ok(moduleRelationRecordService.detachNn(
+                            body.relationId(), body.parentRecordId(), body.childRecordId()));
+                });
     }
 
     @Operation(summary = "记录变更历史")

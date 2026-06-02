@@ -77,6 +77,7 @@ import {
 } from '../api/module'
 import { confirmDialog, promptText } from '../utils/dialog.js'
 import { notify } from '../utils/notify.js'
+import { createModulePermState, MODULE_PERMS } from '../utils/modulePerms.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,6 +90,9 @@ const fields = ref([])
 const activeTpl = ref(null)
 const error = ref('')
 const exportingId = ref(0)
+const { loadModulePerms, hasModulePerm } = createModulePermState()
+const canManageExports = computed(() => hasModulePerm(MODULE_PERMS.exports))
+const canViewExportJobs = computed(() => hasModulePerm(MODULE_PERMS.exportJobs))
 
 async function loadModels() {
   try {
@@ -168,6 +172,10 @@ function formatLabel(value) {
 }
 
 async function loadTpls() {
+  if (!canManageExports.value) {
+    error.value = '当前账号没有导出模板权限'
+    return
+  }
   const modelId = modelIdText.value.trim()
   if (!modelId) {
     error.value = '请输入 modelId'
@@ -194,6 +202,10 @@ async function editTpl(t) {
 }
 
 async function saveTpl(existing = null) {
+  if (!canManageExports.value) {
+    error.value = '当前账号没有导出模板权限'
+    return
+  }
   const modelId = modelIdText.value.trim()
   const tplCode = await promptText('导出模板编码', { defaultValue: existing?.tplCode || '' })
   const tplName = await promptText('导出模板名称', { defaultValue: existing?.tplName || '' })
@@ -218,6 +230,10 @@ async function saveTpl(existing = null) {
 }
 
 async function removeTpl(t) {
+  if (!canManageExports.value) {
+    error.value = '当前账号没有导出模板权限'
+    return
+  }
   if (!t?.id || !(await confirmDialog(`删除导出模板 ${t.tplCode || t.id}？`, { danger: true, confirmText: '删除' }))) return
   error.value = ''
   try {
@@ -230,6 +246,10 @@ async function removeTpl(t) {
 }
 
 async function loadFields(t) {
+  if (!canManageExports.value) {
+    error.value = '当前账号没有导出模板权限'
+    return
+  }
   activeTpl.value = t
   error.value = ''
   try {
@@ -242,6 +262,10 @@ async function loadFields(t) {
 }
 
 async function saveField(existing = null) {
+  if (!canManageExports.value) {
+    error.value = '当前账号没有导出模板权限'
+    return
+  }
   if (!activeTpl.value) return
   if (!modelFields.value.length) await loadModelFields()
   const defaultField = modelFields.value.find((f) => !fields.value.some((x) => String(x.fieldId) === String(f.id)))
@@ -286,6 +310,10 @@ async function editField(f) {
 }
 
 async function removeField(f) {
+  if (!canManageExports.value) {
+    error.value = '当前账号没有导出模板权限'
+    return
+  }
   if (!f?.id || !(await confirmDialog(`删除导出字段 ${f.colTitle || f.id}？`, { danger: true, confirmText: '删除' }))) return
   error.value = ''
   try {
@@ -298,6 +326,10 @@ async function removeField(f) {
 }
 
 async function startExport(t) {
+  if (!canViewExportJobs.value) {
+    error.value = '当前账号没有导出任务权限'
+    return
+  }
   const modelId = modelIdText.value.trim()
   if (!appId.value || !modelId) {
     error.value = '需要 appId 与 modelId'
@@ -326,6 +358,7 @@ async function startExport(t) {
 }
 
 onMounted(async () => {
+  await loadModulePerms()
   await loadModels()
   if (modelIdText.value) await loadTpls()
 })

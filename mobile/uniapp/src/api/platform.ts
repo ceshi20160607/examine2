@@ -46,8 +46,20 @@ export type PlatformFlowTask = {
   createdAt?: string
 }
 
+export type PlatformPermissionPayload = {
+  rbacEnabled?: boolean
+  roleCodes?: string[]
+  menus?: any[]
+  platPermCodes?: string[]
+  canCreateSystem?: number
+}
+
 export async function listMySystems(): Promise<ApiResult<PlatSystem[]>> {
   return httpGet<PlatSystem[]>('/v1/platform/systems')
+}
+
+export function listPlatformPermissions(): Promise<ApiResult<PlatformPermissionPayload>> {
+  return httpGet<PlatformPermissionPayload>('/v1/platform/permissions/me')
 }
 
 export async function createSystem(name: string, multiTenantEnabled = 0): Promise<ApiResult<PlatSystem>> {

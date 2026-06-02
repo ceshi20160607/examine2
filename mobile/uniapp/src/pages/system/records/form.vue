@@ -200,7 +200,7 @@
       </uni-forms>
 
       <ActionBar>
-        <uni-button type="primary" :disabled="saving" @click="submit">{{ recordId ? '更新' : '创建' }}</uni-button>
+        <uni-button type="primary" :disabled="saving || !canManageRecords" @click="submit">{{ recordId ? '更新' : '创建' }}</uni-button>
         <uni-button :disabled="saving" @click="back">返回</uni-button>
         <uni-button :disabled="saving" @click="toggleAdvanced">{{ advancedJson ? '切回表单' : '高级 JSON' }}</uni-button>
       </ActionBar>
@@ -261,6 +261,7 @@ import { loadRefSelectOptions } from '@/utils/refPicker'
 import { getPageRuntime } from '@/api/pages'
 import { applyPageFieldOverrides, pageQuerySuffix, type PageRuntime } from '@/utils/pageRuntime'
 import { hasId, idToString, uniqueIds, type IdValue } from '@/utils/id'
+import { createModulePermState, MODULE_PERMS } from '@/utils/modulePerms'
 
 const appId = ref('')
 const modelId = ref('')
@@ -273,6 +274,8 @@ const advancedJson = ref(false)
 const jsonText = ref('{}')
 const saving = ref(false)
 const error = ref<string | null>(null)
+const { loadModulePerms, hasModulePerm } = createModulePermState()
+const canManageRecords = computed(() => hasModulePerm(MODULE_PERMS.records))
 
 const title = computed(() => {
   if (pageRuntime.value?.pageName) {
@@ -301,7 +304,7 @@ onLoad((opts) => {
 
 onMounted(() => {
   ensureSystemContext()
-  bootstrap()
+  loadModulePerms().then(() => bootstrap())
 })
 
 function back() {
@@ -695,6 +698,10 @@ function validateRequired(dataObj: any): string | null {
 
 async function submit() {
   error.value = null
+  if (!canManageRecords.value) {
+    error.value = '当前账号没有记录维护权限'
+    return
+  }
   let dataObj: any
   if (advancedJson.value) {
     try {

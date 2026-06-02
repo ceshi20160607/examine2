@@ -21,12 +21,20 @@ function listRecordHistory(recordId, limit = 50) {
 function queryRecordsByRelation(cmd) {
   return httpPost("/v1/system/records/query-by-relation", cmd);
 }
+function attachRelation(cmd) {
+  return httpPost("/v1/system/records/relations/attach", cmd);
+}
+function detachRelation(cmd) {
+  return httpPost("/v1/system/records/relations/detach", cmd);
+}
 function pathId(value) {
   return encodeURIComponent(idToString(value));
 }
 export {
+  attachRelation,
   createRecord,
   deleteRecord,
+  detachRelation,
   getRecord,
   listRecordHistory,
   queryRecords,

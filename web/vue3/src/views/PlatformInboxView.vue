@@ -128,7 +128,7 @@ async function markCcRead(taskId) {
 
 async function openTask(task) {
   const taskId = idToString(task?.id)
-  const instanceId = idToString(task?.instanceId)
+  const instanceId = idToString(task?.instanceId || task?.recordId)
   const systemId = idToString(task?.systemId)
   const tenantId = idToString(task?.tenantId || '0') || '0'
   if (!taskId || !instanceId) {

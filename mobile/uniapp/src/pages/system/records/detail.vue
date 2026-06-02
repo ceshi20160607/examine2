@@ -53,6 +53,7 @@ import {
 import { resolveRefDisplay } from '@/utils/refPicker'
 import { pageQuerySuffix } from '@/utils/pageRuntime'
 import { hasId, idToString, uniqueIds, type IdValue } from '@/utils/id'
+import { createModulePermState, MODULE_PERMS } from '@/utils/modulePerms'
 
 const recordId = ref('')
 const pageId = ref('')
@@ -64,6 +65,8 @@ const fieldMetaByCode = ref<Record<string, ModuleField>>({})
 const refLabelByKey = ref<Record<string, string>>({})
 const memberLabelMap = ref<Record<string, string>>({})
 const deptLabelMap = ref<Record<string, string>>({})
+const { loadModulePerms, hasModulePerm } = createModulePermState()
+const canManageRecords = computed(() => hasModulePerm(MODULE_PERMS.records))
 
 onLoad((opts) => {
   recordId.value = idToString((opts as any)?.recordId)
@@ -161,6 +164,10 @@ async function load() {
 }
 
 function goEdit() {
+  if (!canManageRecords.value) {
+    error.value = '当前账号没有记录维护权限'
+    return
+  }
   const rec = detail.value?.record
   const appId = idToString(rec?.appId)
   const modelId = idToString(rec?.modelId)
@@ -300,6 +307,10 @@ function stringifyValue(v: any): string {
 
 function doDelete() {
   if (!hasId(recordId.value)) return
+  if (!canManageRecords.value) {
+    error.value = '当前账号没有记录维护权限'
+    return
+  }
   uni.showModal({
     title: '确认删除？',
     content: `将删除记录 #${recordId.value}`,
@@ -318,7 +329,7 @@ function doDelete() {
 
 onMounted(() => {
   if (!ensureSystemContext()) return
-  load()
+  loadModulePerms().then(() => load())
 })
 </script>
 

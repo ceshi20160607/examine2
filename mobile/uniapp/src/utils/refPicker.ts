@@ -136,7 +136,7 @@ export async function resolveRelationId(
     const list = (r.data || []) as ModuleRelation[]
     const hit = list.find((rel) => {
       const t = String(rel.relType || '').toLowerCase()
-      if (t !== '1-n' && t !== '1-1' && t !== '1n' && t !== '11') return false
+      if (!['1-n', '1-1', '1n', '11', 'n-n', 'nn'].includes(t)) return false
       return sameId(rel.srcModelId, srcId) && sameId(rel.dstModelId, dstId)
     })
     return hit?.id ? idToString(hit.id) : ''
@@ -194,6 +194,7 @@ export async function loadSubRowsByRelation(params: {
   rowMap: Record<string, { id: string; cells: Record<string, string> }>
   relationId?: string
   relType?: string
+  linkRecordIdByDstId?: Record<string, string>
   fkField?: string
 }> {
   const pid = idToString(params.parentRecordId)
@@ -205,9 +206,6 @@ export async function loadSubRowsByRelation(params: {
   const r = await listRelationsByApp(params.appId)
   const rel = ((r.data || []) as ModuleRelation[]).find((x) => sameId(x.id, relationId)) || null
   const relType = String(rel?.relType || '1-n').toLowerCase()
-  if (relType === 'n-n') {
-    return { ids: [], rowMap: {}, relationId, relType }
-  }
 
   const includeFieldCodes = fieldIncludeCodes(params.field)
   const qr = await queryRecordsByRelation({
@@ -221,7 +219,8 @@ export async function loadSubRowsByRelation(params: {
     ids,
     rowMap: rowMapFromQueryList(list, params.columns, params.field, params.options),
     relationId,
-    relType,
+    relType: qr.data?.relType || relType,
+    linkRecordIdByDstId: qr.data?.linkRecordIdByDstId || {},
     fkField: fkFieldFromRelation(rel)
   }
 }

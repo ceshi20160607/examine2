@@ -41,15 +41,43 @@ function saveGraphDesigner(tempVerId, body) {
 function startInstance(cmd) {
   return httpPost("/v1/system/flow/instances/start", cmd);
 }
-function pageInstances(page = 1, size = 20, keyword) {
+function pageInstances(page = 1, size = 20, keyword, params = {}) {
   const kw = (keyword || "").trim();
-  return httpGet(`/v1/system/flow/instances/page?page=${q(page)}&size=${q(size)}${kw ? `&keyword=${encodeURIComponent(kw)}` : ""}`);
+  const query = [`page=${q(page)}`, `size=${q(size)}`];
+  if (kw) {
+    query.push(`keyword=${q(kw)}`);
+  }
+  for (const key of ["status", "bizType", "starterPlatId", "tempId", "rootOnly", "currentNodeKey", "startFrom", "startTo"]) {
+    const value = params[key];
+    if (value != null && String(value).trim()) {
+      query.push(`${key}=${q(String(value).trim())}`);
+    }
+  }
+  return httpGet(`/v1/system/flow/instances/page?${query.join("&")}`);
 }
-function pageMyInstances(page = 1, size = 20, keyword) {
+function pageMyInstances(page = 1, size = 20, keyword, params = {}) {
   const kw = (keyword || "").trim();
-  return httpGet(
-    `/v1/system/flow/instances/my/page?page=${q(page)}&size=${q(size)}${kw ? `&keyword=${encodeURIComponent(kw)}` : ""}`
-  );
+  const query = [`page=${q(page)}`, `size=${q(size)}`];
+  if (kw) {
+    query.push(`keyword=${q(kw)}`);
+  }
+  for (const key of ["onlyRunning", "tempId", "rootOnly", "currentNodeKey", "includeStarted", "includeTodo", "includeCc", "startFrom", "startTo"]) {
+    const value = params[key];
+    if (value != null && String(value).trim()) {
+      query.push(`${key}=${q(String(value).trim())}`);
+    }
+  }
+  return httpGet(`/v1/system/flow/instances/my/page?${query.join("&")}`);
+}
+function pageTasks(page = 1, size = 20, params = {}) {
+  const query = [`page=${q(page)}`, `size=${q(size)}`];
+  for (const key of ["status", "recordId", "taskType", "assigneePlatId", "nodeKey", "keyword"]) {
+    const value = params[key];
+    if (value != null && String(value).trim()) {
+      query.push(`${key}=${q(String(value).trim())}`);
+    }
+  }
+  return httpGet(`/v1/system/flow/tasks/page?${query.join("&")}`);
 }
 function getInstance(instanceId) {
   return httpGet(`/v1/system/flow/instances/${pathId(instanceId)}`);
@@ -66,8 +94,15 @@ function listInstanceTraces(instanceId) {
 function inboxPending(limit = 50) {
   return httpGet(`/v1/system/flow/inbox/tasks/pending?limit=${q(limit)}`);
 }
-function inboxCc(limit = 50) {
-  return httpGet(`/v1/system/flow/inbox/cc?limit=${q(limit)}`);
+function inboxCc(limit = 50, onlyUnread) {
+  const query = [`limit=${q(limit)}`];
+  if (onlyUnread != null) {
+    query.push(`onlyUnread=${q(onlyUnread)}`);
+  }
+  return httpGet(`/v1/system/flow/inbox/cc?${query.join("&")}`);
+}
+function readInboxCc(taskId) {
+  return httpPost(`/v1/system/flow/inbox/cc/${pathId(taskId)}/read`, {});
 }
 function byBiz(bizType, bizId) {
   return httpGet(`/v1/system/flow/instances/by-biz?bizType=${encodeURIComponent(bizType)}&bizId=${encodeURIComponent(bizId)}`);
@@ -159,6 +194,7 @@ export {
   loadGraphDesigner,
   pageInstances,
   pageMyInstances,
+  pageTasks,
   pageTempVerLineConds,
   pageTempVerLines,
   pageTempVerNodeSettings,
@@ -167,6 +203,7 @@ export {
   pageTempVers,
   pageTemps,
   publishTempVer,
+  readInboxCc,
   saveGraphDesigner,
   startInstance,
   upsertTemp,

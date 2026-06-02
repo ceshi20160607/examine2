@@ -6,7 +6,7 @@
       <span v-if="embedMode"> · 嵌入模式（保存后返回）</span>
     </p>
     <div class="toolbar">
-      <button type="button" :disabled="saving" @click="submit">
+      <button type="button" :disabled="saving || !canManageRecords" @click="submit">
         {{ saving ? '保存中…' : (recordId ? '更新' : '创建') }}
       </button>
       <button type="button" class="secondary" @click="goBack">返回</button>
@@ -237,6 +237,7 @@ import { setEmbedRecordCreated } from '../utils/embedRecord.js'
 import { loadRefSelectOptions } from '../utils/refPicker.js'
 import { uniqueIds } from '../utils/id.js'
 import { notify } from '../utils/notify.js'
+import { createModulePermState, MODULE_PERMS } from '../utils/modulePerms.js'
 import {
   configFromMeta,
   inputTypeForField,
@@ -289,8 +290,11 @@ const memberOptionsByCode = reactive({})
 const departmentOptions = ref([])
 const dateRangeStart = reactive({})
 const dateRangeEnd = reactive({})
+const { loadModulePerms, hasModulePerm } = createModulePermState()
 
 const title = computed(() => (recordId.value ? `编辑记录 #${recordId.value}` : '新建记录'))
+
+const canManageRecords = computed(() => hasModulePerm(MODULE_PERMS.records))
 
 const visibleFields = computed(() =>
   (fields.value || []).filter((f) => f.hiddenFlag !== 1).sort((a, b) => (a.sortNo || 0) - (b.sortNo || 0))
@@ -562,6 +566,10 @@ function goBack() {
 
 async function submit() {
   error.value = ''
+  if (!canManageRecords.value) {
+    error.value = '当前账号没有记录维护权限'
+    return
+  }
   let dataObj
   if (advancedJson.value && !embedMode.value) {
     try {
@@ -610,7 +618,10 @@ watch(
   () => bootstrap(),
   { deep: true }
 )
-onMounted(() => bootstrap())
+onMounted(async () => {
+  await loadModulePerms()
+  await bootstrap()
+})
 </script>
 
 <style scoped>

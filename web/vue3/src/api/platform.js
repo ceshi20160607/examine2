@@ -6,6 +6,10 @@ export function listSystems() {
   return httpGet('/v1/platform/systems')
 }
 
+export function listPlatformPermissions() {
+  return httpGet('/v1/platform/permissions/me')
+}
+
 export function createSystem(name, multiTenantEnabled = 0) {
   return httpPost('/v1/platform/systems', { name, multiTenantEnabled })
 }

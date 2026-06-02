@@ -58,6 +58,22 @@ export function queryRecordsByRelation(cmd: {
   return httpPost<any>('/v1/system/records/query-by-relation', cmd)
 }
 
+export function attachRelation(cmd: {
+  relationId: IdValue
+  parentRecordId: IdValue
+  childRecordId: IdValue
+}): Promise<ApiResult<any>> {
+  return httpPost<any>('/v1/system/records/relations/attach', cmd)
+}
+
+export function detachRelation(cmd: {
+  relationId: IdValue
+  parentRecordId: IdValue
+  childRecordId: IdValue
+}): Promise<ApiResult<any>> {
+  return httpPost<any>('/v1/system/records/relations/detach', cmd)
+}
+
 function pathId(value: IdValue): string {
   return encodeURIComponent(idToString(value))
 }

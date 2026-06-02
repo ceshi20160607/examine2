@@ -19,7 +19,17 @@ export type FlowRecord = {
   bizId?: string
 }
 
-export type FlowTask = { id: string; recordId?: string; nodeName?: string; status?: number }
+export type FlowTask = {
+  id: IdValue
+  taskId?: IdValue
+  recordId?: IdValue
+  instanceId?: IdValue
+  title?: string
+  instanceTitle?: string
+  nodeName?: string
+  status?: number
+  readFlag?: number
+}
 
 export function pageTemps(page = 1, size = 20): Promise<ApiResult<any>> {
   return httpGet<any>(`/v1/system/flow/temps/page?page=${q(page)}&size=${q(size)}`)
@@ -107,8 +117,16 @@ export function inboxPending(limit = 50): Promise<ApiResult<FlowTask[]>> {
   return httpGet<FlowTask[]>(`/v1/system/flow/inbox/tasks/pending?limit=${q(limit)}`)
 }
 
-export function inboxCc(limit = 50): Promise<ApiResult<FlowTask[]>> {
-  return httpGet<FlowTask[]>(`/v1/system/flow/inbox/cc?limit=${q(limit)}`)
+export function inboxCc(limit = 50, onlyUnread?: number): Promise<ApiResult<FlowTask[]>> {
+  const query = [`limit=${q(limit)}`]
+  if (onlyUnread != null) {
+    query.push(`onlyUnread=${q(onlyUnread)}`)
+  }
+  return httpGet<FlowTask[]>(`/v1/system/flow/inbox/cc?${query.join('&')}`)
+}
+
+export function readInboxCc(taskId: IdValue): Promise<ApiResult<void>> {
+  return httpPost<void>(`/v1/system/flow/inbox/cc/${pathId(taskId)}/read`, {})
 }
 
 export function byBiz(bizType: string, bizId: string): Promise<ApiResult<any>> {

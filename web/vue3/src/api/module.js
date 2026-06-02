@@ -136,11 +136,11 @@ function deleteExportTplField(ids) {
   return httpPost("/v1/system/module/exports/fields/delete", { ids });
 }
 function pageExportJobs(params) {
-  const q = [];
-  if (params.tplId?.trim()) q.push(`tplId=${encodeURIComponent(params.tplId.trim())}`);
-  if (params.modelId?.trim()) q.push(`modelId=${encodeURIComponent(params.modelId.trim())}`);
-  if (params.status?.trim()) q.push(`status=${encodeURIComponent(params.status.trim())}`);
-  const ext = q.length ? "&" + q.join("&") : "";
+  const query = [];
+  if (params.tplId?.trim()) query.push(`tplId=${q(params.tplId.trim())}`);
+  if (params.modelId?.trim()) query.push(`modelId=${q(params.modelId.trim())}`);
+  if (params.status?.trim()) query.push(`status=${q(params.status.trim())}`);
+  const ext = query.length ? "&" + query.join("&") : "";
   return httpGet(`/v1/system/module/export-jobs/page?page=${q(params.page)}&size=${q(params.size)}${ext}`);
 }
 function getExportJobDetail(jobId) {
@@ -210,6 +210,9 @@ function setRolePagePerms(cmd) {
 function permPreview(uri) {
   return httpGet(`/v1/system/auth/perm-preview?uri=${encodeURIComponent(uri)}`);
 }
+function listModulePermissions() {
+  return httpGet("/v1/system/auth/permissions");
+}
 function pathId(value) {
   return encodeURIComponent(idToString(value));
 }
@@ -236,6 +239,7 @@ export {
   listExportTplsByModel,
   listFilterFields,
   listFilterTpls,
+  listModulePermissions,
   listRbacMembers,
   listRbacMenus,
   listRbacRoles,

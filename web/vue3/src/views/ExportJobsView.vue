@@ -28,33 +28,33 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="j in rows" :key="j.id">
+        <tr v-for="j in rows" :key="j.id" :class="{ 'is-highlight': sameId(j.id, highlightId) }">
           <td>{{ j.id }}</td>
           <td>
-            <span :class="['status', `status--${j.status}`]">{{ statusLabel(j.status) }}</span>
+            <span :class="['status', `status--${jobStatus(j)}`]">{{ statusLabel(j.status) }}</span>
           </td>
           <td>{{ j.tplId }}</td>
           <td>{{ j.modelId || '-' }}</td>
           <td>{{ formatTime(j.createTime) }}</td>
           <td>
             <button
-              v-if="j.status === 2"
+              v-if="jobStatus(j) === 2"
               type="button"
               class="link"
-              :disabled="downloadingId === j.id"
+              :disabled="sameId(downloadingId, j.id)"
               @click="downloadJob(j.id)"
             >
-              {{ downloadingId === j.id ? '下载中…' : '下载' }}
+              {{ sameId(downloadingId, j.id) ? '下载中...' : '下载' }}
             </button>
             <button
-              v-else-if="j.status === 0 || j.status === 1"
+              v-else-if="jobStatus(j) === 0 || jobStatus(j) === 1"
               type="button"
               class="link secondary"
               @click="refreshOne(j.id)"
             >
               刷新状态
             </button>
-            <span v-else-if="j.status === 3" class="err-msg" :title="j.errorMsg">{{ j.errorMsg || '失败' }}</span>
+            <span v-else-if="jobStatus(j) === 3" class="err-msg" :title="j.errorMsg">{{ j.errorMsg || '失败' }}</span>
             <span v-else class="muted">-</span>
           </td>
         </tr>
@@ -66,11 +66,14 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import AdminLayout from '../layouts/AdminLayout.vue'
 import { getExportJobDetail, pageExportJobs } from '../api/module.js'
 import { httpBlob, saveBlob } from '../api/http.js'
+import { idToString, sameId } from '../utils/id.js'
 
+const route = useRoute()
 const rows = ref([])
 const total = ref(0)
 const error = ref('')
@@ -79,6 +82,7 @@ const statusFilter = ref('')
 const autoPoll = ref(true)
 const downloadingId = ref(0)
 let pollTimer = null
+const highlightId = computed(() => idToString(route.query.highlight))
 
 const STATUS_MAP = {
   0: '待处理',
@@ -88,7 +92,11 @@ const STATUS_MAP = {
 }
 
 function statusLabel(s) {
-  return STATUS_MAP[s] ?? String(s)
+  return STATUS_MAP[Number(s)] ?? String(s)
+}
+
+function jobStatus(job) {
+  return Number(job?.status)
 }
 
 function formatTime(t) {
@@ -120,7 +128,7 @@ async function refreshOne(jobId) {
     const r = await getExportJobDetail(jobId)
     const job = r.data?.job
     if (!job) return
-    const idx = rows.value.findIndex((x) => x.id === jobId)
+    const idx = rows.value.findIndex((x) => sameId(x.id, jobId))
     if (idx >= 0) rows.value[idx] = job
     else await load()
   } catch (e) {
@@ -154,7 +162,7 @@ function setupPoll() {
   clearInterval(pollTimer)
   if (!autoPoll.value) return
   pollTimer = setInterval(() => {
-    const pending = rows.value.some((j) => j.status === 0 || j.status === 1)
+    const pending = rows.value.some((j) => jobStatus(j) === 0 || jobStatus(j) === 1)
     if (pending) load()
   }, 3000)
 }
@@ -186,6 +194,9 @@ onUnmounted(() => clearInterval(pollTimer))
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
   font-size: 0.8rem;
+}
+.is-highlight {
+  background: #eff6ff;
 }
 .status--0 {
   background: #fef3c7;

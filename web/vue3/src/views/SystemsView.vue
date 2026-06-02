@@ -11,10 +11,18 @@
         <input v-model="newMultiTenant" type="checkbox" />
         多租户
       </label>
-      <button type="button" data-testid="system-create-btn" :disabled="creating || !newSystemName.trim()" @click="createNew">
+      <button
+        type="button"
+        data-testid="system-create-btn"
+        :disabled="creating || !newSystemName.trim() || !canCreateSystem"
+        @click="createNew"
+      >
         {{ creating ? '创建中…' : '创建系统' }}
       </button>
     </div>
+    <p v-if="permissionsLoaded && !canCreateSystem" class="muted">
+      当前账号没有创建系统权限，可进入已授权的系统。
+    </p>
 
     <p v-if="error" class="error">{{ error }}</p>
     <ul v-if="systems.length" class="list">
@@ -24,8 +32,8 @@
           <span class="muted">id={{ s.id }} · {{ s.multiTenantEnabled === 1 ? '多租户' : '单租户' }}</span>
         </button>
         <span :class="['status', s.status === 1 ? 'ok' : 'off']">{{ s.status === 1 ? '启用' : '停用' }}</span>
-        <button type="button" class="secondary" @click="toggleStatus(s)">{{ s.status === 1 ? '停用' : '启用' }}</button>
-        <button type="button" class="danger" @click="remove(s)">删除</button>
+        <button v-if="canChangeSystemStatus" type="button" class="secondary" @click="toggleStatus(s)">{{ s.status === 1 ? '停用' : '启用' }}</button>
+        <button v-if="canDeleteSystem" type="button" class="danger" @click="remove(s)">删除</button>
       </li>
     </ul>
     <p v-else-if="!loading" class="muted">暂无系统，请在上方创建。</p>
@@ -47,6 +55,7 @@ import {
   createSystem,
   deleteSystem,
   enterSystem,
+  listPlatformPermissions,
   listSystems,
   listTenants,
   selectTenant,
@@ -66,7 +75,33 @@ const tenantStep = ref(false)
 const selectedTenantId = ref(0)
 const newSystemName = ref('')
 const newMultiTenant = ref(false)
+const permissionsLoaded = ref(false)
+const platformPermCodes = ref([])
+const canCreateSystem = ref(true)
+const canChangeSystemStatus = ref(true)
+const canDeleteSystem = ref(true)
 let pendingSystem = null
+
+function hasPlatformPerm(code) {
+  return platformPermCodes.value.includes(code)
+}
+
+async function loadPermissions() {
+  try {
+    const r = await listPlatformPermissions()
+    const data = r.data || {}
+    platformPermCodes.value = Array.isArray(data.platPermCodes) ? data.platPermCodes : []
+    canCreateSystem.value = Number(data.canCreateSystem || 0) === 1 || hasPlatformPerm('SYSTEM_CREATE')
+    canChangeSystemStatus.value = hasPlatformPerm('SYSTEM_STATUS')
+    canDeleteSystem.value = hasPlatformPerm('SYSTEM_DELETE')
+  } catch {
+    canCreateSystem.value = true
+    canChangeSystemStatus.value = true
+    canDeleteSystem.value = true
+  } finally {
+    permissionsLoaded.value = true
+  }
+}
 
 async function load() {
   loading.value = true
@@ -172,6 +207,7 @@ async function remove(s) {
 }
 
 onMounted(load)
+onMounted(loadPermissions)
 </script>
 
 <style scoped>

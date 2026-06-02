@@ -69,15 +69,12 @@ public class ModuleRuntimeApiPermissionService {
         } catch (RuntimeException e) {
             log.warn("Module API permission default app lookup failed, skip menu ACL. uri={} systemId={} tenantId={} ex={} msg={}",
                     requestUri, systemId, tenantId, e.getClass().getName(), e.getMessage());
-            return Optional.empty();
+            return resolveFromCatalog(requestUri);
         }
         if (app == null) {
-            return Optional.empty();
+            return resolveFromCatalog(requestUri);
         }
         List<ModuleMenu> rows = loadSortedRows(app.getId());
-        if (rows.isEmpty()) {
-            return Optional.empty();
-        }
         for (ModuleMenu row : rows) {
             String pattern = row.getApiPattern();
             if (pattern == null || pattern.isBlank()) {
@@ -92,7 +89,7 @@ public class ModuleRuntimeApiPermissionService {
                 // skip invalid api_pattern rows
             }
         }
-        return Optional.empty();
+        return resolveFromCatalog(requestUri);
     }
 
     private List<ModuleMenu> loadSortedRows(Long appId) {
@@ -126,5 +123,18 @@ public class ModuleRuntimeApiPermissionService {
 
     private static int patternLength(String pattern) {
         return pattern == null ? 0 : pattern.trim().length();
+    }
+
+    private Optional<String> resolveFromCatalog(String requestUri) {
+        for (ModuleMenuApiPermissionCatalog.Entry entry : ModuleMenuApiPermissionCatalog.ENTRIES) {
+            try {
+                if (matcher.match(entry.apiPattern(), requestUri)) {
+                    return Optional.of(entry.permKey());
+                }
+            } catch (IllegalArgumentException ignored) {
+                // Built-in catalog entries are stable; keep this defensive for future extension.
+            }
+        }
+        return Optional.empty();
     }
 }

@@ -372,6 +372,9 @@ public class FlowEngineService {
         flowRecordService.updateById(rec);
 
         saveActionLog(systemId, tenantId, instanceId, taskId, task.getNodeKey(), action, platId, commentText, now, null);
+        if ("reject".equals(action) && rec.getParentRecordId() != null) {
+            endParentChainAfterSubflowChildRejected(rec, platId, now);
+        }
 
         return new TaskActionResult(instanceId, taskId, task.getStatus(), rec.getStatus(),
                 null, null, null, null, null);
@@ -1100,14 +1103,17 @@ public class FlowEngineService {
         long tenantId = AuthContextHolder.getTenantIdOrDefault();
         ExceptionPolicy policy = resolveExceptionPolicy(rec, task.getNodeKey());
 
-        if ("end_instance".equalsIgnoreCase(policy.mode())) {
+        if ("end_instance".equalsIgnoreCase(policy.mode()) || "end_record".equalsIgnoreCase(policy.mode())) {
             rec.setStatus(2);
             rec.setCurrentNodeKey(null);
             rec.setEndTime(now);
             rec.setUpdateUserId(platId);
             flowRecordService.updateById(rec);
 
-            String extra = safeJson(Map.of("reason", policy.endReason(), "error", ex.getMessage()));
+            Map<String, Object> detail = new HashMap<>();
+            detail.put("reason", policy.endReason());
+            detail.put("error", ex.getMessage());
+            String extra = safeJson(detail);
             saveActionLog(systemId, tenantId, rec.getId(), task.getId(), task.getNodeKey(), "terminate", platId, "exception_policy:end_instance", now, extra);
 
             return new TaskActionResult(rec.getId(), task.getId(), task.getStatus(), rec.getStatus(),
@@ -1313,6 +1319,40 @@ public class FlowEngineService {
                 extra, platId, now);
     }
 
+    /**
+     * 子流程拒绝后，父流程不能继续停在 subflow 节点等待不存在的待办，需沿父链结束整条实例链。
+     */
+    private void endParentChainAfterSubflowChildRejected(FlowRecord rejectedChild, long platId, LocalDateTime now) {
+        if (rejectedChild == null || rejectedChild.getParentRecordId() == null) {
+            return;
+        }
+        FlowRecord parent = flowRecordService.getById(rejectedChild.getParentRecordId());
+        if (parent == null || parent.getStatus() == null || parent.getStatus() != 1) {
+            return;
+        }
+        long systemId = parent.getSystemId();
+        long tenantId = parent.getTenantId();
+        parent.setStatus(2);
+        parent.setCurrentNodeKey(null);
+        parent.setEndTime(now);
+        parent.setUpdateUserId(platId);
+        flowRecordService.updateById(parent);
+
+        cancelPendingTasksForRecord(parent.getId(), platId, now);
+        Map<String, Object> detail = new HashMap<>();
+        detail.put("source", "subflow_child_reject");
+        detail.put("childRecordId", rejectedChild.getId());
+        detail.put("childParentNodeKey", rejectedChild.getParentNodeKey());
+        saveActionLog(systemId, tenantId, parent.getId(), null, rejectedChild.getParentNodeKey(),
+                "reject", platId, "subflow_child_reject", now, safeJson(detail));
+        saveTrace(systemId, tenantId, parent.getId(), "end", rejectedChild.getParentNodeKey(), null,
+                safeJson(detail), platId, now);
+
+        if (parent.getParentRecordId() != null) {
+            endParentChainAfterSubflowChildRejected(parent, platId, now);
+        }
+    }
+
     private static List<Long> parseCcPlatIds(JsonNode cfg) {
         LinkedHashSet<Long> set = new LinkedHashSet<>();
         JsonNode arr = cfg.path("plat_ids");
@@ -1344,6 +1384,19 @@ public class FlowEngineService {
                 .eq(FlowTask::getNodeKey, nodeKey)
                 .eq(FlowTask::getStatus, 1)
                 .ne(FlowTask::getId, completedTaskId)
+                .set(FlowTask::getStatus, 5)
+                .set(FlowTask::getFinishTime, now)
+                .set(FlowTask::getUpdateUserId, platId)
+                .update();
+    }
+
+    private void cancelPendingTasksForRecord(Long recordId, Long platId, LocalDateTime now) {
+        if (recordId == null) {
+            return;
+        }
+        flowTaskService.lambdaUpdate()
+                .eq(FlowTask::getRecordId, recordId)
+                .eq(FlowTask::getStatus, 1)
                 .set(FlowTask::getStatus, 5)
                 .set(FlowTask::getFinishTime, now)
                 .set(FlowTask::getUpdateUserId, platId)
@@ -1841,19 +1894,7 @@ public class FlowEngineService {
             throw new BusinessException(403, "仅发起人可撤回");
         }
         LocalDateTime now = LocalDateTime.now();
-        rec.setStatus(3);
-        rec.setCurrentNodeKey(null);
-        rec.setEndTime(now);
-        rec.setUpdateUserId(platId);
-        flowRecordService.updateById(rec);
-
-        flowTaskService.lambdaUpdate()
-                .eq(FlowTask::getRecordId, recordId)
-                .eq(FlowTask::getStatus, 1)
-                .set(FlowTask::getStatus, 5)
-                .set(FlowTask::getFinishTime, now)
-                .set(FlowTask::getUpdateUserId, platId)
-                .update();
+        finishRunningRecordTree(rec, 3, platId, now);
 
         saveActionLog(systemId, tenantId, recordId, null, null, "withdraw", platId, null, now, null);
         saveTrace(systemId, tenantId, recordId, "end", null, null, "{\"action\":\"withdraw\"}", platId, now);
@@ -1889,19 +1930,7 @@ public class FlowEngineService {
             throw new BusinessException(403, "仅发起人可终止");
         }
         LocalDateTime now = LocalDateTime.now();
-        rec.setStatus(4);
-        rec.setCurrentNodeKey(null);
-        rec.setEndTime(now);
-        rec.setUpdateUserId(platId);
-        flowRecordService.updateById(rec);
-
-        flowTaskService.lambdaUpdate()
-                .eq(FlowTask::getRecordId, recordId)
-                .eq(FlowTask::getStatus, 1)
-                .set(FlowTask::getStatus, 5)
-                .set(FlowTask::getFinishTime, now)
-                .set(FlowTask::getUpdateUserId, platId)
-                .update();
+        finishRunningRecordTree(rec, 4, platId, now);
 
         String r = reason == null ? null : reason.trim();
         saveActionLog(systemId, tenantId, recordId, null, null, "terminate", platId, r, now, null);
@@ -1909,6 +1938,67 @@ public class FlowEngineService {
         termDetail.put("action", "terminate");
         termDetail.put("reason", r);
         saveTrace(systemId, tenantId, recordId, "end", null, null, safeJson(termDetail), platId, now);
+    }
+
+    /**
+     * 撤回/终止顶层或中间实例时，级联关闭所有运行中的子流程，避免子流程待办继续流转。
+     */
+    private void finishRunningRecordTree(FlowRecord root, int targetStatus, long platId, LocalDateTime now) {
+        List<FlowRecord> records = collectRecordTree(root);
+        for (FlowRecord record : records) {
+            if (record == null || record.getId() == null || record.getStatus() == null || record.getStatus() != 1) {
+                continue;
+            }
+            String beforeNodeKey = record.getCurrentNodeKey();
+            record.setStatus(targetStatus);
+            record.setCurrentNodeKey(null);
+            record.setEndTime(now);
+            record.setUpdateUserId(platId);
+            flowRecordService.updateById(record);
+            cancelPendingTasksForRecord(record.getId(), platId, now);
+            if (!Objects.equals(record.getId(), root.getId())) {
+                Map<String, Object> detail = new HashMap<>();
+                detail.put("source", targetStatus == 3 ? "parent_withdraw" : "parent_terminate");
+                detail.put("rootRecordId", root.getId());
+                saveTrace(record.getSystemId(), record.getTenantId(), record.getId(), "end",
+                        beforeNodeKey, null, safeJson(detail), platId, now);
+            }
+        }
+    }
+
+    private List<FlowRecord> collectRecordTree(FlowRecord root) {
+        if (root == null || root.getId() == null) {
+            return List.of();
+        }
+        List<FlowRecord> out = new ArrayList<>();
+        LinkedHashSet<Long> seen = new LinkedHashSet<>();
+        List<Long> frontier = new ArrayList<>();
+        out.add(root);
+        seen.add(root.getId());
+        frontier.add(root.getId());
+        while (!frontier.isEmpty()) {
+            List<FlowRecord> children = flowRecordService.lambdaQuery()
+                    .eq(FlowRecord::getSystemId, root.getSystemId())
+                    .eq(FlowRecord::getTenantId, root.getTenantId())
+                    .in(FlowRecord::getParentRecordId, frontier)
+                    .list();
+            frontier = new ArrayList<>();
+            if (children == null || children.isEmpty()) {
+                continue;
+            }
+            for (FlowRecord child : children) {
+                if (child == null || child.getId() == null || seen.contains(child.getId())) {
+                    continue;
+                }
+                seen.add(child.getId());
+                out.add(child);
+                frontier.add(child.getId());
+            }
+            if (seen.size() > 1000) {
+                throw new BusinessException(400, "子流程实例层级过多，无法安全级联处理");
+            }
+        }
+        return out;
     }
 
     /**

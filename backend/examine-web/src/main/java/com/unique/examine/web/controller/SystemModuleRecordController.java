@@ -34,6 +34,7 @@ public class SystemModuleRecordController {
 
     public record CreateRecordBody(Long appId, Long modelId, JsonNode data) {}
     public record UpdateRecordBody(JsonNode data) {}
+    public record RelationLinkBody(Long relationId, Long parentRecordId, Long childRecordId) {}
 
     @Operation(summary = "创建记录（EAV：写 un_module_record + 多行 un_module_record_data，每行 field_code + value_text）")
     @PostMapping("")
@@ -84,6 +85,26 @@ public class SystemModuleRecordController {
         }
         return ApiResult.ok(moduleRelationRecordService.queryByRelation(
                 body.relationId(), body.parentRecordId(), body.query()));
+    }
+
+    @Operation(summary = "创建 n-n 模型关系关联（写入中间模型记录，幂等）")
+    @PostMapping("/relations/attach")
+    public ApiResult<Map<String, Object>> attachRelation(@RequestBody RelationLinkBody body) {
+        if (body == null) {
+            return ApiResult.fail(400, "body 不能为空");
+        }
+        return ApiResult.ok(moduleRelationRecordService.attachNn(
+                body.relationId(), body.parentRecordId(), body.childRecordId()));
+    }
+
+    @Operation(summary = "删除 n-n 模型关系关联（删除中间模型记录，幂等）")
+    @PostMapping("/relations/detach")
+    public ApiResult<Map<String, Object>> detachRelation(@RequestBody RelationLinkBody body) {
+        if (body == null) {
+            return ApiResult.fail(400, "body 不能为空");
+        }
+        return ApiResult.ok(moduleRelationRecordService.detachNn(
+                body.relationId(), body.parentRecordId(), body.childRecordId()));
     }
 
     @Operation(summary = "记录变更历史（按 recordId；最近 N 条）")
