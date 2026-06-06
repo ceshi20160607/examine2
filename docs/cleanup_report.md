@@ -8,17 +8,19 @@
 
 上一轮线性流程产物已经被理解审查证明不适合作为当前实现基线，尤其是旧 `docs/prd.md`、`docs/db_design.md`、`sql/init.sql` 和旧代码中仍使用错误平台前缀 `un_platt_`。这些产物继续留在活动区会污染 PM、DBA、backend、frontend 和 test 的后续判断。
 
-## 归档位置
+## 原归档位置
 
 `.codex/archive/pre-understanding-cleanup-20260605-233625/`
 
-## 已归档为历史参考
+## 已按迁移清理删除的历史归档
 
 - `backend/`：旧线性流程生成的后端代码，仅作为反例和历史实现参考，不作为当前开发基线。
 - `frontend/` 源码与配置：旧线性流程生成的前端源码、API 映射和配置，仅作为历史参考；未归档 `node_modules`、`dist`、tsbuildinfo 和 dev 日志。
 - `sql/init.sql`：旧线性流程生成的初始化 SQL，存在错误平台表前缀，仅作为 DBA 反例参考。
 - `docs/prd.md`、`docs/api.md`、`docs/db_design.md`、`docs/build_report.md`、`docs/review.json`、`docs/reviews/`：旧流程产物已归档，不作为当前审查模式输入。
 - `baseCode.zip`：历史输入压缩包，归档保存。
+
+以上归档内容在项目迁移到 `examine2/` 并接入 git 后不再作为后续开发输入，已于 2026-06-06 删除 `.codex/archive/`。
 
 ## 已删除为无参考价值产物
 

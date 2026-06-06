@@ -1,4 +1,0 @@
-com\unique\examine\ExamineWebApplication.class
-com\unique\examine\web\handler\GlobalExceptionHandler.class
-com\unique\examine\web\config\AuthContextWebConfig$AuthContextInterceptor.class
-com\unique\examine\web\config\AuthContextWebConfig.class

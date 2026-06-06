@@ -171,7 +171,7 @@ PM 裁决版问题文档必须包含：
 
 ```text
 E:\workspace\03_project\unique\java\
-  codex\                  # 新项目工作区，所有新产物写入这里
+  examine2\               # 新项目工作区，所有新产物写入这里
     .codex\
       state.json
       agents\
@@ -217,7 +217,7 @@ E:\workspace\03_project\unique\java\
 * 旧项目参考路径
 * 后端/前端构建命令
 
-当前 `codex/` 工作区不接入 git，不使用旧项目 git 分支承载本次重构；`.codex/oldexamine/` 仅作为只读参考目录，所有新项目代码、SQL、文档和构建产物只写入当前 `codex/`。
+当前 `examine2/` 工作区已接入 git；`.codex/oldexamine/` 仅作为只读参考目录，所有新项目代码、SQL、文档和构建产物只写入当前 `examine2/`。
 
 后端架构、代码生成与业务分层约定：
 
@@ -1137,7 +1137,7 @@ reviewer 还必须检查以下架构项；任一不满足时必须判定 fail：
 * 一切以 **Pipeline + 状态机** 为准
 * 一切以 **文件（artifacts）** 为数据源
 * 一切以 **格式契约 + 校验规则** 判断成功/失败
-* 旧项目只读参考，新项目产物只写入当前 `codex/`
-* 当前工作区不接入 git，不从旧项目开分支承载重构
+* 旧项目只读参考，新项目产物只写入当前 `examine2/`
+* 当前工作区已接入 git，不从旧项目开分支承载重构
 * 不依赖 LLM 主观判断
 * 保证流程 **可重复执行 / 可回溯 / 可控**

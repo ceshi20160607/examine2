@@ -13,8 +13,8 @@
 
 ## 项目路径
 
-- 新项目工作区：`E:\workspace\03_project\unique\java\codex`
-- 旧项目参考目录：`E:\workspace\03_project\unique\java\codex\.codex\oldexamine`
+- 新项目工作区：`E:\workspace\03_project\unique\java\examine2`
+- 旧项目参考目录：`E:\workspace\03_project\unique\java\examine2\.codex\oldexamine`
 - 旧项目仅作为重构参考，默认不写入、不覆盖。
 
 ## 默认构建命令

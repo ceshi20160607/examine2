@@ -51,9 +51,8 @@
 - `docs/task_plan.md`
 - `docs/tasks/`
 - `docs/understanding/`
-- `.codex/archive/`
 
-`.codex/archive/` 中保存的是旧错误流水线和清理前产物，可作为反例和追溯依据，本次不删除。
+`.codex/archive/` 中原保存旧错误流水线和清理前产物；项目迁移到 `examine2/` 并接入 git 后，后续流程不再依赖该归档，已于 2026-06-06 删除。
 
 新增结构：
 
