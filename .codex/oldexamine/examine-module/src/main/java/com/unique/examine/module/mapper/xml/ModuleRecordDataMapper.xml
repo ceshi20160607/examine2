@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.mapper.ModuleRecordDataMapper">
+
+    <select id="listByRecordIds" resultType="com.unique.examine.module.entity.po.ModuleRecordData">
+        select id, system_id, tenant_id, app_id, model_id, record_id, field_code, value_text, value_num, value_dt,
+               create_user_id, update_user_id, create_time, update_time
+        from un_module_record_data
+        where record_id in
+        <foreach collection="recordIds" item="rid" open="(" separator="," close=")">
+            #{rid}
+        </foreach>
+        order by record_id asc, field_code asc
+    </select>
+
+    <select id="listByRecordIdsAndFieldCodes" resultType="com.unique.examine.module.entity.po.ModuleRecordData">
+        select id, system_id, tenant_id, app_id, model_id, record_id, field_code, value_text, value_num, value_dt,
+               create_user_id, update_user_id, create_time, update_time
+        from un_module_record_data
+        where record_id in
+        <foreach collection="recordIds" item="rid" open="(" separator="," close=")">
+            #{rid}
+        </foreach>
+        and field_code in
+        <foreach collection="fieldCodes" item="fc" open="(" separator="," close=")">
+            #{fc}
+        </foreach>
+        order by record_id asc, field_code asc
+    </select>
+
+</mapper>

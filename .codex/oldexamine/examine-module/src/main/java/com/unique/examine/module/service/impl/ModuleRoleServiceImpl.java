@@ -1,0 +1,111 @@
+package com.unique.examine.module.service.impl;
+
+import com.unique.examine.core.module.ModuleAuthCacheCoordinator;
+import com.unique.examine.module.entity.po.ModuleRole;
+import com.unique.examine.module.mapper.ModuleRoleMapper;
+import com.unique.examine.module.service.IModuleRoleService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.unique.examine.core.entity.BasePage;
+import com.unique.examine.core.entity.PageEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.util.List;
+
+/**
+ * <p>
+ * 应用角色 服务实现类
+ * </p>
+ *
+ * @author UNIQUE
+ * @since 2026-04-14
+ */
+@Service
+public class ModuleRoleServiceImpl extends ServiceImpl<ModuleRoleMapper, ModuleRole> implements IModuleRoleService {
+
+    @Autowired(required = false)
+    private ModuleAuthCacheCoordinator moduleAuthCacheCoordinator;
+
+    /**
+     * 查询字段配置
+     * @author UNIQUE
+     * @since 2026-04-14
+     * @param id 主键ID
+     * @return data
+     */
+    @Override
+    public ModuleRole queryById(Serializable id) {
+        return getById(id);
+    }
+
+    /**
+     * 保存或新增信息
+     * @author UNIQUE
+     * @since 2026-04-14
+     * @param entity entity
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void addOrUpdate(ModuleRole entity) {
+        ModuleRole old = null;
+        if (entity != null && entity.getId() != null) {
+            old = getById(entity.getId());
+        }
+        saveOrUpdate(entity);
+        if (moduleAuthCacheCoordinator == null) {
+            return;
+        }
+        ModuleRole src = entity != null ? entity : old;
+        if (src == null || src.getId() == null) {
+            return;
+        }
+        moduleAuthCacheCoordinator.invalidateForRole(
+                src.getSystemId() == null ? 0L : src.getSystemId(),
+                src.getTenantId() == null ? 0L : src.getTenantId(),
+                src.getId()
+        );
+    }
+
+
+    /**
+     * 查询所有数据
+     * @author UNIQUE
+     * @since 2026-04-14
+     * @param search 搜索条件
+     * @return list
+     */
+    @Override
+    public BasePage<ModuleRole> queryPageList(PageEntity search) {
+        return lambdaQuery().page(search.parse());
+    }
+
+    /**
+     * 根据ID列表删除数据
+     * @author UNIQUE
+     * @since 2026-04-14
+     * @param ids ids
+     */
+    @Override
+    public void deleteByIds(List<Serializable> ids) {
+        if (ids == null || ids.isEmpty()) {
+              return;
+        }
+        List<ModuleRole> rows = listByIds(ids);
+        removeByIds(ids);
+        if (moduleAuthCacheCoordinator == null || rows == null || rows.isEmpty()) {
+            return;
+        }
+        for (ModuleRole r : rows) {
+            if (r == null || r.getId() == null) {
+                continue;
+            }
+            moduleAuthCacheCoordinator.invalidateForRole(
+                    r.getSystemId() == null ? 0L : r.getSystemId(),
+                    r.getTenantId() == null ? 0L : r.getTenantId(),
+                    r.getId()
+            );
+        }
+    }
+}

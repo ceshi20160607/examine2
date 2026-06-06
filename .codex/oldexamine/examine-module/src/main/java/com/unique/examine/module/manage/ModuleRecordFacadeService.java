@@ -1,0 +1,1359 @@
+package com.unique.examine.module.manage;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unique.examine.core.exception.BusinessException;
+import com.unique.examine.core.security.AuthContextHolder;
+import com.unique.examine.module.entity.dto.ModuleRecordDslFilter;
+import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
+import com.unique.examine.module.entity.po.ModuleField;
+import com.unique.examine.module.entity.po.ModuleRecord;
+import com.unique.examine.module.entity.po.ModuleRecordData;
+import com.unique.examine.module.entity.po.ModuleRecordHistory;
+import com.unique.examine.module.field.EavTypedValueSupport;
+import com.unique.examine.module.field.ModuleFieldConfigSupport;
+import com.unique.examine.module.field.ModuleFieldType;
+import com.unique.examine.module.mapper.ModuleRecordDataMapper;
+import com.unique.examine.module.mapper.ModuleRecordMapper;
+import com.unique.examine.module.service.IModuleRecordDataService;
+import com.unique.examine.module.service.IModuleFieldService;
+import com.unique.examine.module.service.IModuleRecordHistoryService;
+import com.unique.examine.module.service.IModuleRecordService;
+import com.unique.examine.module.entity.po.ModuleDept;
+import com.unique.examine.module.entity.po.ModuleMember;
+import com.unique.examine.module.service.IModuleDeptService;
+import com.unique.examine.module.service.IModuleMemberService;
+import com.unique.examine.upload.entity.po.UploadFile;
+import com.unique.examine.upload.service.IUploadFileService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.stream.Collectors;
+import java.util.regex.Pattern;
+
+@Service
+public class ModuleRecordFacadeService {
+
+    private static final Pattern FIELD_CODE = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]{0,63}$");
+    private static final Set<String> RESERVED_RECORD_FIELDS = Set.of("id", "createTime", "updateTime");
+    private static final Set<String> RECORD_LIST_ID_COLUMNS = Set.of(
+            "id", "system_id", "tenant_id", "app_id", "model_id", "create_user_id", "update_user_id");
+
+    @Autowired
+    private IModuleRecordService moduleRecordService;
+    @Autowired
+    private IModuleRecordDataService moduleRecordDataService;
+    @Autowired
+    private IModuleRecordHistoryService moduleRecordHistoryService;
+    @Autowired
+    private IModuleFieldService moduleFieldService;
+    @Autowired
+    private ModuleRecordMapper moduleRecordMapper;
+    @Autowired
+    private ModuleRecordDataMapper moduleRecordDataMapper;
+    @Autowired
+    private IUploadFileService uploadFileService;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private ModuleFlowTriggerService moduleFlowTriggerService;
+    @Autowired
+    private ModuleSerialNoService moduleSerialNoService;
+    @Autowired
+    private ModuleDataScopeService moduleDataScopeService;
+    @Autowired
+    private IModuleMemberService moduleMemberService;
+    @Autowired
+    private IModuleDeptService moduleDeptService;
+
+    @Transactional(rollbackFor = Exception.class)
+    public ModuleRecord createWithData(Long appId, Long modelId, JsonNode data) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        long systemId = AuthContextHolder.getSystemIdOrDefault();
+        if (systemId == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (appId == null || appId <= 0L) {
+            throw new BusinessException("appId 不能为空");
+        }
+        if (modelId == null || modelId <= 0L) {
+            throw new BusinessException("modelId 不能为空");
+        }
+
+        ModuleRecord r = new ModuleRecord();
+        r.setSystemId(systemId);
+        r.setTenantId(tenantId);
+        r.setAppId(appId);
+        r.setModelId(modelId);
+        r.setStatus(1);
+        r.setCreateUserId(platId);
+        r.setUpdateUserId(platId);
+        moduleRecordService.save(r);
+
+        ObjectNode obj = ensureObjectNode(data);
+        fillSerialNumbers(systemId, tenantId, appId, modelId, obj);
+        validateRequiredFields(systemId, tenantId, appId, modelId, obj);
+
+        if (obj != null && !obj.isEmpty()) {
+            var it = obj.fields();
+            while (it.hasNext()) {
+                var e = it.next();
+                String fieldCode = e.getKey();
+                if (!FIELD_CODE.matcher(fieldCode).matches()) {
+                    throw new BusinessException("data 中存在非法 fieldCode: " + fieldCode);
+                }
+                JsonNode v = e.getValue();
+                ModuleField f = requireField(systemId, tenantId, appId, modelId, fieldCode);
+                validateFileFieldValue(systemId, tenantId, appId, modelId, f, v);
+                validateRefFieldValue(systemId, tenantId, f, v);
+                validateTypedFieldValue(systemId, tenantId, appId, f, v);
+                String text = valueToText(v);
+                if (text != null && text.length() > 65535) {
+                    throw new BusinessException("字段 " + fieldCode + " 值过长");
+                }
+                ModuleRecordData row = new ModuleRecordData();
+                row.setSystemId(systemId);
+                row.setTenantId(tenantId);
+                row.setAppId(appId);
+                row.setModelId(modelId);
+                row.setRecordId(r.getId());
+                row.setFieldCode(fieldCode);
+                row.setValueText(text);
+                EavTypedValueSupport.applyTypedColumns(f, v, text, row);
+                row.setCreateUserId(platId);
+                row.setUpdateUserId(platId);
+                moduleRecordDataService.save(row);
+            }
+        }
+
+        saveHistory("create", r, dataToSnapshotJson(obj));
+
+        moduleFlowTriggerService.tryTriggerAfterRecordChange(r, "create", obj);
+
+        return r;
+    }
+
+    private ObjectNode ensureObjectNode(JsonNode data) {
+        if (data != null && data.isObject()) {
+            return (ObjectNode) data;
+        }
+        return objectMapper.createObjectNode();
+    }
+
+    private void validateRequiredFields(long systemId, long tenantId, Long appId, Long modelId, ObjectNode obj) {
+        List<ModuleField> defs = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getAppId, appId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getStatus, 1)
+                .eq(ModuleField::getRequiredFlag, 1)
+                .list();
+        if (defs == null || defs.isEmpty()) {
+            return;
+        }
+        ObjectNode dataObj = obj == null ? objectMapper.createObjectNode() : obj;
+        for (ModuleField f : defs) {
+            if (f == null || f.getFieldCode() == null || f.getFieldCode().isBlank()) {
+                continue;
+            }
+            if (f.getHiddenFlag() != null && f.getHiddenFlag() == 1) {
+                continue;
+            }
+            ModuleFieldType type = ModuleFieldConfigSupport.typeOf(f);
+            if (type != null && type.isDisplayOnly()) {
+                continue;
+            }
+            JsonNode v = dataObj.get(f.getFieldCode());
+            if (isEmptyFieldValue(v, f)) {
+                String label = f.getFieldName() != null && !f.getFieldName().isBlank()
+                        ? f.getFieldName()
+                        : f.getFieldCode();
+                throw new BusinessException(400, "字段「" + label + "」不能为空");
+            }
+        }
+    }
+
+    private boolean isEmptyFieldValue(JsonNode v, ModuleField field) {
+        if (v == null || v.isNull()) {
+            return true;
+        }
+        ModuleFieldType type = ModuleFieldConfigSupport.typeOf(field);
+        if (type == ModuleFieldType.BOOLEAN) {
+            return false;
+        }
+        if (v.isBoolean()) {
+            return false;
+        }
+        if (v.isNumber()) {
+            return false;
+        }
+        if (v.isArray()) {
+            return v.isEmpty();
+        }
+        if (v.isObject()) {
+            return v.isEmpty();
+        }
+        if (v.isTextual()) {
+            return v.asText().trim().isEmpty();
+        }
+        return false;
+    }
+
+    private void fillSerialNumbers(long systemId, long tenantId, Long appId, Long modelId, ObjectNode obj) {
+        List<ModuleField> defs = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getStatus, 1)
+                .list();
+        for (ModuleField f : defs) {
+            if (ModuleFieldConfigSupport.typeOf(f) != ModuleFieldType.SERIAL_NO) {
+                continue;
+            }
+            String code = f.getFieldCode();
+            if (code == null || code.isBlank()) {
+                continue;
+            }
+            JsonNode cur = obj.get(code);
+            if (cur != null && !cur.isNull() && !cur.asText("").isBlank()) {
+                continue;
+            }
+            String generated = moduleSerialNoService.generate(systemId, tenantId, appId, modelId, f, obj);
+            obj.set(code, TextNode.valueOf(generated));
+        }
+    }
+
+    private static String valueToText(JsonNode v) {
+        if (v == null || v.isNull()) {
+            return null;
+        }
+        if (v.isTextual()) {
+            return v.asText();
+        }
+        if (v.isNumber() || v.isBoolean()) {
+            return v.asText();
+        }
+        return v.toString();
+    }
+
+    private void validateFileFieldValue(long systemId,
+                                        long tenantId,
+                                        Long appId,
+                                        Long modelId,
+                                        ModuleField field,
+                                        JsonNode value) {
+        if (field == null) {
+            return;
+        }
+        ModuleFieldType type = ModuleFieldConfigSupport.typeOf(field);
+        if (type == null) {
+            String ft = field.getFieldType();
+            if (ft == null) return;
+            String t = ft.trim().toLowerCase();
+            if (!(t.equals("file") || t.equals("upload") || t.equals("attachment") || t.equals("image"))) return;
+        } else if (!type.isFileType()) {
+            return;
+        }
+
+        if (value == null || value.isNull()) {
+            return;
+        }
+
+        HashSet<Long> ids = new HashSet<>();
+        if (value.isNumber()) {
+            long v = value.asLong();
+            if (v > 0) {
+                ids.add(v);
+            }
+        } else if (value.isTextual()) {
+            String s = value.asText().trim();
+            if (!s.isEmpty()) {
+                try {
+                    long v = Long.parseLong(s);
+                    if (v > 0) {
+                        ids.add(v);
+                    } else {
+                        throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 的 fileId 非法");
+                    }
+                } catch (NumberFormatException e) {
+                    throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 仅支持 fileId 或 fileId 数组");
+                }
+            }
+        } else if (value.isArray()) {
+            for (JsonNode it : value) {
+                Long id = parseFileIdNode(it);
+                if (id != null) {
+                    ids.add(id);
+                } else if (it != null && !it.isNull()) {
+                    throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 数组元素非法");
+                }
+            }
+        } else if (value.isObject()) {
+            Long id = parseFileIdNode(value);
+            if (id != null) {
+                ids.add(id);
+            } else {
+                throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 仅支持 fileId 或 fileId 数组");
+            }
+        } else {
+            throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 仅支持 fileId 或 fileId 数组");
+        }
+
+        if (ids.isEmpty()) {
+            return;
+        }
+
+        Long cnt = uploadFileService.lambdaQuery()
+                .eq(UploadFile::getSystemId, systemId)
+                .eq(UploadFile::getTenantId, tenantId)
+                .eq(UploadFile::getStatus, 1)
+                .in(UploadFile::getId, ids)
+                .count();
+        if (cnt == null || cnt != ids.size()) {
+            throw new BusinessException(400, "附件字段 " + field.getFieldCode() + " 引用了不存在或无权限的 fileId");
+        }
+    }
+
+    private void validateRefFieldValue(long systemId, long tenantId, ModuleField field, JsonNode value) {
+        if (field == null || value == null || value.isNull()) {
+            return;
+        }
+        ModuleFieldType type = ModuleFieldConfigSupport.typeOf(field);
+        boolean isRef = type != null ? type.isRefType() : false;
+        if (!isRef) {
+            String ft = field.getFieldType();
+            if (ft == null) return;
+            String t = ft.trim().toLowerCase();
+            if (!(t.equals("ref") || t.equals("relation") || t.equals("lookup"))) return;
+        }
+        Long refModelId = field.getRefModelId();
+        if (refModelId == null || refModelId <= 0L) {
+            return;
+        }
+
+        HashSet<Long> ids = new HashSet<>();
+        if (value.isNumber()) {
+            long v = value.asLong();
+            if (v > 0) {
+                ids.add(v);
+            }
+        } else if (value.isTextual()) {
+            String s = value.asText().trim();
+            if (s.isEmpty()) {
+                return;
+            }
+            if (s.startsWith("[") && s.endsWith("]")) {
+                try {
+                    JsonNode arr = objectMapper.readTree(s);
+                    collectRefIds(arr, ids, field.getFieldCode());
+                } catch (Exception e) {
+                    throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " JSON 数组非法");
+                }
+            } else {
+                try {
+                    long v = Long.parseLong(s);
+                    if (v > 0) {
+                        ids.add(v);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 须为 recordId");
+                }
+            }
+        } else if (value.isArray()) {
+            collectRefIds(value, ids, field.getFieldCode());
+        } else {
+            throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 须为 recordId 或 recordId 数组");
+        }
+
+        if (ids.isEmpty()) {
+            return;
+        }
+
+        for (Long id : ids) {
+            ModuleRecord rec = moduleRecordService.getById(id);
+            if (rec == null) {
+                throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 引用的记录不存在: " + id);
+            }
+            if (rec.getSystemId() == null || rec.getTenantId() == null
+                    || rec.getSystemId() != systemId
+                    || rec.getTenantId() != tenantId) {
+                throw new BusinessException(403, "关联字段 " + field.getFieldCode() + " 引用的记录无权限: " + id);
+            }
+            if (!Objects.equals(rec.getModelId(), refModelId)) {
+                throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 须指向 modelId=" + refModelId);
+            }
+            if (rec.getStatus() != null && rec.getStatus() != 1) {
+                throw new BusinessException(400, "关联字段 " + field.getFieldCode() + " 引用的记录不可用: " + id);
+            }
+        }
+    }
+
+    private void collectRefIds(JsonNode arr, HashSet<Long> ids, String fieldCode) {
+        if (arr == null || !arr.isArray()) {
+            throw new BusinessException(400, "关联字段 " + fieldCode + " 数组非法");
+        }
+        for (JsonNode it : arr) {
+            if (it == null || it.isNull()) {
+                continue;
+            }
+            if (it.isNumber()) {
+                long v = it.asLong();
+                if (v > 0) {
+                    ids.add(v);
+                }
+            } else if (it.isTextual()) {
+                String s = it.asText().trim();
+                if (!s.isEmpty()) {
+                    try {
+                        long v = Long.parseLong(s);
+                        if (v > 0) {
+                            ids.add(v);
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new BusinessException(400, "关联字段 " + fieldCode + " 数组元素非法");
+                    }
+                }
+            } else {
+                throw new BusinessException(400, "关联字段 " + fieldCode + " 数组元素非法");
+            }
+        }
+    }
+
+    public Map<String, Object> detailWithData(Long recordId) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        long systemId = AuthContextHolder.getSystemIdOrDefault();
+        if (systemId == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (recordId == null || recordId <= 0L) {
+            throw new BusinessException("recordId 不能为空");
+        }
+
+        ModuleRecord r = moduleRecordService.getById(recordId);
+        if (r == null) {
+            throw new BusinessException(404, "记录不存在");
+        }
+        if (r.getSystemId() == null || r.getTenantId() == null
+                || r.getSystemId() != systemId
+                || r.getTenantId() != tenantId) {
+            throw new BusinessException(403, "无权限访问该记录");
+        }
+        requireRecordDataAccess(r, platId, systemId, tenantId, r.getAppId());
+
+        List<ModuleRecordData> rows = moduleRecordDataService.lambdaQuery()
+                .eq(ModuleRecordData::getRecordId, recordId)
+                .orderByAsc(ModuleRecordData::getFieldCode)
+                .list();
+
+        Map<String, ModuleField> fieldByCode = loadActiveFieldMap(systemId, tenantId, r.getAppId(), r.getModelId());
+        ObjectNode dataNode = objectMapper.createObjectNode();
+        if (rows != null) {
+            for (ModuleRecordData row : rows) {
+                if (row.getFieldCode() == null) {
+                    continue;
+                }
+                ModuleField mf = fieldByCode.get(row.getFieldCode());
+                dataNode.set(row.getFieldCode(), EavTypedValueSupport.toJsonNode(objectMapper, mf, row));
+            }
+        }
+
+        Map<String, Object> filesMeta = buildFilesMetaForRecord(systemId, tenantId, r.getAppId(), r.getModelId(), rows);
+
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("record", r);
+        m.put("data", dataNode);
+        if (!filesMeta.isEmpty()) {
+            m.put("files", filesMeta);
+        }
+        return m;
+    }
+
+    public List<ModuleRecordHistory> listHistoryForRecord(Long recordId, int limit) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        long systemId = AuthContextHolder.getSystemIdOrDefault();
+        if (systemId == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (recordId == null || recordId <= 0L) {
+            throw new BusinessException("recordId 不能为空");
+        }
+
+        ModuleRecord r = moduleRecordService.getById(recordId);
+        if (r == null) {
+            throw new BusinessException(404, "记录不存在");
+        }
+        if (r.getSystemId() == null || r.getTenantId() == null
+                || r.getSystemId() != systemId
+                || r.getTenantId() != tenantId) {
+            throw new BusinessException(403, "无权限访问该记录");
+        }
+
+        int lim = Math.min(Math.max(limit, 1), 100);
+        return moduleRecordHistoryService.lambdaQuery()
+                .eq(ModuleRecordHistory::getRecordId, recordId)
+                .eq(ModuleRecordHistory::getSystemId, systemId)
+                .eq(ModuleRecordHistory::getTenantId, tenantId)
+                .orderByDesc(ModuleRecordHistory::getCreateTime)
+                .last("limit " + lim)
+                .list();
+    }
+
+    private Map<String, Object> buildFilesMetaForRecord(long systemId,
+                                                        long tenantId,
+                                                        Long appId,
+                                                        Long modelId,
+                                                        List<ModuleRecordData> rows) {
+        if (rows == null || rows.isEmpty() || appId == null || modelId == null) {
+            return Map.of();
+        }
+
+        // 1) collect file-like fieldCodes from model fields
+        List<ModuleField> fields = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getAppId, appId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getStatus, 1)
+                .list();
+        if (fields == null || fields.isEmpty()) {
+            return Map.of();
+        }
+        HashSet<String> fileFieldCodes = new HashSet<>();
+        for (ModuleField f : fields) {
+            if (f == null || f.getFieldCode() == null) {
+                continue;
+            }
+            ModuleFieldType type = ModuleFieldConfigSupport.typeOf(f);
+            if (type != null && type.isFileType()) {
+                fileFieldCodes.add(f.getFieldCode());
+            }
+        }
+        if (fileFieldCodes.isEmpty()) {
+            return Map.of();
+        }
+
+        // 2) parse record values -> fileIds
+        HashSet<Long> fileIds = new HashSet<>();
+        for (ModuleRecordData row : rows) {
+            if (row == null || row.getFieldCode() == null || row.getValueText() == null) {
+                continue;
+            }
+            if (!fileFieldCodes.contains(row.getFieldCode())) {
+                continue;
+            }
+            String vt = row.getValueText().trim();
+            if (vt.isEmpty()) {
+                continue;
+            }
+            // support: "123" or ["123","456"] or [123,456]
+            try {
+                if (vt.startsWith("[") || vt.startsWith("{")) {
+                    JsonNode n = objectMapper.readTree(vt);
+                    if (n != null && n.isArray()) {
+                        for (JsonNode it : n) {
+                            Long id = parseFileIdNode(it);
+                            if (id != null) {
+                                fileIds.add(id);
+                            }
+                        }
+                    } else {
+                        Long id = parseFileIdNode(n);
+                        if (id != null) {
+                            fileIds.add(id);
+                        }
+                    }
+                } else {
+                    Long id = Long.parseLong(vt);
+                    if (id > 0) {
+                        fileIds.add(id);
+                    }
+                }
+            } catch (Exception ignore) {
+                // ignore malformed values
+            }
+        }
+        if (fileIds.isEmpty()) {
+            return Map.of();
+        }
+
+        // 3) load UploadFile meta under same scope
+        List<UploadFile> files = uploadFileService.lambdaQuery()
+                .eq(UploadFile::getSystemId, systemId)
+                .eq(UploadFile::getTenantId, tenantId)
+                .eq(UploadFile::getStatus, 1)
+                .in(UploadFile::getId, fileIds)
+                .list();
+        if (files == null || files.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<String, Object> out = new HashMap<>();
+        for (UploadFile uf : files) {
+            if (uf == null || uf.getId() == null) {
+                continue;
+            }
+            Map<String, Object> meta = new LinkedHashMap<>();
+            meta.put("id", String.valueOf(uf.getId()));
+            meta.put("originalName", uf.getOriginalName());
+            meta.put("contentType", uf.getContentType());
+            meta.put("fileSize", uf.getFileSize());
+            out.put(String.valueOf(uf.getId()), meta);
+        }
+        return out;
+    }
+
+    private static Long parseFileIdNode(JsonNode n) {
+        if (n == null || n.isNull()) {
+            return null;
+        }
+        if (n.isNumber()) {
+            long v = n.asLong();
+            return v > 0 ? v : null;
+        }
+        if (n.isTextual()) {
+            try {
+                long v = Long.parseLong(n.asText().trim());
+                return v > 0 ? v : null;
+            } catch (NumberFormatException ignore) {
+                return null;
+            }
+        }
+        if (n.isObject()) {
+            JsonNode id = n.get("id");
+            if (id != null) {
+                return parseFileIdNode(id);
+            }
+        }
+        return null;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> updateWithData(Long recordId, JsonNode data) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        long systemId = AuthContextHolder.getSystemIdOrDefault();
+        if (systemId == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (recordId == null || recordId <= 0L) {
+            throw new BusinessException("recordId 不能为空");
+        }
+        ModuleRecord r = moduleRecordService.getById(recordId);
+        if (r == null) {
+            throw new BusinessException(404, "记录不存在");
+        }
+        if (r.getSystemId() == null || r.getTenantId() == null
+                || r.getSystemId() != systemId
+                || r.getTenantId() != tenantId) {
+            throw new BusinessException(403, "无权限访问该记录");
+        }
+        if (r.getStatus() != null && r.getStatus() != 1) {
+            throw new BusinessException(400, "记录已删除/不可更新");
+        }
+        requireRecordDataAccess(r, platId, systemId, tenantId, r.getAppId());
+
+        moduleRecordDataService.lambdaUpdate()
+                .eq(ModuleRecordData::getRecordId, recordId)
+                .remove();
+
+        if (data != null && data.isObject()) {
+            ObjectNode obj = (ObjectNode) data;
+            validateRequiredFields(systemId, tenantId, r.getAppId(), r.getModelId(), obj);
+            var it = obj.fields();
+            while (it.hasNext()) {
+                var e = it.next();
+                String fieldCode = e.getKey();
+                if (!FIELD_CODE.matcher(fieldCode).matches()) {
+                    throw new BusinessException("data 中存在非法 fieldCode: " + fieldCode);
+                }
+                JsonNode v = e.getValue();
+                ModuleField f = requireField(systemId, tenantId, r.getAppId(), r.getModelId(), fieldCode);
+                validateFileFieldValue(systemId, tenantId, r.getAppId(), r.getModelId(), f, v);
+                validateRefFieldValue(systemId, tenantId, f, v);
+                validateTypedFieldValue(systemId, tenantId, r.getAppId(), f, v);
+                String text = valueToText(v);
+                if (text != null && text.length() > 65535) {
+                    throw new BusinessException("字段 " + fieldCode + " 值过长");
+                }
+                ModuleRecordData row = new ModuleRecordData();
+                row.setSystemId(systemId);
+                row.setTenantId(tenantId);
+                row.setAppId(r.getAppId());
+                row.setModelId(r.getModelId());
+                row.setRecordId(r.getId());
+                row.setFieldCode(fieldCode);
+                row.setValueText(text);
+                EavTypedValueSupport.applyTypedColumns(f, v, text, row);
+                row.setCreateUserId(platId);
+                row.setUpdateUserId(platId);
+                moduleRecordDataService.save(row);
+            }
+        }
+
+        r.setUpdateUserId(platId);
+        moduleRecordService.updateById(r);
+
+        saveHistory("update", r, dataToSnapshotJson(data));
+
+        moduleFlowTriggerService.tryTriggerAfterRecordChange(r, "update", data);
+
+        return detailWithData(recordId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRecord(Long recordId) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        long systemId = AuthContextHolder.getSystemIdOrDefault();
+        if (systemId == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (recordId == null || recordId <= 0L) {
+            throw new BusinessException("recordId 不能为空");
+        }
+        ModuleRecord r = moduleRecordService.getById(recordId);
+        if (r == null) {
+            throw new BusinessException(404, "记录不存在");
+        }
+        if (r.getSystemId() == null || r.getTenantId() == null
+                || r.getSystemId() != systemId
+                || r.getTenantId() != tenantId) {
+            throw new BusinessException(403, "无权限访问该记录");
+        }
+        if (r.getStatus() != null && r.getStatus() == 2) {
+            return;
+        }
+        requireRecordDataAccess(r, platId, systemId, tenantId, r.getAppId());
+
+        // snapshot before delete
+        String snapshot = snapshotFromDb(r);
+
+        r.setStatus(2);
+        r.setUpdateUserId(platId);
+        moduleRecordService.updateById(r);
+        moduleRecordDataService.lambdaUpdate()
+                .eq(ModuleRecordData::getRecordId, recordId)
+                .remove();
+
+        saveHistory("delete", r, snapshot);
+    }
+
+    public Map<String, Object> queryDsl(ModuleRecordDslQuery body) {
+        ModuleRecordDslQuery q = prepareDslQuery(body, null, null, 200L);
+
+        long offset = (q.getPage() - 1) * q.getLimit();
+        Long total = moduleRecordMapper.countDsl(q);
+        List<Map<String, Object>> list = total != null && total > 0
+                ? moduleRecordMapper.listDsl(q, offset, q.getLimit())
+                : List.of();
+        attachListFieldData(q, list);
+        stringifyRecordListIds(list);
+
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("page", q.getPage());
+        m.put("limit", q.getLimit());
+        m.put("total", total == null ? 0L : total);
+        m.put("list", list);
+        return m;
+    }
+
+    private static void stringifyRecordListIds(List<Map<String, Object>> list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        for (Map<String, Object> row : list) {
+            if (row == null || row.isEmpty()) {
+                continue;
+            }
+            for (String key : RECORD_LIST_ID_COLUMNS) {
+                Object value = row.get(key);
+                if (value != null) {
+                    row.put(key, String.valueOf(value));
+                }
+            }
+        }
+    }
+
+    /**
+     * 导出/查询共用的 DSL 规范化与白名单校验。
+     * forceAppId/forceModelId 不为空时将覆盖 body 中的 appId/modelId（用于“按模板导出”强制作用域）。
+     */
+    public ModuleRecordDslQuery prepareDslQuery(ModuleRecordDslQuery body, Long forceAppId, Long forceModelId, long maxLimit) {
+        Long platId = AuthContextHolder.getPlatId();
+        if (platId == null) {
+            throw new BusinessException(401, "未登录");
+        }
+        long systemId = AuthContextHolder.getSystemIdOrDefault();
+        if (systemId == 0L) {
+            throw new BusinessException(403, "请先进入自建系统");
+        }
+        long tenantId = AuthContextHolder.getTenantIdOrDefault();
+        if (body == null) {
+            throw new BusinessException("body 不能为空");
+        }
+
+        if (forceAppId != null) {
+            body.setAppId(forceAppId);
+        }
+        if (forceModelId != null) {
+            body.setModelId(forceModelId);
+        }
+        if (body.getAppId() == null || body.getAppId() <= 0L) {
+            throw new BusinessException("appId 不能为空");
+        }
+        if (body.getModelId() == null || body.getModelId() <= 0L) {
+            throw new BusinessException("modelId 不能为空");
+        }
+
+        long page = body.getPage() == null ? 1L : body.getPage();
+        long limit = body.getLimit() == null ? 20L : body.getLimit();
+        page = Math.max(1L, page);
+        long upper = Math.max(1L, maxLimit);
+        limit = Math.max(1L, Math.min(limit, upper));
+
+        body.setSystemId(systemId);
+        body.setTenantId(tenantId);
+        body.setPage(page);
+        body.setLimit(limit);
+
+        String sortBy = body.getSortBy() == null ? "updateTime" : body.getSortBy().trim();
+        String sortDir = body.getSortDir() == null ? "desc" : body.getSortDir().trim().toLowerCase();
+        Set<String> sortByAllow = Set.of("updateTime", "createTime", "id");
+        if (!sortByAllow.contains(sortBy)) {
+            throw new BusinessException("sortBy 不在白名单");
+        }
+        if (!sortDir.equals("asc") && !sortDir.equals("desc")) {
+            throw new BusinessException("sortDir 必须为 asc/desc");
+        }
+        body.setSortBy(sortBy);
+        body.setSortDir(sortDir);
+
+        List<ModuleRecordDslFilter> filters = body.getFilters();
+        if (filters != null && filters.size() > 10) {
+            throw new BusinessException("filters 数量超限（最多 10 条）");
+        }
+        if (filters != null) {
+            for (ModuleRecordDslFilter f : filters) {
+                normalizeAndValidateFilter(body.getModelId(), body.getAppId(), systemId, tenantId, f);
+            }
+        }
+        normalizeIncludeFieldCodes(body, systemId, tenantId);
+        ModuleDataScopeService.RecordScopeFilter scope = moduleDataScopeService.resolveRecordScope(
+                systemId, tenantId, body.getAppId(), platId);
+        if (scope.unrestricted()) {
+            body.setScopeUnrestricted(true);
+            body.setScopeCreateUserIds(null);
+            body.setScopeCreateUserId(null);
+        } else {
+            body.setScopeUnrestricted(false);
+            body.setScopeCreateUserIds(scope.creatorPlatIds());
+            body.setScopeCreateUserId(null);
+        }
+        return body;
+    }
+
+    private void normalizeIncludeFieldCodes(ModuleRecordDslQuery body, long systemId, long tenantId) {
+        List<String> raw = body.getIncludeFieldCodes();
+        if (raw == null || raw.isEmpty()) {
+            body.setIncludeFieldCodes(List.of());
+            return;
+        }
+        if (raw.size() > 30) {
+            throw new BusinessException("includeFieldCodes 最多 30 个");
+        }
+        List<String> codes = new ArrayList<>();
+        for (String fc : raw) {
+            if (fc == null || fc.isBlank()) {
+                continue;
+            }
+            String code = fc.trim();
+            if (RESERVED_RECORD_FIELDS.contains(code)) {
+                throw new BusinessException("includeFieldCodes 不可使用保留字: " + code);
+            }
+            if (!FIELD_CODE.matcher(code).matches()) {
+                throw new BusinessException("includeFieldCodes 非法: " + code);
+            }
+            requireField(systemId, tenantId, body.getAppId(), body.getModelId(), code);
+            if (!codes.contains(code)) {
+                codes.add(code);
+            }
+        }
+        body.setIncludeFieldCodes(codes);
+    }
+
+    private void attachListFieldData(ModuleRecordDslQuery q, List<Map<String, Object>> list) {
+        List<String> fieldCodes = q.getIncludeFieldCodes();
+        if (fieldCodes == null || fieldCodes.isEmpty() || list == null || list.isEmpty()) {
+            return;
+        }
+        List<Long> recordIds = list.stream()
+                .map(row -> parseRecordId(row == null ? null : row.get("id")))
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+        if (recordIds.isEmpty()) {
+            return;
+        }
+        long systemId = q.getSystemId();
+        long tenantId = q.getTenantId();
+        Map<String, ModuleField> fieldByCode = loadActiveFieldMap(systemId, tenantId, q.getAppId(), q.getModelId());
+        List<ModuleRecordData> eavRows = moduleRecordDataMapper.listByRecordIdsAndFieldCodes(recordIds, fieldCodes);
+        Map<Long, Map<String, String>> dataByRecord = new HashMap<>();
+        if (eavRows != null) {
+            for (ModuleRecordData row : eavRows) {
+                if (row.getRecordId() == null || row.getFieldCode() == null) {
+                    continue;
+                }
+                ModuleField mf = fieldByCode.get(row.getFieldCode());
+                String display = EavTypedValueSupport.toDisplayString(mf, row);
+                dataByRecord
+                        .computeIfAbsent(row.getRecordId(), k -> new LinkedHashMap<>())
+                        .put(row.getFieldCode(), display == null ? "" : display);
+            }
+        }
+        for (Map<String, Object> row : list) {
+            Long rid = parseRecordId(row.get("id"));
+            if (rid == null) {
+                continue;
+            }
+            Map<String, String> data = dataByRecord.getOrDefault(rid, Map.of());
+            Map<String, String> ordered = new LinkedHashMap<>();
+            for (String fc : fieldCodes) {
+                ordered.put(fc, data.getOrDefault(fc, ""));
+            }
+            row.put("data", ordered);
+        }
+    }
+
+    private static Long parseRecordId(Object id) {
+        if (id == null) {
+            return null;
+        }
+        if (id instanceof Number n) {
+            return n.longValue();
+        }
+        if (id instanceof String s) {
+            try {
+                return Long.parseLong(s.trim());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private void requireRecordDataAccess(ModuleRecord r, Long platId, long systemId, long tenantId, Long appId) {
+        if (appId == null || !moduleDataScopeService.canAccessRecord(r, systemId, tenantId, appId, platId)) {
+            throw new BusinessException(403, "无权限访问该记录（数据权限不足）");
+        }
+    }
+
+    private void validateTypedFieldValue(long systemId, long tenantId, Long appId, ModuleField field, JsonNode value) {
+        if (field == null || value == null || value.isNull()) {
+            return;
+        }
+        ModuleFieldType type = ModuleFieldConfigSupport.typeOf(field);
+        if (type == null) {
+            return;
+        }
+        if (type == ModuleFieldType.PERSON) {
+            validatePersonFieldValue(systemId, tenantId, appId, field, value);
+        } else if (type == ModuleFieldType.DEPARTMENT) {
+            validateDepartmentFieldValue(systemId, tenantId, appId, field, value);
+        } else if (type == ModuleFieldType.TEXT) {
+            validateTextFieldValue(field, value);
+        } else if (type == ModuleFieldType.NUMBER || type == ModuleFieldType.MONEY || type == ModuleFieldType.PERCENT
+                || type == ModuleFieldType.BOOLEAN || type == ModuleFieldType.DATETIME) {
+            EavTypedValueSupport.validateJsonValue(field, value);
+        }
+    }
+
+    private void validateTextFieldValue(ModuleField field, JsonNode value) {
+        String text = value.isTextual() ? value.asText() : value.asText("");
+        if (text.isBlank()) {
+            return;
+        }
+        if (field.getMaxLength() != null && text.length() > field.getMaxLength()) {
+            throw new BusinessException(400, "字段 " + field.getFieldCode() + " 超过最大长度 " + field.getMaxLength());
+        }
+        String vt = field.getValidateType();
+        if (vt == null || vt.isBlank()) {
+            return;
+        }
+        String code = field.getFieldCode();
+        switch (vt.trim().toLowerCase()) {
+            case "email" -> {
+                if (!text.matches("^[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}$")) {
+                    throw new BusinessException(400, "字段 " + code + " 须为合法邮箱");
+                }
+            }
+            case "phone" -> {
+                if (!text.matches("^1\\d{10}$")) {
+                    throw new BusinessException(400, "字段 " + code + " 须为 11 位手机号");
+                }
+            }
+            case "url" -> {
+                if (!text.matches("^https?://.+")) {
+                    throw new BusinessException(400, "字段 " + code + " 须为 http(s) 网址");
+                }
+            }
+            default -> { }
+        }
+    }
+
+    private void validatePersonFieldValue(long systemId, long tenantId, Long appId, ModuleField field, JsonNode value) {
+        for (Long id : collectLongIds(value, field.getFieldCode())) {
+            Long cnt = moduleMemberService.lambdaQuery()
+                    .eq(ModuleMember::getSystemId, systemId)
+                    .eq(ModuleMember::getTenantId, tenantId)
+                    .eq(ModuleMember::getAppId, appId)
+                    .eq(ModuleMember::getPlatId, id)
+                    .eq(ModuleMember::getStatus, 1)
+                    .count();
+            if (cnt == null || cnt == 0L) {
+                throw new BusinessException(400, "人员字段 " + field.getFieldCode() + " 引用了非本应用成员: " + id);
+            }
+        }
+    }
+
+    private void validateDepartmentFieldValue(long systemId, long tenantId, Long appId, ModuleField field, JsonNode value) {
+        for (Long id : collectLongIds(value, field.getFieldCode())) {
+            Long cnt = moduleDeptService.lambdaQuery()
+                    .eq(ModuleDept::getSystemId, systemId)
+                    .eq(ModuleDept::getTenantId, tenantId)
+                    .eq(ModuleDept::getAppId, appId)
+                    .eq(ModuleDept::getId, id)
+                    .eq(ModuleDept::getStatus, 1)
+                    .count();
+            if (cnt == null || cnt == 0L) {
+                throw new BusinessException(400, "部门字段 " + field.getFieldCode() + " 引用了无效部门: " + id);
+            }
+        }
+    }
+
+    private java.util.List<Long> collectLongIds(JsonNode value, String fieldCode) {
+        java.util.ArrayList<Long> ids = new java.util.ArrayList<>();
+        if (value.isNumber()) {
+            long v = value.asLong();
+            if (v > 0) {
+                ids.add(v);
+            }
+        } else if (value.isArray()) {
+            for (JsonNode it : value) {
+                if (it != null && it.isNumber() && it.asLong() > 0) {
+                    ids.add(it.asLong());
+                } else if (it != null && it.isTextual()) {
+                    try {
+                        long v = Long.parseLong(it.asText().trim());
+                        if (v > 0) {
+                            ids.add(v);
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new BusinessException(400, "字段 " + fieldCode + " ID 非法");
+                    }
+                }
+            }
+        } else if (value.isTextual()) {
+            String s = value.asText().trim();
+            if (s.startsWith("[")) {
+                try {
+                    JsonNode arr = objectMapper.readTree(s);
+                    if (arr.isArray()) {
+                        for (JsonNode it : arr) {
+                            if (it.isNumber() && it.asLong() > 0) {
+                                ids.add(it.asLong());
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new BusinessException(400, "字段 " + fieldCode + " 数组非法");
+                }
+            } else if (!s.isEmpty()) {
+                try {
+                    long v = Long.parseLong(s);
+                    if (v > 0) {
+                        ids.add(v);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new BusinessException(400, "字段 " + fieldCode + " ID 非法");
+                }
+            }
+        }
+        return ids;
+    }
+
+    private void normalizeAndValidateFilter(Long modelId, Long appId, long systemId, long tenantId, ModuleRecordDslFilter f) {
+        if (f == null) {
+            throw new BusinessException("filter 不能为空");
+        }
+        String field = f.getField() == null ? "" : f.getField().trim();
+        String op = f.getOp() == null ? "" : f.getOp().trim().toLowerCase();
+        if (field.isEmpty() || op.isEmpty()) {
+            throw new BusinessException("filter.field/op 不能为空");
+        }
+
+        if (op.equals("ge")) {
+            op = "gte";
+        } else if (op.equals("le")) {
+            op = "lte";
+        }
+        Set<String> opAllow = Set.of("eq", "ne", "in", "like", "gt", "gte", "lt", "lte", "between");
+        if (!opAllow.contains(op)) {
+            throw new BusinessException("filter.op 不在白名单");
+        }
+
+        if (RESERVED_RECORD_FIELDS.contains(field)) {
+            if (field.equals("id")) {
+                if (!(op.equals("eq") || op.equals("ne") || op.equals("in"))) {
+                    throw new BusinessException("id 仅支持 eq/ne/in");
+                }
+            } else if (field.equals("createTime") || field.equals("updateTime")) {
+                if (!(op.equals("gt") || op.equals("gte") || op.equals("lt") || op.equals("lte") || op.equals("between"))) {
+                    throw new BusinessException(field + " 仅支持 gt/gte/lt/lte/between");
+                }
+                normalizeBetweenValue(f, field);
+            }
+        } else {
+            if (!FIELD_CODE.matcher(field).matches()) {
+                throw new BusinessException("filter.field 须为 id/createTime/updateTime 或合法 field_code（字母开头，字母数字下划线）");
+            }
+            if (modelId == null || modelId <= 0L || appId == null || appId <= 0L) {
+                throw new BusinessException("modelId/appId 不能为空");
+            }
+            ModuleField mf = requireField(systemId, tenantId, appId, modelId, field);
+            normalizeBetweenValue(f, field);
+            validateFilterValueLength(f, field);
+            resolveDslTypedEqFilter(f, mf);
+        }
+
+        if (op.equals("in")) {
+            if (f.getValues() == null || f.getValues().isEmpty()) {
+                throw new BusinessException("in 的 values 不能为空");
+            }
+            if (f.getValues().size() > 200) {
+                throw new BusinessException("in 的 values 超限（最多 200）");
+            }
+        } else if (!op.equals("between")) {
+            if (f.getValue() == null) {
+                throw new BusinessException("value 不能为空");
+            }
+        }
+
+        f.setField(field);
+        f.setOp(op);
+    }
+
+    private void resolveDslTypedEqFilter(ModuleRecordDslFilter f, ModuleField mf) {
+        f.setTypedKind("NONE");
+        f.setValueNum(null);
+        f.setValueDt(null);
+        f.setValueNumEnd(null);
+        f.setValueDtEnd(null);
+        if (f == null || mf == null) {
+            return;
+        }
+        ModuleFieldType t = ModuleFieldConfigSupport.typeOf(mf);
+        if (t == null) {
+            return;
+        }
+        String op = f.getOp();
+        String label = mf.getFieldCode();
+        if (t == ModuleFieldType.NUMBER || t == ModuleFieldType.MONEY || t == ModuleFieldType.PERCENT) {
+            if (!(op.equals("eq") || op.equals("ne") || op.equals("gt") || op.equals("gte") || op.equals("lt") || op.equals("lte") || op.equals("between"))) {
+                if (op.equals("in") || op.equals("like")) {
+                    return;
+                }
+                throw new BusinessException(label + " 仅支持 eq/ne/in/like/gt/gte/lt/lte/between");
+            }
+            f.setTypedKind("NUM");
+            f.setValueNum(EavTypedValueSupport.parseDecimalForFilter(f.getValue(), label));
+            if (op.equals("between")) {
+                f.setValueNumEnd(EavTypedValueSupport.parseDecimalForFilter(f.getValues().get(1), label));
+            }
+        } else if (t == ModuleFieldType.BOOLEAN) {
+            if (!(op.equals("eq") || op.equals("ne") || op.equals("in"))) {
+                throw new BusinessException(label + " 仅支持 eq/ne/in");
+            }
+            if (op.equals("in")) {
+                return;
+            }
+            f.setTypedKind("NUM");
+            f.setValueNum(EavTypedValueSupport.parseBooleanFilterForEq(f.getValue(), label));
+        } else if (t == ModuleFieldType.DATETIME) {
+            if (!(op.equals("eq") || op.equals("ne") || op.equals("gt") || op.equals("gte") || op.equals("lt") || op.equals("lte") || op.equals("between"))) {
+                throw new BusinessException(label + " 仅支持 eq/ne/gt/gte/lt/lte/between");
+            }
+            f.setTypedKind("DT");
+            f.setValueDt(EavTypedValueSupport.parseDateTimeForFilter(f.getValue(), label));
+            if (op.equals("between")) {
+                f.setValueDtEnd(EavTypedValueSupport.parseDateTimeForFilter(f.getValues().get(1), label));
+            }
+        } else if (!(op.equals("eq") || op.equals("ne") || op.equals("like") || op.equals("in"))) {
+            throw new BusinessException(label + " 仅支持 eq/ne/like/in");
+        }
+    }
+
+    private void normalizeBetweenValue(ModuleRecordDslFilter f, String field) {
+        if (!"between".equals(f.getOp())) {
+            return;
+        }
+        if (f.getValues() == null || f.getValues().size() < 2) {
+            throw new BusinessException(field + " 的 between values 至少需要 2 个值");
+        }
+        f.setValue(f.getValues().get(0));
+    }
+
+    private void validateFilterValueLength(ModuleRecordDslFilter f, String field) {
+        if ("in".equals(f.getOp()) || "between".equals(f.getOp())) {
+            List<Object> values = f.getValues();
+            if (values == null) {
+                return;
+            }
+            for (Object v : values) {
+                String s = String.valueOf(v == null ? "" : v);
+                if (s.length() > 200) {
+                    throw new BusinessException(field + " 的过滤值太长");
+                }
+            }
+            return;
+        }
+        if (f.getValue() == null) {
+            throw new BusinessException(field + " 的 value 不能为空");
+        }
+        String s = String.valueOf(f.getValue());
+        if (s.length() > 200) {
+            throw new BusinessException(field + " 的 value 太长");
+        }
+    }
+
+    private Map<String, ModuleField> loadActiveFieldMap(long systemId, long tenantId, Long appId, Long modelId) {
+        if (appId == null || modelId == null) {
+            return Map.of();
+        }
+        List<ModuleField> defs = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getAppId, appId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getStatus, 1)
+                .list();
+        if (defs == null || defs.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, ModuleField> m = new LinkedHashMap<>();
+        for (ModuleField def : defs) {
+            if (def != null && def.getFieldCode() != null && !def.getFieldCode().isBlank()) {
+                m.put(def.getFieldCode(), def);
+            }
+        }
+        return m;
+    }
+
+    private ModuleField requireField(long systemId, long tenantId, Long appId, Long modelId, String fieldCode) {
+        if (fieldCode == null || fieldCode.isBlank()) {
+            throw new BusinessException("fieldCode 不能为空");
+        }
+        ModuleField f = moduleFieldService.lambdaQuery()
+                .eq(ModuleField::getSystemId, systemId)
+                .eq(ModuleField::getTenantId, tenantId)
+                .eq(ModuleField::getAppId, appId)
+                .eq(ModuleField::getModelId, modelId)
+                .eq(ModuleField::getFieldCode, fieldCode)
+                .eq(ModuleField::getStatus, 1)
+                .last("limit 1")
+                .one();
+        if (f == null) {
+            throw new BusinessException("字段不存在或已停用: " + fieldCode);
+        }
+        return f;
+    }
+
+    private void saveHistory(String action, ModuleRecord r, String snapshotJson) {
+        if (r == null) {
+            return;
+        }
+        ModuleRecordHistory h = new ModuleRecordHistory();
+        h.setSystemId(r.getSystemId());
+        h.setTenantId(r.getTenantId());
+        h.setAppId(r.getAppId());
+        h.setModelId(r.getModelId());
+        h.setRecordId(r.getId());
+        h.setAction(action);
+        h.setDataJson(snapshotJson);
+        h.setDiffJson(null);
+        moduleRecordHistoryService.save(h);
+    }
+
+    private String dataToSnapshotJson(JsonNode data) {
+        try {
+            if (data == null || data.isNull()) {
+                return "{}";
+            }
+            if (data.isObject()) {
+                return objectMapper.writeValueAsString(data);
+            }
+            return objectMapper.writeValueAsString(objectMapper.createObjectNode());
+        } catch (Exception ignore) {
+            return "{}";
+        }
+    }
+
+    private String snapshotFromDb(ModuleRecord r) {
+        ObjectNode dataNode = objectMapper.createObjectNode();
+        if (r == null || r.getId() == null) {
+            return "{}";
+        }
+        Map<String, ModuleField> fieldByCode = loadActiveFieldMap(
+                r.getSystemId() == null ? 0L : r.getSystemId(),
+                r.getTenantId() == null ? 0L : r.getTenantId(),
+                r.getAppId(),
+                r.getModelId());
+        List<ModuleRecordData> rows = moduleRecordDataService.lambdaQuery()
+                .eq(ModuleRecordData::getRecordId, r.getId())
+                .list();
+        if (rows != null) {
+            for (ModuleRecordData row : rows) {
+                if (row == null || row.getFieldCode() == null) {
+                    continue;
+                }
+                ModuleField mf = fieldByCode.get(row.getFieldCode());
+                dataNode.set(row.getFieldCode(), EavTypedValueSupport.toJsonNode(objectMapper, mf, row));
+            }
+        }
+        try {
+            return objectMapper.writeValueAsString(dataNode);
+        } catch (Exception ignore) {
+            return "{}";
+        }
+    }
+}

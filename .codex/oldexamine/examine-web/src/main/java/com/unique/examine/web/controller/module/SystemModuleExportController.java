@@ -1,0 +1,157 @@
+package com.unique.examine.web.controller.module;
+
+import com.unique.examine.core.security.AuthContextHolder;
+import com.unique.examine.core.web.ApiResult;
+import com.unique.examine.module.entity.dto.ModuleRecordDslQuery;
+import com.unique.examine.module.entity.po.ModuleExportTpl;
+import com.unique.examine.module.entity.po.ModuleExportTplField;
+import com.unique.examine.module.manage.SystemModuleExportService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@Tag(name = "自建系统态-module导出模板")
+@RestController
+@RequestMapping("/v1/system/module/exports")
+public class SystemModuleExportController {
+
+    @Autowired
+    private SystemModuleExportService systemModuleExportService;
+
+    @Operation(summary = "导出模板列表（按 modelId）")
+    @GetMapping("/models/{modelId}/tpls")
+    public ApiResult<List<ModuleExportTpl>> listTpls(@PathVariable("modelId") Long modelId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleExportService.listTpls(modelId, platId));
+    }
+
+    public record UpsertTplBody(Long id,
+                                Long appId,
+                                Long modelId,
+                                Long menuId,
+                                String tplCode,
+                                String tplName,
+                                String fileType,
+                                Integer status) {}
+
+    @Operation(summary = "新增/更新导出模板")
+    @PostMapping("/tpls/upsert")
+    public ApiResult<ModuleExportTpl> upsertTpl(@RequestBody UpsertTplBody body) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleExportService.upsertTpl(platId, new SystemModuleExportService.UpsertTplCmd(
+                body.id(), body.appId(), body.modelId(), body.menuId(), body.tplCode(), body.tplName(), body.fileType(), body.status()
+        )));
+    }
+
+    @Operation(summary = "导出字段列表（按 tplId）")
+    @GetMapping("/tpls/{tplId}/fields")
+    public ApiResult<List<ModuleExportTplField>> listFields(@PathVariable("tplId") Long tplId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleExportService.listFields(tplId, platId));
+    }
+
+    public record UpsertFieldBody(Long id,
+                                  Long tplId,
+                                  Long fieldId,
+                                  String colTitle,
+                                  Integer sortNo,
+                                  String formatJson) {}
+
+    @Operation(summary = "新增/更新导出字段")
+    @PostMapping("/fields/upsert")
+    public ApiResult<ModuleExportTplField> upsertField(@RequestBody UpsertFieldBody body) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleExportService.upsertField(platId, new SystemModuleExportService.UpsertFieldCmd(
+                body.id(), body.tplId(), body.fieldId(), body.colTitle(), body.sortNo(), body.formatJson()
+        )));
+    }
+
+    public record DeleteIdsBody(List<Long> ids) {}
+
+    @Operation(summary = "删除导出模板（按 id 列表；同时级联删除字段）")
+    @PostMapping("/tpls/delete")
+    public ApiResult<Void> deleteTpls(@RequestBody DeleteIdsBody body) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleExportService.deleteTpls(platId, body == null ? null : body.ids());
+        return ApiResult.ok();
+    }
+
+    @Operation(summary = "删除导出字段（按 id 列表）")
+    @PostMapping("/fields/delete")
+    public ApiResult<Void> deleteFields(@RequestBody DeleteIdsBody body) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleExportService.deleteFields(platId, body == null ? null : body.ids());
+        return ApiResult.ok();
+    }
+
+    @Operation(summary = "按导出模板导出 CSV（支持传入 DSL filters）")
+    @PostMapping("/tpls/{tplId}/export/csv")
+    public void exportCsv(@PathVariable("tplId") Long tplId,
+                          @RequestBody(required = false) ModuleRecordDslQuery query,
+                          HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleExportService.exportCsv(tplId, platId, query, response);
+    }
+
+    @Operation(summary = "按导出模板导出 XLSX（支持传入 DSL filters）")
+    @PostMapping("/tpls/{tplId}/export/xlsx")
+    public void exportXlsx(@PathVariable("tplId") Long tplId,
+                           @RequestBody(required = false) ModuleRecordDslQuery query,
+                           HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleExportService.exportXlsx(tplId, platId, query, response);
+    }
+
+    @Operation(summary = "按导出模板类型导出（csv/xlsx）")
+    @PostMapping("/tpls/{tplId}/export")
+    public void exportByTemplateType(@PathVariable("tplId") Long tplId,
+                                     @RequestBody(required = false) ModuleRecordDslQuery query,
+                                     HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleExportService.exportByTemplateType(tplId, platId, query, response);
+    }
+
+    @Operation(summary = "按导出模板导出 CSV（GET；便于移动端直接下载；可选 limit）")
+    @GetMapping("/tpls/{tplId}/export/csv")
+    public void exportCsvGet(@PathVariable("tplId") Long tplId,
+                             @RequestParam(value = "limit", required = false) Long limit,
+                             HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        ModuleRecordDslQuery q = new ModuleRecordDslQuery();
+        q.setLimit(limit == null ? 200L : limit);
+        systemModuleExportService.exportCsv(tplId, platId, q, response);
+    }
+
+    @Operation(summary = "按导出模板导出 XLSX（GET；便于移动端直接下载；可选 limit）")
+    @GetMapping("/tpls/{tplId}/export/xlsx")
+    public void exportXlsxGet(@PathVariable("tplId") Long tplId,
+                              @RequestParam(value = "limit", required = false) Long limit,
+                              HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        ModuleRecordDslQuery q = new ModuleRecordDslQuery();
+        q.setLimit(limit == null ? 200L : limit);
+        systemModuleExportService.exportXlsx(tplId, platId, q, response);
+    }
+
+    @Operation(summary = "按导出模板类型导出（GET；便于移动端直接下载；可选 limit）")
+    @GetMapping("/tpls/{tplId}/export")
+    public void exportByTemplateTypeGet(@PathVariable("tplId") Long tplId,
+                                        @RequestParam(value = "limit", required = false) Long limit,
+                                        HttpServletResponse response) {
+        Long platId = AuthContextHolder.getPlatId();
+        ModuleRecordDslQuery q = new ModuleRecordDslQuery();
+        q.setLimit(limit == null ? 200L : limit);
+        systemModuleExportService.exportByTemplateType(tplId, platId, q, response);
+    }
+}
+

@@ -1,0 +1,158 @@
+package com.unique.examine.web.controller;
+
+import com.unique.examine.core.security.AuthContextHolder;
+import com.unique.examine.core.web.ApiResult;
+import com.unique.examine.module.entity.po.ModuleMember;
+import com.unique.examine.module.entity.po.ModuleMenu;
+import com.unique.examine.module.entity.po.ModuleRole;
+import com.unique.examine.module.entity.po.ModuleRoleMenuPerm;
+import com.unique.examine.module.entity.po.ModuleRolePagePerm;
+import com.unique.examine.module.manage.SystemModuleRbacService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Map;
+
+@Tag(name = "自建系统态-module RBAC")
+@RestController
+@RequestMapping("/v1/system/module/rbac")
+public class SystemModuleRbacController {
+
+    @Autowired
+    private SystemModuleRbacService systemModuleRbacService;
+
+    @Operation(summary = "角色列表（按 appId）")
+    @GetMapping("/apps/{appId}/roles")
+    public ApiResult<List<ModuleRole>> listRoles(@PathVariable("appId") Long appId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listRoles(appId, platId));
+    }
+
+    @Operation(summary = "菜单列表（按 appId）")
+    @GetMapping("/apps/{appId}/menus")
+    public ApiResult<List<ModuleMenu>> listMenus(@PathVariable("appId") Long appId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listMenus(appId, platId));
+    }
+
+    @Operation(summary = "运行时菜单（当前用户可见）")
+    @GetMapping("/apps/{appId}/runtime-menus")
+    public ApiResult<List<ModuleMenu>> runtimeMenus(@PathVariable("appId") Long appId) {
+        return ApiResult.ok(systemModuleRbacService.listRuntimeMenus(appId, AuthContextHolder.getPlatId()));
+    }
+
+    @Operation(summary = "成员列表（按 appId）")
+    @GetMapping("/apps/{appId}/members")
+    public ApiResult<List<ModuleMember>> listMembers(@PathVariable("appId") Long appId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listMembers(appId, platId));
+    }
+
+    @Operation(summary = "搜索平台账号（添加成员，keyword≥2字符）")
+    @GetMapping("/account-search")
+    public ApiResult<List<Map<String, Object>>> searchAccounts(
+            @org.springframework.web.bind.annotation.RequestParam("keyword") String keyword) {
+        return ApiResult.ok(systemModuleRbacService.searchPlatAccounts(keyword, AuthContextHolder.getPlatId()));
+    }
+
+    @Operation(summary = "人员字段选择项（PERSON）")
+    @GetMapping("/apps/{appId}/picker/members")
+    public ApiResult<List<Map<String, Object>>> memberPicker(
+            @PathVariable("appId") Long appId,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestParam(value = "deptId", required = false) Long deptId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listMemberPickerOptions(appId, platId, scope, deptId));
+    }
+
+    @Operation(summary = "部门字段选择项（DEPARTMENT）")
+    @GetMapping("/apps/{appId}/picker/departments")
+    public ApiResult<List<Map<String, Object>>> departmentPicker(@PathVariable("appId") Long appId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listDepartmentPickerOptions(appId, platId));
+    }
+
+    @Operation(summary = "角色菜单权限明细（按 roleId）")
+    @GetMapping("/roles/{roleId}/menu-perms")
+    public ApiResult<List<ModuleRoleMenuPerm>> listRoleMenuPerms(@PathVariable("roleId") Long roleId) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.listRoleMenuPerms(roleId, platId));
+    }
+
+    @Operation(summary = "角色页面权限明细（按 roleId）")
+    @GetMapping("/roles/{roleId}/page-perms")
+    public ApiResult<List<ModuleRolePagePerm>> listRolePagePerms(@PathVariable("roleId") Long roleId) {
+        return ApiResult.ok(systemModuleRbacService.listRolePagePerms(roleId, AuthContextHolder.getPlatId()));
+    }
+
+    public record UpsertRoleBody(Long id, String roleCode, String roleName, Integer status, Integer dataScope) {}
+
+    @Operation(summary = "新增/更新角色（按 appId）")
+    @PostMapping("/apps/{appId}/roles/upsert")
+    public ApiResult<ModuleRole> upsertRole(@PathVariable("appId") Long appId, @RequestBody UpsertRoleBody body) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.upsertRole(appId, platId, new SystemModuleRbacService.UpsertRoleCmd(
+                body.id(), appId, body.roleCode(), body.roleName(), body.status(), body.dataScope()
+        )));
+    }
+
+    public record UpsertMenuBody(Long id,
+                                 Long parentId,
+                                 String menuName,
+                                 Long pageId,
+                                 Integer sortNo,
+                                 Integer visibleFlag,
+                                 String permKey,
+                                 String apiPattern) {}
+
+    @Operation(summary = "新增/更新菜单（按 appId）")
+    @PostMapping("/apps/{appId}/menus/upsert")
+    public ApiResult<ModuleMenu> upsertMenu(@PathVariable("appId") Long appId, @RequestBody UpsertMenuBody body) {
+        Long platId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.upsertMenu(appId, platId, new SystemModuleRbacService.UpsertMenuCmd(
+                body.id(), appId, body.parentId(), body.menuName(), body.pageId(), body.sortNo(), body.visibleFlag(), body.permKey(), body.apiPattern()
+        )));
+    }
+
+    public record SetRoleMenuPermBody(Long roleId, List<Long> menuIds, Integer permLevel) {}
+
+    @Operation(summary = "设置角色菜单权限（覆盖写；按 roleId）")
+    @PostMapping("/roles/menu-perms/set")
+    public ApiResult<Void> setRoleMenuPerms(@RequestBody SetRoleMenuPermBody body) {
+        Long platId = AuthContextHolder.getPlatId();
+        systemModuleRbacService.setRoleMenuPerms(platId, new SystemModuleRbacService.SetRoleMenuPermCmd(body.roleId(), body.menuIds(), body.permLevel()));
+        return ApiResult.ok();
+    }
+
+    public record SetRolePagePermBody(Long roleId, List<Long> pageIds, Integer permLevel) {}
+
+    @Operation(summary = "设置角色页面权限（覆盖写）")
+    @PostMapping("/roles/page-perms/set")
+    public ApiResult<Void> setRolePagePerms(@RequestBody SetRolePagePermBody body) {
+        systemModuleRbacService.setRolePagePerms(
+                AuthContextHolder.getPlatId(),
+                new SystemModuleRbacService.SetRolePagePermCmd(body.roleId(), body.pageIds(), body.permLevel()));
+        return ApiResult.ok();
+    }
+
+    public record AssignMemberRoleBody(Long appId, Long memberPlatId, Long roleId, Long deptId) {}
+
+    @Operation(summary = "给成员分配角色/部门（按 appId + memberPlatId）")
+    @PostMapping("/members/assign-role")
+    public ApiResult<ModuleMember> assignMemberRole(@RequestBody AssignMemberRoleBody body) {
+        Long operatorPlatId = AuthContextHolder.getPlatId();
+        return ApiResult.ok(systemModuleRbacService.assignMemberRole(operatorPlatId, new SystemModuleRbacService.AssignMemberRoleCmd(
+                body.appId(), body.memberPlatId(), body.roleId(), body.deptId()
+        )));
+    }
+}
+

@@ -1,0 +1,59 @@
+server:
+  port: ${SERVER_PORT:9999}
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/examine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:127.0.0.1}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      database: ${SPRING_DATA_REDIS_DATABASE:0}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: ${EXAMINE_FLYWAY_BASELINE_VERSION:22}
+    validate-on-migrate: ${EXAMINE_FLYWAY_VALIDATE_ON_MIGRATE:true}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+logging:
+  file:
+    name: ${LOG_FILE:/var/log/examine/examine-web.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 20MB
+      max-history: 30
+      total-size-cap: 500MB
+
+springdoc:
+  api-docs:
+    enabled: false
+
+knife4j:
+  enable: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+examine:
+  export-job:
+    poll-ms: ${EXAMINE_EXPORT_JOB_POLL_MS:10000}
+  trace:
+    enabled: false
+  openapi:
+    signing-master-key: ${EXAMINE_OPENAPI_SIGNING_MASTER_KEY:}
+  upload:
+    local-root-path: ${EXAMINE_UPLOAD_PATH:/data/examine/uploads}
+    max-size-mb: 50
