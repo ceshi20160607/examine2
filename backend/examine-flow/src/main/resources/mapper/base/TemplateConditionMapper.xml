@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.flow.base.mapper.TemplateConditionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.flow.base.entity.TemplateCondition">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="line_id" property="lineId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="operator" property="operator" />
+        <result column="compare_value_json" property="compareValueJson" />
+        <result column="expression_json" property="expressionJson" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, line_id, field_code, operator, compare_value_json, expression_json, sort_order, created_at, updated_at
+    </sql>
+
+</mapper>

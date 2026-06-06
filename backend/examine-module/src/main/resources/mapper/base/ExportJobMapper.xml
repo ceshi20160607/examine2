@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ExportJobMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.ExportJob">
+        <id column="job_id" property="jobId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="template_id" property="templateId" />
+        <result column="publish_version_id" property="publishVersionId" />
+        <result column="job_status" property="jobStatus" />
+        <result column="progress" property="progress" />
+        <result column="selected_record_ids_json" property="selectedRecordIdsJson" />
+        <result column="filter_snapshot_json" property="filterSnapshotJson" />
+        <result column="sorter_snapshot_json" property="sorterSnapshotJson" />
+        <result column="field_snapshot_json" property="fieldSnapshotJson" />
+        <result column="permission_snapshot_json" property="permissionSnapshotJson" />
+        <result column="data_scope_snapshot_json" property="dataScopeSnapshotJson" />
+        <result column="file_name" property="fileName" />
+        <result column="result_file_id" property="resultFileId" />
+        <result column="failure_code" property="failureCode" />
+        <result column="failure_message" property="failureMessage" />
+        <result column="failure_snapshot_json" property="failureSnapshotJson" />
+        <result column="retryable_flag" property="retryableFlag" />
+        <result column="retry_count" property="retryCount" />
+        <result column="max_retry_count" property="maxRetryCount" />
+        <result column="claimed_by" property="claimedBy" />
+        <result column="claimed_at" property="claimedAt" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="request_id" property="requestId" />
+        <result column="idempotency_key" property="idempotencyKey" />
+        <result column="request_hash" property="requestHash" />
+        <result column="created_by" property="createdBy" />
+        <result column="version" property="version" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        job_id, system_id, tenant_id, module_id, template_id, publish_version_id, job_status, progress, selected_record_ids_json, filter_snapshot_json, sorter_snapshot_json, field_snapshot_json, permission_snapshot_json, data_scope_snapshot_json, file_name, result_file_id, failure_code, failure_message, failure_snapshot_json, retryable_flag, retry_count, max_retry_count, claimed_by, claimed_at, started_at, finished_at, request_id, idempotency_key, request_hash, created_by, version, created_at, updated_at
+    </sql>
+
+</mapper>

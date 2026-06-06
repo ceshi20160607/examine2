@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.RecordIndexMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RecordIndex">
+        <id column="index_id" property="indexId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="record_id" property="recordId" />
+        <result column="field_id" property="fieldId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="row_key" property="rowKey" />
+        <result column="index_text" property="indexText" />
+        <result column="index_number" property="indexNumber" />
+        <result column="index_datetime" property="indexDatetime" />
+        <result column="index_date" property="indexDate" />
+        <result column="index_bool" property="indexBool" />
+        <result column="index_hash" property="indexHash" />
+        <result column="record_status" property="recordStatus" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        index_id, system_id, tenant_id, module_id, record_id, field_id, field_code, row_key, index_text, index_number, index_datetime, index_date, index_bool, index_hash, record_status, created_at, updated_at
+    </sql>
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.RecordUniqueIndexMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RecordUniqueIndex">
+        <id column="unique_index_id" property="uniqueIndexId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="constraint_code" property="constraintCode" />
+        <result column="field_ids_json" property="fieldIdsJson" />
+        <result column="field_codes_json" property="fieldCodesJson" />
+        <result column="combined_value_hash" property="combinedValueHash" />
+        <result column="display_values_json" property="displayValuesJson" />
+        <result column="record_id" property="recordId" />
+        <result column="active_unique_marker" property="activeUniqueMarker" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        unique_index_id, system_id, tenant_id, module_id, constraint_code, field_ids_json, field_codes_json, combined_value_hash, display_values_json, record_id, active_unique_marker, created_at, updated_at
+    </sql>
+
+</mapper>

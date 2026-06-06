@@ -15,7 +15,7 @@
 - `docs/understanding/test_review.md`
 - `.codex/state.json`
 
-当前阶段以 `.codex/state.json` 为准：`current_step=13`，`status=API_REVIEW_FAIL_LOOP_2_PM_FIXING`，`api_frozen=false`。当前活动区 `docs/prd.md` 已存在，PRD 复审已通过；本次不读取旧项目目录，不生成 SQL，不写代码，不进入 DB 设计、任务拆分或实现阶段。
+当前阶段以 `.codex/state.json`、`docs/api_review.md` 和 `docs/task_plan.md` 为准：API 契约已冻结，任务计划已冻结，当前处于开发模式的 DB 设计和前置开发任务阶段。本文保留理解阶段历史台账；后续是否允许继续开发，以冻结 API、冻结任务计划和 `.codex/state.json` 的最新状态为准。
 
 ## PRD 与原始需求一致性结论
 
@@ -131,33 +131,33 @@
 
 ## API 契约生成前置条件
 
-API 契约生成前置条件已满足：`docs/prd.md` 已存在并通过 PRD 复审，`PU-017`、`PU-018` 已关闭，理解阶段无剩余阻塞 issue。当前允许进入 API 契约审查闭环。
+API 契约生成前置条件已满足：`docs/prd.md` 已存在并通过 PRD 复审，`PU-017`、`PU-018` 已关闭，理解阶段无剩余阻塞 issue。API 契约审查闭环已在 `docs/api_review.md` 中完成并冻结。
 
 当前限制：
 
-1. `docs/api.md` 尚未冻结，`api_frozen=false`。
-2. API 未冻结前，不允许进入 DB 设计、SQL 生成、任务拆分、后端实现或前端实现。
-3. API 第 2 次闭环仅处理 `BAPI-001`、`TAPI-005`、`TAPI-006`，修订后必须等待 backend 和 test 对剩余 issue 复核。
-4. DBA 与 frontend 第 1 轮 API 复核已通过；若后续因 API 新增契约影响其已通过结论，应重新登记对应 API issue。
+1. 冻结 API 不得由实现任务私自修改；发现契约无法落地时必须重新打开 API 契约评审。
+2. 开发模式必须按 `docs/task_plan.md` 的依赖执行；当前 DB 设计和 SQL 尚未完成，不得直接启动后端业务实现。
+3. DBA、backend、frontend、test 的后续任务必须只使用冻结 API、冻结任务计划和各自声明输入。
 
-## 是否允许进入 API 契约审查闭环
+## 是否允许进入开发模式
 
-**允许进入 API 契约审查闭环。**
+**允许进入开发模式。**
 
 理由：
 
 - PRD 复审已通过，`docs/project_understanding.md` 的历史 PRD 生成前置结论不再作为当前阶段限制。
-- `PU-017` 和 `PU-018` 已关闭，不再阻塞 API 契约审查。
-- 当前 state、`docs/api.md` 和 `docs/api_review.md` 均指向 step 13 的 API 契约闭环，且 `api_frozen=false`。
+- `PU-017` 和 `PU-018` 已关闭，不再阻塞 API 契约或任务拆分。
+- `docs/api_review.md` 已确认 API 冻结通过，`.codex/state.json.api_frozen=true`。
+- `docs/task_plan.md` 和 `docs/tasks/` 已通过任务清单复审，`.codex/state.json.task_plan_frozen=true`。
 
 限制：
 
-- 仅允许继续 API 契约审查闭环，不允许冻结 API 后的 DB/代码/任务拆分活动。
-- API 是否冻结必须以 `docs/api_review.md` 中 PM 汇总 backend、test 复核后的最终结论为准。
+- 当前仅允许按任务依赖推进开发模式，不得跳过 DB 设计和 SQL 初始化直接进入后端业务实现。
+- 后端业务 `manage` 层必须等待 `GEN-004` 生成 base 层并输出生成报告后再启动。
 
-## 下一步自动审查动作
+## 下一步开发动作
 
-1. PM 在 API 契约模式下修订 `docs/api.md` 与 `docs/api_review.md`，仅处理 `BAPI-001`、`TAPI-005`、`TAPI-006`。
-2. backend 复核 `BAPI-001` 是否关闭。
-3. test 复核 `TAPI-005`、`TAPI-006` 是否关闭。
-4. 所有剩余阻塞 issue 关闭前，不得冻结 API，不得进入任务拆分阶段。
+1. DBA 继续 `DBA-002`、`DBA-003`、`DBA-004` 分片设计，输出互不重叠的 `docs/db_design_parts/` 文档。
+2. test 继续 `TEST-002` API 契约用例设计。
+3. frontend 可启动 `FE-001` typed SDK 与页面契约模板。
+4. 后端代码实现必须等待 `DBA-006` 完成 `sql/init.sql` 后再启动 `BE-001`。

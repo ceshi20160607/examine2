@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.RecordChildRowMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RecordChildRow">
+        <id column="child_row_id" property="childRowId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="record_id" property="recordId" />
+        <result column="parent_field_id" property="parentFieldId" />
+        <result column="row_key" property="rowKey" />
+        <result column="row_order" property="rowOrder" />
+        <result column="row_status" property="rowStatus" />
+        <result column="delete_marker" property="deleteMarker" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        child_row_id, system_id, tenant_id, module_id, record_id, parent_field_id, row_key, row_order, row_status, delete_marker, created_at, updated_at
+    </sql>
+
+</mapper>

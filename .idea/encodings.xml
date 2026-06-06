@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/backend/examine-app/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/examine-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/examine-flow/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/examine-generator/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/examine-manage/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/examine-module/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/examine-plat/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/examine-upload/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/examine-web/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/examine-app/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/examine-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/examine-module/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/examine-upload/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/examine-web/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

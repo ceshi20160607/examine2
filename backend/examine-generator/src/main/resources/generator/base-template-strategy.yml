@@ -1,0 +1,104 @@
+version: 1
+name: base-template-strategy
+
+scope:
+  layer: base
+  allowedPackages:
+    - entity
+    - mapper
+    - service
+    - service.impl
+  forbiddenPackages:
+    - controller
+    - manage
+    - bo
+    - vo
+    - dto
+    - converter
+    - enums
+
+templates:
+  entity:
+    path: /templates/base/entity.java
+    outputPackage: entity
+    rules:
+      - Use @TableName with the physical table name.
+      - Use Lombok getter/setter and chain accessors.
+      - Use @Schema from generated table and column comments.
+      - Serialize Long fields as string for frontend precision.
+      - Keep entity as a table object only; no business methods.
+  mapper:
+    path: /templates/base/mapper.java
+    outputPackage: mapper
+    rules:
+      - Extend MyBatis-Plus BaseMapper.
+      - Add @Mapper.
+      - Do not add custom business SQL methods in generated mapper.
+  mapperXml:
+    path: /templates/base/mapper.xml
+    outputRoot: module src/main/resources/mapper/base
+    rules:
+      - Enable BaseResultMap and BaseColumnList through MyBatis-Plus strategy.
+      - Keep generated XML under resources instead of Java source packages.
+  service:
+    path: /templates/base/service.java
+    outputPackage: service
+    rules:
+      - Extend MyBatis-Plus IService.
+      - Keep interface name format I%sService.
+      - Do not expose controller or API behavior.
+  serviceImpl:
+    path: /templates/base/serviceImpl.java
+    outputPackage: service.impl
+    rules:
+      - Extend MyBatis-Plus ServiceImpl.
+      - Add @Service for manage layer reuse.
+      - Do not add transaction orchestration or permission logic.
+
+strategy:
+  idType: ASSIGN_ID
+  skipView: true
+  lombok: true
+  chainModel: true
+  swagger: true
+  baseResultMap: true
+  baseColumnList: true
+  tableFill:
+    insert:
+      - create_time
+      - create_user_id
+    update:
+      - update_time
+      - update_user_id
+  logicDelete:
+    candidateColumns:
+      - deleted
+      - is_deleted
+    note: Use the database column when present; otherwise do not invent a logical delete field.
+  tenant:
+    candidateColumns:
+      - system_id
+      - tenant_id
+    note: Generated entity may contain the column, but tenant and data-scope filtering belongs to manage/core permission services.
+
+forbidden:
+  artifacts:
+    - controller
+    - BO
+    - VO
+    - DTO
+    - page code
+  behavior:
+    - business validation
+    - external API authorization
+    - transaction orchestration
+    - field permission filtering
+    - data-scope filtering
+
+selfCheck:
+  dryRunMustNotContain:
+    - /controller/
+    - manage/
+    - Controller.java
+  compileModule: examine-generator
+  command: mvn -pl examine-generator -am -DskipTests compile

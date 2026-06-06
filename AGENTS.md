@@ -51,6 +51,38 @@
 * 如果发现任务、API、DB 或 PRD 矛盾，必须登记问题交 PM 决策；不得私自修改冻结 API 或扩大实现范围。
 * 如果 PM 不能决策，必须整理到 `docs/issues/user_questions.md`，等待用户处理。
 
+### 0.2.1 分期开发与进度管理
+
+开发模式不再默认以“全项目一次性完成”为目标连续推进。必须按可验收分期执行，每一期都要有明确范围、入口条件、退出标准、进度展示和暂停恢复点。
+
+分期职责：
+
+* `planner` 负责把 `docs/task_plan.md` 和 `docs/tasks/` 中的小任务归入开发期次，维护任务依赖、可并行条件和每期退出标准。
+* `pm` 负责确认每期业务目标、验收口径、满意度结论和是否允许进入下一期。
+* Orchestrator 负责按当前期次调度 agent、维护 `.codex/state.json`、更新 `docs/progress.md`，并在暂停/继续时恢复准确状态。
+* `backend`、`frontend`、`dba`、`test`、`validator`、`reviewer` 只能处理当前分配期次内的任务；发现跨期依赖或范围扩大时，必须交 PM/Planner 决策。
+
+分期产物：
+
+* `docs/phases/development-phases.md`：全局分期表，包含期次、任务范围、入口条件、退出标准、负责人和状态。
+* `docs/progress.md`：当前进度看板，包含总任务数、完成数、进行中、阻塞项、当前期目标、角色完成度、agent 状态和下一步。
+* `.codex/state.json.current_phase`：当前期次，例如 `P1-generator`。
+* `.codex/state.json.phase_status`：每一期状态，允许 `pending/in_progress/paused/done/blocked`。
+
+暂停规则：
+
+1. 关闭所有 running 子 agent。
+2. 不把中断任务计为完成；有半成品文件时必须在 `docs/progress.md` 标记为 `partial`。
+3. 更新 `.codex/state.json.active_mode = "paused"`，记录 `paused_at`、`current_phase`、`running_tasks`、`last_completed_batch`。
+4. 继续时先读取 `.codex/state.json` 与 `docs/progress.md`，校验上一期产物，再从当前期第一个 `pending/partial` 任务恢复。
+
+期次推进规则：
+
+* 每次只启动当前期中依赖已满足、输出路径不重叠的任务。
+* 当前期退出标准未满足前，不进入下一期。
+* PM 未确认当期验收结论前，Orchestrator 只能继续修复当前期问题，不能扩大到后续期。
+* validator/reviewer 可以按期执行轻量检查；最终上线前仍必须执行完整 test、clean build 和 review。
+
 ## 0.3 常驻 agent 与唤醒协议
 
 优先复用同一角色 agent，通过通知/唤醒继续处理问题；不要在同一阶段频繁关闭并重建同一角色 agent。只有以下情况才关闭 agent：
@@ -158,7 +190,7 @@ PM 裁决版问题文档必须包含：
 | dba       | 输出数据库设计文档和数据库初始化 SQL 文件 |
 | backend   | 基于冻结 PRD、API 契约和任务清单实现后端代码、单元测试和后端自检 |
 | frontend  | 只基于冻结后的 API 文档实现前端 |
-| planner   | 基于冻结 PRD、项目理解和 API 契约拆分可执行小任务，维护任务依赖、并行关系和完成标准 |
+| planner   | 基于冻结 PRD、项目理解和 API 契约拆分可执行小任务，维护任务依赖、并行关系、完成标准和开发期次 |
 | test      | 基于冻结 PRD、API 契约和任务清单设计测试用例，执行单任务测试、集成测试和场景验收 |
 | validator | 执行后端/前端编译或构建验证，输出构建报告 |
 | reviewer  | 基于代码、文档、测试报告和构建报告审查交付质量、架构风险与遗漏项 |
@@ -247,6 +279,8 @@ E:\workspace\03_project\unique\java\
 长任务拆分与调度约定：
 
 * 单个 subagent 任务预计超过 5 分钟或涉及大量文件生成时，Orchestrator 必须要求 `planner` 先拆成更小的任务，再按依赖调度；不得让一个 agent 一口气吞完整项目。
+* 开发模式必须优先按 `docs/phases/development-phases.md` 的当前期次推进；除非用户明确批准，不得跨期批量启动任务。
+* `pm` 必须在每期结束时给出 `pass/rework/blocked` 结论；`pass` 后才允许进入下一期。
 * API 契约必须在开发前冻结：`pm` 根据 `docs/prd.md`、`docs/project_understanding.md` 和各角色评审生成 `docs/api.md`，`dba`、`backend`、`frontend`、`test` 审阅通过后才进入实现。
 * backend 不再默认生成冻结版 `docs/api.md`；backend 只能在实现中遵守已冻结 API。若实现发现契约无法落地，必须输出契约变更问题并回到 API 契约评审，不得私自改接口。
 * `planner` 必须输出全局任务拆分：包括 DBA、后端、前端、测试、验证和审查任务；每个任务都要有依赖、可并行标记、输入、输出、完成状态和测试要求。

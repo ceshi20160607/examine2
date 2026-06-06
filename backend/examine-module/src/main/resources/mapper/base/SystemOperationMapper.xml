@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.SystemOperationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.SystemOperation">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="menu_id" property="menuId" />
+        <result column="code" property="code" />
+        <result column="name" property="name" />
+        <result column="operation_type" property="operationType" />
+        <result column="resource_type" property="resourceType" />
+        <result column="resource_id" property="resourceId" />
+        <result column="api_pattern" property="apiPattern" />
+        <result column="method" property="method" />
+        <result column="status" property="status" />
+        <result column="delete_token" property="deleteToken" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, menu_id, code, name, operation_type, resource_type, resource_id, api_pattern, method, status, delete_token, created_at, updated_at
+    </sql>
+
+</mapper>

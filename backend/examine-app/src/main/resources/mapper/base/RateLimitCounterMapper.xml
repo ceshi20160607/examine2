@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.app.base.mapper.RateLimitCounterMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.app.base.entity.RateLimitCounter">
+        <id column="id" property="id" />
+        <result column="policy_id" property="policyId" />
+        <result column="dimension_key" property="dimensionKey" />
+        <result column="window_start_at" property="windowStartAt" />
+        <result column="window_end_at" property="windowEndAt" />
+        <result column="request_count" property="requestCount" />
+        <result column="last_request_id" property="lastRequestId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, policy_id, dimension_key, window_start_at, window_end_at, request_count, last_request_id, created_at, updated_at
+    </sql>
+
+</mapper>

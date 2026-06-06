@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.AppMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.App">
+        <id column="app_id" property="appId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="name" property="name" />
+        <result column="code" property="code" />
+        <result column="icon" property="icon" />
+        <result column="description" property="description" />
+        <result column="app_status" property="appStatus" />
+        <result column="current_app_version_id" property="currentAppVersionId" />
+        <result column="module_count" property="moduleCount" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="version" property="version" />
+        <result column="delete_marker" property="deleteMarker" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        app_id, system_id, tenant_id, name, code, icon, description, app_status, current_app_version_id, module_count, sort_order, version, delete_marker, created_by, updated_by, created_at, updated_at
+    </sql>
+
+</mapper>

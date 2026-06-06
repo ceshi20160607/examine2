@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.upload.base.mapper.FileMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.upload.base.entity.File">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="storage_config_id" property="storageConfigId" />
+        <result column="file_name" property="fileName" />
+        <result column="extension" property="extension" />
+        <result column="content_type" property="contentType" />
+        <result column="file_size" property="fileSize" />
+        <result column="sha256" property="sha256" />
+        <result column="storage_key" property="storageKey" />
+        <result column="status" property="status" />
+        <result column="previewable" property="previewable" />
+        <result column="owner_member_id" property="ownerMemberId" />
+        <result column="ref_count" property="refCount" />
+        <result column="temp_expires_at" property="tempExpiresAt" />
+        <result column="deleted_at" property="deletedAt" />
+        <result column="request_id" property="requestId" />
+        <result column="deleted" property="deleted" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, storage_config_id, file_name, extension, content_type, file_size, sha256, storage_key, status, previewable, owner_member_id, ref_count, temp_expires_at, deleted_at, request_id, deleted, created_at, updated_at
+    </sql>
+
+</mapper>

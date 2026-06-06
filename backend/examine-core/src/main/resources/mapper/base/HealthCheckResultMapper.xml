@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.core.base.mapper.HealthCheckResultMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.core.base.entity.HealthCheckResult">
+        <id column="id" property="id" />
+        <result column="request_id" property="requestId" />
+        <result column="component" property="component" />
+        <result column="status" property="status" />
+        <result column="result" property="result" />
+        <result column="message" property="message" />
+        <result column="suggestion" property="suggestion" />
+        <result column="checked_at" property="checkedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, request_id, component, status, result, message, suggestion, checked_at, created_at, updated_at
+    </sql>
+
+</mapper>

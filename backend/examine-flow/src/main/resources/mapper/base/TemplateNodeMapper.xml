@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.flow.base.mapper.TemplateNodeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.flow.base.entity.TemplateNode">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="template_version_id" property="templateVersionId" />
+        <result column="node_key" property="nodeKey" />
+        <result column="node_name" property="nodeName" />
+        <result column="node_type" property="nodeType" />
+        <result column="actor_strategy" property="actorStrategy" />
+        <result column="actor_config_json" property="actorConfigJson" />
+        <result column="approval_required" property="approvalRequired" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, template_version_id, node_key, node_name, node_type, actor_strategy, actor_config_json, approval_required, sort_order, created_at, updated_at
+    </sql>
+
+</mapper>

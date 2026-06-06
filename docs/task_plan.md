@@ -24,6 +24,27 @@
 6. validator 必须 clean 验证，不能以增量构建或缓存产物作为通过依据。
 7. reviewer 中间审查只输出 `docs/review_parts/` 分片，最终 `REV-004` 唯一输出合法 `docs/review.json`，失败时按 target 回环到对应阶段。
 
+## 分期开发计划
+
+为降低长时任务和最终验收失控风险，开发模式按期推进。每期只启动当前期内依赖已满足、输出路径不重叠的任务；当前期未通过 PM 验收前，不进入下一期。
+
+| 期次 | 名称 | 任务范围 | 主责角色 | 入口条件 | 退出标准 | 当前状态 |
+| --- | --- | --- | --- | --- | --- | --- |
+| P0-foundation | 基础冻结与骨架期 | DBA-001 至 DBA-006、TEST-001 至 TEST-002、FE-001 至 FE-007、FE-011、BE-001 至 BE-002、GEN-001 | planner/dba/backend/frontend/test | 审阅模式冻结，开发模式启动 | DB/SQL、后端骨架、core、生成器骨架、前端 SDK/Layout/基础页面和测试计划完成，相关自检通过 | done |
+| P1-generator | 生成器闭环期 | GEN-002、GEN-003、GEN-004 | backend | P0 完成，`sql/init.sql` 可导入，`examine-generator` 骨架可编译 | 能根据表前缀映射生成各业务模块 `base` 包，`backend/docs/mybatis-plus-generation.md` 记录生成命令、表清单、模块映射和结果，后端 compile 通过 | pending |
+| P2-auth-platform | 认证与平台期 | BE-003、BE-004、FE-003、FE-004 的联调补充、阶段 validator/test 轻量检查 | pm/backend/frontend/test/validator | P1 完成，base CRUD 可用 | 登录、刷新、退出、当前用户、我的系统、平台系统创建和平台账号角色核心接口/页面闭环，PM 验收通过 | pending |
+| P3-system-config | 系统配置与权限期 | BE-005、BE-006、BE-007、BE-014、FE-005、FE-006 的联调补充 | pm/backend/frontend/test | P2 完成 | 系统成员、部门、角色、权限、字典、应用/模块/字段/页面配置闭环，权限与数据范围基础可用 | pending |
+| P4-runtime-mvp | 运行台 MVP 期 | BE-008、FE-008、阶段 test/validator | pm/backend/frontend/test/validator | P3 完成 | 动态 schema、记录列表/详情/保存/历史/提交审批入口按权限跑通，运行台 MVP 满意度通过 | pending |
+| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | BE-009 至 BE-013、FE-009 至 FE-011 的联调补充 | pm/backend/frontend/test | P4 完成 | 流程待办、附件、导出、OpenAPI、审计运维核心链路闭环 | pending |
+| P6-final-acceptance | 集成验收与上线判断期 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | test/validator/reviewer/pm | P5 完成 | 后端自检、前端契约闭环、E2E、clean build、review 全部通过，输出可上线判断 | pending |
+
+分期状态规则：
+
+- 每期状态允许 `pending/in_progress/paused/done/blocked/rework`。
+- `planner` 维护分期和任务依赖；`pm` 在每期结束给出 `pass/rework/blocked` 结论。
+- Orchestrator 在 `.codex/state.json.current_phase`、`.codex/state.json.phase_status` 和 `docs/progress.md` 同步当前期状态。
+- 暂停时不改变未完成任务状态；如果 agent 中断后留下半成品，任务标记为 `partial`，继续时优先复核半成品。
+
 ## 里程碑
 
 | 里程碑 | 任务范围 | 入口条件 | 输出 | 退出标准 | 状态 |

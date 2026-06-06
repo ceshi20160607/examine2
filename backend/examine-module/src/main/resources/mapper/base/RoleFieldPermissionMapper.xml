@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.RoleFieldPermissionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RoleFieldPermission">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="role_id" property="roleId" />
+        <result column="module_id" property="moduleId" />
+        <result column="field_id" property="fieldId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="visible" property="visible" />
+        <result column="writable" property="writable" />
+        <result column="export_plain" property="exportPlain" />
+        <result column="openapi_readable" property="openapiReadable" />
+        <result column="openapi_writable" property="openapiWritable" />
+        <result column="delete_token" property="deleteToken" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, role_id, module_id, field_id, field_code, visible, writable, export_plain, openapi_readable, openapi_writable, delete_token, created_at, updated_at
+    </sql>
+
+</mapper>

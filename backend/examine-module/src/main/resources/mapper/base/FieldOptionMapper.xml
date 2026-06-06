@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.FieldOptionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.FieldOption">
+        <id column="option_id" property="optionId" />
+        <result column="field_id" property="fieldId" />
+        <result column="code" property="code" />
+        <result column="label" property="label" />
+        <result column="value" property="value" />
+        <result column="color" property="color" />
+        <result column="enabled_flag" property="enabledFlag" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="delete_marker" property="deleteMarker" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        option_id, field_id, code, label, value, color, enabled_flag, sort_order, delete_marker, created_at, updated_at
+    </sql>
+
+</mapper>

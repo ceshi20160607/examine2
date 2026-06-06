@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.app.base.mapper.NonceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.app.base.entity.Nonce">
+        <id column="id" property="id" />
+        <result column="client_id" property="clientId" />
+        <result column="access_key" property="accessKey" />
+        <result column="nonce" property="nonce" />
+        <result column="request_id" property="requestId" />
+        <result column="source_ip" property="sourceIp" />
+        <result column="expires_at" property="expiresAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, client_id, access_key, nonce, request_id, source_ip, expires_at, created_at, updated_at
+    </sql>
+
+</mapper>

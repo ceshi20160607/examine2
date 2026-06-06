@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.app.base.mapper.ClientScopeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.app.base.entity.ClientScope">
+        <id column="id" property="id" />
+        <result column="client_id" property="clientId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="scope_code" property="scopeCode" />
+        <result column="module_id" property="moduleId" />
+        <result column="field_permission_json" property="fieldPermissionJson" />
+        <result column="data_scope_json" property="dataScopeJson" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, client_id, system_id, tenant_id, scope_code, module_id, field_permission_json, data_scope_json, status, created_at, updated_at
+    </sql>
+
+</mapper>

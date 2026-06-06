@@ -1,0 +1,216 @@
+# MyBatis-Plus base CRUD generation mapping for unexamine.
+# This file is intentionally environment-neutral: datasource values come from
+# docs/service_info.md, a local override file, or EXAMINE_GENERATOR_* variables.
+
+version: 1
+project:
+  name: unexamine
+  rootDir: backend
+  basePackage: com.unique.examine
+  generatorModule: examine-generator
+
+datasource:
+  sources:
+    - docs/service_info.md
+    - backend/examine-generator/src/main/resources/config/generator-example.properties
+    - EXAMINE_GENERATOR_DATASOURCE_URL
+    - EXAMINE_GENERATOR_DATASOURCE_USERNAME
+    - EXAMINE_GENERATOR_DATASOURCE_PASSWORD
+  requiredKeys:
+    url: generator.datasource.url
+    username: generator.datasource.username
+    password: generator.datasource.password
+  forbidLegacyHardcodedValues:
+    - legacyDatasourceHost
+    - legacyDatabaseName
+    - legacyPackageName
+    - legacyCodexWorkspacePath
+
+generation:
+  author: examine-generator
+  tablePrefix: un_
+  artifacts:
+    - entity
+    - mapper
+    - mapperXml
+    - service
+    - serviceImpl
+  forbidArtifacts:
+    - controller
+  overwrite: true
+  entity:
+    lombok: true
+    swaggerSchema: true
+    tableNameAnnotation: true
+  mapperXml:
+    resourceRoot: src/main/resources/mapper/base
+  service:
+    interfaceSuffix: Service
+    implementationSuffix: ServiceImpl
+  report:
+    path: backend/docs/mybatis-plus-generation.md
+    includeDatasourceSource: true
+    includeTableList: true
+    includeModuleMapping: true
+    includeOutputPaths: true
+
+modules:
+  plat:
+    tablePrefixes:
+      - un_plat_
+    mavenModule: examine-plat
+    packageName: com.unique.examine.plat.base
+    sourceRoot: backend/examine-plat/src/main/java
+    mapperXmlRoot: backend/examine-plat/src/main/resources/mapper/base
+    stripPrefixes:
+      - un_plat_
+  module:
+    tablePrefixes:
+      - un_module_
+    mavenModule: examine-module
+    packageName: com.unique.examine.module.base
+    sourceRoot: backend/examine-module/src/main/java
+    mapperXmlRoot: backend/examine-module/src/main/resources/mapper/base
+    stripPrefixes:
+      - un_module_
+  flow:
+    tablePrefixes:
+      - un_flow_
+    mavenModule: examine-flow
+    packageName: com.unique.examine.flow.base
+    sourceRoot: backend/examine-flow/src/main/java
+    mapperXmlRoot: backend/examine-flow/src/main/resources/mapper/base
+    stripPrefixes:
+      - un_flow_
+  upload:
+    tablePrefixes:
+      - un_upload_
+    mavenModule: examine-upload
+    packageName: com.unique.examine.upload.base
+    sourceRoot: backend/examine-upload/src/main/java
+    mapperXmlRoot: backend/examine-upload/src/main/resources/mapper/base
+    stripPrefixes:
+      - un_upload_
+  openapi:
+    tablePrefixes:
+      - un_openapi_
+    mavenModule: examine-app
+    packageName: com.unique.examine.app.base
+    sourceRoot: backend/examine-app/src/main/java
+    mapperXmlRoot: backend/examine-app/src/main/resources/mapper/base
+    stripPrefixes:
+      - un_openapi_
+  core:
+    tablePrefixes:
+      - un_sys_
+      - un_audit_
+    mavenModule: examine-core
+    packageName: com.unique.examine.core.base
+    sourceRoot: backend/examine-core/src/main/java
+    mapperXmlRoot: backend/examine-core/src/main/resources/mapper/base
+    stripPrefixes:
+      - un_sys_
+      - un_audit_
+
+excluded:
+  legacyOpenApiHistoryPrefix: referenceOnly
+  reason: Old project OpenAPI history tables are reference-only and are not generated in MVP.
+
+validation:
+  sourceSql: sql/init.sql
+  requireEveryCreateTableMatched: true
+  failOnUnknownPrefix: true
+  failOnControllerTemplate: true
+  failOnLegacyPackage: true
+  expectedTableCount: 83
+
+tables:
+  plat:
+    - un_plat_account
+    - un_plat_system
+    - un_plat_tenant
+    - un_plat_role
+    - un_plat_menu
+    - un_plat_operation
+    - un_plat_account_role
+    - un_plat_role_menu
+    - un_plat_role_operation
+    - un_plat_config
+  module:
+    - un_module_member
+    - un_module_member_tenant
+    - un_module_dept
+    - un_module_member_dept
+    - un_module_role
+    - un_module_member_role
+    - un_module_system_menu
+    - un_module_system_operation
+    - un_module_role_menu
+    - un_module_role_operation
+    - un_module_role_field_permission
+    - un_module_role_data_scope
+    - un_module_role_openapi_scope
+    - un_module_role_explicit_deny
+    - un_module_permission_version
+    - un_module_dict_type
+    - un_module_dict_item
+    - un_module_dict_reference
+    - un_module_app
+    - un_module_app_version
+    - un_module_model
+    - un_module_field
+    - un_module_field_option
+    - un_module_unique_constraint
+    - un_module_page_schema
+    - un_module_menu
+    - un_module_action
+    - un_module_publish_version
+    - un_module_serial_sequence
+    - un_module_record
+    - un_module_record_value
+    - un_module_record_index
+    - un_module_record_unique_index
+    - un_module_record_relation
+    - un_module_record_child_row
+    - un_module_record_history
+    - un_module_export_template
+    - un_module_export_template_field
+    - un_module_export_job
+    - un_module_export_job_log
+  flow:
+    - un_flow_template
+    - un_flow_template_version
+    - un_flow_template_node
+    - un_flow_template_line
+    - un_flow_template_condition
+    - un_flow_binding
+    - un_flow_instance
+    - un_flow_task
+    - un_flow_task_actor
+    - un_flow_cc
+    - un_flow_action_log
+    - un_flow_trace_log
+  upload:
+    - un_upload_storage_config
+    - un_upload_file
+    - un_upload_file_part
+    - un_upload_file_reference
+  openapi:
+    - un_openapi_client
+    - un_openapi_client_credential
+    - un_openapi_client_scope
+    - un_openapi_ip_whitelist
+    - un_openapi_nonce
+    - un_openapi_idempotency_record
+    - un_openapi_rate_limit_policy
+    - un_openapi_rate_limit_counter
+    - un_openapi_access_log
+  core:
+    - un_sys_idempotency_record
+    - un_sys_request_log
+    - un_sys_error_log
+    - un_audit_operation_log
+    - un_audit_record_change
+    - un_sys_health_check_result
+    - un_sys_runtime_config_check
+    - un_sys_migration_status

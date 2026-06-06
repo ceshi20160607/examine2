@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.RoleDataScopeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RoleDataScope">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="role_id" property="roleId" />
+        <result column="resource_type" property="resourceType" />
+        <result column="resource_id" property="resourceId" />
+        <result column="scope_type" property="scopeType" />
+        <result column="dept_ids_json" property="deptIdsJson" />
+        <result column="member_ids_json" property="memberIdsJson" />
+        <result column="custom_conditions" property="customConditions" />
+        <result column="min_visible_rule" property="minVisibleRule" />
+        <result column="delete_token" property="deleteToken" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, role_id, resource_type, resource_id, scope_type, dept_ids_json, member_ids_json, custom_conditions, min_visible_rule, delete_token, created_at, updated_at
+    </sql>
+
+</mapper>
