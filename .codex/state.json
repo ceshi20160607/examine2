@@ -1,0 +1,15 @@
+{
+  "run_id": "",
+  "current_step": 1,
+  "status": "INIT",
+  "completed_steps": [],
+  "artifacts": [
+    "docs/service_info.md"
+  ],
+  "attempts": {},
+  "review_loops": 0,
+  "artifact_hashes": {},
+  "started_at": "",
+  "updated_at": "",
+  "last_error": ""
+}
