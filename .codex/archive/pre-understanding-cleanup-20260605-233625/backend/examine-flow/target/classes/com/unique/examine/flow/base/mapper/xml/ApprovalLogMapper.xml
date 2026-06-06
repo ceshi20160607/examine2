@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.flow.base.mapper.ApprovalLogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.flow.base.entity.ApprovalLog">
+        <id column="id" property="id" />
+        <result column="instance_id" property="instanceId" />
+        <result column="task_id" property="taskId" />
+        <result column="action_type" property="actionType" />
+        <result column="operator_id" property="operatorId" />
+        <result column="comment_text" property="commentText" />
+        <result column="snapshot_json" property="snapshotJson" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, instance_id, task_id, action_type, operator_id, comment_text, snapshot_json, created_at, updated_at
+    </sql>
+
+</mapper>

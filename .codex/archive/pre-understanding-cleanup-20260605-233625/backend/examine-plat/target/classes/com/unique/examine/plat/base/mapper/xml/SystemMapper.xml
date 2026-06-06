@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.SystemMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.System">
+        <id column="id" property="id" />
+        <result column="system_code" property="systemCode" />
+        <result column="system_name" property="systemName" />
+        <result column="status" property="status" />
+        <result column="description" property="description" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_code, system_name, status, description, created_by, updated_by, created_at, updated_at, deleted
+    </sql>
+
+</mapper>

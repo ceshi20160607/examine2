@@ -1,0 +1,21 @@
+{
+  "status": "fail",
+  "target": "both",
+  "issues": [
+    {
+      "file": "frontend/src/pages/AppConfig.tsx",
+      "problem": "模块状态按钮调用 api.modules.setModelStatus 时发送 ENABLED/DISABLED，但后端 ModuleManageServiceImpl 只接受 DRAFT/PUBLISHED/DISABLED，点击启用会被 MODULE_STATUS_INVALID 拒绝，模块状态枚举未闭环。",
+      "suggestion": "将前端模块状态操作改为后端和 docs/api.md 声明的 DRAFT/PUBLISHED/DISABLED 语义，例如发布/停用发送 PUBLISHED/DISABLED；或同步调整后端与 API 文档接受 ENABLED。"
+    },
+    {
+      "file": "frontend/src/api/enums.ts",
+      "problem": "前端集中枚举仍与后端/API 不一致：PermissionType 使用 ACTION/DATA 而后端 BO 声明 MENU/BUTTON/API/FIELD/DATA_SCOPE；FlowActionType 使用 AGREE 而后端 BO 声明 APPROVE/REJECT/TRANSFER/CANCEL；ErrorCode 缺少 MODULE_RECORD_NO_DUPLICATE。",
+      "suggestion": "按 docs/api.md 和后端 BO/错误码枚举同步前端枚举值，并同步页面 select 选项，避免提交后端不认或文档未声明的枚举。"
+    },
+    {
+      "file": "frontend/src/pages/UploadCenter.tsx",
+      "problem": "上传文件登记表单和前端类型把 storageConfigId 当作可选字段，frontend/docs/api-contract-map.md 也未列为登记必填，但后端 UploadManageServiceImpl.createFile 会 requireId(storageConfigId)，不填时提交必然失败。",
+      "suggestion": "将 storageConfigId 在前端类型、表单和 api-contract-map 中标为必填；如果业务允许默认存储配置，则后端需要补默认配置语义并同步 docs/api.md。"
+    }
+  ]
+}

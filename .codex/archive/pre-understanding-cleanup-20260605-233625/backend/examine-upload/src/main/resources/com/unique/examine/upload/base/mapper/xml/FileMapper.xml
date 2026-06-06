@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.upload.base.mapper.FileMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.upload.base.entity.File">
+        <id column="id" property="id" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="storage_config_id" property="storageConfigId" />
+        <result column="original_name" property="originalName" />
+        <result column="file_ext" property="fileExt" />
+        <result column="mime_type" property="mimeType" />
+        <result column="file_size" property="fileSize" />
+        <result column="storage_path" property="storagePath" />
+        <result column="sha256" property="sha256" />
+        <result column="status" property="status" />
+        <result column="uploaded_by" property="uploadedBy" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id, storage_config_id, original_name, file_ext, mime_type, file_size, storage_path, sha256, status, uploaded_by, created_by, updated_by, created_at, updated_at, deleted
+    </sql>
+
+</mapper>

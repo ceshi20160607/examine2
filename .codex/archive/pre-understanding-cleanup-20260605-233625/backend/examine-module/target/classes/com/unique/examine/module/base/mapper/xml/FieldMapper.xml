@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.FieldMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.Field">
+        <id column="id" property="id" />
+        <result column="module_id" property="moduleId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="field_name" property="fieldName" />
+        <result column="field_type" property="fieldType" />
+        <result column="required_flag" property="requiredFlag" />
+        <result column="unique_flag" property="uniqueFlag" />
+        <result column="list_visible" property="listVisible" />
+        <result column="searchable" property="searchable" />
+        <result column="editable" property="editable" />
+        <result column="default_value" property="defaultValue" />
+        <result column="validation_json" property="validationJson" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, module_id, field_code, field_name, field_type, required_flag, unique_flag, list_visible, searchable, editable, default_value, validation_json, sort_order, created_by, updated_by, created_at, updated_at, deleted
+    </sql>
+
+</mapper>

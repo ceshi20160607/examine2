@@ -1,0 +1,22 @@
+server:
+  port: ${SERVER_PORT:9999}
+
+spring:
+  application:
+    name: examine
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${EXAMINE_DB_URL:jdbc:mysql://192.168.0.211:3306/examine1?characterEncoding=utf8&useSSL=false&zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false&serverTimezone=Asia/Shanghai&useAffectedRows=true&allowPublicKeyRetrieval=true}
+    username: ${EXAMINE_DB_USERNAME:root}
+    password: ${EXAMINE_DB_PASSWORD:Admin001m}
+
+mybatis-plus:
+  mapper-locations: classpath*:/com/unique/examine/**/mapper/xml/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0

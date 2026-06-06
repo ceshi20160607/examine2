@@ -1,0 +1,26 @@
+{
+  "status": "fail",
+  "target": "both",
+  "issues": [
+    {
+      "file": "frontend/src/api/sdk.ts",
+      "problem": "前端 SDK 的 module-scoped 查询没有补齐后端必填参数：fields、pages、records 允许空 params，但后端 /api/modules/fields、/api/modules/pages、/api/modules/records 均要求 moduleId；attachments 也允许空 params，但后端 /api/uploads/attachments 要求 bizType 和 bizId。AppConfig、RuntimeConsole、UploadCenter 页面加载时会直接发起缺参请求，业务流程无法形成页面到接口再回显的闭环。",
+      "suggestion": "让 SDK 对 fields/pages/records 从上下文自动补 moduleId，页面在上下文满足后再加载；附件列表应增加 bizType/bizId 过滤上下文或后端明确提供全量列表接口，并同步 frontend/docs/api-contract-map.md。"
+    },
+    {
+      "file": "frontend/src/api/types.ts",
+      "problem": "前端请求类型与后端 BO 不一致：ModuleModelSaveBO 和 ModuleFieldSaveBO 在后端使用 Byte 表示 0/1 标志位，但前端声明并提交 boolean；ModuleFieldOptionDTO 后端字段为 optionValue/optionLabel，前端声明和示例为 optionCode/optionName，字段选项创建会写入空值或反序列化失败。",
+      "suggestion": "按后端契约将前端类型和提交值改为 0/1，并把字段选项改为 optionValue/optionLabel；或后端显式兼容 boolean 与 optionCode/optionName，但必须在 docs/api.md 和契约映射中统一。"
+    },
+    {
+      "file": "frontend/src/api/enums.ts",
+      "problem": "前端枚举与后端实际状态/字段值不一致：DataScopeType 使用 OWN、DEPARTMENT、DEPARTMENT_TREE、ROLE_MEMBERS，但后端 BO 注释和默认值为 OWNER、DEPT、DEPT_TREE、ROLE、ALL；上传文件后端返回 TEMP，前端只定义 TEMPORARY；流程和记录会返回 ACTIVE、RUNNING、COMPLETED、APPROVED 等状态，前端 CommonStatus 未覆盖。",
+      "suggestion": "统一枚举来源，按后端实体、BO 和 docs/api.md 补齐并修正前端枚举；同时在 docs/api.md 明确每个字段的合法枚举值。"
+    },
+    {
+      "file": "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/ModuleManageServiceImpl.java",
+      "problem": "运行态记录更新接口接收 ModuleRecordSaveBO，前端编辑表单也提交 recordNo，但 updateRecord 只更新 ownerAccountId、deptId 和 values，未更新 recordNo，用户编辑保存后记录编号不会落库，页面刷新后回显不一致。",
+      "suggestion": "若 recordNo 支持编辑，应在 updateRecord 中校验并更新 recordNo；若不支持编辑，应从 API 文档和前端编辑表单移除该字段，避免伪造未落库的编辑语义。"
+    }
+  ]
+}

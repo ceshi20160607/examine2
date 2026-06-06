@@ -1,0 +1,16 @@
+{
+  "status": "fail",
+  "target": "frontend",
+  "issues": [
+    {
+      "file": "frontend/src/api/enums.ts",
+      "problem": "docs/api.md and backend error enums now expose PLAT_PERMISSION_TYPE_INVALID and FLOW_ACTION_TYPE_INVALID, but the frontend typed ErrorCode map still omits both codes. The unified request layer can throw arbitrary string codes, yet the typed SDK contract is stale and no longer fully represents backend error handling.",
+      "suggestion": "Add PLAT_PERMISSION_TYPE_INVALID and FLOW_ACTION_TYPE_INVALID to the frontend ErrorCode map and ErrorCodeValue union so frontend error handling remains aligned with the backend/API contract."
+    },
+    {
+      "file": "frontend/docs/api-contract-map.md",
+      "problem": "The API contract map records the frontend ErrorCode enum without PLAT_PERMISSION_TYPE_INVALID and FLOW_ACTION_TYPE_INVALID, while docs/api.md documents both as current backend responses for permissionType and FlowActionType validation failures.",
+      "suggestion": "Update the ErrorCode section in frontend/docs/api-contract-map.md to include PLAT_PERMISSION_TYPE_INVALID and FLOW_ACTION_TYPE_INVALID, and note their corresponding permission type and flow action validation scenarios."
+    }
+  ]
+}

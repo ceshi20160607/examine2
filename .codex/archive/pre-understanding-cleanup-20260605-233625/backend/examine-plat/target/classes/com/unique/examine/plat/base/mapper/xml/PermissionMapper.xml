@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.PermissionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.Permission">
+        <id column="id" property="id" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="system_id" property="systemId" />
+        <result column="app_id" property="appId" />
+        <result column="module_id" property="moduleId" />
+        <result column="permission_code" property="permissionCode" />
+        <result column="permission_name" property="permissionName" />
+        <result column="permission_type" property="permissionType" />
+        <result column="resource_path" property="resourcePath" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id, system_id, app_id, module_id, permission_code, permission_name, permission_type, resource_path, created_by, updated_by, created_at, updated_at, deleted
+    </sql>
+
+</mapper>

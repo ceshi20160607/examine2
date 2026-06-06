@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ModelMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.Model">
+        <id column="id" property="id" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="system_id" property="systemId" />
+        <result column="app_id" property="appId" />
+        <result column="module_code" property="moduleCode" />
+        <result column="module_name" property="moduleName" />
+        <result column="data_scope_type" property="dataScopeType" />
+        <result column="flow_enabled" property="flowEnabled" />
+        <result column="import_enabled" property="importEnabled" />
+        <result column="export_enabled" property="exportEnabled" />
+        <result column="status" property="status" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id, system_id, app_id, module_code, module_name, data_scope_type, flow_enabled, import_enabled, export_enabled, status, created_by, updated_by, created_at, updated_at, deleted
+    </sql>
+
+</mapper>

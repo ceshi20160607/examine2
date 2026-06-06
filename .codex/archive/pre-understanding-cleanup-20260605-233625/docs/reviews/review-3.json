@@ -1,0 +1,16 @@
+{
+  "status": "fail",
+  "target": "backend",
+  "issues": [
+    {
+      "file": "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/service/impl/FlowManageServiceImpl.java",
+      "problem": "FlowTaskHandleBO.actionType is documented and exposed by the frontend as APPROVE, REJECT, TRANSFER, or CANCEL, but handleTask defaults blank actionType to APPROVE and toTaskStatus maps any unknown value to APPROVED. CANCEL is also completed through completeInstance as COMPLETED instead of a cancelled business state. The backend still does not enforce the FlowActionType contract.",
+      "suggestion": "Define and validate a backend FlowActionType enum or allowed-value set. Reject blank or unknown actionType with FLOW_PARAM_REQUIRED or FLOW_STATUS_INVALID, and map CANCEL explicitly to CANCELED instead of completing the process as approved/completed."
+    },
+    {
+      "file": "backend/examine-plat/src/main/java/com/unique/examine/plat/manage/service/impl/PlatformManageServiceImpl.java",
+      "problem": "PlatformPermissionSaveBO.permissionType is documented and mapped by the frontend as MENU, BUTTON, API, FIELD, or DATA_SCOPE, but createPermission only defaults blank values to MENU and persists any non-empty unknown value into un_platt_permission.permission_type. The backend can still store permission types outside the API/frontend enum contract.",
+      "suggestion": "Define and validate a backend PermissionType enum or allowed-value set. Keep the intended blank-value behavior, but reject non-empty values outside MENU, BUTTON, API, FIELD, and DATA_SCOPE with a precise business error code."
+    }
+  ]
+}

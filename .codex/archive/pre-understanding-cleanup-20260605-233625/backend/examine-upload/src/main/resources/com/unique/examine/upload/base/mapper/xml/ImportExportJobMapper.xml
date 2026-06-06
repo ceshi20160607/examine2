@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.upload.base.mapper.ImportExportJobMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.upload.base.entity.ImportExportJob">
+        <id column="id" property="id" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="job_type" property="jobType" />
+        <result column="status" property="status" />
+        <result column="source_file_id" property="sourceFileId" />
+        <result column="result_file_id" property="resultFileId" />
+        <result column="request_json" property="requestJson" />
+        <result column="failure_reason" property="failureReason" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, tenant_id, module_id, job_type, status, source_file_id, result_file_id, request_json, failure_reason, created_by, updated_by, created_at, updated_at
+    </sql>
+
+</mapper>
