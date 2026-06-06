@@ -1,0 +1,26 @@
+﻿{
+  "status": "fail",
+  "target": "both",
+  "issues": [
+    {
+      "file": "backend/src/main/java/com/unique/examine/manage/",
+      "problem": "最新后端源码中仍存在实际的编码损坏和未闭合字符串字面量，例如 PermissionServiceImpl、PlatformManageServiceImpl、RuntimeRecordController、WorkflowController、WorkflowManageServiceImpl、OpenApiAuthServiceImpl 等文件的异常消息或 Schema 文本以 ?); 结尾，缺少 closing quote。这会导致 clean compile 或源码重新编译失败，当前 target/classes 不能代表源码可构建。",
+      "suggestion": "按 UTF-8 恢复后端源码中的中文文案和字符串闭合符，清理 target 后重新执行后端 clean compile，确保不是依赖旧 class 文件通过验证。"
+    },
+    {
+      "file": "frontend/src/views/",
+      "problem": "多个 Vue 页面模板仍有实际标签和属性损坏，不只是显示乱码。例如 OpenApiView.vue 的 el-tab-pane 行把 name=\"console\" 吞进 label，RecordsView.vue 的 placeholder 吞掉 style 属性，WorkflowView.vue 存在 ?/h1、?/el-button 等未正确闭合标签。页面按钮、tab、表单控件可能无法按设计渲染或触发业务流。",
+      "suggestion": "恢复前端 Vue 源码为合法 UTF-8 模板，逐页修复属性引号和闭合标签，并重新构建验证源码而不是依赖 dist 或已生成 js。"
+    },
+    {
+      "file": "frontend/src/views/OpenApiView.vue",
+      "problem": "OpenAPI 客户端表单提交字段为 rateLimitJson，但后端 OpenApiClientSaveBO 接收字段为 rateLimitRule，导致页面填写的限流规则不会保存到 openapi_client.rate_limit_rule，OpenAPI 管理表单与后端 BO 未闭环。",
+      "suggestion": "将前端提交字段改为 rateLimitRule，或在提交前由 rateLimitJson 映射为 rateLimitRule，并同步显示/编辑已有 rateLimitRule。"
+    },
+    {
+      "file": "docs/build_report.md",
+      "problem": "构建报告虽然编码已可读且结论为通过，但后端验证日志为 Nothing to compile，且声明的 JDK/Node 路径均不可用后使用了本机 fallback。结合当前源码存在语法级损坏，报告没有证明最新源码可从干净状态复现构建成功。",
+      "suggestion": "后续 validator 应在记录 fallback 环境的同时执行 clean compile/build 或至少强制重新编译源码，并在报告中明确 clean 构建命令、实际工具路径和完整失败/成功依据。"
+    }
+  ]
+}
