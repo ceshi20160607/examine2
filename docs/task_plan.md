@@ -177,7 +177,7 @@ flowchart TD
 | BE-010 | 上传文件引用 API | backend | upload | BE-008/BE-014 | 文件接口 | BE-008, BE-014 | 是 | 临时文件、引用、预览下载权限完成 | 文件失败补偿和权限测试 | done |
 | BE-011 | 导出任务 API | backend | module/upload | BE-010 | 导出接口 | BE-010 | 是 | 模板、任务、重试、结果文件闭环完成 | 导出状态与失败重试测试 | done |
 | BE-012 | OpenAPI 安全与业务接口 | backend | app | BE-008/BE-009/BE-010/BE-014 | OpenAPI 管理和外部接口 | BE-008, BE-009, BE-010, BE-014 | 是 | AK/SK、签名、scope、限流、幂等完成 | `mvn -pl examine-app -am test` 通过 | done |
-| BE-013 | 审计运维 API | backend | audit/ops | BE-012 | 审计与运维接口 | BE-012 | 是 | 日志、健康、版本、migration 状态完成 | requestId 链路和只读权限测试 | pending |
+| BE-013 | 审计运维 API | backend | audit/ops | BE-012 | 审计与运维接口 | BE-012 | 是 | 日志、健康、版本、migration 状态完成 | `mvn -pl examine-web -am test` 通过 | done |
 | BE-014 | 权限与数据范围拦截 | backend | core/module | BE-002/API | 权限服务与拦截器 | BE-002 | 是 | 后端权限顺序、字段权限、数据范围统一 | 越权、字段无写权测试 | pending |
 | BE-015 | 幂等并发与 API 自检 | backend | backend | BE-004..BE-014 | `backend/docs/backend-self-check.md` | BE-004, BE-005, BE-006, BE-007, BE-008, BE-009, BE-010, BE-011, BE-012, BE-013, BE-014 | 否 | 固定自检报告包含接口清单、命令、结果、失败摘要、幂等/权限/OpenAPI 结论和 pass/fail | 后端单元和集成自检 | pending |
 | FE-001 | typed SDK 与契约映射 | frontend | frontend | API/service | `frontend/src/api/`、`frontend/docs/page-contracts/_template.md` | PLAN-001 | 否 | DTO/VO/枚举/错误码同步，页面级证据模板完成 | 静态类型检查 | pending |

@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T17:14:08+08:00",
+    "updated_at":  "2026-06-07T17:37:57+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -319,7 +319,15 @@
                       "backend/examine-app/src/main/java/com/unique/examine/app/manage/support/OpenApiConstants.java",
                       "backend/examine-app/src/test/java/com/unique/examine/app/manage/controller/OpenApiManageControllerTest.java",
                       "backend/examine-app/src/test/java/com/unique/examine/app/manage/controller/OpenApiExternalControllerTest.java",
-                      "docs/tasks/BE-012-openapi-security-api.md"
+                      "docs/tasks/BE-012-openapi-security-api.md",
+                      "backend/examine-web/src/main/java/com/unique/examine/web/audit/controller/AuditController.java",
+                      "backend/examine-web/src/main/java/com/unique/examine/web/ops/controller/OpsController.java",
+                      "backend/examine-web/src/main/java/com/unique/examine/web/audit/service/AuditOpsService.java",
+                      "backend/examine-web/src/main/java/com/unique/examine/web/audit/service/impl/AuditOpsServiceImpl.java",
+                      "backend/examine-web/src/main/java/com/unique/examine/web/audit/bo/AuditLogQueryBO.java",
+                      "backend/examine-web/src/test/java/com/unique/examine/web/audit/controller/AuditControllerTest.java",
+                      "backend/examine-web/src/test/java/com/unique/examine/web/ops/controller/OpsControllerTest.java",
+                      "docs/tasks/BE-013-audit-ops-api.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
     "status":  "DEVELOPMENT_PHASE_P5_IN_PROGRESS",
@@ -721,6 +729,12 @@
                                        "output":  "OpenAPI management and external security/business APIs implemented in backend/examine-app",
                                        "completed_at":  "2026-06-07T17:14:08+08:00",
                                        "verification":  "mvn -pl examine-app -am test success: core 12, plat 12, upload 4, module 21, flow 2, app 4 tests"
+                                   },
+                        "BE-013":  {
+                                       "status":  "done",
+                                       "output":  "Audit and ops read-only APIs implemented in backend/examine-web",
+                                       "completed_at":  "2026-06-07T17:37:57+08:00",
+                                       "verification":  "mvn -pl examine-web -am test success: core 12, plat 12, upload 4, module 21, flow 2, app 4, web 4 tests"
                                    }
                     },
     "task_plan_frozen":  true,
@@ -734,8 +748,8 @@
                            "backend":  {
                                            "agent_id":  "orchestrator-local",
                                            "status":  "done",
-                                           "last_stage":  "development:BE-012",
-                                           "last_output":  "OpenAPI OPM/OPN APIs, AK/SK signature, nonce, scope, rate limit, idempotency and access logs implemented."
+                                           "last_stage":  "development:BE-013",
+                                           "last_output":  "AUD/OPS read-only APIs, OpenAPI log bridge, health/config/version/migration status implemented."
                                        },
                            "frontend":  {
                                             "agent_id":  "orchestrator-local",
@@ -1412,6 +1426,37 @@
                                                   "External APIs keep raw request body for canonical signature verification and then delegate to existing runtime, flow and upload services.",
                                                   "signSecretEnc currently stores a reversible base64 placeholder for MVP signature verification; production hardening should replace it with KMS/encryption integration."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P5-BE-013",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "BE-013"
+                                              ],
+                                    "started_at":  "2026-06-07T17:25:00+08:00",
+                                    "completed_at":  "2026-06-07T17:37:57+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-web/src/main/java/com/unique/examine/web/audit/controller/AuditController.java",
+                                                    "backend/examine-web/src/main/java/com/unique/examine/web/ops/controller/OpsController.java",
+                                                    "backend/examine-web/src/main/java/com/unique/examine/web/audit/service/AuditOpsService.java",
+                                                    "backend/examine-web/src/main/java/com/unique/examine/web/audit/service/impl/AuditOpsServiceImpl.java",
+                                                    "backend/examine-web/src/main/java/com/unique/examine/web/audit/bo/AuditLogQueryBO.java",
+                                                    "backend/examine-web/src/main/java/com/unique/examine/web/audit/vo/",
+                                                    "backend/examine-web/src/main/java/com/unique/examine/web/ops/vo/",
+                                                    "backend/examine-web/src/test/java/com/unique/examine/web/audit/controller/AuditControllerTest.java",
+                                                    "backend/examine-web/src/test/java/com/unique/examine/web/ops/controller/OpsControllerTest.java",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/tasks/BE-013-audit-ops-api.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-web -am -DskipTests compile success",
+                                                         "mvn -pl examine-web -am test success: core 12 tests, plat 12 tests, upload 4 tests, module 21 tests, flow 2 tests, app 4 tests, web 4 tests"
+                                                     ],
+                                    "notes":  [
+                                                  "Audit and ops APIs are read-only; OPS-005 is ENH write runtime config and intentionally not implemented in this read-only task.",
+                                                  "OpenAPI audit log endpoint reads un_openapi_access_log through examine-app base service from web aggregation layer."
+                                              ]
                                 }
                             ],
     "current_phase":  "P5-workflow-files-openapi",
@@ -1463,5 +1508,5 @@
                                                     "next_phase":  "P5-workflow-files-openapi"
                                                 }
                          },
-    "last_completed_batch":  "DEV-BATCH-P5-BE-012"
+    "last_completed_batch":  "DEV-BATCH-P5-BE-013"
 }
