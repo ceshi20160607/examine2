@@ -17,8 +17,15 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
+- 默认状态: done。
 - 完成条件: 审批人和发起人可完成流程工作台主流程，`FE-009` 页面级契约证据文件已补齐。
+
+## 完成记录
+
+- 完成时间: 2026-06-07。
+- 输出: `frontend/src/pages/flow/flowWorkbenchPageModel.ts`、`frontend/src/pages/flow/index.ts`、`frontend/docs/page-contracts/FE-009-flow-workbench-pages.md`。
+- 自检: 已覆盖 FLOW-001 至 FLOW-021 的页面模型、幂等键、本地必填校验、禁用态、流程图解释模型、requestId/错误态和页面契约证据；`frontend/src/pages/flow/` 未新增旁路请求。
+- 限制: 当前 `frontend/` 目录无 `package.json`/`tsconfig.json`，无法执行正式 build/typecheck。
 
 ## 验收标准
 

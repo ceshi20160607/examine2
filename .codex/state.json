@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T17:37:57+08:00",
+    "updated_at":  "2026-06-07T18:05:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -327,7 +327,10 @@
                       "backend/examine-web/src/main/java/com/unique/examine/web/audit/bo/AuditLogQueryBO.java",
                       "backend/examine-web/src/test/java/com/unique/examine/web/audit/controller/AuditControllerTest.java",
                       "backend/examine-web/src/test/java/com/unique/examine/web/ops/controller/OpsControllerTest.java",
-                      "docs/tasks/BE-013-audit-ops-api.md"
+                      "docs/tasks/BE-013-audit-ops-api.md",
+                      "frontend/src/pages/flow/flowWorkbenchPageModel.ts",
+                      "frontend/src/pages/flow/index.ts",
+                      "frontend/docs/page-contracts/FE-009-flow-workbench-pages.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
     "status":  "DEVELOPMENT_PHASE_P5_IN_PROGRESS",
@@ -735,7 +738,8 @@
                                        "output":  "Audit and ops read-only APIs implemented in backend/examine-web",
                                        "completed_at":  "2026-06-07T17:37:57+08:00",
                                        "verification":  "mvn -pl examine-web -am test success: core 12, plat 12, upload 4, module 21, flow 2, app 4, web 4 tests"
-                                   }
+                                   },
+                        "FE-009":  "done"
                     },
     "task_plan_frozen":  true,
     "active_mode":  "development",
@@ -754,8 +758,8 @@
                            "frontend":  {
                                             "agent_id":  "orchestrator-local",
                                             "status":  "done",
-                                            "last_stage":  "development:FE-008",
-                                            "last_output":  "runtime workbench page model and contract evidence completed"
+                                            "last_stage":  "development:FE-009",
+                                            "last_output":  "flow workbench page model and contract evidence completed"
                                         },
                            "test":  {
                                         "agent_id":  "019e9aaa-4029-77f2-98a1-71733c220e3c",
@@ -1457,6 +1461,31 @@
                                                   "Audit and ops APIs are read-only; OPS-005 is ENH write runtime config and intentionally not implemented in this read-only task.",
                                                   "OpenAPI audit log endpoint reads un_openapi_access_log through examine-app base service from web aggregation layer."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P5-FE-009",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "FE-009"
+                                              ],
+                                    "started_at":  "2026-06-07T17:45:00+08:00",
+                                    "completed_at":  "2026-06-07T18:05:00+08:00",
+                                    "outputs":  [
+                                                    "frontend/src/pages/flow/flowWorkbenchPageModel.ts",
+                                                    "frontend/src/pages/flow/index.ts",
+                                                    "frontend/docs/page-contracts/FE-009-flow-workbench-pages.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/tasks/FE-009-flow-workbench-pages.md"
+                                                ],
+                                    "verification":  [
+                                                         "rg no direct fetch/axios/XMLHttpRequest in frontend/src/pages/flow",
+                                                         "frontend package.json and tsconfig.json absent; formal build/typecheck unavailable"
+                                                     ],
+                                    "notes":  [
+                                                  "Flow page model uses frozen FLOW-001..FLOW-021 endpoint IDs through ApiClient.call.",
+                                                  "Flow actions expose idempotency keys, local required-field validation and disabled reasons for handled tasks and finished instances."
+                                              ]
                                 }
                             ],
     "current_phase":  "P5-workflow-files-openapi",
@@ -1508,5 +1537,5 @@
                                                     "next_phase":  "P5-workflow-files-openapi"
                                                 }
                          },
-    "last_completed_batch":  "DEV-BATCH-P5-BE-013"
+    "last_completed_batch":  "DEV-BATCH-P5-FE-009"
 }
