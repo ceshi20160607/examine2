@@ -60,8 +60,8 @@ export const API_ENDPOINTS = {
   "AUTH-001": defineEndpoint("AUTH-001", "auth", "POST", "/api/v1/auth/register", "None"),
   "AUTH-002": defineEndpoint("AUTH-002", "auth", "POST", "/api/v1/auth/login", "None"),
   "AUTH-003": defineEndpoint("AUTH-003", "auth", "POST", "/api/v1/auth/refresh", "None"),
-  "AUTH-004": defineEndpoint("AUTH-004", "auth", "POST", "/api/v1/auth/logout", "None"),
-  "AUTH-005": defineEndpoint("AUTH-005", "auth", "GET", "/api/v1/auth/me", "None"),
+  "AUTH-004": defineEndpoint("AUTH-004", "auth", "POST", "/api/v1/auth/logout", "Bearer"),
+  "AUTH-005": defineEndpoint("AUTH-005", "auth", "GET", "/api/v1/auth/me", "Bearer"),
   "AUTH-006": defineEndpoint("AUTH-006", "auth", "POST", "/api/v1/auth/password/reset", "None"),
 
   "PLAT-001": defineEndpoint("PLAT-001", "platform", "GET", "/api/v1/platform/my-systems", "Bearer", "LOGIN_USER"),

@@ -21,7 +21,7 @@
 | RUN-003 | POST | `/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records/query` | 调用页面提交列表筛选/排序 | `systemId`、`moduleId` | 无 | `filters`、`sorter`、分页参数 | Authorization / X-Tenant-Id / X-Request-Id | `records[].values`、`records[].availableActions`、`records[].recordVersion` | `recordStatus`、`flowStatus` | `PERM_DATA_SCOPE_DENIED`、`FIELD_VALUE_TYPE_INVALID` | `buildDynamicListQuery()` 只保留 schema 允许的筛选和排序字段。 |
 | RUN-004 | POST | `/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records` | 调用页面创建记录 | `systemId`、`moduleId` | 无 | `values[]`、`idempotencyKey` | Authorization / X-Tenant-Id / X-Request-Id / X-Idempotency-Key | `recordId`、`recordStatus`、`recordVersion`、`availableActions` | `recordStatus` | `FIELD_REQUIRED_MISSING`、`FIELD_VALUE_TYPE_INVALID`、`FIELD_UNIQUE_CONFLICT`、`PERM_FIELD_WRITE_DENIED` | `validateDynamicForm()` 生成提交 `values[]` 并定位字段错误。 |
 | RUN-005 | GET | `/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records/{recordId}` | 调用页面加载详情 | `systemId`、`moduleId`、`recordId` | 无 | 无 | Authorization / X-Tenant-Id / X-Request-Id | `values`、`fileRefs`、`flowSummary`、`historySummary`、`availableActions`、`fieldPermissions` | `recordStatus` | `MODULE_RECORD_NOT_FOUND`、`PERM_DATA_SCOPE_DENIED` | `createDynamicDetailModel()` 合并详情字段权限和展示值。 |
-| RUN-006 | PUT | `/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records/{recordId}` | 调用页面编辑保存 | `systemId`、`moduleId`、`recordId` | 无 | `values[]`、`recordVersion`、`idempotencyKey` | Authorization / X-Tenant-Id / X-Request-Id / X-Idempotency-Key | `recordId`、`recordStatus`、`recordVersion`、`changedFields` | `recordStatus` | `MODULE_RECORD_STATUS_CONFLICT`、`PERM_FIELD_WRITE_DENIED` | 只提交 `FieldPermission.writable=true` 且非 `SERIAL` 的字段。 |
+| RUN-006 | PUT | `/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records/{recordId}` | 调用页面编辑保存 | `systemId`、`moduleId`、`recordId` | 无 | `values[]`、`recordVersion`、`idempotencyKey` | Authorization / X-Tenant-Id / X-Request-Id / X-Idempotency-Key | `recordId`、`recordStatus`、`recordVersion`、`changedFields` | `recordStatus` | `MODULE_RECORD_STATUS_CONFLICT`、`PERM_FIELD_WRITE_DENIED` | 只提交 `FieldPermission.writable=true` 且非 `AUTO_NO` 的字段。 |
 | RUN-009 | GET | `/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records/{recordId}/history` | 调用页面加载历史快照 | `systemId`、`moduleId`、`recordId` | 无 | 无 | Authorization / X-Tenant-Id / X-Request-Id | 历史 `values`、`valueSnapshot`、`requestId` | `recordStatus` | `MODULE_RECORD_NOT_FOUND`、`PERM_DATA_SCOPE_DENIED` | `createDynamicHistoryModel()` 优先展示 `displayValue/valueSnapshot`。 |
 | FLOW-008 | GET | `/api/v1/systems/{systemId}/flow/tasks/{taskId}` | 流程任务详情复用表单/详情渲染 | `systemId`、`taskId` | 无 | 无 | Authorization / X-Tenant-Id / X-Request-Id | `formSchema`、`values`、`history`、`availableActions` | `flowTaskStatus` | `FLOW_TASK_NOT_FOUND`、`PERM_DENIED` | 流程页把任务 schema 适配为 `DynamicSchemaInput` 后复用组件。 |
 
@@ -45,7 +45,7 @@
 
 | 类型 | 契约来源 | 组件使用位置 | 展示/禁用规则 |
 | --- | --- | --- | --- |
-| 字段类型 | `frontend/src/api/enums.ts` `DYNAMIC_FIELD_TYPES` | `DYNAMIC_FIELD_RENDERERS` | 覆盖 `TEXT`、`TEXTAREA`、`NUMBER`、`DECIMAL`、`DATE`、`DATETIME`、`SELECT`、`MULTI_SELECT`、`RADIO`、`CHECKBOX`、`DICT`、`BOOLEAN`、`ATTACHMENT`、`IMAGE`、`SERIAL`、`RELATION`、`SUB_TABLE`、`ADDRESS`、`TAG`、`JSON` |
+| 字段类型 | `frontend/src/api/enums.ts` `DYNAMIC_FIELD_TYPES` | `DYNAMIC_FIELD_RENDERERS` | 覆盖 `TEXT`、`TEXTAREA`、`NUMBER`、`MONEY`、`DATE`、`DATETIME`、`SELECT`、`MULTI_SELECT`、`SWITCH`、`MEMBER`、`DEPT`、`ATTACHMENT`、`IMAGE`、`AUTO_NO`、`RELATION`、`SUB_TABLE`、`ADDRESS`、`TAG`、`JSON` |
 | 字段状态 | `fieldStatus` | 权限解析 | `DELETED` 不可见；非 `ENABLED` 只读 |
 | 记录状态 | `recordStatus` | 调用页面动作禁用 | 组件只消费 `AvailableAction`，不绕过后端状态规则 |
 | 流程状态 | `flowTaskStatus` / `flowInstanceStatus` | 流程页面复用 | 组件只展示和校验字段，不伪造流程动作 |
@@ -58,18 +58,17 @@
 | `TEXT` | `text-input` | `text-input` | 文本 | string |
 | `TEXTAREA` | `text-input` | `text-input` | 文本 | string |
 | `NUMBER` | `number-input` | `number-input` | 数字 | number 或数值字符串 |
-| `DECIMAL` | `money-input` | `money-input` | 两位小数 | number 或数值字符串 |
+| `MONEY` | `money-input` | `money-input` | 两位小数 | number 或数值字符串 |
 | `DATE` | `date-picker` | `date-picker` | 日期 | `YYYY-MM-DD` |
 | `DATETIME` | `datetime-picker` | `datetime-picker` | 时间 | 可解析 ISO 日期时间 |
 | `SELECT` | `select` | `select` | 选项展示值 | string/number/boolean |
 | `MULTI_SELECT` | `multi-select` | `multi-select` | 多选展示值 | primitive array |
-| `RADIO` | `select` | `select` | 单选展示值 | primitive |
-| `CHECKBOX` | `multi-select` | `multi-select` | 多选展示值 | primitive array |
-| `DICT` | `select` | `select` | 字典展示值 | primitive |
-| `BOOLEAN` | `switch` | `switch` | Yes/No | boolean |
+| `SWITCH` | `switch` | `switch` | Yes/No | boolean |
+| `MEMBER` | `member-picker` | `member-picker` | 成员展示值 | primitive |
+| `DEPT` | `dept-picker` | `dept-picker` | 部门展示值 | primitive |
 | `ATTACHMENT` | `file-uploader` | `readonly-text` | 文件名列表 | `FileBindDTO[]` |
 | `IMAGE` | `image-uploader` | `readonly-text` | 图片文件名列表 | `FileBindDTO[]` |
-| `SERIAL` | `auto-number` | `readonly-text` | 自动编号 | 只读 string |
+| `AUTO_NO` | `auto-number` | `readonly-text` | 自动编号 | 只读 string |
 | `RELATION` | `relation-picker` | `relation-picker` | 关联展示值 | id/object/array |
 | `SUB_TABLE` | `sub-table` | `readonly-text` | 子表摘要 | array |
 | `ADDRESS` | `address-picker` | `text-input` | 地址文本或对象展示值 | string/object |
@@ -82,7 +81,7 @@
 | --- | --- | --- | --- | --- |
 | 字段可见 | `FieldPermission.visible`、`fieldVisibility`、`fieldStatus` | `visible=false` | 不渲染字段 | `PERM_DENIED` / `PERM_DATA_SCOPE_DENIED` |
 | 字段可写 | `FieldPermission.writable`、`fieldWritable`、字段类型、字段状态 | `writable=false` | `readonlyReason` | `PERM_FIELD_WRITE_DENIED` |
-| 自动编号 | `DynamicFieldType.SERIAL` | `writable=false` | 字段类型只读原因 | `FIELD_SERIAL_RULE_INVALID` |
+| 自动编号 | `DynamicFieldType.AUTO_NO` | `writable=false` | 字段类型只读原因 | `FIELD_SERIAL_RULE_INVALID` |
 | 页面动作 | `AvailableAction.visible/enabled` | `enabled=false` | `disabledReason` / `stateReason` | `PERM_DENIED` / `MODULE_RECORD_STATUS_CONFLICT` |
 
 ## 空态与错误态

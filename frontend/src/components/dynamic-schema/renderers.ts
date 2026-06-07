@@ -14,7 +14,7 @@ export const DYNAMIC_FIELD_RENDERERS = {
     "LE",
     "BETWEEN",
   ]),
-  DECIMAL: renderer("DECIMAL", "Decimal", "money-input", "money-input", true, true, true, false, [
+  MONEY: renderer("MONEY", "Money", "money-input", "money-input", true, true, true, false, [
     "EQ",
     "NE",
     "GT",
@@ -32,13 +32,12 @@ export const DYNAMIC_FIELD_RENDERERS = {
   MULTI_SELECT: renderer("MULTI_SELECT", "Multi select", "multi-select", "multi-select", false, true, true, true, [
     "IN",
   ]),
-  RADIO: renderer("RADIO", "Radio", "select", "select", true, true, true, false, ["EQ", "NE", "IN"]),
-  CHECKBOX: renderer("CHECKBOX", "Checkbox", "multi-select", "multi-select", false, true, true, true, ["IN"]),
-  DICT: renderer("DICT", "Dictionary", "select", "select", true, true, true, false, ["EQ", "NE", "IN"]),
-  BOOLEAN: renderer("BOOLEAN", "Boolean", "switch", "switch", true, true, true, false, ["EQ", "NE"]),
+  SWITCH: renderer("SWITCH", "Switch", "switch", "switch", true, true, true, false, ["EQ", "NE"]),
+  MEMBER: renderer("MEMBER", "Member", "member-picker", "member-picker", true, true, true, false, ["EQ", "NE", "IN"]),
+  DEPT: renderer("DEPT", "Department", "dept-picker", "dept-picker", true, true, true, false, ["EQ", "NE", "IN"]),
   ATTACHMENT: renderer("ATTACHMENT", "Attachment", "file-uploader", "readonly-text", false, false, true, true, []),
   IMAGE: renderer("IMAGE", "Image", "image-uploader", "readonly-text", false, false, true, true, []),
-  SERIAL: renderer("SERIAL", "Serial", "auto-number", "readonly-text", true, true, false, false, ["EQ", "LIKE"]),
+  AUTO_NO: renderer("AUTO_NO", "Auto number", "auto-number", "readonly-text", true, true, false, false, ["EQ", "LIKE"]),
   RELATION: renderer("RELATION", "Relation", "relation-picker", "relation-picker", true, true, true, true, [
     "EQ",
     "IN",
@@ -64,10 +63,10 @@ export function formatDynamicFieldValue(fieldType: DynamicFieldType, value: unkn
   if (value === undefined || value === null || value === "") {
     return "-";
   }
-  if (fieldType === "BOOLEAN") {
+  if (fieldType === "SWITCH") {
     return value === true ? "Yes" : "No";
   }
-  if (fieldType === "DECIMAL" && isFiniteNumber(value)) {
+  if (fieldType === "MONEY" && isFiniteNumber(value)) {
     return Number(value).toFixed(2);
   }
   if ((fieldType === "ATTACHMENT" || fieldType === "IMAGE") && Array.isArray(value)) {

@@ -1,5 +1,5 @@
 ﻿{
-    "current_step":  16,
+    "current_step":  18,
     "completed_steps":  [
                             1,
                             2,
@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T01:45:00+08:00",
+    "updated_at":  "2026-06-08T01:55:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1862,6 +1862,43 @@
                                                   "Missing or invalid OpenAPI accessKey now uses OPENAPI_ACCESS_KEY_INVALID.",
                                                   "Next route continues with frontend fixes."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-REWORK-FE-CONTRACT-BUILD",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "REV-001-FE-BUILD-ENTRY",
+                                                  "REV-002-FE-AUTH-FIELD-TYPES"
+                                              ],
+                                    "started_at":  "2026-06-08T01:46:00+08:00",
+                                    "completed_at":  "2026-06-08T01:55:00+08:00",
+                                    "outputs":  [
+                                                    "frontend/package.json",
+                                                    "frontend/package-lock.json",
+                                                    "frontend/tsconfig.json",
+                                                    "frontend/src/api/endpoints.ts",
+                                                    "frontend/src/api/enums.ts",
+                                                    "frontend/src/api/types.ts",
+                                                    "frontend/src/api/client.ts",
+                                                    "frontend/src/components/dynamic-schema/renderers.ts",
+                                                    "frontend/src/components/dynamic-schema/validation.ts",
+                                                    "frontend/src/pages/module-config/moduleConfigPageModel.ts",
+                                                    "frontend/src/pages/runtime/runtimeWorkbenchPageModel.ts",
+                                                    "frontend/docs/api-contract-map.md",
+                                                    "frontend/docs/page-contracts/FE-007-dynamic-schema-renderer.md",
+                                                    "docs/build/frontend-clean-build.md",
+                                                    "docs/build/contract-sync-check.md",
+                                                    "docs/progress.md"
+                                                ],
+                                    "verification":  [
+                                                         "npm.cmd install success",
+                                                         "npm.cmd run build success via tsc --noEmit",
+                                                         "Node contract sync check success: 174 API IDs, 20 core errors, 14 status groups, 19 field types and AUTH-004/AUTH-005 Bearer matched"
+                                                     ],
+                                    "notes":  [
+                                                  "Frontend now has a reproducible TypeScript build entry.",
+                                                  "Next route continues with test, validator and reviewer rerun."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1920,5 +1957,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-REWORK-BE-OPENAPI-AK"
+    "last_completed_batch":  "DEV-BATCH-P6-REWORK-FE-CONTRACT-BUILD"
 }

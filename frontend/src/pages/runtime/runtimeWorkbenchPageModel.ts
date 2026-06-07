@@ -43,6 +43,8 @@ export interface RuntimeWorkbenchDeps {
   error: ErrorStore;
 }
 
+type RuntimeSaveBodyResult = { valid: true; body: RuntimeRecordSaveBO } | { valid: false; errors: DynamicFieldError[] };
+
 export interface RuntimeRequestState {
   loading: boolean;
   empty: boolean;
@@ -209,13 +211,14 @@ export function createRuntimeWorkbenchPageModel(deps: RuntimeWorkbenchDeps) {
         createDynamicFormModel(normalizeRuntimeSchema(schema), values),
       create: (moduleId: EntityId, schema: RuntimeModuleSchemaVO, values: Record<string, unknown>, remark?: string) => {
         const body = toSaveBody(normalizeRuntimeSchema(schema), values, remark);
-        return body.valid
-          ? callData<RecordMutationResultVO, RuntimeRecordSaveBO>(deps, "RUN-004", {
-              pathParams: { moduleId },
-              body: body.body,
-              idempotencyKey: createIdempotencyKey("RUN-004"),
-            })
-          : localValidationResult<RecordMutationResultVO>(body.errors);
+        if (!hasValidSaveBody(body)) {
+          return localValidationResult<RecordMutationResultVO>(body.errors);
+        }
+        return callData<RecordMutationResultVO, RuntimeRecordSaveBO>(deps, "RUN-004", {
+          pathParams: { moduleId },
+          body: body.body,
+          idempotencyKey: createIdempotencyKey("RUN-004"),
+        });
       },
       detail: async (moduleId: EntityId, recordId: EntityId, schema: RuntimeModuleSchemaVO) => {
         const schemaInput = normalizeRuntimeSchema(schema);
@@ -236,15 +239,16 @@ export function createRuntimeWorkbenchPageModel(deps: RuntimeWorkbenchDeps) {
         remark?: string,
       ) => {
         const body = toSaveBody(normalizeRuntimeSchema(schema), values, remark);
-        return body.valid
-          ? callData<RecordMutationResultVO, RuntimeRecordUpdateBO>(deps, "RUN-006", {
-              pathParams: { moduleId, recordId },
-              body: {
-                ...body.body,
-                recordVersion,
-              },
-            })
-          : localValidationResult<RecordMutationResultVO>(body.errors);
+        if (!hasValidSaveBody(body)) {
+          return localValidationResult<RecordMutationResultVO>(body.errors);
+        }
+        return callData<RecordMutationResultVO, RuntimeRecordUpdateBO>(deps, "RUN-006", {
+          pathParams: { moduleId, recordId },
+          body: {
+            ...body.body,
+            recordVersion,
+          },
+        });
       },
       delete: (moduleId: EntityId, recordId: EntityId) =>
         callData<RecordMutationResultVO>(deps, "RUN-007", { pathParams: { moduleId, recordId } }),
@@ -396,7 +400,7 @@ function toSaveBody(
   schema: DynamicSchemaInput,
   values: Record<string, unknown>,
   remark?: string,
-): { valid: true; body: RuntimeRecordSaveBO } | { valid: false; errors: DynamicFieldError[] } {
+): RuntimeSaveBodyResult {
   const validation = validateDynamicForm(schema, values);
   if (!validation.valid) {
     return {
@@ -415,6 +419,10 @@ function toSaveBody(
       remark,
     },
   };
+}
+
+function hasValidSaveBody(result: RuntimeSaveBodyResult): result is { valid: true; body: RuntimeRecordSaveBO } {
+  return result.valid === true;
 }
 
 function toDetailView(

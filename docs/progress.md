@@ -100,8 +100,8 @@
 | TEST-004 | 权限异常幂等 OpenAPI 测试 | done | test | 未登录、错误凭证、OpenAPI 缺少 AK 和幂等冲突执行记录 |
 | TEST-005 | 测试报告 | done | test | 测试报告结论 fail，target=frontend，后端 API smoke 通过但前端 E2E 工程入口缺失 |
 | VAL-001 | 后端 clean compile | done | validator | 后端 clean compile 通过，8 个 Maven 模块 SUCCESS |
-| VAL-002 | 前端 clean build | done | validator | 构建失败，缺少 `frontend/package.json`，target=frontend；源码产物扫描未发现 `.vue.js`、临时 `.d.ts` 或编译 `.js` |
-| VAL-003 | 契约同步检查 | done | validator | API ID、核心错误码和状态枚举同步通过；字段类型枚举未同步，target=frontend |
+| VAL-002 | 前端 clean build | done | validator | 返工复验通过：已新增 `frontend/package.json`、`frontend/tsconfig.json` 和 lockfile，`npm.cmd run build` 成功 |
+| VAL-003 | 契约同步检查 | done | validator | 返工复验通过：174 个 API ID、核心错误码、14 组状态枚举、19 个字段类型和 AUTH Bearer 标记均同步 |
 | VAL-004 | 构建报告 | done | validator | 构建验证结论 fail，target=frontend；后端 clean compile pass，前端工程入口和字段类型同步失败 |
 | REV-001 | 架构审查 | done | reviewer | 架构审查结论 fail，target=frontend；另记录 backend 幂等生产级风险 |
 | REV-002 | 契约实现审查 | done | reviewer | 契约实现审查结论 fail，target=both；前端 AUTH/字段类型和后端 OpenAPI 错误码不一致 |
@@ -171,7 +171,8 @@
 28. REV-003 已完成质量测试构建审查：`docs/review_parts/rev-003-quality.md` 结论为 fail，target=both；前端构建/E2E 缺失、OpenAPI 负向断言过宽、OpenAPI/并发矩阵覆盖不足。
 29. REV-004 已完成最终 review：`docs/review.json` 合法，status=fail，target=both，包含 7 个 issues，nextRoute 为 backend -> frontend -> test -> validator -> reviewer。
 30. Backend 回环已修复 `REV-002-BE-OPENAPI-AK-CODE`：`OpenApiSecurityServiceImpl` 缺失/无效 accessKey 改为 `OPENAPI_ACCESS_KEY_INVALID`，并新增 `OpenApiSecurityServiceImplTest`；执行 `mvn -pl examine-app -am test` 通过，core 13、plat 12、upload 4、module 21、flow 2、app 5。
+31. Frontend 回环已修复工程入口、AUTH-004/AUTH-005 鉴权标记和字段类型枚举同步：新增 `frontend/package.json`、`frontend/tsconfig.json`、`frontend/package-lock.json`，`npm.cmd run build` 通过；契约同步复验 174 个 API ID、核心错误码、14 组状态枚举、19 个字段类型和 AUTH Bearer 标记均通过。
 
 ## 下一步
 
-当前 `P6-final-acceptance` 本轮验证与审查任务已全部完成，但最终 `docs/review.json.status=fail`，target=both。Backend P1 错误码回环已完成；下一步修 frontend 工程入口、AUTH 鉴权标记和字段类型枚举，随后重跑 test/validator/reviewer。
+当前 `P6-final-acceptance` 已完成 backend 与 frontend 回环修复。下一步按 `docs/review.json.nextRoute` 重跑 test/validator/reviewer，更新最终 `docs/test_report.md`、`docs/build_report.md` 和 `docs/review.json`。

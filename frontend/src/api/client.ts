@@ -1,5 +1,5 @@
 import { API_ENDPOINTS, type ApiEndpointId, type ApiGroup, getEndpointDefinition } from "./endpoints";
-import type { ApiResult, ApiResponse, HttpMethod, JsonValue } from "./types";
+import type { ApiErrorResponse, ApiResult, ApiResponse, HttpMethod, JsonValue } from "./types";
 
 export interface ApiContext {
   accessToken?: string;
@@ -62,7 +62,7 @@ export function createApiClient(options: CreateApiClientOptions): ApiClient {
         headers,
       });
 
-      if (!response.data.success) {
+      if (isApiErrorResponse(response.data)) {
         throw createApiError(response.data);
       }
       return response.data;
@@ -126,13 +126,17 @@ function hasBodyIdempotencyKey(body: unknown): boolean {
   return typeof candidate.idempotencyKey === "string" && candidate.idempotencyKey.length > 0;
 }
 
+function isApiErrorResponse<TData>(result: ApiResult<TData>): result is ApiErrorResponse {
+  return result.success === false;
+}
+
 export class ApiClientError extends Error {
   readonly requestId: string;
   readonly code: string;
   readonly retryable: boolean;
   readonly details: JsonValue;
 
-  constructor(error: ApiResult<never>) {
+  constructor(error: ApiErrorResponse) {
     super(error.message);
     this.name = "ApiClientError";
     this.requestId = error.requestId;
@@ -142,6 +146,6 @@ export class ApiClientError extends Error {
   }
 }
 
-function createApiError(error: ApiResult<never>): ApiClientError {
+function createApiError(error: ApiErrorResponse): ApiClientError {
   return new ApiClientError(error);
 }

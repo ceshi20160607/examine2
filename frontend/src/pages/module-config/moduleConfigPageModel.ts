@@ -432,15 +432,14 @@ const MODULE_CONFIG_API_IDS = [
 const UNIQUE_SUPPORTED_FIELD_TYPES = [
   "TEXT",
   "NUMBER",
-  "DECIMAL",
+  "MONEY",
   "DATE",
   "DATETIME",
   "SELECT",
-  "RADIO",
-  "CHECKBOX",
-  "DICT",
-  "BOOLEAN",
-  "SERIAL",
+  "SWITCH",
+  "MEMBER",
+  "DEPT",
+  "AUTO_NO",
   "RELATION",
 ] as const satisfies readonly DynamicFieldType[];
 

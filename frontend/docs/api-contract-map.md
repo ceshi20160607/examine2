@@ -61,8 +61,8 @@
 | AUTH-001 | auth | POST | /api/v1/auth/register | None |  | MVP |
 | AUTH-002 | auth | POST | /api/v1/auth/login | None |  | MVP |
 | AUTH-003 | auth | POST | /api/v1/auth/refresh | None |  | MVP |
-| AUTH-004 | auth | POST | /api/v1/auth/logout | None |  | MVP |
-| AUTH-005 | auth | GET | /api/v1/auth/me | None |  | MVP |
+| AUTH-004 | auth | POST | /api/v1/auth/logout | Bearer |  | MVP |
+| AUTH-005 | auth | GET | /api/v1/auth/me | Bearer |  | MVP |
 | AUTH-006 | auth | POST | /api/v1/auth/password/reset | None |  | MVP |
 | PLAT-001 | platform | GET | /api/v1/platform/my-systems | Bearer | LOGIN_USER | MVP |
 | PLAT-002 | platform | POST | /api/v1/platform/systems | Bearer | PLAT_SYSTEM_CREATE | MVP |
@@ -235,6 +235,7 @@
 
 ## 枚举与幂等同步
 
+- 字段类型枚举：TEXT/TEXTAREA/NUMBER/MONEY/DATE/DATETIME/SELECT/MULTI_SELECT/SWITCH/MEMBER/DEPT/ATTACHMENT/IMAGE/AUTO_NO/RELATION/SUB_TABLE/ADDRESS/TAG/JSON。
 - 状态枚举：accountStatus=NORMAL/DISABLED/LOCKED；systemStatus=DRAFT/ENABLED/DISABLED/ARCHIVED；tenantStatus=ENABLED/DISABLED；appStatus=DRAFT/ENABLED/DISABLED/ARCHIVED；moduleStatus=DRAFT/PUBLISHED/DISABLED/ARCHIVED；fieldStatus=DRAFT/ENABLED/DISABLED/DELETED；versionStatus=DRAFT/PUBLISHED/DISCARDED；recordStatus=DRAFT/SUBMITTED/IN_APPROVAL/APPROVED/REJECTED/WITHDRAWN/ARCHIVED/DELETED；flowTemplateStatus=DRAFT/PUBLISHED/DISABLED；flowInstanceStatus=IN_APPROVAL/APPROVED/REJECTED/WITHDRAWN/TERMINATED；flowTaskStatus=PENDING/DONE/CANCELED/TRANSFERRED/RETURNED；fileStatus=TEMP/REFERENCED/DELETED/EXPIRED；exportJobStatus=QUEUED/PROCESSING/SUCCESS/FAILED/CANCELED；openApiClientStatus=DRAFT/ENABLED/DISABLED/EXPIRED。
 - 类型状态定义：AccountStatus, SystemStatus, TenantStatus, AppStatus, ModuleStatus, FieldStatus, VersionStatus, RecordStatus, FlowTemplateStatus, FlowInstanceStatus, FlowTaskStatus, FileStatus, ExportJobStatus, OpenApiClientStatus。
 - 幂等必填接口：PLAT-002, APP-002, MOD-002, FIELD-002, MOD-006, UI-008, RUN-004, RUN-006, RUN-008, FLOW-005, FLOW-009, FLOW-010, FLOW-013, FLOW-015, FLOW-016, FILE-001, EXP-004, EXP-007, EXP-008, OPM-002, OPM-005, OPN-003, OPN-004, OPN-005, OPN-006。

@@ -85,25 +85,24 @@ export function isValueCompatible(field: FieldDefinitionVO, value: unknown): boo
   switch (field.fieldType) {
     case "TEXT":
     case "TEXTAREA":
-    case "SERIAL":
+    case "AUTO_NO":
       return typeof value === "string";
     case "NUMBER":
-    case "DECIMAL":
+    case "MONEY":
       return isFiniteNumber(value);
     case "DATE":
       return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
     case "DATETIME":
       return typeof value === "string" && !Number.isNaN(Date.parse(value));
     case "SELECT":
-    case "RADIO":
-    case "DICT":
+    case "MEMBER":
+    case "DEPT":
       return isPrimitive(value);
+    case "SWITCH":
+      return typeof value === "boolean";
     case "MULTI_SELECT":
-    case "CHECKBOX":
     case "TAG":
       return Array.isArray(value) && value.every(isPrimitive);
-    case "BOOLEAN":
-      return typeof value === "boolean";
     case "RELATION":
       return isPrimitive(value) || isRecord(value) || Array.isArray(value);
     case "ATTACHMENT":
