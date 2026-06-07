@@ -16,8 +16,13 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
-- 完成条件: `docs/test_report.md` 符合格式契约。
+- 当前状态: done。
+- 完成条件: `docs/test_report.md` 已符合格式契约。
+
+## 执行记录
+
+- 2026-06-08 已汇总 TEST-003/TEST-004 到 `docs/test_report.md`。
+- 报告结论为 `fail`，target 为 `frontend`，原因是后端 API 集成 smoke 通过但前端正式浏览器 E2E 无可执行工程入口。
 
 ## 验收标准
 

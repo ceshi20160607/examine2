@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T00:35:00+08:00",
+    "updated_at":  "2026-06-08T00:45:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1631,6 +1631,29 @@
                                                   "TEST-004 smoke risk scenarios passed for unauthorized internal API, invalid credentials, OpenAPI missing AK and create-system idempotency conflict.",
                                                   "Frontend browser refresh and page interaction checks remain blocked by missing frontend package.json and tsconfig.json and must be summarized by TEST-005."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-TEST-005",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "TEST-005"
+                                              ],
+                                    "started_at":  "2026-06-08T00:36:00+08:00",
+                                    "completed_at":  "2026-06-08T00:45:00+08:00",
+                                    "outputs":  [
+                                                    "docs/test_report.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/tasks/TEST-005-test-report.md"
+                                                ],
+                                    "verification":  [
+                                                         "docs/test_report.md contains commands, results, failure summary, uncovered risks and fail target",
+                                                         "state.json parsed successfully after update"
+                                                     ],
+                                    "notes":  [
+                                                  "Backend API integration smoke passed, but full test conclusion is fail target=frontend because frontend browser E2E is blocked by missing package.json and tsconfig.json.",
+                                                  "Next task is VAL-001 backend clean build, followed by VAL-002 frontend clean build target confirmation."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1689,5 +1712,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-TEST-003-004"
+    "last_completed_batch":  "DEV-BATCH-P6-TEST-005"
 }

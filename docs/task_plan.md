@@ -196,7 +196,7 @@ flowchart TD
 | TEST-002 | API 契约用例 | test | test | TEST-001/API | API 用例清单 | TEST-001 | 是 | 正常、异常、权限、边界、幂等覆盖 | 可直接用于自动化 | pending |
 | TEST-003 | E2E 主链路执行 | test | test | BE-015/FE-012 | `docs/test_runs/e2e-main-chain.md` | BE-015, FE-012, TEST-002 | 否 | 创建系统到审批导出 OpenAPI 闭环跑通，执行记录独立输出 | E2E 场景断言 | done |
 | TEST-004 | 权限异常幂等 OpenAPI 测试 | test | test | BE-015/FE-012/TEST-002 | `docs/test_runs/permission-exception-idempotency-openapi.md` | BE-015, FE-012, TEST-002 | 是 | 越权、状态冲突、签名、限流、幂等覆盖，执行记录独立输出 | fail 给出 target | done |
-| TEST-005 | 测试报告 | test | test | TEST-003/TEST-004 | `docs/test_report.md` | TEST-003, TEST-004 | 否 | 汇总测试执行记录，报告含命令、结果、失败摘要、target | 结论 pass/fail | pending |
+| TEST-005 | 测试报告 | test | test | TEST-003/TEST-004 | `docs/test_report.md` | TEST-003, TEST-004 | 否 | 汇总测试执行记录，报告含命令、结果、失败摘要、target | 结论 fail，target=frontend | done |
 | VAL-001 | 后端 clean compile | validator | validator | BE-015/service | `docs/build/backend-clean-compile.md` | BE-015 | 是 | JDK/Maven 路径和 clean compile 结果明确，记录独立输出 | 失败日志摘要 | pending |
 | VAL-002 | 前端 clean build | validator | validator | FE-012/service | `docs/build/frontend-clean-build.md` | FE-012 | 是 | 清理 dist/tsbuildinfo 后 build，记录独立输出 | 失败日志摘要 | pending |
 | VAL-003 | 契约同步检查 | validator | validator | API/FE-012 | `docs/build/contract-sync-check.md` | FE-012 | 是 | 错误码、枚举、状态值同步到 SDK/map，记录独立输出 | 不一致判 fail | pending |

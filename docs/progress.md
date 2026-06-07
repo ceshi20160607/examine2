@@ -7,10 +7,10 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 50 |
-| 已完成 | 41 |
+| 已完成 | 42 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 9 |
+| 剩余 | 8 |
 
 当前模式：`development`
 
@@ -28,7 +28,7 @@
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
 | P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | accepted | 5/5 后端主任务，FE-009/FE-010/FE-012 前端契约闭环完成 | 已通过 PM 阶段验收 |
-| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 4/14 前端契约闭环、BE-015 后端自检、TEST-003/TEST-004 场景执行记录已完成 | 汇总 TEST-005 测试报告 |
+| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 5/14 测试报告已完成，结论 fail target=frontend | 启动 VAL-001 后端 clean build |
 
 ## 角色完成度
 
@@ -38,7 +38,7 @@
 | Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；后端最终自检通过。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
 | Frontend | 12 | 0 | 0 | FE-001 至 FE-012 已完成；正式 build/typecheck 待 VAL-002 处理前端工程入口缺口。 |
-| Test | 4 | 0 | 1 | TEST-001 至 TEST-004 已完成；下一步汇总 TEST-005 测试报告。 |
+| Test | 5 | 0 | 0 | TEST-001 至 TEST-005 已完成；测试报告结论 fail target=frontend。 |
 | Validator | 0 | 0 | 4 | 等阶段或最终构建验证。 |
 | Reviewer | 0 | 0 | 4 | 等测试和构建产物。 |
 
@@ -69,6 +69,7 @@
 | frontend | FE-012 | done | 前端契约闭环自检 | 已生成 `frontend/docs/api-contract-map.md` 与 `frontend/docs/frontend-self-check.md`，无旁路请求，typecheck/build 受前端工程入口缺失限制。 |
 | test | TEST-003 | done | `docs/test_runs/e2e-main-chain.md` | backend API 主链路通过；前端真实浏览器刷新与页面联动因工程入口缺失留待 TEST-005 汇总风险。 |
 | test | TEST-004 | done | `docs/test_runs/permission-exception-idempotency-openapi.md` | 未登录、错误凭证、OpenAPI 缺少 AK 和创建系统幂等冲突 smoke 场景通过。 |
+| test | TEST-005 | done | `docs/test_report.md` | 后端 API 集成 smoke 通过；整体测试结论 fail，target=frontend。 |
 | pm | P5 acceptance | done | `docs/phases/P5-workflow-files-openapi-acceptance.md` | P5 已验收通过，允许进入 P6。 |
 | pm | P3 acceptance | done | `docs/phases/P3-system-config-acceptance.md` | P3 已验收通过，允许进入 P4。 |
 
@@ -88,6 +89,7 @@
 | BE-015 | 幂等并发与 API 自检 | done | backend | 后端接口清单、错误码、幂等、权限、OpenAPI 和主要测试命令自检 |
 | TEST-003 | E2E 主链路执行 | done | test | backend API 主链路执行记录，包含创建系统、应用模块配置、发布、运行填报、提交和导出 |
 | TEST-004 | 权限异常幂等 OpenAPI 测试 | done | test | 未登录、错误凭证、OpenAPI 缺少 AK 和幂等冲突执行记录 |
+| TEST-005 | 测试报告 | done | test | 测试报告结论 fail，target=frontend，后端 API smoke 通过但前端 E2E 工程入口缺失 |
 
 ## 阶段验收摘要
 
@@ -142,7 +144,8 @@
 18. BE-015 已完成后端最终自检：执行 `mvn -pl examine-web -am test`，core 12、plat 12、upload 4、module 21、flow 2、app 4、web 4 个测试通过，合计 59 个测试；`backend/docs/backend-self-check.md` 已记录接口清单、命令、结果、失败摘要、幂等/权限/OpenAPI 结论和 pass。
 19. TEST-003 已完成 backend API 主链路执行：注册、登录、创建系统、进入系统、创建应用、创建模块、创建字段、设置标题字段、保存菜单、发布检查、发布版本、运行态 schema、创建记录、提交记录和创建导出任务均通过；记录见 `docs/test_runs/e2e-main-chain.md`。
 20. TEST-004 已完成风险 smoke 场景：未登录内部 API 返回 401、错误凭证返回 `AUTH_INVALID_CREDENTIAL`、OpenAPI 缺少 AK 返回 401、创建系统相同幂等键不同请求体返回 409 `COMMON_IDEMPOTENCY_CONFLICT`；记录见 `docs/test_runs/permission-exception-idempotency-openapi.md`。
+21. TEST-005 已完成测试报告：`docs/test_report.md` 结论为 fail，target=frontend；后端 API 集成 smoke 通过，前端正式浏览器 E2E 因工程入口缺失不可执行。
 
 ## 下一步
 
-当前 `P6-final-acceptance` 已完成 FE-012、BE-015、TEST-003 和 TEST-004，下一步执行 TEST-005 汇总测试报告，并把前端工程入口缺失、深度并发和 OpenAPI 全矩阵补测作为明确 target 或风险项。
+当前 `P6-final-acceptance` 已完成 FE-012、BE-015、TEST-003、TEST-004 和 TEST-005，下一步执行 VAL-001 后端 clean build，再执行 VAL-002 前端 clean build 并确认 frontend target。
