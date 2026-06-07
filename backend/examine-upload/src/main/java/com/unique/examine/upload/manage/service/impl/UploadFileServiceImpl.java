@@ -2,6 +2,7 @@ package com.unique.examine.upload.manage.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
@@ -127,6 +128,49 @@ public class UploadFileServiceImpl implements UploadFileService {
             bindDTO.setRecordId(recordId);
             bindDTO.setFieldCode(fieldCode);
             bindDTO.setDisplayName(file.getFileName());
+            bindFiles(systemId, List.of(bindDTO));
+        }
+        return fileInfo(fileService.getById(file.getId()));
+    }
+
+    /**
+     * 保存后端生成的文件并建立可选业务引用。
+     */
+    @Override
+    @Transactional
+    public FileInfoVO saveGeneratedFile(Long systemId, String fileName, String contentType, byte[] content,
+            FileBindDTO bindDTO) {
+        if (!StringUtils.hasText(fileName) || Objects.isNull(content)) {
+            throw new BusinessException(CommonErrorCode.PARAM_INVALID, "生成文件名和内容不能为空");
+        }
+        if (content.length > MAX_FILE_SIZE) {
+            throw new BusinessException(UploadErrorCode.SIZE_EXCEEDED);
+        }
+        StorageConfig storageConfig = defaultStorage(systemId);
+        StoredFile storedFile = storeGeneratedFile(systemId, storageConfig, fileName, content);
+        LocalDateTime now = LocalDateTime.now();
+        File file = new File()
+                .setSystemId(systemId)
+                .setTenantId(currentTenantId())
+                .setStorageConfigId(storageConfig.getId())
+                .setFileName(fileName)
+                .setExtension(extension(fileName))
+                .setContentType(contentType)
+                .setFileSize((long) content.length)
+                .setSha256(storedFile.sha256())
+                .setStorageKey(storedFile.storageKey())
+                .setStatus(TEMP)
+                .setPreviewable(previewable(extension(fileName)) ? YES : NO)
+                .setOwnerMemberId(currentMemberId())
+                .setRefCount(0)
+                .setTempExpiresAt(now.plusDays(3))
+                .setRequestId(currentRequestId())
+                .setDeleted(NO)
+                .setCreatedAt(now)
+                .setUpdatedAt(now);
+        fileService.save(file);
+        if (Objects.nonNull(bindDTO)) {
+            bindDTO.setFileId(file.getId());
             bindFiles(systemId, List.of(bindDTO));
         }
         return fileInfo(fileService.getById(file.getId()));
@@ -351,6 +395,33 @@ public class UploadFileServiceImpl implements UploadFileService {
                 Files.copy(digestInputStream, targetPath);
             }
             return new StoredFile(storageKey, HexFormat.of().formatHex(digest.digest()));
+        } catch (IOException | NoSuchAlgorithmException ex) {
+            throw new BusinessException(UploadErrorCode.STORAGE_UNAVAILABLE, "文件存储失败");
+        }
+    }
+
+    private StoredFile storeGeneratedFile(Long systemId, StorageConfig storageConfig, String originalFileName,
+            byte[] content) {
+        if (!"LOCAL".equals(storageConfig.getStorageType())) {
+            throw new BusinessException(UploadErrorCode.STORAGE_UNAVAILABLE, "MVP 仅支持 LOCAL 存储");
+        }
+        String extension = extension(originalFileName);
+        String fileName = UUID.randomUUID() + (StringUtils.hasText(extension) ? "." + extension : "");
+        String datePath = LocalDate.now().toString().replace("-", "/");
+        String storageKey = systemId + "/" + datePath + "/" + fileName;
+        Path rootPath = Path.of(StringUtils.hasText(storageConfig.getRootPath()) ? storageConfig.getRootPath()
+                : "uploads").toAbsolutePath().normalize();
+        Path targetPath = rootPath.resolve(storageKey).normalize();
+        if (!targetPath.startsWith(rootPath)) {
+            throw new BusinessException(UploadErrorCode.STORAGE_UNAVAILABLE, "文件存储路径不合法");
+        }
+        try {
+            Files.createDirectories(targetPath.getParent());
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (OutputStream outputStream = Files.newOutputStream(targetPath)) {
+                outputStream.write(content);
+            }
+            return new StoredFile(storageKey, HexFormat.of().formatHex(digest.digest(content)));
         } catch (IOException | NoSuchAlgorithmException ex) {
             throw new BusinessException(UploadErrorCode.STORAGE_UNAVAILABLE, "文件存储失败");
         }

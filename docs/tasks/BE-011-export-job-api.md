@@ -16,8 +16,23 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
+- 当前状态: done。
 - 完成条件: MVP 导出任务闭环可追踪、可下载、可重试。
+
+## 完成记录
+
+- 完成时间: 2026-06-07
+- 输出:
+  - `backend/examine-module/src/main/java/com/unique/examine/module/manage/controller/ExportManageController.java`
+  - `backend/examine-module/src/main/java/com/unique/examine/module/manage/service/ExportManageService.java`
+  - `backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/ExportManageServiceImpl.java`
+  - `backend/examine-module/src/main/java/com/unique/examine/module/manage/bo/Export*.java`
+  - `backend/examine-module/src/main/java/com/unique/examine/module/manage/vo/Export*.java`
+  - `backend/examine-module/src/main/java/com/unique/examine/module/manage/enums/ExportErrorCode.java`
+  - `backend/examine-upload/src/main/java/com/unique/examine/upload/manage/service/UploadFileService.java`
+- 自检:
+  - `mvn -pl examine-module -am -DskipTests compile` 通过。
+  - `mvn -pl examine-module -am test` 通过：core 12、plat 12、upload 4、module 21 个测试。
 
 ## 验收标准
 

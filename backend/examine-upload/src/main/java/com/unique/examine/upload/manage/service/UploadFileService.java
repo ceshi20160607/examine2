@@ -32,6 +32,19 @@ public interface UploadFileService {
             String fieldCode);
 
     /**
+     * 保存后端生成的文件并建立可选业务引用。
+     *
+     * @param systemId 系统 ID
+     * @param fileName 文件名
+     * @param contentType 文件 MIME 类型
+     * @param content 文件内容
+     * @param bindDTO 业务引用，允许为空
+     * @return 文件详情
+     */
+    FileInfoVO saveGeneratedFile(Long systemId, String fileName, String contentType, byte[] content,
+            FileBindDTO bindDTO);
+
+    /**
      * 查询文件列表。
      *
      * @param systemId 系统 ID

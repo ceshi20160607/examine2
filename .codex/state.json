@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T16:35:30+08:00",
+    "updated_at":  "2026-06-07T16:54:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -297,7 +297,16 @@
                       "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/vo/",
                       "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/enums/UploadErrorCode.java",
                       "backend/examine-upload/src/test/java/com/unique/examine/upload/manage/",
-                      "docs/tasks/BE-010-upload-file-reference-api.md"
+                      "docs/tasks/BE-010-upload-file-reference-api.md",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/controller/ExportManageController.java",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/ExportManageService.java",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/ExportManageServiceImpl.java",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/bo/Export*.java",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/vo/Export*.java",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/enums/ExportErrorCode.java",
+                      "backend/examine-module/src/test/java/com/unique/examine/module/manage/controller/ExportManageControllerTest.java",
+                      "backend/examine-module/src/test/java/com/unique/examine/module/manage/service/impl/ExportManageServiceImplTest.java",
+                      "docs/tasks/BE-011-export-job-api.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
     "status":  "DEVELOPMENT_PHASE_P3_IN_PROGRESS",
@@ -688,6 +697,11 @@
                                        "status":  "done",
                                        "output":  "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/",
                                        "completed_at":  "2026-06-07T16:35:30+08:00"
+                                   },
+                        "BE-011":  {
+                                       "status":  "done",
+                                       "output":  "backend/examine-module/src/main/java/com/unique/examine/module/manage/controller/ExportManageController.java; backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/ExportManageServiceImpl.java",
+                                       "completed_at":  "2026-06-07T16:54:00+08:00"
                                    }
                     },
     "task_plan_frozen":  true,
@@ -701,8 +715,8 @@
                            "backend":  {
                                            "agent_id":  "orchestrator-local",
                                            "status":  "done",
-                                           "last_stage":  "development:BE-010",
-                                           "last_output":  "upload file reference API implemented and tested"
+                                           "last_stage":  "development:BE-011",
+                                           "last_output":  "export template and job API implemented and tested"
                                        },
                            "frontend":  {
                                             "agent_id":  "orchestrator-local",
@@ -1312,6 +1326,37 @@
                                     "notes":  [
                                                   "MVP uses LOCAL storage from un_upload_storage_config.root_path and refuses unsupported storage backends."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P5-BE-011",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "BE-011"
+                                              ],
+                                    "started_at":  "2026-06-07T16:40:00+08:00",
+                                    "completed_at":  "2026-06-07T16:54:00+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/controller/ExportManageController.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/ExportManageService.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/ExportManageServiceImpl.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/bo/Export*.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/vo/Export*.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/enums/ExportErrorCode.java",
+                                                    "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/service/UploadFileService.java",
+                                                    "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/service/impl/UploadFileServiceImpl.java",
+                                                    "backend/examine-module/src/test/java/com/unique/examine/module/manage/controller/ExportManageControllerTest.java",
+                                                    "backend/examine-module/src/test/java/com/unique/examine/module/manage/service/impl/ExportManageServiceImplTest.java",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/tasks/BE-011-export-job-api.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-module -am -DskipTests compile success",
+                                                         "mvn -pl examine-module -am test success: core 12 tests, plat 12 tests, upload 4 tests, module 21 tests"
+                                                     ],
+                                    "notes":  [
+                                                  "MVP export runner is synchronous inside create/retry API and writes a CSV result file through UploadFileService."
+                                              ]
                                 }
                             ],
     "current_phase":  "P5-workflow-files-openapi",
@@ -1363,5 +1408,5 @@
                                                     "next_phase":  "P5-workflow-files-openapi"
                                                 }
                          },
-    "last_completed_batch":  "DEV-BATCH-P5-BE-010"
+    "last_completed_batch":  "DEV-BATCH-P5-BE-011"
 }

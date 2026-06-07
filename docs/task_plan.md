@@ -175,7 +175,7 @@ flowchart TD
 | BE-008 | 运行 schema 与记录 API | backend | module | BE-007/BE-014 | 运行台接口 | BE-007, BE-014 | 否 | schema、记录、EAV、历史、关联和运行记录幂等完成 | RUN 接口、唯一性、锁定测试 | pending |
 | BE-009 | 流程模板实例任务 API | backend | flow | BE-007/BE-008/BE-014 | 流程接口 | BE-007, BE-008, BE-014 | 是 | 模板发布、待办、动作、状态联动完成 | 并发处理和状态流转测试 | done |
 | BE-010 | 上传文件引用 API | backend | upload | BE-008/BE-014 | 文件接口 | BE-008, BE-014 | 是 | 临时文件、引用、预览下载权限完成 | 文件失败补偿和权限测试 | done |
-| BE-011 | 导出任务 API | backend | module/upload | BE-010 | 导出接口 | BE-010 | 是 | 模板、任务、重试、结果文件闭环完成 | 导出状态与失败重试测试 | pending |
+| BE-011 | 导出任务 API | backend | module/upload | BE-010 | 导出接口 | BE-010 | 是 | 模板、任务、重试、结果文件闭环完成 | 导出状态与失败重试测试 | done |
 | BE-012 | OpenAPI 安全与业务接口 | backend | app | BE-008/BE-009/BE-010/BE-014 | OpenAPI 管理和外部接口 | BE-008, BE-009, BE-010, BE-014 | 是 | AK/SK、签名、scope、限流、幂等完成 | 签名、nonce、scope、限流测试 | pending |
 | BE-013 | 审计运维 API | backend | audit/ops | BE-012 | 审计与运维接口 | BE-012 | 是 | 日志、健康、版本、migration 状态完成 | requestId 链路和只读权限测试 | pending |
 | BE-014 | 权限与数据范围拦截 | backend | core/module | BE-002/API | 权限服务与拦截器 | BE-002 | 是 | 后端权限顺序、字段权限、数据范围统一 | 越权、字段无写权测试 | pending |
