@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T19:05:00+08:00",
+    "updated_at":  "2026-06-07T19:30:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -337,10 +337,11 @@
                       "frontend/src/pages/export/index.ts",
                       "frontend/docs/page-contracts/FE-010-file-export-pages.md",
                       "frontend/docs/api-contract-map.md",
-                      "frontend/docs/frontend-self-check.md"
+                      "frontend/docs/frontend-self-check.md",
+                      "docs/phases/P5-workflow-files-openapi-acceptance.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
-    "status":  "DEVELOPMENT_PHASE_P5_IN_PROGRESS",
+    "status":  "DEVELOPMENT_PHASE_P6_IN_PROGRESS",
     "last_error":  "",
     "attempts":  {
                      "step1_analyst":  1,
@@ -1547,9 +1548,31 @@
                                                   "OPN external AK/SK APIs are not browser page direct-call scope; OPM management and logs are covered by FE-011.",
                                                   "FE-012 completed after FE-009/FE-010 page models so FE-012 can feed VAL-003 contract sync check."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P5-ACCEPTANCE",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "P5-ACCEPTANCE"
+                                              ],
+                                    "started_at":  "2026-06-07T19:20:00+08:00",
+                                    "completed_at":  "2026-06-07T19:30:00+08:00",
+                                    "outputs":  [
+                                                    "docs/phases/P5-workflow-files-openapi-acceptance.md",
+                                                    "docs/phases/development-phases.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "P5 scope reviewed against completed BE-009..BE-013 and FE-009..FE-012 artifacts",
+                                                         "P5 phase status moved to accepted and P6 moved to in_progress"
+                                                     ],
+                                    "notes":  [
+                                                  "P6 starts from BE-015 backend final self-check; frontend build remains blocked by missing frontend package and tsconfig until VAL-002."
+                                              ]
                                 }
                             ],
-    "current_phase":  "P5-workflow-files-openapi",
+    "current_phase":  "P6-final-acceptance",
     "running_tasks":  [
 
                       ],
@@ -1559,8 +1582,8 @@
                          "P2-auth-platform":  "accepted",
                          "P3-system-config":  "accepted",
                          "P4-runtime-mvp":  "accepted",
-                         "P5-workflow-files-openapi":  "in_progress",
-                         "P6-final-acceptance":  "pending"
+                         "P5-workflow-files-openapi":  "accepted",
+                         "P6-final-acceptance":  "in_progress"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -1596,7 +1619,14 @@
                                                     "accepted_by":  "pm",
                                                     "record":  "docs/phases/P4-runtime-mvp-acceptance.md",
                                                     "next_phase":  "P5-workflow-files-openapi"
-                                                }
+                                                },
+                             "P5-workflow-files-openapi":  {
+                                                               "status":  "accepted",
+                                                               "accepted_at":  "2026-06-07T19:30:00+08:00",
+                                                               "accepted_by":  "pm",
+                                                               "record":  "docs/phases/P5-workflow-files-openapi-acceptance.md",
+                                                               "next_phase":  "P6-final-acceptance"
+                                                           }
                          },
-    "last_completed_batch":  "DEV-BATCH-P5-FE-012"
+    "last_completed_batch":  "DEV-BATCH-P5-ACCEPTANCE"
 }

@@ -14,9 +14,9 @@
 
 当前模式：`development`
 
-当前期次：`P5-workflow-files-openapi`
+当前期次：`P6-final-acceptance`
 
-当前状态：`P5_workflow_files_openapi_in_progress`
+当前状态：`P6_final_acceptance_in_progress`
 
 ## 分期进度
 
@@ -27,8 +27,8 @@
 | P2-auth-platform | 认证与平台期 | accepted | 2/2 后端主任务，FE-004 静态联调补充完成 | 已通过 PM 阶段验收 |
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
 | P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
-| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | in_progress | 5/5 后端主任务，FE-009/FE-010 已完成，FE-012 前端契约闭环已补齐 | 下一步进行 P5 阶段验收 |
-| P6-final-acceptance | 集成验收与上线判断期 | pending | 0/14 | 等 P5 通过 |
+| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | accepted | 5/5 后端主任务，FE-009/FE-010/FE-012 前端契约闭环完成 | 已通过 PM 阶段验收 |
+| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 1/14 前端契约闭环已完成，BE-015 待执行 | 启动 BE-015 后端最终自检 |
 
 ## 角色完成度
 
@@ -66,6 +66,7 @@
 | frontend | FE-009 | done | 流程工作台页面模型 | FLOW-001 至 FLOW-021 页面模型、流程图解释模型、幂等键、本地必填校验、禁用态和契约证据完成。 |
 | frontend | FE-010 | done | 文件与导出页面模型 | FILE-001 至 FILE-006、EXP-001 至 EXP-008 页面模型、附件字段写回、导出轮询、重试/取消禁用态和契约证据完成。 |
 | frontend | FE-012 | done | 前端契约闭环自检 | 已生成 `frontend/docs/api-contract-map.md` 与 `frontend/docs/frontend-self-check.md`，无旁路请求，typecheck/build 受前端工程入口缺失限制。 |
+| pm | P5 acceptance | done | `docs/phases/P5-workflow-files-openapi-acceptance.md` | P5 已验收通过，允许进入 P6。 |
 | pm | P3 acceptance | done | `docs/phases/P3-system-config-acceptance.md` | P3 已验收通过，允许进入 P4。 |
 
 ## 当前期任务
@@ -81,6 +82,7 @@
 | FE-010 | 文件与导出页面 | done | frontend | 上传、文件中心、预览下载、导出模板、导出任务、轮询、重试、取消和结果文件下载页面模型 |
 | FE-011 | OpenAPI 审计运维页面 | done | frontend | OpenAPI、审计和运维静态页面模型已在 P0/P3 补充 |
 | FE-012 | 前端自检与契约闭环 | done | frontend | API 契约映射汇总、页面证据汇总、枚举/幂等/错误码同步和旁路请求扫描 |
+| BE-015 | 幂等并发与 API 自检 | pending | backend | 后端接口清单、错误码、幂等、权限、OpenAPI 和主要测试命令自检 |
 
 ## 阶段验收摘要
 
@@ -135,4 +137,4 @@
 
 ## 下一步
 
-当前 `P5-workflow-files-openapi` 已完成 BE-009、BE-010、BE-011、BE-012、BE-013、FE-009、FE-010 和前端契约闭环 FE-012，下一步进行 P5 阶段验收；通过后再启动 BE-015 与 P6 最终验收链路。
+当前 `P5-workflow-files-openapi` 已通过 PM 阶段验收，当前进入 `P6-final-acceptance`。下一步直接执行 BE-015 后端最终自检，然后进入 TEST/VAL/REV 最终验收链路。
