@@ -173,7 +173,8 @@
 30. Backend 回环已修复 `REV-002-BE-OPENAPI-AK-CODE`：`OpenApiSecurityServiceImpl` 缺失/无效 accessKey 改为 `OPENAPI_ACCESS_KEY_INVALID`，并新增 `OpenApiSecurityServiceImplTest`；执行 `mvn -pl examine-app -am test` 通过，core 13、plat 12、upload 4、module 21、flow 2、app 5。
 31. Frontend 回环已修复工程入口、AUTH-004/AUTH-005 鉴权标记和字段类型枚举同步：新增 `frontend/package.json`、`frontend/tsconfig.json`、`frontend/package-lock.json`，`npm.cmd run build` 通过；契约同步复验 174 个 API ID、核心错误码、14 组状态枚举、19 个字段类型和 AUTH Bearer 标记均通过。
 32. Test 回环已补强 OpenAPI 安全负向断言：`OpenApiSecurityServiceImplTest` 覆盖缺失/未知 accessKey、timestamp、body hash、signature、scope 和 rate limit 专属错误码；执行 `mvn -pl examine-app -am test` 通过，core 13、plat 12、upload 4、module 21、flow 2、app 11。
+33. Validator 回环已复验通过：`mvn -pl examine-web -am clean compile` 8 个模块 SUCCESS；`npm.cmd ci; npm.cmd run build` 通过；契约同步检查 174 个 API ID、20 个核心错误码、14 组状态枚举、19 个字段类型和 AUTH Bearer 标记均通过；`docs/build_report.md` 结论 pass。
 
 ## 下一步
 
-当前 `P6-final-acceptance` 已完成 backend、frontend 与 test 回环修复。下一步按 `docs/review.json.nextRoute` 重跑 validator/reviewer，更新最终 `docs/build_report.md` 和 `docs/review.json`。
+当前 `P6-final-acceptance` 已完成 backend、frontend、test 与 validator 回环修复。下一步按 `docs/review.json.nextRoute` 重跑 reviewer，更新最终 `docs/review.json`。

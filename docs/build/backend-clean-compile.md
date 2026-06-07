@@ -1,7 +1,7 @@
 # VAL-001 后端 clean compile 记录
 
 - 任务: VAL-001
-- 执行时间: 2026-06-08 00:39:56
+- 执行时间: 2026-06-08 01:27:15
 - 执行角色: validator
 - 结论: pass
 
@@ -29,10 +29,10 @@
 
 ## 日志摘要
 
-- Maven reactor 总耗时 22.212 秒。
+- Maven reactor 总耗时 18.781 秒。
 - 从 `clean` 后重新编译 `examine-core`、`examine-plat`、`examine-upload`、`examine-module`、`examine-flow`、`examine-app`、`examine-web`。
 - 编译期间仅出现 javac 注解处理提示，不影响结果。
 
 ## 结论
 
-后端 clean compile 通过，VAL-001 完成。下一步可执行 VAL-002 前端 clean build。
+后端 clean compile 返工复验通过，VAL-001 完成。下一步可执行 VAL-002 前端 clean build。

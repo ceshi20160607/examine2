@@ -1,5 +1,5 @@
 ﻿{
-    "current_step":  19,
+    "current_step":  20,
     "completed_steps":  [
                             1,
                             2,
@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T02:05:00+08:00",
+    "updated_at":  "2026-06-08T02:15:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1923,6 +1923,34 @@
                                                   "OpenAPI nonce replay, IP whitelist and concurrency pressure remain P2 follow-up risks.",
                                                   "Next route continues with validator rerun."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-REWORK-VALIDATOR-RERUN",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "VAL-001",
+                                                  "VAL-002",
+                                                  "VAL-003",
+                                                  "VAL-004"
+                                              ],
+                                    "started_at":  "2026-06-08T02:06:00+08:00",
+                                    "completed_at":  "2026-06-08T02:15:00+08:00",
+                                    "outputs":  [
+                                                    "docs/build/backend-clean-compile.md",
+                                                    "docs/build/frontend-clean-build.md",
+                                                    "docs/build/contract-sync-check.md",
+                                                    "docs/build_report.md",
+                                                    "docs/progress.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-web -am clean compile success: 8 Maven modules SUCCESS",
+                                                         "npm.cmd ci and npm.cmd run build success",
+                                                         "Node contract sync check success: 174 API IDs, 20 core errors, 14 status groups, 19 field types and AUTH-004/AUTH-005 Bearer matched"
+                                                     ],
+                                    "notes":  [
+                                                  "Validator conclusion is pass target none.",
+                                                  "Next route continues with reviewer rerun."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1981,5 +2009,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-REWORK-TEST-OPENAPI-MATRIX"
+    "last_completed_batch":  "DEV-BATCH-P6-REWORK-VALIDATOR-RERUN"
 }
