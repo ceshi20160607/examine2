@@ -51,6 +51,23 @@
 * 如果发现任务、API、DB 或 PRD 矛盾，必须登记问题交 PM 决策；不得私自修改冻结 API 或扩大实现范围。
 * 如果 PM 不能决策，必须整理到 `docs/issues/user_questions.md`，等待用户处理。
 
+### 0.2.0 本机开发环境
+
+当前 Windows 开发机已验证可用的 Java/Maven 路径：
+
+* JDK 21：`D:\java\jdk\jdk21`
+* Maven：`D:\java\apache-maven-3.8.5\bin\mvn.cmd`
+
+Java 后端验证优先使用以下 PowerShell 临时环境，不修改全局环境变量：
+
+```powershell
+$env:JAVA_HOME='D:\java\jdk\jdk21'
+$env:Path="$env:JAVA_HOME\bin;D:\java\apache-maven-3.8.5\bin;$env:Path"
+mvn -pl examine-module -am test
+```
+
+如果命令仍失败，优先检查是否误用了系统默认 `JAVA_HOME=D:\java\jdk\jdk8` 或 Oracle `javapath`。
+
 ### 0.2.1 分期开发与进度管理
 
 开发模式不再默认以“全项目一次性完成”为目标连续推进。必须按可验收分期执行，每一期都要有明确范围、入口条件、退出标准、进度展示和暂停恢复点。

@@ -1,4 +1,4 @@
-{
+﻿{
     "current_step":  16,
     "completed_steps":  [
                             1,
@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T11:05:00+08:00",
+    "updated_at":  "2026-06-07T11:52:30+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -269,7 +269,13 @@
                       "backend/examine-module/src/main/java/com/unique/examine/module/manage/vo/DictFieldUsageVO.java",
                       "backend/examine-module/src/main/java/com/unique/examine/module/manage/vo/DictCacheRefreshVO.java",
                       "backend/examine-module/src/test/java/com/unique/examine/module/manage/controller/DictManageControllerTest.java",
-                      "backend/examine-module/src/test/java/com/unique/examine/module/manage/service/impl/DictManageServiceImplTest.java"
+                      "backend/examine-module/src/test/java/com/unique/examine/module/manage/service/impl/DictManageServiceImplTest.java",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/controller/RuntimeRecordController.java",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/RuntimeRecordService.java",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/RuntimeRecordServiceImpl.java",
+                      "backend/examine-module/src/main/java/com/unique/examine/module/manage/enums/RuntimeRecordErrorCode.java",
+                      "backend/examine-module/src/test/java/com/unique/examine/module/manage/controller/RuntimeRecordControllerTest.java",
+                      "backend/examine-module/src/test/java/com/unique/examine/module/manage/service/impl/RuntimeRecordServiceImplTest.java"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
     "status":  "DEVELOPMENT_PHASE_P3_IN_PROGRESS",
@@ -661,9 +667,10 @@
                                        "last_stage":  "task_verification"
                                    },
                            "backend":  {
-                                           "agent_id":  "019e9aa9-a5ca-7eb1-9993-0b1b82daf1e6",
-                                           "status":  "pass",
-                                           "last_stage":  "task_verification"
+                                           "agent_id":  "orchestrator-local",
+                                           "status":  "done",
+                                           "last_stage":  "development:BE-008",
+                                           "last_output":  "runtime record API implemented and tested"
                                        },
                            "frontend":  {
                                             "agent_id":  "019e9aaa-03cb-7b22-9a5d-c8cfdba24044",
@@ -1146,6 +1153,35 @@
                                                          "frontend tsconfig.json not present; tsc noEmit not available in current frontend skeleton",
                                                          "git diff --check success with LF/CRLF conversion warnings only"
                                                      ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P4-BE-008",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "BE-008"
+                                              ],
+                                    "started_at":  "2026-06-07T11:35:00+08:00",
+                                    "completed_at":  "2026-06-07T11:52:30+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/controller/RuntimeRecordController.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/RuntimeRecordService.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/RuntimeRecordServiceImpl.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/bo/Record*.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/vo/Record*.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/vo/Runtime*.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/enums/RuntimeRecordErrorCode.java",
+                                                    "backend/examine-module/src/test/java/com/unique/examine/module/manage/controller/RuntimeRecordControllerTest.java",
+                                                    "backend/examine-module/src/test/java/com/unique/examine/module/manage/service/impl/RuntimeRecordServiceImplTest.java",
+                                                    "docs/progress.md",
+                                                    "AGENTS.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-module -am -DskipTests compile success",
+                                                         "mvn -pl examine-module -am test success: core 12 tests, plat 12 tests, module 18 tests"
+                                                     ],
+                                    "notes":  [
+                                                  "Flow submission uses placeholder status until BE-009 integrates real flow instances."
+                                              ]
                                 }
                             ],
     "current_phase":  "P4-runtime-mvp",
@@ -1157,7 +1193,7 @@
                          "P1-generator":  "accepted",
                          "P2-auth-platform":  "accepted",
                          "P3-system-config":  "accepted",
-                         "P4-runtime-mvp":  "pending",
+                         "P4-runtime-mvp":  "in_progress",
                          "P5-workflow-files-openapi":  "pending",
                          "P6-final-acceptance":  "pending"
                      },
@@ -1189,5 +1225,6 @@
                                                       "record":  "docs/phases/P3-system-config-acceptance.md",
                                                       "next_phase":  "P4-runtime-mvp"
                                                   }
-                         }
+                         },
+    "last_completed_batch":  "DEV-BATCH-P4-BE-008"
 }

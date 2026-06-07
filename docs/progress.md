@@ -7,16 +7,16 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 50 |
-| 已完成 | 28 |
+| 已完成 | 29 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 22 |
+| 剩余 | 21 |
 
 当前模式：`development`
 
 当前期次：`P4-runtime-mvp`
 
-当前状态：`P4_runtime_mvp_pending`
+当前状态：`P4_runtime_mvp_in_progress`
 
 ## 分期进度
 
@@ -26,7 +26,7 @@
 | P1-generator | 生成器闭环期 | accepted | 3/3 | 已通过 PM 阶段验收 |
 | P2-auth-platform | 认证与平台期 | accepted | 2/2 后端主任务，FE-004 静态联调补充完成 | 已通过 PM 阶段验收 |
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
-| P4-runtime-mvp | 运行台 MVP 期 | pending | 0/2 | 下一步启动 BE-008 与 FE-008 |
+| P4-runtime-mvp | 运行台 MVP 期 | in_progress | 1/2 | 下一步执行 FE-008 运行台页面联调 |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | pending | 0/5 后端主任务，前端待联调 | 等 P4 通过 |
 | P6-final-acceptance | 集成验收与上线判断期 | pending | 0/14 | 等 P5 通过 |
 
@@ -35,7 +35,7 @@
 | 角色 | 已完成 | 进行中 | 待执行 | 说明 |
 | --- | ---: | ---: | ---: | --- |
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
-| Backend | 8 | 0 | 7 | BE-001 至 BE-007、BE-014 已完成；BE-008 至 BE-015 待按期推进。 |
+| Backend | 9 | 0 | 6 | BE-001 至 BE-008、BE-014 已完成；BE-009 至 BE-015 待按期推进。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
 | Frontend | 8 | 0 | 4 | FE-001 至 FE-007、FE-011 已完成；FE-008 至 FE-010、FE-012 待执行。 |
 | Test | 2 | 0 | 3 | TEST-001、TEST-002 已完成；最终场景测试待后续期。 |
@@ -55,6 +55,7 @@
 | backend | BE-005 | done | 系统成员 RBAC | 系统上下文、租户、成员、部门、角色、授权目录和有效权限接口完成。 |
 | backend | BE-006 | done | 字典管理 | 字典类型、字典项、使用情况、引用限制和缓存版本刷新接口完成。 |
 | backend | BE-007 | done | 应用模块字段页面配置 | APP、MOD、FIELD、UI、发布检查和发布版本生成接口完成。 |
+| backend | BE-008 | done | 运行台记录 CRUD 与动态数据 API | RUN-001 至 RUN-010 后端入口、运行态 schema、记录增删改查、提交、历史和关系查询完成；流程提交待 BE-009 接入真实流程实例。 |
 | frontend | FE-005/FE-006 | done | P3 静态契约联调 | 已对齐 BE-005、BE-006、BE-007 当前接口字段、权限点和错误码。 |
 | pm | P3 acceptance | done | `docs/phases/P3-system-config-acceptance.md` | P3 已验收通过，允许进入 P4。 |
 
@@ -62,7 +63,7 @@
 
 | taskId | 名称 | 状态 | 负责人 | 输出 |
 | --- | --- | --- | --- | --- |
-| BE-008 | 运行台记录 CRUD 与动态数据 API | pending | backend | RUN-003 至 RUN-010、记录查询/保存/详情/删除/历史/关联能力 |
+| BE-008 | 运行台记录 CRUD 与动态数据 API | done | backend | RUN-001 至 RUN-010、运行台菜单/schema、记录查询/保存/详情/删除/提交/历史/关联能力 |
 | FE-008 | 运行台页面与动态表单联调 | pending | frontend | 运行台菜单、记录列表、动态表单、详情和保存/编辑/删除交互 |
 
 ## 阶段验收摘要
@@ -88,6 +89,12 @@
 3. FE-005/FE-006 已补充静态契约联调：RBAC/DICT 权限点、FIELD 类型词表、模块配置 VO/BO、发布检查与发布入参已对齐当前后端。
 4. `git diff --check` 通过，仅提示 Git 工作区 LF/CRLF 转换 warning。
 
+### P4
+
+1. BE-008 已完成运行台后端基础能力：运行台菜单、模块运行态 schema、记录查询、创建、详情、更新、软删除、提交、历史和关联关系查询。
+2. 提交流程当前采用占位策略：模块已绑定流程时进入 `IN_APPROVAL` 并锁定，未绑定流程时直接进入 `SUBMITTED`；BE-009 接入流程引擎后替换为真实流程实例创建。
+3. 已执行 `mvn -pl examine-module -am test`，core 12、plat 12、module 18 个测试通过。
+
 ## 下一步
 
-当前进入 `P4-runtime-mvp`，下一步启动 BE-008 后端运行台记录 CRUD 与 FE-008 运行台页面联调。P4 完成后再进行阶段验收并提交。
+当前进入 `P4-runtime-mvp`，BE-008 已完成并按任务边界提交；下一步执行 FE-008 运行台页面联调。P4 全部完成后再进行阶段验收并提交。
