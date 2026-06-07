@@ -16,8 +16,21 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
+- 当前状态: done。
 - 完成条件: 流程工作台和运行台提交审批闭环可用。
+
+## 完成记录
+
+- 完成时间: 2026-06-07
+- 输出:
+  - `backend/examine-core/src/main/java/com/unique/examine/core/flow/`
+  - `backend/examine-flow/src/main/java/com/unique/examine/flow/manage/`
+  - `backend/examine-flow/src/test/java/com/unique/examine/flow/manage/controller/FlowManageControllerTest.java`
+  - `backend/examine-flow/src/test/resources/mockito-extensions/org.mockito.plugins.MockMaker`
+  - `backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/RuntimeRecordServiceImpl.java`
+- 自检:
+  - `mvn -pl examine-flow -am -DskipTests compile` 通过。
+  - `mvn -pl examine-flow -am test` 通过：core 12、plat 12、module 18、flow 2 个测试。
 
 ## 验收标准
 

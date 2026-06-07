@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T12:12:00+08:00",
+    "updated_at":  "2026-06-07T14:10:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -279,7 +279,17 @@
                       "frontend/src/pages/runtime/runtimeWorkbenchPageModel.ts",
                       "frontend/src/pages/runtime/index.ts",
                       "frontend/docs/page-contracts/FE-008-runtime-workbench-pages.md",
-                      "docs/phases/P4-runtime-mvp-acceptance.md"
+                      "docs/phases/P4-runtime-mvp-acceptance.md",
+                      "backend/examine-core/src/main/java/com/unique/examine/core/flow/",
+                      "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/controller/FlowManageController.java",
+                      "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/service/FlowManageService.java",
+                      "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/service/impl/FlowManageServiceImpl.java",
+                      "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/bo/",
+                      "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/vo/",
+                      "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/enums/FlowErrorCode.java",
+                      "backend/examine-flow/src/test/java/com/unique/examine/flow/manage/controller/FlowManageControllerTest.java",
+                      "backend/examine-flow/src/test/resources/mockito-extensions/org.mockito.plugins.MockMaker",
+                      "docs/tasks/BE-009-flow-template-task-api.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
     "status":  "DEVELOPMENT_PHASE_P3_IN_PROGRESS",
@@ -660,6 +670,11 @@
                                        "status":  "done",
                                        "output":  "backend/examine-plat/src/main/java/com/unique/examine/plat/manage/; backend/examine-plat/src/test/java/com/unique/examine/plat/manage/service/impl/AuthSessionServiceImplTest.java; backend/examine-web/src/main/java/com/unique/examine/ExamineWebApplication.java",
                                        "completed_at":  "2026-06-06T10:19:14.6654391Z"
+                                   },
+                        "BE-009":  {
+                                       "status":  "done",
+                                       "output":  "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/; backend/examine-core/src/main/java/com/unique/examine/core/flow/; backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/RuntimeRecordServiceImpl.java",
+                                       "completed_at":  "2026-06-07T14:10:00+08:00"
                                    }
                     },
     "task_plan_frozen":  true,
@@ -673,8 +688,8 @@
                            "backend":  {
                                            "agent_id":  "orchestrator-local",
                                            "status":  "done",
-                                           "last_stage":  "development:BE-008",
-                                           "last_output":  "runtime record API implemented and tested"
+                                           "last_stage":  "development:BE-009",
+                                           "last_output":  "flow template instance task API implemented and tested"
                                        },
                            "frontend":  {
                                             "agent_id":  "orchestrator-local",
@@ -1224,6 +1239,38 @@
                                     "verification":  [
                                                          "git diff --check success with LF/CRLF conversion warnings only"
                                                      ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P5-BE-009",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "BE-009"
+                                              ],
+                                    "started_at":  "2026-06-07T13:50:00+08:00",
+                                    "completed_at":  "2026-06-07T14:10:00+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-core/src/main/java/com/unique/examine/core/flow/",
+                                                    "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/controller/FlowManageController.java",
+                                                    "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/service/FlowManageService.java",
+                                                    "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/service/impl/FlowManageServiceImpl.java",
+                                                    "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/bo/",
+                                                    "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/vo/",
+                                                    "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/enums/FlowErrorCode.java",
+                                                    "backend/examine-flow/src/test/java/com/unique/examine/flow/manage/controller/FlowManageControllerTest.java",
+                                                    "backend/examine-flow/src/test/resources/mockito-extensions/org.mockito.plugins.MockMaker",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/RuntimeRecordServiceImpl.java",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/tasks/BE-009-flow-template-task-api.md",
+                                                    "docs/phases/development-phases.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-flow -am -DskipTests compile success",
+                                                         "mvn -pl examine-flow -am test success: core 12 tests, plat 12 tests, module 18 tests, flow 2 tests"
+                                                     ],
+                                    "notes":  [
+                                                  "Runtime record submission now starts real flow instances when module flow binding exists; unbound modules still submit directly."
+                                              ]
                                 }
                             ],
     "current_phase":  "P5-workflow-files-openapi",
@@ -1236,7 +1283,7 @@
                          "P2-auth-platform":  "accepted",
                          "P3-system-config":  "accepted",
                          "P4-runtime-mvp":  "accepted",
-                         "P5-workflow-files-openapi":  "pending",
+                         "P5-workflow-files-openapi":  "in_progress",
                          "P6-final-acceptance":  "pending"
                      },
     "phase_protocol":  {
@@ -1275,5 +1322,5 @@
                                                     "next_phase":  "P5-workflow-files-openapi"
                                                 }
                          },
-    "last_completed_batch":  "DEV-BATCH-P4-ACCEPTANCE"
+    "last_completed_batch":  "DEV-BATCH-P5-BE-009"
 }

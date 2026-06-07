@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,7 +53,7 @@ class RuntimeRecordServiceImplTest {
                 mock(IActionService.class), mock(IPublishVersionService.class), mock(IRecordService.class),
                 mock(IRecordValueService.class), mock(IRecordHistoryService.class), mock(IRecordIndexService.class),
                 mock(IRecordUniqueIndexService.class), mock(IRecordRelationService.class), permissionService,
-                new ObjectMapper());
+                new ObjectMapper(), Optional.empty());
         doNothing().when(permissionService).requireOperation(anyString());
         when(permissionService.currentPermission()).thenReturn(EffectivePermissionVO.empty());
     }

@@ -28,6 +28,9 @@ import com.unique.examine.core.common.response.PageResult;
 import com.unique.examine.core.context.RequestContext;
 import com.unique.examine.core.context.RequestContextHolder;
 import com.unique.examine.core.exception.BusinessException;
+import com.unique.examine.core.flow.FlowRecordRuntimeService;
+import com.unique.examine.core.flow.FlowRecordStartRequest;
+import com.unique.examine.core.flow.FlowRecordStartResult;
 import com.unique.examine.core.permission.PermissionService;
 import com.unique.examine.module.base.entity.Action;
 import com.unique.examine.module.base.entity.Field;
@@ -133,6 +136,8 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
     private final PermissionService permissionService;
 
     private final ObjectMapper objectMapper;
+
+    private final java.util.Optional<FlowRecordRuntimeService> flowRecordRuntimeService;
 
     /**
      * 查询运行台菜单。
@@ -374,11 +379,12 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
         permissionService.requireDataScope("RECORD", toId(recordId), toId(record.getCreatedBy()));
         ensureEditable(record, submitBO.getRecordVersion());
         String beforeStatus = record.getRecordStatus();
-        // BE-009 接入流程引擎后，绑定流程的模块会在这里创建真实流程实例。
-        String nextStatus = Objects.nonNull(model.getFlowBindingId()) ? IN_APPROVAL : SUBMITTED;
+        FlowRecordStartResult flowStart = startFlowIfBound(model, record);
+        String nextStatus = Objects.nonNull(flowStart) ? IN_APPROVAL : SUBMITTED;
         record.setRecordStatus(nextStatus)
                 .setFlowStatus(nextStatus)
-                .setLockedFlag(Objects.nonNull(model.getFlowBindingId()) ? YES : NO)
+                .setFlowInstanceId(Objects.isNull(flowStart) ? record.getFlowInstanceId() : flowStart.getInstanceId())
+                .setLockedFlag(Objects.nonNull(flowStart) ? YES : NO)
                 .setRecordVersion(record.getRecordVersion() + 1)
                 .setUpdatedBy(currentMemberId())
                 .setUpdatedAt(LocalDateTime.now());
@@ -386,6 +392,23 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
         saveHistory(record, "SUBMIT", beforeStatus, nextStatus, List.of(), null, valueSnapshot(values(recordId)),
                 submitBO.getReason());
         return mutationResult(record, List.of());
+    }
+
+    private FlowRecordStartResult startFlowIfBound(Model model, Record record) {
+        if (Objects.isNull(model.getFlowBindingId())) {
+            return null;
+        }
+        return flowRecordRuntimeService
+                .orElseThrow(() -> new BusinessException(RuntimeRecordErrorCode.FLOW_BINDING_MISSING))
+                .startForRecord(FlowRecordStartRequest.builder()
+                        .systemId(record.getSystemId())
+                        .tenantId(record.getTenantId())
+                        .moduleId(record.getModuleId())
+                        .recordId(record.getRecordId())
+                        .actionCode("RECORD_SUBMIT")
+                        .starterMemberId(currentMemberId())
+                        .requestId(currentRequestId())
+                        .build());
     }
 
     /**
