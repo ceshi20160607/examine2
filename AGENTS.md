@@ -290,7 +290,10 @@ E:\workspace\03_project\unique\java\
 * `.codex/oldgenerator/` 是旧 MyBatis-Plus 生成器只读参考目录。开发 `examine-generator` 时优先参考 `GeneratorOwner`、`DefaultTemplateEngine` 和 `template_owner`，但必须移除旧硬编码数据源、硬编码输出目录、交互式唯一入口、Controller 模板和 `com.kakarote.*` 包名；参考结论维护在 `docs/generator_reference.md`。
 * 生成结果按业务模块落到对应子模块中，例如 `examine-plat/src/main/java/com/unique/examine/plat/base/`、`examine-module/src/main/java/com/unique/examine/module/base/`、`examine-flow/src/main/java/com/unique/examine/flow/base/`，包含 `entity/`、`mapper/`、`service/`、`service/impl/` 等基础 CRUD 代码。
 * 生成命令必须有可直接复跑的入口，统一维护在 `backend/examine-generator/scripts/generate-base-crud.ps1` 和 `backend/examine-generator/README.md`。新增模块时只增加一段模块命令参数，不新增中心映射文件或报告文件。
-* 业务代码放在各业务模块中与 `base` 同级的 `manage/` 包，包含 `controller/`、`service/`、`service/impl/`、`bo/`、`vo/`、`dto/`、`converter/`、`enums/` 等。`examine-web` 只承载启动、Web 装配、全局配置和必要的聚合入口，不堆业务实现。
+* 业务代码放在各业务模块中与 `base` 同级的 `manage/` 包，包含 `controller/`、`service/`、`bo/`、`vo/`、`dto/`、`converter/`、`enums`、`validator`、`permission`、`event` 等。`examine-web` 只承载启动、Web 装配、全局配置和必要的聚合入口，不堆业务实现。
+* `manage.service` 后续新增或重构时默认不再拆成接口 + `impl` 三层；除非存在多实现、SPI、测试替身或明确扩展点，否则直接使用一个具备真实业务语义的 Service 类承载业务编排。
+* `manage` 层类名必须按真实业务命名，例如 `AuthSessionService`、`PlatformCenterService`、`RuntimeRecordService`、`FlowManageService`，避免和 `base` 生成类同名；不要使用 `Man`、`ManageImpl` 这类只为避让冲突的机械前缀或后缀。
+* 如果多个模块的 `base` 生成类因同名触发 Spring bean 名冲突，优先在启动扫描或 BeanNameGenerator 层处理，不修改生成器产物类名或模板命名。
 * `base` 包只承载贴表基础能力，不生成或暴露对外 Controller；对外接口统一放在对应模块的 `manage.controller` 或 `examine-web` 中明确聚合的 Controller。
 * `manage` 层入参使用 BO/DTO，出参使用 VO，不直接暴露 `base.entity`；业务校验、事务编排、权限控制和实体到 VO 的转换都放在 `manage` 层。
 * 后端基础 CRUD 必须通过 `examine-generator` 自动生成。生成器采用“命令即配置”：每条命令显式传入模块名、表前缀、base 包、Java 输出目录和 mapper XML 输出目录，不再维护额外的表到模块映射文件或默认生成报告。如果数据库连接、SQL 执行或代码生成失败，必须记录阻塞原因并进入修复，不允许退回手写大批量 CRUD。

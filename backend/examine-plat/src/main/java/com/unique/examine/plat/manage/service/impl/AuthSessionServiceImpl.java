@@ -22,6 +22,7 @@ import com.unique.examine.plat.manage.service.AuthTokenStore.TokenSession;
 import com.unique.examine.plat.manage.vo.AuthAccountVO;
 import com.unique.examine.plat.manage.vo.AuthTokenVO;
 import com.unique.examine.plat.manage.vo.CurrentUserVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +57,7 @@ public class AuthSessionServiceImpl implements AuthSessionService {
      * @param passwordEncoder 密码编码器
      * @param tokenStore token 存储
      */
+    @Autowired
     public AuthSessionServiceImpl(AuthAccountRepository accountRepository, AuthOperationLogger operationLogger,
             PasswordEncoder passwordEncoder, AuthTokenStore tokenStore) {
         this(accountRepository, operationLogger, passwordEncoder, tokenStore, Clock.systemDefaultZone());

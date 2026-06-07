@@ -1,6 +1,14 @@
 spring:
   application:
     name: unexamine
+  datasource:
+    url: jdbc:mysql://192.168.0.211:3306/examine1?characterEncoding=utf8&useSSL=false&zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false&serverTimezone=Asia/Shanghai&useAffectedRows=true&allowPublicKeyRetrieval=true
+    username: examine
+    password: examine
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
 
 server:
   port: 9999
