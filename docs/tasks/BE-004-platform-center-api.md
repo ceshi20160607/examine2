@@ -5,7 +5,7 @@
 - 负责角色: backend
 - 所属大任务/模块: 后端 / examine-plat
 - 目标: 实现平台账号、平台角色、系统创建、系统状态、平台配置接口。
-- 输入文件: `docs/api.md`、`docs/db_design.md`、`backend/docs/mybatis-plus-generation.md`
+- 输入文件: `docs/api.md`、`docs/db_design.md`、`backend/examine-plat/src/main/java/com/unique/examine/plat/base/`
 - 输出文件或输出目录: `backend/examine-plat/`
 
 ## 详细工作内容

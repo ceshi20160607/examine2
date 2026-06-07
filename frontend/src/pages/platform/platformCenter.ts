@@ -100,9 +100,8 @@ export interface PlatformAccountListVO {
   displayName: string;
   mobile?: string;
   email?: string;
-  accountStatus: AccountStatus;
-  platformRoleIds?: EntityId[];
-  platformRoleNames?: string[];
+  status: AccountStatus;
+  roleIds?: EntityId[];
   lastLoginAt?: IsoDateTimeString;
   createdAt?: IsoDateTimeString;
   updatedAt?: IsoDateTimeString;
@@ -110,7 +109,7 @@ export interface PlatformAccountListVO {
 }
 
 export interface PlatformAccountDetailVO extends PlatformAccountListVO {
-  platformRoles: PlatformRoleVO[];
+  platformRoles?: PlatformRoleVO[];
   systemMemberships?: PlatformAccountSystemMembershipVO[];
 }
 
@@ -154,11 +153,11 @@ export interface PlatformAccountRoleAssignBO {
 
 export interface PlatformRoleVO {
   roleId: EntityId;
-  roleCode: string;
-  roleName: string;
+  code: string;
+  name: string;
   description?: string;
   status: PlatformRoleStatus;
-  protectedRole?: boolean;
+  protectedFlag?: boolean;
   menuIds?: EntityId[];
   operationCodes?: string[];
   accountCount?: number;
@@ -168,8 +167,8 @@ export interface PlatformRoleVO {
 }
 
 export interface PlatformRoleSaveBO {
-  roleCode: string;
-  roleName: string;
+  code: string;
+  name: string;
   description?: string;
 }
 
@@ -185,14 +184,17 @@ export interface PlatformRolePermissionBO {
 
 export interface PlatformPermissionCatalogVO {
   menus: PlatformMenuTreeVO[];
-  operations: PlatformOperationVO[];
+  operationCodes: string[];
 }
 
 export interface PlatformMenuTreeVO {
   menuId: EntityId;
-  menuCode: string;
-  menuName: string;
   parentId?: EntityId;
+  code: string;
+  name: string;
+  path?: string;
+  icon?: string;
+  status?: string;
   children?: PlatformMenuTreeVO[];
 }
 
@@ -206,10 +208,9 @@ export interface PlatformOperationVO {
 export interface PlatformConfigVO {
   configKey: string;
   configName: string;
-  valuePreview?: string;
   value?: PlatformConfigValue;
   sensitive: boolean;
-  editable: boolean;
+  status?: string;
   remark?: string;
   updatedAt?: IsoDateTimeString;
   availableActions?: AvailableAction[];
@@ -238,7 +239,7 @@ export interface PlatformCenterPageModel {
     resetPassword(
       accountId: EntityId,
       body: PlatformAccountResetPasswordBO,
-    ): Promise<PlatformMutationResult<PlatformAccountDetailVO>>;
+    ): Promise<PlatformMutationResult<{ reset: boolean }>>;
     assignRoles(accountId: EntityId, body: PlatformAccountRoleAssignBO): Promise<PlatformMutationResult<PlatformAccountDetailVO>>;
     actions(row?: PlatformAccountListVO): Record<"create" | "view" | "edit" | "status" | "resetPassword" | "assignRoles", AvailableAction>;
   };
@@ -336,7 +337,7 @@ export function createPlatformCenterPageModel(deps: PlatformPageDeps): PlatformC
         });
       },
       resetPassword(accountId, body) {
-        return mutate<PlatformAccountDetailVO, PlatformAccountResetPasswordBO>(deps.api, auth, "PLAT-015", {
+        return mutate<{ reset: boolean }, PlatformAccountResetPasswordBO>(deps.api, auth, "PLAT-015", {
           pathParams: { accountId },
           body,
         });
@@ -351,7 +352,7 @@ export function createPlatformCenterPageModel(deps: PlatformPageDeps): PlatformC
         return {
           create: action("create", "Create account", "PLAT_ACCOUNT_CREATE", auth),
           view: action("view", "View account", "PLAT_ACCOUNT_VIEW", auth),
-          edit: action("edit", "Edit account", "PLAT_ACCOUNT_CREATE", auth, row?.accountStatus === "LOCKED" ? "AUTH_ACCOUNT_LOCKED" : undefined),
+          edit: action("edit", "Edit account", "PLAT_ACCOUNT_CREATE", auth, row?.status === "LOCKED" ? "AUTH_ACCOUNT_LOCKED" : undefined),
           status: action("status", "Change status", "PLAT_ACCOUNT_STATUS", auth),
           resetPassword: action("resetPassword", "Reset password", "PLAT_ACCOUNT_STATUS", auth),
           assignRoles: action("assignRoles", "Assign roles", "PLAT_ROLE_AUTH", auth),
@@ -389,8 +390,8 @@ export function createPlatformCenterPageModel(deps: PlatformPageDeps): PlatformC
       actions(row) {
         return {
           create: action("create", "Create role", "PLAT_ROLE_AUTH", auth),
-          edit: action("edit", "Edit role", "PLAT_ROLE_AUTH", auth, row?.protectedRole ? "SYS_ROLE_PROTECTED" : undefined),
-          status: action("status", "Change status", "PLAT_ROLE_AUTH", auth, row?.protectedRole ? "SYS_ROLE_PROTECTED" : undefined),
+          edit: action("edit", "Edit role", "PLAT_ROLE_AUTH", auth, row?.protectedFlag ? "SYS_ROLE_PROTECTED" : undefined),
+          status: action("status", "Change status", "PLAT_ROLE_AUTH", auth, row?.protectedFlag ? "SYS_ROLE_PROTECTED" : undefined),
           authorize: action("authorize", "Authorize", "PLAT_ROLE_AUTH", auth, row?.status === "DISABLED" ? "SYS_ROLE_DISABLED" : undefined),
         };
       },
@@ -408,7 +409,7 @@ export function createPlatformCenterPageModel(deps: PlatformPageDeps): PlatformC
       actions(row) {
         return {
           view: action("view", "View config", "PLAT_CONFIG_VIEW", auth),
-          edit: action("edit", "Edit config", "PLAT_CONFIG_EDIT", auth, row?.editable === false ? "PLAT_CONFIG_SENSITIVE_VALUE_FORBIDDEN" : undefined),
+          edit: action("edit", "Edit config", "PLAT_CONFIG_EDIT", auth),
         };
       },
     },
@@ -417,10 +418,7 @@ export function createPlatformCenterPageModel(deps: PlatformPageDeps): PlatformC
 
 export function redactPlatformConfigValue(config: PlatformConfigVO): string {
   if (config.sensitive) {
-    return config.valuePreview ?? "******";
-  }
-  if (config.valuePreview) {
-    return config.valuePreview;
+    return config.value === undefined || config.value === null ? "******" : String(config.value);
   }
   return config.value === undefined || config.value === null ? "" : String(config.value);
 }
@@ -433,11 +431,11 @@ async function queryPage<TRecord>(
   query: PageQuery,
 ): Promise<PlatformPageState<TRecord>> {
   try {
-    const response = await api.call<PageResult<TRecord>, never, PageQuery>(apiId, {
+    const response = await api.call<PageResult<TRecord> | TRecord[], never, PageQuery>(apiId, {
       query,
       context: platformContext(auth),
     });
-    return pageState(response.data, response.requestId);
+    return pageState(toPageResult(response.data, query), response.requestId);
   } catch (error) {
     return emptyPageState<TRecord>(errors.capture(error));
   }
@@ -505,6 +503,19 @@ function pageState<TRecord>(page: PageResult<TRecord>, requestId: string): Platf
     empty: page.records.length === 0,
     lastRequestId: requestId,
   };
+}
+
+function toPageResult<TRecord>(data: PageResult<TRecord> | TRecord[], query: PageQuery): PageResult<TRecord> {
+  if (Array.isArray(data)) {
+    return {
+      records: data,
+      total: data.length,
+      pageNo: query.pageNo ?? 1,
+      pageSize: query.pageSize ?? data.length,
+      hasNext: false,
+    };
+  }
+  return data;
 }
 
 function emptyPageState<TRecord>(error: RequestErrorDisplay): PlatformPageState<TRecord> {
