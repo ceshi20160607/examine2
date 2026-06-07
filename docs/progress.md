@@ -7,10 +7,10 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 50 |
-| 已完成 | 37 |
+| 已完成 | 38 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 13 |
+| 剩余 | 12 |
 
 当前模式：`development`
 
@@ -27,7 +27,7 @@
 | P2-auth-platform | 认证与平台期 | accepted | 2/2 后端主任务，FE-004 静态联调补充完成 | 已通过 PM 阶段验收 |
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
 | P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
-| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | in_progress | 5/5 后端主任务，FE-009/FE-010 已完成 | 下一步启动 FE-012 前端契约闭环 |
+| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | in_progress | 5/5 后端主任务，FE-009/FE-010 已完成，FE-012 前端契约闭环已补齐 | 下一步进行 P5 阶段验收 |
 | P6-final-acceptance | 集成验收与上线判断期 | pending | 0/14 | 等 P5 通过 |
 
 ## 角色完成度
@@ -37,7 +37,7 @@
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
 | Backend | 14 | 0 | 1 | BE-001 至 BE-014 已完成；BE-015 待最终自检。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
-| Frontend | 11 | 0 | 1 | FE-001 至 FE-011 已完成；FE-012 待执行。 |
+| Frontend | 12 | 0 | 0 | FE-001 至 FE-012 已完成；正式 build/typecheck 待 VAL-002 处理前端工程入口缺口。 |
 | Test | 2 | 0 | 3 | TEST-001、TEST-002 已完成；最终场景测试待后续期。 |
 | Validator | 0 | 0 | 4 | 等阶段或最终构建验证。 |
 | Reviewer | 0 | 0 | 4 | 等测试和构建产物。 |
@@ -65,6 +65,7 @@
 | frontend | FE-008 | done | 运行台页面与动态表单联调 | 运行台菜单、schema、记录列表、动态表单、详情、保存/编辑/删除/提交、历史和关系查询页面模型完成。 |
 | frontend | FE-009 | done | 流程工作台页面模型 | FLOW-001 至 FLOW-021 页面模型、流程图解释模型、幂等键、本地必填校验、禁用态和契约证据完成。 |
 | frontend | FE-010 | done | 文件与导出页面模型 | FILE-001 至 FILE-006、EXP-001 至 EXP-008 页面模型、附件字段写回、导出轮询、重试/取消禁用态和契约证据完成。 |
+| frontend | FE-012 | done | 前端契约闭环自检 | 已生成 `frontend/docs/api-contract-map.md` 与 `frontend/docs/frontend-self-check.md`，无旁路请求，typecheck/build 受前端工程入口缺失限制。 |
 | pm | P3 acceptance | done | `docs/phases/P3-system-config-acceptance.md` | P3 已验收通过，允许进入 P4。 |
 
 ## 当前期任务
@@ -79,6 +80,7 @@
 | FE-009 | 流程工作台页面 | done | frontend | 流程模板、待办、抄送、我的申请、实例详情、流程图、审批历史和任务处理页面模型 |
 | FE-010 | 文件与导出页面 | done | frontend | 上传、文件中心、预览下载、导出模板、导出任务、轮询、重试、取消和结果文件下载页面模型 |
 | FE-011 | OpenAPI 审计运维页面 | done | frontend | OpenAPI、审计和运维静态页面模型已在 P0/P3 补充 |
+| FE-012 | 前端自检与契约闭环 | done | frontend | API 契约映射汇总、页面证据汇总、枚举/幂等/错误码同步和旁路请求扫描 |
 
 ## 阶段验收摘要
 
@@ -128,7 +130,9 @@
 13. 已执行旁路请求静态检查，`frontend/src/pages/flow/` 未新增 `fetch`、`axios`、`XMLHttpRequest` 或手写 URL；当前前端目录仍无 `package.json`/`tsconfig.json`，正式 build/typecheck 不可用。
 14. FE-010 已完成文件与导出前端页面模型：覆盖 FILE-001 至 FILE-006、EXP-001 至 EXP-008、动态字段附件写回、预览/下载/删除禁用态、导出任务轮询建议、失败重试/取消禁用态和页面契约证据。
 15. 已执行旁路请求静态检查，`frontend/src/pages/files/` 与 `frontend/src/pages/export/` 未新增 `fetch`、`axios`、`XMLHttpRequest` 或手写 URL；当前前端目录仍无 `package.json`/`tsconfig.json`，正式 build/typecheck 不可用。
+16. FE-012 已完成前端契约闭环：`frontend/docs/api-contract-map.md` 汇总 174 个 SDK 端点、26 条路由映射和 FE-002 至 FE-011 页面证据；真实 API ID 均能在 `API_ENDPOINTS` 中找到。
+17. FE-012 已执行源码旁路请求扫描，`frontend/src` 未发现 `fetch`、`axios`、`XMLHttpRequest`、`new Request` 或硬编码 URL；`frontend/docs/frontend-self-check.md` 记录 typecheck/lint/build 因缺少 `package.json`、`tsconfig.json` 和 `tsc` 被阻塞。
 
 ## 下一步
 
-当前 `P5-workflow-files-openapi` 已完成 BE-009、BE-010、BE-011、BE-012、BE-013、FE-009 和 FE-010，下一步继续 FE-012 前端自检与契约闭环。
+当前 `P5-workflow-files-openapi` 已完成 BE-009、BE-010、BE-011、BE-012、BE-013、FE-009、FE-010 和前端契约闭环 FE-012，下一步进行 P5 阶段验收；通过后再启动 BE-015 与 P6 最终验收链路。

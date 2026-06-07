@@ -58,7 +58,7 @@
 | API 实现自检 | BE-015 | 后端业务模块完成 | `backend/docs/backend-self-check.md` | 错误码、幂等、权限、事务、OpenAPI 签名和主要接口自检通过 | pending |
 | 前端 SDK | FE-001 | API 冻结 | `frontend/src/api/`、`frontend/docs/page-contracts/_template.md` | 枚举、错误码、DTO/VO、分页、动态字段模型可被页面复用 | pending |
 | 前端页面 | FE-002 至 FE-011 | SDK 和路由基础完成 | `frontend/src/pages/`、`frontend/src/components/`、`frontend/docs/page-contracts/` | 页面按模块完成，页面级 API 映射、权限禁用、空态、错误态、requestId 展示闭环 | pending |
-| 前端自检 | FE-012 | 前端页面完成 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | 页面到接口映射、枚举错误码同步、无旁路请求 | pending |
+| 前端自检 | FE-012 | 前端页面完成 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | 页面到接口映射、枚举错误码同步、无旁路请求 | done |
 | test 测试 | TEST-001 至 TEST-005 | API 冻结；执行依赖实现产物 | `docs/test_plan.md`、`docs/test_runs/`、`docs/test_report.md` | TEST-003/004 写独立执行记录，TEST-005 汇总报告并给出 pass/fail target | pending |
 | validator 构建 | VAL-001 至 VAL-004 | 后端、前端、测试产物完成 | `docs/build/`、`docs/build_report.md` | VAL-001/002/003 写独立验证记录，VAL-004 汇总 clean compile、clean build 和契约同步结论 | pending |
 | reviewer 审查 | REV-001 至 REV-004 | 测试和构建报告完成 | `docs/review_parts/`、`docs/review.json` | REV-001 至 REV-003 输出不重叠审查分片，REV-004 唯一输出合法 JSON 总结论 | pending |
@@ -191,7 +191,7 @@ flowchart TD
 | FE-009 | 流程工作台页面 | frontend | flow | FE-007/FE-008 | `frontend/src/pages/flow/`、`frontend/docs/page-contracts/FE-009-flow-workbench-pages.md` | FE-007, FE-008 | 是 | FLOW 任务处理和历史展示完成，页面级 API 映射、禁用态、空态/错误态和证据完成 | 重复处理、禁用态自检 | done |
 | FE-010 | 文件与导出页面 | frontend | upload/export | FE-007/FE-008 | `frontend/src/pages/files/`、`frontend/src/pages/export/`、`frontend/docs/page-contracts/FE-010-file-export-pages.md` | FE-007, FE-008 | 是 | 上传、预览、下载、导出轮询完成，页面级 API 映射、禁用态、空态/错误态和证据完成 | 文件权限和任务状态自检 | done |
 | FE-011 | OpenAPI 审计运维页面 | frontend | openapi/audit/ops | FE-002 | `frontend/src/pages/openapi/`、`frontend/src/pages/audit/`、`frontend/src/pages/ops/`、`frontend/docs/page-contracts/FE-011-openapi-audit-ops-pages.md` | FE-002 | 是 | 凭证一次展示、日志 requestId 检索完成，页面级 API 映射、禁用态、空态/错误态和证据完成 | OPM/AUD/OPS 映射自检 | pending |
-| FE-012 | 前端自检与契约闭环 | frontend | frontend | FE-002..FE-011 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | FE-002, FE-003, FE-004, FE-005, FE-006, FE-007, FE-008, FE-009, FE-010, FE-011 | 否 | 汇总页面证据，无旁路请求，枚举错误码同步 | typecheck/build 前自检 | pending |
+| FE-012 | 前端自检与契约闭环 | frontend | frontend | FE-002..FE-011 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | FE-002, FE-003, FE-004, FE-005, FE-006, FE-007, FE-008, FE-009, FE-010, FE-011 | 否 | 汇总页面证据，无旁路请求，枚举错误码同步 | typecheck/build 前自检 | done |
 | TEST-001 | 测试计划与夹具设计 | test | test | PRD/API/task_plan/service | `docs/test_plan.md` | PLAN-001 | 是 | 范围、环境、夹具和入口明确 | 测试数据不进入生产 seed | pending |
 | TEST-002 | API 契约用例 | test | test | TEST-001/API | API 用例清单 | TEST-001 | 是 | 正常、异常、权限、边界、幂等覆盖 | 可直接用于自动化 | pending |
 | TEST-003 | E2E 主链路执行 | test | test | BE-015/FE-012 | `docs/test_runs/e2e-main-chain.md` | BE-015, FE-012, TEST-002 | 否 | 创建系统到审批导出 OpenAPI 闭环跑通，执行记录独立输出 | E2E 场景断言 | pending |

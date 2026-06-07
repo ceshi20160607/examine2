@@ -17,8 +17,15 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
+- 默认状态: done。
 - 完成条件: `frontend/docs/api-contract-map.md` 与 `frontend/docs/frontend-self-check.md` 存在，前端自检通过或输出明确失败点。
+
+## 完成记录
+
+- 完成时间: 2026-06-07。
+- 输出: `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md`。
+- 自检: 已汇总 FE-002 至 FE-011 页面级证据；路由引用和页面证据中的真实 API ID 均存在于 `frontend/src/api/endpoints.ts`；源码目录未发现 `fetch`、`axios`、`XMLHttpRequest`、`new Request` 或硬编码 URL 旁路请求。
+- 限制: 当前 `frontend/` 目录无 `package.json`/`tsconfig.json`，本机无 `tsc` 命令，正式 typecheck/lint/build 无法执行，已记录到 `frontend/docs/frontend-self-check.md`。
 
 ## 验收标准
 
