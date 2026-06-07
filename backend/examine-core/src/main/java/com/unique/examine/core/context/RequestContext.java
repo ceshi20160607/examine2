@@ -27,6 +27,15 @@ public class RequestContext {
     /** 租户请求头。 */
     public static final String TENANT_ID_HEADER = "X-Tenant-Id";
 
+    /** 系统请求头。 */
+    public static final String SYSTEM_ID_HEADER = "X-System-Id";
+
+    /** 系统成员请求头。 */
+    public static final String MEMBER_ID_HEADER = "X-Member-Id";
+
+    /** OpenAPI 客户端请求头。 */
+    public static final String CLIENT_ID_HEADER = "X-Client-Id";
+
     /** 幂等键请求头。 */
     public static final String IDEMPOTENCY_KEY_HEADER = "X-Idempotency-Key";
 
