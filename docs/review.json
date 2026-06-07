@@ -1,86 +1,78 @@
 {
-  "status": "fail",
-  "target": "both",
+  "status": "pass",
+  "target": "none",
   "phase": "P6-final-acceptance",
-  "reviewedAt": "2026-06-08T01:35:00+08:00",
-  "summary": "P6 backend clean compile and backend API smoke passed, but final acceptance fails because frontend is not buildable, frontend SDK is not fully synchronized with the frozen API, backend OpenAPI accessKey error code is inconsistent with the frozen contract, and high-risk OpenAPI/concurrency tests remain incomplete.",
-  "nextRoute": [
-    "backend",
-    "frontend",
-    "test",
-    "validator",
-    "reviewer"
-  ],
-  "issues": [
+  "reviewedAt": "2026-06-08T02:20:00+08:00",
+  "summary": "P6 re-review passed. Backend OpenAPI accessKey errors now match the frozen contract, frontend build and contract synchronization pass, OpenAPI negative assertions were strengthened, and validator reports pass. Remaining items are P2 production-hardening risks and do not block current MVP phase acceptance.",
+  "nextRoute": [],
+  "closedIssues": [
     {
       "issueId": "REV-001-FE-BUILD-ENTRY",
-      "severity": "P1",
-      "target": "frontend",
-      "file": "frontend/",
-      "problem": "Frontend lacks package.json and tsconfig.json, so clean build, typecheck, lint and browser E2E cannot run.",
-      "impact": "Cannot prove real frontend rendering, routing, refresh, permission disabled states or error states before launch.",
-      "source": "docs/review_parts/rev-001-architecture.md",
-      "requiredAction": "Add a runnable frontend project entry, build scripts, tsconfig, app entry and minimum routes, then rerun VAL-002 and browser E2E."
+      "status": "closed",
+      "evidence": [
+        "frontend/package.json, frontend/tsconfig.json and frontend/package-lock.json exist",
+        "docs/build/frontend-clean-build.md records npm.cmd ci and npm.cmd run build pass"
+      ]
     },
     {
       "issueId": "REV-002-FE-AUTH-ENDPOINTS",
-      "severity": "P1",
-      "target": "frontend",
-      "file": "frontend/src/api/endpoints.ts",
-      "problem": "AUTH-004 logout and AUTH-005 me are marked as auth=None in frontend SDK, while docs/api.md and backend controller require Bearer authorization.",
-      "impact": "Frontend callers may omit Bearer token and fail at runtime; api-contract-map also misleads tests and page models.",
-      "source": "docs/review_parts/rev-002-contract.md",
-      "requiredAction": "Change AUTH-004 and AUTH-005 to Bearer and synchronize frontend/docs/api-contract-map.md."
+      "status": "closed",
+      "evidence": [
+        "AUTH-004 and AUTH-005 are Bearer in frontend/src/api/endpoints.ts",
+        "AUTH-004 and AUTH-005 are Bearer in frontend/docs/api-contract-map.md"
+      ]
     },
     {
       "issueId": "REV-002-FE-FIELD-TYPES",
-      "severity": "P1",
-      "target": "frontend",
-      "file": "frontend/src/api/enums.ts",
-      "problem": "Frontend dynamic field type enum differs from frozen API; it misses AUTO_NO, DEPT, MEMBER, MONEY and SWITCH, and includes BOOLEAN, CHECKBOX, DECIMAL, DICT, RADIO and SERIAL that are not frozen.",
-      "impact": "Dynamic field configuration, runtime forms and schema validation can drift from backend/API semantics.",
-      "source": "docs/review_parts/rev-002-contract.md",
-      "requiredAction": "Synchronize frontend field type enums and related types/control mappings with docs/api.md, or reopen API contract review if renaming is intended."
+      "status": "closed",
+      "evidence": [
+        "frontend/src/api/enums.ts and frontend/src/api/types.ts match the 19 frozen DynamicFieldType values",
+        "docs/build/contract-sync-check.md records field type enum pass"
+      ]
     },
     {
       "issueId": "REV-002-BE-OPENAPI-AK-CODE",
-      "severity": "P1",
-      "target": "backend",
-      "file": "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/impl/OpenApiSecurityServiceImpl.java",
-      "problem": "Missing or invalid X-OpenApi-AccessKey returns COMMON_UNAUTHORIZED or a non-frozen OpenAPI client code instead of frozen OPENAPI_ACCESS_KEY_INVALID.",
-      "impact": "External OpenAPI clients and tests cannot rely on the frozen OpenAPI error-code contract.",
-      "source": "docs/review_parts/rev-002-contract.md",
-      "requiredAction": "Align backend OpenAPI accessKey validation with OPENAPI_ACCESS_KEY_INVALID and rerun TEST-004/VAL-003."
+      "status": "closed",
+      "evidence": [
+        "OpenApiErrorCode.ACCESS_KEY_INVALID maps to OPENAPI_ACCESS_KEY_INVALID",
+        "OpenApiSecurityServiceImplTest asserts missing and unknown accessKey errors"
+      ]
     },
     {
       "issueId": "REV-003-TEST-OPENAPI-ASSERTION",
-      "severity": "P1",
-      "target": "test",
-      "file": "docs/test_report.md",
-      "problem": "TEST-004 accepted OpenAPI missing AK as pass with COMMON_UNAUTHORIZED, although the frozen API requires OPENAPI_ACCESS_KEY_INVALID.",
-      "impact": "Contract regressions can pass because tests only verify HTTP 401 and requestId instead of module-specific error codes.",
-      "source": "docs/review_parts/rev-003-quality.md",
-      "requiredAction": "Strengthen OpenAPI negative assertions for missing/invalid AK, signature, timestamp, nonce, body hash, scope and rate limit."
-    },
+      "status": "closed",
+      "evidence": [
+        "OpenApiSecurityServiceImplTest covers accessKey, timestamp, body hash, signature, scope and rate limit error codes",
+        "docs/test_report.md and docs/test_runs/permission-exception-idempotency-openapi.md record the strengthened assertions"
+      ]
+    }
+  ],
+  "deferredRisks": [
     {
       "issueId": "REV-001-BE-IDEMPOTENCY-STORAGE",
       "severity": "P2",
       "target": "backend",
-      "file": "backend/examine-plat/src/main/java/com/unique/examine/plat/manage/service/impl/PlatformCenterServiceImpl.java",
-      "problem": "Create-system idempotency state is stored in a static in-memory ConcurrentHashMap.",
-      "impact": "Single-node smoke passes, but multi-instance deployment, restart, expiration and transaction-commit edge cases are not production-safe.",
-      "source": "docs/review_parts/rev-001-architecture.md",
-      "requiredAction": "Move create-system idempotency to shared storage or a database idempotency table if production multi-instance consistency is required."
+      "status": "deferred",
+      "reason": "Create-system idempotency still uses single-JVM memory storage. Current smoke covers same-process conflict, but production multi-instance consistency needs shared storage or a database idempotency table."
     },
     {
       "issueId": "REV-003-TEST-RISK-MATRIX",
       "severity": "P2",
       "target": "test",
-      "file": "docs/test_report.md",
-      "problem": "OpenAPI timestamp/nonce/body hash/scope/IP/rate-limit matrix and key concurrency scenarios are not fully covered.",
-      "impact": "High-risk security and concurrency edges remain unproven before launch.",
-      "source": "docs/review_parts/rev-003-quality.md",
-      "requiredAction": "After backend/frontend contract fixes, add API automation or dedicated scripts for OpenAPI security matrix and concurrency-sensitive flows."
+      "status": "partially_closed",
+      "reason": "Core OpenAPI error-code matrix is now covered. OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended上线前专项."
     }
+  ],
+  "verification": [
+    "mvn -pl examine-app -am test pass: core 13, plat 12, upload 4, module 21, flow 2, app 11",
+    "mvn -pl examine-web -am clean compile pass: 8 Maven modules SUCCESS",
+    "npm.cmd ci and npm.cmd run build pass",
+    "Node contract sync check pass: 174 API IDs, 20 core errors, 14 status enum groups, 19 field types and AUTH-004/AUTH-005 Bearer matched",
+    "git diff --check pass with LF/CRLF warnings only"
+  ],
+  "reviewParts": [
+    "docs/review_parts/rev-001-architecture.md",
+    "docs/review_parts/rev-002-contract.md",
+    "docs/review_parts/rev-003-quality.md"
   ]
 }

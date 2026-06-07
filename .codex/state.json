@@ -15,9 +15,14 @@
                             12,
                             13,
                             14,
-                            15
+                            15,
+                            16,
+                            17,
+                            18,
+                            19,
+                            20
                         ],
-    "updated_at":  "2026-06-08T02:15:00+08:00",
+    "updated_at":  "2026-06-08T02:25:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1951,6 +1956,37 @@
                                                   "Validator conclusion is pass target none.",
                                                   "Next route continues with reviewer rerun."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-REVIEWER-RERUN-ACCEPTANCE",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "REV-001",
+                                                  "REV-002",
+                                                  "REV-003",
+                                                  "REV-004",
+                                                  "P6-PM-ACCEPTANCE"
+                                              ],
+                                    "started_at":  "2026-06-08T02:16:00+08:00",
+                                    "completed_at":  "2026-06-08T02:25:00+08:00",
+                                    "outputs":  [
+                                                    "docs/review_parts/rev-001-architecture.md",
+                                                    "docs/review_parts/rev-002-contract.md",
+                                                    "docs/review_parts/rev-003-quality.md",
+                                                    "docs/review.json",
+                                                    "docs/phases/P6-final-acceptance.md",
+                                                    "docs/phases/development-phases.md",
+                                                    "docs/progress.md"
+                                                ],
+                                    "verification":  [
+                                                         "docs/review.json parsed successfully with status pass target none",
+                                                         "P6 acceptance record created with pass conclusion",
+                                                         "development-phases.md marks P6-final-acceptance accepted"
+                                                     ],
+                                    "notes":  [
+                                                  "P6 final acceptance is complete.",
+                                                  "Remaining P2 risks are deferred to production hardening and security/concurrency专项."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1964,7 +2000,7 @@
                          "P3-system-config":  "accepted",
                          "P4-runtime-mvp":  "accepted",
                          "P5-workflow-files-openapi":  "accepted",
-                         "P6-final-acceptance":  "in_progress"
+                         "P6-final-acceptance":  "accepted"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2007,7 +2043,14 @@
                                                                "accepted_by":  "pm",
                                                                "record":  "docs/phases/P5-workflow-files-openapi-acceptance.md",
                                                                "next_phase":  "P6-final-acceptance"
+                                                           },
+                             "P6-final-acceptance":  {
+                                                          "status":  "accepted",
+                                                          "accepted_at":  "2026-06-08T02:25:00+08:00",
+                                                          "accepted_by":  "pm",
+                                                          "record":  "docs/phases/P6-final-acceptance.md",
+                                                          "next_phase":  null
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-REWORK-VALIDATOR-RERUN"
+    "last_completed_batch":  "DEV-BATCH-P6-REVIEWER-RERUN-ACCEPTANCE"
 }

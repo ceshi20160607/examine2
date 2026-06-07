@@ -21,11 +21,11 @@
 | P3-system-config | 系统配置与权限期 | BE-005、BE-006、BE-007、BE-014、FE-005/FE-006 联调补充 | 系统成员、部门、角色、权限、字典、应用/模块/字段/页面配置闭环，权限与数据范围基础可用。 | accepted |
 | P4-runtime-mvp | 运行台 MVP 期 | BE-008、FE-008、阶段测试验证 | 动态 schema、记录列表/详情/保存/历史/提交审批入口按权限跑通。 | accepted |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | BE-009 至 BE-013、FE-009 至 FE-011 联调补充 | 流程待办、附件、导出、OpenAPI、审计运维核心链路闭环。 | accepted |
-| P6-final-acceptance | 集成验收与上线判断期 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | 后端自检、前端契约闭环、E2E、clean build、review 全部通过，输出可上线判断。 | in_progress |
+| P6-final-acceptance | 集成验收与上线判断期 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | 后端自检、前端契约闭环、E2E、clean build、review 全部通过，输出可上线判断。 | accepted |
 
 ## 当前期
 
-当前正在推进：`P6-final-acceptance`。
+当前正在推进：无，`P6-final-acceptance` 已验收。
 
 原因：
 
@@ -34,7 +34,7 @@
 - P3 系统配置与权限期已通过验收，系统 RBAC、字典和模块配置闭环可用。
 - P4 运行台 MVP 已通过验收，记录运行态 CRUD 与前端页面模型可作为流程、文件、导出和 OpenAPI 的入口基础。
 - P5 已通过 PM 阶段验收，验收记录为 `docs/phases/P5-workflow-files-openapi-acceptance.md`。
-- P6 先执行 BE-015 后端自检，再进入 TEST、VAL 和 REV 最终验收链路。
+- P6 已通过最终验收，验收记录为 `docs/phases/P6-final-acceptance.md`。
 
 ## 暂停与继续
 

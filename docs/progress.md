@@ -174,7 +174,9 @@
 31. Frontend 回环已修复工程入口、AUTH-004/AUTH-005 鉴权标记和字段类型枚举同步：新增 `frontend/package.json`、`frontend/tsconfig.json`、`frontend/package-lock.json`，`npm.cmd run build` 通过；契约同步复验 174 个 API ID、核心错误码、14 组状态枚举、19 个字段类型和 AUTH Bearer 标记均通过。
 32. Test 回环已补强 OpenAPI 安全负向断言：`OpenApiSecurityServiceImplTest` 覆盖缺失/未知 accessKey、timestamp、body hash、signature、scope 和 rate limit 专属错误码；执行 `mvn -pl examine-app -am test` 通过，core 13、plat 12、upload 4、module 21、flow 2、app 11。
 33. Validator 回环已复验通过：`mvn -pl examine-web -am clean compile` 8 个模块 SUCCESS；`npm.cmd ci; npm.cmd run build` 通过；契约同步检查 174 个 API ID、20 个核心错误码、14 组状态枚举、19 个字段类型和 AUTH Bearer 标记均通过；`docs/build_report.md` 结论 pass。
+34. Reviewer 回环已复审通过：`docs/review_parts/rev-001-architecture.md`、`docs/review_parts/rev-002-contract.md`、`docs/review_parts/rev-003-quality.md` 均为 pass；`docs/review.json` status=pass、target=none，P2 风险转入后续增强。
+35. PM 已完成 P6 阶段验收：`docs/phases/P6-final-acceptance.md` 结论 pass，`docs/phases/development-phases.md` 中 P6 状态已更新为 accepted。
 
 ## 下一步
 
-当前 `P6-final-acceptance` 已完成 backend、frontend、test 与 validator 回环修复。下一步按 `docs/review.json.nextRoute` 重跑 reviewer，更新最终 `docs/review.json`。
+当前 `P6-final-acceptance` 已验收完成。下一步进入生产上线准备或下一轮增强前，应优先处理 P2 风险：生产级幂等共享存储、OpenAPI nonce/IP/幂等冲突自动化和并发压测。
