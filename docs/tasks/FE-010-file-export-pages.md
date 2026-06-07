@@ -17,8 +17,15 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
+- 默认状态: done。
 - 完成条件: 文件附件和导出任务 MVP 闭环完成，`FE-010` 页面级契约证据文件已补齐。
+
+## 完成记录
+
+- 完成时间: 2026-06-07。
+- 输出: `frontend/src/pages/files/fileCenterPageModel.ts`、`frontend/src/pages/files/index.ts`、`frontend/src/pages/export/exportPageModel.ts`、`frontend/src/pages/export/index.ts`、`frontend/docs/page-contracts/FE-010-file-export-pages.md`。
+- 自检: 已覆盖 FILE-001 至 FILE-006、EXP-001 至 EXP-008 的页面模型、幂等键、动态附件字段写回、文件预览/下载/删除禁用态、导出任务轮询、失败重试/取消禁用态、requestId/错误态和页面契约证据；新增页面目录未发现旁路请求。
+- 限制: 当前 `frontend/` 目录无 `package.json`/`tsconfig.json`，无法执行正式 build/typecheck。
 
 ## 验收标准
 

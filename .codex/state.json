@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T18:05:00+08:00",
+    "updated_at":  "2026-06-07T18:35:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -330,7 +330,12 @@
                       "docs/tasks/BE-013-audit-ops-api.md",
                       "frontend/src/pages/flow/flowWorkbenchPageModel.ts",
                       "frontend/src/pages/flow/index.ts",
-                      "frontend/docs/page-contracts/FE-009-flow-workbench-pages.md"
+                      "frontend/docs/page-contracts/FE-009-flow-workbench-pages.md",
+                      "frontend/src/pages/files/fileCenterPageModel.ts",
+                      "frontend/src/pages/files/index.ts",
+                      "frontend/src/pages/export/exportPageModel.ts",
+                      "frontend/src/pages/export/index.ts",
+                      "frontend/docs/page-contracts/FE-010-file-export-pages.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
     "status":  "DEVELOPMENT_PHASE_P5_IN_PROGRESS",
@@ -739,7 +744,8 @@
                                        "completed_at":  "2026-06-07T17:37:57+08:00",
                                        "verification":  "mvn -pl examine-web -am test success: core 12, plat 12, upload 4, module 21, flow 2, app 4, web 4 tests"
                                    },
-                        "FE-009":  "done"
+                        "FE-009":  "done",
+                        "FE-010":  "done"
                     },
     "task_plan_frozen":  true,
     "active_mode":  "development",
@@ -758,8 +764,8 @@
                            "frontend":  {
                                             "agent_id":  "orchestrator-local",
                                             "status":  "done",
-                                            "last_stage":  "development:FE-009",
-                                            "last_output":  "flow workbench page model and contract evidence completed"
+                                            "last_stage":  "development:FE-010",
+                                            "last_output":  "file and export page models and contract evidence completed"
                                         },
                            "test":  {
                                         "agent_id":  "019e9aaa-4029-77f2-98a1-71733c220e3c",
@@ -1486,6 +1492,33 @@
                                                   "Flow page model uses frozen FLOW-001..FLOW-021 endpoint IDs through ApiClient.call.",
                                                   "Flow actions expose idempotency keys, local required-field validation and disabled reasons for handled tasks and finished instances."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P5-FE-010",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "FE-010"
+                                              ],
+                                    "started_at":  "2026-06-07T18:10:00+08:00",
+                                    "completed_at":  "2026-06-07T18:35:00+08:00",
+                                    "outputs":  [
+                                                    "frontend/src/pages/files/fileCenterPageModel.ts",
+                                                    "frontend/src/pages/files/index.ts",
+                                                    "frontend/src/pages/export/exportPageModel.ts",
+                                                    "frontend/src/pages/export/index.ts",
+                                                    "frontend/docs/page-contracts/FE-010-file-export-pages.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/tasks/FE-010-file-export-pages.md"
+                                                ],
+                                    "verification":  [
+                                                         "rg no direct fetch/axios/XMLHttpRequest in frontend/src/pages/files and frontend/src/pages/export",
+                                                         "frontend package.json and tsconfig.json absent; formal build/typecheck unavailable"
+                                                     ],
+                                    "notes":  [
+                                                  "File page model writes uploaded fileId back to dynamic attachment fields as FileBindDTO[].",
+                                                  "Export page model exposes polling state plus retry/cancel disabled reasons and result file download handoff to FILE-005."
+                                              ]
                                 }
                             ],
     "current_phase":  "P5-workflow-files-openapi",
@@ -1537,5 +1570,5 @@
                                                     "next_phase":  "P5-workflow-files-openapi"
                                                 }
                          },
-    "last_completed_batch":  "DEV-BATCH-P5-FE-009"
+    "last_completed_batch":  "DEV-BATCH-P5-FE-010"
 }
