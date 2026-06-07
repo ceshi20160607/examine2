@@ -16,8 +16,14 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
-- 完成条件: 架构问题形成 `docs/review_parts/rev-001-architecture.md`，供 REV-002/REV-004 汇总。
+- 当前状态: done。
+- 完成条件: 架构问题已形成 `docs/review_parts/rev-001-architecture.md`，供 REV-002/REV-004 汇总。
+
+## 执行记录
+
+- 2026-06-08 已完成架构审查分片。
+- 结论 fail，target=frontend；主要阻塞为前端工程入口缺失和字段类型枚举未同步。
+- 另记录 backend P2 风险：创建系统幂等当前为本机内存实现。
 
 ## 验收标准
 

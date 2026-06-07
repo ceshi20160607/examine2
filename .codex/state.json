@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T01:05:00+08:00",
+    "updated_at":  "2026-06-08T01:12:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1748,6 +1748,29 @@
                                                   "Build validation conclusion is fail target=frontend.",
                                                   "Next task is REV-001 architecture review."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-REV-001",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "REV-001"
+                                              ],
+                                    "started_at":  "2026-06-08T01:06:00+08:00",
+                                    "completed_at":  "2026-06-08T01:12:00+08:00",
+                                    "outputs":  [
+                                                    "docs/review_parts/rev-001-architecture.md",
+                                                    "docs/tasks/REV-001-architecture-review.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "Architecture review findings point to concrete frontend docs/source paths and backend idempotency source path",
+                                                         "base generated names remain unchanged; BeanNameGenerator handles generated bean collisions"
+                                                     ],
+                                    "notes":  [
+                                                  "REV-001 conclusion is fail target=frontend.",
+                                                  "Backend create-system local memory idempotency recorded as P2 production hardening risk."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1806,5 +1829,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-VAL-004"
+    "last_completed_batch":  "DEV-BATCH-P6-REV-001"
 }

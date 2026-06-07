@@ -7,10 +7,10 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 50 |
-| 已完成 | 46 |
+| 已完成 | 47 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 4 |
+| 剩余 | 3 |
 
 当前模式：`development`
 
@@ -28,7 +28,7 @@
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
 | P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | accepted | 5/5 后端主任务，FE-009/FE-010/FE-012 前端契约闭环完成 | 已通过 PM 阶段验收 |
-| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 9/14 构建报告已完成，结论 fail target=frontend | 启动 REV-001 架构审查 |
+| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 10/14 架构审查已完成，结论 fail target=frontend | 启动 REV-002 契约实现审查 |
 
 ## 角色完成度
 
@@ -40,7 +40,7 @@
 | Frontend | 12 | 0 | 0 | FE-001 至 FE-012 已完成；正式 build/typecheck 待 VAL-002 处理前端工程入口缺口。 |
 | Test | 5 | 0 | 0 | TEST-001 至 TEST-005 已完成；测试报告结论 fail target=frontend。 |
 | Validator | 4 | 0 | 0 | VAL-001 至 VAL-004 已完成；构建验证结论 fail，target=frontend。 |
-| Reviewer | 0 | 0 | 4 | 等测试和构建产物。 |
+| Reviewer | 1 | 0 | 3 | REV-001 已完成，架构审查结论 fail target=frontend。 |
 
 ## 当前 Agent 状态
 
@@ -74,6 +74,7 @@
 | validator | VAL-002 | done | `docs/build/frontend-clean-build.md` | `npm.cmd run build` 失败，缺少 `frontend/package.json`，target=frontend。 |
 | validator | VAL-003 | done | `docs/build/contract-sync-check.md` | API ID、核心错误码、状态枚举同步通过；字段类型枚举未同步，target=frontend。 |
 | validator | VAL-004 | done | `docs/build_report.md` | 后端 clean compile pass；前端 build 和字段类型同步 fail，target=frontend。 |
+| reviewer | REV-001 | done | `docs/review_parts/rev-001-architecture.md` | 前端工程入口缺失和字段类型不同步为 P1；创建系统本机内存幂等为 P2 风险。 |
 | pm | P5 acceptance | done | `docs/phases/P5-workflow-files-openapi-acceptance.md` | P5 已验收通过，允许进入 P6。 |
 | pm | P3 acceptance | done | `docs/phases/P3-system-config-acceptance.md` | P3 已验收通过，允许进入 P4。 |
 
@@ -98,6 +99,7 @@
 | VAL-002 | 前端 clean build | done | validator | 构建失败，缺少 `frontend/package.json`，target=frontend；源码产物扫描未发现 `.vue.js`、临时 `.d.ts` 或编译 `.js` |
 | VAL-003 | 契约同步检查 | done | validator | API ID、核心错误码和状态枚举同步通过；字段类型枚举未同步，target=frontend |
 | VAL-004 | 构建报告 | done | validator | 构建验证结论 fail，target=frontend；后端 clean compile pass，前端工程入口和字段类型同步失败 |
+| REV-001 | 架构审查 | done | reviewer | 架构审查结论 fail，target=frontend；另记录 backend 幂等生产级风险 |
 
 ## 阶段验收摘要
 
@@ -157,7 +159,8 @@
 23. VAL-002 已完成前端 clean build 验证：执行 `npm.cmd run build` 失败，关键原因是 `frontend/package.json` 不存在；记录见 `docs/build/frontend-clean-build.md`，target=frontend。
 24. VAL-003 已完成契约同步检查：174 个 API ID、20 个核心错误码和 15 组状态枚举同步通过；字段类型枚举未同步，记录见 `docs/build/contract-sync-check.md`，target=frontend。
 25. VAL-004 已完成构建验证报告：`docs/build_report.md` 结论为 fail，target=frontend；后端 clean compile pass，前端 build 和字段类型同步 fail。
+26. REV-001 已完成架构审查：`docs/review_parts/rev-001-architecture.md` 结论为 fail，target=frontend；主要阻塞为前端工程入口缺失和字段类型枚举未同步，另记录创建系统本机内存幂等为 backend P2 风险。
 
 ## 下一步
 
-当前 `P6-final-acceptance` 已完成 FE-012、BE-015、TEST-003、TEST-004、TEST-005、VAL-001、VAL-002、VAL-003 和 VAL-004，下一步执行 REV-001 架构审查。
+当前 `P6-final-acceptance` 已完成 FE-012、BE-015、TEST-003、TEST-004、TEST-005、VAL-001、VAL-002、VAL-003、VAL-004 和 REV-001，下一步执行 REV-002 契约实现审查。
