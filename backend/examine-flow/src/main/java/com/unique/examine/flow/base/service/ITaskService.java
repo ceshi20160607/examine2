@@ -13,7 +13,7 @@ import java.util.List;
  * 待办任务、领取、处理和并发版本控制。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface ITaskService extends IService<Task> {
 

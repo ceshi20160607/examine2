@@ -13,7 +13,7 @@ import java.util.List;
  * 内部写接口幂等记录。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IIdempotencyRecordService extends IService<IdempotencyRecord> {
 

@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 系统级或租户级字典类型。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface DictTypeMapper extends BaseMapper<DictType> {

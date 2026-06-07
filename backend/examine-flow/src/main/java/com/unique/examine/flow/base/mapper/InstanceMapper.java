@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 业务记录发起后的流程实例。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface InstanceMapper extends BaseMapper<Instance> {

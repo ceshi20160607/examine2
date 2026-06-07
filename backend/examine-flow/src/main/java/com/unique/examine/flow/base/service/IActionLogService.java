@@ -13,7 +13,7 @@ import java.util.List;
  * 审批动作日志。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IActionLogService extends IService<ActionLog> {
 

@@ -13,7 +13,7 @@ import java.util.List;
  * 文件元数据、临时状态、对象存储定位和安全属性。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IFileService extends IService<File> {
 

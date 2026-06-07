@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 模块字段定义、校验、唯一、关联、子表和自动编号配置。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

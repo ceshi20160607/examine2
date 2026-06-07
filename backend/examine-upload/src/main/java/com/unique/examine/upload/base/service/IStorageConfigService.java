@@ -13,7 +13,7 @@ import java.util.List;
  * 存储配置和默认存储策略。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IStorageConfigService extends IService<StorageConfig> {
 

@@ -13,7 +13,7 @@ import java.util.List;
  * 系统管理菜单和运行菜单授权目录。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface ISystemMenuService extends IService<SystemMenu> {
 

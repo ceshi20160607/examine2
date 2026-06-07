@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 导出模板主表。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface ExportTemplateMapper extends BaseMapper<ExportTemplate> {

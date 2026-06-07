@@ -13,7 +13,7 @@ import java.util.List;
  * 模块按钮、行操作、详情操作和导出入口动作。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IActionService extends IService<Action> {
 

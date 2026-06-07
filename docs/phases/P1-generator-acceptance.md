@@ -10,9 +10,9 @@ P1-generator 阶段通过，允许进入 `P2-auth-platform`。
 
 | taskId | 任务 | 结论 | 产物 |
 | --- | --- | --- | --- |
-| GEN-002 | 生成器数据库映射配置 | pass | `backend/examine-generator/src/main/resources/generator/table-module-map.yml` |
-| GEN-003 | base 层模板策略 | pass | `backend/examine-generator/src/main/resources/generator/base-template-strategy.yml`、`backend/examine-generator/reports/base-template-strategy.md` |
-| GEN-004 | 生成执行与报告 | pass | `backend/docs/mybatis-plus-generation.md`、各业务模块 `base/` 包和 `mapper/base/` XML |
+| GEN-002 | 生成器数据库映射配置 | pass | 命令参数传入模块、前缀、base 包和输出目录 |
+| GEN-003 | base 层模板策略 | pass | `backend/examine-generator/src/main/resources/templates/base/` |
+| GEN-004 | 生成执行 | pass | 各业务模块 `base` 包和 `mapper/base` XML |
 
 ## 验证结果
 

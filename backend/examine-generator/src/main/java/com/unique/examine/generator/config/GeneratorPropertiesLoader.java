@@ -9,23 +9,22 @@ import java.util.Objects;
 import java.util.Properties;
 
 /**
- * Loads generator properties from command-line supplied property files and environment variables.
+ * 从命令行配置文件和环境变量读取生成器配置。
  */
 public final class GeneratorPropertiesLoader {
 
     private static final String DEFAULT_AUTHOR = "examine-generator";
-    private static final String DEFAULT_REPORT_DIR = "examine-generator/reports";
 
     private GeneratorPropertiesLoader() {
     }
 
     /**
-     * Loads generator properties.
+     * 读取生成器配置。
      *
-     * @param backendRoot backend Maven parent root
-     * @param configFile optional property file
-     * @return generator properties
-     * @throws IOException when the config file cannot be read
+     * @param backendRoot 后端 Maven 父工程根目录
+     * @param configFile 可选 properties 配置文件
+     * @return 生成器配置
+     * @throws IOException 配置文件读取失败时抛出
      */
     public static GeneratorProperties load(Path backendRoot, Path configFile) throws IOException {
         Properties properties = new Properties();
@@ -38,7 +37,6 @@ public final class GeneratorPropertiesLoader {
         }
 
         String author = get(properties, "generator.author", DEFAULT_AUTHOR);
-        String reportDir = get(properties, "generator.report-dir", DEFAULT_REPORT_DIR);
         String configuredUrl = get(properties, "generator.datasource.url", "");
         String envUrl = System.getenv("EXAMINE_GENERATOR_DATASOURCE_URL");
         String url = firstPresent(configuredUrl, envUrl);
@@ -55,9 +53,7 @@ public final class GeneratorPropertiesLoader {
         return GeneratorProperties.of(
                 backendRoot,
                 author,
-                Path.of(reportDir),
-                GeneratorDataSourceProperties.of(url, username, password, dataSourceSource),
-                GeneratorModuleMappings.defaults()
+                GeneratorDataSourceProperties.of(url, username, password, dataSourceSource)
         );
     }
 

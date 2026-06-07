@@ -1,58 +1,38 @@
 package com.unique.examine.generator.config;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Objects;
 
 /**
- * Generator runtime configuration.
+ * 生成器运行配置。
  *
- * @param backendRoot backend Maven parent root
- * @param author generated code author
- * @param reportDir report output directory
- * @param dataSource datasource properties
- * @param moduleMappings table-prefix to module mappings
+ * @param backendRoot 后端 Maven 父工程根目录
+ * @param author 生成代码作者
+ * @param dataSource 数据源配置
  */
 public record GeneratorProperties(
         Path backendRoot,
         String author,
-        Path reportDir,
-        GeneratorDataSourceProperties dataSource,
-        List<GeneratorModuleMapping> moduleMappings
+        GeneratorDataSourceProperties dataSource
 ) {
 
     /**
-     * Creates generator properties with immutable mappings.
+     * 创建生成器配置。
      *
-     * @param backendRoot backend Maven parent root
-     * @param author generated code author
-     * @param reportDir report output directory
-     * @param dataSource datasource properties
-     * @param moduleMappings table-prefix to module mappings
-     * @return generator properties
+     * @param backendRoot 后端 Maven 父工程根目录
+     * @param author 生成代码作者
+     * @param dataSource 数据源配置
+     * @return 生成器配置
      */
     public static GeneratorProperties of(
             Path backendRoot,
             String author,
-            Path reportDir,
-            GeneratorDataSourceProperties dataSource,
-            List<GeneratorModuleMapping> moduleMappings
+            GeneratorDataSourceProperties dataSource
     ) {
         return new GeneratorProperties(
                 Objects.requireNonNull(backendRoot, "backendRoot").normalize(),
                 Objects.toString(author, "examine-generator"),
-                Objects.requireNonNull(reportDir, "reportDir").normalize(),
-                Objects.requireNonNull(dataSource, "dataSource"),
-                List.copyOf(moduleMappings)
+                Objects.requireNonNull(dataSource, "dataSource")
         );
-    }
-
-    /**
-     * Resolves the report directory against the backend root when needed.
-     *
-     * @return absolute or backend-root-relative report directory
-     */
-    public Path resolvedReportDir() {
-        return reportDir.isAbsolute() ? reportDir : backendRoot.resolve(reportDir).normalize();
     }
 }

@@ -18,7 +18,7 @@ import java.util.List;
  * 内部写接口幂等记录。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class IdempotencyRecordServiceImpl extends ServiceImpl<IdempotencyRecordMapper, IdempotencyRecord>

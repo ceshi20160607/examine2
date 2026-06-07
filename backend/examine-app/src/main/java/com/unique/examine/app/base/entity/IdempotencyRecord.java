@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 外部写接口幂等记录、请求摘要和结果快照。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

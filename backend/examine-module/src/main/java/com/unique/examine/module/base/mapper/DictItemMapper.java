@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 字典项，支持层级和内置只读。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface DictItemMapper extends BaseMapper<DictItem> {

@@ -13,7 +13,7 @@ import java.util.List;
  * 应用级配置版本和发布快照摘要。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IAppVersionService extends IService<AppVersion> {
 

@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 系统/租户下业务应用主表。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

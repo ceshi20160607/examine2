@@ -1,11 +1,12 @@
 -- unexamine initialization SQL generated from docs/db_design.md by DBA-006.
 -- Production seed only; no demo business data and no plaintext default password.
-CREATE DATABASE IF NOT EXISTS `unexamine` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-USE `unexamine`;
+CREATE DATABASE IF NOT EXISTS `examine1` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `examine1`;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-CREATE TABLE IF NOT EXISTS `un_plat_account` (
+DROP TABLE IF EXISTS `un_plat_account`;
+CREATE TABLE `un_plat_account` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `login_name` VARCHAR(64) NOT NULL COMMENT '登录名，全局唯一。',
   `password_hash` VARCHAR(255) NOT NULL COMMENT '密码哈希，不返回前端。',
@@ -27,7 +28,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_account` (
   KEY `idx_plat_account_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='全局登录主体，承载登录名、密码哈希、状态和安全字段。';
 
-CREATE TABLE IF NOT EXISTS `un_plat_system` (
+DROP TABLE IF EXISTS `un_plat_system`;
+CREATE TABLE `un_plat_system` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `code` VARCHAR(64) NOT NULL COMMENT '系统编码，全局唯一。',
   `name` VARCHAR(128) NOT NULL COMMENT '系统名称。',
@@ -48,7 +50,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_system` (
   KEY `idx_plat_system_default_tenant` (`default_tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='自定义系统容器，承载系统编码、租户模式、创建人和状态。';
 
-CREATE TABLE IF NOT EXISTS `un_plat_tenant` (
+DROP TABLE IF EXISTS `un_plat_tenant`;
+CREATE TABLE `un_plat_tenant` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `code` VARCHAR(64) NOT NULL COMMENT '租户编码，同系统唯一；默认租户为 default。',
@@ -63,7 +66,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_tenant` (
   KEY `idx_plat_tenant_system_status` (`system_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统下租户，单租户系统也初始化默认租户。';
 
-CREATE TABLE IF NOT EXISTS `un_plat_role` (
+DROP TABLE IF EXISTS `un_plat_role`;
+CREATE TABLE `un_plat_role` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `code` VARCHAR(64) NOT NULL COMMENT '平台角色编码，全局唯一。',
   `name` VARCHAR(128) NOT NULL COMMENT '平台角色名称。',
@@ -79,7 +83,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_role` (
   KEY `idx_plat_role_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台中心角色。';
 
-CREATE TABLE IF NOT EXISTS `un_plat_menu` (
+DROP TABLE IF EXISTS `un_plat_menu`;
+CREATE TABLE `un_plat_menu` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `parent_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父菜单 ID，0 表示根菜单。',
   `code` VARCHAR(64) NOT NULL COMMENT '菜单编码，同父级唯一。',
@@ -99,7 +104,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_menu` (
   KEY `idx_plat_menu_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台中心菜单树。';
 
-CREATE TABLE IF NOT EXISTS `un_plat_operation` (
+DROP TABLE IF EXISTS `un_plat_operation`;
+CREATE TABLE `un_plat_operation` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `menu_id` BIGINT UNSIGNED NOT NULL COMMENT '所属平台菜单。',
   `code` VARCHAR(64) NOT NULL COMMENT '操作权限编码，例如 PLAT_ACCOUNT_CREATE。',
@@ -115,7 +121,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_operation` (
   KEY `idx_plat_operation_menu` (`menu_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台中心操作权限点。';
 
-CREATE TABLE IF NOT EXISTS `un_plat_account_role` (
+DROP TABLE IF EXISTS `un_plat_account_role`;
+CREATE TABLE `un_plat_account_role` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `account_id` BIGINT UNSIGNED NOT NULL COMMENT '平台账号 ID。',
   `role_id` BIGINT UNSIGNED NOT NULL COMMENT '平台角色 ID。',
@@ -127,7 +134,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_account_role` (
   KEY `idx_plat_account_role_role` (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台账号与平台角色关联。';
 
-CREATE TABLE IF NOT EXISTS `un_plat_role_menu` (
+DROP TABLE IF EXISTS `un_plat_role_menu`;
+CREATE TABLE `un_plat_role_menu` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `role_id` BIGINT UNSIGNED NOT NULL COMMENT '平台角色 ID。',
   `menu_id` BIGINT UNSIGNED NOT NULL COMMENT '平台菜单 ID。',
@@ -139,7 +147,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_role_menu` (
   KEY `idx_plat_role_menu_menu` (`menu_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台角色与菜单授权关联。';
 
-CREATE TABLE IF NOT EXISTS `un_plat_role_operation` (
+DROP TABLE IF EXISTS `un_plat_role_operation`;
+CREATE TABLE `un_plat_role_operation` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `role_id` BIGINT UNSIGNED NOT NULL COMMENT '平台角色 ID。',
   `operation_id` BIGINT UNSIGNED NOT NULL COMMENT '平台操作权限 ID。',
@@ -152,7 +161,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_role_operation` (
   KEY `idx_plat_role_operation_code` (`operation_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台角色与操作权限授权关联。';
 
-CREATE TABLE IF NOT EXISTS `un_plat_config` (
+DROP TABLE IF EXISTS `un_plat_config`;
+CREATE TABLE `un_plat_config` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `config_key` VARCHAR(128) NOT NULL COMMENT '配置 key，全局唯一。',
   `config_name` VARCHAR(128) NOT NULL COMMENT '配置名称。',
@@ -168,7 +178,8 @@ CREATE TABLE IF NOT EXISTS `un_plat_config` (
   KEY `idx_plat_config_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='密码策略、会话策略、文件存储、OpenAPI 全局策略和审计保留配置。';
 
-CREATE TABLE IF NOT EXISTS `un_module_member` (
+DROP TABLE IF EXISTS `un_module_member`;
+CREATE TABLE `un_module_member` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `account_id` BIGINT UNSIGNED NOT NULL COMMENT '引用平台账号 ID。',
@@ -190,7 +201,8 @@ CREATE TABLE IF NOT EXISTS `un_module_member` (
   KEY `idx_module_member_default_tenant` (`default_tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台账号在系统内的成员扩展，不是独立登录账号。';
 
-CREATE TABLE IF NOT EXISTS `un_module_member_tenant` (
+DROP TABLE IF EXISTS `un_module_member_tenant`;
+CREATE TABLE `un_module_member_tenant` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `member_id` BIGINT UNSIGNED NOT NULL COMMENT '系统成员 ID。',
@@ -204,7 +216,8 @@ CREATE TABLE IF NOT EXISTS `un_module_member_tenant` (
   KEY `idx_module_member_tenant_system` (`system_id`, `tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='成员可访问租户集合。';
 
-CREATE TABLE IF NOT EXISTS `un_module_dept` (
+DROP TABLE IF EXISTS `un_module_dept`;
+CREATE TABLE `un_module_dept` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `tenant_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '所属租户；0 表示系统级共享部门。',
@@ -224,7 +237,8 @@ CREATE TABLE IF NOT EXISTS `un_module_dept` (
   KEY `idx_module_dept_path` (`system_id`, `depth_path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统内部门树。';
 
-CREATE TABLE IF NOT EXISTS `un_module_member_dept` (
+DROP TABLE IF EXISTS `un_module_member_dept`;
+CREATE TABLE `un_module_member_dept` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `member_id` BIGINT UNSIGNED NOT NULL COMMENT '成员 ID。',
@@ -238,7 +252,8 @@ CREATE TABLE IF NOT EXISTS `un_module_member_dept` (
   KEY `idx_module_member_dept_dept` (`system_id`, `dept_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='成员与部门关联。';
 
-CREATE TABLE IF NOT EXISTS `un_module_role` (
+DROP TABLE IF EXISTS `un_module_role`;
+CREATE TABLE `un_module_role` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `tenant_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '租户级角色归属；0 表示系统级角色。',
@@ -256,7 +271,8 @@ CREATE TABLE IF NOT EXISTS `un_module_role` (
   KEY `idx_module_role_status` (`system_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统内角色，含系统超级管理员。';
 
-CREATE TABLE IF NOT EXISTS `un_module_member_role` (
+DROP TABLE IF EXISTS `un_module_member_role`;
+CREATE TABLE `un_module_member_role` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `member_id` BIGINT UNSIGNED NOT NULL COMMENT '成员 ID。',
@@ -269,7 +285,8 @@ CREATE TABLE IF NOT EXISTS `un_module_member_role` (
   KEY `idx_module_member_role_role` (`system_id`, `role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='成员与系统角色关联。';
 
-CREATE TABLE IF NOT EXISTS `un_module_system_menu` (
+DROP TABLE IF EXISTS `un_module_system_menu`;
+CREATE TABLE `un_module_system_menu` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `tenant_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '租户级菜单归属；0 表示系统级。',
@@ -293,7 +310,8 @@ CREATE TABLE IF NOT EXISTS `un_module_system_menu` (
   KEY `idx_module_sys_menu_source` (`source_type`, `source_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统管理菜单和运行菜单授权目录。';
 
-CREATE TABLE IF NOT EXISTS `un_module_system_operation` (
+DROP TABLE IF EXISTS `un_module_system_operation`;
+CREATE TABLE `un_module_system_operation` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `menu_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属菜单；系统级操作可为空。',
@@ -314,7 +332,8 @@ CREATE TABLE IF NOT EXISTS `un_module_system_operation` (
   KEY `idx_module_sys_operation_resource` (`system_id`, `resource_type`, `resource_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统内操作权限目录。';
 
-CREATE TABLE IF NOT EXISTS `un_module_role_menu` (
+DROP TABLE IF EXISTS `un_module_role_menu`;
+CREATE TABLE `un_module_role_menu` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `role_id` BIGINT UNSIGNED NOT NULL COMMENT '系统角色 ID。',
@@ -327,7 +346,8 @@ CREATE TABLE IF NOT EXISTS `un_module_role_menu` (
   KEY `idx_module_role_menu_menu` (`system_id`, `menu_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统角色菜单授权。';
 
-CREATE TABLE IF NOT EXISTS `un_module_role_operation` (
+DROP TABLE IF EXISTS `un_module_role_operation`;
+CREATE TABLE `un_module_role_operation` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `role_id` BIGINT UNSIGNED NOT NULL COMMENT '系统角色 ID。',
@@ -341,7 +361,8 @@ CREATE TABLE IF NOT EXISTS `un_module_role_operation` (
   KEY `idx_module_role_operation_code` (`system_id`, `operation_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统角色操作授权。';
 
-CREATE TABLE IF NOT EXISTS `un_module_role_field_permission` (
+DROP TABLE IF EXISTS `un_module_role_field_permission`;
+CREATE TABLE `un_module_role_field_permission` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `tenant_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '租户归属；0 表示系统级。',
@@ -362,7 +383,8 @@ CREATE TABLE IF NOT EXISTS `un_module_role_field_permission` (
   KEY `idx_module_role_field_lookup` (`system_id`, `module_id`, `field_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='字段可见、可写、导出明文和 OpenAPI 读写授权。';
 
-CREATE TABLE IF NOT EXISTS `un_module_role_data_scope` (
+DROP TABLE IF EXISTS `un_module_role_data_scope`;
+CREATE TABLE `un_module_role_data_scope` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `tenant_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '租户归属；0 表示系统级。',
@@ -382,7 +404,8 @@ CREATE TABLE IF NOT EXISTS `un_module_role_data_scope` (
   KEY `idx_module_role_data_scope_system` (`system_id`, `resource_type`, `resource_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统角色数据范围规则。';
 
-CREATE TABLE IF NOT EXISTS `un_module_role_openapi_scope` (
+DROP TABLE IF EXISTS `un_module_role_openapi_scope`;
+CREATE TABLE `un_module_role_openapi_scope` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `tenant_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '租户归属；0 表示系统级。',
@@ -399,7 +422,8 @@ CREATE TABLE IF NOT EXISTS `un_module_role_openapi_scope` (
   KEY `idx_module_role_openapi_scope` (`system_id`, `scope_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统角色可授权 OpenAPI scope 边界。';
 
-CREATE TABLE IF NOT EXISTS `un_module_role_explicit_deny` (
+DROP TABLE IF EXISTS `un_module_role_explicit_deny`;
+CREATE TABLE `un_module_role_explicit_deny` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `role_id` BIGINT UNSIGNED NOT NULL COMMENT '系统角色 ID。',
@@ -415,7 +439,8 @@ CREATE TABLE IF NOT EXISTS `un_module_role_explicit_deny` (
   KEY `idx_module_role_deny_system` (`system_id`, `deny_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='显式禁用权限项，优先于授权并集。';
 
-CREATE TABLE IF NOT EXISTS `un_module_permission_version` (
+DROP TABLE IF EXISTS `un_module_permission_version`;
+CREATE TABLE `un_module_permission_version` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `tenant_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '租户归属；0 表示系统级。',
@@ -429,7 +454,8 @@ CREATE TABLE IF NOT EXISTS `un_module_permission_version` (
   UNIQUE KEY `uk_module_perm_version` (`system_id`, `tenant_id`, `delete_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='权限缓存版本。';
 
-CREATE TABLE IF NOT EXISTS `un_module_dict_type` (
+DROP TABLE IF EXISTS `un_module_dict_type`;
+CREATE TABLE `un_module_dict_type` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `scope_type` VARCHAR(16) NOT NULL DEFAULT 'SYSTEM' COMMENT '作用域：SYSTEM、TENANT。',
@@ -453,7 +479,8 @@ CREATE TABLE IF NOT EXISTS `un_module_dict_type` (
   KEY `idx_module_dict_type_tenant` (`system_id`, `scope_tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统级或租户级字典类型。';
 
-CREATE TABLE IF NOT EXISTS `un_module_dict_item` (
+DROP TABLE IF EXISTS `un_module_dict_item`;
+CREATE TABLE `un_module_dict_item` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID，冗余用于隔离和索引。',
   `dict_type_id` BIGINT UNSIGNED NOT NULL COMMENT '字典类型 ID。',
@@ -482,7 +509,8 @@ CREATE TABLE IF NOT EXISTS `un_module_dict_item` (
   KEY `idx_module_dict_item_path` (`dict_type_id`, `depth_path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='字典项，支持层级和内置只读。';
 
-CREATE TABLE IF NOT EXISTS `un_module_dict_reference` (
+DROP TABLE IF EXISTS `un_module_dict_reference`;
+CREATE TABLE `un_module_dict_reference` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统 ID。',
   `dict_type_id` BIGINT UNSIGNED NOT NULL COMMENT '字典类型 ID。',
@@ -505,7 +533,8 @@ CREATE TABLE IF NOT EXISTS `un_module_dict_reference` (
   KEY `idx_module_dict_ref_field` (`module_id`, `field_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='字典被字段、发布版本、记录值引用的摘要。';
 
-CREATE TABLE IF NOT EXISTS `un_module_app` (
+DROP TABLE IF EXISTS `un_module_app`;
+CREATE TABLE `un_module_app` (
   `app_id` BIGINT UNSIGNED NOT NULL COMMENT '应用 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户；单租户系统使用默认租户。',
@@ -528,7 +557,8 @@ CREATE TABLE IF NOT EXISTS `un_module_app` (
   KEY `idx_module_app_system_status` (`system_id`, `tenant_id`, `app_status`, `sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统/租户下业务应用主表。';
 
-CREATE TABLE IF NOT EXISTS `un_module_app_version` (
+DROP TABLE IF EXISTS `un_module_app_version`;
+CREATE TABLE `un_module_app_version` (
   `app_version_id` BIGINT UNSIGNED NOT NULL COMMENT '应用版本 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -546,7 +576,8 @@ CREATE TABLE IF NOT EXISTS `un_module_app_version` (
   UNIQUE KEY `uk_module_app_version` (`app_id`, `version_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='应用级配置版本和发布快照摘要。';
 
-CREATE TABLE IF NOT EXISTS `un_module_model` (
+DROP TABLE IF EXISTS `un_module_model`;
+CREATE TABLE `un_module_model` (
   `module_id` BIGINT UNSIGNED NOT NULL COMMENT '模块 ID，对应 API moduleId。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -571,7 +602,8 @@ CREATE TABLE IF NOT EXISTS `un_module_model` (
   KEY `idx_module_model_app_status` (`app_id`, `module_status`, `sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='动态模块主表。';
 
-CREATE TABLE IF NOT EXISTS `un_module_field` (
+DROP TABLE IF EXISTS `un_module_field`;
+CREATE TABLE `un_module_field` (
   `field_id` BIGINT UNSIGNED NOT NULL COMMENT '字段 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -602,7 +634,8 @@ CREATE TABLE IF NOT EXISTS `un_module_field` (
   KEY `idx_module_field_module_status` (`module_id`, `field_status`, `sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='模块字段定义、校验、唯一、关联、子表和自动编号配置。';
 
-CREATE TABLE IF NOT EXISTS `un_module_field_option` (
+DROP TABLE IF EXISTS `un_module_field_option`;
+CREATE TABLE `un_module_field_option` (
   `option_id` BIGINT UNSIGNED NOT NULL COMMENT '选项 ID。',
   `field_id` BIGINT UNSIGNED NOT NULL COMMENT '字段 ID。',
   `code` VARCHAR(64) NOT NULL COMMENT '选项编码。',
@@ -619,7 +652,8 @@ CREATE TABLE IF NOT EXISTS `un_module_field_option` (
   UNIQUE KEY `uk_module_field_option_value` (`field_id`, `value`, `delete_marker`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='单选、多选、标签等字段静态选项。';
 
-CREATE TABLE IF NOT EXISTS `un_module_unique_constraint` (
+DROP TABLE IF EXISTS `un_module_unique_constraint`;
+CREATE TABLE `un_module_unique_constraint` (
   `constraint_id` BIGINT UNSIGNED NOT NULL COMMENT '组合唯一约束 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -639,7 +673,8 @@ CREATE TABLE IF NOT EXISTS `un_module_unique_constraint` (
   UNIQUE KEY `uk_module_unique_constraint_code` (`module_id`, `constraint_code`, `delete_marker`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='组合唯一约束配置。';
 
-CREATE TABLE IF NOT EXISTS `un_module_page_schema` (
+DROP TABLE IF EXISTS `un_module_page_schema`;
+CREATE TABLE `un_module_page_schema` (
   `schema_id` BIGINT UNSIGNED NOT NULL COMMENT '页面 schema ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -660,7 +695,8 @@ CREATE TABLE IF NOT EXISTS `un_module_page_schema` (
   UNIQUE KEY `uk_module_page_schema` (`module_id`, `page_type`, `schema_code`, `delete_marker`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='列表、表单、详情 schema 草稿。';
 
-CREATE TABLE IF NOT EXISTS `un_module_menu` (
+DROP TABLE IF EXISTS `un_module_menu`;
+CREATE TABLE `un_module_menu` (
   `menu_id` BIGINT UNSIGNED NOT NULL COMMENT '菜单 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '租户；系统级菜单可为空。',
@@ -684,7 +720,8 @@ CREATE TABLE IF NOT EXISTS `un_module_menu` (
   UNIQUE KEY `uk_module_menu_code` (`system_id`, `parent_id`, `code`, `delete_marker`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='运行菜单和模块入口配置。';
 
-CREATE TABLE IF NOT EXISTS `un_module_action` (
+DROP TABLE IF EXISTS `un_module_action`;
+CREATE TABLE `un_module_action` (
   `action_id` BIGINT UNSIGNED NOT NULL COMMENT '动作 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -704,7 +741,8 @@ CREATE TABLE IF NOT EXISTS `un_module_action` (
   UNIQUE KEY `uk_module_action_code` (`module_id`, `action_code`, `delete_marker`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='模块按钮、行操作、详情操作和导出入口动作。';
 
-CREATE TABLE IF NOT EXISTS `un_module_publish_version` (
+DROP TABLE IF EXISTS `un_module_publish_version`;
+CREATE TABLE `un_module_publish_version` (
   `publish_version_id` BIGINT UNSIGNED NOT NULL COMMENT '发布版本 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -728,7 +766,8 @@ CREATE TABLE IF NOT EXISTS `un_module_publish_version` (
   KEY `idx_module_publish_current` (`module_id`, `publish_status`, `published_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='模块发布版本快照，运行态只读。';
 
-CREATE TABLE IF NOT EXISTS `un_module_serial_sequence` (
+DROP TABLE IF EXISTS `un_module_serial_sequence`;
+CREATE TABLE `un_module_serial_sequence` (
   `sequence_id` BIGINT UNSIGNED NOT NULL COMMENT '序号规则 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -745,7 +784,8 @@ CREATE TABLE IF NOT EXISTS `un_module_serial_sequence` (
   UNIQUE KEY `uk_module_serial_scope` (`system_id`, `tenant_id`, `module_id`, `field_id`, `scope_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='自动编号字段的事务内原子序号段。';
 
-CREATE TABLE IF NOT EXISTS `un_module_record` (
+DROP TABLE IF EXISTS `un_module_record`;
+CREATE TABLE `un_module_record` (
   `record_id` BIGINT UNSIGNED NOT NULL COMMENT '记录 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -772,7 +812,8 @@ CREATE TABLE IF NOT EXISTS `un_module_record` (
   KEY `idx_module_record_creator` (`module_id`, `created_by`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='动态业务记录主表。';
 
-CREATE TABLE IF NOT EXISTS `un_module_record_value` (
+DROP TABLE IF EXISTS `un_module_record_value`;
+CREATE TABLE `un_module_record_value` (
   `value_id` BIGINT UNSIGNED NOT NULL COMMENT '字段值 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -798,7 +839,8 @@ CREATE TABLE IF NOT EXISTS `un_module_record_value` (
   KEY `idx_module_record_value_field` (`module_id`, `field_id`, `updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='EAV 字段值 typed columns 和展示快照。';
 
-CREATE TABLE IF NOT EXISTS `un_module_record_index` (
+DROP TABLE IF EXISTS `un_module_record_index`;
+CREATE TABLE `un_module_record_index` (
   `index_id` BIGINT UNSIGNED NOT NULL COMMENT '索引值 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -823,7 +865,8 @@ CREATE TABLE IF NOT EXISTS `un_module_record_index` (
   KEY `idx_module_index_hash` (`module_id`, `field_id`, `index_hash`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='动态字段查询、排序、筛选 typed index。';
 
-CREATE TABLE IF NOT EXISTS `un_module_record_unique_index` (
+DROP TABLE IF EXISTS `un_module_record_unique_index`;
+CREATE TABLE `un_module_record_unique_index` (
   `unique_index_id` BIGINT UNSIGNED NOT NULL COMMENT '唯一索引记录 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -841,7 +884,8 @@ CREATE TABLE IF NOT EXISTS `un_module_record_unique_index` (
   UNIQUE KEY `uk_module_record_unique` (`system_id`, `tenant_id`, `module_id`, `constraint_code`, `combined_value_hash`, `active_unique_marker`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='字段级唯一和组合唯一 typed hash 索引。';
 
-CREATE TABLE IF NOT EXISTS `un_module_record_relation` (
+DROP TABLE IF EXISTS `un_module_record_relation`;
+CREATE TABLE `un_module_record_relation` (
   `relation_id` BIGINT UNSIGNED NOT NULL COMMENT '关联关系 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -861,7 +905,8 @@ CREATE TABLE IF NOT EXISTS `un_module_record_relation` (
   KEY `idx_module_relation_target` (`target_module_id`, `target_record_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='关联字段保存的记录间关系。';
 
-CREATE TABLE IF NOT EXISTS `un_module_record_child_row` (
+DROP TABLE IF EXISTS `un_module_record_child_row`;
+CREATE TABLE `un_module_record_child_row` (
   `child_row_id` BIGINT UNSIGNED NOT NULL COMMENT '子表行 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -879,7 +924,8 @@ CREATE TABLE IF NOT EXISTS `un_module_record_child_row` (
   KEY `idx_module_child_record` (`record_id`, `parent_field_id`, `row_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='子表字段行数据和行顺序。';
 
-CREATE TABLE IF NOT EXISTS `un_module_record_history` (
+DROP TABLE IF EXISTS `un_module_record_history`;
+CREATE TABLE `un_module_record_history` (
   `history_id` BIGINT UNSIGNED NOT NULL COMMENT '历史 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -904,7 +950,8 @@ CREATE TABLE IF NOT EXISTS `un_module_record_history` (
   KEY `idx_module_history_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='记录变更、状态、附件和发布版本历史快照。';
 
-CREATE TABLE IF NOT EXISTS `un_module_export_template` (
+DROP TABLE IF EXISTS `un_module_export_template`;
+CREATE TABLE `un_module_export_template` (
   `template_id` BIGINT UNSIGNED NOT NULL COMMENT '导出模板 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -926,7 +973,8 @@ CREATE TABLE IF NOT EXISTS `un_module_export_template` (
   UNIQUE KEY `uk_module_export_template_code` (`system_id`, `tenant_id`, `module_id`, `template_code`, `delete_marker`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='导出模板主表。';
 
-CREATE TABLE IF NOT EXISTS `un_module_export_template_field` (
+DROP TABLE IF EXISTS `un_module_export_template_field`;
+CREATE TABLE `un_module_export_template_field` (
   `template_field_id` BIGINT UNSIGNED NOT NULL COMMENT '模板字段 ID。',
   `template_id` BIGINT UNSIGNED NOT NULL COMMENT '模板 ID。',
   `field_id` BIGINT UNSIGNED NOT NULL COMMENT '字段 ID。',
@@ -943,7 +991,8 @@ CREATE TABLE IF NOT EXISTS `un_module_export_template_field` (
   UNIQUE KEY `uk_module_export_template_field` (`template_id`, `field_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='导出模板字段列、顺序和脱敏配置。';
 
-CREATE TABLE IF NOT EXISTS `un_module_export_job` (
+DROP TABLE IF EXISTS `un_module_export_job`;
+CREATE TABLE `un_module_export_job` (
   `job_id` BIGINT UNSIGNED NOT NULL COMMENT '导出任务 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属租户。',
@@ -984,7 +1033,8 @@ CREATE TABLE IF NOT EXISTS `un_module_export_job` (
   KEY `idx_module_export_job_result` (`result_file_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='导出任务、筛选快照、权限快照、结果文件引用和重试状态。';
 
-CREATE TABLE IF NOT EXISTS `un_module_export_job_log` (
+DROP TABLE IF EXISTS `un_module_export_job_log`;
+CREATE TABLE `un_module_export_job_log` (
   `log_id` BIGINT UNSIGNED NOT NULL COMMENT '日志 ID。',
   `job_id` BIGINT UNSIGNED NOT NULL COMMENT '导出任务 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
@@ -1007,7 +1057,8 @@ CREATE TABLE IF NOT EXISTS `un_module_export_job_log` (
   KEY `idx_module_export_log_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='导出任务状态流转、领取、失败和重试日志。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_template` (
+DROP TABLE IF EXISTS `un_flow_template`;
+CREATE TABLE `un_flow_template` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1025,7 +1076,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_template` (
   KEY `idx_flow_template_system_status` (`system_id`, `tenant_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='流程模板主表。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_template_version` (
+DROP TABLE IF EXISTS `un_flow_template_version`;
+CREATE TABLE `un_flow_template_version` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1044,7 +1096,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_template_version` (
   KEY `idx_flow_version_template_status` (`template_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='流程发布版本和结构快照。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_template_node` (
+DROP TABLE IF EXISTS `un_flow_template_node`;
+CREATE TABLE `un_flow_template_node` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `template_version_id` BIGINT UNSIGNED NOT NULL COMMENT '流程发布版本 ID。',
@@ -1062,7 +1115,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_template_node` (
   KEY `idx_flow_node_version` (`template_version_id`, `node_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='发布版本内节点结构。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_template_line` (
+DROP TABLE IF EXISTS `un_flow_template_line`;
+CREATE TABLE `un_flow_template_line` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `template_version_id` BIGINT UNSIGNED NOT NULL COMMENT '流程发布版本 ID。',
@@ -1078,7 +1132,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_template_line` (
   KEY `idx_flow_line_from` (`template_version_id`, `from_node_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='发布版本内连线结构。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_template_condition` (
+DROP TABLE IF EXISTS `un_flow_template_condition`;
+CREATE TABLE `un_flow_template_condition` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `line_id` BIGINT UNSIGNED NOT NULL COMMENT '连线 ID。',
@@ -1094,7 +1149,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_template_condition` (
   KEY `idx_flow_condition_field` (`system_id`, `field_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='连线条件表达式结构化存储。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_binding` (
+DROP TABLE IF EXISTS `un_flow_binding`;
+CREATE TABLE `un_flow_binding` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1112,7 +1168,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_binding` (
   KEY `idx_flow_binding_version` (`template_version_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='模块提交动作与流程版本绑定。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_instance` (
+DROP TABLE IF EXISTS `un_flow_instance`;
+CREATE TABLE `un_flow_instance` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1135,7 +1192,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_instance` (
   KEY `idx_flow_instance_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='业务记录发起后的流程实例。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_task` (
+DROP TABLE IF EXISTS `un_flow_task`;
+CREATE TABLE `un_flow_task` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1159,7 +1217,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_task` (
   KEY `idx_flow_task_handler` (`handler_member_id`, `status`, `handled_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='待办任务、领取、处理和并发版本控制。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_task_actor` (
+DROP TABLE IF EXISTS `un_flow_task_actor`;
+CREATE TABLE `un_flow_task_actor` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `task_id` BIGINT UNSIGNED NOT NULL COMMENT '流程任务 ID。',
@@ -1174,7 +1233,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_task_actor` (
   KEY `idx_flow_actor_member` (`system_id`, `actor_member_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='任务候选人、处理人和转交目标。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_cc` (
+DROP TABLE IF EXISTS `un_flow_cc`;
+CREATE TABLE `un_flow_cc` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1190,7 +1250,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_cc` (
   KEY `idx_flow_cc_member` (`system_id`, `cc_member_id`, `read_status`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='流程抄送与已读状态。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_action_log` (
+DROP TABLE IF EXISTS `un_flow_action_log`;
+CREATE TABLE `un_flow_action_log` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1210,7 +1271,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_action_log` (
   KEY `idx_flow_action_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='审批动作日志。';
 
-CREATE TABLE IF NOT EXISTS `un_flow_trace_log` (
+DROP TABLE IF EXISTS `un_flow_trace_log`;
+CREATE TABLE `un_flow_trace_log` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `instance_id` BIGINT UNSIGNED NOT NULL COMMENT '流程实例 ID。',
@@ -1226,7 +1288,8 @@ CREATE TABLE IF NOT EXISTS `un_flow_trace_log` (
   KEY `idx_flow_trace_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='流程推进轨迹日志。';
 
-CREATE TABLE IF NOT EXISTS `un_upload_storage_config` (
+DROP TABLE IF EXISTS `un_upload_storage_config`;
+CREATE TABLE `un_upload_storage_config` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属系统；为空表示平台默认配置。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1248,7 +1311,8 @@ CREATE TABLE IF NOT EXISTS `un_upload_storage_config` (
   KEY `idx_upload_storage_default` (`system_id`, `tenant_id`, `default_flag`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='存储配置和默认存储策略。';
 
-CREATE TABLE IF NOT EXISTS `un_upload_file` (
+DROP TABLE IF EXISTS `un_upload_file`;
+CREATE TABLE `un_upload_file` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1276,7 +1340,8 @@ CREATE TABLE IF NOT EXISTS `un_upload_file` (
   KEY `idx_upload_file_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文件元数据、临时状态、对象存储定位和安全属性。';
 
-CREATE TABLE IF NOT EXISTS `un_upload_file_part` (
+DROP TABLE IF EXISTS `un_upload_file_part`;
+CREATE TABLE `un_upload_file_part` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `file_id` BIGINT UNSIGNED NOT NULL COMMENT '文件 ID。',
@@ -1293,7 +1358,8 @@ CREATE TABLE IF NOT EXISTS `un_upload_file_part` (
   KEY `idx_upload_part_status` (`file_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='分片上传预留表。';
 
-CREATE TABLE IF NOT EXISTS `un_upload_file_reference` (
+DROP TABLE IF EXISTS `un_upload_file_reference`;
+CREATE TABLE `un_upload_file_reference` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '所属系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '所属租户。',
@@ -1318,7 +1384,8 @@ CREATE TABLE IF NOT EXISTS `un_upload_file_reference` (
   KEY `idx_upload_ref_record` (`system_id`, `module_id`, `record_id`, `field_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文件与业务对象、动态字段、导出结果之间的引用关系。';
 
-CREATE TABLE IF NOT EXISTS `un_openapi_client` (
+DROP TABLE IF EXISTS `un_openapi_client`;
+CREATE TABLE `un_openapi_client` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '绑定系统。',
   `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '绑定租户。',
@@ -1338,7 +1405,8 @@ CREATE TABLE IF NOT EXISTS `un_openapi_client` (
   KEY `idx_openapi_client_status` (`system_id`, `tenant_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='外部客户端，绑定系统、租户和状态。';
 
-CREATE TABLE IF NOT EXISTS `un_openapi_client_credential` (
+DROP TABLE IF EXISTS `un_openapi_client_credential`;
+CREATE TABLE `un_openapi_client_credential` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `client_id` BIGINT UNSIGNED NOT NULL COMMENT 'OpenAPI 客户端 ID。',
   `access_key` VARCHAR(128) NOT NULL COMMENT 'AK，外部请求传入。',
@@ -1359,7 +1427,8 @@ CREATE TABLE IF NOT EXISTS `un_openapi_client_credential` (
   KEY `idx_openapi_credential_client` (`client_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AK/SK 凭证、密钥密文、轮换和过期状态。';
 
-CREATE TABLE IF NOT EXISTS `un_openapi_client_scope` (
+DROP TABLE IF EXISTS `un_openapi_client_scope`;
+CREATE TABLE `un_openapi_client_scope` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `client_id` BIGINT UNSIGNED NOT NULL COMMENT 'OpenAPI 客户端 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '绑定系统。',
@@ -1376,7 +1445,8 @@ CREATE TABLE IF NOT EXISTS `un_openapi_client_scope` (
   KEY `idx_openapi_scope_system` (`system_id`, `tenant_id`, `scope_code`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='scope、模块、动作、字段读写权限和数据范围。';
 
-CREATE TABLE IF NOT EXISTS `un_openapi_ip_whitelist` (
+DROP TABLE IF EXISTS `un_openapi_ip_whitelist`;
+CREATE TABLE `un_openapi_ip_whitelist` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `client_id` BIGINT UNSIGNED NOT NULL COMMENT 'OpenAPI 客户端 ID。',
   `ip_rule` VARCHAR(64) NOT NULL COMMENT 'IP 或 CIDR。',
@@ -1390,7 +1460,8 @@ CREATE TABLE IF NOT EXISTS `un_openapi_ip_whitelist` (
   KEY `idx_openapi_ip_status` (`client_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='IP/CIDR 白名单。';
 
-CREATE TABLE IF NOT EXISTS `un_openapi_nonce` (
+DROP TABLE IF EXISTS `un_openapi_nonce`;
+CREATE TABLE `un_openapi_nonce` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `client_id` BIGINT UNSIGNED NOT NULL COMMENT 'OpenAPI 客户端 ID。',
   `access_key` VARCHAR(128) NOT NULL COMMENT 'AK。',
@@ -1405,7 +1476,8 @@ CREATE TABLE IF NOT EXISTS `un_openapi_nonce` (
   KEY `idx_openapi_nonce_expire` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='nonce 去重和 TTL。';
 
-CREATE TABLE IF NOT EXISTS `un_openapi_idempotency_record` (
+DROP TABLE IF EXISTS `un_openapi_idempotency_record`;
+CREATE TABLE `un_openapi_idempotency_record` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `client_id` BIGINT UNSIGNED NOT NULL COMMENT 'OpenAPI 客户端 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '系统 ID。',
@@ -1429,7 +1501,8 @@ CREATE TABLE IF NOT EXISTS `un_openapi_idempotency_record` (
   KEY `idx_openapi_idempotency_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='外部写接口幂等记录、请求摘要和结果快照。';
 
-CREATE TABLE IF NOT EXISTS `un_openapi_rate_limit_policy` (
+DROP TABLE IF EXISTS `un_openapi_rate_limit_policy`;
+CREATE TABLE `un_openapi_rate_limit_policy` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `client_id` BIGINT UNSIGNED NOT NULL COMMENT 'OpenAPI 客户端 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '系统 ID。',
@@ -1449,7 +1522,8 @@ CREATE TABLE IF NOT EXISTS `un_openapi_rate_limit_policy` (
   KEY `idx_openapi_rate_policy` (`client_id`, `api_id`, `scope_code`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='客户端限流策略。';
 
-CREATE TABLE IF NOT EXISTS `un_openapi_rate_limit_counter` (
+DROP TABLE IF EXISTS `un_openapi_rate_limit_counter`;
+CREATE TABLE `un_openapi_rate_limit_counter` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `policy_id` BIGINT UNSIGNED NOT NULL COMMENT '限流策略 ID。',
   `dimension_key` VARCHAR(500) NOT NULL COMMENT 'clientId + systemId + tenantId + apiId + scopeCode + sourceIp。',
@@ -1464,7 +1538,8 @@ CREATE TABLE IF NOT EXISTS `un_openapi_rate_limit_counter` (
   KEY `idx_openapi_rate_counter_window` (`window_end_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='限流窗口计数。';
 
-CREATE TABLE IF NOT EXISTS `un_openapi_access_log` (
+DROP TABLE IF EXISTS `un_openapi_access_log`;
+CREATE TABLE `un_openapi_access_log` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `request_id` VARCHAR(64) NOT NULL COMMENT '请求追踪 ID。',
   `trace_id` VARCHAR(64) NULL DEFAULT NULL COMMENT '链路追踪 ID。',
@@ -1497,7 +1572,8 @@ CREATE TABLE IF NOT EXISTS `un_openapi_access_log` (
   KEY `idx_openapi_access_error` (`error_code`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='外部调用日志。';
 
-CREATE TABLE IF NOT EXISTS `un_sys_idempotency_record` (
+DROP TABLE IF EXISTS `un_sys_idempotency_record`;
+CREATE TABLE `un_sys_idempotency_record` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `caller_type` VARCHAR(32) NOT NULL DEFAULT 'INTERNAL' COMMENT 'INTERNAL；OpenAPI 使用专表。',
   `account_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '平台账号 ID。',
@@ -1521,7 +1597,8 @@ CREATE TABLE IF NOT EXISTS `un_sys_idempotency_record` (
   KEY `idx_sys_idempotency_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='内部写接口幂等记录。';
 
-CREATE TABLE IF NOT EXISTS `un_sys_request_log` (
+DROP TABLE IF EXISTS `un_sys_request_log`;
+CREATE TABLE `un_sys_request_log` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `request_id` VARCHAR(64) NOT NULL COMMENT '请求追踪 ID。',
   `trace_id` VARCHAR(64) NULL DEFAULT NULL COMMENT '链路追踪 ID。',
@@ -1544,7 +1621,8 @@ CREATE TABLE IF NOT EXISTS `un_sys_request_log` (
   KEY `idx_sys_request_operator` (`operator_type`, `operator_id`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='内部请求日志。';
 
-CREATE TABLE IF NOT EXISTS `un_sys_error_log` (
+DROP TABLE IF EXISTS `un_sys_error_log`;
+CREATE TABLE `un_sys_error_log` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `request_id` VARCHAR(64) NOT NULL COMMENT '请求追踪 ID。',
   `trace_id` VARCHAR(64) NULL DEFAULT NULL COMMENT '链路追踪 ID。',
@@ -1562,7 +1640,8 @@ CREATE TABLE IF NOT EXISTS `un_sys_error_log` (
   KEY `idx_sys_error_code` (`error_code`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='错误码、栈摘要和 requestId。';
 
-CREATE TABLE IF NOT EXISTS `un_audit_operation_log` (
+DROP TABLE IF EXISTS `un_audit_operation_log`;
+CREATE TABLE `un_audit_operation_log` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `request_id` VARCHAR(64) NOT NULL COMMENT '请求追踪 ID。',
   `trace_id` VARCHAR(64) NULL DEFAULT NULL COMMENT '链路追踪 ID。',
@@ -1586,7 +1665,8 @@ CREATE TABLE IF NOT EXISTS `un_audit_operation_log` (
   KEY `idx_audit_operation_operator` (`operator_type`, `operator_id`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台、系统、运行、流程、文件和 OpenAPI 操作审计。';
 
-CREATE TABLE IF NOT EXISTS `un_audit_record_change` (
+DROP TABLE IF EXISTS `un_audit_record_change`;
+CREATE TABLE `un_audit_record_change` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `request_id` VARCHAR(64) NOT NULL COMMENT '请求追踪 ID。',
   `system_id` BIGINT UNSIGNED NOT NULL COMMENT '系统 ID。',
@@ -1605,7 +1685,8 @@ CREATE TABLE IF NOT EXISTS `un_audit_record_change` (
   KEY `idx_audit_record_change_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='动态记录字段变更前后快照。';
 
-CREATE TABLE IF NOT EXISTS `un_sys_health_check_result` (
+DROP TABLE IF EXISTS `un_sys_health_check_result`;
+CREATE TABLE `un_sys_health_check_result` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `request_id` VARCHAR(64) NOT NULL COMMENT '请求追踪 ID。',
   `component` VARCHAR(64) NOT NULL COMMENT '组件，如 DB、REDIS、UPLOAD_STORAGE、OPENAPI_KEY。',
@@ -1621,7 +1702,8 @@ CREATE TABLE IF NOT EXISTS `un_sys_health_check_result` (
   KEY `idx_sys_health_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='健康检查结果。';
 
-CREATE TABLE IF NOT EXISTS `un_sys_runtime_config_check` (
+DROP TABLE IF EXISTS `un_sys_runtime_config_check`;
+CREATE TABLE `un_sys_runtime_config_check` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `request_id` VARCHAR(64) NOT NULL COMMENT '请求追踪 ID。',
   `config_key` VARCHAR(128) NOT NULL COMMENT '配置键。',
@@ -1637,7 +1719,8 @@ CREATE TABLE IF NOT EXISTS `un_sys_runtime_config_check` (
   KEY `idx_sys_config_check_request` (`request_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='运行配置检查结果。';
 
-CREATE TABLE IF NOT EXISTS `un_sys_migration_status` (
+DROP TABLE IF EXISTS `un_sys_migration_status`;
+CREATE TABLE `un_sys_migration_status` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT 'Primary key ID.',
   `version` VARCHAR(64) NOT NULL COMMENT 'migration 版本。',
   `description` VARCHAR(255) NULL DEFAULT NULL COMMENT 'migration 描述。',

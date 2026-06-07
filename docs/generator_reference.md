@@ -38,4 +38,5 @@
   - `un_openapi_ -> backend/examine-app/src/main/java/com/unique/examine/app/base/`
   - `un_sys_` / `un_audit_ -> backend/examine-core/src/main/java/com/unique/examine/core/base/`
 - 只生成贴表基础能力：entity、mapper、mapper.xml、service、serviceImpl。
-- 每次执行必须输出 `backend/docs/mybatis-plus-generation.md`，记录连接来源、表清单、模块映射、命令、生成路径和失败阻塞。
+- 生成器采用“命令即配置”，每条命令显式传入模块名、表前缀、base 包、Java 输出目录和 mapper XML 输出目录；不再维护额外表映射文件，也不默认输出报告文件。
+- 可复跑命令入口维护在 `backend/examine-generator/scripts/generate-base-crud.ps1`，执行说明维护在 `backend/examine-generator/README.md`。

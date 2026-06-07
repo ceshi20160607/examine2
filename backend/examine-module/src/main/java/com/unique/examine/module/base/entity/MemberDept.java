@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 成员与部门关联。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

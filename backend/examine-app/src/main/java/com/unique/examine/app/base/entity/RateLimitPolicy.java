@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 客户端限流策略。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * nonce 去重和 TTL。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface NonceMapper extends BaseMapper<Nonce> {

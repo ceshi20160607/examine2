@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 成员与系统角色关联。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface MemberRoleMapper extends BaseMapper<MemberRole> {

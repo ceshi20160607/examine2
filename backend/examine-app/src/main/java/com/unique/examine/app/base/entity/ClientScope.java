@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * scope、模块、动作、字段读写权限和数据范围。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

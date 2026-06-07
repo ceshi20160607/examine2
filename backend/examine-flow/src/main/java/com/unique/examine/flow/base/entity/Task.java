@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 待办任务、领取、处理和并发版本控制。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

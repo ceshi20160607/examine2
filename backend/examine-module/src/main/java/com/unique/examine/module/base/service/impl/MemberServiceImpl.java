@@ -18,7 +18,7 @@ import java.util.List;
  * 平台账号在系统内的成员扩展，不是独立登录账号。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member>

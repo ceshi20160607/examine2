@@ -13,7 +13,7 @@ import java.util.List;
  * 平台中心操作权限点。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IOperationService extends IService<Operation> {
 

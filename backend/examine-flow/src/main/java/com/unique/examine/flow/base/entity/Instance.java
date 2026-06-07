@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 业务记录发起后的流程实例。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

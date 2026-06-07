@@ -18,7 +18,7 @@ import java.util.List;
  * 系统/租户下业务应用主表。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class AppServiceImpl extends ServiceImpl<AppMapper, App>

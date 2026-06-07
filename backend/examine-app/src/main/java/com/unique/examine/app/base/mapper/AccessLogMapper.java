@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 外部调用日志。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface AccessLogMapper extends BaseMapper<AccessLog> {

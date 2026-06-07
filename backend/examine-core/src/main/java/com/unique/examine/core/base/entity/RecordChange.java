@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 动态记录字段变更前后快照。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

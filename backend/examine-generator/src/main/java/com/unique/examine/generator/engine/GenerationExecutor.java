@@ -36,29 +36,35 @@ public final class GenerationExecutor {
             throw new IllegalArgumentException("Unsupported table prefixes: " + String.join(", ", plan.skippedTables()));
         }
 
-        // MyBatis-Plus 每次生成只能设置一组输出目录，因此先按模块映射分组再逐组执行。
-        Map<GeneratorModuleMapping, List<String>> groupedTables = new LinkedHashMap<>();
+        // MyBatis-Plus 每次生成只能设置一组输出目录，因此先按模块映射和前缀分组再逐组执行。
+        List<GenerationRequest> requests = new ArrayList<>();
+        Map<GeneratorModuleMapping, List<String>> explicitTables = new LinkedHashMap<>();
         for (GenerationPlan.TableGenerationPlan tablePlan : plan.tablePlans()) {
             if (tablePlan.tableName().endsWith("*")) {
-                throw new IllegalArgumentException("Prefix wildcard is only supported for dry-run: " + tablePlan.tableName());
+                String prefix = tablePlan.tableName().substring(0, tablePlan.tableName().length() - 1);
+                requests.add(new GenerationRequest(tablePlan.mapping(), prefix, List.of()));
+            } else {
+                explicitTables.computeIfAbsent(tablePlan.mapping(), key -> new ArrayList<>()).add(tablePlan.tableName());
             }
-            groupedTables.computeIfAbsent(tablePlan.mapping(), key -> new ArrayList<>()).add(tablePlan.tableName());
+        }
+        for (Map.Entry<GeneratorModuleMapping, List<String>> entry : explicitTables.entrySet()) {
+            requests.add(new GenerationRequest(entry.getKey(), null, List.copyOf(entry.getValue())));
         }
 
         List<ExecutedModule> executedModules = new ArrayList<>();
         List<Path> removedControllerDirectories = new ArrayList<>();
-        for (Map.Entry<GeneratorModuleMapping, List<String>> entry : groupedTables.entrySet()) {
-            GeneratorModuleMapping mapping = entry.getKey();
-            List<String> tableNames = List.copyOf(entry.getValue());
+        for (GenerationRequest request : requests) {
+            GeneratorModuleMapping mapping = request.mapping();
             FastAutoGenerator.create(MybatisPlusGeneratorConfigFactory.dataSourceConfig(properties))
                     .globalConfig(MybatisPlusGeneratorConfigFactory.globalConfig(properties, mapping))
                     .packageConfig(MybatisPlusGeneratorConfigFactory.packageConfig(properties, mapping))
-                    .strategyConfig(MybatisPlusGeneratorConfigFactory.strategyConfig(mapping, tableNames))
+                    .strategyConfig(MybatisPlusGeneratorConfigFactory.strategyConfig(mapping, request.tableNames(),
+                            request.tablePrefix()))
                     .templateConfig(MybatisPlusGeneratorConfigFactory.templateConfig())
                     .templateEngine(new UniqueFreemarkerTemplateEngine())
                     .execute();
             cleanupDefaultControllerOutput(properties, mapping).ifPresent(removedControllerDirectories::add);
-            executedModules.add(new ExecutedModule(mapping, tableNames));
+            executedModules.add(new ExecutedModule(mapping, request.renderSelectedTables()));
         }
 
         return new ExecutionResult(List.copyOf(executedModules), List.copyOf(removedControllerDirectories));
@@ -112,5 +118,15 @@ public final class GenerationExecutor {
      * @param tableNames 已生成表名
      */
     public record ExecutedModule(GeneratorModuleMapping mapping, List<String> tableNames) {
+    }
+
+    private record GenerationRequest(GeneratorModuleMapping mapping, String tablePrefix, List<String> tableNames) {
+
+        private List<String> renderSelectedTables() {
+            if (tablePrefix == null) {
+                return tableNames;
+            }
+            return List.of(tablePrefix + "*");
+        }
     }
 }

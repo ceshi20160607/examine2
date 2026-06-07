@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 运行配置检查结果。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface RuntimeConfigCheckMapper extends BaseMapper<RuntimeConfigCheck> {

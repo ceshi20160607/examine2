@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 运行配置检查结果。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

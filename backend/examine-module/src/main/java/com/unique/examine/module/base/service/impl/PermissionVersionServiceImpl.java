@@ -18,7 +18,7 @@ import java.util.List;
  * 权限缓存版本。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class PermissionVersionServiceImpl extends ServiceImpl<PermissionVersionMapper, PermissionVersion>

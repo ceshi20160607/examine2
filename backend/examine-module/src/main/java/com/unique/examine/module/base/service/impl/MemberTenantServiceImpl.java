@@ -18,7 +18,7 @@ import java.util.List;
  * 成员可访问租户集合。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class MemberTenantServiceImpl extends ServiceImpl<MemberTenantMapper, MemberTenant>

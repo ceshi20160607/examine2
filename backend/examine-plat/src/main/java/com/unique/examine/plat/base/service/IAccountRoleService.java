@@ -13,7 +13,7 @@ import java.util.List;
  * 平台账号与平台角色关联。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IAccountRoleService extends IService<AccountRole> {
 

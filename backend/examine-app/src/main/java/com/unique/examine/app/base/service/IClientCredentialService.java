@@ -13,7 +13,7 @@ import java.util.List;
  * AK/SK 凭证、密钥密文、轮换和过期状态。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IClientCredentialService extends IService<ClientCredential> {
 

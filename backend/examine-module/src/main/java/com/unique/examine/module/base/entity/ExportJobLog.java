@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 导出任务状态流转、领取、失败和重试日志。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

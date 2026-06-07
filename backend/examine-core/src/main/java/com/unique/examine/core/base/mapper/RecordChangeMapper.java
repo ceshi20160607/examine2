@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 动态记录字段变更前后快照。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface RecordChangeMapper extends BaseMapper<RecordChange> {

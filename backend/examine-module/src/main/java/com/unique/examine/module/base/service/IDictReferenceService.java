@@ -13,7 +13,7 @@ import java.util.List;
  * 字典被字段、发布版本、记录值引用的摘要。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IDictReferenceService extends IService<DictReference> {
 

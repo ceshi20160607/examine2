@@ -18,7 +18,7 @@ import java.util.List;
  * 系统管理菜单和运行菜单授权目录。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class SystemMenuServiceImpl extends ServiceImpl<SystemMenuMapper, SystemMenu>

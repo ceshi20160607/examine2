@@ -13,7 +13,7 @@ import java.util.List;
  * 流程发布版本和结构快照。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface ITemplateVersionService extends IService<TemplateVersion> {
 

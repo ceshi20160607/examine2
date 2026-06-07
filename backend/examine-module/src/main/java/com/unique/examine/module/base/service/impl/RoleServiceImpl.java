@@ -18,7 +18,7 @@ import java.util.List;
  * 系统内角色，含系统超级管理员。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role>

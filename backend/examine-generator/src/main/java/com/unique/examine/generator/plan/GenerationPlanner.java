@@ -1,8 +1,6 @@
 package com.unique.examine.generator.plan;
 
 import com.unique.examine.generator.config.GeneratorModuleMapping;
-import com.unique.examine.generator.config.GeneratorModuleMappings;
-import com.unique.examine.generator.config.GeneratorProperties;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -10,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Creates dry-run generation plans without connecting to the database.
+ * 创建生成计划。
  */
 public final class GenerationPlanner {
 
@@ -18,15 +16,17 @@ public final class GenerationPlanner {
     }
 
     /**
-     * Builds a plan for explicit tables and prefix selections.
+     * 根据显式表名或表前缀构建生成计划。
      *
-     * @param properties generator properties
-     * @param tableNames explicit table names
-     * @param prefixes selected table prefixes
-     * @return dry-run generation plan
+     * <p>如果没有传入表名和前缀，默认使用所有已配置模块前缀，直接从数据库按前缀生成。</p>
+     *
+     * @param mappings 本次命令提供的模块映射
+     * @param tableNames 显式表名
+     * @param prefixes 指定表前缀
+     * @return 生成计划
      */
     public static GenerationPlan plan(
-            GeneratorProperties properties,
+            List<GeneratorModuleMapping> mappings,
             List<String> tableNames,
             List<String> prefixes
     ) {
@@ -34,17 +34,24 @@ public final class GenerationPlanner {
         for (String prefix : prefixes) {
             selectedTables.add(prefix + "*");
         }
+        if (selectedTables.isEmpty()) {
+            for (GeneratorModuleMapping mapping : mappings) {
+                for (String prefix : mapping.tablePrefixes()) {
+                    selectedTables.add(prefix + "*");
+                }
+            }
+        }
 
         List<GenerationPlan.TableGenerationPlan> tablePlans = new ArrayList<>();
         List<String> skippedTables = new ArrayList<>();
         for (String tableName : selectedTables) {
             String lookupName = tableName.endsWith("*") ? tableName.substring(0, tableName.length() - 1) : tableName;
-            GeneratorModuleMappings.findByTableName(properties.moduleMappings(), lookupName)
+            findByTableName(mappings, lookupName)
                     .ifPresentOrElse(
                             mapping -> tablePlans.add(new GenerationPlan.TableGenerationPlan(
                                     tableName,
                                     mapping,
-                                    mapping.resolveSourceRoot(properties.backendRoot())
+                                    java.nio.file.Path.of(mapping.sourceRoot())
                             )),
                             () -> skippedTables.add(tableName)
                     );
@@ -53,13 +60,10 @@ public final class GenerationPlanner {
         return new GenerationPlan(List.copyOf(tablePlans), List.copyOf(skippedTables));
     }
 
-    /**
-     * Returns the configured module mappings as a plan-like view.
-     *
-     * @param properties generator properties
-     * @return all configured mappings
-     */
-    public static List<GeneratorModuleMapping> configuredMappings(GeneratorProperties properties) {
-        return properties.moduleMappings();
+    private static java.util.Optional<GeneratorModuleMapping> findByTableName(
+            List<GeneratorModuleMapping> mappings,
+            String tableName
+    ) {
+        return mappings.stream().filter(mapping -> mapping.matches(tableName)).findFirst();
     }
 }

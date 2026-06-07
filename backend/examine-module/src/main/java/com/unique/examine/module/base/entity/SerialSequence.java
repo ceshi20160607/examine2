@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 自动编号字段的事务内原子序号段。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

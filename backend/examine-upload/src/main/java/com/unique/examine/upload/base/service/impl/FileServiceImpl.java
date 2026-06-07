@@ -18,7 +18,7 @@ import java.util.List;
  * 文件元数据、临时状态、对象存储定位和安全属性。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class FileServiceImpl extends ServiceImpl<FileMapper, File>

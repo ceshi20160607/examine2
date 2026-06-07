@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 平台、系统、运行、流程、文件和 OpenAPI 操作审计。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

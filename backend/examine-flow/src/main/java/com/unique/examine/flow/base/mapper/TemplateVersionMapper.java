@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 流程发布版本和结构快照。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface TemplateVersionMapper extends BaseMapper<TemplateVersion> {

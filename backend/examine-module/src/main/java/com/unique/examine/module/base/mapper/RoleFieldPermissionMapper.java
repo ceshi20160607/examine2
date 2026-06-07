@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 字段可见、可写、导出明文和 OpenAPI 读写授权。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface RoleFieldPermissionMapper extends BaseMapper<RoleFieldPermission> {

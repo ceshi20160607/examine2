@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 密码策略、会话策略、文件存储、OpenAPI 全局策略和审计保留配置。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

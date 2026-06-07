@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 文件元数据、临时状态、对象存储定位和安全属性。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

@@ -18,7 +18,7 @@ import java.util.List;
  * 限流窗口计数。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RateLimitCounterServiceImpl extends ServiceImpl<RateLimitCounterMapper, RateLimitCounter>

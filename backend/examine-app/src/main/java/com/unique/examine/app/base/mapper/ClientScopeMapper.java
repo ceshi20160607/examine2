@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * scope、模块、动作、字段读写权限和数据范围。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface ClientScopeMapper extends BaseMapper<ClientScope> {

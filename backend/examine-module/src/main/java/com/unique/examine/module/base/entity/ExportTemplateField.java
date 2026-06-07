@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 导出模板字段列、顺序和脱敏配置。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

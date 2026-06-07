@@ -18,7 +18,7 @@ import java.util.List;
  * 密码策略、会话策略、文件存储、OpenAPI 全局策略和审计保留配置。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config>

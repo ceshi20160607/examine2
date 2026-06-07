@@ -18,7 +18,7 @@ import java.util.List;
  * 模块字段定义、校验、唯一、关联、子表和自动编号配置。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class FieldServiceImpl extends ServiceImpl<FieldMapper, Field>

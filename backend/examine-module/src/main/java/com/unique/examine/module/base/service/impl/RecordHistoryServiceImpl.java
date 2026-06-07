@@ -18,7 +18,7 @@ import java.util.List;
  * 记录变更、状态、附件和发布版本历史快照。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RecordHistoryServiceImpl extends ServiceImpl<RecordHistoryMapper, RecordHistory>

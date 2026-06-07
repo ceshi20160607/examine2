@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 连线条件表达式结构化存储。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

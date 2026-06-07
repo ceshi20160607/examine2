@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 任务候选人、处理人和转交目标。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

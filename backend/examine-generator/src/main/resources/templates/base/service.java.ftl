@@ -13,7 +13,7 @@ import java.util.List;
  * ${table.comment!} 基础 CRUD 服务。
  *
  * @author ${author}
- * @since ${date}
+ * @since generated
  */
 public interface ${table.serviceName} extends ${superServiceClass}<${entity}> {
 

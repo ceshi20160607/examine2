@@ -18,7 +18,7 @@ import java.util.List;
  * IP/CIDR 白名单。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class IpWhitelistServiceImpl extends ServiceImpl<IpWhitelistMapper, IpWhitelist>

@@ -18,7 +18,7 @@ import java.util.List;
  * 字段级唯一和组合唯一 typed hash 索引。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RecordUniqueIndexServiceImpl extends ServiceImpl<RecordUniqueIndexMapper, RecordUniqueIndex>

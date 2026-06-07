@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * EAV 字段值 typed columns 和展示快照。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface RecordValueMapper extends BaseMapper<RecordValue> {

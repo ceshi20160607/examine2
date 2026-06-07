@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * IP/CIDR 白名单。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface IpWhitelistMapper extends BaseMapper<IpWhitelist> {

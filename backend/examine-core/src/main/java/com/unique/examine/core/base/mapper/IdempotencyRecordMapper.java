@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 内部写接口幂等记录。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface IdempotencyRecordMapper extends BaseMapper<IdempotencyRecord> {

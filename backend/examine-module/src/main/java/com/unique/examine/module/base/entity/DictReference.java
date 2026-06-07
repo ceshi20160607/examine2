@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 字典被字段、发布版本、记录值引用的摘要。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

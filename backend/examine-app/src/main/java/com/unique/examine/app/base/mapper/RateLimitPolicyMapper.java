@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 客户端限流策略。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface RateLimitPolicyMapper extends BaseMapper<RateLimitPolicy> {

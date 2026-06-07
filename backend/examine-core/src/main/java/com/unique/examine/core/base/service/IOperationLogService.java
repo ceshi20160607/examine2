@@ -13,7 +13,7 @@ import java.util.List;
  * 平台、系统、运行、流程、文件和 OpenAPI 操作审计。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IOperationLogService extends IService<OperationLog> {
 

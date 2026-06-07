@@ -13,7 +13,7 @@ import java.util.List;
  * 系统角色菜单授权。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IRoleMenuService extends IService<RoleMenu> {
 

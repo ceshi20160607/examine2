@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 错误码、栈摘要和 requestId。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

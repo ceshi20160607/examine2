@@ -13,7 +13,7 @@ import java.util.List;
  * scope、模块、动作、字段读写权限和数据范围。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IClientScopeService extends IService<ClientScope> {
 

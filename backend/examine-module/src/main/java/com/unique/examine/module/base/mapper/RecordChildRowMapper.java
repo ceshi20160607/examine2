@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 子表字段行数据和行顺序。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface RecordChildRowMapper extends BaseMapper<RecordChildRow> {

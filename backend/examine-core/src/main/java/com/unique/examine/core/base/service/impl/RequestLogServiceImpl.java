@@ -18,7 +18,7 @@ import java.util.List;
  * 内部请求日志。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RequestLogServiceImpl extends ServiceImpl<RequestLogMapper, RequestLog>

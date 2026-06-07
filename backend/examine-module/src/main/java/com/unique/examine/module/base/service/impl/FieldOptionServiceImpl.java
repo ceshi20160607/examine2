@@ -18,7 +18,7 @@ import java.util.List;
  * 单选、多选、标签等字段静态选项。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class FieldOptionServiceImpl extends ServiceImpl<FieldOptionMapper, FieldOption>

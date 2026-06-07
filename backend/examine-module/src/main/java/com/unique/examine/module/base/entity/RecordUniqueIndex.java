@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 字段级唯一和组合唯一 typed hash 索引。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

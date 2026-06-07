@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 运行菜单和模块入口配置。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

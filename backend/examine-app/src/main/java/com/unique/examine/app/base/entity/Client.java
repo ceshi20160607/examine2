@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 外部客户端，绑定系统、租户和状态。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

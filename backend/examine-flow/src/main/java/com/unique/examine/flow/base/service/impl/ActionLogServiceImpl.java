@@ -18,7 +18,7 @@ import java.util.List;
  * 审批动作日志。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class ActionLogServiceImpl extends ServiceImpl<ActionLogMapper, ActionLog>

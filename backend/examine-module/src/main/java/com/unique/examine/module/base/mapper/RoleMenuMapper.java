@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 系统角色菜单授权。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface RoleMenuMapper extends BaseMapper<RoleMenu> {

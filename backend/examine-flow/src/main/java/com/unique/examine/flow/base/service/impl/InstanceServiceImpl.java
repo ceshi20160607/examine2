@@ -18,7 +18,7 @@ import java.util.List;
  * 业务记录发起后的流程实例。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class InstanceServiceImpl extends ServiceImpl<InstanceMapper, Instance>

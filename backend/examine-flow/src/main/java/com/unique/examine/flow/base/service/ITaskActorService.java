@@ -13,7 +13,7 @@ import java.util.List;
  * 任务候选人、处理人和转交目标。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface ITaskActorService extends IService<TaskActor> {
 

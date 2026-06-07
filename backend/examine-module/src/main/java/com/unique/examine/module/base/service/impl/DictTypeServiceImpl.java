@@ -18,7 +18,7 @@ import java.util.List;
  * 系统级或租户级字典类型。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class DictTypeServiceImpl extends ServiceImpl<DictTypeMapper, DictType>

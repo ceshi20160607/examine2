@@ -2,6 +2,10 @@
 .idea/
 *.iml
 logs/**
-test
-target
-*/target/**
+/test/
+/target/
+**/target/
+hs_err_pid*.log
+replay_pid*.log
+**/hs_err_pid*.log
+**/replay_pid*.log

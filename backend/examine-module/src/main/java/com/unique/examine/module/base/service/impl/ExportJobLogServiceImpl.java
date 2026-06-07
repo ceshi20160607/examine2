@@ -18,7 +18,7 @@ import java.util.List;
  * 导出任务状态流转、领取、失败和重试日志。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class ExportJobLogServiceImpl extends ServiceImpl<ExportJobLogMapper, ExportJobLog>

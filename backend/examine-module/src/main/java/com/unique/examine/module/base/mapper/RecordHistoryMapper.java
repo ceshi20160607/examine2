@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 记录变更、状态、附件和发布版本历史快照。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface RecordHistoryMapper extends BaseMapper<RecordHistory> {

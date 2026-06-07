@@ -18,7 +18,7 @@ import java.util.List;
  * nonce 去重和 TTL。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class NonceServiceImpl extends ServiceImpl<NonceMapper, Nonce>

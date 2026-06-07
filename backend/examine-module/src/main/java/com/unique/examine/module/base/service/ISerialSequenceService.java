@@ -13,7 +13,7 @@ import java.util.List;
  * 自动编号字段的事务内原子序号段。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface ISerialSequenceService extends IService<SerialSequence> {
 

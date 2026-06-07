@@ -18,7 +18,7 @@ import java.util.List;
  * 平台账号与平台角色关联。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class AccountRoleServiceImpl extends ServiceImpl<AccountRoleMapper, AccountRole>

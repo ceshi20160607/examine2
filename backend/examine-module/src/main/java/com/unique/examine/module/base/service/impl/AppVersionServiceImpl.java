@@ -18,7 +18,7 @@ import java.util.List;
  * 应用级配置版本和发布快照摘要。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class AppVersionServiceImpl extends ServiceImpl<AppVersionMapper, AppVersion>

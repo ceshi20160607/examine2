@@ -6,8 +6,7 @@ import com.unique.examine.generator.config.GeneratorProperties;
 import com.unique.examine.generator.config.GeneratorPropertiesLoader;
 import com.unique.examine.generator.plan.GenerationPlan;
 import com.unique.examine.generator.plan.GenerationPlanner;
-import com.unique.examine.generator.plan.SqlInitTableReader;
-import com.unique.examine.generator.report.GenerationReportWriter;
+import com.unique.examine.generator.sql.SqlScriptExecutor;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -36,27 +35,28 @@ public final class GeneratorCli {
             }
 
             GeneratorProperties properties = GeneratorPropertiesLoader.load(options.backendRoot, options.configFile);
-            // `--all-from-sql` 用于后续表结构变动后的批量再生成，表清单来自当前 init.sql。
-            if (options.allFromSql) {
-                if (options.sqlFile == null) {
-                    throw new IllegalArgumentException("--all-from-sql requires --sql <path>.");
-                }
-                options.tables.addAll(SqlInitTableReader.readTableNames(options.sqlFile));
+            SqlScriptExecutor.ExecutionResult sqlExecutionResult = null;
+            if (options.initSqlFile != null) {
+                sqlExecutionResult = new SqlScriptExecutor().execute(properties.dataSource(), options.initSqlFile);
             }
-            List<GeneratorModuleMapping> mappings = GenerationPlanner.configuredMappings(properties);
-            GenerationPlan plan = GenerationPlanner.plan(properties, options.tables, options.prefixes);
-            Path reportPath = options.reportPath == null
-                    ? properties.backendRoot().resolve("docs/mybatis-plus-generation.md").normalize()
-                    : options.reportPath;
-
+            List<GeneratorModuleMapping> mappings = options.buildMappings();
+            GenerationPlan plan = GenerationPlanner.plan(mappings, options.tables, options.prefixes);
             GenerationExecutor.ExecutionResult executionResult = null;
             if (options.execute) {
+                if (mappings.isEmpty()) {
+                    if (sqlExecutionResult != null) {
+                        System.out.println("SQL initialized: " + sqlExecutionResult.executedStatements() + " statements.");
+                        return;
+                    }
+                    throw new IllegalArgumentException("Generation requires --module-name, --base-package, "
+                            + "--source-root, --mapper-xml-root and --table-prefix.");
+                }
                 executionResult = new GenerationExecutor().execute(properties, plan);
             }
 
-            new GenerationReportWriter().write(properties, mappings, plan, executionResult, options.renderCommand(), reportPath);
-
-            System.out.println("Generator report: " + reportPath);
+            if (sqlExecutionResult != null) {
+                System.out.println("SQL initialized: " + sqlExecutionResult.executedStatements() + " statements.");
+            }
             System.out.println(options.execute ? "MyBatis-Plus base CRUD generation executed." : "Dry-run only.");
         } finally {
             shutdownMysqlCleanupThread();
@@ -80,12 +80,15 @@ public final class GeneratorCli {
                 Options:
                   --backend-root <path>  Backend Maven parent root. Defaults to current directory.
                   --config <path>        Optional UTF-8 .properties config file.
+                  --module-name <name>   Target Maven module name, for example examine-plat.
+                  --table-prefix <pre>   Table prefix for this module, repeatable.
+                  --base-package <pkg>   Generated base package, for example com.unique.examine.plat.base.
+                  --source-root <path>   Java source root relative to backend root.
+                  --mapper-xml-root <p>  Mapper XML root relative to backend root.
                   --table <name[,name]>  Table names to plan, repeatable.
-                  --prefix <prefix>      Table prefix to plan, repeatable. Example: un_plat_
-                  --sql <path>           Initialization SQL used to load all CREATE TABLE names.
-                  --all-from-sql         Add every CREATE TABLE table from --sql.
+                  --prefix <prefix>      Alias of --table-prefix.
+                  --init-sql <path>      Execute SQL before generation through JDBC.
                   --execute              Connect to MySQL and generate base CRUD files.
-                  --report <path>        Report path. Defaults to backend/docs/mybatis-plus-generation.md.
                   --help                 Print this help.
 
                 Without --execute this command only writes a dry-run plan.
@@ -96,37 +99,38 @@ public final class GeneratorCli {
 
         private Path backendRoot = Path.of("").toAbsolutePath().normalize();
         private Path configFile;
-        private Path reportPath;
-        private Path sqlFile;
+        private Path initSqlFile;
+        private String moduleName;
+        private String basePackage;
+        private String sourceRoot;
+        private String mapperXmlRoot;
         private final List<String> tables = new ArrayList<>();
         private final List<String> prefixes = new ArrayList<>();
-        private final List<String> rawArgs = new ArrayList<>();
         private boolean help;
         private boolean execute;
-        private boolean allFromSql;
 
         private static CliOptions parse(String[] args) {
             CliOptions options = new CliOptions();
             for (int i = 0; i < args.length; i++) {
                 String arg = args[i];
-                options.rawArgs.add(arg);
                 switch (arg) {
-                    case "--backend-root" -> options.backendRoot = Path.of(options.nextAndRecord(args, ++i, arg))
+                    case "--backend-root" -> options.backendRoot = Path.of(options.nextValue(args, ++i, arg))
                             .toAbsolutePath()
                             .normalize();
-                    case "--config" -> options.configFile = Path.of(options.nextAndRecord(args, ++i, arg))
+                    case "--config" -> options.configFile = Path.of(options.nextValue(args, ++i, arg))
                             .toAbsolutePath()
                             .normalize();
-                    case "--table" -> addCsv(options.tables, options.nextAndRecord(args, ++i, arg));
-                    case "--prefix" -> addCsv(options.prefixes, options.nextAndRecord(args, ++i, arg));
-                    case "--sql" -> options.sqlFile = Path.of(options.nextAndRecord(args, ++i, arg))
+                    case "--module-name" -> options.moduleName = options.nextValue(args, ++i, arg);
+                    case "--base-package" -> options.basePackage = options.nextValue(args, ++i, arg);
+                    case "--source-root" -> options.sourceRoot = options.nextValue(args, ++i, arg);
+                    case "--mapper-xml-root" -> options.mapperXmlRoot = options.nextValue(args, ++i, arg);
+                    case "--table-prefix" -> addCsv(options.prefixes, options.nextValue(args, ++i, arg));
+                    case "--table" -> addCsv(options.tables, options.nextValue(args, ++i, arg));
+                    case "--prefix" -> addCsv(options.prefixes, options.nextValue(args, ++i, arg));
+                    case "--init-sql" -> options.initSqlFile = Path.of(options.nextValue(args, ++i, arg))
                             .toAbsolutePath()
                             .normalize();
-                    case "--all-from-sql" -> options.allFromSql = true;
                     case "--execute" -> options.execute = true;
-                    case "--report" -> options.reportPath = Path.of(options.nextAndRecord(args, ++i, arg))
-                            .toAbsolutePath()
-                            .normalize();
                     case "--help", "-h" -> options.help = true;
                     default -> throw new IllegalArgumentException("Unknown option: " + arg);
                 }
@@ -134,11 +138,10 @@ public final class GeneratorCli {
             return options;
         }
 
-        private String nextAndRecord(String[] args, int index, String option) {
+        private String nextValue(String[] args, int index, String option) {
             if (index >= args.length) {
                 throw new IllegalArgumentException(option + " requires a value.");
             }
-            rawArgs.add(args[index]);
             return args[index];
         }
 
@@ -151,8 +154,18 @@ public final class GeneratorCli {
             }
         }
 
-        private String renderCommand() {
-            return "GeneratorCli " + String.join(" ", rawArgs);
+        private List<GeneratorModuleMapping> buildMappings() {
+            boolean hasModuleConfig = moduleName != null || basePackage != null || sourceRoot != null
+                    || mapperXmlRoot != null || !prefixes.isEmpty();
+            if (!hasModuleConfig) {
+                return List.of();
+            }
+            if (moduleName == null || basePackage == null || sourceRoot == null || mapperXmlRoot == null
+                    || prefixes.isEmpty()) {
+                throw new IllegalArgumentException("Module generation requires --module-name, --base-package, "
+                        + "--source-root, --mapper-xml-root and at least one --table-prefix.");
+            }
+            return List.of(GeneratorModuleMapping.of(prefixes, moduleName, basePackage, sourceRoot, mapperXmlRoot));
         }
     }
 }

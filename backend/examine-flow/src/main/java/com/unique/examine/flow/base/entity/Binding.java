@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 模块提交动作与流程版本绑定。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 外部客户端，绑定系统、租户和状态。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface ClientMapper extends BaseMapper<Client> {

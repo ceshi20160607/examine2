@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 系统内角色，含系统超级管理员。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

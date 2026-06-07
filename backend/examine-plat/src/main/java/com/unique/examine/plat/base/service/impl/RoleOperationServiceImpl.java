@@ -18,7 +18,7 @@ import java.util.List;
  * 平台角色与操作权限授权关联。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RoleOperationServiceImpl extends ServiceImpl<RoleOperationMapper, RoleOperation>

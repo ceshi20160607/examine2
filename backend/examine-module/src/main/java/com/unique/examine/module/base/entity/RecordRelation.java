@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 关联字段保存的记录间关系。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

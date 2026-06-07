@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 导出模板字段列、顺序和脱敏配置。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface ExportTemplateFieldMapper extends BaseMapper<ExportTemplateField> {

@@ -6,14 +6,14 @@
 - 所属大任务/模块: examine-generator
 - 目标: 执行 MyBatis-Plus 代码生成并形成生成报告。
 - 输入文件: `docs/db_design.md`、`sql/init.sql`、`docs/service_info.md`、`docs/generator_reference.md`、`backend/examine-generator/`
-- 输出文件或输出目录: `backend/examine-plat/src/main/java/com/unique/examine/plat/base/`、`backend/examine-module/src/main/java/com/unique/examine/module/base/`、`backend/examine-flow/src/main/java/com/unique/examine/flow/base/`、`backend/examine-upload/src/main/java/com/unique/examine/upload/base/`、`backend/examine-app/src/main/java/com/unique/examine/app/base/`、`backend/examine-core/src/main/java/com/unique/examine/core/base/`、`backend/docs/mybatis-plus-generation.md`
+- 输出文件或输出目录: `backend/examine-plat/src/main/java/com/unique/examine/plat/base/`、`backend/examine-module/src/main/java/com/unique/examine/module/base/`、`backend/examine-flow/src/main/java/com/unique/examine/flow/base/`、`backend/examine-upload/src/main/java/com/unique/examine/upload/base/`、`backend/examine-app/src/main/java/com/unique/examine/app/base/`、`backend/examine-core/src/main/java/com/unique/examine/core/base/`
 
 ## 详细工作内容
 
 - 执行 SQL 导入后的表读取和代码生成。
 - 支持按表前缀或指定表名执行，便于后续表结构变动后只重生成受影响 base 层代码。
 - 将 base 层 entity、mapper、service、serviceImpl 输出到对应业务模块的 `base/` 包，禁止写入 `manage/` 或 `examine-web`。
-- 记录数据库连接来源、SQL 执行结果、生成命令、表清单、模块映射和生成路径。
+- 生成命令中直接体现模块、前缀、base 包和生成路径；不再默认写报告文件。
 
 ## 完成状态定义
 

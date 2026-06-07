@@ -13,7 +13,7 @@ import java.util.List;
  * nonce 去重和 TTL。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface INonceService extends IService<Nonce> {
 

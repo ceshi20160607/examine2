@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 子表字段行数据和行顺序。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

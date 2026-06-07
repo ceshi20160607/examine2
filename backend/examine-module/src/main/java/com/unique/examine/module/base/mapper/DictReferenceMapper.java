@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 字典被字段、发布版本、记录值引用的摘要。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface DictReferenceMapper extends BaseMapper<DictReference> {

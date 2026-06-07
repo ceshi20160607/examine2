@@ -18,7 +18,7 @@ import java.util.List;
  * 模块提交动作与流程版本绑定。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class BindingServiceImpl extends ServiceImpl<BindingMapper, Binding>

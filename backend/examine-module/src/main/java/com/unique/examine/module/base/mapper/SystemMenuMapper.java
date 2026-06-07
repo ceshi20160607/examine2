@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 系统管理菜单和运行菜单授权目录。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface SystemMenuMapper extends BaseMapper<SystemMenu> {

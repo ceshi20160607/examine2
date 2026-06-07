@@ -13,7 +13,7 @@ import java.util.List;
  * 外部客户端，绑定系统、租户和状态。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IClientService extends IService<Client> {
 

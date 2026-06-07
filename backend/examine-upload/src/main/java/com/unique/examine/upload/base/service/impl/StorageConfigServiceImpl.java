@@ -18,7 +18,7 @@ import java.util.List;
  * 存储配置和默认存储策略。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class StorageConfigServiceImpl extends ServiceImpl<StorageConfigMapper, StorageConfig>

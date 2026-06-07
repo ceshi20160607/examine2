@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 列表、表单、详情 schema 草稿。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

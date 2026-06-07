@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 显式禁用权限项，优先于授权并集。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

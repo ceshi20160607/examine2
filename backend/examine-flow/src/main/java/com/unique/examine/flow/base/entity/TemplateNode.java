@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 发布版本内节点结构。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

@@ -104,7 +104,8 @@ public final class MybatisPlusGeneratorConfigFactory {
      */
     public static Consumer<StrategyConfig.Builder> strategyConfig(
             GeneratorModuleMapping mapping,
-            List<String> tableNames
+            List<String> tableNames,
+            String selectedPrefix
     ) {
         List<IFill> fillList = List.of(
                 new Column("create_time", FieldFill.INSERT),
@@ -143,7 +144,8 @@ public final class MybatisPlusGeneratorConfigFactory {
                     .build();
 
             if (tableNames.isEmpty()) {
-                builder.likeTable(new LikeTable(mapping.tablePrefixes().getFirst(), SqlLike.RIGHT));
+                String prefix = selectedPrefix == null ? mapping.tablePrefixes().getFirst() : selectedPrefix;
+                builder.likeTable(new LikeTable(prefix, SqlLike.RIGHT));
             } else {
                 builder.addInclude(tableNames);
             }

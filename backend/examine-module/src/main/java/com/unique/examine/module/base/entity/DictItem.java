@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 字典项，支持层级和内置只读。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

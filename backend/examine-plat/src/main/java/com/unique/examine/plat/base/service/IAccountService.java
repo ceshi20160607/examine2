@@ -13,7 +13,7 @@ import java.util.List;
  * 全局登录主体，承载登录名、密码哈希、状态和安全字段。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IAccountService extends IService<Account> {
 

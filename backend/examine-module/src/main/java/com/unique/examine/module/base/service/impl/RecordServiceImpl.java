@@ -18,7 +18,7 @@ import java.util.List;
  * 动态业务记录主表。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RecordServiceImpl extends ServiceImpl<RecordMapper, Record>

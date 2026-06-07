@@ -18,7 +18,7 @@ import java.util.List;
  * 系统内操作权限目录。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class SystemOperationServiceImpl extends ServiceImpl<SystemOperationMapper, SystemOperation>

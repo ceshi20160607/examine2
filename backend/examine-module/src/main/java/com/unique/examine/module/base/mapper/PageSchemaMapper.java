@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 列表、表单、详情 schema 草稿。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface PageSchemaMapper extends BaseMapper<PageSchema> {

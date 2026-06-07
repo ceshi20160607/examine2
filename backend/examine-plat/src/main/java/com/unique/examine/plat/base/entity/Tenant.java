@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 系统下租户，单租户系统也初始化默认租户。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 动态模块主表。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

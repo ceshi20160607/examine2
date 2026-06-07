@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 单选、多选、标签等字段静态选项。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

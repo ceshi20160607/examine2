@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * DB migration 状态查询落点。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface MigrationStatusMapper extends BaseMapper<MigrationStatus> {

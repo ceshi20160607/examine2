@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 文件元数据、临时状态、对象存储定位和安全属性。 基础 Mapper。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Mapper
 public interface FileMapper extends BaseMapper<File> {

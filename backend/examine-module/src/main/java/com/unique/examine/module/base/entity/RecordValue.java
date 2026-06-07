@@ -18,7 +18,7 @@ import lombok.experimental.Accessors;
  * EAV 字段值 typed columns 和展示快照。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

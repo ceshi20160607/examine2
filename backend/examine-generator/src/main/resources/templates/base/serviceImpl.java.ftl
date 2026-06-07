@@ -18,7 +18,7 @@ import java.util.List;
  * ${table.comment!} 基础 CRUD 服务实现。
  *
  * @author ${author}
- * @since ${date}
+ * @since generated
  */
 @Service
 public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.mapperName}, ${entity}>

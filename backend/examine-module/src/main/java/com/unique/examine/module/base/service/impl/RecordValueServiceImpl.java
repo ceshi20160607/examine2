@@ -18,7 +18,7 @@ import java.util.List;
  * EAV 字段值 typed columns 和展示快照。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RecordValueServiceImpl extends ServiceImpl<RecordValueMapper, RecordValue>

@@ -13,7 +13,7 @@ import java.util.List;
  * 列表、表单、详情 schema 草稿。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IPageSchemaService extends IService<PageSchema> {
 

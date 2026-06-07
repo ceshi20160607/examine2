@@ -13,7 +13,7 @@ import java.util.List;
  * 关联字段保存的记录间关系。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IRecordRelationService extends IService<RecordRelation> {
 

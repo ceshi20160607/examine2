@@ -18,7 +18,7 @@ import java.util.List;
  * 字典被字段、发布版本、记录值引用的摘要。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class DictReferenceServiceImpl extends ServiceImpl<DictReferenceMapper, DictReference>

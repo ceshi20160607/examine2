@@ -18,7 +18,7 @@ import java.util.List;
  * 关联字段保存的记录间关系。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RecordRelationServiceImpl extends ServiceImpl<RecordRelationMapper, RecordRelation>

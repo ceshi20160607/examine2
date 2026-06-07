@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 系统级或租户级字典类型。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

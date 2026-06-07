@@ -13,7 +13,7 @@ import java.util.List;
  * 运行菜单和模块入口配置。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IMenuService extends IService<Menu> {
 

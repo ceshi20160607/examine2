@@ -13,7 +13,7 @@ import java.util.List;
  * 导出任务、筛选快照、权限快照、结果文件引用和重试状态。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IExportJobService extends IService<ExportJob> {
 

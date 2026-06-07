@@ -13,7 +13,7 @@ import java.util.List;
  * 文件与业务对象、动态字段、导出结果之间的引用关系。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface IFileReferenceService extends IService<FileReference> {
 

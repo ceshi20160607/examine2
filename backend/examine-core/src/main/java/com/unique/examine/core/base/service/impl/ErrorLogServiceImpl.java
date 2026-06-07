@@ -18,7 +18,7 @@ import java.util.List;
  * 错误码、栈摘要和 requestId。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class ErrorLogServiceImpl extends ServiceImpl<ErrorLogMapper, ErrorLog>

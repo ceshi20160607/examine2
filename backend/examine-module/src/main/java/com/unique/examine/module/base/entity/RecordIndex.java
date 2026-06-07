@@ -18,7 +18,7 @@ import lombok.experimental.Accessors;
  * 动态字段查询、排序、筛选 typed index。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

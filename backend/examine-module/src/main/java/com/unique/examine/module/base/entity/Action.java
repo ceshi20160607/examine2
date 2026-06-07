@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 模块按钮、行操作、详情操作和导出入口动作。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

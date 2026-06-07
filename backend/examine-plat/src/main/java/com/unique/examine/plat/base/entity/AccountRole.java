@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 平台账号与平台角色关联。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

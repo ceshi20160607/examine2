@@ -18,7 +18,7 @@ import java.util.List;
  * 动态记录字段变更前后快照。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class RecordChangeServiceImpl extends ServiceImpl<RecordChangeMapper, RecordChange>

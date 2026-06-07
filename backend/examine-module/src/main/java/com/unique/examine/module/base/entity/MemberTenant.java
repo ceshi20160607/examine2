@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 成员可访问租户集合。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

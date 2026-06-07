@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
  * 外部调用日志。 entity.
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Getter
 @Setter

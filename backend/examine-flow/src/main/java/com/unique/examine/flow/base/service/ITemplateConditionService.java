@@ -13,7 +13,7 @@ import java.util.List;
  * 连线条件表达式结构化存储。 基础 CRUD 服务。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 public interface ITemplateConditionService extends IService<TemplateCondition> {
 

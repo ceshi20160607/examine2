@@ -18,7 +18,7 @@ import java.util.List;
  * DB migration 状态查询落点。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class MigrationStatusServiceImpl extends ServiceImpl<MigrationStatusMapper, MigrationStatus>

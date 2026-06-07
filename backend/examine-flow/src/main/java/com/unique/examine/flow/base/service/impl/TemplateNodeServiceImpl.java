@@ -18,7 +18,7 @@ import java.util.List;
  * 发布版本内节点结构。 基础 CRUD 服务实现。
  *
  * @author examine-generator
- * @since 2026-06-06
+ * @since generated
  */
 @Service
 public class TemplateNodeServiceImpl extends ServiceImpl<TemplateNodeMapper, TemplateNode>
