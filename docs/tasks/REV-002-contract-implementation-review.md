@@ -16,8 +16,14 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
-- 完成条件: 契约一致性结论形成 `docs/review_parts/rev-002-contract.md`，供 REV-003/REV-004 汇总。
+- 当前状态: done。
+- 完成条件: 契约一致性结论已形成 `docs/review_parts/rev-002-contract.md`，供 REV-003/REV-004 汇总。
+
+## 执行记录
+
+- 2026-06-08 已完成契约实现审查分片。
+- 结论 fail，target=both。
+- 主要问题：前端 AUTH-004/AUTH-005 鉴权标记错误、前端字段类型枚举未同步、后端 OpenAPI accessKey 错误码不符合冻结契约。
 
 ## 验收标准
 

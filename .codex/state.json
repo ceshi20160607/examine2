@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T01:12:00+08:00",
+    "updated_at":  "2026-06-08T01:20:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1771,6 +1771,29 @@
                                                   "REV-001 conclusion is fail target=frontend.",
                                                   "Backend create-system local memory idempotency recorded as P2 production hardening risk."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-REV-002",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "REV-002"
+                                              ],
+                                    "started_at":  "2026-06-08T01:13:00+08:00",
+                                    "completed_at":  "2026-06-08T01:20:00+08:00",
+                                    "outputs":  [
+                                                    "docs/review_parts/rev-002-contract.md",
+                                                    "docs/tasks/REV-002-contract-implementation-review.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "Reviewed docs/api.md against frontend/src/api/endpoints.ts and backend controllers/security service",
+                                                         "Found frontend AUTH-004/AUTH-005 auth mismatch, frontend field type enum mismatch and backend OpenAPI accessKey error code mismatch"
+                                                     ],
+                                    "notes":  [
+                                                  "REV-002 conclusion is fail target=both.",
+                                                  "Fixes require frontend contract sync and backend OpenAPI error code alignment."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1829,5 +1852,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-REV-001"
+    "last_completed_batch":  "DEV-BATCH-P6-REV-002"
 }
