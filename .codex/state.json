@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T00:45:00+08:00",
+    "updated_at":  "2026-06-08T00:50:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1654,6 +1654,29 @@
                                                   "Backend API integration smoke passed, but full test conclusion is fail target=frontend because frontend browser E2E is blocked by missing package.json and tsconfig.json.",
                                                   "Next task is VAL-001 backend clean build, followed by VAL-002 frontend clean build target confirmation."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-VAL-001",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "VAL-001"
+                                              ],
+                                    "started_at":  "2026-06-08T00:39:00+08:00",
+                                    "completed_at":  "2026-06-08T00:50:00+08:00",
+                                    "outputs":  [
+                                                    "docs/build/backend-clean-compile.md",
+                                                    "docs/tasks/VAL-001-backend-clean-compile.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-web -am clean compile success: examine, examine-core, examine-plat, examine-upload, examine-module, examine-flow, examine-app and examine-web all SUCCESS",
+                                                         "state.json parsed successfully after update"
+                                                     ],
+                                    "notes":  [
+                                                  "Backend clean compile used JDK 21 and Maven 3.8.5 local paths.",
+                                                  "Next task is VAL-002 frontend clean build."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1712,5 +1735,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-TEST-005"
+    "last_completed_batch":  "DEV-BATCH-P6-VAL-001"
 }
