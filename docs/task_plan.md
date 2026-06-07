@@ -55,7 +55,7 @@
 | 后端架构 | BE-001 至 BE-003 | DB/SQL 完成 | `backend/` 架构骨架 | Maven 多模块、core、认证会话基础可编译 | pending |
 | examine-generator | GEN-001 至 GEN-004 | DB/SQL 与后端骨架完成；参考 `.codex/oldgenerator/` 和 `docs/generator_reference.md` | `backend/examine-generator/`、各业务模块 `base/` 包 | base 层可通过命令直接生成，旧模板取舍清晰，输出路径由命令参数传入 | pending |
 | 后端业务模块 | BE-004 至 BE-014 | 生成器产物、core、权限基础完成 | 各模块 `manage` 代码 | 平台、系统、模块、运行、流程、文件、导出、OpenAPI、审计接口符合 API | pending |
-| API 实现自检 | BE-015 | 后端业务模块完成 | `backend/docs/backend-self-check.md` | 错误码、幂等、权限、事务、OpenAPI 签名和主要接口自检通过 | pending |
+| API 实现自检 | BE-015 | 后端业务模块完成 | `backend/docs/backend-self-check.md` | 错误码、幂等、权限、事务、OpenAPI 签名和主要接口自检通过 | done |
 | 前端 SDK | FE-001 | API 冻结 | `frontend/src/api/`、`frontend/docs/page-contracts/_template.md` | 枚举、错误码、DTO/VO、分页、动态字段模型可被页面复用 | pending |
 | 前端页面 | FE-002 至 FE-011 | SDK 和路由基础完成 | `frontend/src/pages/`、`frontend/src/components/`、`frontend/docs/page-contracts/` | 页面按模块完成，页面级 API 映射、权限禁用、空态、错误态、requestId 展示闭环 | pending |
 | 前端自检 | FE-012 | 前端页面完成 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | 页面到接口映射、枚举错误码同步、无旁路请求 | done |
@@ -179,7 +179,7 @@ flowchart TD
 | BE-012 | OpenAPI 安全与业务接口 | backend | app | BE-008/BE-009/BE-010/BE-014 | OpenAPI 管理和外部接口 | BE-008, BE-009, BE-010, BE-014 | 是 | AK/SK、签名、scope、限流、幂等完成 | `mvn -pl examine-app -am test` 通过 | done |
 | BE-013 | 审计运维 API | backend | audit/ops | BE-012 | 审计与运维接口 | BE-012 | 是 | 日志、健康、版本、migration 状态完成 | `mvn -pl examine-web -am test` 通过 | done |
 | BE-014 | 权限与数据范围拦截 | backend | core/module | BE-002/API | 权限服务与拦截器 | BE-002 | 是 | 后端权限顺序、字段权限、数据范围统一 | 越权、字段无写权测试 | pending |
-| BE-015 | 幂等并发与 API 自检 | backend | backend | BE-004..BE-014 | `backend/docs/backend-self-check.md` | BE-004, BE-005, BE-006, BE-007, BE-008, BE-009, BE-010, BE-011, BE-012, BE-013, BE-014 | 否 | 固定自检报告包含接口清单、命令、结果、失败摘要、幂等/权限/OpenAPI 结论和 pass/fail | 后端单元和集成自检 | pending |
+| BE-015 | 幂等并发与 API 自检 | backend | backend | BE-004..BE-014 | `backend/docs/backend-self-check.md` | BE-004, BE-005, BE-006, BE-007, BE-008, BE-009, BE-010, BE-011, BE-012, BE-013, BE-014 | 否 | 固定自检报告包含接口清单、命令、结果、失败摘要、幂等/权限/OpenAPI 结论和 pass/fail | 后端单元和集成自检 | done |
 | FE-001 | typed SDK 与契约映射 | frontend | frontend | API/service | `frontend/src/api/`、`frontend/docs/page-contracts/_template.md` | PLAN-001 | 否 | DTO/VO/枚举/错误码同步，页面级证据模板完成 | 静态类型检查 | pending |
 | FE-002 | 路由布局认证上下文 | frontend | frontend | FE-001/API | `frontend/src/router/`、`frontend/src/layouts/`、`frontend/src/stores/`、`frontend/docs/page-contracts/FE-002-routing-layout-auth-context.md` | FE-001 | 否 | 系统/租户/member 上下文闭环，路由证据完成 | 登录态与路由守卫自检 | pending |
 | FE-003 | 登录注册与我的系统 | frontend | platform | FE-002 | `frontend/src/pages/auth/`、`frontend/src/pages/my-systems/`、`frontend/docs/page-contracts/FE-003-login-my-systems.md` | FE-002 | 是 | AUTH/PLAT 我的系统闭环，页面级 API 映射、权限禁用态、空态/错误态和证据完成 | 空态、错误态、requestId 自检 | pending |

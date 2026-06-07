@@ -17,8 +17,15 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
+- 默认状态: done。
 - 完成条件: `backend/docs/backend-self-check.md` 存在且记录后端核心 API 自检通过，或输出明确失败摘要和 target。
+
+## 完成记录
+
+- 完成时间: 2026-06-07。
+- 输出: `backend/docs/backend-self-check.md`。
+- 执行命令: `mvn -pl examine-web -am test`。
+- 自检结果: core 12、plat 12、upload 4、module 21、flow 2、app 4、web 4 个测试通过，合计 59 个测试；报告记录接口清单、命令、结果、失败摘要、幂等/权限/OpenAPI 结论和 pass/fail。
 
 ## 验收标准
 

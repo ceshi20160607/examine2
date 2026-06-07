@@ -7,10 +7,10 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 50 |
-| 已完成 | 38 |
+| 已完成 | 39 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 12 |
+| 剩余 | 11 |
 
 当前模式：`development`
 
@@ -28,14 +28,14 @@
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
 | P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | accepted | 5/5 后端主任务，FE-009/FE-010/FE-012 前端契约闭环完成 | 已通过 PM 阶段验收 |
-| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 1/14 前端契约闭环已完成，BE-015 待执行 | 启动 BE-015 后端最终自检 |
+| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 2/14 前端契约闭环与 BE-015 后端自检已完成 | 启动 TEST-003/TEST-004 场景测试 |
 
 ## 角色完成度
 
 | 角色 | 已完成 | 进行中 | 待执行 | 说明 |
 | --- | ---: | ---: | ---: | --- |
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
-| Backend | 14 | 0 | 1 | BE-001 至 BE-014 已完成；BE-015 待最终自检。 |
+| Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；后端最终自检通过。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
 | Frontend | 12 | 0 | 0 | FE-001 至 FE-012 已完成；正式 build/typecheck 待 VAL-002 处理前端工程入口缺口。 |
 | Test | 2 | 0 | 3 | TEST-001、TEST-002 已完成；最终场景测试待后续期。 |
@@ -61,6 +61,7 @@
 | backend | BE-011 | done | 导出任务 API | EXP 导出模板、任务创建、同步生成结果文件、失败重试、取消和任务日志完成。 |
 | backend | BE-012 | done | OpenAPI 安全与业务接口 | OPM-001 至 OPM-009、OPN-001 至 OPN-007、AK/SK 签名、nonce、scope、限流、幂等和调用日志完成。 |
 | backend | BE-013 | done | 审计运维 API | AUD/OPS 只读入口、OpenAPI 日志桥接、健康检查、配置检查、版本和 migration 状态完成。 |
+| backend | BE-015 | done | 后端最终自检 | `mvn -pl examine-web -am test` 通过，`backend/docs/backend-self-check.md` 已记录接口清单、幂等、权限、OpenAPI 和失败摘要。 |
 | frontend | FE-005/FE-006 | done | P3 静态契约联调 | 已对齐 BE-005、BE-006、BE-007 当前接口字段、权限点和错误码。 |
 | frontend | FE-008 | done | 运行台页面与动态表单联调 | 运行台菜单、schema、记录列表、动态表单、详情、保存/编辑/删除/提交、历史和关系查询页面模型完成。 |
 | frontend | FE-009 | done | 流程工作台页面模型 | FLOW-001 至 FLOW-021 页面模型、流程图解释模型、幂等键、本地必填校验、禁用态和契约证据完成。 |
@@ -82,7 +83,7 @@
 | FE-010 | 文件与导出页面 | done | frontend | 上传、文件中心、预览下载、导出模板、导出任务、轮询、重试、取消和结果文件下载页面模型 |
 | FE-011 | OpenAPI 审计运维页面 | done | frontend | OpenAPI、审计和运维静态页面模型已在 P0/P3 补充 |
 | FE-012 | 前端自检与契约闭环 | done | frontend | API 契约映射汇总、页面证据汇总、枚举/幂等/错误码同步和旁路请求扫描 |
-| BE-015 | 幂等并发与 API 自检 | pending | backend | 后端接口清单、错误码、幂等、权限、OpenAPI 和主要测试命令自检 |
+| BE-015 | 幂等并发与 API 自检 | done | backend | 后端接口清单、错误码、幂等、权限、OpenAPI 和主要测试命令自检 |
 
 ## 阶段验收摘要
 
@@ -134,7 +135,8 @@
 15. 已执行旁路请求静态检查，`frontend/src/pages/files/` 与 `frontend/src/pages/export/` 未新增 `fetch`、`axios`、`XMLHttpRequest` 或手写 URL；当前前端目录仍无 `package.json`/`tsconfig.json`，正式 build/typecheck 不可用。
 16. FE-012 已完成前端契约闭环：`frontend/docs/api-contract-map.md` 汇总 174 个 SDK 端点、26 条路由映射和 FE-002 至 FE-011 页面证据；真实 API ID 均能在 `API_ENDPOINTS` 中找到。
 17. FE-012 已执行源码旁路请求扫描，`frontend/src` 未发现 `fetch`、`axios`、`XMLHttpRequest`、`new Request` 或硬编码 URL；`frontend/docs/frontend-self-check.md` 记录 typecheck/lint/build 因缺少 `package.json`、`tsconfig.json` 和 `tsc` 被阻塞。
+18. BE-015 已完成后端最终自检：执行 `mvn -pl examine-web -am test`，core 12、plat 12、upload 4、module 21、flow 2、app 4、web 4 个测试通过，合计 59 个测试；`backend/docs/backend-self-check.md` 已记录接口清单、命令、结果、失败摘要、幂等/权限/OpenAPI 结论和 pass。
 
 ## 下一步
 
-当前 `P5-workflow-files-openapi` 已通过 PM 阶段验收，当前进入 `P6-final-acceptance`。下一步直接执行 BE-015 后端最终自检，然后进入 TEST/VAL/REV 最终验收链路。
+当前 `P6-final-acceptance` 已完成 FE-012 和 BE-015，下一步直接执行 TEST-003/TEST-004 场景测试，再汇总 TEST-005 测试报告。
