@@ -16,8 +16,23 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
+- 当前状态: done。
 - 完成条件: 文件接口可被运行台附件和导出结果文件复用。
+
+## 完成记录
+
+- 完成时间: 2026-06-07
+- 输出:
+  - `backend/examine-upload/src/main/java/com/unique/examine/upload/manage/controller/UploadFileController.java`
+  - `backend/examine-upload/src/main/java/com/unique/examine/upload/manage/service/UploadFileService.java`
+  - `backend/examine-upload/src/main/java/com/unique/examine/upload/manage/service/impl/UploadFileServiceImpl.java`
+  - `backend/examine-upload/src/main/java/com/unique/examine/upload/manage/bo/`
+  - `backend/examine-upload/src/main/java/com/unique/examine/upload/manage/vo/`
+  - `backend/examine-upload/src/main/java/com/unique/examine/upload/manage/enums/UploadErrorCode.java`
+  - `backend/examine-upload/src/test/java/com/unique/examine/upload/manage/`
+- 自检:
+  - `mvn -pl examine-upload -am -DskipTests compile` 通过。
+  - `mvn -pl examine-upload -am test` 通过：core 12、plat 12、upload 4 个测试。
 
 ## 验收标准
 

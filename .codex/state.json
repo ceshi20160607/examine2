@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T14:10:00+08:00",
+    "updated_at":  "2026-06-07T16:35:30+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -289,7 +289,15 @@
                       "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/enums/FlowErrorCode.java",
                       "backend/examine-flow/src/test/java/com/unique/examine/flow/manage/controller/FlowManageControllerTest.java",
                       "backend/examine-flow/src/test/resources/mockito-extensions/org.mockito.plugins.MockMaker",
-                      "docs/tasks/BE-009-flow-template-task-api.md"
+                      "docs/tasks/BE-009-flow-template-task-api.md",
+                      "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/controller/UploadFileController.java",
+                      "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/service/UploadFileService.java",
+                      "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/service/impl/UploadFileServiceImpl.java",
+                      "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/bo/",
+                      "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/vo/",
+                      "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/enums/UploadErrorCode.java",
+                      "backend/examine-upload/src/test/java/com/unique/examine/upload/manage/",
+                      "docs/tasks/BE-010-upload-file-reference-api.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
     "status":  "DEVELOPMENT_PHASE_P3_IN_PROGRESS",
@@ -675,6 +683,11 @@
                                        "status":  "done",
                                        "output":  "backend/examine-flow/src/main/java/com/unique/examine/flow/manage/; backend/examine-core/src/main/java/com/unique/examine/core/flow/; backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/RuntimeRecordServiceImpl.java",
                                        "completed_at":  "2026-06-07T14:10:00+08:00"
+                                   },
+                        "BE-010":  {
+                                       "status":  "done",
+                                       "output":  "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/",
+                                       "completed_at":  "2026-06-07T16:35:30+08:00"
                                    }
                     },
     "task_plan_frozen":  true,
@@ -688,8 +701,8 @@
                            "backend":  {
                                            "agent_id":  "orchestrator-local",
                                            "status":  "done",
-                                           "last_stage":  "development:BE-009",
-                                           "last_output":  "flow template instance task API implemented and tested"
+                                           "last_stage":  "development:BE-010",
+                                           "last_output":  "upload file reference API implemented and tested"
                                        },
                            "frontend":  {
                                             "agent_id":  "orchestrator-local",
@@ -1271,6 +1284,34 @@
                                     "notes":  [
                                                   "Runtime record submission now starts real flow instances when module flow binding exists; unbound modules still submit directly."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P5-BE-010",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "BE-010"
+                                              ],
+                                    "started_at":  "2026-06-07T16:25:00+08:00",
+                                    "completed_at":  "2026-06-07T16:35:30+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/controller/UploadFileController.java",
+                                                    "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/service/UploadFileService.java",
+                                                    "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/service/impl/UploadFileServiceImpl.java",
+                                                    "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/bo/",
+                                                    "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/vo/",
+                                                    "backend/examine-upload/src/main/java/com/unique/examine/upload/manage/enums/UploadErrorCode.java",
+                                                    "backend/examine-upload/src/test/java/com/unique/examine/upload/manage/",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/tasks/BE-010-upload-file-reference-api.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-upload -am -DskipTests compile success",
+                                                         "mvn -pl examine-upload -am test success: core 12 tests, plat 12 tests, upload 4 tests"
+                                                     ],
+                                    "notes":  [
+                                                  "MVP uses LOCAL storage from un_upload_storage_config.root_path and refuses unsupported storage backends."
+                                              ]
                                 }
                             ],
     "current_phase":  "P5-workflow-files-openapi",
@@ -1322,5 +1363,5 @@
                                                     "next_phase":  "P5-workflow-files-openapi"
                                                 }
                          },
-    "last_completed_batch":  "DEV-BATCH-P5-BE-009"
+    "last_completed_batch":  "DEV-BATCH-P5-BE-010"
 }

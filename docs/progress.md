@@ -7,10 +7,10 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 50 |
-| 已完成 | 31 |
+| 已完成 | 32 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 19 |
+| 剩余 | 18 |
 
 当前模式：`development`
 
@@ -27,7 +27,7 @@
 | P2-auth-platform | 认证与平台期 | accepted | 2/2 后端主任务，FE-004 静态联调补充完成 | 已通过 PM 阶段验收 |
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
 | P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
-| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | in_progress | 1/5 后端主任务，前端待联调 | 下一步启动 BE-010 |
+| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | in_progress | 2/5 后端主任务，前端待联调 | 下一步启动 BE-011 |
 | P6-final-acceptance | 集成验收与上线判断期 | pending | 0/14 | 等 P5 通过 |
 
 ## 角色完成度
@@ -35,7 +35,7 @@
 | 角色 | 已完成 | 进行中 | 待执行 | 说明 |
 | --- | ---: | ---: | ---: | --- |
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
-| Backend | 10 | 0 | 5 | BE-001 至 BE-009、BE-014 已完成；BE-010 至 BE-015 待按期推进。 |
+| Backend | 11 | 0 | 4 | BE-001 至 BE-010、BE-014 已完成；BE-011 至 BE-015 待按期推进。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
 | Frontend | 9 | 0 | 3 | FE-001 至 FE-008、FE-011 已完成；FE-009、FE-010、FE-012 待执行。 |
 | Test | 2 | 0 | 3 | TEST-001、TEST-002 已完成；最终场景测试待后续期。 |
@@ -57,6 +57,7 @@
 | backend | BE-007 | done | 应用模块字段页面配置 | APP、MOD、FIELD、UI、发布检查和发布版本生成接口完成。 |
 | backend | BE-008 | done | 运行台记录 CRUD 与动态数据 API | RUN-001 至 RUN-010 后端入口、运行态 schema、记录增删改查、提交、历史和关系查询完成；流程提交待 BE-009 接入真实流程实例。 |
 | backend | BE-009 | done | 流程模板实例任务 API | FLOW 模板、草稿图、发布检查、模块绑定、流程实例、待办任务、审批动作和运行记录状态联动完成。 |
+| backend | BE-010 | done | 上传文件引用 API | FILE 上传、列表、详情、预览、下载、删除、临时文件和引用计数规则完成。 |
 | frontend | FE-005/FE-006 | done | P3 静态契约联调 | 已对齐 BE-005、BE-006、BE-007 当前接口字段、权限点和错误码。 |
 | frontend | FE-008 | done | 运行台页面与动态表单联调 | 运行台菜单、schema、记录列表、动态表单、详情、保存/编辑/删除/提交、历史和关系查询页面模型完成。 |
 | pm | P3 acceptance | done | `docs/phases/P3-system-config-acceptance.md` | P3 已验收通过，允许进入 P4。 |
@@ -66,7 +67,7 @@
 | taskId | 名称 | 状态 | 负责人 | 输出 |
 | --- | --- | --- | --- | --- |
 | BE-009 | 流程模板实例任务 API | done | backend | FLOW-001 至 FLOW-021 后端入口、模板发布、模块绑定、流程实例、待办、审批动作和运行记录状态联动 |
-| BE-010 | 上传文件引用 API | pending | backend | 临时文件、文件引用、预览下载权限和失败补偿 |
+| BE-010 | 上传文件引用 API | done | backend | 临时文件、文件引用、预览下载权限和失败补偿 |
 | BE-011 | 导出任务 API | pending | backend | 导出模板、任务、重试和结果文件闭环 |
 | BE-012 | OpenAPI 安全与业务接口 | pending | backend | AK/SK、签名、scope、限流、幂等和外部记录接口 |
 | BE-013 | 审计运维 API | pending | backend | 审计日志、健康、版本和 migration 状态 |
@@ -110,7 +111,9 @@
 1. BE-009 已完成流程后端 MVP：流程模板创建/查询、草稿图保存/读取、发布检查、发布、模块绑定、实例详情、实例图、历史、待办、领取/取消领取、同意/拒绝/退回/转交/终止/撤回。
 2. BE-009 已将 BE-008 的提交流程占位策略替换为真实流程实例创建：模块绑定流程时创建流程实例和首个审批任务，并回写记录 `flowInstanceId`、`IN_APPROVAL` 和锁定状态；未绑定流程仍直接进入 `SUBMITTED`。
 3. 已执行 `mvn -pl examine-flow -am test`，core 12、plat 12、module 18、flow 2 个测试通过。
+4. BE-010 已完成上传文件后端 MVP：文件上传、列表、详情、预览、下载、删除、临时文件、引用绑定/解绑服务、引用计数和已引用删除限制。
+5. 已执行 `mvn -pl examine-upload -am test`，core 12、plat 12、upload 4 个测试通过。
 
 ## 下一步
 
-当前 `P5-workflow-files-openapi` 已完成 BE-009，下一步继续 BE-010 上传文件引用 API。
+当前 `P5-workflow-files-openapi` 已完成 BE-009、BE-010，下一步继续 BE-011 导出任务 API。

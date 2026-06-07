@@ -35,7 +35,7 @@
 | P2-auth-platform | 认证与平台期 | BE-003、BE-004、FE-003、FE-004 的联调补充、阶段 validator/test 轻量检查 | pm/backend/frontend/test/validator | P1 完成，base CRUD 可用 | 登录、刷新、退出、当前用户、我的系统、平台系统创建和平台账号角色核心接口/页面闭环，PM 验收通过 | pending |
 | P3-system-config | 系统配置与权限期 | BE-005、BE-006、BE-007、BE-014、FE-005、FE-006 的联调补充 | pm/backend/frontend/test | P2 完成 | 系统成员、部门、角色、权限、字典、应用/模块/字段/页面配置闭环，权限与数据范围基础可用 | pending |
 | P4-runtime-mvp | 运行台 MVP 期 | BE-008、FE-008、阶段 test/validator | pm/backend/frontend/test/validator | P3 完成 | 动态 schema、记录列表/详情/保存/历史/提交审批入口按权限跑通，运行台 MVP 满意度通过 | pending |
-| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | BE-009 至 BE-013、FE-009 至 FE-011 的联调补充 | pm/backend/frontend/test | P4 完成 | 流程待办、附件、导出、OpenAPI、审计运维核心链路闭环 | pending |
+| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | BE-009 至 BE-013、FE-009 至 FE-011 的联调补充 | pm/backend/frontend/test | P4 完成 | 流程待办、附件、导出、OpenAPI、审计运维核心链路闭环 | in_progress |
 | P6-final-acceptance | 集成验收与上线判断期 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | test/validator/reviewer/pm | P5 完成 | 后端自检、前端契约闭环、E2E、clean build、review 全部通过，输出可上线判断 | pending |
 
 分期状态规则：
@@ -174,7 +174,7 @@ flowchart TD
 | BE-007 | 应用模块字段页面配置 API | backend | module | BE-006 | 应用配置接口 | BE-006 | 否 | APP/MOD/FIELD/UI 发布检查完成 | 发布版本与字段校验测试 | pending |
 | BE-008 | 运行 schema 与记录 API | backend | module | BE-007/BE-014 | 运行台接口 | BE-007, BE-014 | 否 | schema、记录、EAV、历史、关联和运行记录幂等完成 | RUN 接口、唯一性、锁定测试 | pending |
 | BE-009 | 流程模板实例任务 API | backend | flow | BE-007/BE-008/BE-014 | 流程接口 | BE-007, BE-008, BE-014 | 是 | 模板发布、待办、动作、状态联动完成 | 并发处理和状态流转测试 | done |
-| BE-010 | 上传文件引用 API | backend | upload | BE-008/BE-014 | 文件接口 | BE-008, BE-014 | 是 | 临时文件、引用、预览下载权限完成 | 文件失败补偿和权限测试 | pending |
+| BE-010 | 上传文件引用 API | backend | upload | BE-008/BE-014 | 文件接口 | BE-008, BE-014 | 是 | 临时文件、引用、预览下载权限完成 | 文件失败补偿和权限测试 | done |
 | BE-011 | 导出任务 API | backend | module/upload | BE-010 | 导出接口 | BE-010 | 是 | 模板、任务、重试、结果文件闭环完成 | 导出状态与失败重试测试 | pending |
 | BE-012 | OpenAPI 安全与业务接口 | backend | app | BE-008/BE-009/BE-010/BE-014 | OpenAPI 管理和外部接口 | BE-008, BE-009, BE-010, BE-014 | 是 | AK/SK、签名、scope、限流、幂等完成 | 签名、nonce、scope、限流测试 | pending |
 | BE-013 | 审计运维 API | backend | audit/ops | BE-012 | 审计与运维接口 | BE-012 | 是 | 日志、健康、版本、migration 状态完成 | requestId 链路和只读权限测试 | pending |
