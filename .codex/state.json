@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T00:50:00+08:00",
+    "updated_at":  "2026-06-08T00:55:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1677,6 +1677,30 @@
                                                   "Backend clean compile used JDK 21 and Maven 3.8.5 local paths.",
                                                   "Next task is VAL-002 frontend clean build."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-VAL-002",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "VAL-002"
+                                              ],
+                                    "started_at":  "2026-06-08T00:42:00+08:00",
+                                    "completed_at":  "2026-06-08T00:55:00+08:00",
+                                    "outputs":  [
+                                                    "docs/build/frontend-clean-build.md",
+                                                    "docs/tasks/VAL-002-frontend-clean-build.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "npm.cmd run build failed with ENOENT because frontend/package.json is missing",
+                                                         "rg scan found no frontend/src .vue.js, .d.ts or .js generated artifacts",
+                                                         "state.json parsed successfully after update"
+                                                     ],
+                                    "notes":  [
+                                                  "VAL-002 conclusion is fail target=frontend.",
+                                                  "PowerShell npm.ps1 is blocked by execution policy; npm.cmd works and produced the real missing-package failure."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1735,5 +1759,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-VAL-001"
+    "last_completed_batch":  "DEV-BATCH-P6-VAL-002"
 }

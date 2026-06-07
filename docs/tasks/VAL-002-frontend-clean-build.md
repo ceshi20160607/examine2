@@ -16,8 +16,14 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
-- 完成条件: 前端 clean build 结果写入 `docs/build/frontend-clean-build.md`，最终 `docs/build_report.md` 只由 VAL-004 汇总写入。
+- 当前状态: done。
+- 完成条件: 前端 clean build 结果已写入 `docs/build/frontend-clean-build.md`，最终 `docs/build_report.md` 只由 VAL-004 汇总写入。
+
+## 执行记录
+
+- 2026-06-08 已执行 `npm.cmd run build`。
+- 构建失败，target=frontend，原因是 `frontend/package.json` 不存在。
+- `frontend/src` 未发现 `.vue.js`、临时 `.d.ts` 或编译 `.js` 产物。
 
 ## 验收标准
 
