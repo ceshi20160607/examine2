@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T00:55:00+08:00",
+    "updated_at":  "2026-06-08T01:00:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1701,6 +1701,30 @@
                                                   "VAL-002 conclusion is fail target=frontend.",
                                                   "PowerShell npm.ps1 is blocked by execution policy; npm.cmd works and produced the real missing-package failure."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-VAL-003",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "VAL-003"
+                                              ],
+                                    "started_at":  "2026-06-08T00:56:00+08:00",
+                                    "completed_at":  "2026-06-08T01:00:00+08:00",
+                                    "outputs":  [
+                                                    "docs/build/contract-sync-check.md",
+                                                    "docs/tasks/VAL-003-contract-sync-check.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "Node contract sync script: 174 API IDs matched frontend endpoints and api-contract-map",
+                                                         "Core error codes and 15 status enum groups matched frontend",
+                                                         "Field type enum mismatch found: frontend missing AUTO_NO, DEPT, MEMBER, MONEY, SWITCH and has extra BOOLEAN, CHECKBOX, DECIMAL, DICT, RADIO, SERIAL"
+                                                     ],
+                                    "notes":  [
+                                                  "VAL-003 conclusion is fail target=frontend.",
+                                                  "No API or frontend source changes were made during validator check."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1759,5 +1783,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-VAL-002"
+    "last_completed_batch":  "DEV-BATCH-P6-VAL-003"
 }

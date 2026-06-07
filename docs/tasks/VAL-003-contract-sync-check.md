@@ -16,8 +16,14 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
-- 完成条件: 同步检查结果写入 `docs/build/contract-sync-check.md`，最终 `docs/build_report.md` 只由 VAL-004 汇总写入。
+- 当前状态: done。
+- 完成条件: 同步检查结果已写入 `docs/build/contract-sync-check.md`，最终 `docs/build_report.md` 只由 VAL-004 汇总写入。
+
+## 执行记录
+
+- 2026-06-08 已完成契约同步检查。
+- API ID、核心错误码和状态枚举同步通过。
+- 字段类型枚举未同步，结论 fail，target=frontend。
 
 ## 验收标准
 

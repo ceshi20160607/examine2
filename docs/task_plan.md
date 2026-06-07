@@ -199,7 +199,7 @@ flowchart TD
 | TEST-005 | 测试报告 | test | test | TEST-003/TEST-004 | `docs/test_report.md` | TEST-003, TEST-004 | 否 | 汇总测试执行记录，报告含命令、结果、失败摘要、target | 结论 fail，target=frontend | done |
 | VAL-001 | 后端 clean compile | validator | validator | BE-015/service | `docs/build/backend-clean-compile.md` | BE-015 | 是 | JDK/Maven 路径和 clean compile 结果明确，记录独立输出 | clean compile pass | done |
 | VAL-002 | 前端 clean build | validator | validator | FE-012/service | `docs/build/frontend-clean-build.md` | FE-012 | 是 | 清理 dist/tsbuildinfo 后 build，记录独立输出 | fail，target=frontend，缺少 package.json | done |
-| VAL-003 | 契约同步检查 | validator | validator | API/FE-012 | `docs/build/contract-sync-check.md` | FE-012 | 是 | 错误码、枚举、状态值同步到 SDK/map，记录独立输出 | 不一致判 fail | pending |
+| VAL-003 | 契约同步检查 | validator | validator | API/FE-012 | `docs/build/contract-sync-check.md` | FE-012 | 是 | 错误码、枚举、状态值同步到 SDK/map，记录独立输出 | fail，target=frontend，字段类型枚举未同步 | done |
 | VAL-004 | 构建报告 | validator | validator | VAL-001/002/003/TEST-005 | `docs/build_report.md` | VAL-001, VAL-002, VAL-003, TEST-005 | 否 | 汇总构建记录，构建报告满足格式契约 | validator 结论明确 | pending |
 | REV-001 | 架构审查 | reviewer | review | PRD/API/DB/backend/frontend | `docs/review_parts/rev-001-architecture.md` | VAL-004 | 否 | 模块边界、base/manage、事务权限风险审查 | 发现问题归因 target | pending |
 | REV-002 | 契约实现审查 | reviewer | review | API/backend/frontend/map | `docs/review_parts/rev-002-contract.md` | REV-001 | 否 | API、SDK、后端实现一致 | 契约不一致按来源定 target | pending |
