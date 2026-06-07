@@ -14,9 +14,9 @@
 
 当前模式：`development`
 
-当前期次：`P4-runtime-mvp`
+当前期次：`P5-workflow-files-openapi`
 
-当前状态：`P4_runtime_mvp_done_pending_acceptance`
+当前状态：`P5_workflow_files_openapi_pending`
 
 ## 分期进度
 
@@ -26,8 +26,8 @@
 | P1-generator | 生成器闭环期 | accepted | 3/3 | 已通过 PM 阶段验收 |
 | P2-auth-platform | 认证与平台期 | accepted | 2/2 后端主任务，FE-004 静态联调补充完成 | 已通过 PM 阶段验收 |
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
-| P4-runtime-mvp | 运行台 MVP 期 | done | 2/2 | 下一步进行 P4 阶段验收 |
-| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | pending | 0/5 后端主任务，前端待联调 | 等 P4 通过 |
+| P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
+| P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | pending | 0/5 后端主任务，前端待联调 | 下一步启动 BE-009 |
 | P6-final-acceptance | 集成验收与上线判断期 | pending | 0/14 | 等 P5 通过 |
 
 ## 角色完成度
@@ -96,7 +96,8 @@
 2. 提交流程当前采用占位策略：模块已绑定流程时进入 `IN_APPROVAL` 并锁定，未绑定流程时直接进入 `SUBMITTED`；BE-009 接入流程引擎后替换为真实流程实例创建。
 3. 已执行 `mvn -pl examine-module -am test`，core 12、plat 12、module 18 个测试通过。
 4. FE-008 已完成运行台页面模型和契约证据；前端目录仍无 `package.json`/`tsconfig.json`，正式 build/typecheck 不可用。
+5. 验收记录：`docs/phases/P4-runtime-mvp-acceptance.md`。
 
 ## 下一步
 
-当前 `P4-runtime-mvp` 两个任务均已完成；下一步进行 P4 阶段验收并提交验收记录。
+当前 `P4-runtime-mvp` 已通过阶段验收，下一步进入 `P5-workflow-files-openapi`，优先启动 BE-009 流程模板、绑定、实例、待办与审批动作。
