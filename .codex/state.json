@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T16:54:00+08:00",
+    "updated_at":  "2026-06-07T17:14:08+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -306,10 +306,23 @@
                       "backend/examine-module/src/main/java/com/unique/examine/module/manage/enums/ExportErrorCode.java",
                       "backend/examine-module/src/test/java/com/unique/examine/module/manage/controller/ExportManageControllerTest.java",
                       "backend/examine-module/src/test/java/com/unique/examine/module/manage/service/impl/ExportManageServiceImplTest.java",
-                      "docs/tasks/BE-011-export-job-api.md"
+                      "docs/tasks/BE-011-export-job-api.md",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/controller/OpenApiManageController.java",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/controller/OpenApiExternalController.java",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/OpenApiManageService.java",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/OpenApiSecurityService.java",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/OpenApiExternalService.java",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/impl/OpenApiManageServiceImpl.java",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/impl/OpenApiSecurityServiceImpl.java",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/impl/OpenApiExternalServiceImpl.java",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/enums/OpenApiErrorCode.java",
+                      "backend/examine-app/src/main/java/com/unique/examine/app/manage/support/OpenApiConstants.java",
+                      "backend/examine-app/src/test/java/com/unique/examine/app/manage/controller/OpenApiManageControllerTest.java",
+                      "backend/examine-app/src/test/java/com/unique/examine/app/manage/controller/OpenApiExternalControllerTest.java",
+                      "docs/tasks/BE-012-openapi-security-api.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
-    "status":  "DEVELOPMENT_PHASE_P3_IN_PROGRESS",
+    "status":  "DEVELOPMENT_PHASE_P5_IN_PROGRESS",
     "last_error":  "",
     "attempts":  {
                      "step1_analyst":  1,
@@ -702,6 +715,12 @@
                                        "status":  "done",
                                        "output":  "backend/examine-module/src/main/java/com/unique/examine/module/manage/controller/ExportManageController.java; backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/ExportManageServiceImpl.java",
                                        "completed_at":  "2026-06-07T16:54:00+08:00"
+                                   },
+                        "BE-012":  {
+                                       "status":  "done",
+                                       "output":  "OpenAPI management and external security/business APIs implemented in backend/examine-app",
+                                       "completed_at":  "2026-06-07T17:14:08+08:00",
+                                       "verification":  "mvn -pl examine-app -am test success: core 12, plat 12, upload 4, module 21, flow 2, app 4 tests"
                                    }
                     },
     "task_plan_frozen":  true,
@@ -715,8 +734,8 @@
                            "backend":  {
                                            "agent_id":  "orchestrator-local",
                                            "status":  "done",
-                                           "last_stage":  "development:BE-011",
-                                           "last_output":  "export template and job API implemented and tested"
+                                           "last_stage":  "development:BE-012",
+                                           "last_output":  "OpenAPI OPM/OPN APIs, AK/SK signature, nonce, scope, rate limit, idempotency and access logs implemented."
                                        },
                            "frontend":  {
                                             "agent_id":  "orchestrator-local",
@@ -1357,6 +1376,42 @@
                                     "notes":  [
                                                   "MVP export runner is synchronous inside create/retry API and writes a CSV result file through UploadFileService."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P5-BE-012",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "BE-012"
+                                              ],
+                                    "started_at":  "2026-06-07T17:00:00+08:00",
+                                    "completed_at":  "2026-06-07T17:14:08+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/controller/OpenApiManageController.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/controller/OpenApiExternalController.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/OpenApiManageService.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/OpenApiSecurityService.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/OpenApiExternalService.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/impl/OpenApiManageServiceImpl.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/impl/OpenApiSecurityServiceImpl.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/impl/OpenApiExternalServiceImpl.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/bo/",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/vo/",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/enums/OpenApiErrorCode.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/support/OpenApiConstants.java",
+                                                    "backend/examine-app/src/test/java/com/unique/examine/app/manage/controller/OpenApiManageControllerTest.java",
+                                                    "backend/examine-app/src/test/java/com/unique/examine/app/manage/controller/OpenApiExternalControllerTest.java",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/tasks/BE-012-openapi-security-api.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-app -am -DskipTests compile success",
+                                                         "mvn -pl examine-app -am test success: core 12 tests, plat 12 tests, upload 4 tests, module 21 tests, flow 2 tests, app 4 tests"
+                                                     ],
+                                    "notes":  [
+                                                  "External APIs keep raw request body for canonical signature verification and then delegate to existing runtime, flow and upload services.",
+                                                  "signSecretEnc currently stores a reversible base64 placeholder for MVP signature verification; production hardening should replace it with KMS/encryption integration."
+                                              ]
                                 }
                             ],
     "current_phase":  "P5-workflow-files-openapi",
@@ -1408,5 +1463,5 @@
                                                     "next_phase":  "P5-workflow-files-openapi"
                                                 }
                          },
-    "last_completed_batch":  "DEV-BATCH-P5-BE-011"
+    "last_completed_batch":  "DEV-BATCH-P5-BE-012"
 }

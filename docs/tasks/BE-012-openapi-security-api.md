@@ -16,7 +16,7 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
+- 默认状态: done。
 - 完成条件: OpenAPI 基础安全和业务调用闭环可用。
 
 ## 验收标准
@@ -43,3 +43,11 @@
 
 - 不复用内部 Bearer 登录态作为外部鉴权。
 - 不使用 `un_app_` 表域。
+
+## 完成记录
+
+- 完成时间: 2026-06-07T17:14:08+08:00
+- 实现范围: 已实现 OPM-001 至 OPM-009 管理接口、OPN-001 至 OPN-007 外部接口，包含客户端/凭证轮换、scope、IP 白名单、调用日志、canonical request、body hash、timestamp、nonce、签名、scope、限流和幂等状态更新。
+- 业务复用: 外部记录、流程任务和文件下载入口复用 `RuntimeRecordService`、`FlowManageService`、`UploadFileService`，不绕过内部业务规则。
+- 测试命令: `mvn -pl examine-app -am test`。
+- 测试结果: 通过，core 12、plat 12、upload 4、module 21、flow 2、app 4 个测试均通过。
