@@ -1,5 +1,5 @@
 ﻿{
-    "current_step":  18,
+    "current_step":  19,
     "completed_steps":  [
                             1,
                             2,
@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T01:55:00+08:00",
+    "updated_at":  "2026-06-08T02:05:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1899,6 +1899,30 @@
                                                   "Frontend now has a reproducible TypeScript build entry.",
                                                   "Next route continues with test, validator and reviewer rerun."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-REWORK-TEST-OPENAPI-MATRIX",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "REV-003-TEST-OPENAPI-ASSERTION",
+                                                  "REV-003-TEST-RISK-MATRIX"
+                                              ],
+                                    "started_at":  "2026-06-08T01:56:00+08:00",
+                                    "completed_at":  "2026-06-08T02:05:00+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-app/src/test/java/com/unique/examine/app/manage/service/impl/OpenApiSecurityServiceImplTest.java",
+                                                    "docs/test_runs/permission-exception-idempotency-openapi.md",
+                                                    "docs/test_report.md",
+                                                    "docs/progress.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-app -am test success: core 13, plat 12, upload 4, module 21, flow 2, app 11 tests",
+                                                         "OpenAPI security negative assertions cover missing/unknown accessKey, timestamp, body hash, signature, scope and rate limit error codes"
+                                                     ],
+                                    "notes":  [
+                                                  "OpenAPI nonce replay, IP whitelist and concurrency pressure remain P2 follow-up risks.",
+                                                  "Next route continues with validator rerun."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1957,5 +1981,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-REWORK-FE-CONTRACT-BUILD"
+    "last_completed_batch":  "DEV-BATCH-P6-REWORK-TEST-OPENAPI-MATRIX"
 }
