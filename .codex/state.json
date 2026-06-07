@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T01:35:00+08:00",
+    "updated_at":  "2026-06-08T01:45:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -342,7 +342,7 @@
                       "backend/docs/backend-self-check.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
-    "status":  "DEVELOPMENT_PHASE_P6_REVIEW_FAILED",
+    "status":  "DEVELOPMENT_PHASE_P6_REWORK_IN_PROGRESS",
     "last_error":  "",
     "attempts":  {
                      "step1_analyst":  1,
@@ -1840,6 +1840,28 @@
                                                   "P6 validation/review batch is complete but final review failed.",
                                                   "Next route starts backend/frontend rework."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-REWORK-BE-OPENAPI-AK",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "REV-002-BE-OPENAPI-AK-CODE"
+                                              ],
+                                    "started_at":  "2026-06-08T01:36:00+08:00",
+                                    "completed_at":  "2026-06-08T01:45:00+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/enums/OpenApiErrorCode.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/impl/OpenApiSecurityServiceImpl.java",
+                                                    "backend/examine-app/src/test/java/com/unique/examine/app/manage/service/impl/OpenApiSecurityServiceImplTest.java",
+                                                    "docs/progress.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-app -am test success: core 13, plat 12, upload 4, module 21, flow 2, app 5 tests"
+                                                     ],
+                                    "notes":  [
+                                                  "Missing or invalid OpenAPI accessKey now uses OPENAPI_ACCESS_KEY_INVALID.",
+                                                  "Next route continues with frontend fixes."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1898,5 +1920,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-REV-004"
+    "last_completed_batch":  "DEV-BATCH-P6-REWORK-BE-OPENAPI-AK"
 }

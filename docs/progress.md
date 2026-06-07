@@ -16,7 +16,7 @@
 
 当前期次：`P6-final-acceptance`
 
-当前状态：`P6_final_acceptance_in_progress`
+当前状态：`P6_final_acceptance_rework_in_progress`
 
 ## 分期进度
 
@@ -28,14 +28,14 @@
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
 | P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | accepted | 5/5 后端主任务，FE-009/FE-010/FE-012 前端契约闭环完成 | 已通过 PM 阶段验收 |
-| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 本轮验证与审查任务已全部完成，最终 review fail target=both | 进入 backend/frontend 修复回环 |
+| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 本轮验证与审查任务已全部完成，backend OpenAPI accessKey 错误码已修复 | 继续 frontend 修复回环 |
 
 ## 角色完成度
 
 | 角色 | 已完成 | 进行中 | 待执行 | 说明 |
 | --- | ---: | ---: | ---: | --- |
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
-| Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；后端最终自检通过。 |
+| Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；OpenAPI accessKey 错误码回环已修复并通过 app 测试。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
 | Frontend | 12 | 0 | 0 | FE-001 至 FE-012 已完成；正式 build/typecheck 待 VAL-002 处理前端工程入口缺口。 |
 | Test | 5 | 0 | 0 | TEST-001 至 TEST-005 已完成；测试报告结论 fail target=frontend。 |
@@ -78,6 +78,7 @@
 | reviewer | REV-002 | done | `docs/review_parts/rev-002-contract.md` | 前端 AUTH 鉴权/字段类型同步问题和后端 OpenAPI accessKey 错误码问题，target=both。 |
 | reviewer | REV-003 | done | `docs/review_parts/rev-003-quality.md` | 前端构建/E2E 缺失、OpenAPI 负向断言过宽、并发矩阵覆盖不足，target=both。 |
 | reviewer | REV-004 | done | `docs/review.json` | 最终 review fail，target=both，nextRoute=backend -> frontend -> test -> validator -> reviewer。 |
+| backend | REWORK-OPENAPI-AK | done | OpenAPI accessKey 错误码 | 缺失/无效 accessKey 已改为 `OPENAPI_ACCESS_KEY_INVALID`，`mvn -pl examine-app -am test` 通过。 |
 | pm | P5 acceptance | done | `docs/phases/P5-workflow-files-openapi-acceptance.md` | P5 已验收通过，允许进入 P6。 |
 | pm | P3 acceptance | done | `docs/phases/P3-system-config-acceptance.md` | P3 已验收通过，允许进入 P4。 |
 
@@ -169,7 +170,8 @@
 27. REV-002 已完成契约实现审查：`docs/review_parts/rev-002-contract.md` 结论为 fail，target=both；发现前端 AUTH-004/AUTH-005 鉴权标记错误、字段类型枚举未同步，以及后端 OpenAPI accessKey 错误码不符合冻结契约。
 28. REV-003 已完成质量测试构建审查：`docs/review_parts/rev-003-quality.md` 结论为 fail，target=both；前端构建/E2E 缺失、OpenAPI 负向断言过宽、OpenAPI/并发矩阵覆盖不足。
 29. REV-004 已完成最终 review：`docs/review.json` 合法，status=fail，target=both，包含 7 个 issues，nextRoute 为 backend -> frontend -> test -> validator -> reviewer。
+30. Backend 回环已修复 `REV-002-BE-OPENAPI-AK-CODE`：`OpenApiSecurityServiceImpl` 缺失/无效 accessKey 改为 `OPENAPI_ACCESS_KEY_INVALID`，并新增 `OpenApiSecurityServiceImplTest`；执行 `mvn -pl examine-app -am test` 通过，core 13、plat 12、upload 4、module 21、flow 2、app 5。
 
 ## 下一步
 
-当前 `P6-final-acceptance` 本轮验证与审查任务已全部完成，但最终 `docs/review.json.status=fail`，target=both。下一步进入修复回环：先修 backend OpenAPI accessKey 错误码和创建系统幂等风险判断，再修 frontend 工程入口、AUTH 鉴权标记和字段类型枚举，随后重跑 test/validator/reviewer。
+当前 `P6-final-acceptance` 本轮验证与审查任务已全部完成，但最终 `docs/review.json.status=fail`，target=both。Backend P1 错误码回环已完成；下一步修 frontend 工程入口、AUTH 鉴权标记和字段类型枚举，随后重跑 test/validator/reviewer。

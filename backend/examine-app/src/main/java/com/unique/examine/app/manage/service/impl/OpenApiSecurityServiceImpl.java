@@ -88,7 +88,7 @@ public class OpenApiSecurityServiceImpl implements OpenApiSecurityService {
         long startNano = System.nanoTime();
         AccessLog log = createLog(request, body, apiId);
         try {
-            String accessKey = requireHeader(request, "X-OpenApi-AccessKey", CommonErrorCode.UNAUTHORIZED);
+            String accessKey = requireHeader(request, "X-OpenApi-AccessKey", OpenApiErrorCode.ACCESS_KEY_INVALID);
             ClientCredential credential = requireCredential(accessKey);
             Client client = requireClient(credential.getClientId());
             Long moduleId = resolveModuleId(client, moduleCode);
@@ -210,7 +210,7 @@ public class OpenApiSecurityServiceImpl implements OpenApiSecurityService {
                 .last("limit 1")
                 .one();
         if (Objects.isNull(credential)) {
-            throw new BusinessException(OpenApiErrorCode.CLIENT_NOT_FOUND);
+            throw new BusinessException(OpenApiErrorCode.ACCESS_KEY_INVALID);
         }
         return credential;
     }
@@ -218,7 +218,7 @@ public class OpenApiSecurityServiceImpl implements OpenApiSecurityService {
     private Client requireClient(Long clientId) {
         Client client = clientService.getById(clientId);
         if (Objects.isNull(client) || Objects.equals(client.getDeleted(), (byte) 1)) {
-            throw new BusinessException(OpenApiErrorCode.CLIENT_NOT_FOUND);
+            throw new BusinessException(OpenApiErrorCode.ACCESS_KEY_INVALID);
         }
         return client;
     }

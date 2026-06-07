@@ -13,8 +13,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum OpenApiErrorCode implements ErrorCode {
 
-    /** accessKey 不存在或无有效凭证。 */
-    CLIENT_NOT_FOUND("OPENAPI_CLIENT_NOT_FOUND", "OpenAPI 客户端不存在", HttpStatus.UNAUTHORIZED, false),
+    /** accessKey 缺失、格式非法或无有效凭证。 */
+    ACCESS_KEY_INVALID("OPENAPI_ACCESS_KEY_INVALID", "OpenAPI accessKey 无效", HttpStatus.UNAUTHORIZED, false),
 
     /** 客户端未启用、已停用或已过期。 */
     CLIENT_DISABLED("OPENAPI_CLIENT_DISABLED", "OpenAPI 客户端不可用", HttpStatus.FORBIDDEN, false),
