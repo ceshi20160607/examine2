@@ -85,24 +85,25 @@ export function isValueCompatible(field: FieldDefinitionVO, value: unknown): boo
   switch (field.fieldType) {
     case "TEXT":
     case "TEXTAREA":
-    case "AUTO_NO":
+    case "SERIAL":
       return typeof value === "string";
     case "NUMBER":
-    case "MONEY":
+    case "DECIMAL":
       return isFiniteNumber(value);
     case "DATE":
       return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
     case "DATETIME":
       return typeof value === "string" && !Number.isNaN(Date.parse(value));
     case "SELECT":
+    case "RADIO":
+    case "DICT":
       return isPrimitive(value);
     case "MULTI_SELECT":
+    case "CHECKBOX":
     case "TAG":
       return Array.isArray(value) && value.every(isPrimitive);
-    case "SWITCH":
+    case "BOOLEAN":
       return typeof value === "boolean";
-    case "MEMBER":
-    case "DEPT":
     case "RELATION":
       return isPrimitive(value) || isRecord(value) || Array.isArray(value);
     case "ATTACHMENT":
@@ -151,4 +152,3 @@ function isJsonValue(value: unknown): value is JsonValue {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-

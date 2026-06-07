@@ -148,7 +148,7 @@ export const APP_ROUTES: AppRouteRecord[] = [
     requiredContext: { system: true, member: true },
     permission: { anyOperations: ["DICT_VIEW"] },
   }),
-  route("apps.list", "/systems/:systemId/apps", "Applications", "app", "system", ["APP-001", "APP-002", "APP-003", "APP-004", "APP-005", "APP-006", "APP-007"], "FE-006", {
+  route("apps.list", "/systems/:systemId/apps", "Applications", "app", "system", ["APP-001", "APP-002", "APP-003", "APP-004", "APP-005"], "FE-006", {
     requiresAuth: true,
     requiredContext: { system: true, tenant: true, member: true },
     permission: { anyOperations: ["APP_VIEW"] },

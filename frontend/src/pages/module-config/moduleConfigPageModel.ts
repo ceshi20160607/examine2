@@ -6,18 +6,12 @@ import type {
   AvailableAction,
   DynamicFieldType,
   EntityId,
-  FieldDefinitionVO,
-  FieldPermission,
   FieldStatus,
   IsoDateTimeString,
   JsonValue,
   ModuleStatus,
   PageQuery,
-  PageResult,
-  PermissionHint,
   RuntimeModuleSchemaVO,
-  UniqueConstraintDTO,
-  VersionStatus,
 } from "../../api";
 import { API_ENDPOINTS, DYNAMIC_FIELD_TYPES } from "../../api";
 import type { AuthStore, ErrorStore, PermissionDecision, PermissionStore, SystemContextStore } from "../../stores";
@@ -52,23 +46,23 @@ export interface PageActionState extends PermissionDecision {
 
 export interface AppListItemVO {
   appId: EntityId;
+  systemId?: EntityId;
+  tenantId?: EntityId;
   name: string;
   code: string;
   icon?: string;
   description?: string;
   status: AppStatus;
   moduleCount?: number;
+  publishedVersion?: EntityId;
+  sortOrder?: number;
   version?: number;
   createdAt?: IsoDateTimeString;
   updatedAt?: IsoDateTimeString;
   availableActions?: AvailableAction[];
 }
 
-export interface AppDetailVO extends AppListItemVO {
-  latestVersionId?: EntityId;
-  publishedVersionId?: EntityId;
-  versionStatus?: VersionStatus;
-}
+export interface AppDetailVO extends AppListItemVO {}
 
 export interface AppSaveBO {
   name: string;
@@ -90,27 +84,27 @@ export interface AppStatusBO {
 
 export interface ModuleListItemVO {
   moduleId: EntityId;
+  systemId?: EntityId;
+  tenantId?: EntityId;
   appId: EntityId;
   name: string;
   code: string;
   description?: string;
   status: ModuleStatus;
-  versionStatus?: VersionStatus;
   fieldCount?: number;
-  publishedVersionId?: EntityId;
+  pageSchemaCount?: number;
+  publishedVersion?: EntityId;
   flowBindingId?: EntityId;
+  titleFieldId?: EntityId;
+  recordNoFieldId?: EntityId;
+  sortOrder?: number;
   version?: number;
+  createdAt?: IsoDateTimeString;
   updatedAt?: IsoDateTimeString;
   availableActions?: AvailableAction[];
 }
 
-export interface ModuleDetailVO extends ModuleListItemVO {
-  listSchemaVersion?: number;
-  formSchemaVersion?: number;
-  detailSchemaVersion?: number;
-  menuCode?: string;
-  actionCodes?: string[];
-}
+export interface ModuleDetailVO extends ModuleListItemVO {}
 
 export interface ModuleSaveBO {
   name: string;
@@ -134,14 +128,17 @@ export interface FieldSaveBO {
   fieldType: DynamicFieldType;
   required?: boolean;
   unique?: boolean;
+  indexed?: boolean;
   defaultValue?: JsonValue;
-  options?: JsonValue;
+  options?: FieldOptionBO[];
   dictTypeId?: EntityId;
   relationConfig?: JsonValue;
   subTableConfig?: JsonValue;
   serialConfig?: JsonValue;
-  fieldPermissions?: FieldPermission[];
-  uniqueConstraints?: UniqueConstraintDTO[];
+  validation?: JsonValue;
+  displayConfig?: JsonValue;
+  status?: FieldStatus;
+  sortOrder?: number;
 }
 
 export interface FieldUpdateBO extends FieldSaveBO {
@@ -180,13 +177,15 @@ export interface ModuleMenuBO {
   menuCode: string;
   menuName: string;
   menuParentId?: EntityId;
+  routePath?: string;
+  icon?: string;
   visible?: boolean;
+  enabled?: boolean;
   sortOrder?: number;
   schemaVersion?: number;
 }
 
 export interface ModuleActionBO {
-  actionCodes: string[];
   actions: ModuleActionConfig[];
   schemaVersion?: number;
   idempotencyKey?: string;
@@ -235,57 +234,147 @@ export interface DetailBlockConfig {
 export interface ModuleActionConfig {
   actionCode: string;
   label: string;
+  actionType?: string;
   visible: boolean;
   enabled: boolean;
   requiredPermission?: string;
   confirmRequired?: boolean;
   danger?: boolean;
+  sortOrder?: number;
 }
 
-export interface UiSchemaVO {
-  schemaVersion: number;
+export interface FieldOptionBO {
+  code: string;
+  label: string;
+  value: string;
+  color?: string;
+  enabled?: boolean;
+  sortOrder?: number;
+}
+
+export interface ModuleFieldVO {
+  fieldId: EntityId;
+  systemId?: EntityId;
+  tenantId?: EntityId;
+  moduleId: EntityId;
+  name: string;
+  code: string;
+  fieldType: DynamicFieldType;
+  required?: boolean;
+  unique?: boolean;
+  indexed?: boolean;
+  defaultValue?: JsonValue | string;
+  dictTypeId?: EntityId;
+  relationConfig?: JsonValue | string;
+  subTableConfig?: JsonValue | string;
+  serialConfig?: JsonValue | string;
+  validation?: JsonValue | string;
+  displayConfig?: JsonValue | string;
+  status: FieldStatus;
+  sortOrder?: number;
+  version?: number;
+  options?: FieldOptionBO[];
+  createdAt?: IsoDateTimeString;
+  updatedAt?: IsoDateTimeString;
+}
+
+export interface FieldTypeVO {
+  code: DynamicFieldType;
+  name: string;
+  uniqueSupported: boolean;
+  optionSupported: boolean;
+  dictSupported: boolean;
+}
+
+export interface PageSchemaSaveBO<TSchema> {
+  schema: TSchema;
   draftVersion?: number;
-  publishedVersion?: number;
-  listSchema?: ListViewSchemaBO;
-  formSchema?: FormSchemaBO;
-  detailSchema?: DetailSchemaBO;
-  permissionHints?: PermissionHint[];
-  menu?: ModuleMenuBO;
-  actions?: ModuleActionConfig[];
+}
+
+export interface PageSchemaVO {
+  schemaId?: EntityId;
+  moduleId: EntityId;
+  pageType: "LIST" | "FORM" | "DETAIL";
+  schemaCode?: string;
+  schemaName?: string;
+  schema: JsonValue | string;
+  draftVersion?: number;
+  publishedVersion?: EntityId;
+  status?: string;
+  version?: number;
+  updatedAt?: IsoDateTimeString;
+}
+
+export interface MenuConfigSaveBO {
+  menuParentId?: EntityId;
+  code: string;
+  name: string;
+  routePath?: string;
+  icon?: string;
+  visible?: boolean;
+  enabled?: boolean;
+  sortOrder?: number;
+}
+
+export interface MenuConfigVO extends MenuConfigSaveBO {
+  menuId: EntityId;
+  parentId?: EntityId;
+  appId?: EntityId;
+  moduleId: EntityId;
+}
+
+export interface ActionConfigSaveBO {
+  actions: ActionConfigBO[];
+}
+
+export interface ActionConfigBO {
+  actionCode: string;
+  actionName: string;
+  actionType?: string;
+  danger?: boolean;
+  confirmRequired?: boolean;
+  enabled?: boolean;
+  config?: JsonValue | string;
+  sortOrder?: number;
+}
+
+export interface ActionConfigVO extends ActionConfigBO {
+  actionId: EntityId;
+  moduleId: EntityId;
+  config?: JsonValue | string;
 }
 
 export interface PublishCheckIssueVO {
-  issueId: string;
-  targetType: "MODULE" | "FIELD" | "LIST_SCHEMA" | "FORM_SCHEMA" | "DETAIL_SCHEMA" | "MENU" | "ACTION";
-  targetId?: EntityId;
-  fieldCode?: string;
-  schemaPath?: string;
   code: string;
+  level: "ERROR" | "WARN" | string;
+  targetType: "MODULE" | "FIELD" | "PAGE" | "MENU" | "ACTION" | string;
+  targetId?: EntityId;
+  targetCode?: string;
   message: string;
-  blocking: boolean;
 }
 
 export interface PublishCheckResultVO {
-  pass: boolean;
+  passed: boolean;
   moduleId: EntityId;
-  draftVersion?: number;
+  nextVersionNo?: number;
   issues: PublishCheckIssueVO[];
   requestId?: string;
+  checkedAt?: IsoDateTimeString;
 }
 
 export interface ModulePublishBO {
-  draftVersion?: number;
+  moduleVersion: number;
   publishRemark?: string;
 }
 
 export interface ModulePublishResultVO {
+  publishVersionId: EntityId;
   moduleId: EntityId;
-  publishedVersionId: EntityId;
-  versionStatus: VersionStatus;
-  moduleStatus: ModuleStatus;
+  versionNo: number;
+  publishStatus: string;
+  publishRemark?: string;
+  checkResult?: string;
   publishedAt: IsoDateTimeString;
-  runtimeMenuRefreshed?: boolean;
-  runtimeSchemaRefreshed?: boolean;
 }
 
 export interface RuntimeRefreshState {
@@ -316,8 +405,6 @@ const MODULE_CONFIG_API_IDS = [
   "APP-003",
   "APP-004",
   "APP-005",
-  "APP-006",
-  "APP-007",
   "MOD-001",
   "MOD-002",
   "MOD-003",
@@ -345,14 +432,15 @@ const MODULE_CONFIG_API_IDS = [
 const UNIQUE_SUPPORTED_FIELD_TYPES = [
   "TEXT",
   "NUMBER",
-  "MONEY",
+  "DECIMAL",
   "DATE",
   "DATETIME",
   "SELECT",
-  "SWITCH",
-  "MEMBER",
-  "DEPT",
-  "AUTO_NO",
+  "RADIO",
+  "CHECKBOX",
+  "DICT",
+  "BOOLEAN",
+  "SERIAL",
   "RELATION",
 ] as const satisfies readonly DynamicFieldType[];
 
@@ -367,7 +455,7 @@ export function createModuleConfigPageModel(deps: ModuleConfigPageDeps) {
     fieldDesigner: createFieldDesignerState(),
     permissions: () => createPermissionState(deps.permission),
     apps: {
-      load: (query: PageQuery = {}) => callPage<AppListItemVO>(deps, "APP-001", { query }),
+      load: (query: PageQuery = {}) => callData<AppListItemVO[], undefined, PageQuery>(deps, "APP-001", { query }),
       create: (body: AppSaveBO, idempotencyKey = createIdempotencyKey("APP-002")) =>
         mutate<AppDetailVO, AppSaveBO>(deps, "APP-002", { body, idempotencyKey }),
       detail: (appId: EntityId) => callData<AppDetailVO>(deps, "APP-003", { pathParams: { appId } }),
@@ -375,8 +463,6 @@ export function createModuleConfigPageModel(deps: ModuleConfigPageDeps) {
         mutate<AppDetailVO, AppUpdateBO>(deps, "APP-004", { pathParams: { appId }, body }),
       changeStatus: (appId: EntityId, body: AppStatusBO) =>
         mutate<AppDetailVO, AppStatusBO>(deps, "APP-005", { pathParams: { appId }, body }),
-      copy: (appId: EntityId) => mutate<AppDetailVO, undefined>(deps, "APP-006", { pathParams: { appId } }),
-      templates: () => callData<JsonValue[]>(deps, "APP-007"),
     },
     modules: {
       load: (appId: EntityId, query: PageQuery = {}) =>
@@ -389,12 +475,11 @@ export function createModuleConfigPageModel(deps: ModuleConfigPageDeps) {
       changeStatus: (moduleId: EntityId, body: ModuleStatusBO) =>
         mutate<ModuleDetailVO, ModuleStatusBO>(deps, "MOD-005", { pathParams: { moduleId }, body }),
       publishCheck: (moduleId: EntityId, idempotencyKey = createIdempotencyKey("MOD-006")) =>
-        mutate<PublishCheckResultVO, { idempotencyKey: string }>(deps, "MOD-006", {
+        mutate<PublishCheckResultVO, undefined>(deps, "MOD-006", {
           pathParams: { moduleId },
-          body: { idempotencyKey },
           idempotencyKey,
         }),
-      async publish(moduleId: EntityId, body: ModulePublishBO = {}) {
+      async publish(moduleId: EntityId, body: ModulePublishBO) {
         const result = await mutate<ModulePublishResultVO, ModulePublishBO>(deps, "MOD-007", {
           pathParams: { moduleId },
           body,
@@ -410,43 +495,43 @@ export function createModuleConfigPageModel(deps: ModuleConfigPageDeps) {
       },
     },
     fields: {
-      load: (moduleId: EntityId) => callData<FieldDefinitionVO[]>(deps, "FIELD-001", { pathParams: { moduleId } }),
+      load: (moduleId: EntityId) => callData<ModuleFieldVO[]>(deps, "FIELD-001", { pathParams: { moduleId } }),
       create: (moduleId: EntityId, body: FieldSaveBO, idempotencyKey = createIdempotencyKey("FIELD-002")) =>
-        mutate<FieldDefinitionVO, FieldSaveBO>(deps, "FIELD-002", { pathParams: { moduleId }, body, idempotencyKey }),
+        mutate<ModuleFieldVO, FieldSaveBO>(deps, "FIELD-002", { pathParams: { moduleId }, body, idempotencyKey }),
       update: (moduleId: EntityId, fieldId: EntityId, body: FieldUpdateBO) =>
-        mutate<FieldDefinitionVO, FieldUpdateBO>(deps, "FIELD-003", { pathParams: { moduleId, fieldId }, body }),
+        mutate<ModuleFieldVO, FieldUpdateBO>(deps, "FIELD-003", { pathParams: { moduleId, fieldId }, body }),
       changeStatus: (moduleId: EntityId, fieldId: EntityId, body: FieldStatusBO) =>
-        mutate<FieldDefinitionVO, FieldStatusBO>(deps, "FIELD-004", { pathParams: { moduleId, fieldId }, body }),
-      fieldTypes: () => callData<DynamicFieldType[]>(deps, "FIELD-005"),
-      duplicateCodes(fields: Array<Pick<FieldDefinitionVO, "fieldCode">>) {
-        return duplicateFieldCodes(fields.map((field) => field.fieldCode));
+        mutate<ModuleFieldVO, FieldStatusBO>(deps, "FIELD-004", { pathParams: { moduleId, fieldId }, body }),
+      fieldTypes: () => callData<FieldTypeVO[]>(deps, "FIELD-005"),
+      duplicateCodes(fields: Array<Pick<ModuleFieldVO, "code">>) {
+        return duplicateFieldCodes(fields.map((field) => field.code));
       },
     },
     ui: {
-      loadListView: (moduleId: EntityId) => callData<UiSchemaVO>(deps, "UI-001", { pathParams: { moduleId } }),
+      loadListView: (moduleId: EntityId) => callData<PageSchemaVO>(deps, "UI-001", { pathParams: { moduleId } }),
       saveListView: (moduleId: EntityId, body: ListViewSchemaBO) =>
-        mutate<UiSchemaVO, ListViewSchemaBO>(deps, "UI-002", { pathParams: { moduleId }, body }),
-      loadForm: (moduleId: EntityId) => callData<UiSchemaVO>(deps, "UI-003", { pathParams: { moduleId } }),
+        savePageSchema<ListViewSchemaBO>(deps, "UI-002", moduleId, body),
+      loadForm: (moduleId: EntityId) => callData<PageSchemaVO>(deps, "UI-003", { pathParams: { moduleId } }),
       saveForm: (moduleId: EntityId, body: FormSchemaBO) =>
-        mutate<UiSchemaVO, FormSchemaBO>(deps, "UI-004", { pathParams: { moduleId }, body }),
-      loadDetail: (moduleId: EntityId) => callData<UiSchemaVO>(deps, "UI-005", { pathParams: { moduleId } }),
+        savePageSchema<FormSchemaBO>(deps, "UI-004", moduleId, body),
+      loadDetail: (moduleId: EntityId) => callData<PageSchemaVO>(deps, "UI-005", { pathParams: { moduleId } }),
       saveDetail: (moduleId: EntityId, body: DetailSchemaBO) =>
-        mutate<UiSchemaVO, DetailSchemaBO>(deps, "UI-006", { pathParams: { moduleId }, body }),
+        savePageSchema<DetailSchemaBO>(deps, "UI-006", moduleId, body),
       saveMenu: (moduleId: EntityId, body: ModuleMenuBO) =>
-        mutate<UiSchemaVO, ModuleMenuBO>(deps, "UI-007", { pathParams: { moduleId }, body }),
+        mutate<MenuConfigVO, MenuConfigSaveBO>(deps, "UI-007", { pathParams: { moduleId }, body: toMenuConfigSaveBO(body) }),
       saveActions: (moduleId: EntityId, body: ModuleActionBO) => {
         const idempotencyKey = body.idempotencyKey ?? createIdempotencyKey("UI-008");
-        return mutate<UiSchemaVO, ModuleActionBO>(deps, "UI-008", {
+        return mutate<ActionConfigVO[], ActionConfigSaveBO>(deps, "UI-008", {
           pathParams: { moduleId },
-          body: { ...body, idempotencyKey },
+          body: toActionConfigSaveBO(body),
           idempotencyKey,
         });
       },
-      validateListSchema: (schema: ListViewSchemaBO, fields: FieldDefinitionVO[]) =>
+      validateListSchema: (schema: ListViewSchemaBO, fields: ModuleFieldVO[]) =>
         validateSchemaRefs(schema.columns.concat(schema.filters ?? []), fields),
-      validateFormSchema: (schema: FormSchemaBO, fields: FieldDefinitionVO[]) =>
+      validateFormSchema: (schema: FormSchemaBO, fields: ModuleFieldVO[]) =>
         validateSchemaRefs(schema.formSections.flatMap((section) => section.fields), fields),
-      validateDetailSchema: (schema: DetailSchemaBO, fields: FieldDefinitionVO[]) =>
+      validateDetailSchema: (schema: DetailSchemaBO, fields: ModuleFieldVO[]) =>
         validateSchemaRefs(schema.detailBlocks.flatMap((block) => block.fields), fields),
     },
   };
@@ -492,14 +577,6 @@ function actionState(
     actionCode,
     label,
   };
-}
-
-async function callPage<TRecord>(
-  deps: ModuleConfigPageDeps,
-  apiId: ApiEndpointId,
-  options: { query?: PageQuery; pathParams?: Record<string, string | number | undefined> } = {},
-): Promise<PageMutationResult<PageResult<TRecord>>> {
-  return callData<PageResult<TRecord>, undefined, PageQuery>(deps, apiId, options);
 }
 
 async function callData<TData, TBody = unknown, TQuery = Record<string, unknown>>(
@@ -569,6 +646,52 @@ async function mutate<TData, TBody = unknown>(
   return callData<TData, TBody>(deps, apiId, options);
 }
 
+async function savePageSchema<TSchema extends { schemaVersion?: number }>(
+  deps: ModuleConfigPageDeps,
+  apiId: ApiEndpointId,
+  moduleId: EntityId,
+  schema: TSchema,
+): Promise<PageMutationResult<PageSchemaVO>> {
+  return mutate<PageSchemaVO, PageSchemaSaveBO<TSchema>>(deps, apiId, {
+    pathParams: { moduleId },
+    body: {
+      schema,
+      draftVersion: schema.schemaVersion,
+    },
+  });
+}
+
+function toMenuConfigSaveBO(body: ModuleMenuBO): MenuConfigSaveBO {
+  return {
+    menuParentId: body.menuParentId,
+    code: body.menuCode,
+    name: body.menuName,
+    routePath: body.routePath,
+    icon: body.icon,
+    visible: body.visible,
+    enabled: body.enabled,
+    sortOrder: body.sortOrder,
+  };
+}
+
+function toActionConfigSaveBO(body: ModuleActionBO): ActionConfigSaveBO {
+  return {
+    actions: body.actions.map((action, index) => ({
+      actionCode: action.actionCode,
+      actionName: action.label,
+      actionType: action.actionType ?? "BUTTON",
+      danger: action.danger,
+      confirmRequired: action.confirmRequired,
+      enabled: action.enabled,
+      config: {
+        visible: action.visible,
+        requiredPermission: action.requiredPermission,
+      },
+      sortOrder: action.sortOrder ?? index + 1,
+    })),
+  };
+}
+
 async function refreshRuntimeAfterPublish(
   deps: ModuleConfigPageDeps,
   moduleId: EntityId,
@@ -605,8 +728,8 @@ function apiContext(deps: ModuleConfigPageDeps, requestId?: string): ApiContext 
   };
 }
 
-function validateSchemaRefs(refs: SchemaFieldRef[], fields: FieldDefinitionVO[]): SchemaValidationResult {
-  const available = new Set(fields.filter((field) => field.status !== "DELETED").map((field) => field.fieldCode));
+function validateSchemaRefs(refs: SchemaFieldRef[], fields: ModuleFieldVO[]): SchemaValidationResult {
+  const available = new Set(fields.filter((field) => field.status !== "DELETED").map((field) => field.code));
   const fieldCodes = refs.map((ref) => ref.fieldCode).filter(Boolean);
   const duplicateFieldCodeList = duplicateFieldCodes(fieldCodes);
   return {
@@ -630,11 +753,8 @@ function duplicateFieldCodes(fieldCodes: string[]): string[] {
 }
 
 function locatePublishIssue(issue: PublishCheckIssueVO): string {
-  if (issue.schemaPath) {
-    return issue.schemaPath;
-  }
-  if (issue.fieldCode) {
-    return `fields.${issue.fieldCode}`;
+  if (issue.targetCode) {
+    return `${issue.targetType}.${issue.targetCode}`;
   }
   if (issue.targetId) {
     return `${issue.targetType}.${issue.targetId}`;
