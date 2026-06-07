@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T01:20:00+08:00",
+    "updated_at":  "2026-06-08T01:28:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1794,6 +1794,29 @@
                                                   "REV-002 conclusion is fail target=both.",
                                                   "Fixes require frontend contract sync and backend OpenAPI error code alignment."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-REV-003",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "REV-003"
+                                              ],
+                                    "started_at":  "2026-06-08T01:21:00+08:00",
+                                    "completed_at":  "2026-06-08T01:28:00+08:00",
+                                    "outputs":  [
+                                                    "docs/review_parts/rev-003-quality.md",
+                                                    "docs/tasks/REV-003-quality-test-build-review.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "Reviewed docs/test_report.md and docs/build_report.md for executed commands, failures and uncovered risks",
+                                                         "Confirmed frontend build/E2E missing, OpenAPI accessKey test assertion too broad and OpenAPI/concurrency matrix incomplete"
+                                                     ],
+                                    "notes":  [
+                                                  "REV-003 conclusion is fail target=both.",
+                                                  "Next task is REV-004 final review.json."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1852,5 +1875,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-REV-002"
+    "last_completed_batch":  "DEV-BATCH-P6-REV-003"
 }

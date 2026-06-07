@@ -203,7 +203,7 @@ flowchart TD
 | VAL-004 | 构建报告 | validator | validator | VAL-001/002/003/TEST-005 | `docs/build_report.md` | VAL-001, VAL-002, VAL-003, TEST-005 | 否 | 汇总构建记录，构建报告满足格式契约 | fail，target=frontend | done |
 | REV-001 | 架构审查 | reviewer | review | PRD/API/DB/backend/frontend | `docs/review_parts/rev-001-architecture.md` | VAL-004 | 否 | 模块边界、base/manage、事务权限风险审查 | fail，target=frontend | done |
 | REV-002 | 契约实现审查 | reviewer | review | API/backend/frontend/map | `docs/review_parts/rev-002-contract.md` | REV-001 | 否 | API、SDK、后端实现一致 | fail，target=both | done |
-| REV-003 | 质量测试构建审查 | reviewer | review | test/build/backend/frontend | `docs/review_parts/rev-003-quality.md` | REV-002 | 否 | 测试缺口、构建风险、质量问题审查 | issues 指向具体文件/目录 | pending |
+| REV-003 | 质量测试构建审查 | reviewer | review | test/build/backend/frontend | `docs/review_parts/rev-003-quality.md` | REV-002 | 否 | 测试缺口、构建风险、质量问题审查 | fail，target=both | done |
 | REV-004 | 最终 review.json | reviewer | review | REV-003 | `docs/review.json` | REV-003 | 否 | JSON 合法，status/target/issues 符合规则 | pass/fail 可驱动回环 | pending |
 
 ## 并行批次计划

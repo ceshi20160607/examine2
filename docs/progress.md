@@ -7,10 +7,10 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 50 |
-| 已完成 | 48 |
+| 已完成 | 49 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 2 |
+| 剩余 | 1 |
 
 当前模式：`development`
 
@@ -28,7 +28,7 @@
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
 | P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | accepted | 5/5 后端主任务，FE-009/FE-010/FE-012 前端契约闭环完成 | 已通过 PM 阶段验收 |
-| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 11/14 契约实现审查已完成，结论 fail target=both | 启动 REV-003 质量测试构建审查 |
+| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 12/14 质量测试构建审查已完成，结论 fail target=both | 启动 REV-004 最终 review.json |
 
 ## 角色完成度
 
@@ -40,7 +40,7 @@
 | Frontend | 12 | 0 | 0 | FE-001 至 FE-012 已完成；正式 build/typecheck 待 VAL-002 处理前端工程入口缺口。 |
 | Test | 5 | 0 | 0 | TEST-001 至 TEST-005 已完成；测试报告结论 fail target=frontend。 |
 | Validator | 4 | 0 | 0 | VAL-001 至 VAL-004 已完成；构建验证结论 fail，target=frontend。 |
-| Reviewer | 2 | 0 | 2 | REV-001、REV-002 已完成；当前 review target=both。 |
+| Reviewer | 3 | 0 | 1 | REV-001 至 REV-003 已完成；当前 review target=both。 |
 
 ## 当前 Agent 状态
 
@@ -76,6 +76,7 @@
 | validator | VAL-004 | done | `docs/build_report.md` | 后端 clean compile pass；前端 build 和字段类型同步 fail，target=frontend。 |
 | reviewer | REV-001 | done | `docs/review_parts/rev-001-architecture.md` | 前端工程入口缺失和字段类型不同步为 P1；创建系统本机内存幂等为 P2 风险。 |
 | reviewer | REV-002 | done | `docs/review_parts/rev-002-contract.md` | 前端 AUTH 鉴权/字段类型同步问题和后端 OpenAPI accessKey 错误码问题，target=both。 |
+| reviewer | REV-003 | done | `docs/review_parts/rev-003-quality.md` | 前端构建/E2E 缺失、OpenAPI 负向断言过宽、并发矩阵覆盖不足，target=both。 |
 | pm | P5 acceptance | done | `docs/phases/P5-workflow-files-openapi-acceptance.md` | P5 已验收通过，允许进入 P6。 |
 | pm | P3 acceptance | done | `docs/phases/P3-system-config-acceptance.md` | P3 已验收通过，允许进入 P4。 |
 
@@ -102,6 +103,7 @@
 | VAL-004 | 构建报告 | done | validator | 构建验证结论 fail，target=frontend；后端 clean compile pass，前端工程入口和字段类型同步失败 |
 | REV-001 | 架构审查 | done | reviewer | 架构审查结论 fail，target=frontend；另记录 backend 幂等生产级风险 |
 | REV-002 | 契约实现审查 | done | reviewer | 契约实现审查结论 fail，target=both；前端 AUTH/字段类型和后端 OpenAPI 错误码不一致 |
+| REV-003 | 质量测试构建审查 | done | reviewer | 质量测试构建审查结论 fail，target=both；前端 E2E 缺失，OpenAPI/并发覆盖不足 |
 
 ## 阶段验收摘要
 
@@ -163,7 +165,8 @@
 25. VAL-004 已完成构建验证报告：`docs/build_report.md` 结论为 fail，target=frontend；后端 clean compile pass，前端 build 和字段类型同步 fail。
 26. REV-001 已完成架构审查：`docs/review_parts/rev-001-architecture.md` 结论为 fail，target=frontend；主要阻塞为前端工程入口缺失和字段类型枚举未同步，另记录创建系统本机内存幂等为 backend P2 风险。
 27. REV-002 已完成契约实现审查：`docs/review_parts/rev-002-contract.md` 结论为 fail，target=both；发现前端 AUTH-004/AUTH-005 鉴权标记错误、字段类型枚举未同步，以及后端 OpenAPI accessKey 错误码不符合冻结契约。
+28. REV-003 已完成质量测试构建审查：`docs/review_parts/rev-003-quality.md` 结论为 fail，target=both；前端构建/E2E 缺失、OpenAPI 负向断言过宽、OpenAPI/并发矩阵覆盖不足。
 
 ## 下一步
 
-当前 `P6-final-acceptance` 已完成 FE-012、BE-015、TEST-003、TEST-004、TEST-005、VAL-001、VAL-002、VAL-003、VAL-004、REV-001 和 REV-002，下一步执行 REV-003 质量测试构建审查。
+当前 `P6-final-acceptance` 已完成 FE-012、BE-015、TEST-003、TEST-004、TEST-005、VAL-001、VAL-002、VAL-003、VAL-004、REV-001、REV-002 和 REV-003，下一步执行 REV-004 最终 `docs/review.json`。

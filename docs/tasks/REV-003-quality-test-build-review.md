@@ -16,8 +16,14 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
-- 完成条件: 质量和验证问题形成 `docs/review_parts/rev-003-quality.md`，供 REV-004 汇总。
+- 当前状态: done。
+- 完成条件: 质量和验证问题已形成 `docs/review_parts/rev-003-quality.md`，供 REV-004 汇总。
+
+## 执行记录
+
+- 2026-06-08 已完成质量测试构建审查分片。
+- 结论 fail，target=both。
+- 主要问题：前端构建/E2E 缺失、OpenAPI 负向断言过宽、OpenAPI/并发矩阵覆盖不足、创建系统幂等仅单机 smoke。
 
 ## 验收标准
 
