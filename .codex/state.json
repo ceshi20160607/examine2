@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T01:28:00+08:00",
+    "updated_at":  "2026-06-08T01:35:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -342,7 +342,7 @@
                       "backend/docs/backend-self-check.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
-    "status":  "DEVELOPMENT_PHASE_P6_IN_PROGRESS",
+    "status":  "DEVELOPMENT_PHASE_P6_REVIEW_FAILED",
     "last_error":  "",
     "attempts":  {
                      "step1_analyst":  1,
@@ -1817,6 +1817,29 @@
                                                   "REV-003 conclusion is fail target=both.",
                                                   "Next task is REV-004 final review.json."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-REV-004",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "REV-004"
+                                              ],
+                                    "started_at":  "2026-06-08T01:29:00+08:00",
+                                    "completed_at":  "2026-06-08T01:35:00+08:00",
+                                    "outputs":  [
+                                                    "docs/review.json",
+                                                    "docs/tasks/REV-004-final-review-json.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "docs/review.json parsed successfully",
+                                                         "review status fail target both with 7 issues and nextRoute backend->frontend->test->validator->reviewer"
+                                                     ],
+                                    "notes":  [
+                                                  "P6 validation/review batch is complete but final review failed.",
+                                                  "Next route starts backend/frontend rework."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1875,5 +1898,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-REV-003"
+    "last_completed_batch":  "DEV-BATCH-P6-REV-004"
 }
