@@ -17,7 +17,13 @@
 ## 完成状态定义
 
 - 默认状态: pending。
-- 完成条件: E2E 主链路执行记录写入 `docs/test_runs/e2e-main-chain.md`，最终 `docs/test_report.md` 只由 TEST-005 汇总写入。
+- 当前状态: done。
+- 完成条件: E2E 主链路执行记录已写入 `docs/test_runs/e2e-main-chain.md`，最终 `docs/test_report.md` 只由 TEST-005 汇总写入。
+
+## 执行记录
+
+- 2026-06-08 已完成 backend API 主链路执行，记录见 `docs/test_runs/e2e-main-chain.md`。
+- 前端真实浏览器刷新与页面联动测试因当前前端工程入口缺失，保留为 TEST-005 汇总风险，不在本任务中伪造通过。
 
 ## 验收标准
 

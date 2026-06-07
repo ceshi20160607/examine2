@@ -50,6 +50,30 @@ class DefaultPermissionServiceTest {
     }
 
     @Test
+    void shouldAllowAllSystemOperationsForSystemSuperAdmin() {
+        service = new DefaultPermissionService(List.of(new FixedPermissionSnapshotProvider(EffectivePermissionVO.builder()
+                .systemId("100")
+                .tenantId("300")
+                .memberId("200")
+                .roles(Set.of("1"))
+                .menus(Set.of("SYS_MANAGE"))
+                .operations(Set.of("SYS_MANAGE_ALL"))
+                .openapiScopes(Set.of())
+                .fieldPermissions(Map.of())
+                .dataScopes(List.of())
+                .version("1")
+                .build())));
+
+        assertThat(service.decide(PermissionCheck.builder()
+                .operationCode("APP_CREATE")
+                .build()).isAllowed()).isTrue();
+        assertThat(service.decide(PermissionCheck.builder()
+                .menuCode("ANY_MENU")
+                .operationCode("MODULE_PUBLISH")
+                .build()).isAllowed()).isTrue();
+    }
+
+    @Test
     void shouldEvaluateOpenApiScope() {
         service.requireOpenApiScope("record:read");
 

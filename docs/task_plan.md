@@ -59,7 +59,7 @@
 | 前端 SDK | FE-001 | API 冻结 | `frontend/src/api/`、`frontend/docs/page-contracts/_template.md` | 枚举、错误码、DTO/VO、分页、动态字段模型可被页面复用 | pending |
 | 前端页面 | FE-002 至 FE-011 | SDK 和路由基础完成 | `frontend/src/pages/`、`frontend/src/components/`、`frontend/docs/page-contracts/` | 页面按模块完成，页面级 API 映射、权限禁用、空态、错误态、requestId 展示闭环 | pending |
 | 前端自检 | FE-012 | 前端页面完成 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | 页面到接口映射、枚举错误码同步、无旁路请求 | done |
-| test 测试 | TEST-001 至 TEST-005 | API 冻结；执行依赖实现产物 | `docs/test_plan.md`、`docs/test_runs/`、`docs/test_report.md` | TEST-003/004 写独立执行记录，TEST-005 汇总报告并给出 pass/fail target | pending |
+| test 测试 | TEST-001 至 TEST-005 | API 冻结；执行依赖实现产物 | `docs/test_plan.md`、`docs/test_runs/`、`docs/test_report.md` | TEST-003/004 写独立执行记录，TEST-005 汇总报告并给出 pass/fail target | in_progress |
 | validator 构建 | VAL-001 至 VAL-004 | 后端、前端、测试产物完成 | `docs/build/`、`docs/build_report.md` | VAL-001/002/003 写独立验证记录，VAL-004 汇总 clean compile、clean build 和契约同步结论 | pending |
 | reviewer 审查 | REV-001 至 REV-004 | 测试和构建报告完成 | `docs/review_parts/`、`docs/review.json` | REV-001 至 REV-003 输出不重叠审查分片，REV-004 唯一输出合法 JSON 总结论 | pending |
 
@@ -194,8 +194,8 @@ flowchart TD
 | FE-012 | 前端自检与契约闭环 | frontend | frontend | FE-002..FE-011 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | FE-002, FE-003, FE-004, FE-005, FE-006, FE-007, FE-008, FE-009, FE-010, FE-011 | 否 | 汇总页面证据，无旁路请求，枚举错误码同步 | typecheck/build 前自检 | done |
 | TEST-001 | 测试计划与夹具设计 | test | test | PRD/API/task_plan/service | `docs/test_plan.md` | PLAN-001 | 是 | 范围、环境、夹具和入口明确 | 测试数据不进入生产 seed | pending |
 | TEST-002 | API 契约用例 | test | test | TEST-001/API | API 用例清单 | TEST-001 | 是 | 正常、异常、权限、边界、幂等覆盖 | 可直接用于自动化 | pending |
-| TEST-003 | E2E 主链路执行 | test | test | BE-015/FE-012 | `docs/test_runs/e2e-main-chain.md` | BE-015, FE-012, TEST-002 | 否 | 创建系统到审批导出 OpenAPI 闭环跑通，执行记录独立输出 | E2E 场景断言 | pending |
-| TEST-004 | 权限异常幂等 OpenAPI 测试 | test | test | BE-015/FE-012/TEST-002 | `docs/test_runs/permission-exception-idempotency-openapi.md` | BE-015, FE-012, TEST-002 | 是 | 越权、状态冲突、签名、限流、幂等覆盖，执行记录独立输出 | fail 给出 target | pending |
+| TEST-003 | E2E 主链路执行 | test | test | BE-015/FE-012 | `docs/test_runs/e2e-main-chain.md` | BE-015, FE-012, TEST-002 | 否 | 创建系统到审批导出 OpenAPI 闭环跑通，执行记录独立输出 | E2E 场景断言 | done |
+| TEST-004 | 权限异常幂等 OpenAPI 测试 | test | test | BE-015/FE-012/TEST-002 | `docs/test_runs/permission-exception-idempotency-openapi.md` | BE-015, FE-012, TEST-002 | 是 | 越权、状态冲突、签名、限流、幂等覆盖，执行记录独立输出 | fail 给出 target | done |
 | TEST-005 | 测试报告 | test | test | TEST-003/TEST-004 | `docs/test_report.md` | TEST-003, TEST-004 | 否 | 汇总测试执行记录，报告含命令、结果、失败摘要、target | 结论 pass/fail | pending |
 | VAL-001 | 后端 clean compile | validator | validator | BE-015/service | `docs/build/backend-clean-compile.md` | BE-015 | 是 | JDK/Maven 路径和 clean compile 结果明确，记录独立输出 | 失败日志摘要 | pending |
 | VAL-002 | 前端 clean build | validator | validator | FE-012/service | `docs/build/frontend-clean-build.md` | FE-012 | 是 | 清理 dist/tsbuildinfo 后 build，记录独立输出 | 失败日志摘要 | pending |

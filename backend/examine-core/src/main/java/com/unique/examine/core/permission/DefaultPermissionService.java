@@ -20,6 +20,8 @@ public class DefaultPermissionService implements PermissionService {
 
     private static final String PERM_DENIED = "PERM_DENIED";
 
+    private static final String SYSTEM_MANAGE_ALL = "SYS_MANAGE_ALL";
+
     private final List<PermissionSnapshotProvider> providers;
 
     @Override
@@ -38,6 +40,9 @@ public class DefaultPermissionService implements PermissionService {
     @Override
     public PermissionDecision decide(PermissionCheck check) {
         EffectivePermissionVO permission = currentPermission();
+        if (permission.getOperations().contains(SYSTEM_MANAGE_ALL)) {
+            return PermissionDecision.allow();
+        }
         if (StringUtils.hasText(check.getMenuCode()) && !permission.getMenus().contains(check.getMenuCode())) {
             return PermissionDecision.deny(PERM_DENIED, "菜单不可见");
         }

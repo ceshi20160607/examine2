@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-07T23:20:00+08:00",
+    "updated_at":  "2026-06-08T00:35:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1596,6 +1596,41 @@
                                                   "Backend self-check is not clean compile; VAL-001 will run backend clean compile.",
                                                   "OpenAPI secret uses MVP base64 placeholder; production hardening should replace with KMS/encryption."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-TEST-003-004",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "TEST-003",
+                                                  "TEST-004"
+                                              ],
+                                    "started_at":  "2026-06-08T00:00:00+08:00",
+                                    "completed_at":  "2026-06-08T00:35:00+08:00",
+                                    "outputs":  [
+                                                    "docs/test_runs/e2e-main-chain.md",
+                                                    "docs/test_runs/permission-exception-idempotency-openapi.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/tasks/TEST-003-e2e-main-chain.md",
+                                                    "docs/tasks/TEST-004-permission-exception-idempotency-openapi.md",
+                                                    "backend/examine-core/src/main/java/com/unique/examine/core/permission/DefaultPermissionService.java",
+                                                    "backend/examine-core/src/main/java/com/unique/examine/core/web/GlobalExceptionHandler.java",
+                                                    "backend/examine-core/src/test/java/com/unique/examine/core/permission/DefaultPermissionServiceTest.java",
+                                                    "backend/examine-app/src/main/java/com/unique/examine/app/manage/service/impl/OpenApiSecurityServiceImpl.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/ModuleConfigServiceImpl.java",
+                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/ExportManageServiceImpl.java",
+                                                    "backend/examine-plat/src/main/java/com/unique/examine/plat/manage/service/impl/PlatformCenterServiceImpl.java"
+                                                ],
+                                    "verification":  [
+                                                         "mvn -pl examine-web -am test success: core 13, plat 12, upload 4, module 21, flow 2, app 4, web 4 tests",
+                                                         "mvn -pl examine-web -am -DskipTests package success",
+                                                         "HTTP idempotency retest success: same X-Idempotency-Key with different create-system body returned 409 COMMON_IDEMPOTENCY_CONFLICT"
+                                                     ],
+                                    "notes":  [
+                                                  "TEST-003 backend API main chain passed from auth to export job creation.",
+                                                  "TEST-004 smoke risk scenarios passed for unauthorized internal API, invalid credentials, OpenAPI missing AK and create-system idempotency conflict.",
+                                                  "Frontend browser refresh and page interaction checks remain blocked by missing frontend package.json and tsconfig.json and must be summarized by TEST-005."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1654,5 +1689,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-BE-015"
+    "last_completed_batch":  "DEV-BATCH-P6-TEST-003-004"
 }

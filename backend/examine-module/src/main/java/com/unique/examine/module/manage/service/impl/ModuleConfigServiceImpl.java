@@ -593,6 +593,7 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
                 .eq(Menu::getModuleId, moduleId)
                 .eq(Menu::getDeleteMarker, ACTIVE_DELETE_MARKER)
                 .one();
+        boolean newMenu = Objects.isNull(menu);
         if (Objects.isNull(menu)) {
             menu = new Menu()
                     .setSystemId(systemId)
@@ -603,7 +604,6 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
                     .setDeleteMarker(ACTIVE_DELETE_MARKER)
                     .setCreatedBy(currentMemberId())
                     .setCreatedAt(LocalDateTime.now());
-            menuService.save(menu);
         }
         menu.setParentId(parseLongOrDefault(saveBO.getMenuParentId(), 0L))
                 .setCode(saveBO.getCode())
@@ -615,7 +615,11 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
                 .setSortOrder(defaultInteger(saveBO.getSortOrder(), 100))
                 .setUpdatedBy(currentMemberId())
                 .setUpdatedAt(LocalDateTime.now());
-        menuService.updateById(menu);
+        if (newMenu) {
+            menuService.save(menu);
+        } else {
+            menuService.updateById(menu);
+        }
         touchModule(model);
         return toMenuConfigVO(menu);
     }

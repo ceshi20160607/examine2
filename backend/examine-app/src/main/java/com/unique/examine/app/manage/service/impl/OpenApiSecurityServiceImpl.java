@@ -196,6 +196,7 @@ public class OpenApiSecurityServiceImpl implements OpenApiSecurityService {
                 .setRateLimitResult("NOT_CHECKED")
                 .setIdempotencyResult("NOT_CHECKED")
                 .setResult("FAILED")
+                .setHttpStatus(500)
                 .setCreatedAt(now)
                 .setUpdatedAt(now);
         accessLogService.save(log);

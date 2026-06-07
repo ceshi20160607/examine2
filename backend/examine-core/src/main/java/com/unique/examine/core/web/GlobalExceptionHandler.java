@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -119,6 +120,27 @@ public class GlobalExceptionHandler {
                         .build())
                 .toList();
         return failure(CommonErrorCode.PARAM_INVALID, CommonErrorCode.PARAM_INVALID.getMessage(), errors);
+    }
+
+    /**
+     * 处理请求头缺失异常，认证头缺失按未登录返回。
+     *
+     * @param exception 请求头缺失异常
+     * @return 统一错误响应
+     */
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMissingRequestHeader(MissingRequestHeaderException exception) {
+        if ("Authorization".equalsIgnoreCase(exception.getHeaderName())) {
+            return failure(CommonErrorCode.UNAUTHORIZED, CommonErrorCode.UNAUTHORIZED.getMessage(), List.of());
+        }
+        ApiErrorDetail error = ApiErrorDetail.builder()
+                .targetType("HEADER")
+                .fieldCode(exception.getHeaderName())
+                .reason("HEADER_MISSING")
+                .retryable(false)
+                .userMessage(CommonErrorCode.PARAM_INVALID.getMessage())
+                .build();
+        return failure(CommonErrorCode.PARAM_INVALID, CommonErrorCode.PARAM_INVALID.getMessage(), List.of(error));
     }
 
     /**

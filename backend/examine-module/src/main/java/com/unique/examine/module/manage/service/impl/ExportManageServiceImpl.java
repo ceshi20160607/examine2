@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.examine.core.common.response.PageResult;
@@ -667,6 +668,7 @@ public class ExportManageServiceImpl implements ExportManageService {
                 .setOperatorId(toId(currentMemberId()))
                 .setCreatedAt(LocalDateTime.now())
                 .setUpdatedAt(LocalDateTime.now())
+                .setId(IdWorker.getId())
                 .setDeleted(NO)
                 .setCreatedBy(currentMemberId())
                 .setUpdatedBy(currentMemberId()));

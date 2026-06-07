@@ -17,7 +17,13 @@
 ## 完成状态定义
 
 - 默认状态: pending。
-- 完成条件: 风险场景执行结果写入 `docs/test_runs/permission-exception-idempotency-openapi.md`，最终 `docs/test_report.md` 只由 TEST-005 汇总写入。
+- 当前状态: done。
+- 完成条件: 风险场景执行结果已写入 `docs/test_runs/permission-exception-idempotency-openapi.md`，最终 `docs/test_report.md` 只由 TEST-005 汇总写入。
+
+## 执行记录
+
+- 2026-06-08 已完成未登录、错误凭证、OpenAPI 缺少 AK 和创建系统幂等冲突 smoke 场景，记录见 `docs/test_runs/permission-exception-idempotency-openapi.md`。
+- 深度并发、timestamp/nonce/body hash 全矩阵和限流边界压测作为 TEST-005 汇总风险和后续补测建议。
 
 ## 验收标准
 

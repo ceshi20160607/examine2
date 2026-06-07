@@ -8,8 +8,13 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.unique.examine.core.context.RequestContext;
+import com.unique.examine.core.context.RequestContextHolder;
+import com.unique.examine.core.error.CommonErrorCode;
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.plat.base.entity.Account;
 import com.unique.examine.plat.base.entity.AccountRole;
@@ -75,6 +80,8 @@ public class PlatformCenterServiceImpl implements PlatformCenterService {
 
     private static final String MASKED_VALUE = "******";
 
+    private static final Map<String, CreateSystemIdempotencyRecord> CREATE_SYSTEM_IDEMPOTENCY = new ConcurrentHashMap<>();
+
     private final IAccountService accountService;
 
     private final ISystemService systemService;
@@ -126,6 +133,17 @@ public class PlatformCenterServiceImpl implements PlatformCenterService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public PlatformSystemVO createSystem(Long accountId, PlatformSystemSaveBO saveBO) {
+        String idempotencyScope = createSystemIdempotencyScope(accountId);
+        String requestHash = createSystemRequestHash(saveBO);
+        if (StringUtils.hasText(idempotencyScope)) {
+            CreateSystemIdempotencyRecord existingRecord = CREATE_SYSTEM_IDEMPOTENCY.get(idempotencyScope);
+            if (Objects.nonNull(existingRecord)) {
+                if (!Objects.equals(existingRecord.requestHash(), requestHash)) {
+                    throw new BusinessException(CommonErrorCode.IDEMPOTENCY_CONFLICT);
+                }
+                return existingRecord.response();
+            }
+        }
         if (!TenantMode.isValid(saveBO.getTenantMode())) {
             throw new BusinessException(PlatErrorCode.SYSTEM_STATUS_INVALID, "租户模式不正确");
         }
@@ -166,7 +184,12 @@ public class PlatformCenterServiceImpl implements PlatformCenterService {
         initializedObjects.add(initialized("SYSTEM", system.getCode(), system.getId(), system.getStatus()));
         initializedObjects.add(initialized("TENANT", tenant.getCode(), tenant.getId(), tenant.getStatus()));
         initializedObjects.addAll(initializationResult.initializedObjects());
-        return toSystemVO(system, initializedObjects);
+        PlatformSystemVO response = toSystemVO(system, initializedObjects);
+        if (StringUtils.hasText(idempotencyScope)) {
+            CREATE_SYSTEM_IDEMPOTENCY.putIfAbsent(idempotencyScope,
+                    new CreateSystemIdempotencyRecord(requestHash, response));
+        }
+        return response;
     }
 
     /**
@@ -685,6 +708,26 @@ public class PlatformCenterServiceImpl implements PlatformCenterService {
                 .build();
     }
 
+    private static String createSystemIdempotencyScope(Long accountId) {
+        RequestContext context = RequestContextHolder.get();
+        if (Objects.isNull(context) || !StringUtils.hasText(context.getIdempotencyKey())) {
+            return null;
+        }
+        return "PLAT:createSystem:" + accountId + ":" + context.getIdempotencyKey();
+    }
+
+    private static String createSystemRequestHash(PlatformSystemSaveBO saveBO) {
+        return String.join("|",
+                safeText(saveBO.getCode()),
+                safeText(saveBO.getName()),
+                safeText(saveBO.getTenantMode()),
+                safeText(saveBO.getDescription()));
+    }
+
+    private static String safeText(String value) {
+        return StringUtils.hasText(value) ? value.strip() : "";
+    }
+
     private PlatformAccountVO toAccountVO(Account account) {
         return PlatformAccountVO.builder()
                 .accountId(toId(account.getId()))
@@ -806,5 +849,8 @@ public class PlatformCenterServiceImpl implements PlatformCenterService {
 
     private String toId(Long id) {
         return id == null ? null : String.valueOf(id);
+    }
+
+    private record CreateSystemIdempotencyRecord(String requestHash, PlatformSystemVO response) {
     }
 }
