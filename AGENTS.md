@@ -255,17 +255,18 @@ E:\workspace\03_project\unique\java\
 
 * 后端必须参考 `.codex/oldexamine/` 的 Maven 多模块结构，不生成平铺式单模块工程。默认模块为：`examine-core`、`examine-plat`、`examine-module`、`examine-flow`、`examine-upload`、`examine-app`、`examine-generator`、`examine-web`；确需增删模块时必须在 `docs/prd.md` 与 `docs/db_design.md` 中说明原因。用户口述的 `examine-genger` 统一纠正为 `examine-generator`，除非后续明确要求保留该拼写。
 * `backend/pom.xml` 是父工程，子模块各自有 `pom.xml`；Spring Boot 启动类、Web 配置和统一 API 入口放在 `examine-web`，通用返回、异常、安全上下文、工具和公共配置放在 `examine-core`。
-* 数据库表必须按业务模块命名，禁止无前缀平铺。统一以 `un_` 开头，后接模块前缀；当前 MVP 默认前缀：平台与租户 `un_plat_`，动态模块/模型/业务应用/应用版本/记录/导出 `un_module_`，流程审批 `un_flow_`，上传与文件 `un_upload_`，OpenAPI `un_openapi_`，系统日志/审计 `un_sys_` 或 `un_audit_`。旧项目 `un_app_*` 仅作为 OpenAPI 历史表域参考，不进入 MVP 新建表和生成器映射；OpenAPI 后端模块仍为 `examine-app`，但表名前缀必须是 `un_openapi_`。表名和模块映射必须写入 `docs/db_design.md`。
+* 数据库表必须按业务模块命名，禁止无前缀平铺。统一以 `un_` 开头，后接模块前缀；当前 MVP 默认前缀：平台与租户 `un_plat_`，动态模块/模型/业务应用/应用版本/记录/导出 `un_module_`，流程审批 `un_flow_`，上传与文件 `un_upload_`，OpenAPI `un_openapi_`，系统日志/审计 `un_sys_` 或 `un_audit_`。旧项目 `un_app_*` 仅作为 OpenAPI 历史表域参考，不进入 MVP 新建表和生成器目标；OpenAPI 后端模块仍为 `examine-app`，但表名前缀必须是 `un_openapi_`。表名、模块归属和表前缀规则必须写入 `docs/db_design.md`。
 * DBA 设计表结构时必须先从 `docs/legacy_reference.md` 中读取旧项目模块与表命名摘要，不能只按需求自由命名。
 * 数据库表结构和 `sql/init.sql` 完成后，后端必须根据 `docs/service_info.md` 中的数据库连接配置连接 MySQL，先执行 `sql/init.sql` 完成建库建表，再使用 MyBatis-Plus 代码生成工具生成贴表基础 CRUD，禁止手写大批量 entity/mapper/service 基础样板。
-* 新增代码生成模块统一规划为 `examine-generator`：用于承载 MyBatis-Plus 代码生成、后续自定义 XML 模板、通用 CRUD 扩展模板、表到模块映射和可选的生成接口。生成器不放在 `examine-web` 运行主包里。
-* `examine-generator` 首期职责：读取数据库表、表前缀与模块映射，在对应业务模块生成 `base` 层 entity/mapper/service/serviceImpl；后续可支持自定义 XML 模板、通用查询/导出/批量能力模板和按接口触发指定表生成代码。
+* 新增代码生成模块统一规划为 `examine-generator`：用于承载 MyBatis-Plus 代码生成、后续自定义 XML 模板、通用 CRUD 扩展模板和可选的生成接口。生成器不放在 `examine-web` 运行主包里。
+* `examine-generator` 首期职责：读取数据库表，并根据每条生成命令传入的模块名、表前缀、base 包、Java 输出目录和 mapper XML 输出目录，在对应业务模块生成 `base` 层 entity/mapper/service/serviceImpl；后续可支持自定义 XML 模板、通用查询/导出/批量能力模板和按接口触发指定表生成代码，但不得重新引入中心映射文件。
 * `.codex/oldgenerator/` 是旧 MyBatis-Plus 生成器只读参考目录。开发 `examine-generator` 时优先参考 `GeneratorOwner`、`DefaultTemplateEngine` 和 `template_owner`，但必须移除旧硬编码数据源、硬编码输出目录、交互式唯一入口、Controller 模板和 `com.kakarote.*` 包名；参考结论维护在 `docs/generator_reference.md`。
 * 生成结果按业务模块落到对应子模块中，例如 `examine-plat/src/main/java/com/unique/examine/plat/base/`、`examine-module/src/main/java/com/unique/examine/module/base/`、`examine-flow/src/main/java/com/unique/examine/flow/base/`，包含 `entity/`、`mapper/`、`service/`、`service/impl/` 等基础 CRUD 代码。
+* 生成命令必须有可直接复跑的入口，统一维护在 `backend/examine-generator/scripts/generate-base-crud.ps1` 和 `backend/examine-generator/README.md`。新增模块时只增加一段模块命令参数，不新增中心映射文件或报告文件。
 * 业务代码放在各业务模块中与 `base` 同级的 `manage/` 包，包含 `controller/`、`service/`、`service/impl/`、`bo/`、`vo/`、`dto/`、`converter/`、`enums/` 等。`examine-web` 只承载启动、Web 装配、全局配置和必要的聚合入口，不堆业务实现。
 * `base` 包只承载贴表基础能力，不生成或暴露对外 Controller；对外接口统一放在对应模块的 `manage.controller` 或 `examine-web` 中明确聚合的 Controller。
 * `manage` 层入参使用 BO/DTO，出参使用 VO，不直接暴露 `base.entity`；业务校验、事务编排、权限控制和实体到 VO 的转换都放在 `manage` 层。
-* 后端交付必须包含代码生成执行说明或报告，放在 `backend/docs/mybatis-plus-generation.md`；说明数据库连接来源、SQL 执行命令与结果、生成命令、表清单、模块映射、生成结果路径。如果数据库连接、SQL 执行或代码生成失败，必须记录阻塞原因并进入修复，不允许退回手写大批量 CRUD。
+* 后端基础 CRUD 必须通过 `examine-generator` 自动生成。生成器采用“命令即配置”：每条命令显式传入模块名、表前缀、base 包、Java 输出目录和 mapper XML 输出目录，不再维护额外的表到模块映射文件或默认生成报告。如果数据库连接、SQL 执行或代码生成失败，必须记录阻塞原因并进入修复，不允许退回手写大批量 CRUD。
 
 平台与自定义系统权限模型：
 
@@ -990,7 +991,7 @@ reviewer 还必须检查以下架构项；任一不满足时必须判定 fail：
 
 * 后端是否参考旧项目形成 Maven 多模块工程，而不是平铺单模块。
 * 表名是否按模块前缀区分，是否和 `docs/db_design.md` 映射一致。
-* 基础 CRUD 是否由 MyBatis-Plus 代码生成器生成，是否存在生成器和 `backend/docs/mybatis-plus-generation.md`。
+* 基础 CRUD 是否由 MyBatis-Plus 代码生成器生成，生成命令是否能直接复跑。
 * `base` 与 `manage` 是否在各业务模块内分层清晰，是否避免将业务实现堆在 `examine-web`。
 * validator 是否证明后端 clean compile 和前端 clean build 通过。
 

@@ -1,4 +1,4 @@
-# unexamine 细粒度开发任务拆分
+﻿# unexamine 细粒度开发任务拆分
 
 ## 输入与冻结边界
 
@@ -31,7 +31,7 @@
 | 期次 | 名称 | 任务范围 | 主责角色 | 入口条件 | 退出标准 | 当前状态 |
 | --- | --- | --- | --- | --- | --- | --- |
 | P0-foundation | 基础冻结与骨架期 | DBA-001 至 DBA-006、TEST-001 至 TEST-002、FE-001 至 FE-007、FE-011、BE-001 至 BE-002、GEN-001 | planner/dba/backend/frontend/test | 审阅模式冻结，开发模式启动 | DB/SQL、后端骨架、core、生成器骨架、前端 SDK/Layout/基础页面和测试计划完成，相关自检通过 | done |
-| P1-generator | 生成器闭环期 | GEN-002、GEN-003、GEN-004 | backend | P0 完成，`sql/init.sql` 可导入，`examine-generator` 骨架可编译 | 能根据表前缀映射生成各业务模块 `base` 包，`backend/docs/mybatis-plus-generation.md` 记录生成命令、表清单、模块映射和结果，后端 compile 通过 | pending |
+| P1-generator | 生成器闭环期 | GEN-002、GEN-003、GEN-004 | backend | P0 完成，`sql/init.sql` 可导入，`examine-generator` 骨架可编译 | 能通过命令参数按表前缀生成各业务模块 `base` 包，后端 compile 通过 | pending |
 | P2-auth-platform | 认证与平台期 | BE-003、BE-004、FE-003、FE-004 的联调补充、阶段 validator/test 轻量检查 | pm/backend/frontend/test/validator | P1 完成，base CRUD 可用 | 登录、刷新、退出、当前用户、我的系统、平台系统创建和平台账号角色核心接口/页面闭环，PM 验收通过 | pending |
 | P3-system-config | 系统配置与权限期 | BE-005、BE-006、BE-007、BE-014、FE-005、FE-006 的联调补充 | pm/backend/frontend/test | P2 完成 | 系统成员、部门、角色、权限、字典、应用/模块/字段/页面配置闭环，权限与数据范围基础可用 | pending |
 | P4-runtime-mvp | 运行台 MVP 期 | BE-008、FE-008、阶段 test/validator | pm/backend/frontend/test/validator | P3 完成 | 动态 schema、记录列表/详情/保存/历史/提交审批入口按权限跑通，运行台 MVP 满意度通过 | pending |
@@ -53,7 +53,7 @@
 | DB 设计 | DBA-001 至 DBA-005 | 任务拆分通过 | `docs/db_design_parts/`、`docs/db_design.md` | DBA-001 至 DBA-004 输出不重叠分片，DBA-005 串行汇总最终 DB 设计；表域、字段、关系、seed、索引、约束、并发规则清晰 | pending |
 | SQL 初始化 | DBA-006 | DB 设计完成 | `sql/init.sql`、DBA 自检记录 | SQL 与 DB 设计一致，可导入目标 MySQL | pending |
 | 后端架构 | BE-001 至 BE-003 | DB/SQL 完成 | `backend/` 架构骨架 | Maven 多模块、core、认证会话基础可编译 | pending |
-| examine-generator | GEN-001 至 GEN-004 | DB/SQL 与后端骨架完成；参考 `.codex/oldgenerator/` 和 `docs/generator_reference.md` | `backend/examine-generator/`、各业务模块 `base/` 包、`backend/docs/mybatis-plus-generation.md` | base 层生成成功且报告记录表清单、表前缀映射、旧模板取舍和精确生成路径 | pending |
+| examine-generator | GEN-001 至 GEN-004 | DB/SQL 与后端骨架完成；参考 `.codex/oldgenerator/` 和 `docs/generator_reference.md` | `backend/examine-generator/`、各业务模块 `base/` 包 | base 层可通过命令直接生成，旧模板取舍清晰，输出路径由命令参数传入 | pending |
 | 后端业务模块 | BE-004 至 BE-014 | 生成器产物、core、权限基础完成 | 各模块 `manage` 代码 | 平台、系统、模块、运行、流程、文件、导出、OpenAPI、审计接口符合 API | pending |
 | API 实现自检 | BE-015 | 后端业务模块完成 | `backend/docs/backend-self-check.md` | 错误码、幂等、权限、事务、OpenAPI 签名和主要接口自检通过 | pending |
 | 前端 SDK | FE-001 | API 冻结 | `frontend/src/api/`、`frontend/docs/page-contracts/_template.md` | 枚举、错误码、DTO/VO、分页、动态字段模型可被页面复用 | pending |
@@ -162,9 +162,9 @@ flowchart TD
 | DBA-005 | seed 索引约束并发设计 | dba | DB | DBA-001/002/003/004 分片、理解、旧项目参考 | `docs/db_design.md` | DBA-002, DBA-003, DBA-004 | 否 | 合并分片并补齐 seed、唯一索引、幂等锁、序号并发规则、旧项目差异和迁移注意事项 | 初始化和冲突用例可断言 | pending |
 | DBA-006 | init.sql 与迁移检查 | dba | DB/SQL | DBA-005 | `sql/init.sql`、`docs/db_design.md` | DBA-005 | 否 | SQL 可导入，表结构与文档一致，迁移检查结果回写 DB 设计 | 导入 MySQL 并记录结果 | pending |
 | GEN-001 | examine-generator 模块骨架 | backend | generator | DBA-006/BE-001/oldgenerator参考 | `backend/examine-generator/` | BE-001, DBA-006 | 是 | 生成器模块纳入父 POM，旧生成器参考取舍明确 | 编译可识别模块 | pending |
-| GEN-002 | 生成器数据库映射配置 | backend | generator | GEN-001/DBA-006/service/oldgenerator参考 | `backend/examine-generator/src/main/resources/generator/table-module-map.yml` | GEN-001 | 否 | 表前缀到业务模块和 base 包路径映射准确，旧硬编码已移除 | 连接配置和表清单自检 | pending |
+| GEN-002 | 生成器数据库映射配置 | backend | generator | GEN-001/DBA-006/service/oldgenerator参考 | 命令参数 | GEN-001 | 否 | 模块名、表前缀、base 包和输出目录由命令传入，旧硬编码已移除 | 连接配置和命令复跑自检 | pending |
 | GEN-003 | base 层模板策略 | backend | generator | GEN-002/API/template_owner参考 | 模板与生成规则 | GEN-002 | 否 | 只生成 entity/mapper/service/serviceImpl，不生成 Controller | 验证不生成 Controller | pending |
-| GEN-004 | 生成执行与报告 | backend | generator | GEN-003/SQL/oldgenerator参考 | 各模块 `base/` 包、`backend/docs/mybatis-plus-generation.md` | GEN-003 | 否 | 生成报告含连接、命令、表清单、表前缀映射、旧模板取舍和精确 base 路径 | 编译前生成产物自检 | pending |
+| GEN-004 | 生成执行 | backend | generator | GEN-003/SQL/oldgenerator参考 | 各模块 `base/` 包 | GEN-003 | 否 | 按模块分别执行生成命令，命令显式包含模块名、表前缀、base 包和输出目录，不再维护映射文件或默认报告 | 编译前生成产物自检 | pending |
 | BE-001 | 后端父子 POM 与模块骨架 | backend | backend | DBA-006/service | `backend/` | DBA-006 | 否 | Maven 多模块结构完整 | 父子模块基础 compile | pending |
 | BE-002 | core 统一响应错误上下文 | backend | core | BE-001/API | `examine-core` | BE-001 | 是 | ApiResponse、错误码、requestId、上下文和幂等基础服务抽象完成 | 单元测试异常、响应结构和幂等基础响应 | pending |
 | BE-003 | 认证会话安全 | backend | plat/web | BE-002/API | auth manage 接口 | BE-002 | 是 | 登录、刷新、退出、me 符合 AUTH 契约 | token、账号状态、requestId 测试 | pending |

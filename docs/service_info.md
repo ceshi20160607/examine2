@@ -1,8 +1,8 @@
 ## 数据库连接信息
 
 - url:jdbc:mysql://192.168.0.211:3306/examine1?characterEncoding=utf8&useSSL=false&zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false&serverTimezone=Asia/Shanghai&useAffectedRows=true&allowPublicKeyRetrieval=true
-- 用户名:root
-- 密码：Admin001m
+- 用户名:examine
+- 密码：examine
 
 ## redis连接信息
 
