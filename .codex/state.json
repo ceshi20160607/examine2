@@ -17,7 +17,7 @@
                             14,
                             15
                         ],
-    "updated_at":  "2026-06-08T01:00:00+08:00",
+    "updated_at":  "2026-06-08T01:05:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1725,6 +1725,29 @@
                                                   "VAL-003 conclusion is fail target=frontend.",
                                                   "No API or frontend source changes were made during validator check."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P6-VAL-004",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "VAL-004"
+                                              ],
+                                    "started_at":  "2026-06-08T01:01:00+08:00",
+                                    "completed_at":  "2026-06-08T01:05:00+08:00",
+                                    "outputs":  [
+                                                    "docs/build_report.md",
+                                                    "docs/tasks/VAL-004-build-report.md",
+                                                    "docs/progress.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "docs/build_report.md contains backend, frontend, contract sync results, failure summary and validator conclusion",
+                                                         "Backend clean compile pass; frontend build and contract sync fail target=frontend"
+                                                     ],
+                                    "notes":  [
+                                                  "Build validation conclusion is fail target=frontend.",
+                                                  "Next task is REV-001 architecture review."
+                                              ]
                                 }
                             ],
     "current_phase":  "P6-final-acceptance",
@@ -1783,5 +1806,5 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-VAL-003"
+    "last_completed_batch":  "DEV-BATCH-P6-VAL-004"
 }

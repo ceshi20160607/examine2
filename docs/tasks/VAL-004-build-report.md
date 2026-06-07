@@ -16,8 +16,13 @@
 
 ## 完成状态定义
 
-- 默认状态: pending。
-- 完成条件: `docs/build_report.md` 符合格式契约。
+- 当前状态: done。
+- 完成条件: `docs/build_report.md` 已符合格式契约。
+
+## 执行记录
+
+- 2026-06-08 已汇总 VAL-001、VAL-002、VAL-003 和 TEST-005 到 `docs/build_report.md`。
+- 构建验证结论为 fail，target=frontend。
 
 ## 验收标准
 
