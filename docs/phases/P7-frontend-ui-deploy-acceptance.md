@@ -13,7 +13,7 @@
 | TEST-006 前后端组合 E2E | pass |
 | 前端 clean build | pass |
 | 后端 CORS 修复与重新打包 | pass |
-| 完整部署包 | `dist/unexamine-full-deploy-20260608-141816.zip` |
+| 完整部署包 | `dist/unexamine-full-deploy-20260608-154616.zip` |
 
 ## 验收依据
 
@@ -21,6 +21,7 @@
 - `docs/test_runs/frontend-backend-combo-e2e.md`
 - `docs/build_report.md`
 - `docs/review.json`
+- `docs/deploy/nginx-deploy.md`
 
 ## 剩余风险
 
@@ -30,4 +31,4 @@
 
 ## PM 结论
 
-P7 通过。当前项目具备后端 jar、前端 dist 和组合 E2E 证据，可交给用户试部署与体验验收。
+P7 通过。当前项目具备后端 jar、前端 dist 和组合 E2E 证据，可交给用户试部署与体验验收。旧包 `dist/unexamine-full-deploy-20260608-141816.zip` 已被新版 `dist/unexamine-full-deploy-20260608-154616.zip` 取代，部署时必须按 nginx 文档保留 `/api` 前缀并代理接口文档路径。

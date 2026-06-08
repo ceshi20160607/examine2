@@ -14,7 +14,7 @@
 | 数据库 | `192.168.0.211:3306/examine1` |
 | 前端产物 | `frontend/dist/` |
 | 前端生产预览 | `http://127.0.0.1:4173/` |
-| 完整部署包 | `dist/unexamine-full-deploy-20260608-141816.zip` |
+| 完整部署包 | `dist/unexamine-full-deploy-20260608-154616.zip` |
 
 ## 执行记录
 
@@ -29,6 +29,7 @@
 | 前端生产预览 | `npm.cmd run preview -- --port 4173` | pass，HTTP 200 |
 | 浏览器自动登录 | 前端 URL 参数 `smokeLoginName=e2e_141648&smokePassword=***` 触发 `AUTH-002` | pass，顶部用户显示 `E2E Browser User` |
 | 浏览器触发真实 API | 前端 URL 参数 `smokeApi=PLAT-001` 触发 typed SDK 调用 `/api/v1/platform/my-systems` | pass，页面回显 `success=true`、`COMMON_OK` |
+| 部署语义复核 | 构建产物扫描 `frontend/dist/` | pass，默认接口为同源 `/api/v1/...`，未发现 `localhost:8080` 或用户可见 API 地址面板 |
 
 ## 截图
 
@@ -39,3 +40,5 @@
 ## 结论
 
 后端 jar、前端 dist 和浏览器前端到真实后端 API 的组合链路已跑通。当前可进入用户试部署与业务验收。
+
+正式部署时不使用 URL 参数配置 API 地址；上述 `smokeLoginName`、`smokePassword`、`smokeApi` 仅用于自动化 smoke。nginx 必须按 `docs/deploy/nginx-deploy.md` 保留 `/api` 前缀转发。

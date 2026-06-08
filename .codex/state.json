@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-08T14:20:00+08:00",
+    "updated_at":  "2026-06-08T15:46:16+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2112,11 +2112,45 @@
                                                          "npm.cmd run build pass",
                                                          "browser frontend AUTH-002 login pass",
                                                          "browser frontend PLAT-001 typed SDK call returned COMMON_OK",
-                                                         "full package generated at dist/unexamine-full-deploy-20260608-141816.zip"
+                                                         "full package generated at dist/unexamine-full-deploy-20260608-154616.zip"
                                                      ],
                                     "notes":  [
                                                   "P7 acceptance pass.",
                                                   "FullProjectDeployable is true for user trial deployment; P2 hardening risks remain deferred."
+                                              ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P7-NGINX-DEPLOY-NORMALIZATION",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "FE-013",
+                                                  "TEST-006",
+                                                  "PM-DEPLOY-REVIEW"
+                                              ],
+                                    "started_at":  "2026-06-08T15:29:00+08:00",
+                                    "completed_at":  "2026-06-08T15:46:16+08:00",
+                                    "outputs":  [
+                                                    "frontend/src/App.ts",
+                                                    "frontend/src/styles.css",
+                                                    "docs/deploy/nginx-deploy.md",
+                                                    "frontend/docs/frontend-ui-smoke.md",
+                                                    "docs/test_runs/frontend-backend-combo-e2e.md",
+                                                    "docs/test_report.md",
+                                                    "docs/build_report.md",
+                                                    "docs/review.json",
+                                                    "docs/phases/P7-frontend-ui-deploy-acceptance.md",
+                                                    "docs/progress.md",
+                                                    "AGENTS.md"
+                                                ],
+                                    "verification":  [
+                                                         "npm.cmd run build pass and generated frontend/dist/assets/index-C8i4nSPj.js plus index-B9Ede97w.css",
+                                                         "frontend dist scan found no localhost:8080 and no user-facing API address panel",
+                                                         "192.168.0.211:19999 diagnosed: /api/v1 is stripped to backend /v1 and /doc.html returns frontend index",
+                                                         "new package generated at dist/unexamine-full-deploy-20260608-154616.zip"
+                                                     ],
+                                    "notes":  [
+                                                  "Old package dist/unexamine-full-deploy-20260608-141816.zip is superseded.",
+                                                  "User trial deployment must update nginx with docs/deploy/nginx-deploy.md before retest."
                                               ]
                                 }
                             ],
@@ -2193,5 +2227,5 @@
                                                              "next_phase":  "user-trial-deploy"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P7-TEST-006-COMBO-E2E"
+    "last_completed_batch":  "DEV-BATCH-P7-NGINX-DEPLOY-NORMALIZATION"
 }

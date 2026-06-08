@@ -11,7 +11,7 @@
 | --- | --- |
 | `frontend/index.html` | 已生成真实浏览器入口 |
 | `frontend/src/main.ts` | 已挂载根应用 |
-| `frontend/src/App.ts` | 已实现等价根组件、路由渲染、Shell 导航、连接面板和页面工作区 |
+| `frontend/src/App.ts` | 已实现等价根组件、路由渲染、Shell 导航、登录页和页面工作区 |
 | `frontend/src/styles.css` | 已实现桌面和移动端布局 |
 | `frontend/vite.config.ts` | 已配置 Vite dev/preview 端口 |
 | `frontend/dist/` | clean build 已生成 |
@@ -38,17 +38,19 @@ npm.cmd run preview -- --port 4173
 | 文件 | 大小 |
 | --- | --- |
 | `frontend/dist/index.html` | 445 B |
-| `frontend/dist/assets/index-BC-aPLAX.js` | 57299 B |
-| `frontend/dist/assets/index-D2PQaVmV.css` | 5662 B |
+| `frontend/dist/assets/index-C8i4nSPj.js` | 56381 B |
+| `frontend/dist/assets/index-B9Ede97w.css` | 6278 B |
 
 ## 浏览器截图
 
 - 桌面截图: `frontend/docs/frontend-ui-smoke.png`
 - 移动端截图: `frontend/docs/frontend-ui-smoke-mobile.png`
+- 部署语义修正后登录截图: `frontend/docs/frontend-normal-login.png`
 
 ## 覆盖结论
 
 1. 真实浏览器入口、主应用挂载、hash 路由和可部署 `dist/` 已补齐。
 2. 登录、我的系统、平台中心、系统管理、RBAC、应用配置、运行台、流程、文件导出、OpenAPI、审计运维均可通过左侧导航进入页面工作区。
 3. 页面通过集中式 typed SDK 和 `createFetchTransport` 调用后端；业务页面未散落 `fetch`、`axios`、`XMLHttpRequest` 或手写 URL。
-4. 生产预览可打开，桌面和移动端截图未见空白页或明显文本重叠。
+4. 部署版默认使用同源相对接口 `/api/v1/...`，不暴露 API 地址配置面板，也不默认写死 `localhost`。
+5. 生产预览可打开，桌面和移动端截图未见空白页或明显文本重叠。

@@ -36,8 +36,8 @@
 | 文件 | 大小 |
 | --- | --- |
 | `frontend/dist/index.html` | 445 B |
-| `frontend/dist/assets/index-MR-Ji0gN.js` | 57952 B |
-| `frontend/dist/assets/index-D2PQaVmV.css` | 5662 B |
+| `frontend/dist/assets/index-C8i4nSPj.js` | 56381 B |
+| `frontend/dist/assets/index-B9Ede97w.css` | 6278 B |
 
 ## 组合验证
 
@@ -47,8 +47,8 @@
 | 浏览器登录 | 前端触发 `AUTH-002` 成功，用户显示 `E2E Browser User` |
 | 浏览器触发后端 API | 前端 typed SDK 调用 `PLAT-001 /api/v1/platform/my-systems`，返回 `COMMON_OK` |
 | 截图 | `frontend/docs/frontend-backend-combo-smoke.png` |
-| 完整部署包 | `dist/unexamine-full-deploy-20260608-141816.zip` |
+| 完整部署包 | `dist/unexamine-full-deploy-20260608-154616.zip` |
 
 ## Validator 结论
 
-P7 已补齐真实浏览器前端入口、应用挂载、导航工作区、生产构建、后端 CORS 支持、前后端组合 E2E 和完整部署包。当前结论为 pass。
+P7 已补齐真实浏览器前端入口、应用挂载、导航工作区、生产构建、后端 CORS 支持、前后端组合 E2E 和完整部署包。部署版前端默认走 nginx 同源 `/api/v1/...`，不再暴露 API 地址配置面板；当前结论为 pass。

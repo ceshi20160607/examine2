@@ -20,11 +20,10 @@ interface UiState {
   settings: RuntimeSettings;
   busy: boolean;
   lastRequestId?: string;
-  lastResult?: string;
+  lastMessage?: string;
   lastError?: string;
 }
 
-const STORAGE_KEY = "unexamine.ui.settings";
 const rootPermissions = [
   "PLAT_SYSTEM_VIEW",
   "PLAT_SYSTEM_CREATE",
@@ -65,7 +64,6 @@ export function mountApp(container: HTMLElement): void {
   const authPage = createAuthPageModel({ apiClient });
   const mySystemsPage = createMySystemsPageModel({ apiClient });
 
-  seedPreviewState(ui.settings);
   syncHash();
   window.addEventListener("hashchange", render);
   authStore.subscribe(render);
@@ -84,7 +82,11 @@ export function mountApp(container: HTMLElement): void {
 
   function render(): void {
     const path = getCurrentPath();
-    const route = resolveRoute({ path }) ?? APP_ROUTES[0];
+    const resolvedRoute = resolveRoute({ path }) ?? APP_ROUTES[0];
+    const authState = authStore.getState();
+    const route = resolvedRoute.meta.requiresAuth && authState.status !== "authenticated"
+      ? resolveRoute({ path: LOGIN_ROUTE }) ?? APP_ROUTES[0]
+      : resolvedRoute;
     const shell = resolveAppShellState({
       currentPath: path,
       auth: authStore,
@@ -92,14 +94,18 @@ export function mountApp(container: HTMLElement): void {
       permission: permissionStore,
     });
 
+    if (route.meta.section === "auth") {
+      container.replaceChildren(renderAuth(route));
+      return;
+    }
+
     container.replaceChildren(
       node("div", { className: "app-frame" }, [
         renderSidebar(path, shell.navigation),
         node("main", { className: "workspace" }, [
           renderTopbar(shell.currentTitle, route),
-          route.meta.section === "auth" ? renderAuth(route) : renderWorkspace(route),
+          renderWorkspace(route),
         ]),
-        renderInspector(),
       ]),
     );
   }
@@ -143,26 +149,34 @@ export function mountApp(container: HTMLElement): void {
 
   function renderAuth(route: AppRouteRecord): HTMLElement {
     const isRegister = route.name === "auth.register";
-    return node("section", { className: "auth-surface" }, [
-      node("div", { className: "auth-panel" }, [
-        node("h2", { text: isRegister ? "注册平台账号" : "登录平台" }),
-        input("账号", "loginName", "admin"),
-        input("密码", "password", "admin123", "password"),
-        isRegister ? input("显示名称", "displayName", "平台管理员") : undefined,
-        node("div", { className: "button-row" }, [
-          button(isRegister ? "注册并进入" : "登录", "primary", () => submitAuth(isRegister)),
-          button("本地预览", "secondary", () => {
-            seedPreviewState(ui.settings);
-            navigate(DEFAULT_AUTHENTICATED_ROUTE);
-          }),
+    return node("main", { className: "login-page" }, [
+      node("section", { className: "auth-surface" }, [
+        node("div", { className: "auth-panel" }, [
+          node("div", { className: "brand auth-brand" }, [
+            node("span", { className: "brand-mark", text: "U" }),
+            node("span", { className: "brand-name", text: "unexamine" }),
+          ]),
+          node("h1", { text: isRegister ? "创建平台账号" : "登录平台" }),
+          node("p", { className: "form-note", text: "进入平台后可管理系统、成员、应用配置、运行台、流程、文件、OpenAPI 和审计运维。" }),
+          input("账号", "loginName", ""),
+          input("密码", "password", "", "password"),
+          isRegister ? input("显示名称", "displayName", "") : undefined,
+          node("div", { className: "button-row" }, [
+            button(isRegister ? "注册并登录" : "登录", "primary", () => submitAuth(isRegister)),
+            node("a", {
+              className: "btn secondary",
+              href: isRegister ? "#/auth/login" : "#/auth/register",
+              text: isRegister ? "返回登录" : "注册账号",
+            }),
+          ]),
+          renderMessage(),
         ]),
-        renderMessage(),
-      ]),
-      node("div", { className: "auth-media" }, [
-        node("div", { className: "media-board" }, [
-          stat("174", "冻结 API"),
-          stat("9", "业务工作区"),
-          stat("P7", "前端部署期"),
+        node("div", { className: "auth-media" }, [
+          node("div", { className: "media-board" }, [
+            stat("系统", "动态建模"),
+            stat("流程", "审批协同"),
+            stat("审计", "全链路追踪"),
+          ]),
         ]),
       ]),
     ]);
@@ -170,28 +184,27 @@ export function mountApp(container: HTMLElement): void {
 
   function renderWorkspace(route: AppRouteRecord): HTMLElement {
     const endpointIds = route.meta.apiIds;
-    const runnable = firstRunnableEndpoint(endpointIds);
     return node("section", { className: "content-grid" }, [
       node("div", { className: "work-panel primary-panel" }, [
         node("div", { className: "panel-heading" }, [
           node("div", {}, [
-            node("p", { className: "eyebrow", text: route.meta.placeholderOwner }),
+            node("p", { className: "eyebrow", text: route.meta.section }),
             node("h2", { text: route.meta.title }),
           ]),
           button("刷新", "secondary", () => runRouteLoad(route)),
         ]),
-        renderRouteBody(route, runnable),
+        renderRouteBody(route),
       ]),
       node("div", { className: "work-panel" }, [
         node("div", { className: "panel-heading" }, [
-          node("h2", { text: "接口证据" }),
-          node("span", { className: "count-pill", text: `${endpointIds.length}` }),
+          node("h2", { text: "当前模块" }),
+          node("span", { className: "count-pill", text: `${endpointIds.length} 个能力` }),
         ]),
-        node("div", { className: "api-list" }, endpointIds.slice(0, 12).map(renderEndpoint)),
+        renderModuleSummary(route),
       ]),
       node("div", { className: "work-panel" }, [
         node("div", { className: "panel-heading" }, [
-          node("h2", { text: "运行状态" }),
+          node("h2", { text: "操作结果" }),
           node("span", { className: statusClass(), text: authStore.getState().status }),
         ]),
         renderMessage(),
@@ -199,7 +212,7 @@ export function mountApp(container: HTMLElement): void {
     ]);
   }
 
-  function renderRouteBody(route: AppRouteRecord, runnable?: ApiEndpointId): HTMLElement {
+  function renderRouteBody(route: AppRouteRecord): HTMLElement {
     if (route.name === "platform.mySystems") {
       return node("div", {}, [
         node("div", { className: "metric-grid" }, [
@@ -225,36 +238,37 @@ export function mountApp(container: HTMLElement): void {
     }
 
     return node("div", {}, [
-      node("div", { className: "metric-grid" }, [
-        stat(route.meta.section, "业务域"),
-        stat(runnable ?? "无 GET", "可试跑接口"),
-        stat(route.meta.layout, "布局"),
+      node("div", { className: "toolbar-row" }, [
+        input("关键字", "keyword", ""),
+        button("查询", "primary", () => runRouteLoad(route)),
       ]),
-      node("div", { className: "action-band" }, [
-        button(runnable ? `调用 ${runnable}` : "无可调用 GET", "primary", () => runRouteLoad(route), !runnable),
-        button("进入示例系统", "secondary", () => seedPreviewState(ui.settings)),
-      ]),
-      node("div", { className: "timeline" }, [
-        node("span", { text: "契约" }),
-        node("span", { text: "页面" }),
-        node("span", { text: "权限" }),
-        node("span", { text: "接口" }),
+      node("div", { className: "table-shell" }, [
+        node("div", { className: "table-row table-head" }, [
+          node("span", { text: "名称" }),
+          node("span", { text: "状态" }),
+          node("span", { text: "更新时间" }),
+        ]),
+        node("div", { className: "empty-state" }, [
+          node("strong", { text: "暂无数据" }),
+          node("span", { text: "点击查询后会加载当前模块数据。" }),
+        ]),
       ]),
     ]);
   }
 
-  function renderInspector(): HTMLElement {
-    return node("aside", { className: "inspector" }, [
-      node("h2", { text: "连接" }),
-      input("API 地址", "baseUrl", ui.settings.baseUrl),
-      input("Token", "accessToken", ui.settings.accessToken),
-      input("System ID", "systemId", ui.settings.systemId),
-      input("Tenant ID", "tenantId", ui.settings.tenantId),
-      input("App ID", "appId", ui.settings.appId),
-      input("Module ID", "moduleId", ui.settings.moduleId),
-      node("div", { className: "button-row vertical" }, [
-        button("保存", "primary", saveSettings),
-        button("重置", "secondary", resetSettings),
+  function renderModuleSummary(route: AppRouteRecord): HTMLElement {
+    return node("div", { className: "summary-list" }, [
+      node("div", {}, [
+        node("span", { text: "业务域" }),
+        node("strong", { text: route.meta.section }),
+      ]),
+      node("div", {}, [
+        node("span", { text: "权限" }),
+        node("strong", { text: route.meta.permission?.anyOperations?.[0] ?? "登录用户" }),
+      ]),
+      node("div", {}, [
+        node("span", { text: "上下文" }),
+        node("strong", { text: route.meta.requiredContext ? "系统内" : "平台级" }),
       ]),
     ]);
   }
@@ -314,38 +328,14 @@ export function mountApp(container: HTMLElement): void {
     render();
     try {
       const result = await action();
-      ui.lastResult = JSON.stringify(result, null, 2).slice(0, 1800);
+      const response = result as { requestId?: string; code?: string; message?: string };
+      ui.lastMessage = `${scope} 操作成功${response.code ? `：${response.code}` : ""}${response.requestId ? `，请求号 ${response.requestId}` : ""}`;
     } catch (error) {
       ui.lastError = error instanceof Error ? error.message : String(error);
     } finally {
       ui.busy = false;
       render();
     }
-  }
-
-  function saveSettings(): void {
-    const values = readForm();
-    ui.settings = {
-      baseUrl: values.baseUrl,
-      accessToken: values.accessToken,
-      systemId: values.systemId,
-      tenantId: values.tenantId,
-      appId: values.appId,
-      moduleId: values.moduleId,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ui.settings));
-    apiClient = createClient(ui.settings);
-    seedPreviewState(ui.settings);
-    ui.lastResult = "连接参数已保存。";
-    render();
-  }
-
-  function resetSettings(): void {
-    localStorage.removeItem(STORAGE_KEY);
-    ui.settings = defaultSettings();
-    apiClient = createClient(ui.settings);
-    seedPreviewState(ui.settings);
-    render();
   }
 
   async function runRequestedSmoke(): Promise<void> {
@@ -378,21 +368,12 @@ export function mountApp(container: HTMLElement): void {
       return node("pre", { className: "message muted", text: `请求中: ${ui.lastRequestId}` });
     }
     if (ui.lastError) {
-      return node("pre", { className: "message error", text: ui.lastError });
+      return node("div", { className: "message error", text: ui.lastError });
     }
-    return node("pre", { className: "message", text: ui.lastResult ?? "等待操作。" });
+    return node("div", { className: "message", text: ui.lastMessage ?? "暂无操作结果。" });
   }
 
-  function renderEndpoint(apiId: ApiEndpointId): HTMLElement {
-    const endpoint = API_ENDPOINTS[apiId];
-    return node("div", { className: "api-item" }, [
-      node("span", { className: "method", text: endpoint.method }),
-      node("span", { text: endpoint.id }),
-      node("code", { text: endpoint.path }),
-    ]);
-  }
-
-  function input(label: string, name: keyof RuntimeSettings | "loginName" | "password" | "displayName", value: string, type = "text"): HTMLElement {
+  function input(label: string, name: string, value: string, type = "text"): HTMLElement {
     return node("label", { className: "field" }, [
       node("span", { text: label }),
       node("input", { name, type, value }),
@@ -512,11 +493,9 @@ function node<K extends keyof HTMLElementTagNameMap>(
 
 function loadSettings(): RuntimeSettings {
   const query = new URLSearchParams(window.location.search);
-  const stored = localStorage.getItem(STORAGE_KEY);
-  const base = stored ? parseStoredSettings(stored) : defaultSettings();
+  const base = defaultSettings();
   return {
     ...base,
-    baseUrl: query.get("baseUrl") ?? base.baseUrl,
     accessToken: query.get("accessToken") ?? base.accessToken,
     systemId: query.get("systemId") ?? base.systemId,
     tenantId: query.get("tenantId") ?? base.tenantId,
@@ -525,23 +504,20 @@ function loadSettings(): RuntimeSettings {
   };
 }
 
-function parseStoredSettings(stored: string): RuntimeSettings {
-  try {
-    return { ...defaultSettings(), ...JSON.parse(stored) };
-  } catch {
-    return defaultSettings();
-  }
-}
-
 function defaultSettings(): RuntimeSettings {
   return {
-    baseUrl: "http://localhost:8080",
-    accessToken: "preview-token",
+    baseUrl: runtimeApiBaseUrl(),
+    accessToken: "",
     systemId: "preview-system",
     tenantId: "preview-tenant",
     appId: "preview-app",
     moduleId: "preview-module",
   };
+}
+
+function runtimeApiBaseUrl(): string {
+  const meta = import.meta as unknown as { env?: Record<string, string | undefined> };
+  return meta.env?.VITE_API_BASE_URL ?? "";
 }
 
 function seedPreviewState(settings: RuntimeSettings): void {

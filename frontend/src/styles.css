@@ -30,8 +30,13 @@ a {
 
 .app-frame {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 300px;
+  grid-template-columns: 260px minmax(0, 1fr);
   min-height: 100vh;
+}
+
+.login-page {
+  min-height: 100vh;
+  padding: 28px;
 }
 
 .sidebar {
@@ -117,6 +122,7 @@ a {
 }
 
 .topbar h1,
+.auth-panel h1,
 .work-panel h2,
 .auth-panel h2,
 .inspector h2 {
@@ -326,6 +332,16 @@ code {
   gap: 14px;
 }
 
+.auth-brand {
+  padding: 0;
+}
+
+.form-note {
+  margin: 0;
+  color: #52616f;
+  line-height: 1.7;
+}
+
 .auth-media {
   min-height: 420px;
   border-radius: 8px;
@@ -359,6 +375,46 @@ code {
   border-radius: 6px;
   padding: 9px 10px;
   color: #17212b;
+}
+
+.toolbar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.summary-list {
+  display: grid;
+  gap: 12px;
+}
+
+.summary-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #e2e7ec;
+  padding: 10px 0;
+}
+
+.summary-list span,
+.empty-state span {
+  color: #697989;
+}
+
+.summary-list strong,
+.empty-state strong {
+  color: #1f2933;
+}
+
+.empty-state {
+  display: grid;
+  gap: 6px;
+  border: 1px dashed #c5ced7;
+  border-radius: 6px;
+  padding: 24px;
 }
 
 .inspector {
@@ -446,7 +502,8 @@ code {
 
   .metric-grid,
   .media-board,
-  .timeline {
+  .timeline,
+  .toolbar-row {
     grid-template-columns: 1fr;
   }
 }

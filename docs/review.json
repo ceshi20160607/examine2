@@ -2,8 +2,8 @@
   "status": "pass",
   "target": "none",
   "phase": "P7-frontend-ui-deploy",
-  "reviewedAt": "2026-06-08T14:20:00+08:00",
-  "summary": "P7 frontend UI, deployable dist, backend CORS support and frontend-backend combination E2E are complete. The browser frontend logs in through AUTH-002 and triggers PLAT-001 against the running backend jar. The project is ready for user trial deployment and experience acceptance, with P2 hardening risks deferred.",
+  "reviewedAt": "2026-06-08T15:46:16+08:00",
+  "summary": "P7 frontend UI, deployable dist, backend CORS support, nginx same-origin API deployment semantics and frontend-backend combination E2E are complete. The browser frontend defaults to /api/v1 same-origin calls and no longer exposes a user-facing API address panel. The project is ready for user trial deployment after nginx preserves the /api prefix and proxies API docs routes.",
   "nextRoute": [
     "pm",
     "user-trial-deploy"
@@ -41,6 +41,8 @@
     "backend health endpoint returned COMMON_OK and UP",
     "browser frontend login through AUTH-002 succeeded",
     "browser frontend typed SDK call to PLAT-001 returned COMMON_OK",
-    "complete package generated at dist/unexamine-full-deploy-20260608-141816.zip"
+    "complete package generated at dist/unexamine-full-deploy-20260608-154616.zip",
+    "nginx deploy guide added at docs/deploy/nginx-deploy.md",
+    "deployed 192.168.0.211:19999 was diagnosed as stripping /api and routing /doc.html to frontend index; nginx config must be updated before retest"
   ]
 }
