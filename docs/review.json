@@ -1,50 +1,56 @@
-{
-  "status": "pass",
-  "target": "none",
-  "phase": "P7-frontend-ui-deploy",
-  "reviewedAt": "2026-06-08T16:40:02+08:00",
-  "summary": "P7 frontend UI, deployable dist, backend CORS support, nginx same-origin API deployment semantics and frontend-backend combination E2E are complete. The browser frontend defaults to /api/v1 same-origin calls and no longer exposes a user-facing API address panel. Auth /me now returns platform roles and permissions so platform_admin can be recognized by the frontend as PLAT_SUPER_ADMIN. The project is ready for user trial deployment after nginx preserves the /api prefix and proxies API docs routes.",
-  "nextRoute": [
-    "pm",
-    "user-trial-deploy"
-  ],
-  "issues": [],
-  "backendTrialDeployable": true,
-  "frontendDeployable": true,
-  "fullProjectDeployable": true,
-  "deferredRisks": [
-    {
-      "issueId": "REV-001-BE-IDEMPOTENCY-STORAGE",
-      "severity": "P2",
-      "target": "backend",
-      "status": "deferred",
-      "reason": "Create-system idempotency still uses single-JVM memory storage. Production multi-instance consistency needs shared storage or a database idempotency table."
-    },
-    {
-      "issueId": "NPM-AUDIT-MODERATE-001",
-      "severity": "P2",
-      "target": "frontend",
-      "status": "deferred",
-      "reason": "npm ci reports 2 moderate audit items. No npm audit fix --force was applied because it may force dependency upgrades; schedule dependency governance after trial deployment."
-    },
-    {
-      "issueId": "REV-003-TEST-RISK-MATRIX",
-      "severity": "P2",
-      "target": "test",
-      "status": "deferred",
-      "reason": "OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
-    }
-  ],
-  "verification": [
-    "mvn.cmd -pl examine-web -am clean package -DskipTests passed",
-    "npm.cmd run build passed and generated frontend/dist",
-    "backend health endpoint returned COMMON_OK and UP",
-    "browser frontend login through AUTH-002 succeeded",
-    "browser frontend typed SDK call to PLAT-001 returned COMMON_OK",
-    "complete package generated at dist/unexamine-full-deploy-20260608-164002.zip",
-    "nginx deploy guide added at docs/deploy/nginx-deploy.md",
-    "deployed 192.168.0.211:19999 was diagnosed as stripping /api and routing /doc.html to frontend index; nginx config must be updated before retest",
-    "AUTH-005 /me returns platformRoles and platformPermissions; examine-plat -am test passed",
-    "frontend navigation and primary route titles are Chinese by default; npm.cmd run build passed"
-  ]
+﻿{
+    "status":  "pass",
+    "target":  "none",
+    "phase":  "P8-platform-ui-crud",
+    "reviewedAt":  "2026-06-08T17:15:00+08:00",
+    "summary":  "P8 platform center CRUD UI is complete. Platform systems, accounts, roles and configs now render usable Chinese business pages with typed PageModel calls, permission-action gating, clean frontend build, browser smoke and a refreshed deployment package.",
+    "nextRoute":  [
+                      "pm",
+                      "user-trial-deploy"
+                  ],
+    "issues":  [
+
+               ],
+    "backendTrialDeployable":  true,
+    "frontendDeployable":  true,
+    "fullProjectDeployable":  true,
+    "deferredRisks":  [
+                          {
+                              "issueId":  "REV-001-BE-IDEMPOTENCY-STORAGE",
+                              "severity":  "P2",
+                              "target":  "backend",
+                              "status":  "deferred",
+                              "reason":  "Create-system idempotency still uses single-JVM memory storage. Production multi-instance consistency needs shared storage or a database idempotency table."
+                          },
+                          {
+                              "issueId":  "NPM-AUDIT-MODERATE-001",
+                              "severity":  "P2",
+                              "target":  "frontend",
+                              "status":  "deferred",
+                              "reason":  "npm ci reports 2 moderate audit items. No npm audit fix --force was applied because it may force dependency upgrades; schedule dependency governance after trial deployment."
+                          },
+                          {
+                              "issueId":  "REV-003-TEST-RISK-MATRIX",
+                              "severity":  "P2",
+                              "target":  "test",
+                              "status":  "deferred",
+                              "reason":  "OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
+                          }
+                      ],
+    "verification":  [
+                         "mvn.cmd -pl examine-web -am clean package -DskipTests passed",
+                         "npm.cmd run build passed and generated frontend/dist",
+                         "backend health endpoint returned COMMON_OK and UP",
+                         "browser frontend login through AUTH-002 succeeded",
+                         "browser frontend typed SDK call to PLAT-001 returned COMMON_OK",
+                         "complete package generated at dist/unexamine-full-deploy-20260608-164002.zip",
+                         "nginx deploy guide added at docs/deploy/nginx-deploy.md",
+                         "deployed 192.168.0.211:19999 was diagnosed as stripping /api and routing /doc.html to frontend index; nginx config must be updated before retest",
+                         "AUTH-005 /me returns platformRoles and platformPermissions; examine-plat -am test passed",
+                         "frontend navigation and primary route titles are Chinese by default; npm.cmd run build passed",
+                         "P8 FE-014 platform systems/accounts/roles/configs CRUD UI completed",
+                         "npm.cmd run build passed after P8 changes",
+                         "browser smoke verified login page and platform systems page have Chinese text and no mojibake",
+                         "new complete package generated at dist/unexamine-full-deploy-20260608-171500.zip"
+                     ]
 }

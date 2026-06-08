@@ -1,10 +1,21 @@
-# P7 前后端组合构建验证报告
+# P8 平台中心 UI 构建验证报告
 
-- 任务: VAL-P7-FE-013
+- 任务: VAL-P8-FE-014
 - 执行时间: 2026-06-08
 - 执行角色: validator
 - 结论: pass
 - target: none
+
+## P8 前端验证
+
+| 项目 | 结果 |
+| --- | --- |
+| clean build 命令 | `npm.cmd run build` |
+| build 脚本 | `tsc --noEmit && vite build` |
+| `frontend/dist/` | 已重新生成 |
+| 平台中心 UI | 平台系统、平台账号、平台角色、平台配置已升级为真实业务表单和数据表格 |
+| 浏览器 smoke | `#/auth/login` 和 `#/platform/systems` 页面结构正常，中文无乱码 |
+| 最新部署包 | `dist/unexamine-full-deploy-20260608-171500.zip` |
 
 ## 后端验证
 
@@ -36,8 +47,8 @@
 | 文件 | 大小 |
 | --- | --- |
 | `frontend/dist/index.html` | 445 B |
-| `frontend/dist/assets/index-BNaX7aYT.js` | 55750 B |
-| `frontend/dist/assets/index-B9Ede97w.css` | 6278 B |
+| `frontend/dist/assets/index-Dlu7mWZI.js` | 74486 B |
+| `frontend/dist/assets/index-CVxrMMA5.css` | 7444 B |
 
 ## 组合验证
 
@@ -51,4 +62,4 @@
 
 ## Validator 结论
 
-P7 已补齐真实浏览器前端入口、应用挂载、导航工作区、生产构建、后端 CORS 支持、前后端组合 E2E 和完整部署包。部署版前端默认走 nginx 同源 `/api/v1/...`，不再暴露 API 地址配置面板；2026-06-08 已补充 `/me` 平台角色和权限回显，并将主要导航与页面标题改为中文。当前结论为 pass。
+P8 已在 P7 可部署前端基础上补齐平台中心核心 CRUD UI。部署版前端默认走 nginx 同源 `/api/v1/...`，平台中心按钮和接口调用继续通过 typed PageModel 与权限动作控制。当前结论为 pass。

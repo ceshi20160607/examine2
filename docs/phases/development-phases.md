@@ -23,10 +23,11 @@
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | BE-009 至 BE-013、FE-009 至 FE-011 联调补充 | 流程待办、附件、导出、OpenAPI、审计运维核心链路闭环。 | accepted |
 | P6-final-acceptance | 后端集成验收与误判修正 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | 后端接口包可试部署；前端仅契约模型通过，不具备可部署 UI。原“全项目可上线”结论撤回。 | blocked(frontend-ui) |
 | P7-frontend-ui-deploy | 前端真实 UI 与部署包期 | FE-013、TEST-006：前端工程入口、真实页面组件、路由挂载、API 调用闭环、浏览器 smoke/E2E、`dist/` 产物、前后端组合 E2E | 存在 `index.html`、`src/main.*`、真实页面和可部署 `dist/`；后端 jar + 前端 dist 完成组合 E2E。 | accepted |
+| P8-platform-ui-crud | 平台中心可用化期 | FE-014：平台系统、平台账号、平台角色、平台配置真实 CRUD 页面和部署包刷新 | 平台中心不再是占位/调试页；列表、创建、编辑、状态、授权、配置更新入口均通过 typed PageModel 调用；前端 clean build 与浏览器 smoke 通过。 | accepted |
 
 ## 当前期
 
-当前正在推进：试部署与用户体验验收。
+当前正在推进：P8 平台中心可用化后的试部署与体验验收。
 
 原因：
 
@@ -39,6 +40,7 @@
 - FE-013 已补真实浏览器前端工程、页面组件、生产构建和 `dist/` 部署产物。
 - TEST-006 已通过，后端 jar + 前端 dist 的组合 E2E 已完成。
 - P7 验收记录为 `docs/phases/P7-frontend-ui-deploy-acceptance.md`。
+- P8 已完成平台中心真实 CRUD 页面，验收记录为 `docs/phases/P8-platform-ui-crud-acceptance.md`。
 
 ## 暂停与继续
 

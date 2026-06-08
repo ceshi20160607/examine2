@@ -6,17 +6,17 @@
 
 | 项目 | 数量 |
 | --- | ---: |
-| 开发执行任务总数 | 50 |
-| 已完成 | 50 |
+| 开发执行任务总数 | 51 |
+| 已完成 | 51 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
 | 剩余 | 0 |
 
 当前模式：`development`
 
-当前期次：`P6-final-acceptance`
+当前期次：`P8-platform-ui-crud`
 
-当前状态：`P6_final_acceptance_rework_in_progress`
+当前状态：`P8_platform_ui_crud_accepted`
 
 ## 分期进度
 
@@ -28,7 +28,9 @@
 | P3-system-config | 系统配置与权限期 | accepted | 4/4 后端主任务，FE-005/FE-006 静态契约联调补充完成 | 已通过 PM 阶段验收 |
 | P4-runtime-mvp | 运行台 MVP 期 | accepted | 2/2 | 已通过 PM 阶段验收 |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | accepted | 5/5 后端主任务，FE-009/FE-010/FE-012 前端契约闭环完成 | 已通过 PM 阶段验收 |
-| P6-final-acceptance | 集成验收与上线判断期 | in_progress | 本轮验证与审查任务已全部完成，backend OpenAPI accessKey 错误码已修复 | 继续 frontend 修复回环 |
+| P6-final-acceptance | 集成验收与上线判断期 | blocked(frontend-ui) | 原全项目可上线结论已撤回 | 已进入 P7/P8 前端补齐回环 |
+| P7-frontend-ui-deploy | 前端真实 UI 与部署包期 | accepted | 前端工程入口、dist、nginx 同源部署和组合 E2E 已完成 | 已通过 PM 阶段验收 |
+| P8-platform-ui-crud | 平台中心可用化期 | accepted | FE-014 平台系统/账号/角色/配置 CRUD UI 已完成 | 进入用户试部署体验验收 |
 
 ## 角色完成度
 
@@ -37,7 +39,7 @@
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
 | Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；OpenAPI accessKey 错误码回环已修复并通过 app 测试。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
-| Frontend | 12 | 0 | 0 | FE-001 至 FE-012 已完成；正式 build/typecheck 待 VAL-002 处理前端工程入口缺口。 |
+| Frontend | 13 | 0 | 0 | FE-001 至 FE-014 已完成；P8 已补平台中心真实 CRUD UI。 |
 | Test | 5 | 0 | 0 | TEST-001 至 TEST-005 已完成；测试报告结论 fail target=frontend。 |
 | Validator | 4 | 0 | 0 | VAL-001 至 VAL-004 已完成；构建验证结论 fail，target=frontend。 |
 | Reviewer | 4 | 0 | 0 | REV-001 至 REV-004 已完成；最终 review fail target=both。 |
@@ -67,6 +69,7 @@
 | frontend | FE-009 | done | 流程工作台页面模型 | FLOW-001 至 FLOW-021 页面模型、流程图解释模型、幂等键、本地必填校验、禁用态和契约证据完成。 |
 | frontend | FE-010 | done | 文件与导出页面模型 | FILE-001 至 FILE-006、EXP-001 至 EXP-008 页面模型、附件字段写回、导出轮询、重试/取消禁用态和契约证据完成。 |
 | frontend | FE-012 | done | 前端契约闭环自检 | 已生成 `frontend/docs/api-contract-map.md` 与 `frontend/docs/frontend-self-check.md`，无旁路请求，typecheck/build 受前端工程入口缺失限制。 |
+| frontend | FE-014 | done | 平台中心 CRUD UI | 平台系统、平台账号、平台角色、平台配置已升级为真实业务页面，前端 clean build 与浏览器 smoke 通过。 |
 | test | TEST-003 | done | `docs/test_runs/e2e-main-chain.md` | backend API 主链路通过；前端真实浏览器刷新与页面联动因工程入口缺失留待 TEST-005 汇总风险。 |
 | test | TEST-004 | done | `docs/test_runs/permission-exception-idempotency-openapi.md` | 未登录、错误凭证、OpenAPI 缺少 AK 和创建系统幂等冲突 smoke 场景通过。 |
 | test | TEST-005 | done | `docs/test_report.md` | 后端 API 集成 smoke 通过；整体测试结论 fail，target=frontend。 |
@@ -187,8 +190,10 @@
 44. P7 已通过验收，完整部署包已生成：`dist/unexamine-full-deploy-20260608-154616.zip`。
 45. 用户试部署回归发现旧包仍是调试形态，且 `http://192.168.0.211:19999/` 当前 nginx 会把 `/api/v1/...` 转给后端 `/v1/...`，`/doc.html` 也被前端 index 接管；已修复前端默认同源 `/api/v1/...` 部署语义，并新增 `docs/deploy/nginx-deploy.md`。
 46. `platform_admin` 权限回显已修复：`AUTH-005 /me` 现在返回 `platformRoles` 与 `platformPermissions`，前端可识别 `PLAT_SUPER_ADMIN`；默认中文界面规则已写入 `AGENTS.md`，主要导航和路由标题已改为中文。
-47. 最新部署包：`dist/unexamine-full-deploy-20260608-164002.zip`。
+47. P8 已完成平台中心真实 CRUD UI：系统、账号、角色、配置页面具备列表、创建/编辑、启停、授权、配置更新等入口，且均通过 `platformCenter` typed PageModel 调用。
+48. P8 前端 clean build 通过，浏览器 smoke 确认登录页与平台系统页中文无乱码、表单和表格结构正常。
+49. 最新部署包：`dist/unexamine-full-deploy-20260608-171500.zip`。
 
 ## 下一步
 
-当前项目已具备用户试部署条件。下一步是用户试部署与体验验收；上线前建议安排幂等共享存储、npm audit、OpenAPI 安全/并发专项 hardening。
+当前项目已具备 P8 平台中心试部署体验条件。下一步建议在用户部署环境用 `platform_admin / 123123aa` 验证平台系统、账号、角色、配置四个页面；后续继续推进系统内配置、运行台、流程、文件、OpenAPI、审计运维的可视化可用化。

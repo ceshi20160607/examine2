@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-08T16:40:02+08:00",
+    "updated_at":  "2026-06-08T17:15:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -344,7 +344,9 @@
                       "frontend/docs/api-contract-map.md",
                       "frontend/docs/frontend-self-check.md",
                       "docs/phases/P5-workflow-files-openapi-acceptance.md",
-                      "backend/docs/backend-self-check.md"
+                      "backend/docs/backend-self-check.md",
+                      "docs/tasks/FE-014-platform-center-crud-ui.md",
+                      "docs/phases/P8-platform-ui-crud-acceptance.md"
                   ],
     "run_id":  "323ed82e-771f-46ce-8a4a-0ed9ebcc0753",
     "status":  "DEVELOPMENT_PHASE_P6_REWORK_IN_PROGRESS",
@@ -1858,7 +1860,7 @@
                                                 ],
                                     "verification":  [
                                                          "docs/review.json parsed successfully",
-                                                         "review status fail target both with 7 issues and nextRoute backend->frontend->test->validator->reviewer"
+                                                         "review status fail target both with 7 issues and nextRoute backend-\u003efrontend-\u003etest-\u003evalidator-\u003ereviewer"
                                                      ],
                                     "notes":  [
                                                   "P6 validation/review batch is complete but final review failed.",
@@ -2186,9 +2188,42 @@
                                                   "platform_admin is PLAT_SUPER_ADMIN; frontend could not recognize it before because AUTH-005 did not return platform permissions.",
                                                   "Full business CRUD forms are still a frontend follow-up task beyond route shell and permission recognition."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P8-PLATFORM-CRUD-UI",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "FE-014",
+                                                  "VAL-P8-FE-014",
+                                                  "P8-PM-ACCEPTANCE"
+                                              ],
+                                    "started_at":  "2026-06-08T16:45:00+08:00",
+                                    "completed_at":  "2026-06-08T17:15:00+08:00",
+                                    "outputs":  [
+                                                    "frontend/src/App.ts",
+                                                    "frontend/src/styles.css",
+                                                    "frontend/src/pages/platform/platformCenter.ts",
+                                                    "frontend/dist/",
+                                                    "docs/tasks/FE-014-platform-center-crud-ui.md",
+                                                    "docs/phases/P8-platform-ui-crud-acceptance.md",
+                                                    "docs/phases/development-phases.md",
+                                                    "docs/progress.md",
+                                                    "docs/build_report.md",
+                                                    "docs/review.json"
+                                                ],
+                                    "verification":  [
+                                                         "npm.cmd run build pass",
+                                                         "browser smoke login page pass with Chinese text",
+                                                         "browser smoke platform systems page pass with CRUD form/table and no Chinese mojibake",
+                                                         "new package generated at dist/unexamine-full-deploy-20260608-171500.zip"
+                                                     ],
+                                    "notes":  [
+                                                  "P8 upgrades platform center from placeholder workspace to usable CRUD UI.",
+                                                  "System-internal pages still need follow-up visual usability phases."
+                                              ]
                                 }
                             ],
-    "current_phase":  "P7-frontend-ui-deploy",
+    "current_phase":  "P8-platform-ui-crud",
     "running_tasks":  [
 
                       ],
@@ -2200,7 +2235,8 @@
                          "P4-runtime-mvp":  "accepted",
                          "P5-workflow-files-openapi":  "accepted",
                          "P6-final-acceptance":  "blocked",
-                         "P7-frontend-ui-deploy":  "accepted"
+                         "P7-frontend-ui-deploy":  "accepted",
+                         "P8-platform-ui-crud":  "accepted"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2245,21 +2281,28 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            },
                              "P6-final-acceptance":  {
-                                                          "status":  "retracted",
-                                                          "accepted_at":  "2026-06-08T02:25:00+08:00",
-                                                          "retracted_at":  "2026-06-08T11:35:00+08:00",
-                                                          "accepted_by":  "pm",
-                                                          "record":  "docs/phases/P6-final-acceptance.md",
-                                                          "reason":  "Frontend has typed contract only and no deployable browser UI; full-project acceptance was incorrect.",
-                                                          "next_phase":  "P7-frontend-ui-deploy"
-                                                           },
+                                                         "status":  "retracted",
+                                                         "accepted_at":  "2026-06-08T02:25:00+08:00",
+                                                         "retracted_at":  "2026-06-08T11:35:00+08:00",
+                                                         "accepted_by":  "pm",
+                                                         "record":  "docs/phases/P6-final-acceptance.md",
+                                                         "reason":  "Frontend has typed contract only and no deployable browser UI; full-project acceptance was incorrect.",
+                                                         "next_phase":  "P7-frontend-ui-deploy"
+                                                     },
                              "P7-frontend-ui-deploy":  {
-                                                             "status":  "accepted",
-                                                             "accepted_at":  "2026-06-08T14:20:00+08:00",
-                                                             "accepted_by":  "pm",
-                                                             "record":  "docs/phases/P7-frontend-ui-deploy-acceptance.md",
-                                                             "next_phase":  "user-trial-deploy"
-                                                           }
+                                                           "status":  "accepted",
+                                                           "accepted_at":  "2026-06-08T14:20:00+08:00",
+                                                           "accepted_by":  "pm",
+                                                           "record":  "docs/phases/P7-frontend-ui-deploy-acceptance.md",
+                                                           "next_phase":  "user-trial-deploy"
+                                                       },
+                             "P8-platform-ui-crud":  {
+                                                         "status":  "accepted",
+                                                         "accepted_at":  "2026-06-08T17:15:00+08:00",
+                                                         "accepted_by":  "pm",
+                                                         "record":  "docs/phases/P8-platform-ui-crud-acceptance.md",
+                                                         "next_phase":  "user-trial-deploy"
+                                                     }
                          },
-    "last_completed_batch":  "DEV-BATCH-P7-PLATFORM-ADMIN-PERMISSION-I18N-FIX"
+    "last_completed_batch":  "DEV-BATCH-P8-PLATFORM-CRUD-UI"
 }

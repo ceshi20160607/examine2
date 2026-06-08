@@ -58,6 +58,7 @@ export interface PlatformSystemListVO {
   tenantMode: TenantMode;
   status: SystemStatus;
   ownerAccountId?: EntityId;
+  defaultTenantId?: EntityId;
   ownerDisplayName?: string;
   tenantCount?: number;
   memberCount?: number;
