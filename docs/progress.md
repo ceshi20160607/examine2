@@ -192,7 +192,8 @@
 46. `platform_admin` 权限回显已修复：`AUTH-005 /me` 现在返回 `platformRoles` 与 `platformPermissions`，前端可识别 `PLAT_SUPER_ADMIN`；默认中文界面规则已写入 `AGENTS.md`，主要导航和路由标题已改为中文。
 47. P8 已完成平台中心真实 CRUD UI：系统、账号、角色、配置页面具备列表、创建/编辑、启停、授权、配置更新等入口，且均通过 `platformCenter` typed PageModel 调用。
 48. P8 前端 clean build 通过，浏览器 smoke 确认登录页与平台系统页中文无乱码、表单和表格结构正常。
-49. 最新部署包：`dist/unexamine-full-deploy-20260608-171500.zip`。
+49. 已修复 P8 系统进入权限逻辑：前端进入系统改为调用 `SYS-001` 获取真实系统、租户、成员和有效权限，不再伪造系统上下文；`SYS_MANAGE_ALL` 已在前端映射为系统内管理通配权限。
+50. 最新部署包：`dist/unexamine-full-deploy-20260608-225000.zip`。
 
 ## 下一步
 

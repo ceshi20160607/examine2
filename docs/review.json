@@ -2,8 +2,8 @@
     "status":  "pass",
     "target":  "none",
     "phase":  "P8-platform-ui-crud",
-    "reviewedAt":  "2026-06-08T17:15:00+08:00",
-    "summary":  "P8 platform center CRUD UI is complete. Platform systems, accounts, roles and configs now render usable Chinese business pages with typed PageModel calls, permission-action gating, clean frontend build, browser smoke and a refreshed deployment package.",
+    "reviewedAt":  "2026-06-08T22:50:00+08:00",
+    "summary":  "P8 platform center CRUD UI remains pass. A P8 rework fixed system entry permissions: the frontend now calls SYS-001 to load real system/tenant/member/effective permissions and treats SYS_MANAGE_ALL as a system-scoped management permission, so system configuration navigation can be visible after entering a system.",
     "nextRoute":  [
                       "pm",
                       "user-trial-deploy"
@@ -51,6 +51,12 @@
                          "P8 FE-014 platform systems/accounts/roles/configs CRUD UI completed",
                          "npm.cmd run build passed after P8 changes",
                          "browser smoke verified login page and platform systems page have Chinese text and no mojibake",
-                         "new complete package generated at dist/unexamine-full-deploy-20260608-171500.zip"
+                         "new complete package generated at dist/unexamine-full-deploy-20260608-171500.zip",
+                         "P8 rework: deployed /me returns PLAT_SUPER_ADMIN and platformPermissions",
+                         "P8 rework: SYS-001 returns currentMember superAdmin=true and SYS_MANAGE_ALL",
+                         "P8 rework: frontend enterSystem now calls SYS-001 and writes systemContextStore/permissionStore",
+                         "P8 rework: permissionStore maps SYS_MANAGE_ALL to system-scoped permissions but not PLAT_* or OPS_*",
+                         "P8 rework: npm.cmd run build passed and generated frontend/dist/assets/index-Cbb48LUp.js",
+                         "P8 rework package generated at dist/unexamine-full-deploy-20260608-225000.zip"
                      ]
 }

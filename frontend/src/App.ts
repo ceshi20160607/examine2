@@ -1,6 +1,7 @@
 import { createApiClient, type ApiClient } from "./api/client";
 import { API_ENDPOINTS, type ApiEndpointId } from "./api/endpoints";
 import { createFetchTransport } from "./api/fetchTransport";
+import type { EffectivePermissionVO, EntityId, FieldPermission, JsonValue } from "./api/types";
 import { resolveAppShellState, SHELL_SECTION_LABELS } from "./layouts/AppShell";
 import { createAuthPageModel } from "./pages/auth";
 import { createMySystemsPageModel } from "./pages/my-systems";
@@ -39,6 +40,37 @@ interface PlatformUiState {
   roles: PlatformPageState<PlatformRoleVO>;
   configs: PlatformPageState<PlatformConfigVO>;
   permissionCatalogSummary?: string;
+}
+
+interface SystemEnterVO {
+  systemId: EntityId;
+  systemCode?: string;
+  systemName: string;
+  status: string;
+  tenantMode: "SINGLE" | "MULTI";
+  currentTenant?: {
+    tenantId: EntityId;
+    code?: string;
+    name: string;
+    status: string;
+  };
+  currentMember: {
+    memberId: EntityId;
+    displayName: string;
+    status?: "ENABLED" | "DISABLED";
+    roleIds?: EntityId[];
+    roles?: string[];
+  };
+  permissions?: {
+    memberId?: EntityId;
+    roles?: string[];
+    menus?: string[];
+    operations?: string[];
+    fieldPermissions?: FieldPermission[] | Record<string, JsonValue>;
+    dataScopes?: EffectivePermissionVO["dataScopes"];
+    availableActions?: EffectivePermissionVO["availableActions"];
+    version?: number | string;
+  };
 }
 
 const rootPermissions = [
@@ -262,7 +294,7 @@ export function mountApp(container: HTMLElement): void {
             node("span", { text: "状态" }),
           ]),
           ...mySystemsPage.state.systems.map((item) =>
-            node("button", { className: "table-row", onClick: () => enterSystem(item.systemId, item.tenantId) }, [
+            node("button", { className: "table-row", onClick: () => enterSystem(item.systemId) }, [
               node("span", { text: item.systemName }),
               node("span", { text: item.tenantMode }),
               node("span", { text: item.status }),
@@ -335,7 +367,7 @@ export function mountApp(container: HTMLElement): void {
           statusLabel(item.status),
           node("div", { className: "row-actions" }, [
             button(item.status === "ENABLED" ? "禁用" : "启用", "secondary", () => togglePlatformSystem(item), !platformCenter.systems.actions(item).status.enabled),
-            button("进入", "secondary", () => enterSystem(item.systemId, item.defaultTenantId), !platformCenter.systems.actions(item).view.enabled),
+            button("进入", "secondary", () => enterSystem(item.systemId), !platformCenter.systems.actions(item).view.enabled),
           ]),
         ]),
         platformState.systems.empty ? "暂无平台系统，创建后会显示在这里。" : undefined,
@@ -751,15 +783,40 @@ export function mountApp(container: HTMLElement): void {
     setFormValue("platformConfigRemark", item.remark ?? "");
   }
 
-  async function enterSystem(systemId: string, tenantId?: string): Promise<void> {
-    await execute("PLAT-004", async () => {
-      systemContextStore.setContext({
-        system: { systemId, systemName: `系统 ${systemId}`, tenantMode: tenantId ? "MULTI" : "SINGLE", status: "ENABLED" },
-        tenant: tenantId ? { tenantId, tenantName: `租户 ${tenantId}`, status: "ENABLED" } : undefined,
-        member: { memberId: "current", displayName: "当前成员", roles: ["系统管理员"], status: "ENABLED" },
+  async function enterSystem(systemId: string): Promise<void> {
+    await execute("SYS-001", async () => {
+      systemContextStore.beginEnter(systemId);
+      permissionStore.beginRefresh();
+      const response = await apiClient.call<SystemEnterVO>("SYS-001", {
+        pathParams: { systemId },
       });
-      navigate(`/systems/${systemId}/runtime`);
-      return { systemId, tenantId };
+      const entered = response.data;
+      systemContextStore.setContext({
+        system: {
+          systemId: entered.systemId,
+          systemCode: entered.systemCode,
+          systemName: entered.systemName,
+          tenantMode: entered.tenantMode,
+          status: entered.status as "DRAFT" | "ENABLED" | "DISABLED" | "ARCHIVED",
+        },
+        tenant: entered.currentTenant
+          ? {
+              tenantId: entered.currentTenant.tenantId,
+              tenantCode: entered.currentTenant.code,
+              tenantName: entered.currentTenant.name,
+              status: entered.currentTenant.status as "ENABLED" | "DISABLED",
+            }
+          : undefined,
+        member: {
+          memberId: entered.currentMember.memberId,
+          displayName: entered.currentMember.displayName,
+          roles: entered.currentMember.roles ?? entered.currentMember.roleIds ?? [],
+          status: entered.currentMember.status,
+        },
+      });
+      permissionStore.setEffectivePermission(toEffectivePermission(entered), entered.permissions?.menus ?? []);
+      navigate(`/systems/${systemId}/profile`);
+      return { requestId: response.requestId };
     });
   }
 
@@ -1080,6 +1137,36 @@ function emptyPlatformPageState<TRecord>(): PlatformPageState<TRecord> {
     pageSize: 20,
     empty: true,
   };
+}
+
+function toEffectivePermission(entered: SystemEnterVO): EffectivePermissionVO {
+  const permissions = entered.permissions;
+  const operations = permissions?.operations ?? [];
+  return {
+    memberId: permissions?.memberId ?? entered.currentMember.memberId,
+    roles: permissions?.roles ?? entered.currentMember.roles ?? entered.currentMember.roleIds ?? [],
+    version: Number(permissions?.version ?? 1),
+    menus: permissions?.menus ?? [],
+    operations,
+    fieldPermissions: normalizeFieldPermissions(permissions?.fieldPermissions),
+    availableActions: permissions?.availableActions ?? operations.map((operationCode) => ({
+      actionCode: operationCode,
+      label: operationCode,
+      visible: true,
+      enabled: true,
+      requiredPermission: operationCode,
+    })),
+    dataScopes: permissions?.dataScopes ?? [],
+  };
+}
+
+function normalizeFieldPermissions(value: SystemEnterVO["permissions"] extends infer T
+  ? T extends { fieldPermissions?: infer P } ? P : never
+  : never): FieldPermission[] {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return [];
 }
 
 function seedPreviewState(settings: RuntimeSettings): void {

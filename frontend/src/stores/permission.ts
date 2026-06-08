@@ -70,6 +70,17 @@ export function createPermissionStore(seed: PermissionState = initialState): Per
     return state.runtimeMenus.length > 0 ? state.runtimeMenus : (state.effective?.menus ?? []);
   }
 
+  function grantsOperation(operationCode: string): boolean {
+    const granted = operations();
+    if (granted.includes(operationCode) || granted.includes("*")) {
+      return true;
+    }
+    if (!granted.includes("SYS_MANAGE_ALL")) {
+      return false;
+    }
+    return !operationCode.startsWith("PLAT_") && !operationCode.startsWith("OPS_");
+  }
+
   return {
     getState() {
       return state;
@@ -103,7 +114,7 @@ export function createPermissionStore(seed: PermissionState = initialState): Per
     },
 
     hasOperation(operationCode) {
-      return operations().includes(operationCode);
+      return grantsOperation(operationCode);
     },
 
     hasMenu(menuCode) {
@@ -124,7 +135,7 @@ export function createPermissionStore(seed: PermissionState = initialState): Per
         };
       }
 
-      if (requirement.allOperations?.some((item) => !operations().includes(item))) {
+      if (requirement.allOperations?.some((item) => !grantsOperation(item))) {
         return {
           visible: true,
           enabled: false,
@@ -132,7 +143,7 @@ export function createPermissionStore(seed: PermissionState = initialState): Per
         };
       }
 
-      if (requirement.anyOperations && !requirement.anyOperations.some((item) => operations().includes(item))) {
+      if (requirement.anyOperations && !requirement.anyOperations.some((item) => grantsOperation(item))) {
         return {
           visible: true,
           enabled: false,
@@ -146,6 +157,13 @@ export function createPermissionStore(seed: PermissionState = initialState): Per
     action(actionCode) {
       const action = state.effective?.availableActions.find((item) => item.actionCode === actionCode);
       if (!action) {
+        if (grantsOperation(actionCode)) {
+          return {
+            visible: true,
+            enabled: true,
+            matchedPermission: actionCode,
+          };
+        }
         return {
           visible: false,
           enabled: false,

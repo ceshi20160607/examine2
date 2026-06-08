@@ -15,7 +15,8 @@
 | `frontend/dist/` | 已重新生成 |
 | 平台中心 UI | 平台系统、平台账号、平台角色、平台配置已升级为真实业务表单和数据表格 |
 | 浏览器 smoke | `#/auth/login` 和 `#/platform/systems` 页面结构正常，中文无乱码 |
-| 最新部署包 | `dist/unexamine-full-deploy-20260608-171500.zip` |
+| P8 权限修复 | 进入系统改为调用 `SYS-001` 获取真实系统、租户、成员和权限；`SYS_MANAGE_ALL` 映射为系统内管理权限 |
+| 最新部署包 | `dist/unexamine-full-deploy-20260608-225000.zip` |
 
 ## 后端验证
 
@@ -47,7 +48,7 @@
 | 文件 | 大小 |
 | --- | --- |
 | `frontend/dist/index.html` | 445 B |
-| `frontend/dist/assets/index-Dlu7mWZI.js` | 74486 B |
+| `frontend/dist/assets/index-Cbb48LUp.js` | 75588 B |
 | `frontend/dist/assets/index-CVxrMMA5.css` | 7444 B |
 
 ## 组合验证

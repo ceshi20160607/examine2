@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-08T17:15:00+08:00",
+    "updated_at":  "2026-06-08T22:50:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2221,6 +2221,34 @@
                                                   "P8 upgrades platform center from placeholder workspace to usable CRUD UI.",
                                                   "System-internal pages still need follow-up visual usability phases."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P8-SYSTEM-ENTRY-PERMISSION-FIX",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "FE-014-REWORK",
+                                                  "P8-PERMISSION-FIX"
+                                              ],
+                                    "started_at":  "2026-06-08T22:35:00+08:00",
+                                    "completed_at":  "2026-06-08T22:50:00+08:00",
+                                    "outputs":  [
+                                                    "frontend/src/App.ts",
+                                                    "frontend/src/stores/permission.ts",
+                                                    "AGENTS.md",
+                                                    "docs/build_report.md",
+                                                    "docs/progress.md",
+                                                    "docs/phases/P8-platform-ui-crud-acceptance.md"
+                                                ],
+                                    "verification":  [
+                                                         "Deployed /me returns PLAT_SUPER_ADMIN and platformPermissions",
+                                                         "SYS-001 returns currentMember superAdmin=true and permissions.operations contains SYS_MANAGE_ALL",
+                                                         "npm.cmd run build pass",
+                                                         "new package generated at dist/unexamine-full-deploy-20260608-225000.zip"
+                                                     ],
+                                    "notes":  [
+                                                  "Current deployed frontend could not show system config because enterSystem faked context and never loaded system permissions.",
+                                                  "Frontend now maps SYS_MANAGE_ALL to system-scoped permissions, excluding PLAT_* and OPS_*."
+                                              ]
                                 }
                             ],
     "current_phase":  "P8-platform-ui-crud",
@@ -2304,5 +2332,5 @@
                                                          "next_phase":  "user-trial-deploy"
                                                      }
                          },
-    "last_completed_batch":  "DEV-BATCH-P8-PLATFORM-CRUD-UI"
+    "last_completed_batch":  "DEV-BATCH-P8-SYSTEM-ENTRY-PERMISSION-FIX"
 }
