@@ -107,6 +107,7 @@ mvn -pl examine-module -am test
 * planner 拆分任务时必须标明任务类型：`contract-only`、`implementation`、`deployable-ui`、`deployable-backend`、`test`、`review`。`contract-only` 任务完成后只能推动下游开发，不能计为完整前端或完整上线。
 * frontend agent 在领取任何“前端完成/可上线/可部署”任务时必须先自检 `frontend/index.html`、`frontend/src/main.*`、页面组件、构建脚本和 `frontend/dist/` 产物要求；缺失时必须回报 `frontend-ui-missing`，不能只交付 typed SDK 或 PageModel 后标记完成。
 * frontend agent 交付部署版 UI 时，默认 API 地址必须走浏览器同源相对路径，例如接口契约中的 `/api/v1/...`，不得默认写死 `localhost`、局域网 IP 或把 API 地址配置面板暴露给终端用户。确需本地联调时只能通过构建环境变量或测试专用参数处理，并在验收文档中标明非生产入口。
+* 前端进入具体系统后，系统内接口必须使用 `SYS-001` 返回的真实系统、租户、成员和权限上下文；后续 `SYS/MEM/RBAC/APP/MOD/RUN/FLOW/FILE/EXP/OPENAPI/AUD` 等系统内 API 调用必须携带 `Authorization`、`X-Tenant-Id`、`X-System-Id` 和 `X-Member-Id`，不得只用 URL path 中的 `systemId` 代替成员上下文。
 * nginx/静态部署验收必须包含 `/api/` 前缀保留转发和接口文档转发验证。`location /api/` 代理到后端时不得因为 `proxy_pass` 写法把 `/api` 剥掉；否则即使前端 dist 可打开，也不能判定为部署通过。
 * 当前产品默认中文界面；多语言方案未冻结前，新增页面、导航、按钮、状态、空态和错误提示不得直接散落英文文案。`OpenAPI`、API ID、技术协议名等专有名词可以保留英文，后续 i18n 需单独进入产品设计和任务拆分。
 * test agent 在整体验收前必须检查是否存在浏览器端 smoke/E2E 记录；如无真实 UI，则测试结论必须区分“后端 API 通过”和“前端 E2E 未执行/阻塞”。

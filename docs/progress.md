@@ -39,7 +39,7 @@
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
 | Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；OpenAPI accessKey 错误码回环已修复并通过 app 测试。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
-| Frontend | 13 | 0 | 0 | FE-001 至 FE-014 已完成；P8 已补平台中心真实 CRUD UI。 |
+| Frontend | 13 | 0 | 0 | FE-001 至 FE-014 已完成；P8 已补平台中心真实 CRUD UI，并补齐系统资料/租户真实页面闭环。 |
 | Test | 5 | 0 | 0 | TEST-001 至 TEST-005 已完成；测试报告结论 fail target=frontend。 |
 | Validator | 4 | 0 | 0 | VAL-001 至 VAL-004 已完成；构建验证结论 fail，target=frontend。 |
 | Reviewer | 4 | 0 | 0 | REV-001 至 REV-004 已完成；最终 review fail target=both。 |
@@ -193,8 +193,10 @@
 47. P8 已完成平台中心真实 CRUD UI：系统、账号、角色、配置页面具备列表、创建/编辑、启停、授权、配置更新等入口，且均通过 `platformCenter` typed PageModel 调用。
 48. P8 前端 clean build 通过，浏览器 smoke 确认登录页与平台系统页中文无乱码、表单和表格结构正常。
 49. 已修复 P8 系统进入权限逻辑：前端进入系统改为调用 `SYS-001` 获取真实系统、租户、成员和有效权限，不再伪造系统上下文；`SYS_MANAGE_ALL` 已在前端映射为系统内管理通配权限。
-50. 最新部署包：`dist/unexamine-full-deploy-20260608-225000.zip`。
+50. 已修复系统内接口上下文：typed SDK 调用会携带 `X-System-Id` 与 `X-Member-Id`；浏览器实测 `SYS-002` 系统资料查询 200、`SYS-003` 系统资料保存 200、`SYS-004` 租户查询 200。
+51. 系统资料和租户页面已从通用占位工作区升级为真实业务页面，进入系统后可看到系统 ID、编码、当前租户、当前成员、权限数和租户列表。
+52. 最新部署包：`dist/unexamine-full-deploy-20260608-235808.zip`。
 
 ## 下一步
 
-当前项目已具备 P8 平台中心试部署体验条件。下一步建议在用户部署环境用 `platform_admin / 123123aa` 验证平台系统、账号、角色、配置四个页面；后续继续推进系统内配置、运行台、流程、文件、OpenAPI、审计运维的可视化可用化。
+当前项目已具备 P8 平台中心和系统资料/租户试部署体验条件。下一步建议在用户部署环境用 `platform_admin / 123123aa` 验证平台系统、账号、角色、配置、系统资料和租户页面；后续继续推进成员、部门、角色、字典、应用模块、运行台、流程、文件、OpenAPI、审计运维的可视化可用化。

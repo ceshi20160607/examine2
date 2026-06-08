@@ -16,7 +16,10 @@
 | 平台中心 UI | 平台系统、平台账号、平台角色、平台配置已升级为真实业务表单和数据表格 |
 | 浏览器 smoke | `#/auth/login` 和 `#/platform/systems` 页面结构正常，中文无乱码 |
 | P8 权限修复 | 进入系统改为调用 `SYS-001` 获取真实系统、租户、成员和权限；`SYS_MANAGE_ALL` 映射为系统内管理权限 |
-| 最新部署包 | `dist/unexamine-full-deploy-20260608-225000.zip` |
+| 系统上下文请求头修复 | 系统内 API 已随 typed SDK 发送 `X-System-Id` 与 `X-Member-Id` |
+| 系统资料页面 | 已从通用占位页升级为真实资料页，可加载 `SYS-002` 并保存 `SYS-003` |
+| 租户页面 | 已从通用占位页升级为真实租户页，可加载 `SYS-004`，并保留创建/启停入口 |
+| 最新部署包 | `dist/unexamine-full-deploy-20260608-235808.zip` |
 
 ## 后端验证
 
@@ -42,13 +45,17 @@
 | `frontend/dist/` | 已生成 |
 | 生产预览 | `http://127.0.0.1:4173/` HTTP 200 |
 | 浏览器 smoke | 桌面与移动端 Chrome headless 截图通过 |
+| 本次真实流程 | 本地前端 `http://127.0.0.1:5173/?baseUrl=http%3A%2F%2F192.168.0.211%3A19999#/auth/login` 登录 `platform_admin` 成功，进入系统 `2063994726481473538` 成功 |
+| 系统资料 API | 浏览器点击刷新触发 `GET http://192.168.0.211:19999/api/v1/systems/2063994726481473538/profile`，返回 200 |
+| 系统资料保存 | 浏览器点击保存资料触发 `PUT http://192.168.0.211:19999/api/v1/systems/2063994726481473538/profile`，body 为 `{"name":"车"}`，返回 200 |
+| 租户 API | 浏览器点击刷新触发 `GET http://192.168.0.211:19999/api/v1/systems/2063994726481473538/tenants`，返回 200 |
 
 ## 前端产物
 
 | 文件 | 大小 |
 | --- | --- |
 | `frontend/dist/index.html` | 445 B |
-| `frontend/dist/assets/index-Cbb48LUp.js` | 75588 B |
+| `frontend/dist/assets/index-D_A850DX.js` | 78000 B |
 | `frontend/dist/assets/index-CVxrMMA5.css` | 7444 B |
 
 ## 组合验证

@@ -42,6 +42,11 @@ interface PlatformUiState {
   permissionCatalogSummary?: string;
 }
 
+interface SystemUiState {
+  profile?: SystemEnterVO;
+  tenants: SystemTenantVO[];
+}
+
 interface SystemEnterVO {
   systemId: EntityId;
   systemCode?: string;
@@ -54,6 +59,7 @@ interface SystemEnterVO {
     name: string;
     status: string;
   };
+  tenants?: SystemTenantVO[];
   currentMember: {
     memberId: EntityId;
     displayName: string;
@@ -71,6 +77,17 @@ interface SystemEnterVO {
     availableActions?: EffectivePermissionVO["availableActions"];
     version?: number | string;
   };
+}
+
+interface SystemTenantVO {
+  tenantId: EntityId;
+  systemId?: EntityId;
+  code?: string;
+  name?: string;
+  tenantCode?: string;
+  tenantName?: string;
+  status: "ENABLED" | "DISABLED" | string;
+  description?: string;
 }
 
 const rootPermissions = [
@@ -127,6 +144,9 @@ export function mountApp(container: HTMLElement): void {
     roles: emptyPlatformPageState(),
     configs: emptyPlatformPageState(),
   };
+  const systemState: SystemUiState = {
+    tenants: [],
+  };
   const autoLoadedRoutes = new Set<string>();
 
   syncHash();
@@ -141,6 +161,8 @@ export function mountApp(container: HTMLElement): void {
       getContext: () => ({
         accessToken: authStore.getState().token?.accessToken ?? settings.accessToken,
         tenantId: systemContextStore.toTenantHeader() ?? settings.tenantId,
+        systemId: systemContextStore.getState().current?.system.systemId ?? settings.systemId,
+        memberId: systemContextStore.getState().current?.member.memberId,
       }),
     });
   }
@@ -320,6 +342,14 @@ export function mountApp(container: HTMLElement): void {
       return renderPlatformConfigs();
     }
 
+    if (route.name === "system.profile") {
+      return renderSystemProfile();
+    }
+
+    if (route.name === "system.tenants") {
+      return renderSystemTenants();
+    }
+
     return node("div", {}, [
       node("div", { className: "toolbar-row" }, [
         input("关键字", "keyword", ""),
@@ -476,6 +506,80 @@ export function mountApp(container: HTMLElement): void {
     ]);
   }
 
+  function renderSystemProfile(): HTMLElement {
+    const profile = systemState.profile;
+    const context = systemContextStore.getState().current;
+    const actions = {
+      edit: permissionStore.decide({ anyOperations: ["SYS_PROFILE_EDIT"] }),
+    };
+    const systemName = profile?.systemName ?? context?.system.systemName ?? "";
+    const systemCode = profile?.systemCode ?? context?.system.systemCode ?? "";
+    const tenantMode = profile?.tenantMode ?? context?.system.tenantMode ?? "SINGLE";
+    const currentTenant = profile?.currentTenant ?? context?.tenant;
+    const member = profile?.currentMember ?? context?.member;
+
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [systemName || "-", "系统名称"],
+        [statusLabel(profile?.status ?? context?.system.status), "系统状态"],
+        [tenantModeLabel(tenantMode), "租户模式"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        input("系统名称", "systemProfileName", systemName),
+        input("访问域名", "systemProfileDomain", ""),
+        textarea("系统说明", "systemProfileDescription", ""),
+        button("保存资料", "primary", saveSystemProfile, !actions.edit.enabled),
+      ]),
+      renderDataTable(
+        "systems",
+        ["字段", "内容", "说明"],
+        [
+          ["系统 ID", profile?.systemId ?? context?.system.systemId ?? "-", "当前系统上下文"],
+          ["系统编码", systemCode || "-", "平台创建系统时生成或录入"],
+          ["当前租户", tenantName(currentTenant), currentTenant?.status ? statusLabel(currentTenant.status) : "-"],
+          ["当前成员", member?.displayName ?? "-", member?.status ? statusLabel(member.status) : "-"],
+          ["系统权限", String(profile?.permissions?.operations?.length ?? permissionStore.getState().effective?.operations?.length ?? 0), "当前成员已加载操作权限数"],
+        ],
+        "进入系统后会自动加载系统资料。",
+      ),
+    ]);
+  }
+
+  function renderSystemTenants(): HTMLElement {
+    const actions = {
+      create: permissionStore.decide({ anyOperations: ["SYS_TENANT_CREATE"] }),
+      status: permissionStore.decide({ anyOperations: ["SYS_TENANT_STATUS"] }),
+    };
+
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(systemState.tenants.length), "租户总数"],
+        [enabledCount(systemState.tenants), "启用中"],
+        [systemContextStore.getState().current?.system.systemName ?? "-", "所属系统"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        input("租户编码", "tenantCode", ""),
+        input("租户名称", "tenantName", ""),
+        textarea("租户说明", "tenantDescription", ""),
+        button("创建租户", "primary", createSystemTenant, !actions.create.enabled),
+      ]),
+      renderDataTable(
+        "systems",
+        ["租户", "编码", "状态", "说明", "操作"],
+        systemState.tenants.map((item) => [
+          tenantName(item),
+          tenantCode(item),
+          statusLabel(item.status),
+          item.description ?? "-",
+          node("div", { className: "row-actions" }, [
+            button(item.status === "ENABLED" ? "禁用" : "启用", "secondary", () => toggleSystemTenant(item), !actions.status.enabled),
+          ]),
+        ]),
+        "暂无租户，创建后会显示在这里。",
+      ),
+    ]);
+  }
+
   function renderPageMetrics(items: [string, string][]): HTMLElement {
     return node("div", { className: "metric-grid" }, items.map(([value, label]) => stat(value, label)));
   }
@@ -548,6 +652,14 @@ export function mountApp(container: HTMLElement): void {
     }
     if (route.name === "platform.configs") {
       await loadPlatformConfigs();
+      return;
+    }
+    if (route.name === "system.profile") {
+      await loadSystemProfile();
+      return;
+    }
+    if (route.name === "system.tenants") {
+      await loadSystemTenants();
       return;
     }
     const apiId = firstRunnableEndpoint(route.meta.apiIds);
@@ -783,6 +895,88 @@ export function mountApp(container: HTMLElement): void {
     setFormValue("platformConfigRemark", item.remark ?? "");
   }
 
+  async function loadSystemProfile(): Promise<void> {
+    await execute("SYS-002", async () => {
+      const response = await apiClient.call<SystemEnterVO>("SYS-002", {
+        pathParams: pathParams(),
+      });
+      systemState.profile = response.data;
+      if (response.data.tenants) {
+        systemState.tenants = response.data.tenants;
+      }
+      return response;
+    });
+  }
+
+  async function saveSystemProfile(): Promise<void> {
+    const form = readForm();
+    await execute("SYS-003", async () => {
+      const response = await apiClient.call<SystemEnterVO, { name: string; description?: string; domain?: string }>("SYS-003", {
+        pathParams: pathParams(),
+        body: {
+          name: required(form.systemProfileName, "系统名称"),
+          description: form.systemProfileDescription?.trim() || undefined,
+          domain: form.systemProfileDomain?.trim() || undefined,
+        },
+      });
+      systemState.profile = response.data;
+      return response;
+    });
+  }
+
+  async function loadSystemTenants(): Promise<void> {
+    await execute("SYS-004", async () => {
+      const response = await apiClient.call<SystemTenantVO[]>("SYS-004", {
+        pathParams: pathParams(),
+      });
+      systemState.tenants = response.data ?? [];
+      return response;
+    });
+  }
+
+  async function createSystemTenant(): Promise<void> {
+    const form = readForm();
+    await execute("SYS-005", async () => {
+      const response = await apiClient.call<SystemTenantVO, { code: string; name: string; description?: string }>("SYS-005", {
+        pathParams: pathParams(),
+        body: {
+          code: required(form.tenantCode, "租户编码"),
+          name: required(form.tenantName, "租户名称"),
+          description: form.tenantDescription?.trim() || undefined,
+        },
+      });
+      const tenantsResponse = await apiClient.call<SystemTenantVO[]>("SYS-004", {
+        pathParams: pathParams(),
+      });
+      systemState.tenants = tenantsResponse.data ?? [];
+      return response;
+    });
+  }
+
+  async function toggleSystemTenant(item: SystemTenantVO): Promise<void> {
+    const nextStatus = item.status === "ENABLED" ? "DISABLED" : "ENABLED";
+    if (!window.confirm(`确认将租户“${tenantName(item)}”变更为${statusLabel(nextStatus)}？`)) {
+      return;
+    }
+    await execute("SYS-006", async () => {
+      const response = await apiClient.call<SystemTenantVO, { targetStatus: string; reason?: string }>("SYS-006", {
+        pathParams: {
+          ...pathParams(),
+          tenantId: item.tenantId,
+        },
+        body: {
+          targetStatus: nextStatus,
+          reason: "页面操作",
+        },
+      });
+      const tenantsResponse = await apiClient.call<SystemTenantVO[]>("SYS-004", {
+        pathParams: pathParams(),
+      });
+      systemState.tenants = tenantsResponse.data ?? [];
+      return response;
+    });
+  }
+
   async function enterSystem(systemId: string): Promise<void> {
     await execute("SYS-001", async () => {
       systemContextStore.beginEnter(systemId);
@@ -791,6 +985,8 @@ export function mountApp(container: HTMLElement): void {
         pathParams: { systemId },
       });
       const entered = response.data;
+      systemState.profile = entered;
+      systemState.tenants = entered.tenants ?? (entered.currentTenant ? [entered.currentTenant] : []);
       systemContextStore.setContext({
         system: {
           systemId: entered.systemId,
@@ -928,14 +1124,15 @@ export function mountApp(container: HTMLElement): void {
   }
 
   function pathParams(): Record<string, string> {
+    const current = systemContextStore.getState().current;
     return {
-      systemId: ui.settings.systemId,
-      tenantId: ui.settings.tenantId,
+      systemId: current?.system.systemId ?? ui.settings.systemId,
+      tenantId: current?.tenant?.tenantId ?? ui.settings.tenantId,
       appId: ui.settings.appId,
       moduleId: ui.settings.moduleId,
       accountId: "preview-account",
       roleId: "preview-role",
-      memberId: "preview-member",
+      memberId: current?.member?.memberId ?? "preview-member",
       deptId: "preview-dept",
       dictId: "preview-dict",
       fieldId: "preview-field",
@@ -1015,6 +1212,14 @@ export function mountApp(container: HTMLElement): void {
       return "多租户";
     }
     return mode ?? "-";
+  }
+
+  function tenantName(item?: Partial<SystemTenantVO> & { tenantName?: string; tenantNameCn?: string }): string {
+    return item?.name ?? item?.tenantName ?? item?.tenantNameCn ?? "-";
+  }
+
+  function tenantCode(item?: Partial<SystemTenantVO> & { tenantCode?: string }): string {
+    return item?.code ?? item?.tenantCode ?? "-";
   }
 
   function statusClass(): string {
@@ -1104,6 +1309,7 @@ function loadSettings(): RuntimeSettings {
   const base = defaultSettings();
   return {
     ...base,
+    baseUrl: query.get("baseUrl") ?? base.baseUrl,
     accessToken: query.get("accessToken") ?? base.accessToken,
     systemId: query.get("systemId") ?? base.systemId,
     tenantId: query.get("tenantId") ?? base.tenantId,

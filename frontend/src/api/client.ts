@@ -4,6 +4,8 @@ import type { ApiErrorResponse, ApiResult, ApiResponse, HttpMethod, JsonValue } 
 export interface ApiContext {
   accessToken?: string;
   tenantId?: string;
+  systemId?: string;
+  memberId?: string;
   requestId?: string;
 }
 
@@ -94,6 +96,12 @@ function buildHeaders<TBody, TQuery>(
   }
   if (context.tenantId) {
     headers["X-Tenant-Id"] = context.tenantId;
+  }
+  if (context.systemId) {
+    headers["X-System-Id"] = context.systemId;
+  }
+  if (context.memberId) {
+    headers["X-Member-Id"] = context.memberId;
   }
   if (context.requestId) {
     headers["X-Request-Id"] = context.requestId;
