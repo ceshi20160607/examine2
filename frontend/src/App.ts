@@ -1,7 +1,7 @@
 import { createApiClient, type ApiClient } from "./api/client";
 import { API_ENDPOINTS, type ApiEndpointId } from "./api/endpoints";
 import { createFetchTransport } from "./api/fetchTransport";
-import { resolveAppShellState } from "./layouts/AppShell";
+import { resolveAppShellState, SHELL_SECTION_LABELS } from "./layouts/AppShell";
 import { createAuthPageModel } from "./pages/auth";
 import { createMySystemsPageModel } from "./pages/my-systems";
 import { APP_ROUTES, DEFAULT_AUTHENTICATED_ROUTE, LOGIN_ROUTE, resolveRoute, type AppRouteRecord } from "./router";
@@ -136,7 +136,7 @@ export function mountApp(container: HTMLElement): void {
     const context = systemContextStore.getState().current;
     return node("header", { className: "topbar" }, [
       node("div", {}, [
-        node("p", { className: "eyebrow", text: route.meta.section }),
+        node("p", { className: "eyebrow", text: sectionLabel(route) }),
         node("h1", { text: title }),
       ]),
       node("div", { className: "context-strip" }, [
@@ -188,7 +188,7 @@ export function mountApp(container: HTMLElement): void {
       node("div", { className: "work-panel primary-panel" }, [
         node("div", { className: "panel-heading" }, [
           node("div", {}, [
-            node("p", { className: "eyebrow", text: route.meta.section }),
+            node("p", { className: "eyebrow", text: sectionLabel(route) }),
             node("h2", { text: route.meta.title }),
           ]),
           button("刷新", "secondary", () => runRouteLoad(route)),
@@ -205,7 +205,7 @@ export function mountApp(container: HTMLElement): void {
       node("div", { className: "work-panel" }, [
         node("div", { className: "panel-heading" }, [
           node("h2", { text: "操作结果" }),
-          node("span", { className: statusClass(), text: authStore.getState().status }),
+          node("span", { className: statusClass(), text: authStatusLabel() }),
         ]),
         renderMessage(),
       ]),
@@ -260,7 +260,7 @@ export function mountApp(container: HTMLElement): void {
     return node("div", { className: "summary-list" }, [
       node("div", {}, [
         node("span", { text: "业务域" }),
-        node("strong", { text: route.meta.section }),
+        node("strong", { text: sectionLabel(route) }),
       ]),
       node("div", {}, [
         node("span", { text: "权限" }),
@@ -429,6 +429,24 @@ export function mountApp(container: HTMLElement): void {
 
   function statusClass(): string {
     return authStore.getState().status === "authenticated" ? "status-pill ok" : "status-pill";
+  }
+
+  function authStatusLabel(): string {
+    const status = authStore.getState().status;
+    if (status === "authenticated") {
+      return "已登录";
+    }
+    if (status === "authenticating") {
+      return "登录中";
+    }
+    if (status === "expired") {
+      return "已过期";
+    }
+    return "未登录";
+  }
+
+  function sectionLabel(route: AppRouteRecord): string {
+    return SHELL_SECTION_LABELS[route.meta.section];
   }
 
   function syncHash(): void {

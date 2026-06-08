@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-08T15:46:16+08:00",
+    "updated_at":  "2026-06-08T16:40:02+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2146,11 +2146,45 @@
                                                          "npm.cmd run build pass and generated frontend/dist/assets/index-C8i4nSPj.js plus index-B9Ede97w.css",
                                                          "frontend dist scan found no localhost:8080 and no user-facing API address panel",
                                                          "192.168.0.211:19999 diagnosed: /api/v1 is stripped to backend /v1 and /doc.html returns frontend index",
-                                                         "new package generated at dist/unexamine-full-deploy-20260608-154616.zip"
+                                                         "new package generated at dist/unexamine-full-deploy-20260608-164002.zip"
                                                      ],
                                     "notes":  [
                                                   "Old package dist/unexamine-full-deploy-20260608-141816.zip is superseded.",
                                                   "User trial deployment must update nginx with docs/deploy/nginx-deploy.md before retest."
+                                              ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P7-PLATFORM-ADMIN-PERMISSION-I18N-FIX",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "AUTH-ME-PERMISSION-FIX",
+                                                  "FE-ZH-COPY-FIX",
+                                                  "PM-DEPLOY-REVIEW"
+                                              ],
+                                    "started_at":  "2026-06-08T16:30:00+08:00",
+                                    "completed_at":  "2026-06-08T16:40:02+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-plat/src/main/java/com/unique/examine/plat/manage/vo/CurrentUserVO.java",
+                                                    "backend/examine-plat/src/main/java/com/unique/examine/plat/manage/service/impl/AuthSessionServiceImpl.java",
+                                                    "backend/examine-plat/src/test/java/com/unique/examine/plat/manage/service/impl/AuthSessionServiceImplTest.java",
+                                                    "frontend/src/router/index.ts",
+                                                    "frontend/src/layouts/AppShell.ts",
+                                                    "frontend/src/App.ts",
+                                                    "frontend/src/pages/platform/platformCenter.ts",
+                                                    "AGENTS.md",
+                                                    "docs/build_report.md",
+                                                    "docs/review.json",
+                                                    "docs/progress.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn.cmd -pl examine-plat -am test pass",
+                                                         "mvn.cmd -pl examine-web -am clean package -DskipTests pass",
+                                                         "npm.cmd run build pass",
+                                                         "new package generated at dist/unexamine-full-deploy-20260608-164002.zip"
+                                                     ],
+                                    "notes":  [
+                                                  "platform_admin is PLAT_SUPER_ADMIN; frontend could not recognize it before because AUTH-005 did not return platform permissions.",
+                                                  "Full business CRUD forms are still a frontend follow-up task beyond route shell and permission recognition."
                                               ]
                                 }
                             ],
@@ -2227,5 +2261,5 @@
                                                              "next_phase":  "user-trial-deploy"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P7-NGINX-DEPLOY-NORMALIZATION"
+    "last_completed_batch":  "DEV-BATCH-P7-PLATFORM-ADMIN-PERMISSION-I18N-FIX"
 }

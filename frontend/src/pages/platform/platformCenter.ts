@@ -308,9 +308,9 @@ export function createPlatformCenterPageModel(deps: PlatformPageDeps): PlatformC
       },
       actions(row) {
         return {
-          create: action("create", "Create system", "PLAT_SYSTEM_CREATE", auth),
-          view: action("view", "View detail", "PLAT_SYSTEM_VIEW", auth),
-          status: action("status", "Change status", "PLAT_SYSTEM_STATUS", auth, row?.status === "ARCHIVED" ? "SYS_ARCHIVED" : undefined),
+          create: action("create", "创建系统", "PLAT_SYSTEM_CREATE", auth),
+          view: action("view", "查看详情", "PLAT_SYSTEM_VIEW", auth),
+          status: action("status", "变更状态", "PLAT_SYSTEM_STATUS", auth, row?.status === "ARCHIVED" ? "SYS_ARCHIVED" : undefined),
         };
       },
     },
@@ -350,12 +350,12 @@ export function createPlatformCenterPageModel(deps: PlatformPageDeps): PlatformC
       },
       actions(row) {
         return {
-          create: action("create", "Create account", "PLAT_ACCOUNT_CREATE", auth),
-          view: action("view", "View account", "PLAT_ACCOUNT_VIEW", auth),
-          edit: action("edit", "Edit account", "PLAT_ACCOUNT_CREATE", auth, row?.status === "LOCKED" ? "AUTH_ACCOUNT_LOCKED" : undefined),
-          status: action("status", "Change status", "PLAT_ACCOUNT_STATUS", auth),
-          resetPassword: action("resetPassword", "Reset password", "PLAT_ACCOUNT_STATUS", auth),
-          assignRoles: action("assignRoles", "Assign roles", "PLAT_ROLE_AUTH", auth),
+          create: action("create", "创建账号", "PLAT_ACCOUNT_CREATE", auth),
+          view: action("view", "查看账号", "PLAT_ACCOUNT_VIEW", auth),
+          edit: action("edit", "编辑账号", "PLAT_ACCOUNT_CREATE", auth, row?.status === "LOCKED" ? "AUTH_ACCOUNT_LOCKED" : undefined),
+          status: action("status", "变更状态", "PLAT_ACCOUNT_STATUS", auth),
+          resetPassword: action("resetPassword", "重置密码", "PLAT_ACCOUNT_STATUS", auth),
+          assignRoles: action("assignRoles", "分配角色", "PLAT_ROLE_AUTH", auth),
         };
       },
     },
@@ -389,10 +389,10 @@ export function createPlatformCenterPageModel(deps: PlatformPageDeps): PlatformC
       },
       actions(row) {
         return {
-          create: action("create", "Create role", "PLAT_ROLE_AUTH", auth),
-          edit: action("edit", "Edit role", "PLAT_ROLE_AUTH", auth, row?.protectedFlag ? "SYS_ROLE_PROTECTED" : undefined),
-          status: action("status", "Change status", "PLAT_ROLE_AUTH", auth, row?.protectedFlag ? "SYS_ROLE_PROTECTED" : undefined),
-          authorize: action("authorize", "Authorize", "PLAT_ROLE_AUTH", auth, row?.status === "DISABLED" ? "SYS_ROLE_DISABLED" : undefined),
+          create: action("create", "创建角色", "PLAT_ROLE_AUTH", auth),
+          edit: action("edit", "编辑角色", "PLAT_ROLE_AUTH", auth, row?.protectedFlag ? "SYS_ROLE_PROTECTED" : undefined),
+          status: action("status", "变更状态", "PLAT_ROLE_AUTH", auth, row?.protectedFlag ? "SYS_ROLE_PROTECTED" : undefined),
+          authorize: action("authorize", "授权", "PLAT_ROLE_AUTH", auth, row?.status === "DISABLED" ? "SYS_ROLE_DISABLED" : undefined),
         };
       },
     },
@@ -408,8 +408,8 @@ export function createPlatformCenterPageModel(deps: PlatformPageDeps): PlatformC
       },
       actions(row) {
         return {
-          view: action("view", "View config", "PLAT_CONFIG_VIEW", auth),
-          edit: action("edit", "Edit config", "PLAT_CONFIG_EDIT", auth),
+          view: action("view", "查看配置", "PLAT_CONFIG_VIEW", auth),
+          edit: action("edit", "编辑配置", "PLAT_CONFIG_EDIT", auth),
         };
       },
     },

@@ -186,6 +186,8 @@
 43. 已修复前后端分离 CORS：`backend/examine-web/src/main/java/com/unique/examine/web/config/WebMvcConfig.java` 增加本机和局域网前端预览域放行。
 44. P7 已通过验收，完整部署包已生成：`dist/unexamine-full-deploy-20260608-154616.zip`。
 45. 用户试部署回归发现旧包仍是调试形态，且 `http://192.168.0.211:19999/` 当前 nginx 会把 `/api/v1/...` 转给后端 `/v1/...`，`/doc.html` 也被前端 index 接管；已修复前端默认同源 `/api/v1/...` 部署语义，并新增 `docs/deploy/nginx-deploy.md`。
+46. `platform_admin` 权限回显已修复：`AUTH-005 /me` 现在返回 `platformRoles` 与 `platformPermissions`，前端可识别 `PLAT_SUPER_ADMIN`；默认中文界面规则已写入 `AGENTS.md`，主要导航和路由标题已改为中文。
+47. 最新部署包：`dist/unexamine-full-deploy-20260608-164002.zip`。
 
 ## 下一步
 

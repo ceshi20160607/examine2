@@ -5,9 +5,16 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.plat.base.entity.Account;
+import com.unique.examine.plat.base.entity.AccountRole;
+import com.unique.examine.plat.base.entity.Role;
+import com.unique.examine.plat.base.entity.RoleOperation;
+import com.unique.examine.plat.base.service.IAccountRoleService;
+import com.unique.examine.plat.base.service.IRoleOperationService;
+import com.unique.examine.plat.base.service.IRoleService;
 import com.unique.examine.plat.manage.bo.LoginBO;
 import com.unique.examine.plat.manage.bo.RefreshTokenBO;
 import com.unique.examine.plat.manage.bo.RegisterBO;
@@ -47,6 +54,12 @@ public class AuthSessionServiceImpl implements AuthSessionService {
 
     private final AuthTokenStore tokenStore;
 
+    private final IAccountRoleService accountRoleService;
+
+    private final IRoleService roleService;
+
+    private final IRoleOperationService roleOperationService;
+
     private final Clock clock;
 
     /**
@@ -56,19 +69,33 @@ public class AuthSessionServiceImpl implements AuthSessionService {
      * @param operationLogger 认证审计日志
      * @param passwordEncoder 密码编码器
      * @param tokenStore token 存储
+     * @param accountRoleService 平台账号角色服务
+     * @param roleService 平台角色服务
+     * @param roleOperationService 平台角色操作权限服务
      */
     @Autowired
     public AuthSessionServiceImpl(AuthAccountRepository accountRepository, AuthOperationLogger operationLogger,
-            PasswordEncoder passwordEncoder, AuthTokenStore tokenStore) {
-        this(accountRepository, operationLogger, passwordEncoder, tokenStore, Clock.systemDefaultZone());
+            PasswordEncoder passwordEncoder, AuthTokenStore tokenStore, IAccountRoleService accountRoleService,
+            IRoleService roleService, IRoleOperationService roleOperationService) {
+        this(accountRepository, operationLogger, passwordEncoder, tokenStore, accountRoleService, roleService,
+                roleOperationService, Clock.systemDefaultZone());
     }
 
     AuthSessionServiceImpl(AuthAccountRepository accountRepository, AuthOperationLogger operationLogger,
             PasswordEncoder passwordEncoder, AuthTokenStore tokenStore, Clock clock) {
+        this(accountRepository, operationLogger, passwordEncoder, tokenStore, null, null, null, clock);
+    }
+
+    AuthSessionServiceImpl(AuthAccountRepository accountRepository, AuthOperationLogger operationLogger,
+            PasswordEncoder passwordEncoder, AuthTokenStore tokenStore, IAccountRoleService accountRoleService,
+            IRoleService roleService, IRoleOperationService roleOperationService, Clock clock) {
         this.accountRepository = accountRepository;
         this.operationLogger = operationLogger;
         this.passwordEncoder = passwordEncoder;
         this.tokenStore = tokenStore;
+        this.accountRoleService = accountRoleService;
+        this.roleService = roleService;
+        this.roleOperationService = roleOperationService;
         this.clock = clock;
     }
 
@@ -174,9 +201,74 @@ public class AuthSessionServiceImpl implements AuthSessionService {
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.TOKEN_EXPIRED));
         Account account = activeAccount(session.accountId());
         ensureLoginAllowed(account);
+        List<Long> roleIds = listPlatformRoleIds(account.getId());
         return CurrentUserVO.builder()
                 .account(toAccountVO(account))
+                .platformRoles(listPlatformRoleCodes(roleIds))
+                .platformPermissions(listPlatformPermissions(roleIds))
                 .build();
+    }
+
+    /**
+     * 查询当前账号绑定的平台角色 ID。
+     *
+     * @param accountId 平台账号 ID
+     * @return 平台角色 ID 列表
+     */
+    private List<Long> listPlatformRoleIds(Long accountId) {
+        if (accountRoleService == null) {
+            return List.of();
+        }
+        return accountRoleService.lambdaQuery()
+                .eq(AccountRole::getAccountId, accountId)
+                .eq(AccountRole::getDeleteToken, ACTIVE_DELETE_TOKEN)
+                .list()
+                .stream()
+                .map(AccountRole::getRoleId)
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * 根据账号角色关联查询平台角色编码，供前端判断平台中心导航和动作权限。
+     *
+     * @param roleIds 平台角色 ID
+     * @return 平台角色编码
+     */
+    private List<String> listPlatformRoleCodes(List<Long> roleIds) {
+        if (roleService == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+        return roleService.lambdaQuery()
+                .in(Role::getId, roleIds)
+                .eq(Role::getDeleteToken, ACTIVE_DELETE_TOKEN)
+                .list()
+                .stream()
+                .map(Role::getCode)
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
+    /**
+     * 根据账号平台角色查询操作权限编码，供前端执行平台级权限判断。
+     *
+     * @param roleIds 平台角色 ID
+     * @return 平台操作权限编码
+     */
+    private List<String> listPlatformPermissions(List<Long> roleIds) {
+        if (roleOperationService == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+        return roleOperationService.lambdaQuery()
+                .in(RoleOperation::getRoleId, roleIds)
+                .eq(RoleOperation::getDeleteToken, ACTIVE_DELETE_TOKEN)
+                .list()
+                .stream()
+                .map(RoleOperation::getOperationCode)
+                .distinct()
+                .sorted()
+                .toList();
     }
 
     private Account activeAccount(Long accountId) {

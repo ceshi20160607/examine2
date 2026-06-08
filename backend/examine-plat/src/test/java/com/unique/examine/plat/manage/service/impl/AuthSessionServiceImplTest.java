@@ -2,6 +2,8 @@ package com.unique.examine.plat.manage.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -9,11 +11,20 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.unique.examine.core.exception.BusinessException;
 import com.unique.examine.plat.base.entity.Account;
+import com.unique.examine.plat.base.entity.AccountRole;
+import com.unique.examine.plat.base.entity.Role;
+import com.unique.examine.plat.base.entity.RoleOperation;
+import com.unique.examine.plat.base.service.IAccountRoleService;
+import com.unique.examine.plat.base.service.IRoleOperationService;
+import com.unique.examine.plat.base.service.IRoleService;
 import com.unique.examine.plat.manage.bo.LoginBO;
 import com.unique.examine.plat.manage.bo.RefreshTokenBO;
 import com.unique.examine.plat.manage.enums.AccountStatus;
@@ -45,6 +56,37 @@ class AuthSessionServiceImplTest {
         InMemoryAuthTokenStore tokenStore = new InMemoryAuthTokenStore(Duration.ofMinutes(30), Duration.ofDays(7),
                 clock);
         service = new AuthSessionServiceImpl(accountRepository, operationLogger, passwordEncoder, tokenStore, clock);
+    }
+
+    @Test
+    void shouldReturnPlatformRolesAndPermissionsInCurrentUser() {
+        Account account = account("platform_admin", "Password123!");
+        accountRepository.save(account);
+        InMemoryAuthTokenStore tokenStore = new InMemoryAuthTokenStore(Duration.ofMinutes(30), Duration.ofDays(7),
+                clock);
+        IAccountRoleService accountRoleService = mock(IAccountRoleService.class);
+        IRoleService roleService = mock(IRoleService.class);
+        IRoleOperationService roleOperationService = mock(IRoleOperationService.class);
+        AuthSessionServiceImpl permissionAwareService = new AuthSessionServiceImpl(accountRepository, operationLogger,
+                passwordEncoder, tokenStore, accountRoleService, roleService, roleOperationService, clock);
+        when(accountRoleService.lambdaQuery()).thenReturn(queryReturningList(List.of(new AccountRole()
+                .setAccountId(account.getId())
+                .setRoleId(100L)
+                .setDeleteToken(0L))));
+        when(roleService.lambdaQuery()).thenReturn(queryReturningList(List.of(new Role()
+                .setId(100L)
+                .setCode("PLAT_SUPER_ADMIN")
+                .setDeleteToken(0L))));
+        when(roleOperationService.lambdaQuery()).thenReturn(queryReturningList(List.of(
+                new RoleOperation().setRoleId(100L).setOperationCode("PLAT_SYSTEM_CREATE").setDeleteToken(0L),
+                new RoleOperation().setRoleId(100L).setOperationCode("PLAT_ACCOUNT_CREATE").setDeleteToken(0L))));
+
+        AuthTokenVO token = permissionAwareService.login(login("platform_admin", "Password123!"));
+
+        assertThat(permissionAwareService.me(token.getAccessToken()).getPlatformRoles())
+                .containsExactly("PLAT_SUPER_ADMIN");
+        assertThat(permissionAwareService.me(token.getAccessToken()).getPlatformPermissions())
+                .containsExactly("PLAT_ACCOUNT_CREATE", "PLAT_SYSTEM_CREATE");
     }
 
     @Test
@@ -158,6 +200,24 @@ class AuthSessionServiceImplTest {
         loginBO.setLoginName(loginName);
         loginBO.setPassword(password);
         return loginBO;
+    }
+
+    private <T> LambdaQueryChainWrapper<T> queryReturningList(List<T> values) {
+        return mock(LambdaQueryChainWrapper.class, invocation -> {
+            String methodName = invocation.getMethod().getName();
+            if ("list".equals(methodName)) {
+                return values;
+            }
+            if ("eq".equals(methodName) || "in".equals(methodName)) {
+                return invocation.getMock();
+            }
+            Class<?> returnType = invocation.getMethod().getReturnType();
+            if (LambdaQueryChainWrapper.class.isAssignableFrom(returnType)
+                    || LambdaQueryWrapper.class.isAssignableFrom(returnType)) {
+                return invocation.getMock();
+            }
+            return null;
+        });
     }
 
     private static final class FakeAccountRepository implements AuthAccountRepository {

@@ -32,16 +32,16 @@ export interface AppShellState {
 }
 
 export const SHELL_SECTION_LABELS: Record<RouteSection, string> = {
-  auth: "Auth",
-  platform: "Platform center",
-  system: "System management",
-  rbac: "Member and RBAC",
-  app: "App configuration",
-  runtime: "Runtime workbench",
-  flow: "Flow",
-  "file-export": "Files and exports",
+  auth: "认证",
+  platform: "平台中心",
+  system: "系统管理",
+  rbac: "成员与权限",
+  app: "应用配置",
+  runtime: "运行台",
+  flow: "流程",
+  "file-export": "文件与导出",
   openapi: "OpenAPI",
-  "audit-ops": "Audit and ops",
+  "audit-ops": "审计运维",
 };
 
 export interface ResolveAppShellOptions {
@@ -91,7 +91,7 @@ export function buildNavigation(
       section: item.meta.section,
       disabled,
       disabledReason:
-        contextMissing.length > 0 ? `Missing context: ${contextMissing.join(",")}` : decision.disabledReason,
+        contextMissing.length > 0 ? `缺少上下文: ${contextMissing.join(",")}` : decision.disabledReason,
       apiEvidence: item.meta.apiIds,
     };
 

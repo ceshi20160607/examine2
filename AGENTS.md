@@ -108,6 +108,7 @@ mvn -pl examine-module -am test
 * frontend agent 在领取任何“前端完成/可上线/可部署”任务时必须先自检 `frontend/index.html`、`frontend/src/main.*`、页面组件、构建脚本和 `frontend/dist/` 产物要求；缺失时必须回报 `frontend-ui-missing`，不能只交付 typed SDK 或 PageModel 后标记完成。
 * frontend agent 交付部署版 UI 时，默认 API 地址必须走浏览器同源相对路径，例如接口契约中的 `/api/v1/...`，不得默认写死 `localhost`、局域网 IP 或把 API 地址配置面板暴露给终端用户。确需本地联调时只能通过构建环境变量或测试专用参数处理，并在验收文档中标明非生产入口。
 * nginx/静态部署验收必须包含 `/api/` 前缀保留转发和接口文档转发验证。`location /api/` 代理到后端时不得因为 `proxy_pass` 写法把 `/api` 剥掉；否则即使前端 dist 可打开，也不能判定为部署通过。
+* 当前产品默认中文界面；多语言方案未冻结前，新增页面、导航、按钮、状态、空态和错误提示不得直接散落英文文案。`OpenAPI`、API ID、技术协议名等专有名词可以保留英文，后续 i18n 需单独进入产品设计和任务拆分。
 * test agent 在整体验收前必须检查是否存在浏览器端 smoke/E2E 记录；如无真实 UI，则测试结论必须区分“后端 API 通过”和“前端 E2E 未执行/阻塞”。
 * 如果用户目标是“整个项目可部署/可上线”，前端必须包含真实浏览器工程入口和可部署产物：`index.html`、`src/main.*`、路由挂载、真实页面组件、构建脚本和 `dist/` 产物；仅有 typed SDK、PageModel、路由/状态模型或 `tsc --noEmit` 只能算前端契约模型通过，不能判定为前端完成。
 * validator 的“前端 clean build pass”必须说明实际构建命令和产物路径；若命令只执行 `tsc --noEmit`、没有生成 `dist/`，结论必须写成“前端类型检查通过，UI 构建未完成”，target 指向 `frontend/pm`。
