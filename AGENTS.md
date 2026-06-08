@@ -100,6 +100,26 @@ mvn -pl examine-module -am test
 * PM 未确认当期验收结论前，Orchestrator 只能继续修复当前期问题，不能扩大到后续期。
 * validator/reviewer 可以按期执行轻量检查；最终上线前仍必须执行完整 test、clean build 和 review。
 
+上线验收口径：
+
+* PM 必须在每期验收前明确交付物类型：后端接口包、前端可部署 UI 包、数据库脚本、文档或组合交付物；不得用“契约模型通过”替代“真实可部署前端通过”。
+* PM 必须维护“交付物矩阵”：每个期次至少列出 backend、frontend、database、test、validator、reviewer 的应交付文件、实际产物、验证命令和验收结论；如果某一列未交付，整期结论只能是 `partial/blocked/fail`，不得写 `pass/accepted`。
+* planner 拆分任务时必须标明任务类型：`contract-only`、`implementation`、`deployable-ui`、`deployable-backend`、`test`、`review`。`contract-only` 任务完成后只能推动下游开发，不能计为完整前端或完整上线。
+* frontend agent 在领取任何“前端完成/可上线/可部署”任务时必须先自检 `frontend/index.html`、`frontend/src/main.*`、页面组件、构建脚本和 `frontend/dist/` 产物要求；缺失时必须回报 `frontend-ui-missing`，不能只交付 typed SDK 或 PageModel 后标记完成。
+* test agent 在整体验收前必须检查是否存在浏览器端 smoke/E2E 记录；如无真实 UI，则测试结论必须区分“后端 API 通过”和“前端 E2E 未执行/阻塞”。
+* 如果用户目标是“整个项目可部署/可上线”，前端必须包含真实浏览器工程入口和可部署产物：`index.html`、`src/main.*`、路由挂载、真实页面组件、构建脚本和 `dist/` 产物；仅有 typed SDK、PageModel、路由/状态模型或 `tsc --noEmit` 只能算前端契约模型通过，不能判定为前端完成。
+* validator 的“前端 clean build pass”必须说明实际构建命令和产物路径；若命令只执行 `tsc --noEmit`、没有生成 `dist/`，结论必须写成“前端类型检查通过，UI 构建未完成”，target 指向 `frontend/pm`。
+* reviewer 发现 PM 将后端可部署、前端契约模型通过误判为“全项目可上线”时，必须把 `docs/review.json.status` 置为 `fail`，问题 target 至少包含 `pm` 和 `frontend`，并撤回对应阶段验收结论。
+* Orchestrator 最终反馈必须拆开说明：后端是否可试部署、前端是否可部署、数据库脚本是否已执行、测试是否覆盖真实用户链路、当前是否达到“给用户使用”的完整系统标准。
+
+编码与文本格式规则：
+
+* 项目文本文件统一使用 UTF-8；新增文件优先使用 UTF-8 无 BOM。
+* Java、TypeScript、Markdown、YAML、JSON、XML、SQL、properties、PowerShell 脚本统一使用 4 空格缩进或所在生态默认缩进；禁止混用 Tab 做缩进，Makefile 等确需 Tab 的文件除外。
+* Git 提交前必须执行 `git diff --check`；如仅出现 Windows 环境 LF/CRLF 转换 warning，可以记录说明，但不得忽略尾随空格、冲突标记或混乱编码。
+* SQL 字符集默认按 `utf8mb4` 设计；HTTP/JSON 响应、文档和代码注释默认中文使用 UTF-8。
+* 根目录必须维护 `.editorconfig` 固化编码、换行和缩进规则；PM/validator 在验收时要检查该文件存在，缺失则不能判定为完整工程规范通过。
+
 Git 提交规则：
 
 * 每个分期任务完成并通过对应验证后，必须按任务边界提交一次 Git，不能把多个已完成任务长期堆在脏工作区。
@@ -316,11 +336,11 @@ E:\workspace\03_project\unique\java\
 * backend 不再默认生成冻结版 `docs/api.md`；backend 只能在实现中遵守已冻结 API。若实现发现契约无法落地，必须输出契约变更问题并回到 API 契约评审，不得私自改接口。
 * `planner` 必须输出全局任务拆分：包括 DBA、后端、前端、测试、验证和审查任务；每个任务都要有依赖、可并行标记、输入、输出、完成状态和测试要求。
 * 后端实现任务默认拆成：架构骨架与父子 POM、数据库连通性检查、SQL 导入、MyBatis-Plus 代码生成、按业务模块拆分的 manage 实现、单元测试、后端 clean compile 自检。
-* 前端实现任务默认拆成：读取冻结版 `docs/api.md`、API 契约解析与 typed SDK、页面路由与状态、按页面/模块拆分的业务实现、API/页面闭环自检、clean build 自检。
+* 前端实现任务默认拆成：读取冻结版 `docs/api.md`、API 契约解析与 typed SDK、真实浏览器工程入口、页面路由与状态、按页面/模块拆分的业务组件实现、API/页面闭环自检、浏览器 smoke/E2E、可部署 `dist/` clean build 自检。
 * `test` 默认拆成：测试计划、API 用例、核心场景集成用例、异常/权限用例、回归用例、测试报告。
 * 前端必须只基于冻结后的 `docs/api.md` 建 typed API SDK 和页面接口映射，再写页面；推荐输出 `frontend/docs/api-contract-map.md`。页面不得直接散落 axios/fetch 调用，不得为后端没有更新语义的接口伪造“编辑”能力。
 * 前端源码目录不得混入构建产物或旁路编译文件，例如 `frontend/src/**/*.vue.js`、临时 `.d.ts`、编译后的 `.js`。
-* validator 必须执行 clean 构建：后端 `clean compile`，前端删除 `dist` 和 `tsconfig.tsbuildinfo` 后重新 build；不得用增量构建的 `Nothing to compile` 作为最新源码通过的唯一依据。
+* validator 必须执行 clean 构建：后端 `clean compile`，前端删除 `dist` 和 `tsconfig.tsbuildinfo` 后重新 build；不得用增量构建的 `Nothing to compile` 作为最新源码通过的唯一依据。对于完整上线目标，前端 build 必须生成 `frontend/dist/`，并记录产物路径和核心文件清单。
 * validator 必须检查 `docs/api.md` 中的错误码、枚举、状态值是否已同步到 `frontend/src/api/` 与 `frontend/docs/api-contract-map.md`；若后端/API 已新增契约而前端未同步，必须判定失败。
 
 ---

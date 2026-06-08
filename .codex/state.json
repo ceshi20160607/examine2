@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-08T02:25:00+08:00",
+    "updated_at":  "2026-06-08T11:35:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -1987,9 +1987,43 @@
                                                   "P6 final acceptance is complete.",
                                                   "Remaining P2 risks are deferred to production hardening and security/concurrency专项."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-PM-CORRECT-FRONTEND-ACCEPTANCE",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "PM-ACCEPTANCE-UI-001",
+                                                  "VAL-FRONTEND-BUILD-001",
+                                                  "PM-ENCODING-001",
+                                                  "FE-013"
+                                              ],
+                                    "started_at":  "2026-06-08T11:20:00+08:00",
+                                    "completed_at":  "2026-06-08T11:35:00+08:00",
+                                    "outputs":  [
+                                                    "AGENTS.md",
+                                                    ".editorconfig",
+                                                    "docs/development/encoding.md",
+                                                    "docs/phases/development-phases.md",
+                                                    "docs/phases/P6-final-acceptance.md",
+                                                    "docs/build/frontend-clean-build.md",
+                                                    "docs/build_report.md",
+                                                    "docs/review.json",
+                                                    "docs/progress.md",
+                                                    "docs/tasks/FE-013-frontend-ui-deployable-app.md"
+                                                ],
+                                    "verification":  [
+                                                         "Frontend deployability rechecked: frontend lacks index.html, src/main.*, framework app mount and dist artifact",
+                                                         "docs/review.json revised to fail with backendTrialDeployable=true and frontendDeployable=false",
+                                                         ".editorconfig and docs/development/encoding.md added for UTF-8/text-format rules",
+                                                         "AGENTS.md updated with deliverable matrix, frontend UI gates and deployability acceptance rules"
+                                                     ],
+                                    "notes":  [
+                                                  "P6 full-project acceptance retracted due to PM/validator/reviewer acceptance gap.",
+                                                  "Next phase is P7 frontend UI and deployable dist."
+                                              ]
                                 }
                             ],
-    "current_phase":  "P6-final-acceptance",
+    "current_phase":  "P7-frontend-ui-deploy",
     "running_tasks":  [
 
                       ],
@@ -2000,7 +2034,8 @@
                          "P3-system-config":  "accepted",
                          "P4-runtime-mvp":  "accepted",
                          "P5-workflow-files-openapi":  "accepted",
-                         "P6-final-acceptance":  "accepted"
+                         "P6-final-acceptance":  "blocked",
+                         "P7-frontend-ui-deploy":  "pending"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2045,12 +2080,14 @@
                                                                "next_phase":  "P6-final-acceptance"
                                                            },
                              "P6-final-acceptance":  {
-                                                          "status":  "accepted",
+                                                          "status":  "retracted",
                                                           "accepted_at":  "2026-06-08T02:25:00+08:00",
+                                                          "retracted_at":  "2026-06-08T11:35:00+08:00",
                                                           "accepted_by":  "pm",
                                                           "record":  "docs/phases/P6-final-acceptance.md",
-                                                          "next_phase":  null
+                                                          "reason":  "Frontend has typed contract only and no deployable browser UI; full-project acceptance was incorrect.",
+                                                          "next_phase":  "P7-frontend-ui-deploy"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P6-REVIEWER-RERUN-ACCEPTANCE"
+    "last_completed_batch":  "DEV-BATCH-PM-CORRECT-FRONTEND-ACCEPTANCE"
 }

@@ -173,10 +173,12 @@
 30. Backend 回环已修复 `REV-002-BE-OPENAPI-AK-CODE`：`OpenApiSecurityServiceImpl` 缺失/无效 accessKey 改为 `OPENAPI_ACCESS_KEY_INVALID`，并新增 `OpenApiSecurityServiceImplTest`；执行 `mvn -pl examine-app -am test` 通过，core 13、plat 12、upload 4、module 21、flow 2、app 5。
 31. Frontend 回环已修复工程入口、AUTH-004/AUTH-005 鉴权标记和字段类型枚举同步：新增 `frontend/package.json`、`frontend/tsconfig.json`、`frontend/package-lock.json`，`npm.cmd run build` 通过；契约同步复验 174 个 API ID、核心错误码、14 组状态枚举、19 个字段类型和 AUTH Bearer 标记均通过。
 32. Test 回环已补强 OpenAPI 安全负向断言：`OpenApiSecurityServiceImplTest` 覆盖缺失/未知 accessKey、timestamp、body hash、signature、scope 和 rate limit 专属错误码；执行 `mvn -pl examine-app -am test` 通过，core 13、plat 12、upload 4、module 21、flow 2、app 11。
-33. Validator 回环已复验通过：`mvn -pl examine-web -am clean compile` 8 个模块 SUCCESS；`npm.cmd ci; npm.cmd run build` 通过；契约同步检查 174 个 API ID、20 个核心错误码、14 组状态枚举、19 个字段类型和 AUTH Bearer 标记均通过；`docs/build_report.md` 结论 pass。
-34. Reviewer 回环已复审通过：`docs/review_parts/rev-001-architecture.md`、`docs/review_parts/rev-002-contract.md`、`docs/review_parts/rev-003-quality.md` 均为 pass；`docs/review.json` status=pass、target=none，P2 风险转入后续增强。
-35. PM 已完成 P6 阶段验收：`docs/phases/P6-final-acceptance.md` 结论 pass，`docs/phases/development-phases.md` 中 P6 状态已更新为 accepted。
+33. Validator 回环原记录有误：`npm.cmd ci; npm.cmd run build` 只执行 `tsc --noEmit`，只能证明前端 typed contract 通过，不能证明可部署 UI；`docs/build_report.md` 已修正为 fail，target=pm/frontend。
+34. Reviewer 回环原 pass 结论撤回：`docs/review.json` 已修正为 fail，target=both；问题为 PM 验收口径错误、前端无真实浏览器 UI、validator 混淆类型检查与部署构建、缺统一编码规则。
+35. P6 阶段验收原 pass 结论撤回：`docs/phases/P6-final-acceptance.md` 已修正为 fail，`docs/phases/development-phases.md` 中 P6 状态为 blocked(frontend-ui)，新增 P7 前端真实 UI 与部署包期。
+36. 已补统一编码规则：新增 `.editorconfig` 与 `docs/development/encoding.md`，并将 PM/validator/reviewer 的前端验收口径写入 `AGENTS.md`。
+37. 已按可复用到后续项目的口径优化 agent 规则：PM 必须维护交付物矩阵，planner 必须区分 `contract-only` 与 `deployable-ui`，frontend/test/validator/reviewer 必须用真实 UI、浏览器 smoke/E2E 和 `frontend/dist/` 判定完整前端交付。
 
 ## 下一步
 
-当前 `P6-final-acceptance` 已验收完成。下一步进入生产上线准备或下一轮增强前，应优先处理 P2 风险：生产级幂等共享存储、OpenAPI nonce/IP/幂等冲突自动化和并发压测。
+当前只能后端 jar 试部署，完整项目不可上线。下一步必须启动 `P7-frontend-ui-deploy`：补 `index.html`、`src/main.*`、真实页面组件、路由挂载、API 调用闭环、浏览器 smoke/E2E 和 `dist/` 产物。

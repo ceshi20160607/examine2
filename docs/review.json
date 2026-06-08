@@ -1,52 +1,57 @@
 {
-  "status": "pass",
-  "target": "none",
+  "status": "fail",
+  "target": "both",
   "phase": "P6-final-acceptance",
-  "reviewedAt": "2026-06-08T02:20:00+08:00",
-  "summary": "P6 re-review passed. Backend OpenAPI accessKey errors now match the frozen contract, frontend build and contract synchronization pass, OpenAPI negative assertions were strengthened, and validator reports pass. Remaining items are P2 production-hardening risks and do not block current MVP phase acceptance.",
-  "nextRoute": [],
-  "closedIssues": [
+  "reviewedAt": "2026-06-08T11:30:00+08:00",
+  "summary": "P6 full-project acceptance is retracted. Backend jar can be packaged and trial-deployed, but frontend is only a typed contract/PageModel layer and has no deployable browser UI. PM, validator and reviewer incorrectly treated tsc --noEmit as frontend build completion. The project must enter P7 frontend UI delivery before it can be called fully deployable.",
+  "nextRoute": [
+    "pm",
+    "planner",
+    "frontend",
+    "test",
+    "validator",
+    "reviewer"
+  ],
+  "issues": [
     {
-      "issueId": "REV-001-FE-BUILD-ENTRY",
-      "status": "closed",
-      "evidence": [
-        "frontend/package.json, frontend/tsconfig.json and frontend/package-lock.json exist",
-        "docs/build/frontend-clean-build.md records npm.cmd ci and npm.cmd run build pass"
-      ]
+      "issueId": "PM-ACCEPTANCE-UI-001",
+      "severity": "P0",
+      "target": "pm",
+      "file": "docs/phases/P6-final-acceptance.md",
+      "problem": "PM accepted P6 as final/full deployable even though frontend has no browser application entry, no real UI components and no dist artifact.",
+      "impact": "User was told the project could be packaged/deployed as a complete product, but only backend jar is deployable.",
+      "requiredAction": "Retract P6 full acceptance, record backend-only trial deployment status, and open P7 frontend UI/deployable package phase."
     },
     {
-      "issueId": "REV-002-FE-AUTH-ENDPOINTS",
-      "status": "closed",
-      "evidence": [
-        "AUTH-004 and AUTH-005 are Bearer in frontend/src/api/endpoints.ts",
-        "AUTH-004 and AUTH-005 are Bearer in frontend/docs/api-contract-map.md"
-      ]
+      "issueId": "FE-UI-DEPLOY-001",
+      "severity": "P0",
+      "target": "frontend",
+      "file": "frontend/",
+      "problem": "Frontend contains typed SDK, PageModel, router/store models and TypeScript contract checks only. It lacks index.html, src/main.*, real Vue/React page components, app mounting and dist production build.",
+      "impact": "There is no deployable frontend UI and no browser page for users to inspect.",
+      "requiredAction": "Build a real browser frontend application from the existing PageModel/API contracts and produce a clean dist artifact."
     },
     {
-      "issueId": "REV-002-FE-FIELD-TYPES",
-      "status": "closed",
-      "evidence": [
-        "frontend/src/api/enums.ts and frontend/src/api/types.ts match the 19 frozen DynamicFieldType values",
-        "docs/build/contract-sync-check.md records field type enum pass"
-      ]
+      "issueId": "VAL-FRONTEND-BUILD-001",
+      "severity": "P0",
+      "target": "pm",
+      "file": "docs/build_report.md",
+      "problem": "Validator called npm.cmd run build pass even though package.json only runs tsc --noEmit and does not generate dist.",
+      "impact": "Build report confused type checking with deployable frontend build.",
+      "requiredAction": "Update validation rules and reports to distinguish typed contract, browser app and deployable frontend."
     },
     {
-      "issueId": "REV-002-BE-OPENAPI-AK-CODE",
-      "status": "closed",
-      "evidence": [
-        "OpenApiErrorCode.ACCESS_KEY_INVALID maps to OPENAPI_ACCESS_KEY_INVALID",
-        "OpenApiSecurityServiceImplTest asserts missing and unknown accessKey errors"
-      ]
-    },
-    {
-      "issueId": "REV-003-TEST-OPENAPI-ASSERTION",
-      "status": "closed",
-      "evidence": [
-        "OpenApiSecurityServiceImplTest covers accessKey, timestamp, body hash, signature, scope and rate limit error codes",
-        "docs/test_report.md and docs/test_runs/permission-exception-idempotency-openapi.md record the strengthened assertions"
-      ]
+      "issueId": "PM-ENCODING-001",
+      "severity": "P1",
+      "target": "pm",
+      "file": "AGENTS.md",
+      "problem": "PM did not establish a unified encoding and text-format rule before implementation and acceptance.",
+      "impact": "Encoding, line ending and build artifact rules were left implicit, causing inconsistent acceptance criteria.",
+      "requiredAction": "Add .editorconfig and encoding/build artifact rules, and make validator check them."
     }
   ],
+  "backendTrialDeployable": true,
+  "frontendDeployable": false,
   "deferredRisks": [
     {
       "issueId": "REV-001-BE-IDEMPOTENCY-STORAGE",
@@ -60,19 +65,13 @@
       "severity": "P2",
       "target": "test",
       "status": "partially_closed",
-      "reason": "Core OpenAPI error-code matrix is now covered. OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended上线前专项."
+      "reason": "Core OpenAPI error-code matrix is covered. OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
     }
   ],
   "verification": [
-    "mvn -pl examine-app -am test pass: core 13, plat 12, upload 4, module 21, flow 2, app 11",
-    "mvn -pl examine-web -am clean compile pass: 8 Maven modules SUCCESS",
-    "npm.cmd ci and npm.cmd run build pass",
-    "Node contract sync check pass: 174 API IDs, 20 core errors, 14 status enum groups, 19 field types and AUTH-004/AUTH-005 Bearer matched",
-    "git diff --check pass with LF/CRLF warnings only"
-  ],
-  "reviewParts": [
-    "docs/review_parts/rev-001-architecture.md",
-    "docs/review_parts/rev-002-contract.md",
-    "docs/review_parts/rev-003-quality.md"
+    "backend jar packaged successfully at dist/unexamine-deploy-20260608-110707/unexamine.jar",
+    "frontend/package.json build currently runs tsc --noEmit only",
+    "frontend lacks index.html, src/main.*, framework app mount and dist artifact",
+    ".editorconfig and docs/development/encoding.md added to define encoding/build-artifact rules"
   ]
 }
