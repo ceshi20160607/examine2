@@ -1,4 +1,4 @@
-# P7 前端真实 UI 构建验证报告
+# P7 前后端组合构建验证报告
 
 - 任务: VAL-P7-FE-013
 - 执行时间: 2026-06-08
@@ -8,14 +8,13 @@
 
 ## 后端验证
 
-本次 P7 只修复前端真实 UI 和部署产物，后端未改动。后端最近一次可试部署记录仍为：
-
 | 项目 | 结果 |
 | --- | --- |
-| 命令 | `mvn -pl examine-web -am clean package -DskipTests` |
+| 命令 | `mvn.cmd -pl examine-web -am clean package -DskipTests` |
+| 结果 | pass，8 个 Maven 模块 SUCCESS |
+| CORS | `backend/examine-web/src/main/java/com/unique/examine/web/config/WebMvcConfig.java` 已支持前后端分离预览 |
 | 产物 | `backend/examine-web/target/unexamine.jar` |
-| 部署包 | `dist/unexamine-deploy-20260608-110707.zip` |
-| 结论 | 后端 jar 可试部署 |
+| 健康检查 | `http://127.0.0.1:9999/actuator/health` 返回 `COMMON_OK`、`UP` |
 
 ## 前端验证
 
@@ -37,9 +36,19 @@
 | 文件 | 大小 |
 | --- | --- |
 | `frontend/dist/index.html` | 445 B |
-| `frontend/dist/assets/index-BC-aPLAX.js` | 57299 B |
+| `frontend/dist/assets/index-MR-Ji0gN.js` | 57952 B |
 | `frontend/dist/assets/index-D2PQaVmV.css` | 5662 B |
+
+## 组合验证
+
+| 项目 | 结果 |
+| --- | --- |
+| 前端生产预览 | `http://127.0.0.1:4173/` HTTP 200 |
+| 浏览器登录 | 前端触发 `AUTH-002` 成功，用户显示 `E2E Browser User` |
+| 浏览器触发后端 API | 前端 typed SDK 调用 `PLAT-001 /api/v1/platform/my-systems`，返回 `COMMON_OK` |
+| 截图 | `frontend/docs/frontend-backend-combo-smoke.png` |
+| 完整部署包 | `dist/unexamine-full-deploy-20260608-141816.zip` |
 
 ## Validator 结论
 
-P7 已补齐真实浏览器前端入口、应用挂载、导航工作区、生产构建和 `frontend/dist/`。当前结论从 P6 的“前端不可部署”修正为：前端可部署 UI 产物已生成，可进入组合部署和后续场景 E2E。
+P7 已补齐真实浏览器前端入口、应用挂载、导航工作区、生产构建、后端 CORS 支持、前后端组合 E2E 和完整部署包。当前结论为 pass。

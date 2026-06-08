@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-08T13:55:00+08:00",
+    "updated_at":  "2026-06-08T14:20:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -764,15 +764,16 @@
                                        "verification":  "npm.cmd ci pass; npm.cmd run build pass; production preview HTTP 200; Chrome headless desktop/mobile screenshots generated"
                                    },
                         "TEST-006":  {
-                                         "status":  "pending",
+                                         "status":  "done",
                                          "owner":  "test",
                                          "output":  "docs/test_runs/frontend-backend-combo-e2e.md; docs/test_report.md; docs/review.json",
                                          "depends_on":  [
                                                             "FE-013",
                                                             "BE-015"
                                                         ],
-                                         "test":  "not_run",
-                                         "updated_at":  "2026-06-08T13:55:00+08:00"
+                                         "test":  "passed",
+                                         "completed_at":  "2026-06-08T14:20:00+08:00",
+                                         "verification":  "browser frontend triggered AUTH-002 login and PLAT-001 against backend jar; response COMMON_OK"
                                      },
                         "BE-015":  "done"
                     },
@@ -2080,6 +2081,43 @@
                                                   "FrontendDeployable is now true.",
                                                   "FullProjectDeployable remains false until TEST-006 combination E2E triggers a real backend API through the browser."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P7-TEST-006-COMBO-E2E",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "TEST-006",
+                                                  "BACKEND-CORS-P7",
+                                                  "P7-PM-ACCEPTANCE"
+                                              ],
+                                    "started_at":  "2026-06-08T14:05:00+08:00",
+                                    "completed_at":  "2026-06-08T14:20:00+08:00",
+                                    "outputs":  [
+                                                    "backend/examine-web/src/main/java/com/unique/examine/web/config/WebMvcConfig.java",
+                                                    "frontend/src/App.ts",
+                                                    "frontend/docs/frontend-backend-combo-smoke.png",
+                                                    "docs/test_runs/frontend-backend-combo-e2e.md",
+                                                    "docs/test_report.md",
+                                                    "docs/build_report.md",
+                                                    "docs/review.json",
+                                                    "docs/phases/P7-frontend-ui-deploy-acceptance.md",
+                                                    "docs/phases/development-phases.md",
+                                                    "docs/progress.md",
+                                                    "docs/tasks/TEST-006-frontend-backend-combo-e2e.md",
+                                                    "docs/task_plan.md"
+                                                ],
+                                    "verification":  [
+                                                         "mvn.cmd -pl examine-web -am clean package -DskipTests pass",
+                                                         "backend health endpoint returned COMMON_OK and UP",
+                                                         "npm.cmd run build pass",
+                                                         "browser frontend AUTH-002 login pass",
+                                                         "browser frontend PLAT-001 typed SDK call returned COMMON_OK",
+                                                         "full package generated at dist/unexamine-full-deploy-20260608-141816.zip"
+                                                     ],
+                                    "notes":  [
+                                                  "P7 acceptance pass.",
+                                                  "FullProjectDeployable is true for user trial deployment; P2 hardening risks remain deferred."
+                                              ]
                                 }
                             ],
     "current_phase":  "P7-frontend-ui-deploy",
@@ -2094,7 +2132,7 @@
                          "P4-runtime-mvp":  "accepted",
                          "P5-workflow-files-openapi":  "accepted",
                          "P6-final-acceptance":  "blocked",
-                         "P7-frontend-ui-deploy":  "in_progress"
+                         "P7-frontend-ui-deploy":  "accepted"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2146,7 +2184,14 @@
                                                           "record":  "docs/phases/P6-final-acceptance.md",
                                                           "reason":  "Frontend has typed contract only and no deployable browser UI; full-project acceptance was incorrect.",
                                                           "next_phase":  "P7-frontend-ui-deploy"
+                                                           },
+                             "P7-frontend-ui-deploy":  {
+                                                             "status":  "accepted",
+                                                             "accepted_at":  "2026-06-08T14:20:00+08:00",
+                                                             "accepted_by":  "pm",
+                                                             "record":  "docs/phases/P7-frontend-ui-deploy-acceptance.md",
+                                                             "next_phase":  "user-trial-deploy"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-P7-FE-013"
+    "last_completed_batch":  "DEV-BATCH-P7-TEST-006-COMBO-E2E"
 }

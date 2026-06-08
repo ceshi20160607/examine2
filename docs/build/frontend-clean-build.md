@@ -35,7 +35,7 @@ npm.cmd run build
 
 - `npm.cmd ci`: pass。
 - `npm.cmd run build`: pass，执行 `tsc --noEmit && vite build`。
-- Vite 生产构建输出 `frontend/dist/index.html`、`frontend/dist/assets/index-BC-aPLAX.js`、`frontend/dist/assets/index-D2PQaVmV.css`。
+- Vite 生产构建输出 `frontend/dist/index.html`、`frontend/dist/assets/index-MR-Ji0gN.js`、`frontend/dist/assets/index-D2PQaVmV.css`。
 
 ## Browser Smoke
 

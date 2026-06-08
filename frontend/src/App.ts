@@ -348,6 +348,31 @@ export function mountApp(container: HTMLElement): void {
     render();
   }
 
+  async function runRequestedSmoke(): Promise<void> {
+    const params = new URLSearchParams(window.location.search);
+    const smokeApi = params.get("smokeApi") as ApiEndpointId | null;
+    if (!smokeApi || !API_ENDPOINTS[smokeApi]) {
+      return;
+    }
+    const smokeLoginName = params.get("smokeLoginName");
+    const smokePassword = params.get("smokePassword");
+    if (smokeLoginName && smokePassword) {
+      await execute("AUTH-002", () =>
+        authPage.login({
+          loginName: smokeLoginName,
+          password: smokePassword,
+        }),
+      );
+    }
+    await execute(smokeApi, () =>
+      apiClient.call(smokeApi, {
+        pathParams: pathParams(),
+        query: { pageNo: 1, pageSize: 10 },
+        idempotencyKey: `ui-smoke-${Date.now()}`,
+      }),
+    );
+  }
+
   function renderMessage(): HTMLElement {
     if (ui.busy) {
       return node("pre", { className: "message muted", text: `请求中: ${ui.lastRequestId}` });
@@ -440,6 +465,7 @@ export function mountApp(container: HTMLElement): void {
   }
 
   render();
+  void runRequestedSmoke();
 }
 
 type Child = HTMLElement | Text | string | undefined | false;
@@ -485,10 +511,21 @@ function node<K extends keyof HTMLElementTagNameMap>(
 }
 
 function loadSettings(): RuntimeSettings {
+  const query = new URLSearchParams(window.location.search);
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    return defaultSettings();
-  }
+  const base = stored ? parseStoredSettings(stored) : defaultSettings();
+  return {
+    ...base,
+    baseUrl: query.get("baseUrl") ?? base.baseUrl,
+    accessToken: query.get("accessToken") ?? base.accessToken,
+    systemId: query.get("systemId") ?? base.systemId,
+    tenantId: query.get("tenantId") ?? base.tenantId,
+    appId: query.get("appId") ?? base.appId,
+    moduleId: query.get("moduleId") ?? base.moduleId,
+  };
+}
+
+function parseStoredSettings(stored: string): RuntimeSettings {
   try {
     return { ...defaultSettings(), ...JSON.parse(stored) };
   } catch {

@@ -3,7 +3,7 @@
 - 任务 ID: TEST-006
 - 所属期次: P7-frontend-ui-deploy
 - 负责角色: test
-- 状态: pending
+- 状态: done
 - 优先级: P0
 
 ## 目标
@@ -37,3 +37,11 @@
 ## 验证命令
 
 实际命令由 test 根据本机端口和部署方式记录到 `docs/test_runs/frontend-backend-combo-e2e.md`。
+
+## 完成记录
+
+- 完成时间: 2026-06-08
+- 后端验证: `mvn.cmd -pl examine-web -am clean package -DskipTests` pass，`/actuator/health` 返回 `COMMON_OK`、`UP`。
+- 前端验证: `npm.cmd run build` pass，生产预览 `http://127.0.0.1:4173/` HTTP 200。
+- 浏览器 E2E: 前端通过 `AUTH-002` 登录 `E2E Browser User`，再通过 typed SDK 调用 `PLAT-001`，返回 `COMMON_OK`。
+- 记录文件: `docs/test_runs/frontend-backend-combo-e2e.md`。

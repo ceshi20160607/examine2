@@ -179,10 +179,13 @@
 36. 已补统一编码规则：新增 `.editorconfig` 与 `docs/development/encoding.md`，并将 PM/validator/reviewer 的前端验收口径写入 `AGENTS.md`。
 37. 已按可复用到后续项目的口径优化 agent 规则：PM 必须维护交付物矩阵，planner 必须区分 `contract-only` 与 `deployable-ui`，frontend/test/validator/reviewer 必须用真实 UI、浏览器 smoke/E2E 和 `frontend/dist/` 判定完整前端交付。
 38. FE-013 已完成前端真实 UI 与可部署产物：新增 `frontend/index.html`、`frontend/src/main.ts`、`frontend/src/App.ts`、`frontend/src/styles.css`、`frontend/vite.config.ts` 和集中式 `frontend/src/api/fetchTransport.ts`；复用既有 typed SDK、路由、状态和 PageModel。
-39. 前端 clean build 已通过：`npm.cmd ci` pass，`npm.cmd run build` pass，生成 `frontend/dist/index.html`、`frontend/dist/assets/index-BC-aPLAX.js`、`frontend/dist/assets/index-D2PQaVmV.css`。
+39. 前端 clean build 已通过：`npm.cmd ci` pass，`npm.cmd run build` pass，生成 `frontend/dist/index.html`、`frontend/dist/assets/index-MR-Ji0gN.js`、`frontend/dist/assets/index-D2PQaVmV.css`。
 40. 前端生产预览 smoke 已通过：`http://127.0.0.1:4173/` HTTP 200，Chrome headless 已生成桌面和移动端截图，记录见 `frontend/docs/frontend-ui-smoke.md`。
 41. `docs/review.json` 已更新为 P7 当前结论：`backendTrialDeployable=true`、`frontendDeployable=true`、`fullProjectDeployable=false`；剩余阻塞为 TEST-006 前后端组合 E2E。
+42. TEST-006 已通过：后端重新打包并启动，前端生产预览通过浏览器触发 `AUTH-002` 登录和 `PLAT-001 /api/v1/platform/my-systems`，页面回显 `COMMON_OK`，记录见 `docs/test_runs/frontend-backend-combo-e2e.md`。
+43. 已修复前后端分离 CORS：`backend/examine-web/src/main/java/com/unique/examine/web/config/WebMvcConfig.java` 增加本机和局域网前端预览域放行。
+44. P7 已通过验收，完整部署包已生成：`dist/unexamine-full-deploy-20260608-141816.zip`。
 
 ## 下一步
 
-当前后端 jar 和前端 `dist/` 都已有可部署产物，但完整项目仍未通过组合验收。下一步启动 `TEST-006-frontend-backend-combo-e2e`：启动后端 jar 与前端 dist，浏览器完成登录/进入系统/运行台或模块配置，并触发至少一个真实后端 API。
+当前项目已具备用户试部署条件。下一步是用户试部署与体验验收；上线前建议安排幂等共享存储、npm audit、OpenAPI 安全/并发专项 hardening。
