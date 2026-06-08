@@ -1,57 +1,29 @@
 {
   "status": "fail",
-  "target": "both",
-  "phase": "P6-final-acceptance",
-  "reviewedAt": "2026-06-08T11:30:00+08:00",
-  "summary": "P6 full-project acceptance is retracted. Backend jar can be packaged and trial-deployed, but frontend is only a typed contract/PageModel layer and has no deployable browser UI. PM, validator and reviewer incorrectly treated tsc --noEmit as frontend build completion. The project must enter P7 frontend UI delivery before it can be called fully deployable.",
+  "target": "test",
+  "phase": "P7-frontend-ui-deploy",
+  "reviewedAt": "2026-06-08T13:55:00+08:00",
+  "summary": "P7 frontend UI implementation and deployable dist are now present. The frontend is no longer only a typed contract/PageModel layer. Full-project acceptance still cannot be marked pass until TEST-006 runs the backend jar plus frontend dist combination and records a browser-triggered real backend API call.",
   "nextRoute": [
-    "pm",
-    "planner",
-    "frontend",
     "test",
     "validator",
-    "reviewer"
+    "reviewer",
+    "pm"
   ],
   "issues": [
     {
-      "issueId": "PM-ACCEPTANCE-UI-001",
+      "issueId": "P7-COMBO-E2E-001",
       "severity": "P0",
-      "target": "pm",
-      "file": "docs/phases/P6-final-acceptance.md",
-      "problem": "PM accepted P6 as final/full deployable even though frontend has no browser application entry, no real UI components and no dist artifact.",
-      "impact": "User was told the project could be packaged/deployed as a complete product, but only backend jar is deployable.",
-      "requiredAction": "Retract P6 full acceptance, record backend-only trial deployment status, and open P7 frontend UI/deployable package phase."
-    },
-    {
-      "issueId": "FE-UI-DEPLOY-001",
-      "severity": "P0",
-      "target": "frontend",
-      "file": "frontend/",
-      "problem": "Frontend contains typed SDK, PageModel, router/store models and TypeScript contract checks only. It lacks index.html, src/main.*, real Vue/React page components, app mounting and dist production build.",
-      "impact": "There is no deployable frontend UI and no browser page for users to inspect.",
-      "requiredAction": "Build a real browser frontend application from the existing PageModel/API contracts and produce a clean dist artifact."
-    },
-    {
-      "issueId": "VAL-FRONTEND-BUILD-001",
-      "severity": "P0",
-      "target": "pm",
-      "file": "docs/build_report.md",
-      "problem": "Validator called npm.cmd run build pass even though package.json only runs tsc --noEmit and does not generate dist.",
-      "impact": "Build report confused type checking with deployable frontend build.",
-      "requiredAction": "Update validation rules and reports to distinguish typed contract, browser app and deployable frontend."
-    },
-    {
-      "issueId": "PM-ENCODING-001",
-      "severity": "P1",
-      "target": "pm",
-      "file": "AGENTS.md",
-      "problem": "PM did not establish a unified encoding and text-format rule before implementation and acceptance.",
-      "impact": "Encoding, line ending and build artifact rules were left implicit, causing inconsistent acceptance criteria.",
-      "requiredAction": "Add .editorconfig and encoding/build artifact rules, and make validator check them."
+      "target": "test",
+      "file": "docs/tasks/TEST-006-frontend-backend-combo-e2e.md",
+      "problem": "Frontend dist and browser smoke are complete, but the combined backend jar + frontend dist E2E has not yet been executed.",
+      "impact": "The project has a deployable frontend artifact, but it is not yet proven as a complete user-facing system in a combined environment.",
+      "requiredAction": "Start backend and frontend production artifacts together, then record browser login/navigation and at least one real backend API call in docs/test_runs/frontend-backend-combo-e2e.md."
     }
   ],
   "backendTrialDeployable": true,
-  "frontendDeployable": false,
+  "frontendDeployable": true,
+  "fullProjectDeployable": false,
   "deferredRisks": [
     {
       "issueId": "REV-001-BE-IDEMPOTENCY-STORAGE",
@@ -61,17 +33,20 @@
       "reason": "Create-system idempotency still uses single-JVM memory storage. Current smoke covers same-process conflict, but production multi-instance consistency needs shared storage or a database idempotency table."
     },
     {
-      "issueId": "REV-003-TEST-RISK-MATRIX",
+      "issueId": "NPM-AUDIT-MODERATE-001",
       "severity": "P2",
-      "target": "test",
-      "status": "partially_closed",
-      "reason": "Core OpenAPI error-code matrix is covered. OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
+      "target": "frontend",
+      "status": "deferred",
+      "reason": "npm ci reports 2 moderate audit items. No npm audit fix --force was applied because it may force dependency upgrades; schedule dependency governance after P7 combination validation."
     }
   ],
   "verification": [
-    "backend jar packaged successfully at dist/unexamine-deploy-20260608-110707/unexamine.jar",
-    "frontend/package.json build currently runs tsc --noEmit only",
-    "frontend lacks index.html, src/main.*, framework app mount and dist artifact",
-    ".editorconfig and docs/development/encoding.md added to define encoding/build-artifact rules"
+    "frontend/index.html exists",
+    "frontend/src/main.ts mounts the app",
+    "frontend/src/App.ts implements the root UI and route workspaces",
+    "npm.cmd ci passed",
+    "npm.cmd run build passed and generated frontend/dist",
+    "production preview http://127.0.0.1:4173/ returned HTTP 200",
+    "Chrome headless desktop and mobile screenshots generated under frontend/docs/"
   ]
 }

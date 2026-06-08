@@ -36,7 +36,8 @@
 | P3-system-config | 系统配置与权限期 | BE-005、BE-006、BE-007、BE-014、FE-005、FE-006 的联调补充 | pm/backend/frontend/test | P2 完成 | 系统成员、部门、角色、权限、字典、应用/模块/字段/页面配置闭环，权限与数据范围基础可用 | pending |
 | P4-runtime-mvp | 运行台 MVP 期 | BE-008、FE-008、阶段 test/validator | pm/backend/frontend/test/validator | P3 完成 | 动态 schema、记录列表/详情/保存/历史/提交审批入口按权限跑通，运行台 MVP 满意度通过 | pending |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | BE-009 至 BE-013、FE-009 至 FE-011 的联调补充 | pm/backend/frontend/test | P4 完成 | 流程待办、附件、导出、OpenAPI、审计运维核心链路闭环 | accepted |
-| P6-final-acceptance | 集成验收与上线判断期 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | test/validator/reviewer/pm | P5 完成 | 后端自检、前端契约闭环、E2E、clean build、review 全部通过，输出可上线判断 | in_progress |
+| P6-final-acceptance | 后端集成验收与误判修正 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | test/validator/reviewer/pm | P5 完成 | 后端 jar 可试部署；原“全项目可上线”结论已撤回 | blocked(frontend-ui) |
+| P7-frontend-ui-deploy | 前端真实 UI 与部署包期 | FE-013、TEST-006 | frontend/test/validator/reviewer/pm | P6 撤回后进入前端 UI 修复 | 真实前端入口、`dist/`、浏览器 smoke 和前后端组合 E2E 完成 | in_progress |
 
 分期状态规则：
 
@@ -59,6 +60,8 @@
 | 前端 SDK | FE-001 | API 冻结 | `frontend/src/api/`、`frontend/docs/page-contracts/_template.md` | 枚举、错误码、DTO/VO、分页、动态字段模型可被页面复用 | pending |
 | 前端页面 | FE-002 至 FE-011 | SDK 和路由基础完成 | `frontend/src/pages/`、`frontend/src/components/`、`frontend/docs/page-contracts/` | 页面按模块完成，页面级 API 映射、权限禁用、空态、错误态、requestId 展示闭环 | pending |
 | 前端自检 | FE-012 | 前端页面完成 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | 页面到接口映射、枚举错误码同步、无旁路请求 | done |
+| 前端真实 UI | FE-013 | P6 前端验收误判撤回 | `frontend/index.html`、`frontend/src/main.ts`、`frontend/src/App.ts`、`frontend/dist/`、`frontend/docs/frontend-ui-smoke.md` | 真实浏览器入口、页面工作区、生产构建和截图 smoke 通过 | done |
+| 前后端组合 E2E | TEST-006 | FE-013、后端 jar 包 | `docs/test_runs/frontend-backend-combo-e2e.md`、`docs/test_report.md`、`docs/review.json` | 浏览器触发真实后端 API，完成核心链路组合验证 | pending |
 | test 测试 | TEST-001 至 TEST-005 | API 冻结；执行依赖实现产物 | `docs/test_plan.md`、`docs/test_runs/`、`docs/test_report.md` | TEST-003/004 写独立执行记录，TEST-005 汇总报告并给出 pass/fail target | in_progress |
 | validator 构建 | VAL-001 至 VAL-004 | 后端、前端、测试产物完成 | `docs/build/`、`docs/build_report.md` | VAL-001/002/003 写独立验证记录，VAL-004 汇总 clean compile、clean build 和契约同步结论 | pending |
 | reviewer 审查 | REV-001 至 REV-004 | 测试和构建报告完成 | `docs/review_parts/`、`docs/review.json` | REV-001 至 REV-003 输出不重叠审查分片，REV-004 唯一输出合法 JSON 总结论 | pending |
@@ -192,11 +195,13 @@ flowchart TD
 | FE-010 | 文件与导出页面 | frontend | upload/export | FE-007/FE-008 | `frontend/src/pages/files/`、`frontend/src/pages/export/`、`frontend/docs/page-contracts/FE-010-file-export-pages.md` | FE-007, FE-008 | 是 | 上传、预览、下载、导出轮询完成，页面级 API 映射、禁用态、空态/错误态和证据完成 | 文件权限和任务状态自检 | done |
 | FE-011 | OpenAPI 审计运维页面 | frontend | openapi/audit/ops | FE-002 | `frontend/src/pages/openapi/`、`frontend/src/pages/audit/`、`frontend/src/pages/ops/`、`frontend/docs/page-contracts/FE-011-openapi-audit-ops-pages.md` | FE-002 | 是 | 凭证一次展示、日志 requestId 检索完成，页面级 API 映射、禁用态、空态/错误态和证据完成 | OPM/AUD/OPS 映射自检 | pending |
 | FE-012 | 前端自检与契约闭环 | frontend | frontend | FE-002..FE-011 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | FE-002, FE-003, FE-004, FE-005, FE-006, FE-007, FE-008, FE-009, FE-010, FE-011 | 否 | 汇总页面证据，无旁路请求，枚举错误码同步 | typecheck/build 前自检 | done |
+| FE-013 | 前端真实 UI 与可部署产物 | frontend | frontend | P6 修正 | `frontend/index.html`、`frontend/src/main.ts`、`frontend/src/App.ts`、`frontend/vite.config.ts`、`frontend/dist/`、`frontend/docs/frontend-ui-smoke.md` | FE-012 | 否 | 真实浏览器入口、路由挂载、页面工作区、生产 build 和截图 smoke 通过 | `npm.cmd ci`、`npm.cmd run build`、Chrome headless smoke | done |
 | TEST-001 | 测试计划与夹具设计 | test | test | PRD/API/task_plan/service | `docs/test_plan.md` | PLAN-001 | 是 | 范围、环境、夹具和入口明确 | 测试数据不进入生产 seed | pending |
 | TEST-002 | API 契约用例 | test | test | TEST-001/API | API 用例清单 | TEST-001 | 是 | 正常、异常、权限、边界、幂等覆盖 | 可直接用于自动化 | pending |
 | TEST-003 | E2E 主链路执行 | test | test | BE-015/FE-012 | `docs/test_runs/e2e-main-chain.md` | BE-015, FE-012, TEST-002 | 否 | 创建系统到审批导出 OpenAPI 闭环跑通，执行记录独立输出 | E2E 场景断言 | done |
 | TEST-004 | 权限异常幂等 OpenAPI 测试 | test | test | BE-015/FE-012/TEST-002 | `docs/test_runs/permission-exception-idempotency-openapi.md` | BE-015, FE-012, TEST-002 | 是 | 越权、状态冲突、签名、限流、幂等覆盖，执行记录独立输出 | fail 给出 target | done |
 | TEST-005 | 测试报告 | test | test | TEST-003/TEST-004 | `docs/test_report.md` | TEST-003, TEST-004 | 否 | 汇总测试执行记录，报告含命令、结果、失败摘要、target | 结论 fail，target=frontend | done |
+| TEST-006 | 前后端组合 E2E 与部署验收 | test | test | FE-013/BE package | `docs/test_runs/frontend-backend-combo-e2e.md`、`docs/test_report.md`、`docs/review.json` | FE-013, BE-015 | 否 | 浏览器触发真实后端 API，验证核心链路组合部署 | 组合 E2E 记录 | pending |
 | VAL-001 | 后端 clean compile | validator | validator | BE-015/service | `docs/build/backend-clean-compile.md` | BE-015 | 是 | JDK/Maven 路径和 clean compile 结果明确，记录独立输出 | clean compile pass | done |
 | VAL-002 | 前端 clean build | validator | validator | FE-012/service | `docs/build/frontend-clean-build.md` | FE-012 | 是 | 清理 dist/tsbuildinfo 后 build，记录独立输出 | fail，target=frontend，缺少 package.json | done |
 | VAL-003 | 契约同步检查 | validator | validator | API/FE-012 | `docs/build/contract-sync-check.md` | FE-012 | 是 | 错误码、枚举、状态值同步到 SDK/map，记录独立输出 | fail，target=frontend，字段类型枚举未同步 | done |

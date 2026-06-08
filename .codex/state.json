@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-08T11:35:00+08:00",
+    "updated_at":  "2026-06-08T13:55:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -756,6 +756,24 @@
                         "FE-009":  "done",
                         "FE-010":  "done",
                         "FE-012":  "done",
+                        "FE-013":  {
+                                       "status":  "done",
+                                       "owner":  "frontend",
+                                       "output":  "frontend/index.html; frontend/src/main.ts; frontend/src/App.ts; frontend/vite.config.ts; frontend/dist/; frontend/docs/frontend-ui-smoke.md",
+                                       "completed_at":  "2026-06-08T13:55:00+08:00",
+                                       "verification":  "npm.cmd ci pass; npm.cmd run build pass; production preview HTTP 200; Chrome headless desktop/mobile screenshots generated"
+                                   },
+                        "TEST-006":  {
+                                         "status":  "pending",
+                                         "owner":  "test",
+                                         "output":  "docs/test_runs/frontend-backend-combo-e2e.md; docs/test_report.md; docs/review.json",
+                                         "depends_on":  [
+                                                            "FE-013",
+                                                            "BE-015"
+                                                        ],
+                                         "test":  "not_run",
+                                         "updated_at":  "2026-06-08T13:55:00+08:00"
+                                     },
                         "BE-015":  "done"
                     },
     "task_plan_frozen":  true,
@@ -776,8 +794,8 @@
                            "frontend":  {
                                             "agent_id":  "orchestrator-local",
                                             "status":  "done",
-                                            "last_stage":  "development:FE-012",
-                                            "last_output":  "frontend api contract map and self-check completed; formal build blocked by missing frontend package and tsconfig"
+                                            "last_stage":  "development:FE-013",
+                                            "last_output":  "frontend real browser UI and deployable dist completed; combo E2E remains pending in TEST-006"
                                         },
                            "test":  {
                                         "agent_id":  "019e9aaa-4029-77f2-98a1-71733c220e3c",
@@ -2021,6 +2039,47 @@
                                                   "P6 full-project acceptance retracted due to PM/validator/reviewer acceptance gap.",
                                                   "Next phase is P7 frontend UI and deployable dist."
                                               ]
+                                },
+                                {
+                                    "batch_id":  "DEV-BATCH-P7-FE-013",
+                                    "status":  "complete",
+                                    "tasks":  [
+                                                  "FE-013"
+                                              ],
+                                    "started_at":  "2026-06-08T13:20:00+08:00",
+                                    "completed_at":  "2026-06-08T13:55:00+08:00",
+                                    "outputs":  [
+                                                    "frontend/package.json",
+                                                    "frontend/package-lock.json",
+                                                    "frontend/index.html",
+                                                    "frontend/vite.config.ts",
+                                                    "frontend/src/main.ts",
+                                                    "frontend/src/App.ts",
+                                                    "frontend/src/styles.css",
+                                                    "frontend/src/api/fetchTransport.ts",
+                                                    "frontend/docs/frontend-ui-smoke.md",
+                                                    "frontend/docs/frontend-ui-smoke.png",
+                                                    "frontend/docs/frontend-ui-smoke-mobile.png",
+                                                    "docs/build/frontend-clean-build.md",
+                                                    "docs/build_report.md",
+                                                    "docs/tasks/FE-013-frontend-ui-deployable-app.md",
+                                                    "docs/tasks/TEST-006-frontend-backend-combo-e2e.md",
+                                                    "docs/phases/development-phases.md",
+                                                    "docs/task_plan.md",
+                                                    "docs/progress.md",
+                                                    "docs/review.json",
+                                                    ".gitignore"
+                                                ],
+                                    "verification":  [
+                                                         "npm.cmd ci pass",
+                                                         "npm.cmd run build pass and generated frontend/dist",
+                                                         "curl.exe -I http://127.0.0.1:4173/ returned HTTP 200 from production preview",
+                                                         "Chrome headless desktop and mobile screenshots generated"
+                                                     ],
+                                    "notes":  [
+                                                  "FrontendDeployable is now true.",
+                                                  "FullProjectDeployable remains false until TEST-006 combination E2E triggers a real backend API through the browser."
+                                              ]
                                 }
                             ],
     "current_phase":  "P7-frontend-ui-deploy",
@@ -2035,7 +2094,7 @@
                          "P4-runtime-mvp":  "accepted",
                          "P5-workflow-files-openapi":  "accepted",
                          "P6-final-acceptance":  "blocked",
-                         "P7-frontend-ui-deploy":  "pending"
+                         "P7-frontend-ui-deploy":  "in_progress"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2089,5 +2148,5 @@
                                                           "next_phase":  "P7-frontend-ui-deploy"
                                                            }
                          },
-    "last_completed_batch":  "DEV-BATCH-PM-CORRECT-FRONTEND-ACCEPTANCE"
+    "last_completed_batch":  "DEV-BATCH-P7-FE-013"
 }

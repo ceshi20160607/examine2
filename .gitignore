@@ -9,3 +9,8 @@ hs_err_pid*.log
 replay_pid*.log
 **/hs_err_pid*.log
 **/replay_pid*.log
+dist/
+frontend/dist/
+frontend/node_modules/
+frontend-*.log
+npm-debug.log*

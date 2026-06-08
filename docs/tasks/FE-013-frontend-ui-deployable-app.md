@@ -3,7 +3,7 @@
 - 任务 ID: FE-013
 - 所属期次: P7-frontend-ui-deploy
 - 负责角色: frontend
-- 状态: pending
+- 状态: done
 - 优先级: P0
 
 ## 目标
@@ -48,3 +48,11 @@ npm.cmd run build
 ```
 
 如引入 Vite/Vue，必须补充对应 dev/build 脚本，并在 `frontend/docs/frontend-ui-smoke.md` 记录浏览器验证 URL、截图或关键断言。
+
+## 完成记录
+
+- 完成时间: 2026-06-08
+- 实现方式: Vite + TypeScript 原生 DOM 应用，复用既有 `frontend/src/api/`、`frontend/src/router/`、`frontend/src/stores/`、`frontend/src/pages/auth` 和 `frontend/src/pages/my-systems` 页面模型。
+- 构建结果: `npm.cmd ci` pass，`npm.cmd run build` pass，生成 `frontend/dist/`。
+- 浏览器验证: 生产预览 `http://127.0.0.1:4173/` 返回 HTTP 200，Chrome headless 已生成桌面和移动端截图。
+- 记录文件: `frontend/docs/frontend-ui-smoke.md`。
