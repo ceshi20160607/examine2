@@ -250,7 +250,7 @@ public class SystemRbacServiceImpl implements SystemRbacService {
     public TenantVO changeTenantStatus(Long systemId, Long tenantId, StatusChangeBO statusBO) {
         permissionService.requireOperation("SYS_TENANT_STATUS");
         validateEnableStatus(statusBO.getTargetStatus());
-        Tenant tenant = activeTenant(systemId, tenantId);
+        Tenant tenant = tenantById(systemId, tenantId);
         tenant.setStatus(statusBO.getTargetStatus())
                 .setUpdatedAt(LocalDateTime.now());
         tenantService.updateById(tenant);
@@ -758,6 +758,14 @@ public class SystemRbacServiceImpl implements SystemRbacService {
     }
 
     private Tenant activeTenant(Long systemId, Long tenantId) {
+        Tenant tenant = tenantById(systemId, tenantId);
+        if (!ENABLED.equals(tenant.getStatus())) {
+            throw new BusinessException(SystemManageErrorCode.TENANT_DISABLED);
+        }
+        return tenant;
+    }
+
+    private Tenant tenantById(Long systemId, Long tenantId) {
         Tenant tenant = tenantService.lambdaQuery()
                 .eq(Tenant::getSystemId, systemId)
                 .eq(Tenant::getId, tenantId)
@@ -765,9 +773,6 @@ public class SystemRbacServiceImpl implements SystemRbacService {
                 .one();
         if (Objects.isNull(tenant)) {
             throw new BusinessException(SystemManageErrorCode.TENANT_NOT_FOUND);
-        }
-        if (!ENABLED.equals(tenant.getStatus())) {
-            throw new BusinessException(SystemManageErrorCode.TENANT_DISABLED);
         }
         return tenant;
     }
