@@ -40,6 +40,13 @@
 - 本机启动前后端后执行浏览器 E2E，记录到 `docs/test_runs/p9-system-management-ui-e2e-20260609.md`。
 - `git diff --check`
 
+## 执行记录
+
+- 实现文件：`frontend/src/App.ts`、`frontend/src/styles.css`。
+- 页面证据：`frontend/docs/page-contracts/FE-015-system-management-ui.md`。
+- clean build：`npm.cmd ci` pass，`npm.cmd run build` pass。
+- 限制：Chrome headless dump-dom 在当前 Windows 会话中未输出 DOM；完整浏览器 E2E 仍由 `TEST-007` 执行，FE-015 暂不代表 P9 accepted。
+
 ## 不允许事项
 
 - 不能把 PageModel-only、首个 GET 通过或 build 通过当作 P9 完成。

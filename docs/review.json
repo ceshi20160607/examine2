@@ -52,6 +52,13 @@
                              "target":  "pm",
                              "status":  "open",
                              "reason":  "P8 partial deployability was previously overclaimed as full project deployability; PM must keep fullProjectDeployable=false until P9-P12 pass."
+                         },
+                         {
+                             "issueId":  "P9-TEST-007-BROWSER-E2E",
+                             "severity":  "P1",
+                             "target":  "test",
+                             "status":  "partial",
+                             "reason":  "P9 browser UI smoke screenshots were generated, but full write-operation E2E has not completed."
                          }
                       ],
     "verification":  [

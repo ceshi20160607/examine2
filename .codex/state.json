@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-09T12:09:49+08:00",
+    "updated_at":  "2026-06-09T12:28:03+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2253,9 +2253,7 @@
                             ],
     "current_phase":  "P9-system-management-ui",
     "running_tasks":  [
-                          "FE-015",
                           "TEST-007",
-                          "VAL-005",
                           "REV-005"
                       ],
     "phase_status":  {
@@ -2340,6 +2338,7 @@
                                                             "started_at":  "2026-06-09T12:09:49+08:00",
                                                             "started_by":  "pm",
                                                             "record":  "docs/issues/pm/development/p9_pm_wenti.md",
+                                                            "remaining":  "TEST-007 full write-operation browser E2E and REV-005 review are still pending.",
                                                             "next_phase":  "P10-app-runtime-ui"
                                                      }
                          },
@@ -2350,5 +2349,5 @@
                                 "reason":  "Development must be managed by role issue discovery, PM decision, owner reply, reviewer verification, test, validator, and stage commit instead of ad-hoc continue prompts.",
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
-    "last_completed_batch":  "DEV-BATCH-P9-STARTUP-GOVERNANCE"
+    "last_completed_batch":  "DEV-BATCH-P9-FE015-VAL005-BLOCKED-TEST007"
 }

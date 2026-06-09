@@ -72,6 +72,21 @@
 ## Validator 结论
 
 P8 已在 P7 可部署前端基础上补齐平台中心核心 CRUD UI。部署版前端默认走 nginx 同源 `/api/v1/...`，平台中心按钮和接口调用继续通过 typed PageModel 与权限动作控制。当前结论为 pass。
+
+# 2026-06-09 P9 前端 clean build 摘要
+
+结论：P9 前端 clean build 通过，但 P9 仍需 TEST-007 浏览器 E2E 和 REV-005 审查后才能验收。
+
+| 项目 | 结果 |
+| --- | --- |
+| 任务 | FE-015 系统管理域真实 UI |
+| 首次 clean build | fail，5173 dev server 占用 esbuild 可执行文件导致 `npm ci` 无法删除依赖 |
+| 环境处理 | 已停止当前 workspace 的 vite/node dev 进程后重试 |
+| `npm.cmd ci` | pass，保留 2 个 moderate audit 风险 |
+| `npm.cmd run build` | pass，`tsc --noEmit && vite build` 成功 |
+| dist 产物 | `frontend/dist/index.html`、`frontend/dist/assets/index-Bavadxer.js`、`frontend/dist/assets/index-ChSrJL4U.css` |
+| 浏览器 UI smoke | pass，已生成成员、部门、系统角色、字典四张截图 |
+| 浏览器写操作 E2E | 未完成，target=`test`，记录见 `docs/test_runs/p9-system-management-ui-e2e-20260609.md` |
 # 2026-06-09 本机全系统验证构建摘要
 
 结论：后端构建与全系统接口链路通过，记录见 `docs/test_runs/local-full-project-api-flow-20260609.md`。
