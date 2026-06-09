@@ -230,3 +230,15 @@
 - 记录本轮子 agent 调度降级：上一轮尝试唤醒 planner/frontend 子 agent 时返回 `agent not found`，因此这些 agent 的工作不能计为完成；后续必须重新调度或由 Orchestrator 明确接管并记录。
 
 后续 P9/P10/P11/P12 不再直接进入编码。每期开始先生成或更新 development issue 文档，由 PM 裁决后再执行实现；PM 不能决策的问题写入 `docs/issues/user_questions.md` 交给用户。
+
+## 2026-06-09 P9 启动结论
+
+P9 已按新治理流程完成 planner、frontend、backend、test 只读审查，并由 PM 裁决进入 `P9-system-management-ui`。
+
+当前结论：
+
+- P9 范围：成员、部门、系统角色、字典真实业务 UI；不包含应用模块、运行台、流程、文件、OpenAPI、审计运维。
+- 当前缺口：`system.members`、`system.departments`、`system.roles`、`system.dict` 路由与 PageModel 已存在，但 `frontend/src/App.ts` 仍落到通用空态面板，不能算真实 UI 完成。
+- PM 裁决：`MEM-001` 分页不一致本批次先由前端适配数组返回；`DICT-010/011` 删除必须按冻结 API 传 `version`；P9 必须做浏览器 E2E。
+- 已撤回误判：`docs/review.json.fullProjectDeployable` 改为 `false`，P8 只代表平台中心和系统资料/租户局部可试部署，不代表完整系统上线。
+- 当前任务：`FE-015` 实现，后续 `TEST-007`、`VAL-005`、`REV-005` 复验。

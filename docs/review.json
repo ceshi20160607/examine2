@@ -1,19 +1,22 @@
 ﻿{
-    "status":  "pass",
-    "target":  "none",
-    "phase":  "P8-platform-ui-crud",
-    "reviewedAt":  "2026-06-08T22:50:00+08:00",
-    "summary":  "P8 platform center CRUD UI remains pass. A P8 rework fixed system entry permissions: the frontend now calls SYS-001 to load real system/tenant/member/effective permissions and treats SYS_MANAGE_ALL as a system-scoped management permission, so system configuration navigation can be visible after entering a system.",
+    "status":  "fail",
+    "target":  "frontend/pm",
+    "phase":  "P9-system-management-ui",
+    "reviewedAt":  "2026-06-09T12:09:49+08:00",
+    "summary":  "P8 platform center CRUD UI and deployable frontend shell remain usable, but full project deployability is retracted. P9-P12 are still required because system members, departments, system roles, dictionaries, application/runtime, workflow/files/OpenAPI/audit UI and full browser E2E are not all completed.",
     "nextRoute":  [
                       "pm",
-                      "user-trial-deploy"
+                      "frontend",
+                      "test",
+                      "validator",
+                      "reviewer"
                   ],
     "issues":  [
 
                ],
     "backendTrialDeployable":  true,
     "frontendDeployable":  true,
-    "fullProjectDeployable":  true,
+    "fullProjectDeployable":  false,
     "deferredRisks":  [
                           {
                               "issueId":  "REV-001-BE-IDEMPOTENCY-STORAGE",
@@ -29,13 +32,27 @@
                               "status":  "deferred",
                               "reason":  "npm ci reports 2 moderate audit items. No npm audit fix --force was applied because it may force dependency upgrades; schedule dependency governance after trial deployment."
                           },
-                          {
-                              "issueId":  "REV-003-TEST-RISK-MATRIX",
-                              "severity":  "P2",
-                              "target":  "test",
-                              "status":  "deferred",
-                              "reason":  "OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
-                          }
+                         {
+                             "issueId":  "REV-003-TEST-RISK-MATRIX",
+                             "severity":  "P2",
+                             "target":  "test",
+                             "status":  "deferred",
+                             "reason":  "OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
+                         },
+                         {
+                             "issueId":  "P9-FE-001",
+                             "severity":  "P1",
+                             "target":  "frontend",
+                             "status":  "open",
+                             "reason":  "System members, departments, system roles and dictionaries still need real browser UI instead of generic placeholder workspace."
+                         },
+                         {
+                             "issueId":  "P9-PM-001",
+                             "severity":  "P1",
+                             "target":  "pm",
+                             "status":  "open",
+                             "reason":  "P8 partial deployability was previously overclaimed as full project deployability; PM must keep fullProjectDeployable=false until P9-P12 pass."
+                         }
                       ],
     "verification":  [
                          "mvn.cmd -pl examine-web -am clean package -DskipTests passed",

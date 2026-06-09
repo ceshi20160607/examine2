@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-09T11:54:37+08:00",
+    "updated_at":  "2026-06-09T12:09:49+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2251,9 +2251,12 @@
                                               ]
                                 }
                             ],
-    "current_phase":  "P8-platform-ui-crud",
+    "current_phase":  "P9-system-management-ui",
     "running_tasks":  [
-
+                          "FE-015",
+                          "TEST-007",
+                          "VAL-005",
+                          "REV-005"
                       ],
     "phase_status":  {
                          "P0-foundation":  "done",
@@ -2264,7 +2267,8 @@
                          "P5-workflow-files-openapi":  "accepted",
                          "P6-final-acceptance":  "blocked",
                          "P7-frontend-ui-deploy":  "accepted",
-                         "P8-platform-ui-crud":  "accepted"
+                         "P8-platform-ui-crud":  "accepted",
+                         "P9-system-management-ui":  "in_progress"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2329,7 +2333,14 @@
                                                          "accepted_at":  "2026-06-08T17:15:00+08:00",
                                                          "accepted_by":  "pm",
                                                          "record":  "docs/phases/P8-platform-ui-crud-acceptance.md",
-                                                         "next_phase":  "user-trial-deploy"
+                                                         "next_phase":  "P9-system-management-ui"
+                                                     },
+                             "P9-system-management-ui":  {
+                                                            "status":  "in_progress",
+                                                            "started_at":  "2026-06-09T12:09:49+08:00",
+                                                            "started_by":  "pm",
+                                                            "record":  "docs/issues/pm/development/p9_pm_wenti.md",
+                                                            "next_phase":  "P10-app-runtime-ui"
                                                      }
                          },
     "last_governance_fix":  {
@@ -2339,5 +2350,5 @@
                                 "reason":  "Development must be managed by role issue discovery, PM decision, owner reply, reviewer verification, test, validator, and stage commit instead of ad-hoc continue prompts.",
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
-    "last_completed_batch":  "DEV-BATCH-GOVERNANCE-FIX"
+    "last_completed_batch":  "DEV-BATCH-P9-STARTUP-GOVERNANCE"
 }
