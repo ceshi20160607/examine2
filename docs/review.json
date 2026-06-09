@@ -1,9 +1,9 @@
 {
   "status": "pass",
   "target": "none",
-  "phase": "P9-system-management-ui",
-  "reviewedAt": "2026-06-09T14:15:00+08:00",
-  "summary": "P9 system management UI has passed FE-015 implementation, VAL-005 clean build, TEST-007 browser write-operation E2E, and REV-005 review. Members, departments, system roles and dictionaries are real usable pages. Full project deployability remains false until the remaining visual usable phases pass.",
+  "phase": "P10-app-runtime-ui",
+  "reviewedAt": "2026-06-09T16:20:00+08:00",
+  "summary": "P10 app/module/runtime UI has passed FE-016, FE-017, FE-018, TEST-008, VAL-006 and REV-006. Applications, modules, fields, page config, publish and runtime records are now real browser-usable pages, not contract-only models. Full project deployability remains false until P11/P12 complete the remaining visual usable domains.",
   "nextRoute": [
     "planner",
     "pm",
@@ -29,7 +29,7 @@
       "severity": "P2",
       "target": "frontend",
       "status": "deferred",
-      "reason": "npm ci reports 2 moderate audit items. No npm audit fix --force was applied because it may force dependency upgrades; schedule dependency governance after trial deployment."
+      "reason": "npm ci previously reported moderate audit items. Dependency governance should be handled separately to avoid forced upgrades during feature delivery."
     },
     {
       "issueId": "REV-003-TEST-RISK-MATRIX",
@@ -37,19 +37,24 @@
       "target": "test",
       "status": "deferred",
       "reason": "OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
+    },
+    {
+      "issueId": "P11-P12-UI-REMAINING",
+      "severity": "P1",
+      "target": "frontend",
+      "status": "open-next-phase",
+      "reason": "Flow, file/export, OpenAPI, audit and ops still need real usable UI phases before full-project deployability can be claimed."
     }
   ],
   "verification": [
-    "mvn -pl examine-web -am -DskipTests package passed after stopping the jar process that locked target/unexamine.jar",
-    "java -jar backend/examine-web/target/unexamine.jar started on port 9999",
+    "FE-016 app/module UI completed with real browser operations",
+    "FE-017 field/page/publish UI completed with real browser operations",
+    "FE-018 runtime record UI completed with real browser operations",
+    "TEST-008 browser E2E passed for login, system enter, app, module, field, page config, publish, runtime create, detail, update, submit and history",
+    "frontend/docs/p10-app-runtime-e2e-final.png saved as browser evidence",
     "npm.cmd run build passed and generated frontend/dist",
-    "npm.cmd run preview -- --port 4173 started local production preview",
-    "TEST-007 browser E2E passed for login, system enter, members, departments, roles and dictionaries",
-    "MEM-002/MEM-003/MEM-004/MEM-005/MEM-006 passed from browser UI",
-    "RBAC-002/RBAC-003/RBAC-004/RBAC-006/RBAC-008/RBAC-009/RBAC-012/RBAC-013 passed from browser UI",
-    "DICT-002/DICT-005/DICT-006/DICT-008/DICT-009/DICT-010/DICT-011 passed from browser UI",
-    "Department delete restriction verified: parent department with children has delete button disabled",
-    "frontend/docs/p9-system-management-e2e-final.png saved as browser evidence",
-    "fullProjectDeployable remains false because P10-P12 visual usable phases are not complete"
+    "mvn.cmd -pl examine-module -am -DskipTests compile passed",
+    "mvn.cmd -pl examine-web -am -DskipTests package passed and generated backend/examine-web/target/unexamine.jar",
+    "fullProjectDeployable remains false because P11/P12 visual usable phases are not complete"
   ]
 }

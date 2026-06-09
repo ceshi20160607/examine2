@@ -1,5 +1,17 @@
 # P7 测试报告
 
+## P10 应用模块与运行台 E2E
+
+- 任务: TEST-008
+- 执行时间: 2026-06-09
+- 记录: `docs/test_runs/p10-app-runtime-ui-e2e-20260609.md`
+- 结论: pass
+- target: none
+
+P10 已通过真实浏览器页面完成应用创建、模块创建、字段创建、页面配置保存、菜单动作保存、发布检查、模块发布、运行态深链路自动 SYS-001、记录查询、新建、详情、编辑保存、提交和历史查看。截图证据：`frontend/docs/p10-app-runtime-e2e-final.png`。
+
+P10 通过不代表完整项目上线完成；P11/P12 仍需完成流程、文件导出、OpenAPI、审计运维等真实 UI 可用化。
+
 - 任务: TEST-006
 - 执行时间: 2026-06-08
 - 汇总输入: `docs/test_runs/e2e-main-chain.md`、`docs/test_runs/permission-exception-idempotency-openapi.md`、`docs/test_runs/frontend-backend-combo-e2e.md`

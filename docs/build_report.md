@@ -1,5 +1,20 @@
 # P8 平台中心 UI 构建验证报告
 
+# 2026-06-09 P10 Clean Build 摘要
+
+结论：P10 前端 build、后端 package 和浏览器写操作 E2E 均已通过，P10 accepted。
+
+| 项目 | 结果 |
+| --- | --- |
+| 前端构建 | `npm.cmd run build` pass，生成 `frontend/dist/` |
+| 后端模块编译 | `mvn.cmd -pl examine-module -am -DskipTests compile` pass |
+| 后端打包 | `mvn.cmd -pl examine-web -am -DskipTests package` pass，生成 `backend/examine-web/target/unexamine.jar` |
+| 浏览器 E2E | TEST-008 pass，记录见 `docs/test_runs/p10-app-runtime-ui-e2e-20260609.md` |
+| P10 部署包 | `dist/unexamine-full-deploy-20260609-162432.zip` |
+| 阶段验收 | `docs/phases/P10-app-runtime-ui-acceptance.md` |
+
+P10 修复了运行态 schema 字段兼容、深链路系统上下文、RUN-003 body、RUN-006/RUN-008 幂等 key 和记录标题兜底。完整项目仍需 P11/P12 后续 UI 期次。
+
 - 任务: VAL-P8-FE-014
 - 执行时间: 2026-06-08
 - 执行角色: validator

@@ -6,6 +6,7 @@ import type {
   AvailableAction,
   DynamicFieldValue,
   EntityId,
+  FieldDefinitionVO,
   FieldPermission,
   JsonValue,
   PageQuery,
@@ -192,9 +193,9 @@ export function createRuntimeWorkbenchPageModel(deps: RuntimeWorkbenchDeps) {
         const schemaInput = normalizeRuntimeSchema(schema);
         const dynamicQuery = buildDynamicListQuery(schemaInput, draft);
         const query = toRecordQuery(draft, dynamicQuery);
-        const result = await callData<PageResult<RecordListItemVO>, undefined, RuntimeRecordQueryBO>(deps, "RUN-003", {
+        const result = await callData<PageResult<RecordListItemVO>, RuntimeRecordQueryBO>(deps, "RUN-003", {
           pathParams: { moduleId },
-          query,
+          body: query,
         });
         return result.data
           ? {
@@ -248,6 +249,7 @@ export function createRuntimeWorkbenchPageModel(deps: RuntimeWorkbenchDeps) {
             ...body.body,
             recordVersion,
           },
+          idempotencyKey: createIdempotencyKey("RUN-006"),
         });
       },
       delete: (moduleId: EntityId, recordId: EntityId) =>
@@ -256,6 +258,7 @@ export function createRuntimeWorkbenchPageModel(deps: RuntimeWorkbenchDeps) {
         callData<RecordMutationResultVO, RuntimeRecordSubmitBO>(deps, "RUN-008", {
           pathParams: { moduleId, recordId },
           body,
+          idempotencyKey: createIdempotencyKey("RUN-008"),
         }),
       history: async (moduleId: EntityId, recordId: EntityId, schema: RuntimeModuleSchemaVO) => {
         const schemaInput = normalizeRuntimeSchema(schema);
@@ -374,11 +377,21 @@ function contextBlock(deps: RuntimeWorkbenchDeps): string | undefined {
 }
 
 function normalizeRuntimeSchema(schema: RuntimeModuleSchemaVO): DynamicSchemaInput & RuntimeModuleSchemaVO {
+  const fieldDefinitions = Array.isArray(schema.fieldDefinitions)
+    ? schema.fieldDefinitions.map((field) => {
+        const source = field as FieldDefinitionVO & { code?: string; name?: string };
+        return {
+          ...field,
+          fieldCode: field.fieldCode ?? source.code ?? "",
+          fieldName: field.fieldName ?? source.name ?? field.fieldCode ?? source.code ?? "",
+        };
+      })
+    : [];
   return {
     ...schema,
-    fieldDefinitions: Array.isArray(schema.fieldDefinitions) ? schema.fieldDefinitions : [],
+    fieldDefinitions,
     availableActions: normalizeActions(schema.availableActions),
-    fieldPermissions: readFieldPermissions(schema),
+    fieldPermissions: readFieldPermissions({ ...schema, fieldDefinitions }),
   };
 }
 

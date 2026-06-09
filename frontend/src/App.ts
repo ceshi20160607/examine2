@@ -1,7 +1,17 @@
 import { createApiClient, type ApiClient } from "./api/client";
 import { API_ENDPOINTS, type ApiEndpointId } from "./api/endpoints";
 import { createFetchTransport } from "./api/fetchTransport";
-import type { EffectivePermissionVO, EntityId, FieldPermission, JsonValue, PageResult } from "./api/types";
+import type {
+  DynamicFieldType,
+  EffectivePermissionVO,
+  EntityId,
+  FieldPermission,
+  JsonValue,
+  PageResult,
+  RecordDetailVO,
+  RecordListItemVO,
+  RuntimeModuleSchemaVO,
+} from "./api/types";
 import { resolveAppShellState, SHELL_SECTION_LABELS } from "./layouts/AppShell";
 import { createAuthPageModel } from "./pages/auth";
 import { createMySystemsPageModel } from "./pages/my-systems";
@@ -29,7 +39,23 @@ import type {
   RoleVO,
 } from "./pages/system/types";
 import { APP_ROUTES, DEFAULT_AUTHENTICATED_ROUTE, LOGIN_ROUTE, resolveRoute, type AppRouteRecord } from "./router";
-import { authStore, permissionStore, systemContextStore } from "./stores";
+import { authStore, errorStore, permissionStore, systemContextStore } from "./stores";
+import {
+  createModuleConfigPageModel,
+  type AppListItemVO,
+  type FieldTypeVO,
+  type ModuleFieldVO,
+  type ModuleListItemVO,
+  type ModulePublishResultVO,
+  type PageSchemaVO,
+  type PublishCheckResultVO,
+} from "./pages/module-config";
+import {
+  createRuntimeWorkbenchPageModel,
+  type RuntimeMenuVO,
+  type RuntimeRecordHistoryVO,
+  type RuntimeRecordRelationVO,
+} from "./pages/runtime";
 
 interface RuntimeSettings {
   baseUrl: string;
@@ -73,6 +99,26 @@ interface SystemUiState {
   dictItems: DictItemVO[];
   dictUsage?: DictUsageVO;
   dictCache?: DictCacheRefreshVO;
+}
+
+interface AppRuntimeUiState {
+  apps: AppListItemVO[];
+  selectedAppId?: EntityId;
+  modules: ModuleListItemVO[];
+  selectedModuleId?: EntityId;
+  fields: ModuleFieldVO[];
+  fieldTypes: FieldTypeVO[];
+  listSchema?: PageSchemaVO;
+  formSchema?: PageSchemaVO;
+  detailSchema?: PageSchemaVO;
+  publishCheck?: PublishCheckResultVO;
+  publishResult?: ModulePublishResultVO;
+  runtimeMenus: RuntimeMenuVO[];
+  runtimeSchema?: RuntimeModuleSchemaVO;
+  recordPage?: PageResult<RecordListItemVO>;
+  selectedRecord?: RecordDetailVO;
+  recordHistory: RuntimeRecordHistoryVO[];
+  recordRelations: RuntimeRecordRelationVO[];
 }
 
 interface SystemEnterVO {
@@ -166,6 +212,20 @@ export function mountApp(container: HTMLElement): void {
   const authPage = createAuthPageModel({ apiClient });
   const mySystemsPage = createMySystemsPageModel({ apiClient });
   const platformCenter = createPlatformCenterPageModel({ api: apiClient });
+  const moduleConfigPage = createModuleConfigPageModel({
+    apiClient,
+    auth: authStore,
+    systemContext: systemContextStore,
+    permission: permissionStore,
+    error: errorStore,
+  });
+  const runtimeWorkbench = createRuntimeWorkbenchPageModel({
+    apiClient,
+    auth: authStore,
+    systemContext: systemContextStore,
+    permission: permissionStore,
+    error: errorStore,
+  });
   const platformState: PlatformUiState = {
     systems: emptyPlatformPageState(),
     accounts: emptyPlatformPageState(),
@@ -185,6 +245,15 @@ export function mountApp(container: HTMLElement): void {
     dictTypes: [],
     dictItems: [],
   };
+  const appRuntimeState: AppRuntimeUiState = {
+    apps: [],
+    modules: [],
+    fields: [],
+    fieldTypes: [],
+    runtimeMenus: [],
+    recordHistory: [],
+    recordRelations: [],
+  };
   const autoLoadedRoutes = new Set<string>();
 
   syncHash();
@@ -192,6 +261,7 @@ export function mountApp(container: HTMLElement): void {
   authStore.subscribe(render);
   systemContextStore.subscribe(render);
   permissionStore.subscribe(render);
+  errorStore.subscribe(render);
 
   function createClient(settings: RuntimeSettings): ApiClient {
     return createApiClient({
@@ -402,6 +472,30 @@ export function mountApp(container: HTMLElement): void {
 
     if (route.name === "system.dict") {
       return renderSystemDict();
+    }
+
+    if (route.name === "apps.list") {
+      return renderAppList();
+    }
+
+    if (route.name === "modules.list") {
+      return renderModuleList();
+    }
+
+    if (route.name === "modules.fields") {
+      return renderModuleFields();
+    }
+
+    if (route.name === "modules.ui") {
+      return renderModuleUi();
+    }
+
+    if (route.name === "runtime.home") {
+      return renderRuntimeHome();
+    }
+
+    if (route.name === "runtime.module") {
+      return renderRuntimeModule();
     }
 
     return node("div", {}, [
@@ -839,6 +933,275 @@ export function mountApp(container: HTMLElement): void {
     ]);
   }
 
+  function renderAppList(): HTMLElement {
+    const actions = moduleConfigPage.permissions();
+    const seed = p10Seed();
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(appRuntimeState.apps.length), "应用总数"],
+        [selectedApp()?.name ?? "未选择", "当前应用"],
+        [enabledCount(appRuntimeState.apps), "启用应用"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        input("应用名称", "appName", `P10应用${seed}`),
+        input("应用编码", "appCode", `p10_app_${seed}`),
+        input("图标", "appIcon", "grid"),
+        textarea("应用说明", "appDescription", "P10 浏览器 E2E 创建"),
+        button("创建应用", "primary", createAppConfig, !actions.appCreate.enabled),
+      ]),
+      renderDataTable(
+        "apps",
+        ["应用", "编码", "状态", "模块数", "操作"],
+        appRuntimeState.apps.map((item) => [
+          item.name,
+          item.code,
+          statusLabel(item.status),
+          String(item.moduleCount ?? 0),
+          node("div", { className: "row-actions" }, [
+            button("选择", "secondary", () => selectAppConfig(item)),
+            button("编辑", "secondary", () => updateAppConfig(item), !actions.appEdit.enabled),
+            button(item.status === "ENABLED" ? "停用" : "启用", "secondary", () => toggleAppConfig(item), !actions.appStatus.enabled),
+            button("模块", "primary", () => openModulesForApp(item)),
+          ]),
+        ]),
+        "暂无应用，创建后会显示在这里。",
+      ),
+    ]);
+  }
+
+  function renderModuleList(): HTMLElement {
+    const actions = moduleConfigPage.permissions();
+    const app = selectedApp();
+    const seed = p10Seed();
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [app?.name ?? "未选择", "所属应用"],
+        [String(appRuntimeState.modules.length), "模块总数"],
+        [selectedModule()?.name ?? "未选择", "当前模块"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        selectField("应用", "selectedAppId", appRuntimeState.selectedAppId ?? "", appSelectOptions()),
+        input("模块名称", "moduleName", `P10模块${seed}`),
+        input("模块编码", "moduleCode", `p10_mod_${seed}`),
+        textarea("模块说明", "moduleDescription", "P10 浏览器 E2E 创建"),
+        button("切换应用", "secondary", switchSelectedApp),
+        button("创建模块", "primary", createModuleConfig, !app || !actions.moduleCreate.enabled),
+      ]),
+      renderDataTable(
+        "modules",
+        ["模块", "编码", "状态", "字段数", "操作"],
+        appRuntimeState.modules.map((item) => [
+          item.name,
+          item.code,
+          statusLabel(item.status),
+          String(item.fieldCount ?? 0),
+          node("div", { className: "row-actions" }, [
+            button("选择", "secondary", () => selectModuleConfig(item)),
+            button("编辑", "secondary", () => updateModuleConfig(item), !actions.moduleEdit.enabled),
+            button(item.status === "DISABLED" ? "启用" : "停用", "secondary", () => toggleModuleConfig(item), !actions.moduleEdit.enabled),
+            button("字段", "secondary", () => openFieldsForModule(item)),
+            button("页面配置", "secondary", () => openUiForModule(item)),
+            button("运行", "primary", () => openRuntimeModule(item), item.status !== "PUBLISHED"),
+          ]),
+        ]),
+        app ? "暂无模块，创建后会显示在这里。" : "请先创建或选择应用。",
+      ),
+    ]);
+  }
+
+  function renderModuleFields(): HTMLElement {
+    const actions = moduleConfigPage.permissions();
+    const module = selectedModule();
+    const seed = p10Seed();
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [module?.name ?? "未选择", "当前模块"],
+        [String(appRuntimeState.fields.length), "字段总数"],
+        [String(appRuntimeState.fieldTypes.length || moduleConfigPage.fieldDesigner.availableFieldTypes.length), "字段类型"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+        input("字段名称", "fieldName", `标题${seed}`),
+        input("字段编码", "fieldCode", `title_${seed}`),
+        selectField("字段类型", "fieldType", "TEXT", fieldTypeOptions()),
+        selectField("是否必填", "fieldRequired", "false", [["false", "否"], ["true", "是"]]),
+        selectField("是否唯一", "fieldUnique", "false", [["false", "否"], ["true", "是"]]),
+        input("选项", "fieldOptions", "A:选项A,B:选项B"),
+        button("切换模块", "secondary", switchSelectedModule),
+        button("创建字段", "primary", createModuleField, !module || !actions.fieldCreate.enabled),
+      ]),
+      renderDataTable(
+        "fields",
+        ["字段", "编码", "类型", "状态", "操作"],
+        appRuntimeState.fields.map((item) => [
+          item.name,
+          item.code,
+          item.fieldType,
+          statusLabel(item.status),
+          node("div", { className: "row-actions" }, [
+            button("编辑", "secondary", () => updateModuleField(item), !actions.fieldEdit.enabled),
+            button(item.status === "ENABLED" ? "停用" : "启用", "secondary", () => toggleModuleField(item), !actions.fieldEdit.enabled),
+          ]),
+        ]),
+        module ? "暂无字段，创建后会显示在这里。" : "请先选择模块。",
+      ),
+    ]);
+  }
+
+  function renderModuleUi(): HTMLElement {
+    const actions = moduleConfigPage.permissions();
+    const module = selectedModule();
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [module?.name ?? "未选择", "当前模块"],
+        [appRuntimeState.publishCheck?.passed ? "通过" : appRuntimeState.publishCheck ? "未通过" : "未检查", "发布检查"],
+        [appRuntimeState.publishResult?.versionNo ? `v${appRuntimeState.publishResult.versionNo}` : "-", "发布版本"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+        input("菜单编码", "menuCode", module ? `${module.code}_menu` : ""),
+        input("菜单名称", "menuName", module?.name ?? ""),
+        button("切换模块", "secondary", switchSelectedModule),
+        button("加载配置", "secondary", loadModuleUiConfig, !module || !actions.pageView.enabled),
+        button("保存默认页面", "primary", saveDefaultPageConfig, !module || appRuntimeState.fields.length === 0 || !actions.pageEdit.enabled),
+        button("保存菜单动作", "secondary", saveMenuAndActions, !module || !actions.menuEdit.enabled),
+        button("发布检查", "secondary", publishCheckModule, !module || !actions.modulePublish.enabled),
+        button("发布模块", "primary", publishModuleConfig, !module || !actions.modulePublish.enabled),
+      ]),
+      renderDataTable(
+        "schemas",
+        ["配置", "状态", "版本", "内容"],
+        [
+          ["列表视图", appRuntimeState.listSchema?.status ?? "-", String(appRuntimeState.listSchema?.version ?? "-"), schemaSummary(appRuntimeState.listSchema)],
+          ["表单视图", appRuntimeState.formSchema?.status ?? "-", String(appRuntimeState.formSchema?.version ?? "-"), schemaSummary(appRuntimeState.formSchema)],
+          ["详情视图", appRuntimeState.detailSchema?.status ?? "-", String(appRuntimeState.detailSchema?.version ?? "-"), schemaSummary(appRuntimeState.detailSchema)],
+        ],
+        "加载或保存页面配置后会显示 schema 摘要。",
+      ),
+      renderDataTable(
+        "publish-issues",
+        ["级别", "对象", "编码", "说明"],
+        (appRuntimeState.publishCheck?.issues ?? []).map((item) => [
+          item.level,
+          item.targetType,
+          item.targetCode ?? item.targetId ?? "-",
+          item.message,
+        ]),
+        "发布检查通过或尚未执行。",
+      ),
+    ]);
+  }
+
+  function renderRuntimeHome(): HTMLElement {
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(appRuntimeState.runtimeMenus.length), "菜单总数"],
+        [selectedModule()?.name ?? "未选择", "当前模块"],
+        [appRuntimeState.runtimeSchema?.moduleCode ?? "-", "运行 schema"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        button("加载运行菜单", "primary", loadRuntimeMenus),
+      ]),
+      renderDataTable(
+        "runtime-menus",
+        ["菜单", "编码", "模块 ID", "操作"],
+        flattenRuntimeMenus(appRuntimeState.runtimeMenus).map((item) => [
+          item.name,
+          item.code,
+          item.moduleId ?? "-",
+          node("div", { className: "row-actions" }, [
+            button("进入", "primary", () => item.moduleId ? openRuntimeModuleById(item.moduleId) : undefined, !item.moduleId),
+          ]),
+        ]),
+        "暂无运行菜单，发布模块并保存菜单后会显示在这里。",
+      ),
+    ]);
+  }
+
+  function renderRuntimeModule(): HTMLElement {
+    const schema = appRuntimeState.runtimeSchema;
+    const records = appRuntimeState.recordPage?.records ?? [];
+    const detail = appRuntimeState.selectedRecord;
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [schema?.moduleCode ?? selectedModule()?.code ?? "-", "运行模块"],
+        [String(records.length), "当前记录"],
+        [detail?.recordId ?? "-", "当前记录 ID"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+        input("关键字", "runtimeKeyword", ""),
+        button("切换模块", "secondary", switchSelectedModule),
+        button("加载运行台", "primary", loadRuntimeModule, !selectedModuleId()),
+        button("查询记录", "secondary", loadRuntimeRecords, !schema),
+      ]),
+      renderRuntimeForm(schema, detail),
+      renderDataTable(
+        "records",
+        ["标题", "状态", "版本", "更新时间", "操作"],
+        records.map((item) => [
+          item.title ?? item.recordNo ?? item.recordId,
+          statusLabel(item.recordStatus),
+          String(item.recordVersion),
+          item.updatedAt ?? "-",
+          node("div", { className: "row-actions" }, [
+            button("详情", "secondary", () => loadRuntimeRecordDetail(item.recordId)),
+            button("编辑保存", "secondary", () => updateRuntimeRecord(item), !schema),
+            button("提交", "secondary", () => submitRuntimeRecord(item), !schema),
+            button("历史", "secondary", () => loadRuntimeHistory(item.recordId), !schema),
+          ]),
+        ]),
+        "暂无记录，创建后会显示在这里。",
+      ),
+      renderRuntimeDetail(detail),
+      renderDataTable(
+        "history",
+        ["版本", "操作", "状态", "请求号"],
+        appRuntimeState.recordHistory.map((item) => [
+          String(item.recordVersion),
+          item.operationType,
+          [item.beforeStatus, item.afterStatus].filter(Boolean).join(" -> ") || "-",
+          item.requestId ?? "-",
+        ]),
+        "暂无历史，查看记录历史后会显示在这里。",
+      ),
+    ]);
+  }
+
+  function renderRuntimeForm(schema?: RuntimeModuleSchemaVO, detail?: RecordDetailVO): HTMLElement {
+    if (!schema) {
+      return node("div", { className: "empty-state" }, [
+        node("strong", { text: "未加载运行 schema" }),
+        node("span", { text: "发布模块后点击加载运行台。" }),
+      ]);
+    }
+    const currentValues = Object.fromEntries((detail?.values ?? []).map((item) => [item.fieldCode, String(item.value ?? "")]));
+    return node("div", { className: "form-grid" }, [
+      ...schema.fieldDefinitions
+        .filter((field) => field.status !== "DELETED")
+        .map((field) => {
+          const fieldCode = runtimeFieldCode(field);
+          return renderRuntimeFieldInput(runtimeFieldName(field), `runtime_${fieldCode}`, currentValues[fieldCode] ?? defaultRuntimeFieldValue(field));
+        }),
+      textarea("备注", "runtimeRemark", ""),
+      button("新建记录", "primary", createRuntimeRecord),
+      button("保存当前详情", "secondary", () => detail ? updateRuntimeRecord(detail) : undefined, !detail),
+    ]);
+  }
+
+  function renderRuntimeDetail(detail?: RecordDetailVO): HTMLElement {
+    return renderDataTable(
+      "record-detail",
+      ["字段", "值", "说明"],
+      (detail?.values ?? []).map((item) => [
+        item.fieldCode,
+        formatValue(item.displayValue ?? item.value),
+        item.fieldType ?? "-",
+      ]),
+      "选择记录详情后会显示字段值。",
+    );
+  }
+
   function renderPageMetrics(items: [string, string][]): HTMLElement {
     return node("div", { className: "metric-grid" }, items.map(([value, label]) => stat(value, label)));
   }
@@ -893,6 +1256,9 @@ export function mountApp(container: HTMLElement): void {
   }
 
   async function runRouteLoad(route: AppRouteRecord): Promise<void> {
+    if (route.meta.requiredContext && !await ensureRouteSystemContext(route)) {
+      return;
+    }
     if (route.name === "platform.mySystems") {
       await execute("PLAT-001", () => mySystemsPage.loadSystems());
       return;
@@ -935,6 +1301,30 @@ export function mountApp(container: HTMLElement): void {
     }
     if (route.name === "system.dict") {
       await loadDictTypes();
+      return;
+    }
+    if (route.name === "apps.list") {
+      await loadAppsConfig();
+      return;
+    }
+    if (route.name === "modules.list") {
+      await loadModulesConfig();
+      return;
+    }
+    if (route.name === "modules.fields") {
+      await loadModuleFields();
+      return;
+    }
+    if (route.name === "modules.ui") {
+      await loadModuleUiConfig();
+      return;
+    }
+    if (route.name === "runtime.home") {
+      await loadRuntimeMenus();
+      return;
+    }
+    if (route.name === "runtime.module") {
+      await loadRuntimeModule();
       return;
     }
     const apiId = firstRunnableEndpoint(route.meta.apiIds);
@@ -1871,43 +2261,539 @@ export function mountApp(container: HTMLElement): void {
     });
   }
 
+  async function loadAppsConfig(): Promise<void> {
+    await execute("APP-001", async () => {
+      requireSystemContext();
+      const result = await refreshAppsConfig(readForm().keyword);
+      return pageModelResponse(result);
+    });
+  }
+
+  async function createAppConfig(): Promise<void> {
+    const form = readForm();
+    await execute("APP-002", async () => {
+      requireSystemContext();
+      const result = await moduleConfigPage.apps.create({
+        name: required(form.appName, "应用名称"),
+        code: required(form.appCode, "应用编码"),
+        icon: form.appIcon?.trim() || undefined,
+        description: form.appDescription?.trim() || undefined,
+        status: "ENABLED",
+      });
+      raisePageModelError(result);
+      appRuntimeState.selectedAppId = result.data?.appId;
+      await refreshAppsConfig();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function updateAppConfig(item: AppListItemVO): Promise<void> {
+    const form = readForm();
+    await execute("APP-004", async () => {
+      requireSystemContext();
+      const result = await moduleConfigPage.apps.update(item.appId, {
+        name: form.appName?.trim() || item.name,
+        code: form.appCode?.trim() || item.code,
+        icon: form.appIcon?.trim() || item.icon,
+        description: form.appDescription?.trim() || item.description,
+        status: item.status,
+        version: item.version,
+      });
+      raisePageModelError(result);
+      await refreshAppsConfig();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function toggleAppConfig(item: AppListItemVO): Promise<void> {
+    const targetStatus = item.status === "ENABLED" ? "DISABLED" : "ENABLED";
+    await execute("APP-005", async () => {
+      requireSystemContext();
+      const result = await moduleConfigPage.apps.changeStatus(item.appId, {
+        targetStatus,
+        reason: "应用配置页面操作",
+        version: item.version,
+      });
+      raisePageModelError(result);
+      await refreshAppsConfig();
+      return pageModelResponse(result);
+    });
+  }
+
+  function selectAppConfig(item: AppListItemVO): void {
+    appRuntimeState.selectedAppId = item.appId;
+    ui.settings.appId = item.appId;
+    appRuntimeState.modules = [];
+    appRuntimeState.selectedModuleId = undefined;
+    appRuntimeState.fields = [];
+    render();
+  }
+
+  async function openModulesForApp(item: AppListItemVO): Promise<void> {
+    selectAppConfig(item);
+    navigate(`/systems/${currentSystemId()}/apps/${item.appId}/modules`);
+  }
+
+  async function loadModulesConfig(): Promise<void> {
+    await execute("MOD-001", async () => {
+      requireSystemContext();
+      await ensureAppsLoaded();
+      readRouteSelection();
+      const appId = required(selectedAppId(), "应用");
+      const result = await refreshModulesConfig(appId, readForm().keyword);
+      return pageModelResponse(result);
+    });
+  }
+
+  async function switchSelectedApp(): Promise<void> {
+    const form = readForm();
+    const appId = required(form.selectedAppId, "应用");
+    appRuntimeState.selectedAppId = appId;
+    ui.settings.appId = appId;
+    appRuntimeState.modules = [];
+    appRuntimeState.selectedModuleId = undefined;
+    await loadModulesConfig();
+  }
+
+  async function createModuleConfig(): Promise<void> {
+    const form = readForm();
+    await execute("MOD-002", async () => {
+      requireSystemContext();
+      const appId = required(selectedAppId() ?? form.selectedAppId, "应用");
+      const result = await moduleConfigPage.modules.create(appId, {
+        name: required(form.moduleName, "模块名称"),
+        code: required(form.moduleCode, "模块编码"),
+        description: form.moduleDescription?.trim() || undefined,
+      });
+      raisePageModelError(result);
+      appRuntimeState.selectedModuleId = result.data?.moduleId;
+      ui.settings.moduleId = result.data?.moduleId ?? ui.settings.moduleId;
+      await refreshModulesConfig(appId);
+      return pageModelResponse(result);
+    });
+  }
+
+  async function updateModuleConfig(item: ModuleListItemVO): Promise<void> {
+    const form = readForm();
+    await execute("MOD-004", async () => {
+      requireSystemContext();
+      const result = await moduleConfigPage.modules.update(item.moduleId, {
+        name: form.moduleName?.trim() || item.name,
+        code: form.moduleCode?.trim() || item.code,
+        description: form.moduleDescription?.trim() || item.description,
+        version: item.version,
+      });
+      raisePageModelError(result);
+      await refreshModulesConfig(required(selectedAppId(), "应用"));
+      return pageModelResponse(result);
+    });
+  }
+
+  async function toggleModuleConfig(item: ModuleListItemVO): Promise<void> {
+    const targetStatus = item.status === "DISABLED" ? "DRAFT" : "DISABLED";
+    await execute("MOD-005", async () => {
+      requireSystemContext();
+      const result = await moduleConfigPage.modules.changeStatus(item.moduleId, {
+        targetStatus,
+        reason: "模块配置页面操作",
+        version: item.version,
+      });
+      raisePageModelError(result);
+      await refreshModulesConfig(required(selectedAppId(), "应用"));
+      return pageModelResponse(result);
+    });
+  }
+
+  function selectModuleConfig(item: ModuleListItemVO): void {
+    appRuntimeState.selectedModuleId = item.moduleId;
+    ui.settings.moduleId = item.moduleId;
+    appRuntimeState.fields = [];
+    appRuntimeState.runtimeSchema = undefined;
+    appRuntimeState.recordPage = undefined;
+    render();
+  }
+
+  function openFieldsForModule(item: ModuleListItemVO): void {
+    selectModuleConfig(item);
+    navigate(`/systems/${currentSystemId()}/modules/${item.moduleId}/fields`);
+  }
+
+  function openUiForModule(item: ModuleListItemVO): void {
+    selectModuleConfig(item);
+    navigate(`/systems/${currentSystemId()}/modules/${item.moduleId}/ui`);
+  }
+
+  function openRuntimeModule(item: ModuleListItemVO): void {
+    selectModuleConfig(item);
+    navigate(`/systems/${currentSystemId()}/runtime/modules/${item.moduleId}`);
+  }
+
+  function openRuntimeModuleById(moduleId: EntityId): void {
+    appRuntimeState.selectedModuleId = moduleId;
+    ui.settings.moduleId = moduleId;
+    navigate(`/systems/${currentSystemId()}/runtime/modules/${moduleId}`);
+  }
+
+  async function loadModuleFields(): Promise<void> {
+    await execute("FIELD-001", async () => {
+      requireSystemContext();
+      await ensureModulesLoaded();
+      readRouteSelection();
+      const result = await refreshModuleFields(required(selectedModuleId(), "模块"));
+      return pageModelResponse(result);
+    });
+  }
+
+  async function switchSelectedModule(): Promise<void> {
+    const form = readForm();
+    const moduleId = required(form.selectedModuleId, "模块");
+    appRuntimeState.selectedModuleId = moduleId;
+    ui.settings.moduleId = moduleId;
+    await loadModuleFields();
+  }
+
+  async function createModuleField(): Promise<void> {
+    const form = readForm();
+    await execute("FIELD-002", async () => {
+      requireSystemContext();
+      const fieldType = required(form.fieldType, "字段类型") as DynamicFieldType;
+      const result = await moduleConfigPage.fields.create(required(selectedModuleId(), "模块"), {
+        name: required(form.fieldName, "字段名称"),
+        code: required(form.fieldCode, "字段编码"),
+        fieldType,
+        required: form.fieldRequired === "true",
+        unique: form.fieldUnique === "true",
+        indexed: false,
+        options: optionSupported(fieldType) ? parseFieldOptions(form.fieldOptions) : undefined,
+        status: "ENABLED",
+        sortOrder: appRuntimeState.fields.length + 1,
+      });
+      raisePageModelError(result);
+      await refreshModuleFields(required(selectedModuleId(), "模块"));
+      return pageModelResponse(result);
+    });
+  }
+
+  async function updateModuleField(item: ModuleFieldVO): Promise<void> {
+    const form = readForm();
+    await execute("FIELD-003", async () => {
+      requireSystemContext();
+      const fieldType = (form.fieldType || item.fieldType) as DynamicFieldType;
+      const result = await moduleConfigPage.fields.update(required(selectedModuleId(), "模块"), item.fieldId, {
+        name: form.fieldName?.trim() || item.name,
+        code: form.fieldCode?.trim() || item.code,
+        fieldType,
+        required: form.fieldRequired ? form.fieldRequired === "true" : item.required,
+        unique: form.fieldUnique ? form.fieldUnique === "true" : item.unique,
+        indexed: item.indexed,
+        options: optionSupported(fieldType) ? parseFieldOptions(form.fieldOptions) || item.options : item.options,
+        status: item.status,
+        sortOrder: item.sortOrder,
+        version: item.version,
+      });
+      raisePageModelError(result);
+      await refreshModuleFields(required(selectedModuleId(), "模块"));
+      return pageModelResponse(result);
+    });
+  }
+
+  async function toggleModuleField(item: ModuleFieldVO): Promise<void> {
+    const targetStatus = item.status === "ENABLED" ? "DISABLED" : "ENABLED";
+    await execute("FIELD-004", async () => {
+      requireSystemContext();
+      const result = await moduleConfigPage.fields.changeStatus(required(selectedModuleId(), "模块"), item.fieldId, {
+        targetStatus,
+        reason: "字段配置页面操作",
+        version: item.version,
+      });
+      raisePageModelError(result);
+      await refreshModuleFields(required(selectedModuleId(), "模块"));
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadModuleUiConfig(): Promise<void> {
+    await execute("UI-LOAD", async () => {
+      requireSystemContext();
+      await ensureModulesLoaded();
+      readRouteSelection();
+      const moduleId = required(selectedModuleId(), "模块");
+      await refreshModuleFields(moduleId);
+      const [listView, formView, detailView] = await Promise.all([
+        moduleConfigPage.ui.loadListView(moduleId),
+        moduleConfigPage.ui.loadForm(moduleId),
+        moduleConfigPage.ui.loadDetail(moduleId),
+      ]);
+      raisePageModelError(listView);
+      raisePageModelError(formView);
+      raisePageModelError(detailView);
+      appRuntimeState.listSchema = listView.data;
+      appRuntimeState.formSchema = formView.data;
+      appRuntimeState.detailSchema = detailView.data;
+      return { requestId: listView.state.requestId ?? formView.state.requestId ?? detailView.state.requestId };
+    });
+  }
+
+  async function saveDefaultPageConfig(): Promise<void> {
+    await execute("UI-002/UI-004/UI-006", async () => {
+      requireSystemContext();
+      const moduleId = required(selectedModuleId(), "模块");
+      if (appRuntimeState.fields.length === 0) {
+        await refreshModuleFields(moduleId);
+      }
+      const refs = activeFieldRefs();
+      const [listView, formView, detailView] = await Promise.all([
+        moduleConfigPage.ui.saveListView(moduleId, {
+          columns: refs,
+          filters: refs.slice(0, 3),
+          sorters: [],
+        }),
+        moduleConfigPage.ui.saveForm(moduleId, {
+          formSections: [{ sectionCode: "base", title: "基础信息", fields: refs }],
+          fieldWritable: refs.map((ref) => ({ fieldCode: ref.fieldCode, writable: true })),
+        }),
+        moduleConfigPage.ui.saveDetail(moduleId, {
+          detailBlocks: [{ blockCode: "base", title: "基础信息", fields: refs }],
+        }),
+      ]);
+      raisePageModelError(listView);
+      raisePageModelError(formView);
+      raisePageModelError(detailView);
+      appRuntimeState.listSchema = listView.data;
+      appRuntimeState.formSchema = formView.data;
+      appRuntimeState.detailSchema = detailView.data;
+      return { requestId: listView.state.requestId ?? formView.state.requestId ?? detailView.state.requestId };
+    });
+  }
+
+  async function saveMenuAndActions(): Promise<void> {
+    const form = readForm();
+    await execute("UI-007/UI-008", async () => {
+      requireSystemContext();
+      const module = requiredSelectedModule();
+      const menu = await moduleConfigPage.ui.saveMenu(module.moduleId, {
+        menuCode: form.menuCode?.trim() || `${module.code}_menu`,
+        menuName: form.menuName?.trim() || module.name,
+        routePath: `/systems/${currentSystemId()}/runtime/modules/${module.moduleId}`,
+        visible: true,
+        enabled: true,
+        sortOrder: 1,
+      });
+      raisePageModelError(menu);
+      const actions = await moduleConfigPage.ui.saveActions(module.moduleId, {
+        actions: [
+          { actionCode: "RECORD_CREATE", label: "新建", visible: true, enabled: true, requiredPermission: "RECORD_CREATE" },
+          { actionCode: "RECORD_EDIT", label: "编辑", visible: true, enabled: true, requiredPermission: "RECORD_EDIT" },
+          { actionCode: "RECORD_DELETE", label: "删除", visible: true, enabled: true, requiredPermission: "RECORD_DELETE", danger: true },
+          { actionCode: "RECORD_SUBMIT", label: "提交", visible: true, enabled: true, requiredPermission: "RECORD_SUBMIT" },
+        ],
+      });
+      raisePageModelError(actions);
+      await loadRuntimeMenus();
+      return { requestId: menu.state.requestId ?? actions.state.requestId };
+    });
+  }
+
+  async function publishCheckModule(): Promise<void> {
+    await execute("MOD-006", async () => {
+      requireSystemContext();
+      const result = await moduleConfigPage.modules.publishCheck(required(selectedModuleId(), "模块"));
+      raisePageModelError(result);
+      appRuntimeState.publishCheck = result.data;
+      return pageModelResponse(result);
+    });
+  }
+
+  async function publishModuleConfig(): Promise<void> {
+    await execute("MOD-007", async () => {
+      requireSystemContext();
+      const module = requiredSelectedModule();
+      const detail = await moduleConfigPage.modules.detail(module.moduleId);
+      raisePageModelError(detail);
+      const freshModule = detail.data ?? module;
+      appRuntimeState.modules = appRuntimeState.modules.map((item) => (item.moduleId === freshModule.moduleId ? freshModule : item));
+      const result = await moduleConfigPage.modules.publish(module.moduleId, {
+        moduleVersion: freshModule.version ?? module.version ?? 1,
+        publishRemark: "页面发布",
+      });
+      raisePageModelError(result);
+      appRuntimeState.publishResult = result.data;
+      await refreshModulesConfig(required(selectedAppId(), "应用"));
+      await loadRuntimeMenus();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadRuntimeMenus(): Promise<void> {
+    await execute("RUN-001", async () => {
+      requireSystemContext();
+      const result = await runtimeWorkbench.menus.load();
+      raiseRuntimeError(result);
+      appRuntimeState.runtimeMenus = result.data ?? [];
+      return runtimeResponse(result);
+    });
+  }
+
+  async function loadRuntimeModule(): Promise<void> {
+    await execute("RUN-002/RUN-003", async () => {
+      requireSystemContext();
+      await ensureModulesLoaded();
+      readRouteSelection();
+      const moduleId = required(selectedModuleId(), "模块");
+      const schema = await runtimeWorkbench.schema.load(moduleId);
+      raiseRuntimeError(schema);
+      appRuntimeState.runtimeSchema = schema.data;
+      if (schema.data) {
+        const records = await runtimeWorkbench.records.query(moduleId, schema.data, { pageNo: 1, pageSize: 20, keyword: readForm().runtimeKeyword });
+        raiseRuntimeError(records);
+        appRuntimeState.recordPage = toRuntimeRecordPage(records.data);
+      }
+      return { requestId: schema.state.requestId };
+    });
+  }
+
+  async function loadRuntimeRecords(): Promise<void> {
+    await execute("RUN-003", async () => {
+      requireSystemContext();
+      const schema = requiredRuntimeSchema();
+      const result = await runtimeWorkbench.records.query(schema.moduleId, schema, {
+        pageNo: 1,
+        pageSize: 20,
+        keyword: readForm().runtimeKeyword,
+      });
+      raiseRuntimeError(result);
+      appRuntimeState.recordPage = toRuntimeRecordPage(result.data);
+      return runtimeResponse(result);
+    });
+  }
+
+  async function createRuntimeRecord(): Promise<void> {
+    const form = readForm();
+    await execute("RUN-004", async () => {
+      requireSystemContext();
+      const schema = requiredRuntimeSchema();
+      const result = await runtimeWorkbench.records.create(schema.moduleId, schema, runtimeValues(form, schema), form.runtimeRemark);
+      raiseRuntimeError(result);
+      await loadRuntimeRecords();
+      if (result.data?.recordId) {
+        await loadRuntimeRecordDetail(result.data.recordId);
+      }
+      return runtimeResponse(result);
+    });
+  }
+
+  async function loadRuntimeRecordDetail(recordId: EntityId): Promise<void> {
+    await execute("RUN-005", async () => {
+      requireSystemContext();
+      const schema = requiredRuntimeSchema();
+      const result = await runtimeWorkbench.records.detail(schema.moduleId, recordId, schema);
+      raiseRuntimeError(result);
+      appRuntimeState.selectedRecord = toRuntimeRecordDetail(result.data);
+      return runtimeResponse(result);
+    });
+  }
+
+  async function updateRuntimeRecord(item: Pick<RecordListItemVO | RecordDetailVO, "recordId" | "recordVersion">): Promise<void> {
+    const form = readForm();
+    await execute("RUN-006", async () => {
+      requireSystemContext();
+      const schema = requiredRuntimeSchema();
+      const result = await runtimeWorkbench.records.update(
+        schema.moduleId,
+        item.recordId,
+        schema,
+        item.recordVersion,
+        runtimeValues(form, schema),
+        form.runtimeRemark,
+      );
+      raiseRuntimeError(result);
+      await loadRuntimeRecords();
+      await loadRuntimeRecordDetail(item.recordId);
+      return runtimeResponse(result);
+    });
+  }
+
+  async function submitRuntimeRecord(item: Pick<RecordListItemVO | RecordDetailVO, "recordId" | "recordVersion">): Promise<void> {
+    await execute("RUN-008", async () => {
+      requireSystemContext();
+      const schema = requiredRuntimeSchema();
+      const result = await runtimeWorkbench.records.submit(schema.moduleId, item.recordId, {
+        recordVersion: item.recordVersion,
+        reason: "页面提交",
+      });
+      raiseRuntimeError(result);
+      await loadRuntimeRecords();
+      await loadRuntimeRecordDetail(item.recordId);
+      return runtimeResponse(result);
+    });
+  }
+
+  async function loadRuntimeHistory(recordId: EntityId): Promise<void> {
+    await execute("RUN-009", async () => {
+      requireSystemContext();
+      const schema = requiredRuntimeSchema();
+      const result = await runtimeWorkbench.records.history(schema.moduleId, recordId, schema);
+      raiseRuntimeError(result);
+      appRuntimeState.recordHistory = toRuntimeHistory(result.data);
+      return runtimeResponse(result);
+    });
+  }
+
   async function enterSystem(systemId: string): Promise<void> {
     await execute("SYS-001", async () => {
-      systemContextStore.beginEnter(systemId);
-      permissionStore.beginRefresh();
-      const response = await apiClient.call<SystemEnterVO>("SYS-001", {
-        pathParams: { systemId },
-      });
-      const entered = response.data;
-      systemState.profile = entered;
-      systemState.tenants = entered.tenants ?? (entered.currentTenant ? [entered.currentTenant] : []);
-      systemContextStore.setContext({
-        system: {
-          systemId: entered.systemId,
-          systemCode: entered.systemCode,
-          systemName: entered.systemName,
-          tenantMode: entered.tenantMode,
-          status: entered.status as "DRAFT" | "ENABLED" | "DISABLED" | "ARCHIVED",
-        },
-        tenant: entered.currentTenant
-          ? {
-              tenantId: entered.currentTenant.tenantId,
-              tenantCode: entered.currentTenant.code,
-              tenantName: entered.currentTenant.name,
-              status: entered.currentTenant.status as "ENABLED" | "DISABLED",
-            }
-          : undefined,
-        member: {
-          memberId: entered.currentMember.memberId,
-          displayName: entered.currentMember.displayName,
-          roles: entered.currentMember.roles ?? entered.currentMember.roleIds ?? [],
-          status: entered.currentMember.status,
-        },
-      });
-      permissionStore.setEffectivePermission(toEffectivePermission(entered), entered.permissions?.menus ?? []);
+      const result = await enterSystemContext(systemId);
       navigate(`/systems/${systemId}/profile`);
-      return { requestId: response.requestId };
+      return result;
     });
+  }
+
+  async function ensureRouteSystemContext(route: AppRouteRecord): Promise<boolean> {
+    const systemId = routeSystemId();
+    if (!systemId) {
+      return false;
+    }
+    const state = systemContextStore.getState();
+    if (state.status === "ready" && state.current?.system.systemId === systemId) {
+      return true;
+    }
+    await execute("SYS-001", async () => enterSystemContext(systemId));
+    return systemContextStore.getState().status === "ready";
+  }
+
+  async function enterSystemContext(systemId: string): Promise<{ requestId?: string }> {
+    systemContextStore.beginEnter(systemId);
+    permissionStore.beginRefresh();
+    const response = await apiClient.call<SystemEnterVO>("SYS-001", {
+      pathParams: { systemId },
+    });
+    const entered = response.data;
+    systemState.profile = entered;
+    systemState.tenants = entered.tenants ?? (entered.currentTenant ? [entered.currentTenant] : []);
+    systemContextStore.setContext({
+      system: {
+        systemId: entered.systemId,
+        systemCode: entered.systemCode,
+        systemName: entered.systemName,
+        tenantMode: entered.tenantMode,
+        status: entered.status as "DRAFT" | "ENABLED" | "DISABLED" | "ARCHIVED",
+      },
+      tenant: entered.currentTenant
+        ? {
+            tenantId: entered.currentTenant.tenantId,
+            tenantCode: entered.currentTenant.code,
+            tenantName: entered.currentTenant.name,
+            status: entered.currentTenant.status as "ENABLED" | "DISABLED",
+          }
+        : undefined,
+      member: {
+        memberId: entered.currentMember.memberId,
+        displayName: entered.currentMember.displayName,
+        roles: entered.currentMember.roles ?? entered.currentMember.roleIds ?? [],
+        status: entered.currentMember.status,
+      },
+    });
+    permissionStore.setEffectivePermission(toEffectivePermission(entered), entered.permissions?.menus ?? []);
+    return { requestId: response.requestId };
   }
 
   async function execute<T>(scope: string, action: () => Promise<T>): Promise<void> {
@@ -2092,6 +2978,309 @@ export function mountApp(container: HTMLElement): void {
     return systemState.dictTypes.find((item) => item.dictTypeId === systemState.selectedDictTypeId);
   }
 
+  async function refreshAppsConfig(keyword?: string) {
+    const result = await moduleConfigPage.apps.load({ pageNo: 1, pageSize: 50, keyword });
+    raisePageModelError(result);
+    appRuntimeState.apps = result.data ?? [];
+    if (!appRuntimeState.selectedAppId && appRuntimeState.apps[0]) {
+      appRuntimeState.selectedAppId = appRuntimeState.apps[0].appId;
+      ui.settings.appId = appRuntimeState.apps[0].appId;
+    }
+    return result;
+  }
+
+  async function refreshModulesConfig(appId: EntityId, keyword?: string) {
+    const result = await moduleConfigPage.modules.load(appId, { pageNo: 1, pageSize: 50, keyword });
+    raisePageModelError(result);
+    appRuntimeState.modules = result.data ?? [];
+    if (!appRuntimeState.selectedModuleId && appRuntimeState.modules[0]) {
+      appRuntimeState.selectedModuleId = appRuntimeState.modules[0].moduleId;
+      ui.settings.moduleId = appRuntimeState.modules[0].moduleId;
+    }
+    return result;
+  }
+
+  async function refreshModuleFields(moduleId: EntityId) {
+    const [fields, fieldTypes] = await Promise.all([
+      moduleConfigPage.fields.load(moduleId),
+      moduleConfigPage.fields.fieldTypes(),
+    ]);
+    raisePageModelError(fields);
+    raisePageModelError(fieldTypes);
+    appRuntimeState.fields = fields.data ?? [];
+    appRuntimeState.fieldTypes = fieldTypes.data ?? [];
+    return fields;
+  }
+
+  async function ensureAppsLoaded(): Promise<void> {
+    if (appRuntimeState.apps.length === 0) {
+      await refreshAppsConfig();
+    }
+  }
+
+  async function ensureModulesLoaded(): Promise<void> {
+    await ensureAppsLoaded();
+    if (appRuntimeState.modules.length === 0 && selectedAppId()) {
+      await refreshModulesConfig(required(selectedAppId(), "应用"));
+    }
+  }
+
+  function readRouteSelection(): void {
+    const path = getCurrentPath();
+    const appMatch = path.match(/\/apps\/([^/]+)\/modules/);
+    if (appMatch?.[1] && appMatch[1] !== "current") {
+      appRuntimeState.selectedAppId = decodeURIComponent(appMatch[1]);
+      ui.settings.appId = appRuntimeState.selectedAppId;
+    }
+    const runtimeModuleMatch = path.match(/\/runtime\/modules\/([^/]+)/);
+    const configModuleMatch = path.match(/\/modules\/([^/]+)(?:\/fields|\/ui|$)/);
+    const moduleId = runtimeModuleMatch?.[1] ?? configModuleMatch?.[1];
+    if (moduleId && moduleId !== "current") {
+      appRuntimeState.selectedModuleId = decodeURIComponent(moduleId);
+      ui.settings.moduleId = appRuntimeState.selectedModuleId;
+    }
+  }
+
+  function routeSystemId(): string | undefined {
+    const match = getCurrentPath().match(/\/systems\/([^/]+)/);
+    return match?.[1] && match[1] !== "preview-system" ? decodeURIComponent(match[1]) : undefined;
+  }
+
+  function selectedAppId(): EntityId | undefined {
+    return appRuntimeState.selectedAppId;
+  }
+
+  function selectedModuleId(): EntityId | undefined {
+    return appRuntimeState.selectedModuleId;
+  }
+
+  function selectedApp(): AppListItemVO | undefined {
+    return appRuntimeState.apps.find((item) => item.appId === appRuntimeState.selectedAppId);
+  }
+
+  function selectedModule(): ModuleListItemVO | undefined {
+    return appRuntimeState.modules.find((item) => item.moduleId === appRuntimeState.selectedModuleId);
+  }
+
+  function requiredSelectedModule(): ModuleListItemVO {
+    const module = selectedModule();
+    if (!module) {
+      throw new Error("请先选择模块");
+    }
+    return module;
+  }
+
+  function requiredRuntimeSchema(): RuntimeModuleSchemaVO {
+    if (!appRuntimeState.runtimeSchema) {
+      throw new Error("请先加载运行 schema");
+    }
+    return appRuntimeState.runtimeSchema;
+  }
+
+  function currentSystemId(): EntityId {
+    return required(systemContextStore.getState().current?.system.systemId ?? ui.settings.systemId, "系统");
+  }
+
+  function appSelectOptions(): [string, string][] {
+    return [
+      ["", "请选择应用"],
+      ...appRuntimeState.apps.map((item) => [item.appId, `${item.name} / ${item.code}`] as [string, string]),
+    ];
+  }
+
+  function moduleSelectOptions(): [string, string][] {
+    return [
+      ["", "请选择模块"],
+      ...appRuntimeState.modules.map((item) => [item.moduleId, `${item.name} / ${item.code}`] as [string, string]),
+    ];
+  }
+
+  function fieldTypeOptions(): [string, string][] {
+    const types = appRuntimeState.fieldTypes.length > 0
+      ? appRuntimeState.fieldTypes.map((item) => ({ code: String(item.code), name: item.name }))
+      : moduleConfigPage.fieldDesigner.availableFieldTypes.map((item) => ({ code: item, name: item }));
+    return types.map((item) => [item.code, item.name || item.code]);
+  }
+
+  function optionSupported(fieldType: string): boolean {
+    return ["SELECT", "MULTI_SELECT", "RADIO", "CHECKBOX", "DICT"].includes(fieldType);
+  }
+
+  function parseFieldOptions(value?: string) {
+    const text = value?.trim();
+    if (!text) {
+      return undefined;
+    }
+    return text.split(",").map((item, index) => {
+      const [code, label] = item.split(":").map((part) => part.trim());
+      return {
+        code: code || `OPT_${index + 1}`,
+        label: label || code || `选项${index + 1}`,
+        value: code || `OPT_${index + 1}`,
+        enabled: true,
+        sortOrder: index + 1,
+      };
+    });
+  }
+
+  function activeFieldRefs() {
+    return appRuntimeState.fields
+      .filter((field) => field.status !== "DELETED")
+      .map((field, index) => ({
+        fieldCode: field.code,
+        fieldId: field.fieldId,
+        label: field.name,
+        visible: true,
+        required: field.required,
+        width: index === 0 ? 220 : 160,
+      }));
+  }
+
+  function schemaSummary(schema?: PageSchemaVO): string {
+    if (!schema) {
+      return "-";
+    }
+    return formatValue(schema.schema).slice(0, 180);
+  }
+
+  function flattenRuntimeMenus(menus: RuntimeMenuVO[] = []): RuntimeMenuVO[] {
+    return menus.flatMap((menu) => [menu, ...flattenRuntimeMenus(menu.children ?? [])]);
+  }
+
+  function renderRuntimeFieldInput(label: string, name: string, value: string): HTMLElement {
+    return input(label, name, value);
+  }
+
+  function p10Seed(): string {
+    return new Date().toISOString().replace(/\D/g, "").slice(8, 14);
+  }
+
+  function defaultRuntimeFieldValue(field: RuntimeModuleSchemaVO["fieldDefinitions"][number]): string {
+    const seed = p10Seed();
+    if (["NUMBER", "DECIMAL", "MONEY"].includes(field.fieldType)) {
+      return "100";
+    }
+    if (field.fieldType === "DATE") {
+      return "2026-06-09";
+    }
+    if (field.fieldType === "DATETIME") {
+      return "2026-06-09T10:00:00";
+    }
+    if (["SELECT", "RADIO", "DICT"].includes(field.fieldType)) {
+      return "A";
+    }
+    if (["MULTI_SELECT", "CHECKBOX", "TAG"].includes(field.fieldType)) {
+      return "A,B";
+    }
+    if (String(field.fieldType) === "SWITCH" || String(field.fieldType) === "BOOLEAN") {
+      return "true";
+    }
+    return `P10记录${seed}`;
+  }
+
+  function runtimeValues(form: Record<string, string>, schema: RuntimeModuleSchemaVO): Record<string, unknown> {
+    return Object.fromEntries(schema.fieldDefinitions
+      .filter((field) => field.status !== "DELETED")
+      .map((field) => {
+        const fieldCode = runtimeFieldCode(field);
+        const raw = form[`runtime_${fieldCode}`] ?? "";
+        if (["NUMBER", "DECIMAL", "MONEY"].includes(field.fieldType)) {
+          return [fieldCode, raw === "" ? null : Number(raw)];
+        }
+        if (["MULTI_SELECT", "CHECKBOX", "TAG"].includes(field.fieldType)) {
+          return [fieldCode, splitValues(raw)];
+        }
+        if (String(field.fieldType) === "SWITCH" || String(field.fieldType) === "BOOLEAN") {
+          return [fieldCode, raw === "true" || raw === "是" || raw === "1"];
+        }
+        return [fieldCode, raw];
+      }));
+  }
+
+  function runtimeFieldCode(field: RuntimeModuleSchemaVO["fieldDefinitions"][number]): string {
+    const source = field as RuntimeModuleSchemaVO["fieldDefinitions"][number] & { code?: string };
+    return field.fieldCode || source.code || "";
+  }
+
+  function runtimeFieldName(field: RuntimeModuleSchemaVO["fieldDefinitions"][number]): string {
+    const source = field as RuntimeModuleSchemaVO["fieldDefinitions"][number] & { name?: string; code?: string };
+    return field.fieldName || source.name || field.fieldCode || source.code || "未命名字段";
+  }
+
+  function toRuntimeRecordPage(value: unknown): PageResult<RecordListItemVO> | undefined {
+    if (!value) {
+      return undefined;
+    }
+    if (isRecord(value) && isRecord(value.page)) {
+      return value.page as unknown as PageResult<RecordListItemVO>;
+    }
+    if (isRecord(value) && Array.isArray(value.records)) {
+      return value as unknown as PageResult<RecordListItemVO>;
+    }
+    return undefined;
+  }
+
+  function toRuntimeRecordDetail(value: unknown): RecordDetailVO | undefined {
+    if (!value) {
+      return undefined;
+    }
+    if (isRecord(value) && isRecord(value.record)) {
+      return value.record as unknown as RecordDetailVO;
+    }
+    if (isRecord(value) && value.recordId) {
+      return value as unknown as RecordDetailVO;
+    }
+    return undefined;
+  }
+
+  function toRuntimeHistory(value: unknown): RuntimeRecordHistoryVO[] {
+    if (Array.isArray(value)) {
+      return value as RuntimeRecordHistoryVO[];
+    }
+    if (isRecord(value) && Array.isArray(value.history)) {
+      return value.history as RuntimeRecordHistoryVO[];
+    }
+    return [];
+  }
+
+  function pageModelResponse(result: { state: { requestId?: string }; data?: unknown }) {
+    return {
+      requestId: result.state.requestId,
+      data: result.data,
+      code: "COMMON_OK",
+    };
+  }
+
+  function runtimeResponse(result: { state: { requestId?: string }; data?: unknown }) {
+    return {
+      requestId: result.state.requestId,
+      data: result.data,
+      code: "COMMON_OK",
+    };
+  }
+
+  function raisePageModelError(result: { state: { errorMessage?: string; requestId?: string } }): void {
+    if (result.state.errorMessage) {
+      throw new Error(`${result.state.errorMessage}${result.state.requestId ? `，请求号 ${result.state.requestId}` : ""}`);
+    }
+  }
+
+  function raiseRuntimeError(result: { state: { errorMessage?: string; requestId?: string } }): void {
+    if (result.state.errorMessage) {
+      throw new Error(`${result.state.errorMessage}${result.state.requestId ? `，请求号 ${result.state.requestId}` : ""}`);
+    }
+  }
+
+  function formatValue(value: unknown): string {
+    if (value === undefined || value === null || value === "") {
+      return "-";
+    }
+    if (typeof value === "string") {
+      return value;
+    }
+    return JSON.stringify(value);
+  }
+
   function permissionCatalogLabel(catalog?: PermissionCatalogVO): string {
     if (!catalog) {
       return "未加载";
@@ -2160,8 +3349,8 @@ export function mountApp(container: HTMLElement): void {
     return {
       systemId: current?.system.systemId ?? ui.settings.systemId,
       tenantId: current?.tenant?.tenantId ?? ui.settings.tenantId,
-      appId: ui.settings.appId,
-      moduleId: ui.settings.moduleId,
+      appId: appRuntimeState.selectedAppId ?? ui.settings.appId,
+      moduleId: appRuntimeState.selectedModuleId ?? ui.settings.moduleId,
       accountId: "preview-account",
       roleId: "preview-role",
       memberId: current?.member?.memberId ?? "preview-member",
@@ -2197,6 +3386,12 @@ export function mountApp(container: HTMLElement): void {
       "system.departments",
       "system.roles",
       "system.dict",
+      "apps.list",
+      "modules.list",
+      "modules.fields",
+      "modules.ui",
+      "runtime.home",
+      "runtime.module",
     ]);
     if (!autoLoadNames.has(route.name) || autoLoadedRoutes.has(route.name) || ui.busy) {
       return;

@@ -6,17 +6,17 @@
 
 | 项目 | 数量 |
 | --- | ---: |
-| 开发执行任务总数 | 55 |
-| 已完成 | 55 |
+| 开发执行任务总数 | 61 |
+| 已完成 | 61 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
 | 剩余 | 0 |
 
 当前模式：`development`
 
-当前期次：`P9-system-management-ui`
+当前期次：`P10-app-runtime-ui`
 
-当前状态：`P9_system_management_ui_accepted`
+当前状态：`P10_app_runtime_ui_accepted`
 
 ## 分期进度
 
@@ -31,7 +31,8 @@
 | P6-final-acceptance | 集成验收与上线判断期 | blocked(frontend-ui) | 原全项目可上线结论已撤回 | 已进入 P7/P8 前端补齐回环 |
 | P7-frontend-ui-deploy | 前端真实 UI 与部署包期 | accepted | 前端工程入口、dist、nginx 同源部署和组合 E2E 已完成 | 已通过 PM 阶段验收 |
 | P8-platform-ui-crud | 平台中心可用化期 | accepted | FE-014 平台系统/账号/角色/配置 CRUD UI 已完成 | 已进入 P9 |
-| P9-system-management-ui | 系统管理域可用化期 | accepted | FE-015、TEST-007、VAL-005、REV-005 已完成；成员、部门、系统角色、字典真实浏览器写操作 E2E 通过 | 继续规划 P10 应用/模块/运行台可用化 |
+| P9-system-management-ui | 系统管理域可用化期 | accepted | FE-015、TEST-007、VAL-005、REV-005 已完成；成员、部门、系统角色、字典真实浏览器写操作 E2E 通过 | 已进入 P10 |
+| P10-app-runtime-ui | 应用模块与运行台可用化期 | accepted | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006 已完成；应用、模块、字段、页面配置、发布和运行台记录浏览器 E2E 通过 | 下一期进入 P11 流程、文件导出、OpenAPI 与审计运维可用化 |
 
 ## 角色完成度
 
@@ -40,10 +41,10 @@
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
 | Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；OpenAPI accessKey 错误码回环与 P9 权限版本递增修复已验证。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
-| Frontend | 14 | 0 | 0 | FE-001 至 FE-015 已完成；P9 已补成员、部门、系统角色、字典真实 UI 和表单化写操作。 |
-| Test | 6 | 0 | 0 | TEST-001 至 TEST-007 已完成；P9 浏览器写操作 E2E pass。 |
-| Validator | 5 | 0 | 0 | VAL-001 至 VAL-005 已完成；P9 前后端构建通过。 |
-| Reviewer | 5 | 0 | 0 | REV-001 至 REV-005 已完成；P9 pass，完整项目仍需 P10-P12。 |
+| Frontend | 17 | 0 | 0 | FE-001 至 FE-018 已完成；P10 应用、模块、字段、页面配置、发布和运行台真实 UI 已通过。 |
+| Test | 7 | 0 | 0 | TEST-001 至 TEST-008 已完成；P10 浏览器写操作 E2E 通过。 |
+| Validator | 6 | 0 | 0 | VAL-001 至 VAL-006 已完成；P10 前端 build 与后端 package 通过。 |
+| Reviewer | 6 | 0 | 0 | REV-001 至 REV-006 已完成；完整项目仍需 P11/P12。 |
 
 ## 当前 Agent 状态
 
@@ -71,6 +72,12 @@
 | frontend | FE-010 | done | 文件与导出页面模型 | FILE-001 至 FILE-006、EXP-001 至 EXP-008 页面模型、附件字段写回、导出轮询、重试/取消禁用态和契约证据完成。 |
 | frontend | FE-012 | done | 前端契约闭环自检 | 已生成 `frontend/docs/api-contract-map.md` 与 `frontend/docs/frontend-self-check.md`，无旁路请求，typecheck/build 受前端工程入口缺失限制。 |
 | frontend | FE-014 | done | 平台中心 CRUD UI | 平台系统、平台账号、平台角色、平台配置已升级为真实业务页面，前端 clean build 与浏览器 smoke 通过。 |
+| frontend | FE-016 | done | 应用与模块配置真实 UI | 应用/模块真实列表、创建、编辑、状态和上下文选择已完成。 |
+| frontend | FE-017 | done | 字段页面配置与发布真实 UI | 字段、页面 schema、菜单动作、发布检查和发布已完成。 |
+| frontend | FE-018 | done | 运行台记录真实 UI | 运行台菜单、schema、记录新建、详情、编辑、历史和提交入口已完成。 |
+| test | TEST-008 | done | P10 应用配置到运行台浏览器 E2E | 浏览器页面真实写操作通过，记录见 `docs/test_runs/p10-app-runtime-ui-e2e-20260609.md`。 |
+| validator | VAL-006 | done | P10 clean build 与后端 package | 前端 build、后端 compile/package 通过，记录见 `docs/build/p10-clean-build.md`。 |
+| reviewer | REV-006 | done | P10 应用运行台审查 | P10 pass，完整项目仍需 P11/P12，记录见 `docs/issues/verification/development/p10_reviewer_verification.md`。 |
 | test | TEST-003 | done | `docs/test_runs/e2e-main-chain.md` | backend API 主链路通过；前端真实浏览器刷新与页面联动因工程入口缺失留待 TEST-005 汇总风险。 |
 | test | TEST-004 | done | `docs/test_runs/permission-exception-idempotency-openapi.md` | 未登录、错误凭证、OpenAPI 缺少 AK 和创建系统幂等冲突 smoke 场景通过。 |
 | test | TEST-005 | done | `docs/test_report.md` | 后端 API 集成 smoke 通过；整体测试结论 fail，target=frontend。 |
@@ -202,7 +209,7 @@
 
 ## 下一步
 
-当前项目已具备 P8 平台中心和系统资料/租户试部署体验条件。下一步建议在用户部署环境用 `platform_admin / 123123aa` 验证平台系统、账号、角色、配置、系统资料和租户页面；后续继续推进成员、部门、角色、字典、应用模块、运行台、流程、文件、OpenAPI、审计运维的可视化可用化。
+P10 已通过验收，最新部署包为 `dist/unexamine-full-deploy-20260609-162432.zip`。下一期进入 P11 流程、文件导出、OpenAPI 与审计运维可用化。P10 通过后仍不能声明完整系统可上线，后续还需 P11/P12 可视化可用化期次。
 # 项目进度看板
 
 ## 2026-06-09 PM 最新结论

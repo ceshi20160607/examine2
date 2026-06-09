@@ -713,11 +713,19 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
     }
 
     private String resolveTitle(Model model, List<RecordValue> values) {
-        return values.stream()
+        String title = values.stream()
                 .filter(value -> Objects.equals(value.getFieldId(), model.getTitleFieldId()))
                 .findFirst()
                 .map(RecordValue::getValueText)
                 .filter(StringUtils::hasText)
+                .orElse(null);
+        if (StringUtils.hasText(title)) {
+            return title;
+        }
+        return values.stream()
+                .map(RecordValue::getValueText)
+                .filter(StringUtils::hasText)
+                .findFirst()
                 .orElse("未命名记录");
     }
 
