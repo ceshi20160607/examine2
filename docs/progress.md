@@ -202,3 +202,18 @@
 ## 下一步
 
 当前项目已具备 P8 平台中心和系统资料/租户试部署体验条件。下一步建议在用户部署环境用 `platform_admin / 123123aa` 验证平台系统、账号、角色、配置、系统资料和租户页面；后续继续推进成员、部门、角色、字典、应用模块、运行台、流程、文件、OpenAPI、审计运维的可视化可用化。
+# 项目进度看板
+
+## 2026-06-09 PM 最新结论
+
+本机已启动后端 `http://127.0.0.1:9999` 和前端 `http://127.0.0.1:5173`，并按系统功能链路执行验证，记录见 `docs/test_runs/local-full-project-api-flow-20260609.md`。
+
+结论：
+
+- 后端/接口功能链路：pass。AUTH、PLATFORM、SYSTEM、MEMBER/RBAC、DICT、MODULE/RUNTIME、FLOW、FILE、OPENAPI、AUDIT/OPS 共 10 个功能域已通过本机真实接口流。
+- 后端构建验证：pass。`mvn.cmd -pl examine-web -am test` 通过，68 个测试通过；`mvn.cmd -pl examine-web -am clean package -DskipTests` 通过。
+- 本次真实修复：文件预览/下载响应包装、流程草稿版本非空字段、OpenAPI 长 ID 字符串序列化、页面 schema 首次保存 `schema_json` 非空字段。
+- PM 纠偏：不能再把 P8 平台页面验收直接称为“完整系统已完成”。当前后端核心功能可验收；前端完整系统仍需继续补齐成员、部门、角色、字典、应用模块、运行台、流程、文件、OpenAPI、审计运维等真实业务 UI。
+- 当前推荐下一阶段：进入“前端完整业务可用化阶段”，由 PM/Planner 重新拆分可视化模块，不再要求用户反复说“继续”来推进同一期目标。
+
+---

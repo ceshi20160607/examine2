@@ -232,8 +232,12 @@ public class FlowManageServiceImpl implements FlowManageService, FlowRecordRunti
                         .setVersionNo(nextVersionNo(systemId, templateId))
                         .setStatus(DRAFT)
                         .setCreatedAt(LocalDateTime.now()));
+        LocalDateTime now = LocalDateTime.now();
         draft.setGraphSnapshotJson(writeJson(graphBO))
-                .setUpdatedAt(LocalDateTime.now());
+                // 当前表结构要求发布人/发布时间非空，草稿版本先记录最后编辑人，正式发布时再写正式发布版本。
+                .setPublishedBy(currentMemberId())
+                .setPublishedAt(now)
+                .setUpdatedAt(now);
         if (Objects.isNull(draft.getId())) {
             templateVersionService.save(draft);
         } else {

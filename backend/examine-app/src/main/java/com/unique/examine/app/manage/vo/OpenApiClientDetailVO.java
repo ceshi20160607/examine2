@@ -3,6 +3,8 @@ package com.unique.examine.app.manage.vo;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.unique.examine.app.manage.bo.OpenApiRateLimitPolicyDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -17,6 +19,7 @@ import lombok.Data;
 public class OpenApiClientDetailVO {
 
     @Schema(description = "客户端 ID")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long clientId;
 
     @Schema(description = "accessKey")
@@ -29,9 +32,11 @@ public class OpenApiClientDetailVO {
     private String maskedSecret;
 
     @Schema(description = "系统 ID")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long systemId;
 
     @Schema(description = "租户 ID")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long tenantId;
 
     @Schema(description = "客户端编码")

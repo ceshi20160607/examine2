@@ -550,6 +550,8 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
         String normalizedType = normalizePageType(pageType);
         validatePageFieldRefs(systemId, moduleId, saveBO.getSchema());
         PageSchema schema = pageSchema(systemId, moduleId, normalizedType);
+        LocalDateTime now = LocalDateTime.now();
+        String schemaJson = toJson(saveBO.getSchema());
         if (Objects.isNull(schema)) {
             schema = new PageSchema()
                     .setSystemId(systemId)
@@ -563,18 +565,21 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
                     .setVersion(1)
                     .setDeleteMarker(ACTIVE_DELETE_MARKER)
                     .setCreatedBy(currentMemberId())
-                    .setCreatedAt(LocalDateTime.now());
+                    .setCreatedAt(now)
+                    .setSchemaJson(schemaJson)
+                    .setUpdatedBy(currentMemberId())
+                    .setUpdatedAt(now);
             pageSchemaService.save(schema);
         } else {
             ensureVersion(schema.getDraftVersion(), saveBO.getDraftVersion(),
                     ModuleConfigErrorCode.MODULE_CONFIG_VERSION_CONFLICT);
             schema.setDraftVersion(nextVersion(schema.getDraftVersion()))
-                    .setVersion(nextVersion(schema.getVersion()));
+                    .setVersion(nextVersion(schema.getVersion()))
+                    .setSchemaJson(schemaJson)
+                    .setUpdatedBy(currentMemberId())
+                    .setUpdatedAt(now);
+            pageSchemaService.updateById(schema);
         }
-        schema.setSchemaJson(toJson(saveBO.getSchema()))
-                .setUpdatedBy(currentMemberId())
-                .setUpdatedAt(LocalDateTime.now());
-        pageSchemaService.updateById(schema);
         touchModule(model);
         return toPageSchemaVO(schema);
     }

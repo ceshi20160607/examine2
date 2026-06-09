@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-09T00:43:00+08:00",
+    "updated_at":  "2026-06-09T10:12:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2332,5 +2332,5 @@
                                                          "next_phase":  "user-trial-deploy"
                                                      }
                          },
-    "last_completed_batch":  "DEV-BATCH-P8-LOCAL-FULL-BROWSER-FLOW"
+    "last_completed_batch":  "DEV-BATCH-P8-LOCAL-FULL-PROJECT-API-FLOW"
 }

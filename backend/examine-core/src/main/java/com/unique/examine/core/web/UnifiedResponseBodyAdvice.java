@@ -6,7 +6,9 @@ import com.unique.examine.core.common.response.ApiResponse;
 import com.unique.examine.core.common.response.ApiResponseFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
@@ -32,7 +34,9 @@ public class UnifiedResponseBodyAdvice implements ResponseBodyAdvice<Object> {
      */
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        return true;
+        Class<?> parameterType = returnType.getParameterType();
+        return !ResponseEntity.class.isAssignableFrom(parameterType)
+                && !Resource.class.isAssignableFrom(parameterType);
     }
 
     /**

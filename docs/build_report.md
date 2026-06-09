@@ -72,3 +72,17 @@
 ## Validator 结论
 
 P8 已在 P7 可部署前端基础上补齐平台中心核心 CRUD UI。部署版前端默认走 nginx 同源 `/api/v1/...`，平台中心按钮和接口调用继续通过 typed PageModel 与权限动作控制。当前结论为 pass。
+# 2026-06-09 本机全系统验证构建摘要
+
+结论：后端构建与全系统接口链路通过，记录见 `docs/test_runs/local-full-project-api-flow-20260609.md`。
+
+| 项目 | 结果 |
+| --- | --- |
+| `mvn.cmd -pl examine-web -am test` | pass，8 个 Maven 模块共 68 个测试通过 |
+| `mvn.cmd -pl examine-web -am clean package -DskipTests` | pass，生成 `backend/examine-web/target/unexamine.jar` |
+| 本机后端 | pass，`http://127.0.0.1:9999` 已启动 |
+| 本机前端 | pass，`http://127.0.0.1:5173` 已监听 |
+| 全系统接口链路 | pass，AUTH、PLATFORM、SYSTEM、MEMBER/RBAC、DICT、MODULE/RUNTIME、FLOW、FILE、OPENAPI、AUDIT/OPS 均通过 |
+| PM 注意事项 | 前端完整业务 UI 仍需按模块继续补齐，不能用本次后端接口链路 pass 代替完整前端验收 |
+
+---
