@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -54,11 +56,45 @@ public class SystemContextController {
      * @return 系统上下文
      */
     @Operation(summary = "进入系统")
-    @PostMapping("/enter")
+    @PostMapping(value = "/enter", consumes = MediaType.APPLICATION_JSON_VALUE)
     public SystemContextVO enter(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @PathVariable Long systemId, @RequestBody(required = false) SystemEnterBO enterBO) {
-        return systemRbacService.enterSystem(currentAccountId(authorization), systemId,
-                enterBO == null ? new SystemEnterBO() : enterBO);
+        return enterWithBody(authorization, systemId, enterBO == null ? new SystemEnterBO() : enterBO);
+    }
+
+    /**
+     * 兼容无请求体或表单 Content-Type 的系统进入请求。
+     *
+     * @param authorization Authorization 请求头
+     * @param systemId 系统 ID
+     * @param tenantId 租户 ID
+     * @return 系统上下文
+     */
+    @Operation(summary = "进入系统")
+    @PostMapping(value = "/enter", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public SystemContextVO enterForm(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @PathVariable Long systemId, @RequestParam(required = false) String tenantId) {
+        SystemEnterBO enterBO = new SystemEnterBO();
+        enterBO.setTenantId(tenantId);
+        return enterWithBody(authorization, systemId, enterBO);
+    }
+
+    /**
+     * 兼容未声明 Content-Type 的空请求体系统进入请求。
+     *
+     * @param authorization Authorization 请求头
+     * @param systemId 系统 ID
+     * @return 系统上下文
+     */
+    @Operation(summary = "进入系统")
+    @PostMapping(value = "/enter", consumes = MediaType.ALL_VALUE)
+    public SystemContextVO enterEmpty(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @PathVariable Long systemId) {
+        return enterWithBody(authorization, systemId, new SystemEnterBO());
+    }
+
+    private SystemContextVO enterWithBody(String authorization, Long systemId, SystemEnterBO enterBO) {
+        return systemRbacService.enterSystem(currentAccountId(authorization), systemId, enterBO);
     }
 
     /**

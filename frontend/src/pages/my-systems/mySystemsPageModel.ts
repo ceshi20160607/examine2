@@ -175,7 +175,7 @@ export function createMySystemsPageModel(dependencies: MySystemsPageModelDepende
     try {
       const response = await dependencies.apiClient.call<EnterSystemResponse, { tenantId?: EntityId }>("SYS-001", {
         pathParams: { systemId },
-        body: selectedTenantId ? { tenantId: selectedTenantId } : undefined,
+        body: selectedTenantId ? { tenantId: selectedTenantId } : {},
         context: {
           ...auth.toApiContext(requestId),
           tenantId: selectedTenantId,

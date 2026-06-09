@@ -2765,6 +2765,7 @@ export function mountApp(container: HTMLElement): void {
     permissionStore.beginRefresh();
     const response = await apiClient.call<SystemEnterVO>("SYS-001", {
       pathParams: { systemId },
+      body: {},
     });
     const entered = response.data;
     systemState.profile = entered;
@@ -3393,10 +3394,11 @@ export function mountApp(container: HTMLElement): void {
       "runtime.home",
       "runtime.module",
     ]);
-    if (!autoLoadNames.has(route.name) || autoLoadedRoutes.has(route.name) || ui.busy) {
+    const routeLoadKey = `${route.name}:${getCurrentPath()}:${systemContextStore.getState().current?.member.memberId ?? ""}`;
+    if (!autoLoadNames.has(route.name) || autoLoadedRoutes.has(routeLoadKey) || ui.busy) {
       return;
     }
-    autoLoadedRoutes.add(route.name);
+    autoLoadedRoutes.add(routeLoadKey);
     void runRouteLoad(route);
   }
 
