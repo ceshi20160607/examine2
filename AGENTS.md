@@ -51,7 +51,15 @@
 * 如果发现任务、API、DB 或 PRD 矛盾，必须登记问题交 PM 决策；不得私自修改冻结 API 或扩大实现范围。
 * 如果 PM 不能决策，必须整理到 `docs/issues/user_questions.md`，等待用户处理。
 
-### 0.2.0 本机开发环境
+### 0.2.0 开发治理硬闸门
+
+开发模式每个批次必须先执行 `docs/process/development_governance.md`：Planner 定义任务边界，PM 明确验收口径，DBA/backend/frontend/test/validator/reviewer 按角色提出问题，PM 裁决并分发，PM 不能决策的问题写入 `docs/issues/user_questions.md`，再进入实现、测试、构建、审查和阶段提交。
+
+用户没有明确暂停时，Orchestrator/PM 不得等待用户一句句“继续”才推进当前已批准期次；但也不得跳过多角色问题发现、PM 裁决、test/validator/reviewer 复验直接宣称交付完成。
+
+如果子 agent 启动后不可寻址、未登记或无法回收结果，Orchestrator 必须在 `.codex/state.json` 或 `docs/progress.md` 记录降级原因，并重新调度或本地接管；不得把该 agent 的任务计为完成。
+
+### 0.2.1 本机开发环境
 
 当前 Windows 开发机已验证可用的 Java/Maven 路径：
 
@@ -68,7 +76,7 @@ mvn -pl examine-module -am test
 
 如果命令仍失败，优先检查是否误用了系统默认 `JAVA_HOME=D:\java\jdk\jdk8` 或 Oracle `javapath`。
 
-### 0.2.1 分期开发与进度管理
+### 0.2.2 分期开发与进度管理
 
 开发模式不再默认以“全项目一次性完成”为目标连续推进。必须按可验收分期执行，每一期都要有明确范围、入口条件、退出标准、进度展示和暂停恢复点。
 

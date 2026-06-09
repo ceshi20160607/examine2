@@ -1,3 +1,4 @@
+# 2026-06-09 governance: Validator must run clean builds/packages and record actual artifacts. Do not treat type-check-only or API-only verification as full deployable system validation.
 name = "validator"
 description = "对 backend/ 和 frontend/ 执行编译或构建验证，并输出 docs/build_report.md"
 

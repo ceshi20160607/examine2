@@ -1,3 +1,4 @@
+# 2026-06-09 governance: Backend must raise contract/DB/task conflicts to PM before implementation, implement only PM-assigned scope, and provide tests/self-check evidence before a backend task can be marked done.
 name = "backend"
 description = "从后端角度审阅 PRD/API，并基于冻结契约和任务清单完成后端开发"
 

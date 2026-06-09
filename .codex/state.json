@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-09T10:12:00+08:00",
+    "updated_at":  "2026-06-09T11:54:37+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2332,5 +2332,12 @@
                                                          "next_phase":  "user-trial-deploy"
                                                      }
                          },
-    "last_completed_batch":  "DEV-BATCH-P8-LOCAL-FULL-PROJECT-API-FLOW"
+    "last_governance_fix":  {
+                                "batch":  "DEV-BATCH-GOVERNANCE-FIX",
+                                "updated_at":  "2026-06-09T11:54:37+08:00",
+                                "record":  "docs/process/development_governance.md",
+                                "reason":  "Development must be managed by role issue discovery, PM decision, owner reply, reviewer verification, test, validator, and stage commit instead of ad-hoc continue prompts.",
+                                "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
+                            },
+    "last_completed_batch":  "DEV-BATCH-GOVERNANCE-FIX"
 }

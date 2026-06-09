@@ -1,5 +1,11 @@
 # 开发模式流程
 
+## 开发治理硬闸门
+
+每个开发批次必须先执行 `docs/process/development_governance.md`：Planner 定义任务边界，PM 明确验收口径，多角色提出问题，PM 裁决并分发，PM 不能决策的问题写入 `docs/issues/user_questions.md`，再进入实现、测试、构建、审查和阶段提交。
+
+禁止只因为用户没有继续追问就直接交付；也禁止只跑前端页面或只跑后端接口就宣称完整系统完成。Orchestrator 必须主动验证并在 `docs/progress.md`、`docs/build_report.md`、`docs/test_runs/` 中记录结果。
+
 ## 目标
 
 开发模式基于审阅模式冻结产物执行 DB、SQL、后端、前端、测试、验证和审查任务。

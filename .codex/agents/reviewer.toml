@@ -1,3 +1,4 @@
+# 2026-06-09 governance: Reviewer must fail any phase where PM overclaims completion without role issue closure, tests, clean build/package, and real UI/user-flow evidence for frontend scope.
 name = "reviewer"
 description = "审查 backend/、frontend/、相关文档与构建报告，并输出严格结构化的 docs/review.json"
 

@@ -1,3 +1,4 @@
+# 2026-06-09 governance: Test must separate backend API pass, frontend UI pass, deployment pass, and full user-flow pass. Missing browser UI/E2E is a blocking finding for complete-system acceptance.
 name = "test"
 description = "从测试角度审阅 PRD/API，设计测试计划，执行单任务测试、集成测试和场景验收"
 

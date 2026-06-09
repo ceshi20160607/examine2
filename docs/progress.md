@@ -217,3 +217,16 @@
 - 当前推荐下一阶段：进入“前端完整业务可用化阶段”，由 PM/Planner 重新拆分可视化模块，不再要求用户反复说“继续”来推进同一期目标。
 
 ---
+
+## 2026-06-09 开发治理修复
+
+用户指出的问题成立：后续开发不能靠用户反复要求“继续”，也不能由 Orchestrator 直接发现问题、直接交付，绕过原定的多角色问题发现和 PM 裁决机制。
+
+本次已将治理规则升级为硬闸门：
+
+- 新增 `docs/process/development_governance.md`，规定每个开发批次必须经过 Planner 定界、PM 验收口径、多角色提问、PM 裁决、责任方处理、提出方复核、test/validator/reviewer 复验、PM 结论和 Git 提交。
+- 更新 `AGENTS.md` 与 `docs/process/development_mode.md`，明确开发批次不能跳过问题闭环，也不能只因用户没有继续追问就停止当前已批准期次。
+- 更新 `.codex/agents/pm.toml`、`planner.toml`、`dba.toml`、`backend.toml`、`frontend.toml`、`test.toml`、`validator.toml`、`reviewer.toml`，把 PM、规划、实现、测试、构建和审查职责写进 agent 约束。
+- 记录本轮子 agent 调度降级：上一轮尝试唤醒 planner/frontend 子 agent 时返回 `agent not found`，因此这些 agent 的工作不能计为完成；后续必须重新调度或由 Orchestrator 明确接管并记录。
+
+后续 P9/P10/P11/P12 不再直接进入编码。每期开始先生成或更新 development issue 文档，由 PM 裁决后再执行实现；PM 不能决策的问题写入 `docs/issues/user_questions.md` 交给用户。

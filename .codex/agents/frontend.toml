@@ -1,3 +1,4 @@
+# 2026-06-09 governance: Frontend completion requires real browser UI pages, forms/lists/details/actions, typed SDK usage, build output, and browser smoke/E2E evidence. PageModel or typed SDK alone is not a completed frontend feature.
 name = "frontend"
 description = "从前端角度审阅 PRD/API，并基于冻结契约和任务清单完成前端开发"
 

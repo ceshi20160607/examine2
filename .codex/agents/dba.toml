@@ -1,3 +1,4 @@
+# 2026-06-09 governance: DBA must review schema/data/init-sql impacts for each development batch, raise blockers to PM, and distinguish DB-ready from full-system-ready conclusions.
 name = "dba"
 description = "从数据库角度审阅 PRD/API，并根据冻结契约输出 docs/db_design.md 与 sql/init.sql"
 
