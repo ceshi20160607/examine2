@@ -1,91 +1,55 @@
-﻿{
-    "status":  "fail",
-    "target":  "test",
-    "phase":  "P9-system-management-ui",
-    "reviewedAt":  "2026-06-09T12:09:49+08:00",
-    "summary":  "P9 system management UI has implemented real members, departments, system roles and dictionaries pages with clean build and UI smoke screenshots. Full P9 acceptance is still blocked by TEST-007 write-operation browser E2E and REV-005 review; P10-P12 remain required before full project deployability.",
-    "nextRoute":  [
-                      "pm",
-                      "frontend",
-                      "test",
-                      "validator",
-                      "reviewer"
-                  ],
-    "issues":  [
-                   {
-                       "issueId":  "P9-TEST-007-BROWSER-E2E",
-                       "severity":  "P1",
-                       "target":  "test",
-                       "status":  "partial",
-                       "problem":  "P9 has UI smoke screenshots and clean build, but full browser write-operation E2E is not complete.",
-                       "requiredAction":  "Run browser flow for login, SYS-001 enter system, member, department, role and dictionary write operations, then update TEST-007 evidence."
-                   },
-                   {
-                       "issueId":  "P9-REV-005-PENDING",
-                       "severity":  "P1",
-                       "target":  "reviewer",
-                       "status":  "pending",
-                       "problem":  "REV-005 final P9 review cannot pass before TEST-007 full E2E completes.",
-                       "requiredAction":  "Re-run reviewer after TEST-007 completes."
-                   }
-               ],
-    "backendTrialDeployable":  true,
-    "frontendDeployable":  true,
-    "fullProjectDeployable":  false,
-    "deferredRisks":  [
-                          {
-                              "issueId":  "REV-001-BE-IDEMPOTENCY-STORAGE",
-                              "severity":  "P2",
-                              "target":  "backend",
-                              "status":  "deferred",
-                              "reason":  "Create-system idempotency still uses single-JVM memory storage. Production multi-instance consistency needs shared storage or a database idempotency table."
-                          },
-                          {
-                              "issueId":  "NPM-AUDIT-MODERATE-001",
-                              "severity":  "P2",
-                              "target":  "frontend",
-                              "status":  "deferred",
-                              "reason":  "npm ci reports 2 moderate audit items. No npm audit fix --force was applied because it may force dependency upgrades; schedule dependency governance after trial deployment."
-                          },
-                         {
-                             "issueId":  "REV-003-TEST-RISK-MATRIX",
-                             "severity":  "P2",
-                             "target":  "test",
-                             "status":  "deferred",
-                             "reason":  "OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
-                         },
-                         {
-                             "issueId":  "P9-PM-001",
-                             "severity":  "P1",
-                             "target":  "pm",
-                             "status":  "resolved",
-                             "reason":  "PM has retracted fullProjectDeployable and keeps fullProjectDeployable=false until P9-P12 pass."
-                         }
-                      ],
-    "verification":  [
-                         "mvn.cmd -pl examine-web -am clean package -DskipTests passed",
-                         "npm.cmd run build passed and generated frontend/dist",
-                         "backend health endpoint returned COMMON_OK and UP",
-                         "browser frontend login through AUTH-002 succeeded",
-                         "browser frontend typed SDK call to PLAT-001 returned COMMON_OK",
-                         "complete package generated at dist/unexamine-full-deploy-20260608-164002.zip",
-                         "nginx deploy guide added at docs/deploy/nginx-deploy.md",
-                         "deployed 192.168.0.211:19999 was diagnosed as stripping /api and routing /doc.html to frontend index; nginx config must be updated before retest",
-                         "AUTH-005 /me returns platformRoles and platformPermissions; examine-plat -am test passed",
-                         "frontend navigation and primary route titles are Chinese by default; npm.cmd run build passed",
-                         "P8 FE-014 platform systems/accounts/roles/configs CRUD UI completed",
-                         "npm.cmd run build passed after P8 changes",
-                         "browser smoke verified login page and platform systems page have Chinese text and no mojibake",
-                         "new complete package generated at dist/unexamine-full-deploy-20260608-171500.zip",
-                         "P8 rework: deployed /me returns PLAT_SUPER_ADMIN and platformPermissions",
-                         "P8 rework: SYS-001 returns currentMember superAdmin=true and SYS_MANAGE_ALL",
-                         "P8 rework: frontend enterSystem now calls SYS-001 and writes systemContextStore/permissionStore",
-                         "P8 rework: permissionStore maps SYS_MANAGE_ALL to system-scoped permissions but not PLAT_* or OPS_*",
-                         "P8 rework: npm.cmd run build passed and generated frontend/dist/assets/index-Cbb48LUp.js",
-                         "P8 rework package generated at dist/unexamine-full-deploy-20260608-225000.zip",
-                         "P9 FE-015 implemented members, departments, system roles and dictionaries real UI",
-                         "P9 VAL-005 clean build passed after stopping the local vite dev process",
-                         "P9 UI smoke screenshots generated for members, departments, roles and dictionaries",
-                         "P9 TEST-007 remains partial because full write-operation browser E2E is pending"
-                     ]
+{
+  "status": "pass",
+  "target": "none",
+  "phase": "P9-system-management-ui",
+  "reviewedAt": "2026-06-09T14:15:00+08:00",
+  "summary": "P9 system management UI has passed FE-015 implementation, VAL-005 clean build, TEST-007 browser write-operation E2E, and REV-005 review. Members, departments, system roles and dictionaries are real usable pages. Full project deployability remains false until the remaining visual usable phases pass.",
+  "nextRoute": [
+    "planner",
+    "pm",
+    "frontend",
+    "test",
+    "validator",
+    "reviewer"
+  ],
+  "issues": [],
+  "backendTrialDeployable": true,
+  "frontendDeployable": true,
+  "fullProjectDeployable": false,
+  "deferredRisks": [
+    {
+      "issueId": "REV-001-BE-IDEMPOTENCY-STORAGE",
+      "severity": "P2",
+      "target": "backend",
+      "status": "deferred",
+      "reason": "Create-system idempotency still uses single-JVM memory storage. Production multi-instance consistency needs shared storage or a database idempotency table."
+    },
+    {
+      "issueId": "NPM-AUDIT-MODERATE-001",
+      "severity": "P2",
+      "target": "frontend",
+      "status": "deferred",
+      "reason": "npm ci reports 2 moderate audit items. No npm audit fix --force was applied because it may force dependency upgrades; schedule dependency governance after trial deployment."
+    },
+    {
+      "issueId": "REV-003-TEST-RISK-MATRIX",
+      "severity": "P2",
+      "target": "test",
+      "status": "deferred",
+      "reason": "OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
+    }
+  ],
+  "verification": [
+    "mvn -pl examine-web -am -DskipTests package passed after stopping the jar process that locked target/unexamine.jar",
+    "java -jar backend/examine-web/target/unexamine.jar started on port 9999",
+    "npm.cmd run build passed and generated frontend/dist",
+    "npm.cmd run preview -- --port 4173 started local production preview",
+    "TEST-007 browser E2E passed for login, system enter, members, departments, roles and dictionaries",
+    "MEM-002/MEM-003/MEM-004/MEM-005/MEM-006 passed from browser UI",
+    "RBAC-002/RBAC-003/RBAC-004/RBAC-006/RBAC-008/RBAC-009/RBAC-012/RBAC-013 passed from browser UI",
+    "DICT-002/DICT-005/DICT-006/DICT-008/DICT-009/DICT-010/DICT-011 passed from browser UI",
+    "Department delete restriction verified: parent department with children has delete button disabled",
+    "frontend/docs/p9-system-management-e2e-final.png saved as browser evidence",
+    "fullProjectDeployable remains false because P10-P12 visual usable phases are not complete"
+  ]
 }

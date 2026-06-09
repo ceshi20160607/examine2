@@ -39,7 +39,7 @@
 | P6-final-acceptance | 后端集成验收与误判修正 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | test/validator/reviewer/pm | P5 完成 | 后端 jar 可试部署；原“全项目可上线”结论已撤回 | blocked(frontend-ui) |
 | P7-frontend-ui-deploy | 前端真实 UI 与部署包期 | FE-013、TEST-006 | frontend/test/validator/reviewer/pm | P6 撤回后进入前端 UI 修复 | 真实前端入口、`dist/`、浏览器 smoke 和前后端组合 E2E 完成 | accepted |
 | P8-platform-ui-crud | 平台中心可用化期 | FE-014 | frontend/test/validator/reviewer/pm | P7 完成 | 平台系统、账号、角色、配置真实 CRUD UI 完成 | accepted |
-| P9-system-management-ui | 系统管理域可用化期 | FE-015、TEST-007、VAL-005、REV-005 | frontend/test/validator/reviewer/pm | P8 完成并完成 P9 多角色审查/PM 裁决 | 成员、部门、系统角色、字典真实 UI 和写操作 E2E 通过 | in_progress |
+| P9-system-management-ui | 系统管理域可用化期 | FE-015、TEST-007、VAL-005、REV-005 | frontend/test/validator/reviewer/pm | P8 完成并完成 P9 多角色审查/PM 裁决 | 成员、部门、系统角色、字典真实 UI 和写操作 E2E 通过 | accepted |
 
 分期状态规则：
 
@@ -64,7 +64,7 @@
 | 前端自检 | FE-012 | 前端页面完成 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | 页面到接口映射、枚举错误码同步、无旁路请求 | done |
 | 前端真实 UI | FE-013 | P6 前端验收误判撤回 | `frontend/index.html`、`frontend/src/main.ts`、`frontend/src/App.ts`、`frontend/dist/`、`frontend/docs/frontend-ui-smoke.md` | 真实浏览器入口、页面工作区、生产构建和截图 smoke 通过 | done |
 | 前后端组合 E2E | TEST-006 | FE-013、后端 jar 包 | `docs/test_runs/frontend-backend-combo-e2e.md`、`docs/test_report.md`、`docs/review.json` | 浏览器触发真实后端 API，完成核心链路组合验证 | done |
-| P9 系统管理 UI | FE-015、TEST-007、VAL-005、REV-005 | P9 PM 裁决完成 | `frontend/src/App.ts`、P9 截图、P9 测试/构建/审查记录 | UI smoke 和 clean build 已通过；真实写操作 E2E 与 REV-005 待完成 | in_progress |
+| P9 系统管理 UI | FE-015、TEST-007、VAL-005、REV-005 | P9 PM 裁决完成 | `frontend/src/App.ts`、P9 截图、P9 测试/构建/审查记录 | UI smoke、clean build、真实写操作 E2E 与 REV-005 已通过 | done |
 | test 测试 | TEST-001 至 TEST-005 | API 冻结；执行依赖实现产物 | `docs/test_plan.md`、`docs/test_runs/`、`docs/test_report.md` | TEST-003/004 写独立执行记录，TEST-005 汇总报告并给出 pass/fail target | in_progress |
 | validator 构建 | VAL-001 至 VAL-004 | 后端、前端、测试产物完成 | `docs/build/`、`docs/build_report.md` | VAL-001/002/003 写独立验证记录，VAL-004 汇总 clean compile、clean build 和契约同步结论 | pending |
 | reviewer 审查 | REV-001 至 REV-004 | 测试和构建报告完成 | `docs/review_parts/`、`docs/review.json` | REV-001 至 REV-003 输出不重叠审查分片，REV-004 唯一输出合法 JSON 总结论 | pending |
@@ -207,7 +207,7 @@ flowchart TD
 | TEST-004 | 权限异常幂等 OpenAPI 测试 | test | test | BE-015/FE-012/TEST-002 | `docs/test_runs/permission-exception-idempotency-openapi.md` | BE-015, FE-012, TEST-002 | 是 | 越权、状态冲突、签名、限流、幂等覆盖，执行记录独立输出 | fail 给出 target | done |
 | TEST-005 | 测试报告 | test | test | TEST-003/TEST-004 | `docs/test_report.md` | TEST-003, TEST-004 | 否 | 汇总测试执行记录，报告含命令、结果、失败摘要、target | 结论 fail，target=frontend | done |
 | TEST-006 | 前后端组合 E2E 与部署验收 | test | test | FE-013/BE package | `docs/test_runs/frontend-backend-combo-e2e.md`、`docs/test_report.md`、`docs/review.json` | FE-013, BE-015 | 否 | 浏览器触发真实后端 API，验证核心链路组合部署 | 组合 E2E 记录 | done |
-| TEST-007 | P9 系统管理域浏览器 E2E | test | test | FE-015 | `docs/test_runs/p9-system-management-ui-e2e-20260609.md`、`docs/test_report.md` | FE-015 | 否 | 成员、部门、角色、字典浏览器主链路通过 | partial，UI smoke 截图通过，真实写操作 E2E 未完成 | partial |
+| TEST-007 | P9 系统管理域浏览器 E2E | test | test | FE-015 | `docs/test_runs/p9-system-management-ui-e2e-20260609.md`、`docs/test_report.md` | FE-015 | 否 | 成员、部门、角色、字典浏览器主链路通过 | pass，真实浏览器写操作 E2E 已完成 | done |
 | VAL-001 | 后端 clean compile | validator | validator | BE-015/service | `docs/build/backend-clean-compile.md` | BE-015 | 是 | JDK/Maven 路径和 clean compile 结果明确，记录独立输出 | clean compile pass | done |
 | VAL-002 | 前端 clean build | validator | validator | FE-012/service | `docs/build/frontend-clean-build.md` | FE-012 | 是 | 清理 dist/tsbuildinfo 后 build，记录独立输出 | fail，target=frontend，缺少 package.json | done |
 | VAL-003 | 契约同步检查 | validator | validator | API/FE-012 | `docs/build/contract-sync-check.md` | FE-012 | 是 | 错误码、枚举、状态值同步到 SDK/map，记录独立输出 | fail，target=frontend，字段类型枚举未同步 | done |
@@ -217,7 +217,7 @@ flowchart TD
 | REV-002 | 契约实现审查 | reviewer | review | API/backend/frontend/map | `docs/review_parts/rev-002-contract.md` | REV-001 | 否 | API、SDK、后端实现一致 | fail，target=both | done |
 | REV-003 | 质量测试构建审查 | reviewer | review | test/build/backend/frontend | `docs/review_parts/rev-003-quality.md` | REV-002 | 否 | 测试缺口、构建风险、质量问题审查 | fail，target=both | done |
 | REV-004 | 最终 review.json | reviewer | review | REV-003 | `docs/review.json` | REV-003 | 否 | JSON 合法，status/target/issues 符合规则 | fail，target=both | done |
-| REV-005 | P9 系统管理域审查 | reviewer | review | FE-015/TEST-007/VAL-005 | `docs/review.json`、`docs/issues/verification/development/p9_reviewer_verification.md` | TEST-007, VAL-005 | 否 | P9 未过度宣称，真实 UI、E2E、build 均有证据 | review pass/fail | pending |
+| REV-005 | P9 系统管理域审查 | reviewer | review | FE-015/TEST-007/VAL-005 | `docs/review.json`、`docs/issues/verification/development/p9_reviewer_verification.md` | TEST-007, VAL-005 | 否 | P9 未过度宣称，真实 UI、E2E、build 均有证据 | pass，fullProjectDeployable 仍为 false | done |
 
 ## 并行批次计划
 

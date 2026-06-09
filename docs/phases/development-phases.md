@@ -24,7 +24,7 @@
 | P6-final-acceptance | 后端集成验收与误判修正 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | 后端接口包可试部署；前端仅契约模型通过，不具备可部署 UI。原“全项目可上线”结论撤回。 | blocked(frontend-ui) |
 | P7-frontend-ui-deploy | 前端真实 UI 与部署包期 | FE-013、TEST-006：前端工程入口、真实页面组件、路由挂载、API 调用闭环、浏览器 smoke/E2E、`dist/` 产物、前后端组合 E2E | 存在 `index.html`、`src/main.*`、真实页面和可部署 `dist/`；后端 jar + 前端 dist 完成组合 E2E。 | accepted |
 | P8-platform-ui-crud | 平台中心可用化期 | FE-014：平台系统、平台账号、平台角色、平台配置真实 CRUD 页面和部署包刷新 | 平台中心不再是占位/调试页；列表、创建、编辑、状态、授权、配置更新入口均通过 typed PageModel 调用；前端 clean build 与浏览器 smoke 通过。 | accepted |
-| P9-system-management-ui | 系统管理域可用化期 | FE-015、TEST-007、VAL-005、REV-005：成员、部门、系统角色、字典真实业务 UI，浏览器 E2E、clean build 和审查 | 成员、部门、系统角色、字典不再是通用占位页；主要 CRUD/授权/字典 usage 链路通过 typed SDK、真实系统上下文和浏览器 E2E。 | in_progress |
+| P9-system-management-ui | 系统管理域可用化期 | FE-015、TEST-007、VAL-005、REV-005：成员、部门、系统角色、字典真实业务 UI，浏览器 E2E、clean build 和审查 | 成员、部门、系统角色、字典不再是通用占位页；主要 CRUD/授权/字典 usage 链路通过 typed SDK、真实系统上下文和浏览器 E2E。 | accepted |
 
 ## 当前期
 

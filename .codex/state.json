@@ -1,4 +1,4 @@
-﻿{
+{
     "current_step":  20,
     "completed_steps":  [
                             1,
@@ -2253,8 +2253,6 @@
                             ],
     "current_phase":  "P9-system-management-ui",
     "running_tasks":  [
-                          "TEST-007",
-                          "REV-005"
                       ],
     "phase_status":  {
                          "P0-foundation":  "done",
@@ -2266,7 +2264,7 @@
                          "P6-final-acceptance":  "blocked",
                          "P7-frontend-ui-deploy":  "accepted",
                          "P8-platform-ui-crud":  "accepted",
-                         "P9-system-management-ui":  "in_progress"
+                         "P9-system-management-ui":  "accepted"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2334,11 +2332,13 @@
                                                          "next_phase":  "P9-system-management-ui"
                                                      },
                              "P9-system-management-ui":  {
-                                                            "status":  "in_progress",
+                                                            "status":  "accepted",
                                                             "started_at":  "2026-06-09T12:09:49+08:00",
+                                                            "accepted_at":  "2026-06-09T14:15:00+08:00",
                                                             "started_by":  "pm",
-                                                            "record":  "docs/issues/pm/development/p9_pm_wenti.md",
-                                                            "remaining":  "TEST-007 full write-operation browser E2E and REV-005 review are still pending.",
+                                                            "accepted_by":  "pm",
+                                                            "record":  "docs/phases/P9-system-management-ui-acceptance.md",
+                                                            "remaining":  "P10-P12 visual usable phases are still required before full project deployability.",
                                                             "next_phase":  "P10-app-runtime-ui"
                                                      }
                          },
@@ -2349,5 +2349,5 @@
                                 "reason":  "Development must be managed by role issue discovery, PM decision, owner reply, reviewer verification, test, validator, and stage commit instead of ad-hoc continue prompts.",
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
-    "last_completed_batch":  "DEV-BATCH-P9-FE015-VAL005-BLOCKED-TEST007"
+    "last_completed_batch":  "DEV-BATCH-P9-SYSTEM-MANAGEMENT-ACCEPTED"
 }

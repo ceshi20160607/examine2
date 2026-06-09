@@ -136,8 +136,10 @@ export type MemberPageResult = PageResult<MemberListVO>;
 export interface DepartmentNodeVO {
   deptId: EntityId;
   parentId?: EntityId;
-  deptCode: string;
-  deptName: string;
+  code?: string;
+  name?: string;
+  deptCode?: string;
+  deptName?: string;
   sortOrder?: number;
   memberCount?: number;
   children?: DepartmentNodeVO[];
@@ -145,8 +147,8 @@ export interface DepartmentNodeVO {
 
 export interface DepartmentSaveBO {
   parentId?: EntityId;
-  deptCode: string;
-  deptName: string;
+  code: string;
+  name: string;
   sortOrder?: number;
 }
 
@@ -172,7 +174,7 @@ export interface RolePermissionSaveBO {
   menuIds?: EntityId[];
   operationCodes?: string[];
   fieldPermissions?: FieldPermission[];
-  dataScope?: DataScopeRuleDTO;
+  dataScopes?: DataScopeRuleDTO[];
   explicitDeny?: string[];
 }
 

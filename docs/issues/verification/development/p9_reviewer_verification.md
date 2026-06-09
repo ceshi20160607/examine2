@@ -1,13 +1,12 @@
 # P9 Reviewer Verification
 
-| issueId | verifier | verification | result |
+| issueId | verifier | conclusion | status |
 | --- | --- | --- | --- |
-| P9-GOV-001 | reviewer | P9 分期、任务、状态和进度已落盘，可进入 FE-015 实现。 | pass |
-| P9-FE-001 | test | FE-015 已实现真实 UI 入口并通过 clean build，但浏览器 E2E 未完成，不能关闭。 | pending |
-| P9-BE-001 | frontend | PM 已裁决本批次前端适配数组返回；待实现验证。 | pending |
-| P9-BE-002 | test | 前端已传 `version` body，并加入 usage 检查；待浏览器 E2E 复核。 | pending |
-| P9-TEST-007-BROWSER-E2E | test | Chrome headless 已生成四个 UI smoke 截图，但真实写操作 E2E 未完成。 | partial |
-| P9-PM-001 | reviewer | `docs/review.json.fullProjectDeployable=false` 已恢复，完整系统上线结论已撤回。 | pass |
-| P9-VAL-005 | validator | validator 只读复核确认 P9 clean build 证据足够，VAL-005 可按窄口径判定 done。 | pass |
-| P9-REV-005-PERMISSION-BUTTON | reviewer | 已发现角色页 `RBAC-013` 加载权限目录按钮未按权限禁用，已修复为 `!actions.permission.enabled`。 | pass |
-| P9-REV-005-REVIEW-JSON | reviewer | 已将 `docs/review.json` 的过期 P9-FE 空壳结论移除，target 调整为 `test`，真实阻塞写入 `issues`。 | pass |
+| P9-GOV-001 | reviewer | P9 分期、任务、状态和进度已落盘，且顶部看板已修正为 P9 accepted。 | pass |
+| P9-FE-001 | test/reviewer | FE-015 已实现成员、部门、系统角色、字典真实 UI；关键操作已从原生 prompt/confirm 调整为页面表单和按钮驱动。 | pass |
+| P9-BE-001 | backend/reviewer | 已修复 RBAC-009 权限版本重复键 500，权限保存改为更新既有版本行并递增 `version_no`。 | pass |
+| P9-TEST-007-BROWSER-E2E | test | TEST-007 已完成真实浏览器写操作 E2E，覆盖成员、部门、角色、字典主链路。 | pass |
+| P9-PM-001 | reviewer | `docs/review.json.fullProjectDeployable=false` 保持不变，未将 P9 误判为完整系统上线。 | pass |
+| P9-REV-005-REVIEW-JSON | reviewer | `docs/review.json.status=pass,target=none,phase=P9-system-management-ui`，issues 已清空，verification 指向真实 E2E 证据。 | pass |
+
+结论：P9 accepted。完整项目仍需 P10-P12 后续可视化阶段通过后才能进入最终上线结论。

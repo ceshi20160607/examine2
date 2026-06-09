@@ -65,6 +65,9 @@ interface SystemUiState {
   roles: RoleVO[];
   permissionCatalog?: PermissionCatalogVO;
   rolePermissions: Record<string, RolePermissionDetailVO>;
+  rolePermissionOperationCodes: string;
+  rolePermissionMenuIds: string;
+  rolePermissionScopeType: "SELF" | "DEPT" | "DEPT_TREE" | "ALL" | "CUSTOM";
   dictTypes: DictTypeVO[];
   selectedDictTypeId?: EntityId;
   dictItems: DictItemVO[];
@@ -176,6 +179,9 @@ export function mountApp(container: HTMLElement): void {
     departments: [],
     roles: [],
     rolePermissions: {},
+    rolePermissionOperationCodes: "",
+    rolePermissionMenuIds: "",
+    rolePermissionScopeType: "ALL",
     dictTypes: [],
     dictItems: [],
   };
@@ -696,8 +702,8 @@ export function mountApp(container: HTMLElement): void {
         "departments",
         ["部门", "编码", "父级", "成员数", "操作"],
         departments.map((item) => [
-          `${"  ".repeat(item.depth)}${item.deptName}`,
-          item.deptCode,
+          `${"  ".repeat(item.depth)}${departmentName(item)}`,
+          departmentCode(item),
           item.parentId ?? "根部门",
           String(item.memberCount ?? 0),
           node("div", { className: "row-actions" }, [
@@ -730,6 +736,15 @@ export function mountApp(container: HTMLElement): void {
         textarea("角色说明", "systemRoleDescription", ""),
         button("创建角色", "primary", createSystemRole, !actions.create.enabled),
         button("加载权限目录", "secondary", loadSystemPermissionCatalog, !actions.permission.enabled),
+        input("授权操作编码", "systemRolePermissionOperations", systemState.rolePermissionOperationCodes),
+        input("授权菜单 ID", "systemRolePermissionMenus", systemState.rolePermissionMenuIds),
+        selectField("数据范围", "systemRolePermissionScope", systemState.rolePermissionScopeType, [
+          ["ALL", "全部"],
+          ["SELF", "本人"],
+          ["DEPT", "本部门"],
+          ["DEPT_TREE", "本部门及下级"],
+          ["CUSTOM", "自定义"],
+        ]),
       ]),
       renderDataTable(
         "roles",
@@ -1297,9 +1312,10 @@ export function mountApp(container: HTMLElement): void {
 
   async function editSystemMember(item: MemberListVO): Promise<void> {
     const detail = systemState.memberDetails[item.memberId] ?? await fetchMemberDetail(item.memberId);
-    const deptIds = window.prompt("部门 ID，多个用英文逗号分隔", detail.deptIds?.join(",") ?? "") ?? detail.deptIds?.join(",");
-    const tenantIds = window.prompt("租户 ID，多个用英文逗号分隔", detail.tenantIds?.join(",") ?? "") ?? detail.tenantIds?.join(",");
-    const postName = window.prompt("岗位", detail.postName ?? "") ?? detail.postName;
+    const form = readForm();
+    const deptIds = form.memberDeptIds || detail.deptIds?.join(",") || "";
+    const tenantIds = form.memberTenantIds || detail.tenantIds?.join(",") || "";
+    const postName = form.memberPostName || detail.postName;
     await execute("MEM-004", async () => {
       requireSystemContext();
       const response = await apiClient.call<MemberDetailVO, { tenantIds?: EntityId[]; deptIds?: EntityId[]; postName?: string }>("MEM-004", {
@@ -1321,9 +1337,6 @@ export function mountApp(container: HTMLElement): void {
 
   async function toggleSystemMember(item: MemberListVO): Promise<void> {
     const nextStatus = item.status === "ENABLED" ? "DISABLED" : "ENABLED";
-    if (!window.confirm(`确认将成员“${item.displayName}”变更为${statusLabel(nextStatus)}？`)) {
-      return;
-    }
     await execute("MEM-005", async () => {
       requireSystemContext();
       const response = await apiClient.call<MemberDetailVO, { targetStatus: string; reason?: string }>("MEM-005", {
@@ -1344,10 +1357,8 @@ export function mountApp(container: HTMLElement): void {
 
   async function assignSystemMemberRoles(item: MemberListVO): Promise<void> {
     const detail = systemState.memberDetails[item.memberId] ?? await fetchMemberDetail(item.memberId);
-    const roleIds = window.prompt("角色 ID，多个用英文逗号分隔", memberRoleIds(detail).join(","));
-    if (roleIds === null) {
-      return;
-    }
+    const form = readForm();
+    const roleIds = form.memberRoleIds || memberRoleIds(detail).join(",");
     await execute("MEM-006", async () => {
       requireSystemContext();
       const response = await apiClient.call<MemberDetailVO, { roleIds: EntityId[] }>("MEM-006", {
@@ -1380,12 +1391,12 @@ export function mountApp(container: HTMLElement): void {
     const form = readForm();
     await execute("RBAC-002", async () => {
       requireSystemContext();
-      const response = await apiClient.call<DepartmentNodeVO, { parentId?: EntityId; deptCode: string; deptName: string; sortOrder?: number }>("RBAC-002", {
+      const response = await apiClient.call<DepartmentNodeVO, { parentId?: EntityId; code: string; name: string; sortOrder?: number }>("RBAC-002", {
         pathParams: pathParams(),
         body: {
           parentId: form.deptParentId?.trim() || undefined,
-          deptCode: required(form.deptCode, "部门编码"),
-          deptName: required(form.deptName, "部门名称"),
+          code: required(form.deptCode, "部门编码"),
+          name: required(form.deptName, "部门名称"),
           sortOrder: optionalNumber(form.deptSortOrder),
         },
       });
@@ -1395,20 +1406,21 @@ export function mountApp(container: HTMLElement): void {
   }
 
   async function editSystemDepartment(item: DepartmentNodeVO): Promise<void> {
-    const deptName = window.prompt("部门名称", item.deptName) ?? item.deptName;
-    const deptCode = window.prompt("部门编码", item.deptCode) ?? item.deptCode;
-    const sortOrder = window.prompt("排序", String(item.sortOrder ?? 0)) ?? String(item.sortOrder ?? 0);
+    const form = readForm();
+    const deptName = form.deptName || departmentName(item);
+    const deptCode = form.deptCode || departmentCode(item);
+    const sortOrder = form.deptSortOrder || String(item.sortOrder ?? 0);
     await execute("RBAC-003", async () => {
       requireSystemContext();
-      const response = await apiClient.call<DepartmentNodeVO, { parentId?: EntityId; deptCode: string; deptName: string; sortOrder?: number }>("RBAC-003", {
+      const response = await apiClient.call<DepartmentNodeVO, { parentId?: EntityId; code: string; name: string; sortOrder?: number }>("RBAC-003", {
         pathParams: {
           ...pathParams(),
           deptId: item.deptId,
         },
         body: {
           parentId: item.parentId,
-          deptCode: required(deptCode, "部门编码"),
-          deptName: required(deptName, "部门名称"),
+          code: required(deptCode, "部门编码"),
+          name: required(deptName, "部门名称"),
           sortOrder: optionalNumber(sortOrder),
         },
       });
@@ -1422,9 +1434,6 @@ export function mountApp(container: HTMLElement): void {
     if (reason) {
       ui.lastError = reason;
       render();
-      return;
-    }
-    if (!window.confirm(`确认删除部门“${item.deptName}”？`)) {
       return;
     }
     await execute("RBAC-004", async () => {
@@ -1474,8 +1483,9 @@ export function mountApp(container: HTMLElement): void {
   }
 
   async function editSystemRole(item: RoleVO): Promise<void> {
-    const name = window.prompt("角色名称", item.name) ?? item.name;
-    const description = window.prompt("角色说明", item.description ?? "") ?? item.description;
+    const form = readForm();
+    const name = form.systemRoleName || item.name;
+    const description = form.systemRoleDescription || item.description || "";
     await execute("RBAC-007", async () => {
       requireSystemContext();
       const response = await apiClient.call<RoleVO, { code: string; name: string; description?: string }>("RBAC-007", {
@@ -1496,9 +1506,6 @@ export function mountApp(container: HTMLElement): void {
 
   async function toggleSystemRole(item: RoleVO): Promise<void> {
     const nextStatus = item.status === "ENABLED" ? "DISABLED" : "ENABLED";
-    if (!window.confirm(`确认将系统角色“${item.name}”变更为${statusLabel(nextStatus)}？`)) {
-      return;
-    }
     await execute("RBAC-008", async () => {
       requireSystemContext();
       const response = await apiClient.call<RoleVO, { targetStatus: string; reason?: string; version?: number }>("RBAC-008", {
@@ -1538,27 +1545,24 @@ export function mountApp(container: HTMLElement): void {
         },
       });
       systemState.rolePermissions[item.roleId] = response.data;
+      systemState.rolePermissionOperationCodes = response.data.operationCodes?.join(",") ?? "";
+      systemState.rolePermissionMenuIds = response.data.menuIds?.join(",") ?? "";
+      systemState.rolePermissionScopeType = normalizeScopeType(response.data.dataScopes?.[0]?.scopeType ?? "ALL");
       return response;
     });
   }
 
   async function saveSystemRolePermissions(item: RoleVO): Promise<void> {
-    const current = systemState.rolePermissions[item.roleId];
-    const operationCodes = window.prompt("操作权限编码，多个用英文逗号分隔", current?.operationCodes?.join(",") ?? "");
-    if (operationCodes === null) {
-      return;
-    }
-    const menuIds = window.prompt("菜单 ID，多个用英文逗号分隔", current?.menuIds?.join(",") ?? "");
-    if (menuIds === null) {
-      return;
-    }
-    const scopeType = window.prompt("数据范围 SELF/DEPT/DEPT_TREE/ALL/CUSTOM", current?.dataScope?.scopeType ?? "ALL") ?? "ALL";
+    const form = readForm();
+    const operationCodes = form.systemRolePermissionOperations ?? systemState.rolePermissionOperationCodes;
+    const menuIds = form.systemRolePermissionMenus ?? systemState.rolePermissionMenuIds;
+    const scopeType = normalizeScopeType(form.systemRolePermissionScope ?? systemState.rolePermissionScopeType);
     await execute("RBAC-009", async () => {
       requireSystemContext();
       const response = await apiClient.call<RolePermissionDetailVO, {
         menuIds?: EntityId[];
         operationCodes?: string[];
-        dataScope?: { scopeType: "SELF" | "DEPT" | "DEPT_TREE" | "ALL" | "CUSTOM" };
+        dataScopes?: Array<{ scopeType: "SELF" | "DEPT" | "DEPT_TREE" | "ALL" | "CUSTOM" }>;
       }>("RBAC-009", {
         pathParams: {
           ...pathParams(),
@@ -1567,10 +1571,13 @@ export function mountApp(container: HTMLElement): void {
         body: {
           menuIds: splitValues(menuIds),
           operationCodes: splitValues(operationCodes),
-          dataScope: { scopeType: normalizeScopeType(scopeType) },
+          dataScopes: [{ scopeType }],
         },
       });
       systemState.rolePermissions[item.roleId] = response.data;
+      systemState.rolePermissionOperationCodes = response.data.operationCodes?.join(",") ?? operationCodes;
+      systemState.rolePermissionMenuIds = response.data.menuIds?.join(",") ?? menuIds;
+      systemState.rolePermissionScopeType = normalizeScopeType(response.data.dataScopes?.[0]?.scopeType ?? scopeType);
       await refreshEffectivePermissions();
       return response;
     });
@@ -1625,9 +1632,10 @@ export function mountApp(container: HTMLElement): void {
   }
 
   async function editDictType(item: DictTypeVO): Promise<void> {
-    const name = window.prompt("类型名称", item.name) ?? item.name;
-    const description = window.prompt("类型说明", item.description ?? "") ?? item.description;
-    const sortOrder = window.prompt("排序", String(item.sortOrder ?? 0)) ?? String(item.sortOrder ?? 0);
+    const form = readForm();
+    const name = form.dictTypeName || item.name;
+    const description = form.dictTypeDescription || item.description || "";
+    const sortOrder = form.dictTypeSortOrder || String(item.sortOrder ?? 0);
     await execute("DICT-003", async () => {
       requireSystemContext();
       const response = await apiClient.call<DictTypeVO | { entity: DictTypeVO; cacheRefresh?: DictCacheRefreshVO }, {
@@ -1746,10 +1754,11 @@ export function mountApp(container: HTMLElement): void {
   }
 
   async function editDictItem(item: DictItemVO): Promise<void> {
-    const label = window.prompt("字典项标签", item.label) ?? item.label;
-    const value = window.prompt("字典项值", item.value) ?? item.value;
-    const description = window.prompt("说明", item.description ?? "") ?? item.description;
-    const sortOrder = window.prompt("排序", String(item.sortOrder ?? 0)) ?? String(item.sortOrder ?? 0);
+    const form = readForm();
+    const label = form.dictItemLabel || item.label;
+    const value = form.dictItemValue || item.value;
+    const description = item.description ?? "";
+    const sortOrder = form.dictItemSortOrder || String(item.sortOrder ?? 0);
     await execute("DICT-007", async () => {
       requireSystemContext();
       const response = await apiClient.call<DictItemVO | { entity: DictItemVO; cacheRefresh?: DictCacheRefreshVO }, {
@@ -1825,9 +1834,6 @@ export function mountApp(container: HTMLElement): void {
       render();
       return;
     }
-    if (!window.confirm(`确认删除字典类型“${item.name}”？`)) {
-      return;
-    }
     await execute("DICT-010", async () => {
       requireSystemContext();
       const response = await apiClient.call<DictTypeVO | { entity: DictTypeVO; cacheRefresh?: DictCacheRefreshVO }, { version: number }>("DICT-010", {
@@ -1848,9 +1854,6 @@ export function mountApp(container: HTMLElement): void {
   }
 
   async function deleteDictItem(item: DictItemVO): Promise<void> {
-    if (!window.confirm(`确认删除字典项“${item.label}”？`)) {
-      return;
-    }
     await execute("DICT-011", async () => {
       requireSystemContext();
       const response = await apiClient.call<DictItemVO | { entity: DictItemVO; cacheRefresh?: DictCacheRefreshVO }, { version: number }>("DICT-011", {
@@ -2099,6 +2102,14 @@ export function mountApp(container: HTMLElement): void {
   function memberDeptLabel(item: MemberListVO): string {
     const candidate = item as MemberListVO & { deptIds?: EntityId[] };
     return item.deptPath ?? candidate.deptIds?.join(", ") ?? "-";
+  }
+
+  function departmentName(item: DepartmentNodeVO): string {
+    return item.name ?? item.deptName ?? "-";
+  }
+
+  function departmentCode(item: DepartmentNodeVO): string {
+    return item.code ?? item.deptCode ?? "-";
   }
 
   function memberRoleIds(item: MemberListVO | MemberDetailVO): EntityId[] {

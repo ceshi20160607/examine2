@@ -1120,15 +1120,24 @@ public class SystemRbacServiceImpl implements SystemRbacService {
                 .orElse(null);
         Long nextVersion = Objects.isNull(latest) || Objects.isNull(latest.getVersionNo())
                 ? 1L : latest.getVersionNo() + 1;
+        LocalDateTime now = LocalDateTime.now();
+        if (Objects.nonNull(latest)) {
+            latest.setVersionNo(nextVersion)
+                    .setChangedReason(reason)
+                    .setChangedAt(now)
+                    .setUpdatedAt(now);
+            permissionVersionService.updateById(latest);
+            return;
+        }
         PermissionVersion version = new PermissionVersion()
                 .setSystemId(systemId)
                 .setTenantId(tenantId)
                 .setVersionNo(nextVersion)
                 .setChangedReason(reason)
-                .setChangedAt(LocalDateTime.now())
+                .setChangedAt(now)
                 .setDeleteToken(ACTIVE_DELETE_TOKEN)
-                .setCreatedAt(LocalDateTime.now())
-                .setUpdatedAt(LocalDateTime.now());
+                .setCreatedAt(now)
+                .setUpdatedAt(now);
         permissionVersionService.save(version);
     }
 
