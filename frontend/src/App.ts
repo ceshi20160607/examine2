@@ -729,7 +729,7 @@ export function mountApp(container: HTMLElement): void {
         input("角色名称", "systemRoleName", ""),
         textarea("角色说明", "systemRoleDescription", ""),
         button("创建角色", "primary", createSystemRole, !actions.create.enabled),
-        button("加载权限目录", "secondary", loadSystemPermissionCatalog),
+        button("加载权限目录", "secondary", loadSystemPermissionCatalog, !actions.permission.enabled),
       ]),
       renderDataTable(
         "roles",

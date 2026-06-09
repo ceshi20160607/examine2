@@ -1,9 +1,9 @@
 ﻿{
     "status":  "fail",
-    "target":  "frontend/pm",
+    "target":  "test",
     "phase":  "P9-system-management-ui",
     "reviewedAt":  "2026-06-09T12:09:49+08:00",
-    "summary":  "P8 platform center CRUD UI and deployable frontend shell remain usable, but full project deployability is retracted. P9-P12 are still required because system members, departments, system roles, dictionaries, application/runtime, workflow/files/OpenAPI/audit UI and full browser E2E are not all completed.",
+    "summary":  "P9 system management UI has implemented real members, departments, system roles and dictionaries pages with clean build and UI smoke screenshots. Full P9 acceptance is still blocked by TEST-007 write-operation browser E2E and REV-005 review; P10-P12 remain required before full project deployability.",
     "nextRoute":  [
                       "pm",
                       "frontend",
@@ -12,7 +12,22 @@
                       "reviewer"
                   ],
     "issues":  [
-
+                   {
+                       "issueId":  "P9-TEST-007-BROWSER-E2E",
+                       "severity":  "P1",
+                       "target":  "test",
+                       "status":  "partial",
+                       "problem":  "P9 has UI smoke screenshots and clean build, but full browser write-operation E2E is not complete.",
+                       "requiredAction":  "Run browser flow for login, SYS-001 enter system, member, department, role and dictionary write operations, then update TEST-007 evidence."
+                   },
+                   {
+                       "issueId":  "P9-REV-005-PENDING",
+                       "severity":  "P1",
+                       "target":  "reviewer",
+                       "status":  "pending",
+                       "problem":  "REV-005 final P9 review cannot pass before TEST-007 full E2E completes.",
+                       "requiredAction":  "Re-run reviewer after TEST-007 completes."
+                   }
                ],
     "backendTrialDeployable":  true,
     "frontendDeployable":  true,
@@ -40,25 +55,11 @@
                              "reason":  "OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
                          },
                          {
-                             "issueId":  "P9-FE-001",
-                             "severity":  "P1",
-                             "target":  "frontend",
-                             "status":  "open",
-                             "reason":  "System members, departments, system roles and dictionaries still need real browser UI instead of generic placeholder workspace."
-                         },
-                         {
                              "issueId":  "P9-PM-001",
                              "severity":  "P1",
                              "target":  "pm",
-                             "status":  "open",
-                             "reason":  "P8 partial deployability was previously overclaimed as full project deployability; PM must keep fullProjectDeployable=false until P9-P12 pass."
-                         },
-                         {
-                             "issueId":  "P9-TEST-007-BROWSER-E2E",
-                             "severity":  "P1",
-                             "target":  "test",
-                             "status":  "partial",
-                             "reason":  "P9 browser UI smoke screenshots were generated, but full write-operation E2E has not completed."
+                             "status":  "resolved",
+                             "reason":  "PM has retracted fullProjectDeployable and keeps fullProjectDeployable=false until P9-P12 pass."
                          }
                       ],
     "verification":  [
@@ -81,6 +82,10 @@
                          "P8 rework: frontend enterSystem now calls SYS-001 and writes systemContextStore/permissionStore",
                          "P8 rework: permissionStore maps SYS_MANAGE_ALL to system-scoped permissions but not PLAT_* or OPS_*",
                          "P8 rework: npm.cmd run build passed and generated frontend/dist/assets/index-Cbb48LUp.js",
-                         "P8 rework package generated at dist/unexamine-full-deploy-20260608-225000.zip"
+                         "P8 rework package generated at dist/unexamine-full-deploy-20260608-225000.zip",
+                         "P9 FE-015 implemented members, departments, system roles and dictionaries real UI",
+                         "P9 VAL-005 clean build passed after stopping the local vite dev process",
+                         "P9 UI smoke screenshots generated for members, departments, roles and dictionaries",
+                         "P9 TEST-007 remains partial because full write-operation browser E2E is pending"
                      ]
 }

@@ -31,13 +31,15 @@
 | 期次 | 名称 | 任务范围 | 主责角色 | 入口条件 | 退出标准 | 当前状态 |
 | --- | --- | --- | --- | --- | --- | --- |
 | P0-foundation | 基础冻结与骨架期 | DBA-001 至 DBA-006、TEST-001 至 TEST-002、FE-001 至 FE-007、FE-011、BE-001 至 BE-002、GEN-001 | planner/dba/backend/frontend/test | 审阅模式冻结，开发模式启动 | DB/SQL、后端骨架、core、生成器骨架、前端 SDK/Layout/基础页面和测试计划完成，相关自检通过 | done |
-| P1-generator | 生成器闭环期 | GEN-002、GEN-003、GEN-004 | backend | P0 完成，`sql/init.sql` 可导入，`examine-generator` 骨架可编译 | 能通过命令参数按表前缀生成各业务模块 `base` 包，后端 compile 通过 | pending |
-| P2-auth-platform | 认证与平台期 | BE-003、BE-004、FE-003、FE-004 的联调补充、阶段 validator/test 轻量检查 | pm/backend/frontend/test/validator | P1 完成，base CRUD 可用 | 登录、刷新、退出、当前用户、我的系统、平台系统创建和平台账号角色核心接口/页面闭环，PM 验收通过 | pending |
-| P3-system-config | 系统配置与权限期 | BE-005、BE-006、BE-007、BE-014、FE-005、FE-006 的联调补充 | pm/backend/frontend/test | P2 完成 | 系统成员、部门、角色、权限、字典、应用/模块/字段/页面配置闭环，权限与数据范围基础可用 | pending |
-| P4-runtime-mvp | 运行台 MVP 期 | BE-008、FE-008、阶段 test/validator | pm/backend/frontend/test/validator | P3 完成 | 动态 schema、记录列表/详情/保存/历史/提交审批入口按权限跑通，运行台 MVP 满意度通过 | pending |
+| P1-generator | 生成器闭环期 | GEN-002、GEN-003、GEN-004 | backend | P0 完成，`sql/init.sql` 可导入，`examine-generator` 骨架可编译 | 能通过命令参数按表前缀生成各业务模块 `base` 包，后端 compile 通过 | accepted |
+| P2-auth-platform | 认证与平台期 | BE-003、BE-004、FE-003、FE-004 的联调补充、阶段 validator/test 轻量检查 | pm/backend/frontend/test/validator | P1 完成，base CRUD 可用 | 登录、刷新、退出、当前用户、我的系统、平台系统创建和平台账号角色核心接口/页面闭环，PM 验收通过 | accepted |
+| P3-system-config | 系统配置与权限期 | BE-005、BE-006、BE-007、BE-014、FE-005、FE-006 的联调补充 | pm/backend/frontend/test | P2 完成 | 系统成员、部门、角色、权限、字典、应用/模块/字段/页面配置闭环，权限与数据范围基础可用 | accepted |
+| P4-runtime-mvp | 运行台 MVP 期 | BE-008、FE-008、阶段 test/validator | pm/backend/frontend/test/validator | P3 完成 | 动态 schema、记录列表/详情/保存/历史/提交审批入口按权限跑通，运行台 MVP 满意度通过 | accepted |
 | P5-workflow-files-openapi | 流程文件导出 OpenAPI 期 | BE-009 至 BE-013、FE-009 至 FE-011 的联调补充 | pm/backend/frontend/test | P4 完成 | 流程待办、附件、导出、OpenAPI、审计运维核心链路闭环 | accepted |
 | P6-final-acceptance | 后端集成验收与误判修正 | BE-015、FE-012、TEST-003 至 TEST-005、VAL-001 至 VAL-004、REV-001 至 REV-004 | test/validator/reviewer/pm | P5 完成 | 后端 jar 可试部署；原“全项目可上线”结论已撤回 | blocked(frontend-ui) |
-| P7-frontend-ui-deploy | 前端真实 UI 与部署包期 | FE-013、TEST-006 | frontend/test/validator/reviewer/pm | P6 撤回后进入前端 UI 修复 | 真实前端入口、`dist/`、浏览器 smoke 和前后端组合 E2E 完成 | in_progress |
+| P7-frontend-ui-deploy | 前端真实 UI 与部署包期 | FE-013、TEST-006 | frontend/test/validator/reviewer/pm | P6 撤回后进入前端 UI 修复 | 真实前端入口、`dist/`、浏览器 smoke 和前后端组合 E2E 完成 | accepted |
+| P8-platform-ui-crud | 平台中心可用化期 | FE-014 | frontend/test/validator/reviewer/pm | P7 完成 | 平台系统、账号、角色、配置真实 CRUD UI 完成 | accepted |
+| P9-system-management-ui | 系统管理域可用化期 | FE-015、TEST-007、VAL-005、REV-005 | frontend/test/validator/reviewer/pm | P8 完成并完成 P9 多角色审查/PM 裁决 | 成员、部门、系统角色、字典真实 UI 和写操作 E2E 通过 | in_progress |
 
 分期状态规则：
 
@@ -58,10 +60,11 @@
 | 后端业务模块 | BE-004 至 BE-014 | 生成器产物、core、权限基础完成 | 各模块 `manage` 代码 | 平台、系统、模块、运行、流程、文件、导出、OpenAPI、审计接口符合 API | pending |
 | API 实现自检 | BE-015 | 后端业务模块完成 | `backend/docs/backend-self-check.md` | 错误码、幂等、权限、事务、OpenAPI 签名和主要接口自检通过 | done |
 | 前端 SDK | FE-001 | API 冻结 | `frontend/src/api/`、`frontend/docs/page-contracts/_template.md` | 枚举、错误码、DTO/VO、分页、动态字段模型可被页面复用 | pending |
-| 前端页面 | FE-002 至 FE-011 | SDK 和路由基础完成 | `frontend/src/pages/`、`frontend/src/components/`、`frontend/docs/page-contracts/` | 页面按模块完成，页面级 API 映射、权限禁用、空态、错误态、requestId 展示闭环 | pending |
+| 前端页面 | FE-002 至 FE-015 | SDK 和路由基础完成 | `frontend/src/pages/`、`frontend/src/components/`、`frontend/docs/page-contracts/` | 页面按模块完成，页面级 API 映射、权限禁用、空态、错误态、requestId 展示闭环 | in_progress |
 | 前端自检 | FE-012 | 前端页面完成 | `frontend/docs/api-contract-map.md`、`frontend/docs/frontend-self-check.md` | 页面到接口映射、枚举错误码同步、无旁路请求 | done |
 | 前端真实 UI | FE-013 | P6 前端验收误判撤回 | `frontend/index.html`、`frontend/src/main.ts`、`frontend/src/App.ts`、`frontend/dist/`、`frontend/docs/frontend-ui-smoke.md` | 真实浏览器入口、页面工作区、生产构建和截图 smoke 通过 | done |
 | 前后端组合 E2E | TEST-006 | FE-013、后端 jar 包 | `docs/test_runs/frontend-backend-combo-e2e.md`、`docs/test_report.md`、`docs/review.json` | 浏览器触发真实后端 API，完成核心链路组合验证 | done |
+| P9 系统管理 UI | FE-015、TEST-007、VAL-005、REV-005 | P9 PM 裁决完成 | `frontend/src/App.ts`、P9 截图、P9 测试/构建/审查记录 | UI smoke 和 clean build 已通过；真实写操作 E2E 与 REV-005 待完成 | in_progress |
 | test 测试 | TEST-001 至 TEST-005 | API 冻结；执行依赖实现产物 | `docs/test_plan.md`、`docs/test_runs/`、`docs/test_report.md` | TEST-003/004 写独立执行记录，TEST-005 汇总报告并给出 pass/fail target | in_progress |
 | validator 构建 | VAL-001 至 VAL-004 | 后端、前端、测试产物完成 | `docs/build/`、`docs/build_report.md` | VAL-001/002/003 写独立验证记录，VAL-004 汇总 clean compile、clean build 和契约同步结论 | pending |
 | reviewer 审查 | REV-001 至 REV-004 | 测试和构建报告完成 | `docs/review_parts/`、`docs/review.json` | REV-001 至 REV-003 输出不重叠审查分片，REV-004 唯一输出合法 JSON 总结论 | pending |

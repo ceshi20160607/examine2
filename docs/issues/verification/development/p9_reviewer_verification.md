@@ -8,3 +8,6 @@
 | P9-BE-002 | test | 前端已传 `version` body，并加入 usage 检查；待浏览器 E2E 复核。 | pending |
 | P9-TEST-007-BROWSER-E2E | test | Chrome headless 已生成四个 UI smoke 截图，但真实写操作 E2E 未完成。 | partial |
 | P9-PM-001 | reviewer | `docs/review.json.fullProjectDeployable=false` 已恢复，完整系统上线结论已撤回。 | pass |
+| P9-VAL-005 | validator | validator 只读复核确认 P9 clean build 证据足够，VAL-005 可按窄口径判定 done。 | pass |
+| P9-REV-005-PERMISSION-BUTTON | reviewer | 已发现角色页 `RBAC-013` 加载权限目录按钮未按权限禁用，已修复为 `!actions.permission.enabled`。 | pass |
+| P9-REV-005-REVIEW-JSON | reviewer | 已将 `docs/review.json` 的过期 P9-FE 空壳结论移除，target 调整为 `test`，真实阻塞写入 `issues`。 | pass |
