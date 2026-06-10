@@ -7,16 +7,16 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 69 |
-| 已完成 | 64 |
-| 进行中 | 1 |
+| 已完成 | 65 |
+| 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 5 |
+| 剩余 | 4 |
 
 当前模式：`development`
 
 当前期次：`P12-uiux-frontend-rework`
 
-当前状态：`P12_ui_prototypes_done_fe024_pending_no_package`
+当前状态：`P12_fe024_done_test010_pending_no_package`
 
 ## 分期进度
 
@@ -34,7 +34,7 @@
 | P9-system-management-ui | 系统管理域可用化期 | accepted | FE-015、TEST-007、VAL-005、REV-005 已完成；成员、部门、系统角色、字典真实浏览器写操作 E2E 通过 | 已进入 P10 |
 | P10-app-runtime-ui | 应用模块与运行台可用化期 | accepted | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006 已完成；应用、模块、字段、页面配置、发布和运行台记录浏览器 E2E 通过 | 下一期进入 P11 流程、文件导出、OpenAPI 与审计运维可用化 |
 | P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | accepted | FE-019 至 FE-022、TEST-009、VAL-007、REV-007 已完成；功能试部署包已生成 | 用户反馈 UI 体验不足，进入 P12 |
-| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001、UIUX-002、FE-023 已完成；FE-024 待执行；PKG-001 阻塞 | 未通过 FE-024/TEST-010/VAL-008/REV-008 前禁止打包 |
+| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001、UIUX-002、FE-023、FE-024 已完成；TEST-010 待执行；PKG-001 阻塞 | 未通过 TEST-010/VAL-008/REV-008 前禁止打包 |
 
 ## 角色完成度
 
@@ -44,7 +44,7 @@
 | Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；OpenAPI accessKey 错误码回环与 P9 权限版本递增修复已验证。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
 | UI/UX | 2 | 0 | 0 | UIUX-001/UIUX-002 已完成，P12 UI 设计和页面级原型已输出。 |
-| Frontend | 23 | 0 | 1 | FE-001 至 FE-023 已完成；FE-024 待按 UI 设计重构业务域页面。 |
+| Frontend | 24 | 0 | 0 | FE-001 至 FE-024 已完成；业务域页面已按 UI 设计改造，待 test/validator/reviewer 复验。 |
 | Test | 9 | 0 | 1 | TEST-001 至 TEST-009 已完成；TEST-010 待执行 P12 UI 可用性 E2E。 |
 | Validator | 7 | 0 | 1 | VAL-001 至 VAL-007 已完成；VAL-008 待执行 P12 clean build/package。 |
 | Reviewer | 7 | 0 | 1 | REV-001 至 REV-007 已完成；REV-008 待重新审查 UI/UX 与最终可用性。 |
@@ -323,5 +323,14 @@ PM 已做如下调整：
 - UIUX-002 已完成：新增 `docs/ui/prototypes/page-prototypes.md`，为 FE-024 提供页面级原型。
 - FE-023 已完成：新增系统总览路由，进入系统后默认落到总览；侧栏按平台/系统分层；系统总览展示配置进度、推荐路径和快捷入口。
 - FE-023 验证：`npm.cmd run build` pass，生产预览 `/` 与 `/#/systems/demo/overview` HTTP 200；截图级浏览器 E2E 留给 TEST-010。
+- FE-024 已完成：应用配置步骤工作台、运行台详情 Tabs、流程工作台 Tabs、文件上传卡片、导出发布状态提示、OpenAPI 接入卡片、审计检索和运维巡检提示已落地。
+- FE-024 验证：`npm.cmd run build` pass，生产预览 `/` 与 `/#/systems/demo/overview` HTTP 200。
 
-当前下一步：frontend 按 `docs/ui/ui-design.md` 执行 FE-024，改造业务域表单、抽屉、详情、状态反馈，再重新执行浏览器 E2E、clean build、部署包和 reviewer 审查。
+当前下一步：test 执行 TEST-010 浏览器 UI 可用性 E2E；通过后 validator 执行 VAL-008 clean build/后端 package（不生成部署包），再由 reviewer 执行 REV-008。TEST-010、VAL-008、REV-008 未全部通过前，PKG-001 继续阻塞。
+
+## 2026-06-10 FE-024 完成记录
+
+- 前端完成应用配置步骤工作台、运行台详情 Tabs、流程工作台 Tabs、文件上传卡片、导出发布状态提示、OpenAPI 接入卡片、审计检索和运维巡检提示。
+- 自检命令：`npm.cmd run build`，结果 pass。
+- 生产预览：`/` 与 `/#/systems/demo/overview` HTTP 200。
+- 当前只代表 frontend 任务完成；TEST-010、VAL-008、REV-008 未通过，`docs/review.json.fullProjectDeployable=false`，禁止生成最终部署包。

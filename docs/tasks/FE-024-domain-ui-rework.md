@@ -2,7 +2,7 @@
 
 - 所属期次：P12-uiux-frontend-rework
 - 负责人：frontend
-- 状态：pending
+- 状态：done
 
 ## 目标
 
@@ -31,5 +31,6 @@
 
 ## 自检
 
-- `npm.cmd run build`
-- 浏览器完成 P12 主链路。
+- `npm.cmd run build`：pass。
+- 生产预览 `/` 与 `/#/systems/demo/overview`：HTTP 200。
+- 浏览器完成 P12 主链路：待 TEST-010 执行，不由 FE-024 代替验收。

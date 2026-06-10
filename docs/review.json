@@ -5,8 +5,6 @@
   "reviewedAt": "2026-06-10T18:15:00+08:00",
   "summary": "P11 backend and frontend functional trial deployment package exists, but user feedback exposed a valid PM/UI gap: frontend pages were implemented from API and E2E needs without a frozen UI/UX design. The system can be used for functional trial, but final user-facing UI usability is not accepted until P12 frontend rework follows docs/ui/ui-design.md.",
   "nextRoute": [
-    "FE-023",
-    "FE-024",
     "TEST-010",
     "VAL-008",
     "REV-008"
@@ -16,10 +14,10 @@
       "issueId": "P12-UI-001",
       "severity": "P1",
       "target": "frontend",
-      "status": "open",
+      "status": "resolved",
       "file": "frontend/src/App.ts",
       "problem": "Current frontend is functionally connected but organized as an API-driven engineering UI, with too much page logic concentrated in App.ts and no prior frozen information architecture, wireframe, interaction state or component guideline.",
-      "suggestion": "Implement FE-023 and FE-024 against docs/ui/ui-design.md before claiming final user-facing usability."
+      "suggestion": "FE-023 and FE-024 have been implemented against docs/ui/ui-design.md; keep final user-facing usability blocked until TEST-010, VAL-008 and REV-008 pass."
     },
     {
       "issueId": "P12-PM-001",
@@ -60,6 +58,8 @@
   "verification": [
     "UIUX-001 produced docs/ui/ui-design.md",
     "P12 plan produced docs/phases/P12-uiux-frontend-rework-plan.md",
-    "FE-023/FE-024/TEST-010/VAL-008/REV-008 are pending"
+    "FE-023 produced shell navigation and system overview UI",
+    "FE-024 produced domain UI rework and npm.cmd run build pass",
+    "TEST-010/VAL-008/REV-008 are pending; fullProjectDeployable remains false"
   ]
 }

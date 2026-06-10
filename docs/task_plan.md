@@ -209,7 +209,7 @@ flowchart TD
 | UIUX-001 | UI/UX 设计冻结 | uiux/pm | frontend-ui | P12 | `docs/ui/ui-design.md` | P11 | 否 | 信息架构、导航、用户流程、页面线框、组件规范、状态反馈和验收标准冻结 | PM 审阅，frontend 可据此实现 | done |
 | UIUX-002 | 页面级原型冻结 | uiux/pm | frontend-ui | P12/UIUX-001 | `docs/ui/prototypes/page-prototypes.md` | UIUX-001 | 否 | 平台、系统、应用配置、运行台、流程、文件导出、OpenAPI、审计运维均有页面级原型 | PM 审阅，FE-024 可据此实现 | done |
 | FE-023 | Shell 导航与系统总览 UI 改造 | frontend | frontend-ui | P12/UIUX-001 | `frontend/src/`、`frontend/docs/page-contracts/FE-023-shell-navigation-overview-ui.md` | UIUX-001 | 否 | 平台/系统双层导航、系统总览、标题区、上下文和基础布局符合 UI 设计 | 前端 build、生产预览 HTTP 200；截图级 smoke 留 TEST-010 | done |
-| FE-024 | 业务域 UI 可用化改造 | frontend | frontend-ui | P12/FE-023/UIUX-002 | `frontend/src/`、`frontend/docs/page-contracts/FE-024-domain-ui-rework.md` | FE-023, UIUX-002 | 否 | 系统设置、应用配置、运行台、流程、文件导出、OpenAPI、审计运维按页面级原型完成可用化改造 | P12 浏览器 E2E、前端 build | pending |
+| FE-024 | 业务域 UI 可用化改造 | frontend | frontend-ui | P12/FE-023/UIUX-002 | `frontend/src/`、`frontend/docs/page-contracts/FE-024-domain-ui-rework.md` | FE-023, UIUX-002 | 否 | 系统设置、应用配置、运行台、流程、文件导出、OpenAPI、审计运维按页面级原型完成可用化改造 | 前端 build pass；P12 浏览器 E2E 由 TEST-010 执行 | done |
 | TEST-001 | 测试计划与夹具设计 | test | test | PRD/API/task_plan/service | `docs/test_plan.md` | PLAN-001 | 是 | 范围、环境、夹具和入口明确 | 测试数据不进入生产 seed | pending |
 | TEST-002 | API 契约用例 | test | test | TEST-001/API | API 用例清单 | TEST-001 | 是 | 正常、异常、权限、边界、幂等覆盖 | 可直接用于自动化 | pending |
 | TEST-003 | E2E 主链路执行 | test | test | BE-015/FE-012 | `docs/test_runs/e2e-main-chain.md` | BE-015, FE-012, TEST-002 | 否 | 创建系统到审批导出 OpenAPI 闭环跑通，执行记录独立输出 | E2E 场景断言 | done |

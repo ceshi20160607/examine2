@@ -28,6 +28,14 @@ P11 部署包保留为功能试部署包。用户反馈前端缺少独立 UI/UX 
 | 生产预览 | `/` 与 `/#/systems/demo/overview` HTTP 200 |
 | 说明 | 浏览器插件工具本轮未暴露，截图级 UI smoke 留给 TEST-010 |
 
+### FE-024 验证
+
+| 项目 | 结果 |
+| --- | --- |
+| 前端构建 | `npm.cmd run build` pass |
+| 生产预览 | `/` 与 `/#/systems/demo/overview` HTTP 200 |
+| 说明 | 本次只完成 frontend 自检；TEST-010、VAL-008、REV-008 未通过前仍禁止打包 |
+
 # 2026-06-09 P10 Clean Build 摘要
 
 结论：P10 前端 build、后端 package 和浏览器写操作 E2E 均已通过，P10 accepted。

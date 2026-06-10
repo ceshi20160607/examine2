@@ -526,9 +526,182 @@ code {
   resize: vertical;
 }
 
-.admin-page {
+.admin-page,
+.domain-page,
+.runtime-page {
   display: grid;
   gap: 16px;
+}
+
+.config-workbench {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) minmax(220px, 300px);
+  gap: 16px;
+  align-items: start;
+}
+
+.config-steps {
+  display: grid;
+  gap: 8px;
+  position: sticky;
+  top: 18px;
+}
+
+.config-step {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px;
+  color: #52616f;
+}
+
+.config-step span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  background: #eef3f5;
+  color: #205a72;
+  font-weight: 700;
+}
+
+.config-step strong {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.config-step:hover,
+.config-step.active {
+  border-color: #91b4c2;
+  background: #f5fafc;
+  color: #163f52;
+}
+
+.config-step.active span {
+  background: #205a72;
+  color: #ffffff;
+}
+
+.config-main {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+}
+
+.publish-aside,
+.task-card,
+.detail-tabs {
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.publish-aside {
+  display: grid;
+  gap: 9px;
+  position: sticky;
+  top: 18px;
+  padding: 14px;
+}
+
+.publish-aside strong,
+.task-card-title strong {
+  color: #17212b;
+}
+
+.publish-aside span,
+.task-card-title span {
+  color: #697989;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.task-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.task-card.is-ok {
+  border-color: #9ac3b3;
+  background: #f8fcfa;
+}
+
+.task-card.is-warn {
+  border-color: #e0bd8d;
+  background: #fffaf3;
+}
+
+.task-card-title {
+  display: grid;
+  gap: 4px;
+}
+
+.task-card .form-grid {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.upload-card input[type="file"] {
+  min-height: 38px;
+  border: 1px dashed #9fb0bf;
+  border-radius: 6px;
+  background: #f8fafb;
+  padding: 8px;
+}
+
+.detail-tabs {
+  display: grid;
+  overflow: hidden;
+}
+
+.tab-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid #d7dde4;
+  background: #f8fafb;
+  padding: 10px 12px 0;
+}
+
+.tab {
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  padding: 9px 12px;
+  color: #52616f;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tab.active {
+  border-color: #d7dde4;
+  background: #ffffff;
+  color: #163f52;
+}
+
+.tab-panel {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+}
+
+.secret-message {
+  display: grid;
+  gap: 8px;
+  border-color: #e0bd8d;
+  background: #fffaf3;
+}
+
+.ops-page .task-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
 }
 
 .form-grid {
@@ -688,6 +861,19 @@ code {
     grid-template-columns: 220px minmax(0, 1fr);
   }
 
+  .config-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .config-steps,
+  .publish-aside {
+    position: static;
+  }
+
+  .config-steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .inspector {
     position: static;
     grid-column: 1 / -1;
@@ -735,7 +921,9 @@ code {
   .media-board,
   .timeline,
   .toolbar-row,
-  .form-grid {
+  .form-grid,
+  .config-steps,
+  .ops-page .task-card {
     grid-template-columns: 1fr;
   }
 

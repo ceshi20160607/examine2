@@ -1155,18 +1155,24 @@ export function mountApp(container: HTMLElement): void {
   function renderAppList(): HTMLElement {
     const actions = moduleConfigPage.permissions();
     const seed = p10Seed();
-    return node("div", { className: "admin-page" }, [
+    return renderConfigWorkbench("应用", [
       renderPageMetrics([
         [String(appRuntimeState.apps.length), "应用总数"],
         [selectedApp()?.name ?? "未选择", "当前应用"],
         [enabledCount(appRuntimeState.apps), "启用应用"],
       ]),
-      node("div", { className: "form-grid" }, [
-        input("应用名称", "appName", `P10应用${seed}`),
-        input("应用编码", "appCode", `p10_app_${seed}`),
-        input("图标", "appIcon", "grid"),
-        textarea("应用说明", "appDescription", "P10 浏览器 E2E 创建"),
-        button("创建应用", "primary", createAppConfig, !actions.appCreate.enabled),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "创建应用" }),
+          node("span", { text: "应用是业务模块的分组，先创建应用再配置模块和字段。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          input("应用名称", "appName", `P10应用${seed}`),
+          input("应用编码", "appCode", `p10_app_${seed}`),
+          input("图标", "appIcon", "grid"),
+          textarea("应用说明", "appDescription", "P10 浏览器 E2E 创建"),
+          button("创建应用", "primary", createAppConfig, !actions.appCreate.enabled),
+        ]),
       ]),
       renderDataTable(
         "apps",
@@ -1192,19 +1198,25 @@ export function mountApp(container: HTMLElement): void {
     const actions = moduleConfigPage.permissions();
     const app = selectedApp();
     const seed = p10Seed();
-    return node("div", { className: "admin-page" }, [
+    return renderConfigWorkbench("模块", [
       renderPageMetrics([
         [app?.name ?? "未选择", "所属应用"],
         [String(appRuntimeState.modules.length), "模块总数"],
         [selectedModule()?.name ?? "未选择", "当前模块"],
       ]),
-      node("div", { className: "form-grid" }, [
-        selectField("应用", "selectedAppId", appRuntimeState.selectedAppId ?? "", appSelectOptions()),
-        input("模块名称", "moduleName", `P10模块${seed}`),
-        input("模块编码", "moduleCode", `p10_mod_${seed}`),
-        textarea("模块说明", "moduleDescription", "P10 浏览器 E2E 创建"),
-        button("切换应用", "secondary", switchSelectedApp),
-        button("创建模块", "primary", createModuleConfig, !app || !actions.moduleCreate.enabled),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "创建模块" }),
+          node("span", { text: app ? "模块发布后会出现在运行台。" : "请先创建或选择应用。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          selectField("应用", "selectedAppId", appRuntimeState.selectedAppId ?? "", appSelectOptions()),
+          input("模块名称", "moduleName", `P10模块${seed}`),
+          input("模块编码", "moduleCode", `p10_mod_${seed}`),
+          textarea("模块说明", "moduleDescription", "P10 浏览器 E2E 创建"),
+          button("切换应用", "secondary", switchSelectedApp),
+          button("创建模块", "primary", createModuleConfig, !app || !actions.moduleCreate.enabled),
+        ]),
       ]),
       renderDataTable(
         "modules",
@@ -1232,22 +1244,28 @@ export function mountApp(container: HTMLElement): void {
     const actions = moduleConfigPage.permissions();
     const module = selectedModule();
     const seed = p10Seed();
-    return node("div", { className: "admin-page" }, [
+    return renderConfigWorkbench("字段", [
       renderPageMetrics([
         [module?.name ?? "未选择", "当前模块"],
         [String(appRuntimeState.fields.length), "字段总数"],
         [String(appRuntimeState.fieldTypes.length || moduleConfigPage.fieldDesigner.availableFieldTypes.length), "字段类型"],
       ]),
-      node("div", { className: "form-grid" }, [
-        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
-        input("字段名称", "fieldName", `标题${seed}`),
-        input("字段编码", "fieldCode", `title_${seed}`),
-        selectField("字段类型", "fieldType", "TEXT", fieldTypeOptions()),
-        selectField("是否必填", "fieldRequired", "false", [["false", "否"], ["true", "是"]]),
-        selectField("是否唯一", "fieldUnique", "false", [["false", "否"], ["true", "是"]]),
-        input("选项", "fieldOptions", "A:选项A,B:选项B"),
-        button("切换模块", "secondary", switchSelectedModule),
-        button("创建字段", "primary", createModuleField, !module || !actions.fieldCreate.enabled),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "字段设计" }),
+          node("span", { text: module ? "字段决定运行台列表、表单和详情的数据结构。" : "请先选择模块。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+          input("字段名称", "fieldName", `标题${seed}`),
+          input("字段编码", "fieldCode", `title_${seed}`),
+          selectField("字段类型", "fieldType", "TEXT", fieldTypeOptions()),
+          selectField("是否必填", "fieldRequired", "false", [["false", "否"], ["true", "是"]]),
+          selectField("是否唯一", "fieldUnique", "false", [["false", "否"], ["true", "是"]]),
+          input("选项", "fieldOptions", "A:选项A,B:选项B"),
+          button("切换模块", "secondary", switchSelectedModule),
+          button("创建字段", "primary", createModuleField, !module || !actions.fieldCreate.enabled),
+        ]),
       ]),
       renderDataTable(
         "fields",
@@ -1270,22 +1288,28 @@ export function mountApp(container: HTMLElement): void {
   function renderModuleUi(): HTMLElement {
     const actions = moduleConfigPage.permissions();
     const module = selectedModule();
-    return node("div", { className: "admin-page" }, [
+    return renderConfigWorkbench("页面与发布", [
       renderPageMetrics([
         [module?.name ?? "未选择", "当前模块"],
         [appRuntimeState.publishCheck?.passed ? "通过" : appRuntimeState.publishCheck ? "未通过" : "未检查", "发布检查"],
         [appRuntimeState.publishResult?.versionNo ? `v${appRuntimeState.publishResult.versionNo}` : "-", "发布版本"],
       ]),
-      node("div", { className: "form-grid" }, [
-        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
-        input("菜单编码", "menuCode", module ? `${module.code}_menu` : ""),
-        input("菜单名称", "menuName", module?.name ?? ""),
-        button("切换模块", "secondary", switchSelectedModule),
-        button("加载配置", "secondary", loadModuleUiConfig, !module || !actions.pageView.enabled),
-        button("保存默认页面", "primary", saveDefaultPageConfig, !module || appRuntimeState.fields.length === 0 || !actions.pageEdit.enabled),
-        button("保存菜单动作", "secondary", saveMenuAndActions, !module || !actions.menuEdit.enabled),
-        button("发布检查", "secondary", publishCheckModule, !module || !actions.modulePublish.enabled),
-        button("发布模块", "primary", publishModuleConfig, !module || !actions.modulePublish.enabled),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "页面、菜单与发布" }),
+          node("span", { text: "先保存默认页面和菜单动作，再执行发布检查，通过后发布到运行台。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+          input("菜单编码", "menuCode", module ? `${module.code}_menu` : ""),
+          input("菜单名称", "menuName", module?.name ?? ""),
+          button("切换模块", "secondary", switchSelectedModule),
+          button("加载配置", "secondary", loadModuleUiConfig, !module || !actions.pageView.enabled),
+          button("保存默认页面", "primary", saveDefaultPageConfig, !module || appRuntimeState.fields.length === 0 || !actions.pageEdit.enabled),
+          button("保存菜单动作", "secondary", saveMenuAndActions, !module || !actions.menuEdit.enabled),
+          button("发布检查", "secondary", publishCheckModule, !module || !actions.modulePublish.enabled),
+          button("发布模块", "primary", publishModuleConfig, !module || !actions.modulePublish.enabled),
+        ]),
       ]),
       renderDataTable(
         "schemas",
@@ -1341,18 +1365,24 @@ export function mountApp(container: HTMLElement): void {
     const schema = appRuntimeState.runtimeSchema;
     const records = appRuntimeState.recordPage?.records ?? [];
     const detail = appRuntimeState.selectedRecord;
-    return node("div", { className: "admin-page" }, [
+    return node("div", { className: "runtime-page" }, [
       renderPageMetrics([
         [schema?.moduleCode ?? selectedModule()?.code ?? "-", "运行模块"],
         [String(records.length), "当前记录"],
         [detail?.recordId ?? "-", "当前记录 ID"],
       ]),
-      node("div", { className: "form-grid" }, [
-        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
-        input("关键字", "runtimeKeyword", ""),
-        button("切换模块", "secondary", switchSelectedModule),
-        button("加载运行台", "primary", loadRuntimeModule, !selectedModuleId()),
-        button("查询记录", "secondary", loadRuntimeRecords, !schema),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "运行列表" }),
+          node("span", { text: "运行台只展示已发布模块。筛选、创建、提交和导出都围绕当前模块进行。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+          input("关键字", "runtimeKeyword", ""),
+          button("切换模块", "secondary", switchSelectedModule),
+          button("加载运行台", "primary", loadRuntimeModule, !selectedModuleId()),
+          button("查询记录", "secondary", loadRuntimeRecords, !schema),
+        ]),
       ]),
       renderRuntimeForm(schema, detail),
       renderDataTable(
@@ -1372,18 +1402,7 @@ export function mountApp(container: HTMLElement): void {
         ]),
         "暂无记录，创建后会显示在这里。",
       ),
-      renderRuntimeDetail(detail),
-      renderDataTable(
-        "history",
-        ["版本", "操作", "状态", "请求号"],
-        appRuntimeState.recordHistory.map((item) => [
-          String(item.recordVersion),
-          item.operationType,
-          [item.beforeStatus, item.afterStatus].filter(Boolean).join(" -> ") || "-",
-          item.requestId ?? "-",
-        ]),
-        "暂无历史，查看记录历史后会显示在这里。",
-      ),
+      renderRuntimeDetailTabs(detail),
     ]);
   }
 
@@ -1421,6 +1440,32 @@ export function mountApp(container: HTMLElement): void {
     );
   }
 
+  function renderRuntimeDetailTabs(detail?: RecordDetailVO): HTMLElement {
+    return node("section", { className: "detail-tabs" }, [
+      node("div", { className: "tab-strip" }, [
+        node("span", { className: "tab active", text: "详情" }),
+        node("span", { className: "tab", text: "附件" }),
+        node("span", { className: "tab", text: "审批" }),
+        node("span", { className: "tab", text: "历史" }),
+        node("span", { className: "tab", text: "关联" }),
+      ]),
+      node("div", { className: "tab-panel" }, [
+        renderRuntimeDetail(detail),
+        renderDataTable(
+          "history",
+          ["版本", "操作", "状态", "请求号"],
+          appRuntimeState.recordHistory.map((item) => [
+            String(item.recordVersion),
+            item.operationType,
+            [item.beforeStatus, item.afterStatus].filter(Boolean).join(" -> ") || "-",
+            item.requestId ?? "-",
+          ]),
+          "暂无历史，查看记录历史后会显示在这里。",
+        ),
+      ]),
+    ]);
+  }
+
   function renderFlowTemplates(): HTMLElement {
     const templates = operationsState.flowTemplates?.records ?? [];
     const actions = {
@@ -1429,18 +1474,24 @@ export function mountApp(container: HTMLElement): void {
       templatePublish: permissionStore.decide({ anyOperations: ["FLOW_TEMPLATE_PUBLISH"] }),
       bindingEdit: permissionStore.decide({ anyOperations: ["FLOW_BINDING_EDIT"] }),
     };
-    return node("div", { className: "admin-page" }, [
+    return node("div", { className: "domain-page" }, [
       renderPageMetrics([
         [String(operationsState.flowTemplates?.total ?? templates.length), "模板总数"],
         [String(templates.filter((item) => item.status === "PUBLISHED").length), "已发布"],
         [selectedModule()?.name ?? "未选择", "默认绑定模块"],
       ]),
-      node("div", { className: "form-grid" }, [
-        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
-        input("模板名称", "flowTemplateName", `P11流程${p10Seed()}`),
-        textarea("模板备注", "flowTemplateRemark", "P11 流程模板页面创建"),
-        button("切换模块", "secondary", switchSelectedModule),
-        button("创建模板", "primary", createFlowTemplate, !actions.templateCreate.enabled),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "模板设计" }),
+          node("span", { text: "先创建模板并保存默认审批图，通过发布检查后再绑定到模块。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+          input("模板名称", "flowTemplateName", `P11流程${p10Seed()}`),
+          textarea("模板备注", "flowTemplateRemark", "P11 流程模板页面创建"),
+          button("切换模块", "secondary", switchSelectedModule),
+          button("创建模板", "primary", createFlowTemplate, !actions.templateCreate.enabled),
+        ]),
       ]),
       renderDataTable(
         "flow-templates",
@@ -1468,61 +1519,77 @@ export function mountApp(container: HTMLElement): void {
     const cc = operationsState.flowCc?.records ?? [];
     const started = operationsState.flowStarted?.records ?? [];
     const instances = operationsState.flowInstances?.records ?? [];
-    return node("div", { className: "admin-page" }, [
+    return node("div", { className: "domain-page" }, [
       renderPageMetrics([
         [String(todos.length), "待办"],
         [String(cc.length), "抄送"],
         [String(instances.length), "流程实例"],
       ]),
-      node("div", { className: "form-grid" }, [
-        input("关键字", "flowKeyword", ""),
-        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
-        button("切换模块", "secondary", switchSelectedModule),
-        button("刷新工作台", "primary", loadFlowWorkbench),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "审批工作台" }),
+          node("span", { text: "按待办、流程实例和抄送分区处理，不再把审批动作散落成无说明按钮。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          input("关键字", "flowKeyword", ""),
+          selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+          button("切换模块", "secondary", switchSelectedModule),
+          button("刷新工作台", "primary", loadFlowWorkbench),
+        ]),
       ]),
-      renderDataTable(
-        "flow-todos",
-        ["记录", "节点", "处理人", "状态", "操作"],
-        todos.map((item) => [
-          item.recordTitle ?? item.recordId,
-          item.nodeName,
-          item.claimedByName ?? item.assigneeName ?? "-",
-          statusLabel(item.taskStatus),
-          node("div", { className: "row-actions" }, [
-            button("签收", "secondary", () => claimFlowTask(item), Boolean(flowWorkbench.workbench.claimDisabledReason(item))),
-            button("通过", "primary", () => approveFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("APPROVE", item.taskVersion, { comment: "同意" })))),
-            button("退回", "secondary", () => rejectFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("REJECT", item.taskVersion, { comment: "退回" })))),
-            button("详情", "secondary", () => loadFlowTaskDetail(item.taskId)),
-          ]),
+      node("section", { className: "detail-tabs" }, [
+        node("div", { className: "tab-strip" }, [
+          node("span", { className: "tab active", text: "待办" }),
+          node("span", { className: "tab", text: "抄送" }),
+          node("span", { className: "tab", text: "我的申请" }),
+          node("span", { className: "tab", text: "流程实例" }),
         ]),
-        "暂无待办任务。",
-      ),
-      renderDataTable(
-        "flow-instances",
-        ["记录", "发起人", "当前节点", "状态", "操作"],
-        [...started, ...instances].map((item) => [
-          item.recordTitle ?? item.recordId,
-          item.starterName ?? item.starterMemberId ?? "-",
-          item.currentNodeName ?? "-",
-          statusLabel(item.status),
-          node("div", { className: "row-actions" }, [
-            button("详情", "secondary", () => loadFlowInstanceDetail(item.instanceId)),
-            button("撤回", "secondary", () => withdrawFlowInstance(item), Boolean(flowWorkbench.workbench.withdrawDisabledReason(item))),
-          ]),
+        node("div", { className: "tab-panel" }, [
+          renderDataTable(
+            "flow-todos",
+            ["记录", "节点", "处理人", "状态", "操作"],
+            todos.map((item) => [
+              item.recordTitle ?? item.recordId,
+              item.nodeName,
+              item.claimedByName ?? item.assigneeName ?? "-",
+              statusLabel(item.taskStatus),
+              node("div", { className: "row-actions" }, [
+                button("签收", "secondary", () => claimFlowTask(item), Boolean(flowWorkbench.workbench.claimDisabledReason(item))),
+                button("通过", "primary", () => approveFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("APPROVE", item.taskVersion, { comment: "同意" })))),
+                button("退回", "secondary", () => rejectFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("REJECT", item.taskVersion, { comment: "退回" })))),
+                button("详情", "secondary", () => loadFlowTaskDetail(item.taskId)),
+              ]),
+            ]),
+            "暂无待办任务。",
+          ),
+          renderDataTable(
+            "flow-instances",
+            ["记录", "发起人", "当前节点", "状态", "操作"],
+            [...started, ...instances].map((item) => [
+              item.recordTitle ?? item.recordId,
+              item.starterName ?? item.starterMemberId ?? "-",
+              item.currentNodeName ?? "-",
+              statusLabel(item.status),
+              node("div", { className: "row-actions" }, [
+                button("详情", "secondary", () => loadFlowInstanceDetail(item.instanceId)),
+                button("撤回", "secondary", () => withdrawFlowInstance(item), Boolean(flowWorkbench.workbench.withdrawDisabledReason(item))),
+              ]),
+            ]),
+            "暂无流程实例。",
+          ),
+          renderDataTable(
+            "flow-cc",
+            ["记录", "节点", "已读", "时间"],
+            cc.map((item) => [
+              item.recordTitle ?? item.recordId,
+              item.nodeName ?? "-",
+              item.read ? "是" : "否",
+              item.createdAt ?? "-",
+            ]),
+            "暂无抄送。",
+          ),
         ]),
-        "暂无流程实例。",
-      ),
-      renderDataTable(
-        "flow-cc",
-        ["记录", "节点", "已读", "时间"],
-        cc.map((item) => [
-          item.recordTitle ?? item.recordId,
-          item.nodeName ?? "-",
-          item.read ? "是" : "否",
-          item.createdAt ?? "-",
-        ]),
-        "暂无抄送。",
-      ),
+      ]),
     ]);
   }
 
@@ -1532,21 +1599,27 @@ export function mountApp(container: HTMLElement): void {
       upload: permissionStore.decide({ anyOperations: ["FILE_UPLOAD"] }),
       view: permissionStore.decide({ anyOperations: ["FILE_VIEW"] }),
     };
-    return node("div", { className: "admin-page" }, [
+    return node("div", { className: "domain-page" }, [
       renderPageMetrics([
         [String(operationsState.files?.total ?? files.length), "文件总数"],
         [String(files.filter((item) => item.previewable).length), "可预览"],
         [operationsState.selectedFile?.fileName ?? "-", "当前文件"],
       ]),
-      node("div", { className: "form-grid" }, [
-        input("业务类型", "fileBizType", ""),
-        input("字段编码", "fileFieldCode", ""),
-        node("label", { className: "field wide-field" }, [
-          node("span", { text: "上传文件" }),
-        node("input", { name: "fileUpload", type: "file" }),
+      node("section", { className: "task-card upload-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "上传与引用" }),
+          node("span", { text: "上传后可在详情中查看预览、下载状态和引用对象。" }),
         ]),
-        textarea("未选择文件时上传文本", "fileFallbackText", "P11 文件中心测试内容"),
-        button("上传文件", "primary", uploadFileCenterFile, !actions.upload.enabled),
+        node("div", { className: "form-grid" }, [
+          input("业务类型", "fileBizType", ""),
+          input("字段编码", "fileFieldCode", ""),
+          node("label", { className: "field wide-field" }, [
+            node("span", { text: "上传文件" }),
+            node("input", { name: "fileUpload", type: "file" }),
+          ]),
+          textarea("未选择文件时上传文本", "fileFallbackText", "P11 文件中心测试内容"),
+          button("上传文件", "primary", uploadFileCenterFile, !actions.upload.enabled),
+        ]),
       ]),
       renderDataTable(
         "files",
@@ -1573,55 +1646,67 @@ export function mountApp(container: HTMLElement): void {
     const templates = operationsState.exportTemplates;
     const exportModule = selectedModule();
     const exportModuleReady = Boolean(exportModule && moduleIsPublished(exportModule));
-    return node("div", { className: "admin-page" }, [
+    return node("div", { className: "domain-page" }, [
       renderPageMetrics([
         [String(templates.length), "导出模板"],
         [String(operationsState.exportJobs?.total ?? jobs.length), "导出任务"],
         [selectedModule()?.name ?? "未选择", "当前模块"],
       ]),
-      node("div", { className: "form-grid" }, [
-        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
-        input("模板编码", "exportTemplateCode", `p11_tpl_${p10Seed()}`),
-        input("模板名称", "exportTemplateName", `P11导出模板${p10Seed()}`),
-        input("文件名", "exportFileName", `p11-export-${p10Seed()}.csv`),
-        button("切换模块", "secondary", switchSelectedModule),
-        button("创建模板", "primary", createExportTemplate, !selectedModuleId() || !exportModuleReady || appRuntimeState.fields.length === 0),
-        button("创建导出任务", "primary", createExportJob, !selectedModuleId() || !exportModuleReady),
+      node("section", { className: `task-card ${exportModuleReady ? "is-ok" : "is-warn"}` }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "导出准备" }),
+          node("span", {
+            text: exportModuleReady ? "当前模块已发布，可创建导出模板和任务。" : "当前模块尚未发布，请先在应用配置中发布模块。",
+          }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+          input("模板编码", "exportTemplateCode", `p11_tpl_${p10Seed()}`),
+          input("模板名称", "exportTemplateName", `P11导出模板${p10Seed()}`),
+          input("文件名", "exportFileName", `p11-export-${p10Seed()}.csv`),
+          button("切换模块", "secondary", switchSelectedModule),
+          button("创建模板", "primary", createExportTemplate, !selectedModuleId() || !exportModuleReady || appRuntimeState.fields.length === 0),
+          button("创建导出任务", "primary", createExportJob, !selectedModuleId() || !exportModuleReady),
+        ]),
       ]),
-      node("p", {
-        className: "muted",
-        text: exportModuleReady ? "当前模块已发布，可创建导出模板和任务。" : "当前模块尚未发布，请先在模块配置中发布后再创建导出。",
-      }),
-      renderDataTable(
-        "export-templates",
-        ["模板", "编码", "格式", "字段数", "操作"],
-        templates.map((item) => [
-          item.templateName,
-          item.templateCode,
-          item.exportFormat ?? "CSV",
-          String(item.fields.length),
-          node("div", { className: "row-actions" }, [
-            button("更新", "secondary", () => updateExportTemplate(item)),
-          ]),
+      node("section", { className: "detail-tabs" }, [
+        node("div", { className: "tab-strip" }, [
+          node("span", { className: "tab active", text: "导出模板" }),
+          node("span", { className: "tab", text: "导出任务" }),
         ]),
-        "暂无导出模板。",
-      ),
-      renderDataTable(
-        "export-jobs",
-        ["文件", "状态", "进度", "结果文件", "操作"],
-        jobs.map((item) => [
-          item.fileName ?? item.jobId,
-          statusLabel(item.status),
-          `${item.progress}%`,
-          item.resultFileId ?? "-",
-          node("div", { className: "row-actions" }, [
-            button("详情", "secondary", () => loadExportJobDetail(item.jobId)),
-            button("重试", "secondary", () => retryExportJob(item), Boolean(exportPage.jobs.retryDisabledReason(item))),
-            button("取消", "secondary", () => cancelExportJob(item), Boolean(exportPage.jobs.cancelDisabledReason(item))),
-          ]),
+        node("div", { className: "tab-panel" }, [
+          renderDataTable(
+            "export-templates",
+            ["模板", "编码", "格式", "字段数", "操作"],
+            templates.map((item) => [
+              item.templateName,
+              item.templateCode,
+              item.exportFormat ?? "CSV",
+              String(item.fields.length),
+              node("div", { className: "row-actions" }, [
+                button("更新", "secondary", () => updateExportTemplate(item)),
+              ]),
+            ]),
+            "暂无导出模板。",
+          ),
+          renderDataTable(
+            "export-jobs",
+            ["文件", "状态", "进度", "结果文件", "操作"],
+            jobs.map((item) => [
+              item.fileName ?? item.jobId,
+              statusLabel(item.status),
+              `${item.progress}%`,
+              item.resultFileId ?? item.failureReason?.message ?? "-",
+              node("div", { className: "row-actions" }, [
+                button("详情", "secondary", () => loadExportJobDetail(item.jobId)),
+                button("重试", "secondary", () => retryExportJob(item), Boolean(exportPage.jobs.retryDisabledReason(item))),
+                button("取消", "secondary", () => cancelExportJob(item), Boolean(exportPage.jobs.cancelDisabledReason(item))),
+              ]),
+            ]),
+            "暂无导出任务。",
+          ),
         ]),
-        "暂无导出任务。",
-      ),
+      ]),
     ]);
   }
 
@@ -1629,23 +1714,29 @@ export function mountApp(container: HTMLElement): void {
     const state = operationsState.openApi;
     const clients = state.clients.records ?? [];
     const permissions = openApiPage.permissions();
-    return node("div", { className: "admin-page" }, [
+    return node("div", { className: "domain-page" }, [
       renderPageMetrics([
         [String(state.clients.total ?? clients.length), "客户端"],
         [String(clients.filter((item) => item.status === "ENABLED").length), "启用中"],
         [String(state.accessLogs.total ?? state.accessLogs.records.length), "调用日志"],
       ]),
-      node("div", { className: "form-grid" }, [
-        input("客户端名称", "openApiClientName", `P11客户端${p10Seed()}`),
-        input("客户端编码", "openApiClientCode", `p11_client_${p10Seed()}`),
-        input("Scope", "openApiScopes", "record:read,record:write"),
-        input("IP 白名单", "openApiIpWhitelist", ""),
-        input("每分钟限流", "openApiRateLimit", "60"),
-        button("加载 Scope", "secondary", loadOpenApiScopeCatalog),
-        button("创建客户端", "primary", createOpenApiClient, !permissions.createClient.enabled),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "客户端接入" }),
+          node("span", { text: "密钥只展示一次，Scope、IP 白名单和限流集中在同一接入面板处理。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          input("客户端名称", "openApiClientName", `P11客户端${p10Seed()}`),
+          input("客户端编码", "openApiClientCode", `p11_client_${p10Seed()}`),
+          input("Scope", "openApiScopes", "record:read,record:write"),
+          input("IP 白名单", "openApiIpWhitelist", ""),
+          input("每分钟限流", "openApiRateLimit", "60"),
+          button("加载 Scope", "secondary", loadOpenApiScopeCatalog),
+          button("创建客户端", "primary", createOpenApiClient, !permissions.createClient.enabled),
+        ]),
       ]),
       state.secretOnce?.visible
-        ? node("div", { className: "message" }, [
+        ? node("div", { className: "message secret-message" }, [
             node("strong", { text: `AccessKey: ${state.secretOnce.accessKey}` }),
             node("span", { text: `Secret: ${state.secretOnce.secretOnce ?? state.secretOnce.maskedSecret ?? "-"}` }),
             button("我已保存", "secondary", consumeOpenApiSecret),
@@ -1689,17 +1780,23 @@ export function mountApp(container: HTMLElement): void {
     const kinds: [AuditLogKind, string][] = platform
       ? [["platformOperation", "平台操作"]]
       : [["operation", "操作"], ["request", "请求"], ["error", "错误"], ["recordChange", "记录变更"], ["openapi", "OpenAPI"]];
-    return node("div", { className: "admin-page" }, [
+    return node("div", { className: "domain-page" }, [
       renderPageMetrics([
         [String(state.logs.total ?? state.logs.records.length), "日志总数"],
         [state.activeKind, "当前分类"],
         [state.selectedDetail?.requestId ?? "-", "当前请求号"],
       ]),
-      node("div", { className: "form-grid" }, [
-        selectField("日志类型", platform ? "platformAuditKind" : "auditKind", state.activeKind, kinds),
-        input("请求号", "auditRequestId", ""),
-        input("业务类型", "auditBizType", ""),
-        button("查询", "primary", () => loadAuditLogs(platform)),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: platform ? "平台审计检索" : "系统审计检索" }),
+          node("span", { text: "优先按 requestId 追踪，再按日志类型和业务对象过滤。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          selectField("日志类型", platform ? "platformAuditKind" : "auditKind", state.activeKind, kinds),
+          input("请求号", "auditRequestId", ""),
+          input("业务类型", "auditBizType", ""),
+          button("查询", "primary", () => loadAuditLogs(platform)),
+        ]),
       ]),
       renderDataTable(
         platform ? "platform-audit" : "audit",
@@ -1740,13 +1837,17 @@ export function mountApp(container: HTMLElement): void {
 
   function renderOpsHealth(): HTMLElement {
     const state = operationsState.ops;
-    return node("div", { className: "admin-page" }, [
+    return node("div", { className: "domain-page ops-page" }, [
       renderPageMetrics([
         [state.health?.status ?? "-", "健康状态"],
         [state.version?.version ?? "-", "版本"],
         [state.migration?.migrationVersion ?? "-", "迁移版本"],
       ]),
-      node("div", { className: "form-grid" }, [
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "运维巡检" }),
+          node("span", { text: "异常项会在检查结果中给出说明和处理建议。" }),
+        ]),
         button("刷新运维状态", "primary", loadOpsHealth),
       ]),
       renderDataTable(
@@ -1766,6 +1867,41 @@ export function mountApp(container: HTMLElement): void {
 
   function renderPageMetrics(items: [string, string][]): HTMLElement {
     return node("div", { className: "metric-grid" }, items.map(([value, label]) => stat(value, label)));
+  }
+
+  function renderConfigWorkbench(activeStep: string, children: Child[]): HTMLElement {
+    const steps = ["应用", "模块", "字段", "页面与发布"];
+    return node("div", { className: "config-workbench" }, [
+      node("div", { className: "config-steps" }, steps.map((item, index) =>
+        node("a", {
+          className: `config-step${item === activeStep ? " active" : ""}`,
+          href: `#${configStepPath(item)}`,
+        }, [
+          node("span", { text: String(index + 1) }),
+          node("strong", { text: item }),
+        ]),
+      )),
+      node("div", { className: "config-main" }, children),
+      node("aside", { className: "publish-aside" }, [
+        node("strong", { text: "发布提示" }),
+        node("span", { text: selectedModule()?.name ? `当前模块：${selectedModule()?.name}` : "请先选择模块" }),
+        node("span", { text: appRuntimeState.publishCheck?.passed ? "发布检查已通过" : appRuntimeState.publishCheck ? "发布检查未通过" : "尚未执行发布检查" }),
+        node("span", { text: appRuntimeState.publishResult?.versionNo ? `最近发布版本：v${appRuntimeState.publishResult.versionNo}` : "暂无发布版本" }),
+      ]),
+    ]);
+  }
+
+  function configStepPath(step: string): string {
+    if (step === "应用") {
+      return systemPath("apps.list");
+    }
+    if (step === "模块") {
+      return systemPath("modules.list");
+    }
+    if (step === "字段") {
+      return systemPath("modules.fields");
+    }
+    return systemPath("modules.ui");
   }
 
   function renderDataTable(className: string, headers: string[], rows: Child[][], emptyText?: string): HTMLElement {

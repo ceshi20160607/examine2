@@ -2408,6 +2408,6 @@
                                 "reason":  "Development must be managed by role issue discovery, PM decision, owner reply, reviewer verification, test, validator, and stage commit instead of ad-hoc continue prompts.",
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
-    "last_completed_batch":  "DEV-BATCH-P12-FE023-SHELL-OVERVIEW",
-    "active_batch":  "DEV-BATCH-P12-FE024-DOMAIN-UI-REWORK"
+    "last_completed_batch":  "DEV-BATCH-P12-FE024-DOMAIN-UI-REWORK",
+    "active_batch":  "DEV-BATCH-P12-TEST010-UI-E2E"
 }
