@@ -8,7 +8,7 @@
 
 ## 目标
 
-开发模式基于审阅模式冻结产物执行 DB、SQL、后端、前端、测试、验证和审查任务。
+开发模式基于审阅模式冻结产物执行 DB、SQL、后端、UI/UX、前端、测试、验证和审查任务。
 
 ## 入口条件
 
@@ -38,10 +38,11 @@
 1. DBA 完成 `docs/db_design.md` 和 `sql/init.sql`。
 2. backend 完成 Maven 多模块骨架和 `examine-generator`。
 3. backend 根据 SQL 和生成器产出 base 层，再按 manage 层任务实现业务。
-4. frontend 先完成 typed SDK 和页面到 API 映射，再实现页面。
-5. test 执行 API、E2E、权限、异常、幂等和 OpenAPI 场景。
-6. validator 执行 clean compile、clean build 和契约同步检查。
-7. reviewer 输出合法 `docs/review.json`。
+4. uiux 完成 `docs/ui/ui-design.md`，冻结信息架构、交互流程、页面线框、组件规范和状态设计。
+5. frontend 先完成 typed SDK 和页面到 API 映射，再按冻结 UI/UX 设计实现页面。
+6. test 执行 API、E2E、权限、异常、幂等、OpenAPI 和 UI 可用性场景。
+7. validator 执行 clean compile、clean build 和契约同步检查。
+8. reviewer 输出合法 `docs/review.json`。
 
 ## 代码生成器接入
 
@@ -55,7 +56,8 @@
 - DBA-001 与 TEST-001 可以在开发模式第一批并行，因为输出不重叠。
 - FE-001 理论上可在 API 冻结后并行，但完整前端页面应等 SDK、路由上下文和后端接口逐步可用后再分批推进。
 - 后端 manage 业务不能早于 `docs/db_design.md`、`sql/init.sql`、BE-001 和 GEN-004；base 层必须先由生成器产生。
-- 前端可以基于冻结 API 先做 typed SDK 和页面级契约映射；接口联调、E2E 和构建验证必须等待后端对应接口完成。
+- UI/UX 可以基于冻结 PRD、项目理解和 API 契约先做信息架构、线框和状态设计；面向用户的前端页面实现必须依赖对应 UI/UX 设计产物。
+- 前端可以基于冻结 API 先做 typed SDK 和页面级契约映射；真实页面实现必须同时依赖冻结 UI/UX 设计，接口联调、E2E 和构建验证必须等待后端对应接口完成。
 
 ## 回环规则
 
@@ -64,6 +66,7 @@
 - DB/SQL 问题回到 dba。
 - 后端问题回到 backend。
 - 前端问题回到 frontend。
+- UI/UX 设计缺失、页面可用性或交互流程问题回到 uiux/pm；实现偏离设计才回到 frontend。
 - 测试问题回到 test。
 - 构建问题按失败来源回到 backend/frontend/test。
 - reviewer fail 必须给出 target 和具体文件。

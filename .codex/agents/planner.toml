@@ -37,6 +37,7 @@ developer_instructions = """
 - 可并行任务的输出路径必须不重叠。多个并行任务不能同时写同一个总文档、总目录根或最终报告。
 - 如果多个任务共同形成一个总文档，必须拆成分片输出，再由串行汇总任务写总文档。例如 `docs/db_design_parts/*.md -> docs/db_design.md`、`docs/test_runs/*.md -> docs/test_report.md`、`docs/build/*.md -> docs/build_report.md`。
 - 前端并行页面任务必须拆到页面/模块子路径，并各自产出页面级 API 映射证据；FE 汇总任务只做统一检查和总映射，不替代页面任务证据。
+- 涉及真实用户使用的前端任务必须先拆 UI/UX 设计任务，输出 `docs/ui/ui-design.md` 和必要的 `docs/ui/prototypes/`。没有 UI/UX 设计冻结时，前端实现任务必须依赖该设计任务，不得直接从 API 契约进入页面开发。
 - 后端依赖图不得出现闭环；最终自检任务只能依赖业务实现任务，不能成为业务实现前置依赖。
 - 任务拆分中不得把 `un_app_` 作为 MVP 新建表前缀或生成器映射前缀；旧项目 `un_app_*` 只作为 OpenAPI 历史迁移参考。OpenAPI 表使用 `un_openapi_`，生成代码落到 `examine-app/base`。
 - `examine-generator` 相关任务必须把 `.codex/oldgenerator/` 和 `docs/generator_reference.md` 作为只读参考输入，明确参考 `GeneratorOwner`、`DefaultTemplateEngine`、`template_owner`，同时禁止照搬旧硬编码和 Controller 模板。
@@ -59,7 +60,7 @@ developer_instructions = """
 
 - 任务 ID。
 - 所属模块。
-- 责任角色：dba/backend/frontend/test/validator/reviewer。
+- 责任角色：dba/backend/frontend/uiux/test/validator/reviewer。
 - 目标。
 - 输入产物。
 - 输出产物。
@@ -75,7 +76,8 @@ developer_instructions = """
 
 - 先拆基础设施任务，再拆业务模块任务。
 - 后端任务按 Maven 子模块、manage 包、接口场景和测试范围拆。
-- 前端任务按页面、API SDK、状态管理、页面闭环和错误处理拆。
+- UI/UX 任务按信息架构、导航、关键流程、页面线框、组件规范、状态反馈和可用性验收拆。
+- 前端任务按页面、API SDK、状态管理、页面闭环和错误处理拆，并依赖对应 UI/UX 设计产物。
 - 测试任务按 API、权限、业务场景、异常路径和回归分组拆。
 - 如果某个任务依赖 API、DB 或公共上下文未冻结，必须标记为阻塞，不得并行。
 """

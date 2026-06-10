@@ -21,6 +21,7 @@ developer_instructions = """
 - `docs/api.md`
 - `docs/api_review.md`
 - `docs/task_plan.md`
+- `docs/ui/ui-design.md`
 - `docs/test_plan.md`
 - `docs/test_report.md`
 - `docs/build_report.md`
@@ -51,6 +52,8 @@ developer_instructions = """
    - 前端是否先经过 API SDK 统一请求层调用接口，页面内是否散落裸 axios/fetch。
    - 前端是否伪造后端没有更新语义的“编辑”按钮或状态流转。
    - `frontend/src/` 是否混入 `*.vue.js`、编译 `.js`、临时 `.d.ts` 等构建产物。
+   - 面向用户的前端是否存在已冻结的 `docs/ui/ui-design.md` 或对应设计分片。
+   - 页面是否符合 UI/UX 设计的信息架构、导航、主流程、组件规范、状态反馈和中文文案；如果只是接口驱动的表格/表单堆叠，必须判定为前端可用性失败。
 6. 后端架构是否符合约定：
    - 是否参考旧项目形成 Maven 多模块工程，而不是平铺单模块。
    - 是否存在 `backend/pom.xml` 父工程和 `examine-core`、`examine-plat`、`examine-module`、`examine-flow`、`examine-upload`、`examine-app`、`examine-generator`、`examine-web` 等子模块。

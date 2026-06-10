@@ -19,6 +19,7 @@
 | 可并行任务必须输出路径不重叠。 | `AGENTS.md`、`.codex/agents/planner.toml` |
 | 共享总文档必须采用分片输出，再由串行汇总任务写总文档。 | `AGENTS.md`、`.codex/agents/planner.toml` |
 | 前端页面任务必须输出页面级 API 映射证据，FE-012 只做汇总。 | `.codex/agents/frontend.toml`、`.codex/agents/planner.toml` |
+| 真实用户前端必须先有 UI/UX 设计冻结，不能从 API 直接堆页面；缺少设计时 frontend 必须回报 `ui-design-missing`。 | `AGENTS.md`、`.codex/agents/uiux.toml`、`.codex/agents/frontend.toml`、`.codex/agents/planner.toml`、`.codex/agents/reviewer.toml` |
 | 测试/构建并行任务写分报告，最终报告由串行汇总任务写。 | `.codex/agents/test.toml`、`.codex/agents/validator.toml` |
 | 后端最终自检任务不得作为业务实现任务前置依赖。 | `.codex/agents/backend.toml`、`.codex/agents/planner.toml` |
 | 后端、前端、DBA、test 的并行批次必须按真实依赖拓扑表达，不能把存在直接依赖的任务写到同一可执行批次。 | `docs/task_plan.md`、`.codex/agents/planner.toml` |

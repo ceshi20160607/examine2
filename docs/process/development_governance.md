@@ -10,7 +10,7 @@
 
 1. Planner 确认当前期次、任务边界、输入、输出、依赖和可并行条件。
 2. PM 明确本批次业务目标、验收口径、不可宣称事项和是否允许进入实现。
-3. Backend、Frontend、DBA、Test、Validator、Reviewer 按角色提出问题。
+3. Backend、Frontend、UI/UX、DBA、Test、Validator、Reviewer 按角色提出问题。
 4. PM 统一归类、裁决和分发问题。
 5. PM 不能决策的问题写入 `docs/issues/user_questions.md`，owner 标为 `user`。
 6. 执行角色只处理 PM 裁决后分配给自己的任务。
@@ -37,6 +37,7 @@
 - 未经 test/validator/reviewer 复验，不得宣称阶段完成。
 - 后端接口链路通过，不得等同完整系统可给用户使用。
 - 前端只有 typed SDK、PageModel、路由壳或构建通过，不得等同真实业务 UI 完成。
+- 缺少 UI/UX 设计冻结时，不得把“接口能调用、按钮能点击”判定为正常用户可用的前端。
 - 用户没有要求暂停时，PM/Orchestrator 不得等待用户一句句“继续”才推进当前已批准期次。
 - PM 无法决策的问题不得假装关闭，必须写给用户处理。
 
@@ -45,6 +46,7 @@
 - 不得跳过角色问题发现和 PM 裁决直接进入实现。
 - 不得只跑前端页面冒烟就宣称项目功能通过。
 - 不得只跑后端 API 链路就宣称完整前端可用。
+- 不得在缺少信息架构、交互流程、页面线框和状态设计时，让 frontend 直接按 API 堆页面并宣称可用。
 - 不得在 agent 无法寻址、未登记或未返回结果时假装 agent 已工作。
 - 子 agent 不可用时，必须在进度文档记录降级原因，并由 Orchestrator 本地补齐或重新调度。
 

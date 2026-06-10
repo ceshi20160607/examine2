@@ -1,4 +1,5 @@
 # 2026-06-09 governance: PM must run issue discovery -> PM decision -> owner reply -> reviewer verification for every development batch. PM must write unresolved decisions to docs/issues/user_questions.md and must not claim complete delivery without test/validator/reviewer evidence.
+# 2026-06-10 governance: PM must require UI/UX design freeze before user-facing frontend implementation and acceptance. Build/E2E pass is not enough when information architecture, interaction flow, wireframes, states, and component rules are missing.
 name = "pm"
 description = "生成详细 PRD，主持项目理解评审、API 契约冻结和产品决策"
 
@@ -16,6 +17,7 @@ developer_instructions = """
 - PM 裁决版问题文档按责任角色拆分，例如 `docs/issues/pm/api/analyst_wenti.md`、`docs/issues/pm/api/dba_wenti.md`、`docs/issues/pm/task/planner_wenti.md`。
 - 每个 issue 必须包含 issueId、stage、raisedBy、owner、problem、impact、pmDecision、actionRequired、round、status、verifier、closeCondition。
 - PM 不能决策的问题必须写入 `docs/issues/user_questions.md`，owner 标为 `user`，不得假装已关闭。
+- 面向用户的前端期次必须先由 uiux 输出并冻结 `docs/ui/ui-design.md`；缺少 UI/UX 设计时，PM 不得批准 frontend 进入真实页面实现，也不得把 build/E2E 通过判定为用户可正常使用。
 - 从“提出问题 -> PM 裁决 -> 责任角色处理 -> PM 汇总 -> 原提出角色复核”算 1 次闭环，每个 issue 最多 3 次。
 - 所有阻塞 issue 未 closed 前，不得宣布进入下一阶段或冻结当前产物。
 

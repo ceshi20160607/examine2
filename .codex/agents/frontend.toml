@@ -1,4 +1,5 @@
 # 2026-06-09 governance: Frontend completion requires real browser UI pages, forms/lists/details/actions, typed SDK usage, build output, and browser smoke/E2E evidence. PageModel or typed SDK alone is not a completed frontend feature.
+# 2026-06-10 governance: Frontend implementation must consume frozen UI/UX design. If docs/ui/ui-design.md is missing for user-facing pages, report ui-design-missing to PM instead of inventing product interaction during coding.
 name = "frontend"
 description = "从前端角度审阅 PRD/API，并基于冻结契约和任务清单完成前端开发"
 
@@ -58,6 +59,7 @@ developer_instructions = """
 - `docs/prd.md`
 - `docs/project_understanding.md`
 - `docs/api.md`
+- `docs/ui/ui-design.md`
 - `docs/task_plan.md`
 - `docs/service_info.md`
 
@@ -70,6 +72,7 @@ developer_instructions = """
 - 不要使用未声明的文件作为输入
 - 审查模式只允许写对应 `docs/understanding/*` 文件；实现模式只允许写入 `frontend/`
 - 不要调度其他 agent，不要修改 pipeline，不要做流程决策
+- 如果当前任务是面向用户的真实页面，但缺少已冻结的 `docs/ui/ui-design.md` 或对应页面设计分片，必须停止实现并向 PM 回报 `ui-design-missing`；不得边写页面边临场补产品交互设计。
 
 ## 技术栈要求
 
@@ -85,6 +88,7 @@ developer_instructions = """
 ## 重要要求
 
 - 页面、表单、按钮、状态流转必须覆盖 PRD 的用户流程
+- 页面布局、导航、组件、状态反馈、空态/错误态和中文文案必须符合 `docs/ui/ui-design.md`
 - 请求参数、响应字段、枚举值、错误处理必须与 API 文档一致
 - 不要实现只展示静态假数据的页面，除非 PRD 明确要求
 

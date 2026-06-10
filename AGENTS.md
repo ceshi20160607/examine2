@@ -112,6 +112,9 @@ mvn -pl examine-module -am test
 
 * PM 必须在每期验收前明确交付物类型：后端接口包、前端可部署 UI 包、数据库脚本、文档或组合交付物；不得用“契约模型通过”替代“真实可部署前端通过”。
 * PM 必须维护“交付物矩阵”：每个期次至少列出 backend、frontend、database、test、validator、reviewer 的应交付文件、实际产物、验证命令和验收结论；如果某一列未交付，整期结论只能是 `partial/blocked/fail`，不得写 `pass/accepted`。
+* 涉及真实用户使用的前端期次必须先完成 UI/UX 设计冻结，不能从 API 契约直接跳到页面实现。UI/UX 设计产物至少包含信息架构、导航分组、关键用户流程、页面线框、列表/表单/详情布局、主次按钮、空态/错误态/加载态、权限禁用态、批量操作、反馈提示、中文文案和视觉组件规范。
+* `uiux` 负责输出 `docs/ui/ui-design.md` 与必要的 `docs/ui/prototypes/` 分片；PM 负责确认设计是否满足业务目标，frontend 只能基于已冻结的 UI/UX 设计和冻结 API 实现页面。没有 UI/UX 冻结产物时，任何“前端完整/可上线/正常可用”的结论必须判定为 `blocked(ui-design-missing)`。
+* reviewer 审查前端时必须区分“功能可点”和“用户可正常使用”：如果页面只是按接口堆列表、表单和按钮，缺少明确的信息层级、流程引导、状态反馈、错误恢复和一致组件规范，即使 build/E2E 通过，也不能判定为完整可用前端。
 * planner 拆分任务时必须标明任务类型：`contract-only`、`implementation`、`deployable-ui`、`deployable-backend`、`test`、`review`。`contract-only` 任务完成后只能推动下游开发，不能计为完整前端或完整上线。
 * frontend agent 在领取任何“前端完成/可上线/可部署”任务时必须先自检 `frontend/index.html`、`frontend/src/main.*`、页面组件、构建脚本和 `frontend/dist/` 产物要求；缺失时必须回报 `frontend-ui-missing`，不能只交付 typed SDK 或 PageModel 后标记完成。
 * frontend agent 交付部署版 UI 时，默认 API 地址必须走浏览器同源相对路径，例如接口契约中的 `/api/v1/...`，不得默认写死 `localhost`、局域网 IP 或把 API 地址配置面板暴露给终端用户。确需本地联调时只能通过构建环境变量或测试专用参数处理，并在验收文档中标明非生产入口。
@@ -246,9 +249,10 @@ PM 裁决版问题文档必须包含：
 |-----------|------|
 | analyst   | 读取需求 MD、公共配置和旧项目参考，输出需求理解与旧项目参考摘要 |
 | pm        | 基于需求理解输出详细 PRD，主持项目理解评审与 API 契约冻结并做最终产品决策 |
+| uiux      | 基于冻结 PRD、项目理解和 API 契约输出信息架构、交互流程、页面线框、组件规范和 UI 验收口径 |
 | dba       | 输出数据库设计文档和数据库初始化 SQL 文件 |
 | backend   | 基于冻结 PRD、API 契约和任务清单实现后端代码、单元测试和后端自检 |
-| frontend  | 只基于冻结后的 API 文档实现前端 |
+| frontend  | 基于冻结后的 API 文档和 UI/UX 设计实现前端，不负责临场补产品交互设计 |
 | planner   | 基于冻结 PRD、项目理解和 API 契约拆分可执行小任务，维护任务依赖、并行关系、完成标准和开发期次 |
 | test      | 基于冻结 PRD、API 契约和任务清单设计测试用例，执行单任务测试、集成测试和场景验收 |
 | validator | 执行后端/前端编译或构建验证，输出构建报告 |
@@ -350,9 +354,10 @@ E:\workspace\03_project\unique\java\
 * backend 不再默认生成冻结版 `docs/api.md`；backend 只能在实现中遵守已冻结 API。若实现发现契约无法落地，必须输出契约变更问题并回到 API 契约评审，不得私自改接口。
 * `planner` 必须输出全局任务拆分：包括 DBA、后端、前端、测试、验证和审查任务；每个任务都要有依赖、可并行标记、输入、输出、完成状态和测试要求。
 * 后端实现任务默认拆成：架构骨架与父子 POM、数据库连通性检查、SQL 导入、MyBatis-Plus 代码生成、按业务模块拆分的 manage 实现、单元测试、后端 clean compile 自检。
-* 前端实现任务默认拆成：读取冻结版 `docs/api.md`、API 契约解析与 typed SDK、真实浏览器工程入口、页面路由与状态、按页面/模块拆分的业务组件实现、API/页面闭环自检、浏览器 smoke/E2E、可部署 `dist/` clean build 自检。
+* UI/UX 任务默认拆成：信息架构、导航与模块关系、关键业务流程、页面线框、表单/列表/详情模式、组件与视觉规范、交互状态、中文文案和可用性验收标准。
+* 前端实现任务默认拆成：读取冻结版 `docs/api.md` 和 `docs/ui/ui-design.md`、API 契约解析与 typed SDK、真实浏览器工程入口、页面路由与状态、按页面/模块拆分的业务组件实现、API/页面闭环自检、浏览器 smoke/E2E、可部署 `dist/` clean build 自检。
 * `test` 默认拆成：测试计划、API 用例、核心场景集成用例、异常/权限用例、回归用例、测试报告。
-* 前端必须只基于冻结后的 `docs/api.md` 建 typed API SDK 和页面接口映射，再写页面；推荐输出 `frontend/docs/api-contract-map.md`。页面不得直接散落 axios/fetch 调用，不得为后端没有更新语义的接口伪造“编辑”能力。
+* 前端必须只基于冻结后的 `docs/api.md` 建 typed API SDK 和页面接口映射，并基于冻结后的 `docs/ui/ui-design.md` 实现页面；推荐输出 `frontend/docs/api-contract-map.md`。页面不得直接散落 axios/fetch 调用，不得为后端没有更新语义的接口伪造“编辑”能力。
 * 前端源码目录不得混入构建产物或旁路编译文件，例如 `frontend/src/**/*.vue.js`、临时 `.d.ts`、编译后的 `.js`。
 * validator 必须执行 clean 构建：后端 `clean compile`，前端删除 `dist` 和 `tsconfig.tsbuildinfo` 后重新 build；不得用增量构建的 `Nothing to compile` 作为最新源码通过的唯一依据。对于完整上线目标，前端 build 必须生成 `frontend/dist/`，并记录产物路径和核心文件清单。
 * validator 必须检查 `docs/api.md` 中的错误码、枚举、状态值是否已同步到 `frontend/src/api/` 与 `frontend/docs/api-contract-map.md`；若后端/API 已新增契约而前端未同步，必须判定失败。
