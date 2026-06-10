@@ -1,22 +1,22 @@
 # 项目进度看板
 
-更新时间：2026-06-10
+更新时间：2026-06-11
 
 ## 总览
 
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 69 |
-| 已完成 | 65 |
+| 已完成 | 66 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 4 |
+| 剩余 | 3 |
 
 当前模式：`development`
 
 当前期次：`P12-uiux-frontend-rework`
 
-当前状态：`P12_fe024_done_test010_pending_no_package`
+当前状态：`P12_test010_pass_val008_next_no_package`
 
 ## 分期进度
 
@@ -34,7 +34,7 @@
 | P9-system-management-ui | 系统管理域可用化期 | accepted | FE-015、TEST-007、VAL-005、REV-005 已完成；成员、部门、系统角色、字典真实浏览器写操作 E2E 通过 | 已进入 P10 |
 | P10-app-runtime-ui | 应用模块与运行台可用化期 | accepted | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006 已完成；应用、模块、字段、页面配置、发布和运行台记录浏览器 E2E 通过 | 下一期进入 P11 流程、文件导出、OpenAPI 与审计运维可用化 |
 | P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | accepted | FE-019 至 FE-022、TEST-009、VAL-007、REV-007 已完成；功能试部署包已生成 | 用户反馈 UI 体验不足，进入 P12 |
-| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001、UIUX-002、FE-023、FE-024 已完成；TEST-010 待执行；PKG-001 阻塞 | 未通过 TEST-010/VAL-008/REV-008 前禁止打包 |
+| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001、UIUX-002、FE-023、FE-024、TEST-010 已完成；PKG-001 阻塞 | 未通过 VAL-008/REV-008 前禁止打包 |
 
 ## 角色完成度
 
@@ -45,7 +45,7 @@
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
 | UI/UX | 2 | 0 | 0 | UIUX-001/UIUX-002 已完成，P12 UI 设计和页面级原型已输出。 |
 | Frontend | 24 | 0 | 0 | FE-001 至 FE-024 已完成；业务域页面已按 UI 设计改造，待 test/validator/reviewer 复验。 |
-| Test | 9 | 0 | 1 | TEST-001 至 TEST-009 已完成；TEST-010 待执行 P12 UI 可用性 E2E。 |
+| Test | 10 | 0 | 0 | TEST-001 至 TEST-010 已完成；TEST-010 真实浏览器复测通过。 |
 | Validator | 7 | 0 | 1 | VAL-001 至 VAL-007 已完成；VAL-008 待执行 P12 clean build/package。 |
 | Reviewer | 7 | 0 | 1 | REV-001 至 REV-007 已完成；REV-008 待重新审查 UI/UX 与最终可用性。 |
 
@@ -328,7 +328,7 @@ PM 已做如下调整：
 - REV-008 预审发现 FE-024 第一轮仍有 prompt、静态 Tabs 和授权输入可用性缺口，PM 暂停 TEST-010/VAL-008 并返工。
 - FE-024 返工完成：我的系统显式进入按钮、平台账号/角色页面内编辑授权、系统角色权限多选、有状态 Tabs 已落地；`window.prompt` 扫描无结果，`npm.cmd run build` pass。
 
-当前下一步：TEST-010 当前 blocked，原因是两个 test agent 均不可回收/超时，未完成真实浏览器全链路；PM 已关闭对应 agent，并保持 VAL-008、REV-008、PKG-001 阻塞。后续需恢复可控浏览器 E2E 后再执行真实主链路。
+当前下一步：TEST-010 已由 Orchestrator 接管并用本机 Chrome CDP 完成真实浏览器复测；VAL-008 进入待执行，REV-008 和 PKG-001 继续受闸门控制。
 
 ## 2026-06-10 FE-024 完成记录
 
@@ -348,3 +348,14 @@ PM 已做如下调整：
 - VAL-008、REV-008、PKG-001 继续阻塞，不允许打包。
 - 后续 TEST-010 真实链路曾推进到登录、创建系统、进入系统、角色配置、应用/模块/字段/页面发布和导出成功，但发现运行台 UI 新建记录、记录查询、权限多选展示问题。
 - frontend 已修复上述三个问题并通过 `npm.cmd run build`；TEST-010 状态调整为 `pending-retest`，仍需重新执行真实浏览器全链路，未通过前继续禁止 VAL-008/REV-008/PKG-001。
+
+## 2026-06-11 TEST-010 复测通过
+
+- PM/Orchestrator 接管不可回收的 test agent 后，使用本机 Chrome headless DevTools Protocol 执行真实浏览器 DOM 操作。
+- 登录 `platform_admin / 123123aa`，从“我的系统”进入 P12 系统 `2064692771705384961`。
+- 运行台模块 `2064693917962530818` 加载成功，列表可渲染历史记录，无 `undefined.find` 异常。
+- 新建记录 `P12 UI retest 20260610172945` 后，记录出现在 `.data-row.records` 列表行中。
+- 查询该记录后仍可见；点击提交后记录状态变为 `SUBMITTED`，页面显示 `RUN-008 操作成功：COMMON_OK`。
+- 流程工作台刷新成功，`FLOW-007/FLOW-013/FLOW-014/FLOW-017` 返回成功。
+- 系统角色权限目录下拉未再出现 `[object Object]`。
+- TEST-010 结论：pass。下一步执行 VAL-008 clean build；未通过 VAL-008/REV-008 前仍不允许打包。

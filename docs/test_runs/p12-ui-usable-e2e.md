@@ -137,3 +137,38 @@ npm.cmd run build
 结果：pass。
 
 当前结论：frontend rework fixed，TEST-010 仍需重新执行真实浏览器全链路后才能改为 pass。未执行打包。
+
+## 2026-06-11 复测记录
+
+复测方式：本机 Chrome headless DevTools Protocol 真实浏览器 DOM 操作。后端以低内存参数启动在 `http://127.0.0.1:18080`，前端 preview 启动在 `http://127.0.0.1:4173/`，前端 API 基址使用 `baseUrl=http://127.0.0.1:18080`。本轮未执行打包。
+
+复测范围：
+
+| 链路 | 结果 | 证据 |
+| --- | --- | --- |
+| 登录与进入系统 | pass | `platform_admin / 123123aa` 登录后从“我的系统”进入 P12 系统 `2064692771705384961` |
+| 运行台 schema 与列表加载 | pass | 进入 `/systems/2064692771705384961/runtime/modules/2064693917962530818` 后出现字段 `runtime_title125451`，列表可渲染历史记录 `P12 API record` |
+| 运行台新建记录 | pass | 新建 `P12 UI retest 20260610172945`，记录出现在 `.data-row.records` 列表行中 |
+| 运行台查询记录 | pass | 关键字查询 `P12 UI retest 20260610172945` 后，记录仍在 `.data-row.records` 中可见，无 `Cannot read` 异常 |
+| 提交审批 | pass | 点击记录行“提交”后，页面显示 `RUN-008 操作成功：COMMON_OK`，记录状态变为 `SUBMITTED` |
+| 流程工作台 | pass | 进入 `/systems/2064692771705384961/flow/workbench` 并刷新，`FLOW-007/FLOW-013/FLOW-014/FLOW-017 操作成功`，无 4xx/5xx 响应 |
+| 系统角色权限多选 | pass | 加载权限目录后，操作权限下拉显示“系统管理全部操作”，未出现 `[object Object]` |
+
+浏览器断言摘录：
+
+```text
+P12 UI retest 20260610172945
+SUBMITTED
+RUN-008 操作成功：COMMON_OK
+FLOW-007/FLOW-013/FLOW-014/FLOW-017 操作成功
+```
+
+网络与控制台结果：
+
+- `failedResponses`: 空。
+- `networkFailures`: 空。
+- `consoleErrors`: 空。
+
+TEST-010 复测结论：pass。
+
+说明：上一轮已经覆盖登录、创建系统、角色配置、应用/模块/字段/页面发布、导出任务成功、审计页面加载；本轮复测专门闭环返工后的阻塞点。P12 仍未进入打包，下一步交给 VAL-008 执行 clean build。
