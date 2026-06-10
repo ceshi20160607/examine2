@@ -1,17 +1,39 @@
 {
-  "status": "pass",
-  "target": "none",
-  "phase": "P11-flow-file-openapi-ui",
-  "reviewedAt": "2026-06-10T16:45:00+08:00",
-  "summary": "P11 flow, file/export, OpenAPI, audit and ops UI passed browser smoke and key write-path verification. The remaining major product domains now have real usable frontend pages backed by typed SDK calls and backend APIs. Full project deployability is considered functionally ready for user trial deployment, with production-hardening risks tracked as deferred.",
+  "status": "fail",
+  "target": "frontend",
+  "phase": "P12-uiux-frontend-rework",
+  "reviewedAt": "2026-06-10T18:15:00+08:00",
+  "summary": "P11 backend and frontend functional trial deployment package exists, but user feedback exposed a valid PM/UI gap: frontend pages were implemented from API and E2E needs without a frozen UI/UX design. The system can be used for functional trial, but final user-facing UI usability is not accepted until P12 frontend rework follows docs/ui/ui-design.md.",
   "nextRoute": [
-    "final-deploy-package",
-    "user-trial-deploy"
+    "FE-023",
+    "FE-024",
+    "TEST-010",
+    "VAL-008",
+    "REV-008"
   ],
-  "issues": [],
+  "issues": [
+    {
+      "issueId": "P12-UI-001",
+      "severity": "P1",
+      "target": "frontend",
+      "status": "open",
+      "file": "frontend/src/App.ts",
+      "problem": "Current frontend is functionally connected but organized as an API-driven engineering UI, with too much page logic concentrated in App.ts and no prior frozen information architecture, wireframe, interaction state or component guideline.",
+      "suggestion": "Implement FE-023 and FE-024 against docs/ui/ui-design.md before claiming final user-facing usability."
+    },
+    {
+      "issueId": "P12-PM-001",
+      "severity": "P1",
+      "target": "pm",
+      "status": "resolved",
+      "file": "docs/ui/ui-design.md",
+      "problem": "Previous PM acceptance over-weighted build, API closure and browser E2E, but under-specified UI/UX design as a separate delivery gate.",
+      "suggestion": "P12 has added a UI/UX design gate and task plan; final deployability remains false until UI rework and review pass."
+    }
+  ],
   "backendTrialDeployable": true,
   "frontendDeployable": true,
-  "fullProjectDeployable": true,
+  "fullProjectDeployable": false,
   "deferredRisks": [
     {
       "issueId": "REV-001-BE-IDEMPOTENCY-STORAGE",
@@ -36,15 +58,8 @@
     }
   ],
   "verification": [
-    "FLOW template create/default graph/publish/bind passed in browser",
-    "FILE upload and list display passed in browser",
-    "EXP template creation passed; export job creation returned SUCCESS and resultFileId after backend null snapshot fix",
-    "OPM client creation and OpenAPI page load passed in browser",
-    "AUD system/platform pages loaded successfully",
-    "OPS health/config/version/migration page loaded successfully",
-    "P11 route smoke passed for flow.templates, flow.workbench, files.center, exports.jobs, openapi.clients, audit.system, audit.platform and ops.health",
-    "npm.cmd run build passed and generated frontend/dist",
-    "mvn.cmd -pl examine-web -am -DskipTests compile passed",
-    "mvn.cmd -pl examine-web -am -DskipTests package passed and generated backend/examine-web/target/unexamine.jar"
+    "UIUX-001 produced docs/ui/ui-design.md",
+    "P12 plan produced docs/phases/P12-uiux-frontend-rework-plan.md",
+    "FE-023/FE-024/TEST-010/VAL-008/REV-008 are pending"
   ]
 }

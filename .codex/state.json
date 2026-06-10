@@ -2251,7 +2251,7 @@
                                               ]
                                 }
                             ],
-    "current_phase":  "P11-flow-file-openapi-ui",
+    "current_phase":  "P12-uiux-frontend-rework",
     "running_tasks":  [
 
                       ],
@@ -2267,7 +2267,8 @@
                          "P8-platform-ui-crud":  "accepted",
                          "P9-system-management-ui":  "accepted",
                          "P10-app-runtime-ui":  "accepted",
-                         "P11-flow-file-openapi-ui":  "accepted"
+                         "P11-flow-file-openapi-ui":  "accepted",
+                         "P12-uiux-frontend-rework":  "in_progress"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2379,7 +2380,23 @@
                                                         "accepted_at":  "2026-06-10T16:45:00+08:00",
                                                         "accepted_by":  "pm",
                                                         "record":  "docs/phases/P11-flow-file-openapi-ui-acceptance.md",
-                                                        "next_phase":  "final-deploy-package"
+                                                        "next_phase":  "P12-uiux-frontend-rework"
+                                                    },
+                             "P12-uiux-frontend-rework":  {
+                                                        "status":  "in_progress",
+                                                        "started_at":  "2026-06-10T18:15:00+08:00",
+                                                        "started_by":  "pm",
+                                                        "tasks":  [
+                                                                      "UIUX-001",
+                                                                      "FE-023",
+                                                                      "FE-024",
+                                                                      "TEST-010",
+                                                                      "VAL-008",
+                                                                      "REV-008"
+                                                                  ],
+                                                        "record":  "docs/phases/P12-uiux-frontend-rework-plan.md",
+                                                        "reason":  "User feedback confirmed that frontend has functional pages but lacks frozen UI/UX design and product-level usability.",
+                                                        "next_phase":  "frontend-ui-rework"
                                                     }
                          },
     "last_governance_fix":  {
@@ -2389,6 +2406,6 @@
                                 "reason":  "Development must be managed by role issue discovery, PM decision, owner reply, reviewer verification, test, validator, and stage commit instead of ad-hoc continue prompts.",
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
-    "last_completed_batch":  "DEV-BATCH-P11-FLOW-FILE-OPENAPI-UI",
-    "active_batch":  "DEV-BATCH-FINAL-DEPLOY-PACKAGE"
+    "last_completed_batch":  "DEV-BATCH-P12-UIUX-DESIGN-FREEZE",
+    "active_batch":  "DEV-BATCH-P12-FRONTEND-UI-REWORK"
 }

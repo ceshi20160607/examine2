@@ -1,22 +1,22 @@
 # 项目进度看板
 
-更新时间：2026-06-09
+更新时间：2026-06-10
 
 ## 总览
 
 | 项目 | 数量 |
 | --- | ---: |
-| 开发执行任务总数 | 61 |
-| 已完成 | 61 |
-| 进行中 | 0 |
+| 开发执行任务总数 | 67 |
+| 已完成 | 62 |
+| 进行中 | 1 |
 | 阻塞 | 0 |
-| 剩余 | 0 |
+| 剩余 | 5 |
 
 当前模式：`development`
 
-当前期次：`P10-app-runtime-ui`
+当前期次：`P12-uiux-frontend-rework`
 
-当前状态：`P10_app_runtime_ui_accepted`
+当前状态：`P12_uiux_design_frozen_frontend_rework_pending`
 
 ## 分期进度
 
@@ -33,6 +33,8 @@
 | P8-platform-ui-crud | 平台中心可用化期 | accepted | FE-014 平台系统/账号/角色/配置 CRUD UI 已完成 | 已进入 P9 |
 | P9-system-management-ui | 系统管理域可用化期 | accepted | FE-015、TEST-007、VAL-005、REV-005 已完成；成员、部门、系统角色、字典真实浏览器写操作 E2E 通过 | 已进入 P10 |
 | P10-app-runtime-ui | 应用模块与运行台可用化期 | accepted | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006 已完成；应用、模块、字段、页面配置、发布和运行台记录浏览器 E2E 通过 | 下一期进入 P11 流程、文件导出、OpenAPI 与审计运维可用化 |
+| P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | accepted | FE-019 至 FE-022、TEST-009、VAL-007、REV-007 已完成；功能试部署包已生成 | 用户反馈 UI 体验不足，进入 P12 |
+| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001 已完成，`docs/ui/ui-design.md` 已冻结；FE-023/FE-024 待执行 | 先按 UI 设计重构前端，再重新测试、构建和审查 |
 
 ## 角色完成度
 
@@ -41,10 +43,11 @@
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
 | Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；OpenAPI accessKey 错误码回环与 P9 权限版本递增修复已验证。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
-| Frontend | 17 | 0 | 0 | FE-001 至 FE-018 已完成；P10 应用、模块、字段、页面配置、发布和运行台真实 UI 已通过。 |
-| Test | 7 | 0 | 0 | TEST-001 至 TEST-008 已完成；P10 浏览器写操作 E2E 通过。 |
-| Validator | 6 | 0 | 0 | VAL-001 至 VAL-006 已完成；P10 前端 build 与后端 package 通过。 |
-| Reviewer | 6 | 0 | 0 | REV-001 至 REV-006 已完成；完整项目仍需 P11/P12。 |
+| UI/UX | 1 | 0 | 0 | UIUX-001 已完成，P12 UI 设计冻结稿已输出。 |
+| Frontend | 22 | 0 | 2 | FE-001 至 FE-022 已完成；FE-023/FE-024 待按 UI 设计重构。 |
+| Test | 9 | 0 | 1 | TEST-001 至 TEST-009 已完成；TEST-010 待执行 P12 UI 可用性 E2E。 |
+| Validator | 7 | 0 | 1 | VAL-001 至 VAL-007 已完成；VAL-008 待执行 P12 clean build/package。 |
+| Reviewer | 7 | 0 | 1 | REV-001 至 REV-007 已完成；REV-008 待重新审查 UI/UX 与最终可用性。 |
 
 ## 当前 Agent 状态
 
@@ -305,3 +308,16 @@ P11 已完成并通过验收：流程、文件导出、OpenAPI、审计运维均
 - 最新试部署包：`dist/unexamine-full-deploy-20260610-174753.zip`，后端目录已包含 `start.sh`，支持 `start`、`stop`、`sotp`、`restart`、`status`。
 
 PM 结论：P11 accepted。当前完整系统已具备用户试部署条件；生产增强类风险（数据库幂等存储、OpenAPI 高并发/nonce/IP 白名单矩阵、依赖审计治理）继续跟踪。
+
+## 2026-06-10 P12 UI/UX 纠偏启动
+
+用户反馈成立：当前前端已能连接真实接口并通过功能 smoke/E2E，但缺少独立 UI/UX 设计阶段，页面更接近工程型接口操作台，不能代表最终用户可正常使用的产品体验。
+
+PM 已做如下调整：
+
+- 新增 `docs/ui/ui-design.md`，冻结信息架构、双层工作台、核心流程、页面框架、组件规范、状态反馈、中文文案和 P12 验收标准。
+- 新增 `docs/phases/P12-uiux-frontend-rework-plan.md`，P12 任务顺序为 UIUX-001 -> FE-023 -> FE-024 -> TEST-010 -> VAL-008 -> REV-008。
+- 新增 P12 任务文件：`UIUX-001`、`FE-023`、`FE-024`、`TEST-010`、`VAL-008`、`REV-008`。
+- `docs/review.json` 已撤回最终用户体验完成结论：P11 包保留为功能试部署包，P12 通过前 `fullProjectDeployable=false`。
+
+当前下一步：frontend 按 `docs/ui/ui-design.md` 执行 FE-023 和 FE-024，先重构导航、系统总览、页面布局、表单/抽屉/详情、状态反馈，再重新执行浏览器 E2E、clean build、部署包和 reviewer 审查。

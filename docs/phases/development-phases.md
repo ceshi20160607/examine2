@@ -9,7 +9,7 @@
 | planner | 将 `docs/task_plan.md` 与 `docs/tasks/` 的小任务归入期次，维护依赖、并行条件和退出标准。 |
 | pm | 确认每期业务目标、验收口径、满意度结论，以及是否进入下一期。 |
 | Orchestrator | 只调度当前期任务，维护状态、关闭/恢复 agent、验证产物和更新进度看板。 |
-| backend/frontend/dba/test/validator/reviewer | 只执行当前分配任务；跨期或契约冲突必须回报 PM/Planner。 |
+| backend/frontend/uiux/dba/test/validator/reviewer | 只执行当前分配任务；跨期或契约冲突必须回报 PM/Planner。 |
 
 ## 分期总览
 
@@ -27,12 +27,15 @@
 | P9-system-management-ui | 系统管理域可用化期 | FE-015、TEST-007、VAL-005、REV-005：成员、部门、系统角色、字典真实业务 UI，浏览器 E2E、clean build 和审查 | 成员、部门、系统角色、字典不再是通用占位页；主要 CRUD/授权/字典 usage 链路通过 typed SDK、真实系统上下文和浏览器 E2E。 | accepted |
 | P10-app-runtime-ui | 应用模块与运行台可用化期 | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006：应用、模块、字段、页面配置、发布、运行台记录真实业务 UI，浏览器 E2E、clean build 和审查 | 应用、模块、字段、页面配置、发布和运行台记录主链路不再是通用占位页；页面完成真实写操作和回显，P10 只能声明应用运行域完成。 | accepted |
 | P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | FE-019、FE-020、FE-021、FE-022、TEST-009、VAL-007、REV-007：流程工作台、文件与导出、OpenAPI、审计运维真实业务 UI | 流程、文件导出、OpenAPI、审计运维不再是占位页；主要写操作、查询和异常态通过浏览器 E2E。 | accepted |
+| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | UIUX-001、FE-023、FE-024、TEST-010、VAL-008、REV-008：先冻结 UI/UX 设计，再按设计重构导航、系统总览、页面布局、业务表单、状态反馈和可用性 E2E | 前端不再只是功能可点；信息架构、导航、主流程、状态反馈、空态/错误态、组件规范和部署包均通过验收。 | in_progress |
 
 ## 当前期
 
-当前已完成：P11 流程、文件导出、OpenAPI 与审计运维可用化期。
+当前已完成：UIUX-001 UI/UX 设计冻结。
 
-下一阶段：最终部署包验收和用户试部署。
+当前期：P12 UI/UX 设计与前端可用化改造期。
+
+下一阶段：frontend 按 `docs/ui/ui-design.md` 执行 FE-023/FE-024。
 
 原因：
 
@@ -49,7 +52,8 @@
 - P9 已完成成员、部门、系统角色、字典真实 UI，并通过 TEST-007、VAL-005、REV-005 和 PM 验收。
 - P10 已完成应用、模块、字段、页面配置、发布和运行台记录真实 UI，验收记录为 `docs/phases/P10-app-runtime-ui-acceptance.md`。
 - P11 已完成流程工作台、文件导出、OpenAPI、审计运维真实 UI，验收记录为 `docs/phases/P11-flow-file-openapi-ui-acceptance.md`。
-- 完整系统已具备用户试部署条件；生产增强风险继续在 `docs/review.json` 的 deferredRisks 中跟踪。
+- 用户反馈成立：P11 虽然功能试部署可用，但缺独立 UI/UX 设计，不能作为最终用户体验完成结论。
+- P12 先冻结 `docs/ui/ui-design.md`，再由 frontend 执行前端可用化改造；P12 未通过前，P11 包只能称为功能试部署包。
 
 ## 暂停与继续
 

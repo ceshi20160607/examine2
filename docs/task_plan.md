@@ -206,6 +206,9 @@ flowchart TD
 | FE-016 | 应用与模块配置真实 UI | frontend | app/module | P10/FE-015 | `frontend/src/App.ts`、`frontend/docs/page-contracts/FE-016-app-module-ui.md`、`frontend/dist/` | FE-015 | 否 | 应用、模块列表和创建/编辑/状态入口由真实页面触发 APP/MOD typed SDK，不再走通用 GET 占位 | P10 浏览器 E2E 第一段、前端 build |
 | FE-017 | 字段页面配置与发布真实 UI | frontend | field/ui | P10/FE-016 | `frontend/src/App.ts`、`frontend/docs/page-contracts/FE-017-field-page-publish-ui.md`、`frontend/dist/` | FE-016 | 否 | 字段类型加载、字段创建/编辑、列表/表单/详情 schema、菜单、动作、发布检查和发布由真实页面完成 | P10 浏览器 E2E 第二段、前端 build |
 | FE-018 | 运行台记录真实 UI | frontend | runtime | P10/FE-017 | `frontend/src/App.ts`、`frontend/docs/page-contracts/FE-018-runtime-record-ui.md`、`frontend/dist/` | FE-017 | 否 | 运行台菜单、schema、列表、新建、详情、编辑、历史和提交入口由真实页面完成 | P10 浏览器 E2E 第三段、前端 build |
+| UIUX-001 | UI/UX 设计冻结 | uiux/pm | frontend-ui | P12 | `docs/ui/ui-design.md` | P11 | 否 | 信息架构、导航、用户流程、页面线框、组件规范、状态反馈和验收标准冻结 | PM 审阅，frontend 可据此实现 | done |
+| FE-023 | Shell 导航与系统总览 UI 改造 | frontend | frontend-ui | P12/UIUX-001 | `frontend/src/`、`frontend/docs/page-contracts/FE-023-shell-navigation-overview-ui.md` | UIUX-001 | 否 | 平台/系统双层导航、系统总览、标题区、上下文和基础布局符合 UI 设计 | 前端 build、浏览器 smoke | pending |
+| FE-024 | 业务域 UI 可用化改造 | frontend | frontend-ui | P12/FE-023 | `frontend/src/`、`frontend/docs/page-contracts/FE-024-domain-ui-rework.md` | FE-023 | 否 | 系统设置、应用配置、运行台、流程、文件导出、OpenAPI、审计运维按 UI 设计完成可用化改造 | P12 浏览器 E2E、前端 build | pending |
 | TEST-001 | 测试计划与夹具设计 | test | test | PRD/API/task_plan/service | `docs/test_plan.md` | PLAN-001 | 是 | 范围、环境、夹具和入口明确 | 测试数据不进入生产 seed | pending |
 | TEST-002 | API 契约用例 | test | test | TEST-001/API | API 用例清单 | TEST-001 | 是 | 正常、异常、权限、边界、幂等覆盖 | 可直接用于自动化 | pending |
 | TEST-003 | E2E 主链路执行 | test | test | BE-015/FE-012 | `docs/test_runs/e2e-main-chain.md` | BE-015, FE-012, TEST-002 | 否 | 创建系统到审批导出 OpenAPI 闭环跑通，执行记录独立输出 | E2E 场景断言 | done |
@@ -214,18 +217,21 @@ flowchart TD
 | TEST-006 | 前后端组合 E2E 与部署验收 | test | test | FE-013/BE package | `docs/test_runs/frontend-backend-combo-e2e.md`、`docs/test_report.md`、`docs/review.json` | FE-013, BE-015 | 否 | 浏览器触发真实后端 API，验证核心链路组合部署 | 组合 E2E 记录 | done |
 | TEST-007 | P9 系统管理域浏览器 E2E | test | test | FE-015 | `docs/test_runs/p9-system-management-ui-e2e-20260609.md`、`docs/test_report.md` | FE-015 | 否 | 成员、部门、角色、字典浏览器主链路通过 | pass，真实浏览器写操作 E2E 已完成 | done |
 | TEST-008 | P10 应用配置到运行台浏览器 E2E | test | test | FE-016/FE-017/FE-018 | `docs/test_runs/p10-app-runtime-ui-e2e-20260609.md`、`docs/test_report.md` | FE-018 | 否 | 浏览器完成登录、进入系统、创建应用/模块/字段、配置页面、发布、运行台记录新建/编辑/详情/历史 | pass，真实浏览器写操作 E2E |
+| TEST-010 | P12 UI 可用性 E2E | test | test | FE-024 | `docs/test_runs/p12-ui-usable-e2e.md` | FE-024 | 否 | 浏览器验证 UI 设计主链路、状态反馈和可用性 | pass/fail 需说明截图或 DOM 断言 | pending |
 | VAL-001 | 后端 clean compile | validator | validator | BE-015/service | `docs/build/backend-clean-compile.md` | BE-015 | 是 | JDK/Maven 路径和 clean compile 结果明确，记录独立输出 | clean compile pass | done |
 | VAL-002 | 前端 clean build | validator | validator | FE-012/service | `docs/build/frontend-clean-build.md` | FE-012 | 是 | 清理 dist/tsbuildinfo 后 build，记录独立输出 | fail，target=frontend，缺少 package.json | done |
 | VAL-003 | 契约同步检查 | validator | validator | API/FE-012 | `docs/build/contract-sync-check.md` | FE-012 | 是 | 错误码、枚举、状态值同步到 SDK/map，记录独立输出 | fail，target=frontend，字段类型枚举未同步 | done |
 | VAL-004 | 构建报告 | validator | validator | VAL-001/002/003/TEST-005 | `docs/build_report.md` | VAL-001, VAL-002, VAL-003, TEST-005 | 否 | 汇总构建记录，构建报告满足格式契约 | fail，target=frontend | done |
 | VAL-005 | P9 前端 clean build | validator | validator | FE-015 | `docs/build/p9-frontend-clean-build.md`、`docs/build_report.md`、`frontend/dist/` | FE-015 | 否 | 清理 dist/tsbuildinfo 后 npm ci/build 通过，产物可部署 | clean build pass | done |
 | VAL-006 | P10 clean build 与后端 package | validator | validator | FE-018/TEST-008 | `docs/build/p10-clean-build.md`、`docs/build_report.md`、`frontend/dist/`、`backend/examine-web/target/unexamine.jar` | FE-018 | 否 | 前端 clean build 生成 dist，后端 package 通过或说明无需后端改动但 package 可复验 | clean build/package pass |
+| VAL-008 | P12 clean build 与部署包 | validator | validator | TEST-010 | `docs/build/p12-clean-build.md`、`dist/unexamine-full-deploy-*.zip` | TEST-010 | 否 | 前端 clean build、后端 package 和部署包内容通过 | clean build/package/package-list pass | pending |
 | REV-001 | 架构审查 | reviewer | review | PRD/API/DB/backend/frontend | `docs/review_parts/rev-001-architecture.md` | VAL-004 | 否 | 模块边界、base/manage、事务权限风险审查 | fail，target=frontend | done |
 | REV-002 | 契约实现审查 | reviewer | review | API/backend/frontend/map | `docs/review_parts/rev-002-contract.md` | REV-001 | 否 | API、SDK、后端实现一致 | fail，target=both | done |
 | REV-003 | 质量测试构建审查 | reviewer | review | test/build/backend/frontend | `docs/review_parts/rev-003-quality.md` | REV-002 | 否 | 测试缺口、构建风险、质量问题审查 | fail，target=both | done |
 | REV-004 | 最终 review.json | reviewer | review | REV-003 | `docs/review.json` | REV-003 | 否 | JSON 合法，status/target/issues 符合规则 | fail，target=both | done |
 | REV-005 | P9 系统管理域审查 | reviewer | review | FE-015/TEST-007/VAL-005 | `docs/review.json`、`docs/issues/verification/development/p9_reviewer_verification.md` | TEST-007, VAL-005 | 否 | P9 未过度宣称，真实 UI、E2E、build 均有证据 | pass，fullProjectDeployable 仍为 false | done |
 | REV-006 | P10 应用运行台审查 | reviewer | review | FE-016/FE-017/FE-018/TEST-008/VAL-006 | `docs/review.json`、`docs/issues/verification/development/p10_reviewer_verification.md` | TEST-008, VAL-006 | 否 | P10 未过度宣称，应用配置和运行台真实 UI、E2E、build 均有证据 | pass，fullProjectDeployable 仍为 false |
+| REV-008 | P12 UI/UX 与最终可用性审查 | reviewer | review | UIUX-001/FE-024/TEST-010/VAL-008 | `docs/review.json`、`docs/issues/verification/development/p12_reviewer_verification.md` | TEST-010, VAL-008 | 否 | UI 不再是接口表格表单堆叠，符合 `docs/ui/ui-design.md` 并可正常使用 | pass 后才恢复 fullProjectDeployable=true | pending |
 
 ## 并行批次计划
 
