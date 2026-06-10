@@ -2409,5 +2409,5 @@
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
     "last_completed_batch":  "DEV-BATCH-P12-FE024-DOMAIN-UI-REWORK",
-    "active_batch":  "DEV-BATCH-P12-TEST010-BLOCKED"
+    "active_batch":  "DEV-BATCH-P12-TEST010-PENDING-RETEST"
 }

@@ -4921,7 +4921,19 @@ export function mountApp(container: HTMLElement): void {
   }
 
   function catalogOperationOptions(catalog?: PermissionCatalogVO): [string, string][] {
-    return (catalog?.operations ?? []).map((item) => [item, item]);
+    return ((catalog?.operations ?? []) as unknown[])
+      .map((item) => {
+        if (typeof item === "string") {
+          return [item, item] as [string, string];
+        }
+        if (isRecord(item)) {
+          const code = stringValue(item.operationCode) ?? stringValue(item.code) ?? stringValue(item.permissionCode) ?? stringValue(item.value);
+          const label = stringValue(item.operationName) ?? stringValue(item.name) ?? stringValue(item.label) ?? code;
+          return code ? [code, label ?? code] as [string, string] : undefined;
+        }
+        return undefined;
+      })
+      .filter((item): item is [string, string] => Boolean(item));
   }
 
   function catalogMenuOptions(catalog?: PermissionCatalogVO): [string, string][] {

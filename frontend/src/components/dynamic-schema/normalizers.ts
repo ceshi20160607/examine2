@@ -12,8 +12,9 @@ import type { FieldDefinitionVO, JsonValue } from "../../api";
 
 export function normalizeListSchema(input: DynamicSchemaInput): DynamicListSchema {
   const raw = asRecord(input.listSchema);
+  const columns = normalizeRefs(raw.columns, input.fieldDefinitions);
   return {
-    columns: normalizeRefs(raw.columns, input.fieldDefinitions),
+    columns: columns.length > 0 ? columns : defaultRefs(input.fieldDefinitions),
     filters: normalizeRefs(raw.filters, input.fieldDefinitions),
     sorters: normalizeSorters(raw.sorters),
     fieldVisibility: normalizeVisibility(raw.fieldVisibility),
@@ -24,15 +25,22 @@ export function normalizeListSchema(input: DynamicSchemaInput): DynamicListSchem
 export function normalizeFormSchema(input: DynamicSchemaInput): DynamicFormSchema {
   const raw = asRecord(input.formSchema);
   const sections = Array.isArray(raw.formSections) ? raw.formSections : [];
+  const normalizedSections = sections.map((section, index) => {
+    const sectionRecord = asRecord(section);
+    return {
+      sectionCode: normalizeString(sectionRecord.sectionCode) ?? `section_${index + 1}`,
+      title: normalizeString(sectionRecord.title) ?? `Section ${index + 1}`,
+      fields: normalizeRefs(sectionRecord.fields, input.fieldDefinitions),
+    };
+  }).filter((section) => section.fields.length > 0);
   return {
-    formSections: sections.map((section, index) => {
-      const sectionRecord = asRecord(section);
-      return {
-        sectionCode: normalizeString(sectionRecord.sectionCode) ?? `section_${index + 1}`,
-        title: normalizeString(sectionRecord.title) ?? `Section ${index + 1}`,
-        fields: normalizeRefs(sectionRecord.fields, input.fieldDefinitions),
-      };
-    }),
+    formSections: normalizedSections.length > 0
+      ? normalizedSections
+      : [{
+          sectionCode: "default",
+          title: "基础信息",
+          fields: defaultRefs(input.fieldDefinitions),
+        }],
     fieldWritable: normalizeWritable(raw.fieldWritable),
     schemaVersion: normalizeNumber(raw.schemaVersion),
   };
@@ -41,15 +49,22 @@ export function normalizeFormSchema(input: DynamicSchemaInput): DynamicFormSchem
 export function normalizeDetailSchema(input: DynamicSchemaInput): DynamicDetailSchema {
   const raw = asRecord(input.detailSchema);
   const blocks = Array.isArray(raw.detailBlocks) ? raw.detailBlocks : [];
+  const normalizedBlocks = blocks.map((block, index) => {
+    const blockRecord = asRecord(block);
+    return {
+      blockCode: normalizeString(blockRecord.blockCode) ?? `block_${index + 1}`,
+      title: normalizeString(blockRecord.title) ?? `Block ${index + 1}`,
+      fields: normalizeRefs(blockRecord.fields, input.fieldDefinitions),
+    };
+  }).filter((block) => block.fields.length > 0);
   return {
-    detailBlocks: blocks.map((block, index) => {
-      const blockRecord = asRecord(block);
-      return {
-        blockCode: normalizeString(blockRecord.blockCode) ?? `block_${index + 1}`,
-        title: normalizeString(blockRecord.title) ?? `Block ${index + 1}`,
-        fields: normalizeRefs(blockRecord.fields, input.fieldDefinitions),
-      };
-    }),
+    detailBlocks: normalizedBlocks.length > 0
+      ? normalizedBlocks
+      : [{
+          blockCode: "default",
+          title: "详情",
+          fields: defaultRefs(input.fieldDefinitions),
+        }],
     fieldVisibility: normalizeVisibility(raw.fieldVisibility),
     schemaVersion: normalizeNumber(raw.schemaVersion),
   };
@@ -101,6 +116,20 @@ function normalizeRefs(value: unknown, fields: FieldDefinitionVO[]): DynamicSche
     });
   });
   return refs;
+}
+
+function defaultRefs(fields: FieldDefinitionVO[]): DynamicSchemaFieldRef[] {
+  return fields
+    .filter((field) => field.status !== "DELETED")
+    .map((field) => ({
+      fieldCode: field.fieldCode,
+      fieldId: field.fieldId,
+      label: field.fieldName,
+      visible: true,
+      required: field.required,
+      sortable: true,
+      filterable: true,
+    }));
 }
 
 function normalizeSorters(value: unknown): DynamicSchemaSorterRef[] {

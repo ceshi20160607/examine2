@@ -2,7 +2,7 @@
 
 - 所属期次：P12-uiux-frontend-rework
 - 负责人：test
-- 状态：blocked/rework（真实链路已跑到模块发布和导出成功；运行台 UI 新建记录 `COMMON_PARAM_INVALID`，且查询已存在记录时报 `Cannot read properties of undefined (reading 'find')`，阻塞提交审批/流程处理）
+- 状态：pending-retest（上一轮真实链路跑到模块发布和导出成功；发现的运行台 UI 新建记录、记录查询和权限多选展示问题已完成前端修复，待重新执行 TEST-010 全链路）
 
 ## 目标
 

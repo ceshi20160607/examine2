@@ -117,3 +117,23 @@ target：frontend。
 - 修复运行台 `RUN-004` UI 提交参数组装或字段值映射，确保页面新建记录可成功。
 - 修复运行台记录列表模型处理中的 `undefined.find` 异常，确保 `RUN-003` 返回记录后可渲染列表。
 - 修复系统角色操作权限多选展示 `[object Object]` 的可用性问题。
+
+## 返工修复记录
+
+执行时间：2026-06-10
+
+| 问题 | 修复 |
+| --- | --- |
+| 运行台 UI 新建记录提交空值或缺少必填字段 | `normalizeFormSchema` 增加字段定义兜底：后端页面 schema 缺少 `formSections` 或返回空分组时，按 `fieldDefinitions` 自动生成“基础信息”表单区。 |
+| 运行台查询记录时报 `Cannot read properties of undefined (reading 'find')` | `normalizeListSchema` 和 `normalizeDetailSchema` 增加字段定义兜底，避免列表/详情模型在空 schema 下构造异常。 |
+| 系统角色操作权限多选显示 `[object Object]` | `catalogOperationOptions` 兼容字符串和对象两种权限目录结构，优先取 `operationCode/code/permissionCode/value` 与 `operationName/name/label`。 |
+
+自检：
+
+```powershell
+npm.cmd run build
+```
+
+结果：pass。
+
+当前结论：frontend rework fixed，TEST-010 仍需重新执行真实浏览器全链路后才能改为 pass。未执行打包。
