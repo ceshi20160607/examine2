@@ -34,6 +34,8 @@ P11 部署包保留为功能试部署包。用户反馈前端缺少独立 UI/UX 
 | --- | --- |
 | 前端构建 | `npm.cmd run build` pass |
 | 生产预览 | `/` 与 `/#/systems/demo/overview` HTTP 200 |
+| prompt 扫描 | `rg -n "window\\.prompt|prompt\\(" frontend\\src\\App.ts` 无结果 |
+| reviewer 预审返工 | 显式进入按钮、页面内编辑授权、权限多选和有状态 Tabs 已补齐 |
 | 说明 | 本次只完成 frontend 自检；TEST-010、VAL-008、REV-008 未通过前仍禁止打包 |
 
 # 2026-06-09 P10 Clean Build 摘要

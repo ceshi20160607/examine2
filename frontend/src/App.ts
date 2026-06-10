@@ -113,6 +113,12 @@ interface PlatformUiState {
   accounts: PlatformPageState<PlatformAccountListVO>;
   roles: PlatformPageState<PlatformRoleVO>;
   configs: PlatformPageState<PlatformConfigVO>;
+  editingAccountId?: EntityId;
+  selectedAccountRoleIds: EntityId[];
+  editingRoleId?: EntityId;
+  authorizingRoleId?: EntityId;
+  platformRoleOperationCodes: string;
+  platformRoleMenuIds: string;
   permissionCatalogSummary?: string;
 }
 
@@ -170,6 +176,16 @@ interface OperationsUiState {
   audit: AuditPageState;
   platformAudit: AuditPageState;
   ops: OpsPageState;
+}
+
+type RuntimeDetailTab = "detail" | "attachments" | "flow" | "history" | "relations";
+type FlowWorkbenchTab = "todo" | "cc" | "started" | "instances";
+type ExportTab = "templates" | "jobs";
+
+interface InteractionUiState {
+  runtimeDetailTab: RuntimeDetailTab;
+  flowWorkbenchTab: FlowWorkbenchTab;
+  exportTab: ExportTab;
 }
 
 interface SystemEnterVO {
@@ -319,6 +335,9 @@ export function mountApp(container: HTMLElement): void {
     accounts: emptyPlatformPageState(),
     roles: emptyPlatformPageState(),
     configs: emptyPlatformPageState(),
+    selectedAccountRoleIds: [],
+    platformRoleOperationCodes: "",
+    platformRoleMenuIds: "",
   };
   const systemState: SystemUiState = {
     tenants: [],
@@ -349,6 +368,11 @@ export function mountApp(container: HTMLElement): void {
     audit: auditPage.createInitialState("operation"),
     platformAudit: auditPage.createInitialState("platformOperation"),
     ops: opsPage.createInitialState(),
+  };
+  const interactionState: InteractionUiState = {
+    runtimeDetailTab: "detail",
+    flowWorkbenchTab: "todo",
+    exportTab: "templates",
   };
   const autoLoadedRoutes = new Set<string>();
 
@@ -542,12 +566,16 @@ export function mountApp(container: HTMLElement): void {
             node("span", { text: "系统" }),
             node("span", { text: "租户模式" }),
             node("span", { text: "状态" }),
+            node("span", { text: "操作" }),
           ]),
           ...mySystemsPage.state.systems.map((item) =>
-            node("button", { className: "table-row", onClick: () => enterSystem(item.systemId) }, [
+            node("div", { className: "table-row my-system-row" }, [
               node("span", { text: item.systemName }),
               node("span", { text: item.tenantMode }),
               node("span", { text: item.status }),
+              node("span", { className: "row-actions" }, [
+                button("进入系统", "primary", () => enterSystem(item.systemId)),
+              ]),
             ]),
           ),
         ]),
@@ -774,19 +802,29 @@ export function mountApp(container: HTMLElement): void {
 
   function renderPlatformAccounts(): HTMLElement {
     const actions = platformCenter.accounts.actions();
+    const editing = platformState.accounts.records.find((item) => item.accountId === platformState.editingAccountId);
     return node("div", { className: "admin-page" }, [
       renderPageMetrics([
         [String(platformState.accounts.total), "账号总数"],
         [enabledCount(platformState.accounts.records), "正常账号"],
         [platformState.accounts.loading ? "同步中" : "就绪", "列表状态"],
       ]),
-      node("div", { className: "form-grid" }, [
-        input("登录名", "platformAccountLoginName", ""),
-        input("显示名称", "platformAccountDisplayName", ""),
-        input("手机号", "platformAccountMobile", ""),
-        input("邮箱", "platformAccountEmail", ""),
-        input("初始密码", "platformAccountInitialPassword", "", "password"),
-        button("创建账号", "primary", createPlatformAccount, !actions.create.enabled),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: editing ? `编辑账号：${editing.loginName}` : "账号资料" }),
+          node("span", { text: "创建、编辑、重置密码和角色分配都在页面内完成，不再使用浏览器弹窗。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          input("登录名", "platformAccountLoginName", editing?.loginName ?? ""),
+          input("显示名称", "platformAccountDisplayName", editing?.displayName ?? ""),
+          input("手机号", "platformAccountMobile", editing?.mobile ?? ""),
+          input("邮箱", "platformAccountEmail", editing?.email ?? ""),
+          input("初始/新密码", "platformAccountInitialPassword", "", "password"),
+          multiSelectField("平台角色", "platformAccountRoleIds", platformState.selectedAccountRoleIds, platformRoleOptions()),
+          button(editing ? "保存账号" : "创建账号", "primary", editing ? () => editPlatformAccount(editing) : createPlatformAccount, editing ? !actions.edit.enabled : !actions.create.enabled),
+          button("加载角色", "secondary", loadPlatformRoles),
+          editing ? button("取消编辑", "secondary", clearPlatformAccountEdit) : undefined,
+        ]),
       ]),
       renderDataTable(
         "accounts",
@@ -797,7 +835,7 @@ export function mountApp(container: HTMLElement): void {
           [item.mobile, item.email].filter(Boolean).join(" / ") || "-",
           statusLabel(item.status),
           node("div", { className: "row-actions" }, [
-            button("编辑", "secondary", () => editPlatformAccount(item), !platformCenter.accounts.actions(item).edit.enabled),
+            button("带入编辑", "secondary", () => fillPlatformAccountForm(item), !platformCenter.accounts.actions(item).edit.enabled),
             button(item.status === "NORMAL" ? "禁用" : "启用", "secondary", () => togglePlatformAccount(item), !platformCenter.accounts.actions(item).status.enabled),
             button("重置密码", "secondary", () => resetPlatformAccountPassword(item), !platformCenter.accounts.actions(item).resetPassword.enabled),
             button("分配角色", "secondary", () => assignPlatformAccountRoles(item), !platformCenter.accounts.actions(item).assignRoles.enabled),
@@ -810,18 +848,39 @@ export function mountApp(container: HTMLElement): void {
 
   function renderPlatformRoles(): HTMLElement {
     const actions = platformCenter.roles.actions();
+    const editing = platformState.roles.records.find((item) => item.roleId === platformState.editingRoleId);
+    const authorizing = platformState.roles.records.find((item) => item.roleId === platformState.authorizingRoleId);
     return node("div", { className: "admin-page" }, [
       renderPageMetrics([
         [String(platformState.roles.total), "角色总数"],
         [enabledCount(platformState.roles.records), "启用角色"],
         [platformState.permissionCatalogSummary ?? "未加载", "权限目录"],
       ]),
-      node("div", { className: "form-grid" }, [
-        input("角色编码", "platformRoleCode", ""),
-        input("角色名称", "platformRoleName", ""),
-        textarea("角色说明", "platformRoleDescription", ""),
-        button("创建角色", "primary", createPlatformRole, !actions.create.enabled),
-        button("加载权限目录", "secondary", loadPlatformPermissionCatalog, !actions.authorize.enabled),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: editing ? `编辑角色：${editing.name}` : "角色资料" }),
+          node("span", { text: "角色资料和授权拆分为两个面板，避免在弹窗里录入权限编码。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          input("角色编码", "platformRoleCode", editing?.code ?? ""),
+          input("角色名称", "platformRoleName", editing?.name ?? ""),
+          textarea("角色说明", "platformRoleDescription", editing?.description ?? ""),
+          button(editing ? "保存角色" : "创建角色", "primary", editing ? () => editPlatformRole(editing) : createPlatformRole, editing ? !actions.edit.enabled : !actions.create.enabled),
+          editing ? button("取消编辑", "secondary", clearPlatformRoleEdit) : undefined,
+          button("加载权限目录", "secondary", loadPlatformPermissionCatalog, !actions.authorize.enabled),
+        ]),
+      ]),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: authorizing ? `授权：${authorizing.name}` : "角色授权" }),
+          node("span", { text: "选择角色后维护菜单和操作权限，权限目录加载后可看到目录规模。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          textarea("操作权限编码", "platformRoleOperationCodes", platformState.platformRoleOperationCodes),
+          textarea("菜单 ID", "platformRoleMenuIds", platformState.platformRoleMenuIds),
+          button("保存授权", "primary", authorizing ? () => authorizePlatformRole(authorizing) : noop, !authorizing || !actions.authorize.enabled),
+          authorizing ? button("取消授权", "secondary", clearPlatformRoleAuth) : undefined,
+        ]),
       ]),
       renderDataTable(
         "roles",
@@ -832,9 +891,9 @@ export function mountApp(container: HTMLElement): void {
           statusLabel(item.status),
           String(item.operationCodes?.length ?? 0),
           node("div", { className: "row-actions" }, [
-            button("编辑", "secondary", () => editPlatformRole(item), !platformCenter.roles.actions(item).edit.enabled),
+            button("带入编辑", "secondary", () => fillPlatformRoleForm(item), !platformCenter.roles.actions(item).edit.enabled),
             button(item.status === "ENABLED" ? "禁用" : "启用", "secondary", () => togglePlatformRole(item), !platformCenter.roles.actions(item).status.enabled),
-            button("授权", "secondary", () => authorizePlatformRole(item), !platformCenter.roles.actions(item).authorize.enabled),
+            button("授权", "secondary", () => fillPlatformRoleAuth(item), !platformCenter.roles.actions(item).authorize.enabled),
           ]),
         ]),
         platformState.roles.empty ? "暂无平台角色，可在上方创建。" : undefined,
@@ -1043,20 +1102,34 @@ export function mountApp(container: HTMLElement): void {
         [enabledCount(systemState.roles), "启用角色"],
         [permissionCatalogLabel(systemState.permissionCatalog), "权限目录"],
       ]),
-      node("div", { className: "form-grid" }, [
-        input("角色编码", "systemRoleCode", ""),
-        input("角色名称", "systemRoleName", ""),
-        textarea("角色说明", "systemRoleDescription", ""),
-        button("创建角色", "primary", createSystemRole, !actions.create.enabled),
-        button("加载权限目录", "secondary", loadSystemPermissionCatalog, !actions.permission.enabled),
-        input("授权操作编码", "systemRolePermissionOperations", systemState.rolePermissionOperationCodes),
-        input("授权菜单 ID", "systemRolePermissionMenus", systemState.rolePermissionMenuIds),
-        selectField("数据范围", "systemRolePermissionScope", systemState.rolePermissionScopeType, [
-          ["ALL", "全部"],
-          ["SELF", "本人"],
-          ["DEPT", "本部门"],
-          ["DEPT_TREE", "本部门及下级"],
-          ["CUSTOM", "自定义"],
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "角色资料" }),
+          node("span", { text: "创建或编辑系统内角色，授权请先在列表中读取角色权限。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          input("角色编码", "systemRoleCode", ""),
+          input("角色名称", "systemRoleName", ""),
+          textarea("角色说明", "systemRoleDescription", ""),
+          button("创建角色", "primary", createSystemRole, !actions.create.enabled),
+          button("加载权限目录", "secondary", loadSystemPermissionCatalog, !actions.permission.enabled),
+        ]),
+      ]),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "权限授权" }),
+          node("span", { text: "从权限目录中选择操作权限和菜单权限，再保存到当前行角色。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          multiSelectField("操作权限", "systemRolePermissionOperations", splitValues(systemState.rolePermissionOperationCodes), catalogOperationOptions(systemState.permissionCatalog)),
+          multiSelectField("菜单权限", "systemRolePermissionMenus", splitValues(systemState.rolePermissionMenuIds), catalogMenuOptions(systemState.permissionCatalog)),
+          selectField("数据范围", "systemRolePermissionScope", systemState.rolePermissionScopeType, [
+            ["ALL", "全部"],
+            ["SELF", "本人"],
+            ["DEPT", "本部门"],
+            ["DEPT_TREE", "本部门及下级"],
+            ["CUSTOM", "自定义"],
+          ]),
         ]),
       ]),
       renderDataTable(
@@ -1443,14 +1516,22 @@ export function mountApp(container: HTMLElement): void {
   function renderRuntimeDetailTabs(detail?: RecordDetailVO): HTMLElement {
     return node("section", { className: "detail-tabs" }, [
       node("div", { className: "tab-strip" }, [
-        node("span", { className: "tab active", text: "详情" }),
-        node("span", { className: "tab", text: "附件" }),
-        node("span", { className: "tab", text: "审批" }),
-        node("span", { className: "tab", text: "历史" }),
-        node("span", { className: "tab", text: "关联" }),
+        tabButton("详情", interactionState.runtimeDetailTab === "detail", () => { interactionState.runtimeDetailTab = "detail"; render(); }),
+        tabButton("附件", interactionState.runtimeDetailTab === "attachments", () => { interactionState.runtimeDetailTab = "attachments"; render(); }),
+        tabButton("审批", interactionState.runtimeDetailTab === "flow", () => { interactionState.runtimeDetailTab = "flow"; render(); }),
+        tabButton("历史", interactionState.runtimeDetailTab === "history", () => { interactionState.runtimeDetailTab = "history"; render(); }),
+        tabButton("关联", interactionState.runtimeDetailTab === "relations", () => { interactionState.runtimeDetailTab = "relations"; render(); }),
       ]),
-      node("div", { className: "tab-panel" }, [
-        renderRuntimeDetail(detail),
+      node("div", { className: "tab-panel" }, renderRuntimeDetailTabContent(detail)),
+    ]);
+  }
+
+  function renderRuntimeDetailTabContent(detail?: RecordDetailVO): Child[] {
+    if (interactionState.runtimeDetailTab === "detail") {
+      return [renderRuntimeDetail(detail)];
+    }
+    if (interactionState.runtimeDetailTab === "history") {
+      return [
         renderDataTable(
           "history",
           ["版本", "操作", "状态", "请求号"],
@@ -1462,8 +1543,128 @@ export function mountApp(container: HTMLElement): void {
           ]),
           "暂无历史，查看记录历史后会显示在这里。",
         ),
-      ]),
-    ]);
+      ];
+    }
+    if (interactionState.runtimeDetailTab === "relations") {
+      return [
+        renderDataTable(
+          "relations",
+          ["关联类型", "目标模块", "目标记录", "快照"],
+          appRuntimeState.recordRelations.map((item) => [
+            item.relationType ?? "-",
+            item.targetModuleId ?? "-",
+            item.targetRecordId ?? "-",
+            formatValue(item.displaySnapshot),
+          ]),
+          "暂无关联记录。",
+        ),
+      ];
+    }
+    if (interactionState.runtimeDetailTab === "attachments") {
+      return [emptyPanel("暂无附件", "附件上传和引用会在文件字段配置后显示在这里。")];
+    }
+    return [emptyPanel("审批信息", detail?.flowSummary ? formatValue(detail.flowSummary) : "记录提交审批后会显示当前节点和审批历史。")];
+  }
+
+  function renderFlowWorkbenchTabContent(
+    todos: FlowTaskListItemVO[],
+    cc: FlowCcItemVO[],
+    started: FlowInstanceListItemVO[],
+    instances: FlowInstanceListItemVO[],
+  ): Child[] {
+    if (interactionState.flowWorkbenchTab === "todo") {
+      return [
+        renderDataTable(
+          "flow-todos",
+          ["记录", "节点", "处理人", "状态", "操作"],
+          todos.map((item) => [
+            item.recordTitle ?? item.recordId,
+            item.nodeName,
+            item.claimedByName ?? item.assigneeName ?? "-",
+            statusLabel(item.taskStatus),
+            node("div", { className: "row-actions" }, [
+              button("签收", "secondary", () => claimFlowTask(item), Boolean(flowWorkbench.workbench.claimDisabledReason(item))),
+              button("通过", "primary", () => approveFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("APPROVE", item.taskVersion, { comment: "同意" })))),
+              button("退回", "secondary", () => rejectFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("REJECT", item.taskVersion, { comment: "退回" })))),
+              button("详情", "secondary", () => loadFlowTaskDetail(item.taskId)),
+            ]),
+          ]),
+          "暂无待办任务。",
+        ),
+      ];
+    }
+    if (interactionState.flowWorkbenchTab === "cc") {
+      return [
+        renderDataTable(
+          "flow-cc",
+          ["记录", "节点", "已读", "时间"],
+          cc.map((item) => [
+            item.recordTitle ?? item.recordId,
+            item.nodeName ?? "-",
+            item.read ? "是" : "否",
+            item.createdAt ?? "-",
+          ]),
+          "暂无抄送。",
+        ),
+      ];
+    }
+    const source = interactionState.flowWorkbenchTab === "started" ? started : instances;
+    return [
+      renderDataTable(
+        "flow-instances",
+        ["记录", "发起人", "当前节点", "状态", "操作"],
+        source.map((item) => [
+          item.recordTitle ?? item.recordId,
+          item.starterName ?? item.starterMemberId ?? "-",
+          item.currentNodeName ?? "-",
+          statusLabel(item.status),
+          node("div", { className: "row-actions" }, [
+            button("详情", "secondary", () => loadFlowInstanceDetail(item.instanceId)),
+            button("撤回", "secondary", () => withdrawFlowInstance(item), Boolean(flowWorkbench.workbench.withdrawDisabledReason(item))),
+          ]),
+        ]),
+        interactionState.flowWorkbenchTab === "started" ? "暂无我的申请。" : "暂无流程实例。",
+      ),
+    ];
+  }
+
+  function renderExportTabContent(templates: ExportTemplateVO[], jobs: ExportJobListItemVO[]): Child[] {
+    if (interactionState.exportTab === "templates") {
+      return [
+        renderDataTable(
+          "export-templates",
+          ["模板", "编码", "格式", "字段数", "操作"],
+          templates.map((item) => [
+            item.templateName,
+            item.templateCode,
+            item.exportFormat ?? "CSV",
+            String(item.fields.length),
+            node("div", { className: "row-actions" }, [
+              button("更新", "secondary", () => updateExportTemplate(item)),
+            ]),
+          ]),
+          "暂无导出模板。",
+        ),
+      ];
+    }
+    return [
+      renderDataTable(
+        "export-jobs",
+        ["文件", "状态", "进度", "结果文件", "操作"],
+        jobs.map((item) => [
+          item.fileName ?? item.jobId,
+          statusLabel(item.status),
+          `${item.progress}%`,
+          item.resultFileId ?? item.failureReason?.message ?? "-",
+          node("div", { className: "row-actions" }, [
+            button("详情", "secondary", () => loadExportJobDetail(item.jobId)),
+            button("重试", "secondary", () => retryExportJob(item), Boolean(exportPage.jobs.retryDisabledReason(item))),
+            button("取消", "secondary", () => cancelExportJob(item), Boolean(exportPage.jobs.cancelDisabledReason(item))),
+          ]),
+        ]),
+        "暂无导出任务。",
+      ),
+    ];
   }
 
   function renderFlowTemplates(): HTMLElement {
@@ -1539,56 +1740,12 @@ export function mountApp(container: HTMLElement): void {
       ]),
       node("section", { className: "detail-tabs" }, [
         node("div", { className: "tab-strip" }, [
-          node("span", { className: "tab active", text: "待办" }),
-          node("span", { className: "tab", text: "抄送" }),
-          node("span", { className: "tab", text: "我的申请" }),
-          node("span", { className: "tab", text: "流程实例" }),
+          tabButton("待办", interactionState.flowWorkbenchTab === "todo", () => { interactionState.flowWorkbenchTab = "todo"; render(); }),
+          tabButton("抄送", interactionState.flowWorkbenchTab === "cc", () => { interactionState.flowWorkbenchTab = "cc"; render(); }),
+          tabButton("我的申请", interactionState.flowWorkbenchTab === "started", () => { interactionState.flowWorkbenchTab = "started"; render(); }),
+          tabButton("流程实例", interactionState.flowWorkbenchTab === "instances", () => { interactionState.flowWorkbenchTab = "instances"; render(); }),
         ]),
-        node("div", { className: "tab-panel" }, [
-          renderDataTable(
-            "flow-todos",
-            ["记录", "节点", "处理人", "状态", "操作"],
-            todos.map((item) => [
-              item.recordTitle ?? item.recordId,
-              item.nodeName,
-              item.claimedByName ?? item.assigneeName ?? "-",
-              statusLabel(item.taskStatus),
-              node("div", { className: "row-actions" }, [
-                button("签收", "secondary", () => claimFlowTask(item), Boolean(flowWorkbench.workbench.claimDisabledReason(item))),
-                button("通过", "primary", () => approveFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("APPROVE", item.taskVersion, { comment: "同意" })))),
-                button("退回", "secondary", () => rejectFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("REJECT", item.taskVersion, { comment: "退回" })))),
-                button("详情", "secondary", () => loadFlowTaskDetail(item.taskId)),
-              ]),
-            ]),
-            "暂无待办任务。",
-          ),
-          renderDataTable(
-            "flow-instances",
-            ["记录", "发起人", "当前节点", "状态", "操作"],
-            [...started, ...instances].map((item) => [
-              item.recordTitle ?? item.recordId,
-              item.starterName ?? item.starterMemberId ?? "-",
-              item.currentNodeName ?? "-",
-              statusLabel(item.status),
-              node("div", { className: "row-actions" }, [
-                button("详情", "secondary", () => loadFlowInstanceDetail(item.instanceId)),
-                button("撤回", "secondary", () => withdrawFlowInstance(item), Boolean(flowWorkbench.workbench.withdrawDisabledReason(item))),
-              ]),
-            ]),
-            "暂无流程实例。",
-          ),
-          renderDataTable(
-            "flow-cc",
-            ["记录", "节点", "已读", "时间"],
-            cc.map((item) => [
-              item.recordTitle ?? item.recordId,
-              item.nodeName ?? "-",
-              item.read ? "是" : "否",
-              item.createdAt ?? "-",
-            ]),
-            "暂无抄送。",
-          ),
-        ]),
+        node("div", { className: "tab-panel" }, renderFlowWorkbenchTabContent(todos, cc, started, instances)),
       ]),
     ]);
   }
@@ -1671,41 +1828,10 @@ export function mountApp(container: HTMLElement): void {
       ]),
       node("section", { className: "detail-tabs" }, [
         node("div", { className: "tab-strip" }, [
-          node("span", { className: "tab active", text: "导出模板" }),
-          node("span", { className: "tab", text: "导出任务" }),
+          tabButton("导出模板", interactionState.exportTab === "templates", () => { interactionState.exportTab = "templates"; render(); }),
+          tabButton("导出任务", interactionState.exportTab === "jobs", () => { interactionState.exportTab = "jobs"; render(); }),
         ]),
-        node("div", { className: "tab-panel" }, [
-          renderDataTable(
-            "export-templates",
-            ["模板", "编码", "格式", "字段数", "操作"],
-            templates.map((item) => [
-              item.templateName,
-              item.templateCode,
-              item.exportFormat ?? "CSV",
-              String(item.fields.length),
-              node("div", { className: "row-actions" }, [
-                button("更新", "secondary", () => updateExportTemplate(item)),
-              ]),
-            ]),
-            "暂无导出模板。",
-          ),
-          renderDataTable(
-            "export-jobs",
-            ["文件", "状态", "进度", "结果文件", "操作"],
-            jobs.map((item) => [
-              item.fileName ?? item.jobId,
-              statusLabel(item.status),
-              `${item.progress}%`,
-              item.resultFileId ?? item.failureReason?.message ?? "-",
-              node("div", { className: "row-actions" }, [
-                button("详情", "secondary", () => loadExportJobDetail(item.jobId)),
-                button("重试", "secondary", () => retryExportJob(item), Boolean(exportPage.jobs.retryDisabledReason(item))),
-                button("取消", "secondary", () => cancelExportJob(item), Boolean(exportPage.jobs.cancelDisabledReason(item))),
-              ]),
-            ]),
-            "暂无导出任务。",
-          ),
-        ]),
+        node("div", { className: "tab-panel" }, renderExportTabContent(templates, jobs)),
       ]),
     ]);
   }
@@ -2158,17 +2284,38 @@ export function mountApp(container: HTMLElement): void {
     });
   }
 
+  function fillPlatformAccountForm(item: PlatformAccountListVO): void {
+    platformState.editingAccountId = item.accountId;
+    platformState.selectedAccountRoleIds = item.roleIds ?? [];
+    setFormValue("platformAccountLoginName", item.loginName);
+    setFormValue("platformAccountDisplayName", item.displayName ?? "");
+    setFormValue("platformAccountMobile", item.mobile ?? "");
+    setFormValue("platformAccountEmail", item.email ?? "");
+    setFormValue("platformAccountInitialPassword", "");
+    render();
+  }
+
+  function clearPlatformAccountEdit(): void {
+    platformState.editingAccountId = undefined;
+    platformState.selectedAccountRoleIds = [];
+    setFormValue("platformAccountLoginName", "");
+    setFormValue("platformAccountDisplayName", "");
+    setFormValue("platformAccountMobile", "");
+    setFormValue("platformAccountEmail", "");
+    setFormValue("platformAccountInitialPassword", "");
+    render();
+  }
+
   async function editPlatformAccount(item: PlatformAccountListVO): Promise<void> {
-    const displayName = window.prompt("显示名称", item.displayName ?? "") ?? item.displayName;
-    const mobile = window.prompt("手机号", item.mobile ?? "") ?? item.mobile;
-    const email = window.prompt("邮箱", item.email ?? "") ?? item.email;
+    const form = readForm();
     await execute("PLAT-014", async () => {
       const result = await platformCenter.accounts.update(item.accountId, {
-        displayName: displayName?.trim() || undefined,
-        mobile: mobile?.trim() || undefined,
-        email: email?.trim() || undefined,
+        displayName: form.platformAccountDisplayName?.trim() || undefined,
+        mobile: form.platformAccountMobile?.trim() || undefined,
+        email: form.platformAccountEmail?.trim() || undefined,
       });
       platformState.accounts = await platformCenter.accounts.query({ pageNo: 1, pageSize: 20 });
+      clearPlatformAccountEdit();
       return { requestId: result.requestId };
     });
   }
@@ -2186,8 +2333,10 @@ export function mountApp(container: HTMLElement): void {
   }
 
   async function resetPlatformAccountPassword(item: PlatformAccountListVO): Promise<void> {
-    const newPassword = window.prompt(`请输入账号“${item.loginName}”的新密码`, "");
+    const newPassword = readForm().platformAccountInitialPassword;
     if (!newPassword) {
+      ui.lastError = `请先在“初始/新密码”输入框填写账号“${item.loginName}”的新密码。`;
+      render();
       return;
     }
     await execute("PLAT-015", async () => {
@@ -2201,10 +2350,7 @@ export function mountApp(container: HTMLElement): void {
   }
 
   async function assignPlatformAccountRoles(item: PlatformAccountListVO): Promise<void> {
-    const roleIds = window.prompt("请输入角色 ID，多个用英文逗号分隔", item.roleIds?.join(",") ?? "");
-    if (roleIds === null) {
-      return;
-    }
+    const roleIds = readForm().platformAccountRoleIds || platformState.selectedAccountRoleIds.join(",");
     await execute("PLAT-016", async () => {
       const result = await platformCenter.accounts.assignRoles(item.accountId, { roleIds: splitValues(roleIds) });
       platformState.accounts = await platformCenter.accounts.query({ pageNo: 1, pageSize: 20 });
@@ -2234,16 +2380,32 @@ export function mountApp(container: HTMLElement): void {
     });
   }
 
+  function fillPlatformRoleForm(item: PlatformRoleVO): void {
+    platformState.editingRoleId = item.roleId;
+    setFormValue("platformRoleCode", item.code);
+    setFormValue("platformRoleName", item.name);
+    setFormValue("platformRoleDescription", item.description ?? "");
+    render();
+  }
+
+  function clearPlatformRoleEdit(): void {
+    platformState.editingRoleId = undefined;
+    setFormValue("platformRoleCode", "");
+    setFormValue("platformRoleName", "");
+    setFormValue("platformRoleDescription", "");
+    render();
+  }
+
   async function editPlatformRole(item: PlatformRoleVO): Promise<void> {
-    const name = window.prompt("角色名称", item.name) ?? item.name;
-    const description = window.prompt("角色说明", item.description ?? "") ?? item.description;
+    const form = readForm();
     await execute("PLAT-018", async () => {
       const result = await platformCenter.roles.update(item.roleId, {
         code: item.code,
-        name: required(name, "角色名称"),
-        description: description?.trim() || undefined,
+        name: required(form.platformRoleName, "角色名称"),
+        description: form.platformRoleDescription?.trim() || undefined,
       });
       platformState.roles = await platformCenter.roles.query({ pageNo: 1, pageSize: 20 });
+      clearPlatformRoleEdit();
       return { requestId: result.requestId };
     });
   }
@@ -2260,21 +2422,35 @@ export function mountApp(container: HTMLElement): void {
     });
   }
 
+  function fillPlatformRoleAuth(item: PlatformRoleVO): void {
+    platformState.authorizingRoleId = item.roleId;
+    platformState.platformRoleOperationCodes = item.operationCodes?.join(",") ?? "";
+    platformState.platformRoleMenuIds = item.menuIds?.join(",") ?? "";
+    setFormValue("platformRoleOperationCodes", platformState.platformRoleOperationCodes);
+    setFormValue("platformRoleMenuIds", platformState.platformRoleMenuIds);
+    render();
+  }
+
+  function clearPlatformRoleAuth(): void {
+    platformState.authorizingRoleId = undefined;
+    platformState.platformRoleOperationCodes = "";
+    platformState.platformRoleMenuIds = "";
+    setFormValue("platformRoleOperationCodes", "");
+    setFormValue("platformRoleMenuIds", "");
+    render();
+  }
+
   async function authorizePlatformRole(item: PlatformRoleVO): Promise<void> {
-    const operationCodes = window.prompt("请输入操作权限编码，多个用英文逗号分隔", item.operationCodes?.join(",") ?? "");
-    if (operationCodes === null) {
-      return;
-    }
-    const menuIds = window.prompt("请输入菜单 ID，多个用英文逗号分隔", item.menuIds?.join(",") ?? "");
-    if (menuIds === null) {
-      return;
-    }
+    const form = readForm();
+    const operationCodes = form.platformRoleOperationCodes ?? platformState.platformRoleOperationCodes;
+    const menuIds = form.platformRoleMenuIds ?? platformState.platformRoleMenuIds;
     await execute("PLAT-010", async () => {
       const result = await platformCenter.roles.saveMenus(item.roleId, {
         menuIds: splitValues(menuIds),
         operationCodes: splitValues(operationCodes),
       });
       platformState.roles = await platformCenter.roles.query({ pageNo: 1, pageSize: 20 });
+      clearPlatformRoleAuth();
       return { requestId: result.requestId };
     });
   }
@@ -4218,8 +4394,33 @@ export function mountApp(container: HTMLElement): void {
     ]);
   }
 
+  function multiSelectField(label: string, name: string, values: string[], options: [string, string][]): HTMLElement {
+    return node("label", { className: "field wide-field" }, [
+      node("span", { text: label }),
+      node("select", { name, multiple: true, size: Math.min(Math.max(options.length, 3), 8) }, options.map(([optionValue, optionLabel]) =>
+        node("option", { value: optionValue, selected: values.includes(optionValue), text: optionLabel }),
+      )),
+      options.length ? undefined : node("small", { text: "暂无可选项，请先加载目录或创建角色。" }),
+    ]);
+  }
+
   function button(label: string, variant: "primary" | "secondary", onClick: () => void | Promise<void>, disabled = false): HTMLElement {
     return node("button", { className: `btn ${variant}`, disabled, onClick, text: label });
+  }
+
+  function tabButton(label: string, active: boolean, onClick: () => void): HTMLElement {
+    return node("button", { className: `tab${active ? " active" : ""}`, onClick, text: label });
+  }
+
+  function emptyPanel(title: string, description: string): HTMLElement {
+    return node("div", { className: "empty-state" }, [
+      node("strong", { text: title }),
+      node("span", { text: description }),
+    ]);
+  }
+
+  function noop(): void {
+    // 空操作用于禁用按钮占位，避免给用户暴露弹窗式临时交互。
   }
 
   function stat(value: string, label: string): HTMLElement {
@@ -4235,7 +4436,9 @@ export function mountApp(container: HTMLElement): void {
       values[item.name] = item.value;
     });
     container.querySelectorAll<HTMLSelectElement>("select[name]").forEach((item) => {
-      values[item.name] = item.value;
+      values[item.name] = item.multiple
+        ? Array.from(item.selectedOptions).map((option) => option.value).join(",")
+        : item.value;
     });
     container.querySelectorAll<HTMLTextAreaElement>("textarea[name]").forEach((item) => {
       values[item.name] = item.value;
@@ -4711,6 +4914,41 @@ export function mountApp(container: HTMLElement): void {
       return "未加载";
     }
     return `${catalog.menus.length} 菜单 / ${catalog.operations.length} 操作`;
+  }
+
+  function platformRoleOptions(): [string, string][] {
+    return platformState.roles.records.map((item) => [item.roleId, `${item.name}（${item.code}）`]);
+  }
+
+  function catalogOperationOptions(catalog?: PermissionCatalogVO): [string, string][] {
+    return (catalog?.operations ?? []).map((item) => [item, item]);
+  }
+
+  function catalogMenuOptions(catalog?: PermissionCatalogVO): [string, string][] {
+    return (catalog?.menus ?? []).flatMap((item) => menuOptionFromJson(item));
+  }
+
+  function menuOptionFromJson(value: JsonValue): [string, string][] {
+    if (!isRecord(value)) {
+      return [];
+    }
+    const id = stringValue(value.menuId) ?? stringValue(value.id) ?? stringValue(value.code) ?? stringValue(value.menuCode);
+    const label = stringValue(value.menuName) ?? stringValue(value.name) ?? stringValue(value.title) ?? id;
+    const current: [string, string][] = id ? [[id, label ?? id]] : [];
+    const children = Array.isArray(value.children)
+      ? value.children.flatMap((item) => menuOptionFromJson(item as JsonValue))
+      : [];
+    return [...current, ...children];
+  }
+
+  function stringValue(value: unknown): string | undefined {
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+    if (typeof value === "number") {
+      return String(value);
+    }
+    return undefined;
   }
 
   function memberDeptLabel(item: MemberListVO): string {

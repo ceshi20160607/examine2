@@ -325,12 +325,15 @@ PM 已做如下调整：
 - FE-023 验证：`npm.cmd run build` pass，生产预览 `/` 与 `/#/systems/demo/overview` HTTP 200；截图级浏览器 E2E 留给 TEST-010。
 - FE-024 已完成：应用配置步骤工作台、运行台详情 Tabs、流程工作台 Tabs、文件上传卡片、导出发布状态提示、OpenAPI 接入卡片、审计检索和运维巡检提示已落地。
 - FE-024 验证：`npm.cmd run build` pass，生产预览 `/` 与 `/#/systems/demo/overview` HTTP 200。
+- REV-008 预审发现 FE-024 第一轮仍有 prompt、静态 Tabs 和授权输入可用性缺口，PM 暂停 TEST-010/VAL-008 并返工。
+- FE-024 返工完成：我的系统显式进入按钮、平台账号/角色页面内编辑授权、系统角色权限多选、有状态 Tabs 已落地；`window.prompt` 扫描无结果，`npm.cmd run build` pass。
 
 当前下一步：test 执行 TEST-010 浏览器 UI 可用性 E2E；通过后 validator 执行 VAL-008 clean build/后端 package（不生成部署包），再由 reviewer 执行 REV-008。TEST-010、VAL-008、REV-008 未全部通过前，PKG-001 继续阻塞。
 
 ## 2026-06-10 FE-024 完成记录
 
 - 前端完成应用配置步骤工作台、运行台详情 Tabs、流程工作台 Tabs、文件上传卡片、导出发布状态提示、OpenAPI 接入卡片、审计检索和运维巡检提示。
+- 根据 reviewer 预审完成返工：去除 `window.prompt`、补显式进入按钮、页面内编辑/授权表单、权限多选和真实可切换 Tabs。
 - 自检命令：`npm.cmd run build`，结果 pass。
 - 生产预览：`/` 与 `/#/systems/demo/overview` HTTP 200。
 - 当前只代表 frontend 任务完成；TEST-010、VAL-008、REV-008 未通过，`docs/review.json.fullProjectDeployable=false`，禁止生成最终部署包。

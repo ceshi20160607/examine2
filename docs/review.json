@@ -59,7 +59,7 @@
     "UIUX-001 produced docs/ui/ui-design.md",
     "P12 plan produced docs/phases/P12-uiux-frontend-rework-plan.md",
     "FE-023 produced shell navigation and system overview UI",
-    "FE-024 produced domain UI rework and npm.cmd run build pass",
+    "FE-024 produced domain UI rework, removed window.prompt interactions, added stateful tabs, and npm.cmd run build pass",
     "TEST-010/VAL-008/REV-008 are pending; fullProjectDeployable remains false"
   ]
 }
