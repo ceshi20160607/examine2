@@ -7,16 +7,16 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 69 |
-| 已完成 | 68 |
+| 已完成 | 69 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 1 |
+| 剩余 | 0 |
 
 当前模式：`development`
 
 当前期次：`P12-uiux-frontend-rework`
 
-当前状态：`P12_rev008_pass_pkg001_next`
+当前状态：`P12_accepted_final_package_ready`
 
 ## 分期进度
 
@@ -34,7 +34,7 @@
 | P9-system-management-ui | 系统管理域可用化期 | accepted | FE-015、TEST-007、VAL-005、REV-005 已完成；成员、部门、系统角色、字典真实浏览器写操作 E2E 通过 | 已进入 P10 |
 | P10-app-runtime-ui | 应用模块与运行台可用化期 | accepted | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006 已完成；应用、模块、字段、页面配置、发布和运行台记录浏览器 E2E 通过 | 下一期进入 P11 流程、文件导出、OpenAPI 与审计运维可用化 |
 | P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | accepted | FE-019 至 FE-022、TEST-009、VAL-007、REV-007 已完成；功能试部署包已生成 | 用户反馈 UI 体验不足，进入 P12 |
-| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001、UIUX-002、FE-023、FE-024、TEST-010、VAL-008、REV-008 已完成 | 下一步执行 PKG-001 最终打包 |
+| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | accepted | UIUX-001、UIUX-002、FE-023、FE-024、TEST-010、VAL-008、REV-008、PKG-001 已完成 | 最终部署包已生成 |
 
 ## 角色完成度
 
@@ -376,3 +376,11 @@ PM 已做如下调整：
 - `docs/review.json.status=pass`，`fullProjectDeployable=true`。
 - 保留的幂等存储、npm audit、OpenAPI 高并发/安全矩阵为 P2 deferred 风险，不阻塞当前最终包生成。
 - 下一步执行 PKG-001，生成最终部署包。
+
+## 2026-06-11 PKG-001 最终部署包完成
+
+- 最终包目录：`dist/unexamine-full-deploy-20260611-014302/`。
+- 最终 zip 包：`dist/unexamine-full-deploy-20260611-014302.zip`，大小 39,997,301 B。
+- 包内已核验 `frontend/index.html`、`frontend/assets/*`、`backend/unexamine.jar`、`backend/start.sh`、`docs/nginx-deploy.md`、P12 build/test/review 证据和 `docs/review.json`。
+- P12 阶段验收记录：`docs/phases/P12-uiux-frontend-rework-acceptance.md`。
+- 当前结论：P12 accepted，最终试部署包 ready。

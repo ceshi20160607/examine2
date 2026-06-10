@@ -27,15 +27,15 @@
 | P9-system-management-ui | 系统管理域可用化期 | FE-015、TEST-007、VAL-005、REV-005：成员、部门、系统角色、字典真实业务 UI，浏览器 E2E、clean build 和审查 | 成员、部门、系统角色、字典不再是通用占位页；主要 CRUD/授权/字典 usage 链路通过 typed SDK、真实系统上下文和浏览器 E2E。 | accepted |
 | P10-app-runtime-ui | 应用模块与运行台可用化期 | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006：应用、模块、字段、页面配置、发布、运行台记录真实业务 UI，浏览器 E2E、clean build 和审查 | 应用、模块、字段、页面配置、发布和运行台记录主链路不再是通用占位页；页面完成真实写操作和回显，P10 只能声明应用运行域完成。 | accepted |
 | P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | FE-019、FE-020、FE-021、FE-022、TEST-009、VAL-007、REV-007：流程工作台、文件与导出、OpenAPI、审计运维真实业务 UI | 流程、文件导出、OpenAPI、审计运维不再是占位页；主要写操作、查询和异常态通过浏览器 E2E。 | accepted |
-| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | UIUX-001、FE-023、FE-024、TEST-010、VAL-008、REV-008：先冻结 UI/UX 设计，再按设计重构导航、系统总览、页面布局、业务表单、状态反馈和可用性 E2E | 前端不再只是功能可点；信息架构、导航、主流程、状态反馈、空态/错误态、组件规范和部署包均通过验收。 | in_progress |
+| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | UIUX-001、FE-023、FE-024、TEST-010、VAL-008、REV-008、PKG-001：先冻结 UI/UX 设计，再按设计重构导航、系统总览、页面布局、业务表单、状态反馈和可用性 E2E，最终生成部署包 | 前端不再只是功能可点；信息架构、导航、主流程、状态反馈、空态/错误态、组件规范和部署包均通过验收。 | accepted |
 
 ## 当前期
 
-当前已完成：UIUX-001 UI/UX 设计冻结。
+当前已完成：P12 UI/UX 设计、前端可用化改造、真实浏览器 E2E、clean build、review 和最终部署包。
 
-当前期：P12 UI/UX 设计与前端可用化改造期。
+当前期：P12 UI/UX 设计与前端可用化改造期已验收。
 
-下一阶段：frontend 按 `docs/ui/ui-design.md` 执行 FE-023/FE-024。
+下一阶段：用户可使用 `dist/unexamine-full-deploy-20260611-014302.zip` 进行最终试部署。
 
 原因：
 
@@ -53,7 +53,7 @@
 - P10 已完成应用、模块、字段、页面配置、发布和运行台记录真实 UI，验收记录为 `docs/phases/P10-app-runtime-ui-acceptance.md`。
 - P11 已完成流程工作台、文件导出、OpenAPI、审计运维真实 UI，验收记录为 `docs/phases/P11-flow-file-openapi-ui-acceptance.md`。
 - 用户反馈成立：P11 虽然功能试部署可用，但缺独立 UI/UX 设计，不能作为最终用户体验完成结论。
-- P12 先冻结 `docs/ui/ui-design.md`，再由 frontend 执行前端可用化改造；P12 未通过前，P11 包只能称为功能试部署包。
+- P12 已冻结 `docs/ui/ui-design.md`，完成前端可用化改造、TEST-010、VAL-008、REV-008 和 PKG-001；验收记录为 `docs/phases/P12-uiux-frontend-rework-acceptance.md`。
 
 ## 暂停与继续
 

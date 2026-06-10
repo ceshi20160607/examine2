@@ -233,7 +233,7 @@ flowchart TD
 | REV-005 | P9 系统管理域审查 | reviewer | review | FE-015/TEST-007/VAL-005 | `docs/review.json`、`docs/issues/verification/development/p9_reviewer_verification.md` | TEST-007, VAL-005 | 否 | P9 未过度宣称，真实 UI、E2E、build 均有证据 | pass，fullProjectDeployable 仍为 false | done |
 | REV-006 | P10 应用运行台审查 | reviewer | review | FE-016/FE-017/FE-018/TEST-008/VAL-006 | `docs/review.json`、`docs/issues/verification/development/p10_reviewer_verification.md` | TEST-008, VAL-006 | 否 | P10 未过度宣称，应用配置和运行台真实 UI、E2E、build 均有证据 | pass，fullProjectDeployable 仍为 false |
 | REV-008 | P12 UI/UX 与最终可用性审查 | reviewer | review | UIUX-001/FE-024/TEST-010/VAL-008 | `docs/review.json`、`docs/issues/verification/development/p12_reviewer_verification.md` | TEST-010, VAL-008 | 否 | UI 不再是接口表格表单堆叠，符合 `docs/ui/ui-design.md` 并可正常使用 | pass 后才恢复 fullProjectDeployable=true | pending |
-| PKG-001 | 最终部署包 | pm/validator | deploy | REV-008 | `dist/unexamine-full-deploy-*.zip` | REV-008 | 否 | 仅在 `docs/review.json.status=pass` 且 `fullProjectDeployable=true` 后打包 | 包清单核验 pass | blocked |
+| PKG-001 | 最终部署包 | pm/validator | deploy | REV-008 | `dist/unexamine-full-deploy-20260611-014302.zip` | REV-008 | 否 | 仅在 `docs/review.json.status=pass` 且 `fullProjectDeployable=true` 后打包 | 包清单核验 pass | done |
 
 ## 并行批次计划
 
