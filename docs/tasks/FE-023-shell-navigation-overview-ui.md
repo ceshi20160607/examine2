@@ -2,7 +2,7 @@
 
 - 所属期次：P12-uiux-frontend-rework
 - 负责人：frontend
-- 状态：pending
+- 状态：done
 
 ## 目标
 
@@ -31,5 +31,6 @@
 
 ## 自检
 
-- `npm.cmd run build`
-- 浏览器检查登录、我的系统、进入系统、系统总览。
+- `npm.cmd run build`：pass。
+- `npm.cmd run preview -- --host 127.0.0.1 --port 4173` 后访问 `/` 与 `/#/systems/demo/overview`：HTTP 200。
+- 浏览器插件工具本轮未暴露，截图级检查留给 TEST-010。

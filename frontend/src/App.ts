@@ -38,7 +38,7 @@ import type {
   RolePermissionDetailVO,
   RoleVO,
 } from "./pages/system/types";
-import { APP_ROUTES, DEFAULT_AUTHENTICATED_ROUTE, LOGIN_ROUTE, resolveRoute, type AppRouteRecord } from "./router";
+import { APP_ROUTES, DEFAULT_AUTHENTICATED_ROUTE, LOGIN_ROUTE, buildPath, resolveRoute, type AppRouteRecord } from "./router";
 import { authStore, errorStore, permissionStore, systemContextStore } from "./stores";
 import {
   createModuleConfigPageModel,
@@ -394,7 +394,7 @@ export function mountApp(container: HTMLElement): void {
 
     container.replaceChildren(
       node("div", { className: "app-frame" }, [
-        renderSidebar(path, shell.navigation),
+        renderSidebar(path, shell.navigation, route),
         node("main", { className: "workspace" }, [
           renderTopbar(shell.currentTitle, route),
           renderWorkspace(route),
@@ -403,13 +403,30 @@ export function mountApp(container: HTMLElement): void {
     );
   }
 
-  function renderSidebar(path: string, groups: ReturnType<typeof resolveAppShellState>["navigation"]): HTMLElement {
+  function renderSidebar(path: string, groups: ReturnType<typeof resolveAppShellState>["navigation"], route: AppRouteRecord): HTMLElement {
+    const context = systemContextStore.getState().current;
+    const visibleGroups = groups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => shouldShowNavItem(item.section, route.meta.layout, Boolean(context))),
+      }))
+      .filter((group) => group.items.length > 0);
     return node("aside", { className: "sidebar" }, [
       node("a", { className: "brand", href: "#/platform/my-systems" }, [
         node("span", { className: "brand-mark", text: "U" }),
         node("span", { className: "brand-name", text: "unexamine" }),
       ]),
-      node("nav", { className: "nav-groups" }, groups.map((group) =>
+      context
+        ? node("div", { className: "system-switcher" }, [
+            node("span", { text: "当前系统" }),
+            node("strong", { text: context.system.systemName }),
+            node("a", { href: "#/platform/my-systems", text: "切换系统" }),
+          ])
+        : node("div", { className: "system-switcher" }, [
+            node("span", { text: "平台工作台" }),
+            node("strong", { text: "请选择或创建系统" }),
+          ]),
+      node("nav", { className: "nav-groups" }, visibleGroups.map((group) =>
         node("section", { className: "nav-group" }, [
           node("div", { className: "nav-title", text: group.label }),
           ...group.items.map((item) =>
@@ -423,6 +440,13 @@ export function mountApp(container: HTMLElement): void {
         ]),
       )),
     ]);
+  }
+
+  function shouldShowNavItem(section: string, layout: string, hasSystemContext: boolean): boolean {
+    if (layout === "system") {
+      return hasSystemContext && section !== "platform";
+    }
+    return section === "platform" || section === "audit-ops";
   }
 
   function renderTopbar(title: string, route: AppRouteRecord): HTMLElement {
@@ -544,6 +568,10 @@ export function mountApp(container: HTMLElement): void {
 
     if (route.name === "platform.configs") {
       return renderPlatformConfigs();
+    }
+
+    if (route.name === "system.overview") {
+      return renderSystemOverview();
     }
 
     if (route.name === "system.profile") {
@@ -678,6 +706,69 @@ export function mountApp(container: HTMLElement): void {
         ]),
         platformState.systems.empty ? "暂无平台系统，创建后会显示在这里。" : undefined,
       ),
+    ]);
+  }
+
+  function renderSystemOverview(): HTMLElement {
+    const context = systemContextStore.getState().current;
+    const permissionCount = permissionStore.getState().effective?.operations.length ?? systemState.profile?.permissions?.operations?.length ?? 0;
+    const publishedModules = appRuntimeState.modules.filter((item) => item.status === "PUBLISHED").length;
+    const setupSteps: [string, string, string, string][] = [
+      ["1", "系统设置", "维护租户、成员、部门、角色和字典，为业务运行建立权限上下文。", systemPath("system.members")],
+      ["2", "应用建模", "创建应用和模块，配置字段、页面和发布检查。", systemPath("apps.list")],
+      ["3", "运行填报", "进入运行台使用已发布模块，新增记录并提交审批。", systemPath("runtime.home")],
+      ["4", "协同集成", "配置流程、文件导出、OpenAPI 和审计追踪。", systemPath("flow.workbench")],
+    ];
+    const healthItems: [string, string, string][] = [
+      ["成员", String(systemState.members.length), "系统内可授权成员"],
+      ["部门", String(flattenDepartments(systemState.departments).length), "组织结构节点"],
+      ["角色", String(systemState.roles.length), "系统内权限角色"],
+      ["应用", String(appRuntimeState.apps.length), "已配置应用"],
+      ["模块", String(appRuntimeState.modules.length), "应用下模块"],
+      ["已发布", String(publishedModules), "可进入运行台"],
+    ];
+
+    return node("div", { className: "overview-page" }, [
+      node("section", { className: "overview-hero" }, [
+        node("div", {}, [
+          node("p", { className: "eyebrow", text: "系统工作台" }),
+          node("h2", { text: context?.system.systemName ?? "未进入系统" }),
+          node("p", { className: "form-note", text: "先完成系统设置，再配置应用模块，最后进入运行台执行业务。这里聚合当前系统的配置进度和下一步入口。" }),
+        ]),
+        node("div", { className: "overview-context" }, [
+          node("span", { text: `租户：${context?.tenant?.tenantName ?? "默认租户"}` }),
+          node("span", { text: `成员：${context?.member.displayName ?? "-"}` }),
+          node("span", { text: `权限：${permissionCount}` }),
+        ]),
+      ]),
+      node("div", { className: "metric-grid overview-metrics" }, healthItems.map(([value, label, hint]) =>
+        node("div", { className: "stat" }, [
+          node("strong", { text: value }),
+          node("span", { text: label }),
+          node("small", { text: hint }),
+        ]),
+      )),
+      node("section", { className: "flow-board" }, [
+        node("div", { className: "panel-heading" }, [
+          node("div", {}, [
+            node("p", { className: "eyebrow", text: "推荐路径" }),
+            node("h2", { text: "从配置到运行" }),
+          ]),
+        ]),
+        node("div", { className: "step-grid" }, setupSteps.map(([order, title, desc, href]) =>
+          node("a", { className: "step-card", href: `#${href}` }, [
+            node("span", { className: "step-index", text: order }),
+            node("strong", { text: title }),
+            node("p", { text: desc }),
+          ]),
+        )),
+      ]),
+      node("section", { className: "quick-grid" }, [
+        quickAction("成员与权限", "添加成员、部门和角色授权", systemPath("system.members")),
+        quickAction("应用配置", "创建应用、模块、字段和页面", systemPath("apps.list")),
+        quickAction("运行台", "使用已发布模块填报业务", systemPath("runtime.home")),
+        quickAction("审计运维", "按 requestId 追踪问题", systemPath("audit.system")),
+      ]),
     ]);
   }
 
@@ -1691,6 +1782,31 @@ export function mountApp(container: HTMLElement): void {
     ]);
   }
 
+  function quickAction(title: string, description: string, href: string): HTMLElement {
+    return node("a", { className: "quick-card", href: `#${href}` }, [
+      node("strong", { text: title }),
+      node("span", { text: description }),
+    ]);
+  }
+
+  function systemPath(routeName: string): string {
+    const context = systemContextStore.getState().current;
+    const appId = appRuntimeState.selectedAppId ?? appRuntimeState.apps[0]?.appId ?? "current";
+    const moduleId = appRuntimeState.selectedModuleId ?? appRuntimeState.modules[0]?.moduleId ?? "current";
+    if (!context) {
+      return "/platform/my-systems";
+    }
+    try {
+      return buildPath(routeName, {
+        systemId: context.system.systemId,
+        appId,
+        moduleId,
+      });
+    } catch {
+      return `/systems/${context.system.systemId}/overview`;
+    }
+  }
+
   function renderModuleSummary(route: AppRouteRecord): HTMLElement {
     return node("div", { className: "summary-list" }, [
       node("div", {}, [
@@ -1748,6 +1864,10 @@ export function mountApp(container: HTMLElement): void {
     }
     if (route.name === "platform.configs") {
       await loadPlatformConfigs();
+      return;
+    }
+    if (route.name === "system.overview") {
+      await loadSystemOverview();
       return;
     }
     if (route.name === "system.profile") {
@@ -2160,6 +2280,16 @@ export function mountApp(container: HTMLElement): void {
       systemState.members = page.records;
       return response;
     });
+  }
+
+  async function loadSystemOverview(): Promise<void> {
+    await loadSystemProfile();
+    await loadSystemTenants();
+    await refreshSystemManagementOptions();
+    if (systemContextStore.getState().current?.tenant) {
+      await loadAppsConfig();
+      await loadRuntimeMenus();
+    }
   }
 
   async function inviteSystemMember(): Promise<void> {
@@ -3795,7 +3925,7 @@ export function mountApp(container: HTMLElement): void {
   async function enterSystem(systemId: string): Promise<void> {
     await execute("SYS-001", async () => {
       const result = await enterSystemContext(systemId);
-      navigate(`/systems/${systemId}/profile`);
+      navigate(`/systems/${systemId}/overview`);
       return result;
     });
   }

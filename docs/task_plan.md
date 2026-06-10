@@ -207,7 +207,7 @@ flowchart TD
 | FE-017 | 字段页面配置与发布真实 UI | frontend | field/ui | P10/FE-016 | `frontend/src/App.ts`、`frontend/docs/page-contracts/FE-017-field-page-publish-ui.md`、`frontend/dist/` | FE-016 | 否 | 字段类型加载、字段创建/编辑、列表/表单/详情 schema、菜单、动作、发布检查和发布由真实页面完成 | P10 浏览器 E2E 第二段、前端 build |
 | FE-018 | 运行台记录真实 UI | frontend | runtime | P10/FE-017 | `frontend/src/App.ts`、`frontend/docs/page-contracts/FE-018-runtime-record-ui.md`、`frontend/dist/` | FE-017 | 否 | 运行台菜单、schema、列表、新建、详情、编辑、历史和提交入口由真实页面完成 | P10 浏览器 E2E 第三段、前端 build |
 | UIUX-001 | UI/UX 设计冻结 | uiux/pm | frontend-ui | P12 | `docs/ui/ui-design.md` | P11 | 否 | 信息架构、导航、用户流程、页面线框、组件规范、状态反馈和验收标准冻结 | PM 审阅，frontend 可据此实现 | done |
-| FE-023 | Shell 导航与系统总览 UI 改造 | frontend | frontend-ui | P12/UIUX-001 | `frontend/src/`、`frontend/docs/page-contracts/FE-023-shell-navigation-overview-ui.md` | UIUX-001 | 否 | 平台/系统双层导航、系统总览、标题区、上下文和基础布局符合 UI 设计 | 前端 build、浏览器 smoke | pending |
+| FE-023 | Shell 导航与系统总览 UI 改造 | frontend | frontend-ui | P12/UIUX-001 | `frontend/src/`、`frontend/docs/page-contracts/FE-023-shell-navigation-overview-ui.md` | UIUX-001 | 否 | 平台/系统双层导航、系统总览、标题区、上下文和基础布局符合 UI 设计 | 前端 build、生产预览 HTTP 200；截图级 smoke 留 TEST-010 | done |
 | FE-024 | 业务域 UI 可用化改造 | frontend | frontend-ui | P12/FE-023 | `frontend/src/`、`frontend/docs/page-contracts/FE-024-domain-ui-rework.md` | FE-023 | 否 | 系统设置、应用配置、运行台、流程、文件导出、OpenAPI、审计运维按 UI 设计完成可用化改造 | P12 浏览器 E2E、前端 build | pending |
 | TEST-001 | 测试计划与夹具设计 | test | test | PRD/API/task_plan/service | `docs/test_plan.md` | PLAN-001 | 是 | 范围、环境、夹具和入口明确 | 测试数据不进入生产 seed | pending |
 | TEST-002 | API 契约用例 | test | test | TEST-001/API | API 用例清单 | TEST-001 | 是 | 正常、异常、权限、边界、幂等覆盖 | 可直接用于自动化 | pending |

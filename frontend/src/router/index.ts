@@ -118,6 +118,10 @@ export const APP_ROUTES: AppRouteRecord[] = [
     requiresAuth: true,
     permission: { anyOperations: ["PLAT_CONFIG_VIEW"] },
   }),
+  route("system.overview", "/systems/:systemId/overview", "系统总览", "system", "system", ["SYS-001", "SYS-002", "SYS-004"], "FE-005", {
+    requiresAuth: true,
+    requiredContext: { system: true, member: true },
+  }),
   route("system.profile", "/systems/:systemId/profile", "系统资料", "system", "system", ["SYS-001", "SYS-002", "SYS-003"], "FE-005", {
     requiresAuth: true,
     requiredContext: { system: true, member: true },
