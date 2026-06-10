@@ -14,13 +14,32 @@
 
 ## 后端启动
 
-```powershell
-$env:JAVA_HOME='D:\java\jdk\jdk21'
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
-java -jar unexamine.jar
+部署包中的后端目录包含：
+
+```text
+backend/
+  unexamine.jar
+  start.sh
+```
+
+Linux 环境推荐进入后端目录后使用脚本启停：
+
+```bash
+cd /data/unexamine/backend
+chmod +x start.sh
+./start.sh start
+./start.sh status
+./start.sh stop
+./start.sh restart
 ```
 
 默认后端端口：`9999`。
+
+脚本默认读取同目录下的 `unexamine.jar`，日志写入 `backend/logs/unexamine.log`，PID 写入 `backend/unexamine.pid`。如需调整 JVM 参数或 Spring 参数，可通过环境变量传入：
+
+```bash
+JAVA_OPTS="-Xms512m -Xmx1024m" APP_ARGS="--spring.profiles.active=prod --server.port=9999" ./start.sh restart
+```
 
 ## 推荐 nginx 配置
 

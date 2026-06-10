@@ -302,6 +302,6 @@ P11 已完成并通过验收：流程、文件导出、OpenAPI、审计运维均
 - `mvn -pl examine-web -am -DskipTests package` pass，生成 `backend/examine-web/target/unexamine.jar`。
 - 浏览器 route smoke 通过：`flow.templates`、`flow.workbench`、`files.center`、`exports.jobs`、`openapi.clients`、`audit.system`、`audit.platform`、`ops.health`。
 - 导出任务直连和页面创建均返回 `SUCCESS`，并返回结果文件 ID。
-- 最新试部署包：`dist/unexamine-full-deploy-20260610-164747.zip`。
+- 最新试部署包：`dist/unexamine-full-deploy-20260610-174753.zip`，后端目录已包含 `start.sh`，支持 `start`、`stop`、`sotp`、`restart`、`status`。
 
 PM 结论：P11 accepted。当前完整系统已具备用户试部署条件；生产增强类风险（数据库幂等存储、OpenAPI 高并发/nonce/IP 白名单矩阵、依赖审计治理）继续跟踪。

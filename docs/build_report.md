@@ -9,6 +9,8 @@
 | 前端构建 | `npm.cmd run build` pass，生成 `frontend/dist/` |
 | 后端编译 | `mvn -pl examine-web -am -DskipTests compile` pass |
 | 后端打包 | `mvn -pl examine-web -am -DskipTests package` pass，生成 `backend/examine-web/target/unexamine.jar` |
+| 后端启动脚本 | `backend/deploy/start.sh` 已加入部署包，支持 `start`、`stop`、`sotp`、`restart`、`status` |
+| 完整部署包 | `dist/unexamine-full-deploy-20260610-174753.zip`，包内包含 `backend/start.sh` |
 | 浏览器 E2E | TEST-009 pass，记录见 `docs/test_runs/p11-flow-file-openapi-ui-e2e-20260610.md` |
 | 阶段验收 | `docs/phases/P11-flow-file-openapi-ui-acceptance.md` |
 
