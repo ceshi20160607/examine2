@@ -75,6 +75,7 @@ npm.cmd run build
 - 跑对应业务链路。
 - 记录浏览器或接口验证结果。
 - 更新 `docs/test_runs/`、`docs/build_report.md`、`docs/progress.md`。
+- 只有 PM、frontend、test、validator、reviewer 均 pass 且 `docs/review.json.fullProjectDeployable=true` 后，才允许生成最终部署包；未完成阶段禁止打包，避免把半成品误交付或浪费部署验证成本。
 
 ## Agent 会话规则
 

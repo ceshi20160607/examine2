@@ -6,17 +6,17 @@
 
 | 项目 | 数量 |
 | --- | ---: |
-| 开发执行任务总数 | 67 |
-| 已完成 | 63 |
+| 开发执行任务总数 | 69 |
+| 已完成 | 64 |
 | 进行中 | 1 |
 | 阻塞 | 0 |
-| 剩余 | 4 |
+| 剩余 | 5 |
 
 当前模式：`development`
 
 当前期次：`P12-uiux-frontend-rework`
 
-当前状态：`P12_fe023_done_fe024_pending`
+当前状态：`P12_ui_prototypes_done_fe024_pending_no_package`
 
 ## 分期进度
 
@@ -34,7 +34,7 @@
 | P9-system-management-ui | 系统管理域可用化期 | accepted | FE-015、TEST-007、VAL-005、REV-005 已完成；成员、部门、系统角色、字典真实浏览器写操作 E2E 通过 | 已进入 P10 |
 | P10-app-runtime-ui | 应用模块与运行台可用化期 | accepted | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006 已完成；应用、模块、字段、页面配置、发布和运行台记录浏览器 E2E 通过 | 下一期进入 P11 流程、文件导出、OpenAPI 与审计运维可用化 |
 | P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | accepted | FE-019 至 FE-022、TEST-009、VAL-007、REV-007 已完成；功能试部署包已生成 | 用户反馈 UI 体验不足，进入 P12 |
-| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001、FE-023 已完成；FE-024 待执行 | 继续按 UI 设计改造业务域页面，再重新测试、构建和审查 |
+| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001、UIUX-002、FE-023 已完成；FE-024 待执行；PKG-001 阻塞 | 未通过 FE-024/TEST-010/VAL-008/REV-008 前禁止打包 |
 
 ## 角色完成度
 
@@ -43,7 +43,7 @@
 | DBA | 6 | 0 | 0 | DB 设计与 `sql/init.sql` 已完成。 |
 | Backend | 15 | 0 | 0 | BE-001 至 BE-015 已完成；OpenAPI accessKey 错误码回环与 P9 权限版本递增修复已验证。 |
 | Generator | 4 | 0 | 0 | GEN-001 至 GEN-004 已完成，生成器闭环通过。 |
-| UI/UX | 1 | 0 | 0 | UIUX-001 已完成，P12 UI 设计冻结稿已输出。 |
+| UI/UX | 2 | 0 | 0 | UIUX-001/UIUX-002 已完成，P12 UI 设计和页面级原型已输出。 |
 | Frontend | 23 | 0 | 1 | FE-001 至 FE-023 已完成；FE-024 待按 UI 设计重构业务域页面。 |
 | Test | 9 | 0 | 1 | TEST-001 至 TEST-009 已完成；TEST-010 待执行 P12 UI 可用性 E2E。 |
 | Validator | 7 | 0 | 1 | VAL-001 至 VAL-007 已完成；VAL-008 待执行 P12 clean build/package。 |
@@ -317,8 +317,10 @@ PM 已做如下调整：
 
 - 新增 `docs/ui/ui-design.md`，冻结信息架构、双层工作台、核心流程、页面框架、组件规范、状态反馈、中文文案和 P12 验收标准。
 - 新增 `docs/phases/P12-uiux-frontend-rework-plan.md`，P12 任务顺序为 UIUX-001 -> FE-023 -> FE-024 -> TEST-010 -> VAL-008 -> REV-008。
-- 新增 P12 任务文件：`UIUX-001`、`FE-023`、`FE-024`、`TEST-010`、`VAL-008`、`REV-008`。
+- 新增 P12 任务文件：`UIUX-001`、`UIUX-002`、`FE-023`、`FE-024`、`TEST-010`、`VAL-008`、`REV-008`、`PKG-001`。
 - `docs/review.json` 已撤回最终用户体验完成结论：P11 包保留为功能试部署包，P12 通过前 `fullProjectDeployable=false`。
+- 已按用户要求修正打包策略：FE-024、TEST-010、VAL-008、REV-008 未全部通过前，不再生成新部署包；PKG-001 只有最终验收通过后才允许执行。
+- UIUX-002 已完成：新增 `docs/ui/prototypes/page-prototypes.md`，为 FE-024 提供页面级原型。
 - FE-023 已完成：新增系统总览路由，进入系统后默认落到总览；侧栏按平台/系统分层；系统总览展示配置进度、推荐路径和快捷入口。
 - FE-023 验证：`npm.cmd run build` pass，生产预览 `/` 与 `/#/systems/demo/overview` HTTP 200；截图级浏览器 E2E 留给 TEST-010。
 
