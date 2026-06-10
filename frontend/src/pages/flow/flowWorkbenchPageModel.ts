@@ -46,42 +46,47 @@ export interface FlowValidationError {
 
 export interface FlowTemplateVO {
   templateId: EntityId;
-  templateName: string;
+  code?: string;
+  name: string;
   moduleId?: EntityId;
   status: FlowTemplateStatus;
-  version?: number;
+  currentVersionId?: EntityId;
+  description?: string;
+  versionNo?: number;
   graphVersion?: number;
   updatedAt?: IsoDateTimeString;
   availableActions?: AvailableAction[];
 }
 
 export interface FlowTemplateSaveBO {
-  templateName: string;
-  moduleId?: EntityId;
-  remark?: string;
+  code: string;
+  name: string;
+  description?: string;
 }
 
 export interface FlowTemplateGraphBO {
-  graph: JsonValue;
-  graphVersion?: number;
+  nodes: JsonValue[];
+  lines?: JsonValue[];
+  layout?: JsonValue;
 }
 
 export interface FlowTemplateStatusBO {
-  status: FlowTemplateStatus;
-  version?: number;
+  targetStatus: FlowTemplateStatus;
+  versionNo?: number;
   reason?: string;
 }
 
 export interface FlowBindingSaveBO {
   templateId: EntityId;
-  moduleVersionId?: EntityId;
-  enabled: boolean;
+  templateVersionId: EntityId;
+  actionCode?: string;
+  status?: string;
+  versionNo?: number;
 }
 
 export interface FlowPublishCheckVO {
   passed: boolean;
-  errors: FlowValidationError[];
-  warnings: FlowValidationError[];
+  issues?: FlowValidationError[];
   requestId?: string;
 }
 
@@ -326,8 +331,9 @@ export function createFlowWorkbenchPageModel(deps: FlowWorkbenchDeps) {
       publishCheck: (templateId: EntityId) =>
         callData<FlowPublishCheckVO>(deps, "FLOW-004", { pathParams: { templateId } }),
       publish: (templateId: EntityId, idempotencyKey = createIdempotencyKey("FLOW-005")) =>
-        callData<FlowTemplateVO>(deps, "FLOW-005", {
+        callData<FlowTemplateVO, { publishComment: string }>(deps, "FLOW-005", {
           pathParams: { templateId },
+          body: { publishComment: "页面发布" },
           idempotencyKey,
         }),
       bindModule: (moduleId: EntityId, body: FlowBindingSaveBO) =>

@@ -1,5 +1,19 @@
 # P8 平台中心 UI 构建验证报告
 
+# 2026-06-10 P11 Clean Build 摘要
+
+结论：P11 前端 build、后端 compile/package 和浏览器 E2E 均已通过，P11 accepted。
+
+| 项目 | 结果 |
+| --- | --- |
+| 前端构建 | `npm.cmd run build` pass，生成 `frontend/dist/` |
+| 后端编译 | `mvn -pl examine-web -am -DskipTests compile` pass |
+| 后端打包 | `mvn -pl examine-web -am -DskipTests package` pass，生成 `backend/examine-web/target/unexamine.jar` |
+| 浏览器 E2E | TEST-009 pass，记录见 `docs/test_runs/p11-flow-file-openapi-ui-e2e-20260610.md` |
+| 阶段验收 | `docs/phases/P11-flow-file-openapi-ui-acceptance.md` |
+
+P11 修复了流程模板契约、文件上传 FormData、跨系统模块状态污染、导出模块发布态校验、导出任务空筛选快照 500、OpenAPI 客户端保存结构等问题。当前系统已具备用户试部署条件。
+
 # 2026-06-09 P10 Clean Build 摘要
 
 结论：P10 前端 build、后端 package 和浏览器写操作 E2E 均已通过，P10 accepted。

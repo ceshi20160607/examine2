@@ -1,21 +1,17 @@
 {
   "status": "pass",
   "target": "none",
-  "phase": "P10-app-runtime-ui",
-  "reviewedAt": "2026-06-09T16:20:00+08:00",
-  "summary": "P10 app/module/runtime UI has passed FE-016, FE-017, FE-018, TEST-008, VAL-006 and REV-006. Applications, modules, fields, page config, publish and runtime records are now real browser-usable pages, not contract-only models. Full project deployability remains false until P11/P12 complete the remaining visual usable domains.",
+  "phase": "P11-flow-file-openapi-ui",
+  "reviewedAt": "2026-06-10T16:45:00+08:00",
+  "summary": "P11 flow, file/export, OpenAPI, audit and ops UI passed browser smoke and key write-path verification. The remaining major product domains now have real usable frontend pages backed by typed SDK calls and backend APIs. Full project deployability is considered functionally ready for user trial deployment, with production-hardening risks tracked as deferred.",
   "nextRoute": [
-    "planner",
-    "pm",
-    "frontend",
-    "test",
-    "validator",
-    "reviewer"
+    "final-deploy-package",
+    "user-trial-deploy"
   ],
   "issues": [],
   "backendTrialDeployable": true,
   "frontendDeployable": true,
-  "fullProjectDeployable": false,
+  "fullProjectDeployable": true,
   "deferredRisks": [
     {
       "issueId": "REV-001-BE-IDEMPOTENCY-STORAGE",
@@ -29,32 +25,26 @@
       "severity": "P2",
       "target": "frontend",
       "status": "deferred",
-      "reason": "npm ci previously reported moderate audit items. Dependency governance should be handled separately to avoid forced upgrades during feature delivery."
+      "reason": "npm ci previously reported moderate audit items. Dependency governance should be handled separately from feature delivery."
     },
     {
       "issueId": "REV-003-TEST-RISK-MATRIX",
       "severity": "P2",
       "target": "test",
       "status": "deferred",
-      "reason": "OpenAPI nonce replay, IP whitelist, OpenAPI idempotency conflict and high-concurrency scenarios remain recommended before production launch."
-    },
-    {
-      "issueId": "P11-P12-UI-REMAINING",
-      "severity": "P1",
-      "target": "frontend",
-      "status": "open-next-phase",
-      "reason": "Flow, file/export, OpenAPI, audit and ops still need real usable UI phases before full-project deployability can be claimed."
+      "reason": "OpenAPI nonce replay, IP whitelist, idempotency conflict and high-concurrency scenarios remain recommended before production launch."
     }
   ],
   "verification": [
-    "FE-016 app/module UI completed with real browser operations",
-    "FE-017 field/page/publish UI completed with real browser operations",
-    "FE-018 runtime record UI completed with real browser operations",
-    "TEST-008 browser E2E passed for login, system enter, app, module, field, page config, publish, runtime create, detail, update, submit and history",
-    "frontend/docs/p10-app-runtime-e2e-final.png saved as browser evidence",
+    "FLOW template create/default graph/publish/bind passed in browser",
+    "FILE upload and list display passed in browser",
+    "EXP template creation passed; export job creation returned SUCCESS and resultFileId after backend null snapshot fix",
+    "OPM client creation and OpenAPI page load passed in browser",
+    "AUD system/platform pages loaded successfully",
+    "OPS health/config/version/migration page loaded successfully",
+    "P11 route smoke passed for flow.templates, flow.workbench, files.center, exports.jobs, openapi.clients, audit.system, audit.platform and ops.health",
     "npm.cmd run build passed and generated frontend/dist",
-    "mvn.cmd -pl examine-module -am -DskipTests compile passed",
-    "mvn.cmd -pl examine-web -am -DskipTests package passed and generated backend/examine-web/target/unexamine.jar",
-    "fullProjectDeployable remains false because P11/P12 visual usable phases are not complete"
+    "mvn.cmd -pl examine-web -am -DskipTests compile passed",
+    "mvn.cmd -pl examine-web -am -DskipTests package passed and generated backend/examine-web/target/unexamine.jar"
   ]
 }

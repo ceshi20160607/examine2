@@ -56,6 +56,40 @@ import {
   type RuntimeRecordHistoryVO,
   type RuntimeRecordRelationVO,
 } from "./pages/runtime";
+import {
+  createFlowWorkbenchPageModel,
+  type FlowCcItemVO,
+  type FlowInstanceListItemVO,
+  type FlowTaskListItemVO,
+  type FlowTemplateVO,
+} from "./pages/flow";
+import {
+  createFileCenterPageModel,
+  type FileDetailVO,
+  type FileListItemVO,
+} from "./pages/files";
+import {
+  createExportPageModel,
+  type ExportJobListItemVO,
+  type ExportTemplateVO,
+} from "./pages/export";
+import {
+  createOpenApiPageModel,
+  createSecretDisplayFromCreatedClient,
+  type OpenApiClientListItemVO,
+  type OpenApiPageState,
+} from "./pages/openapi";
+import {
+  createAuditPageModel,
+  type AuditLogDetailPageVO,
+  type AuditLogKind,
+  type AuditLogListItemVO,
+  type AuditPageState,
+} from "./pages/audit";
+import {
+  createOpsPageModel,
+  type OpsPageState,
+} from "./pages/ops";
 
 interface RuntimeSettings {
   baseUrl: string;
@@ -102,6 +136,7 @@ interface SystemUiState {
 }
 
 interface AppRuntimeUiState {
+  loadedSystemId?: EntityId;
   apps: AppListItemVO[];
   selectedAppId?: EntityId;
   modules: ModuleListItemVO[];
@@ -119,6 +154,22 @@ interface AppRuntimeUiState {
   selectedRecord?: RecordDetailVO;
   recordHistory: RuntimeRecordHistoryVO[];
   recordRelations: RuntimeRecordRelationVO[];
+}
+
+interface OperationsUiState {
+  flowTemplates?: PageResult<FlowTemplateVO>;
+  flowTodos?: PageResult<FlowTaskListItemVO>;
+  flowCc?: PageResult<FlowCcItemVO>;
+  flowStarted?: PageResult<FlowInstanceListItemVO>;
+  flowInstances?: PageResult<FlowInstanceListItemVO>;
+  files?: PageResult<FileListItemVO>;
+  selectedFile?: FileDetailVO;
+  exportTemplates: ExportTemplateVO[];
+  exportJobs?: PageResult<ExportJobListItemVO>;
+  openApi: OpenApiPageState;
+  audit: AuditPageState;
+  platformAudit: AuditPageState;
+  ops: OpsPageState;
 }
 
 interface SystemEnterVO {
@@ -226,6 +277,43 @@ export function mountApp(container: HTMLElement): void {
     permission: permissionStore,
     error: errorStore,
   });
+  const flowWorkbench = createFlowWorkbenchPageModel({
+    apiClient,
+    auth: authStore,
+    systemContext: systemContextStore,
+    permission: permissionStore,
+    error: errorStore,
+  });
+  const fileCenter = createFileCenterPageModel({
+    apiClient,
+    auth: authStore,
+    systemContext: systemContextStore,
+    permission: permissionStore,
+    error: errorStore,
+  });
+  const exportPage = createExportPageModel({
+    apiClient,
+    auth: authStore,
+    systemContext: systemContextStore,
+    permission: permissionStore,
+    error: errorStore,
+  });
+  const openApiPage = createOpenApiPageModel({
+    apiClient,
+    auth: authStore,
+    systemContext: systemContextStore,
+    permission: permissionStore,
+  });
+  const auditPage = createAuditPageModel({
+    apiClient,
+    auth: authStore,
+    systemContext: systemContextStore,
+    permission: permissionStore,
+  });
+  const opsPage = createOpsPageModel({
+    apiClient,
+    auth: authStore,
+  });
   const platformState: PlatformUiState = {
     systems: emptyPlatformPageState(),
     accounts: emptyPlatformPageState(),
@@ -246,6 +334,7 @@ export function mountApp(container: HTMLElement): void {
     dictItems: [],
   };
   const appRuntimeState: AppRuntimeUiState = {
+    loadedSystemId: undefined,
     apps: [],
     modules: [],
     fields: [],
@@ -253,6 +342,13 @@ export function mountApp(container: HTMLElement): void {
     runtimeMenus: [],
     recordHistory: [],
     recordRelations: [],
+  };
+  const operationsState: OperationsUiState = {
+    exportTemplates: [],
+    openApi: openApiPage.createInitialState(),
+    audit: auditPage.createInitialState("operation"),
+    platformAudit: auditPage.createInitialState("platformOperation"),
+    ops: opsPage.createInitialState(),
   };
   const autoLoadedRoutes = new Set<string>();
 
@@ -496,6 +592,38 @@ export function mountApp(container: HTMLElement): void {
 
     if (route.name === "runtime.module") {
       return renderRuntimeModule();
+    }
+
+    if (route.name === "flow.templates") {
+      return renderFlowTemplates();
+    }
+
+    if (route.name === "flow.workbench") {
+      return renderFlowWorkbench();
+    }
+
+    if (route.name === "files.center") {
+      return renderFileCenter();
+    }
+
+    if (route.name === "exports.jobs") {
+      return renderExportJobs();
+    }
+
+    if (route.name === "openapi.clients") {
+      return renderOpenApiClients();
+    }
+
+    if (route.name === "audit.system") {
+      return renderAuditLogs(false);
+    }
+
+    if (route.name === "audit.platform") {
+      return renderAuditLogs(true);
+    }
+
+    if (route.name === "ops.health") {
+      return renderOpsHealth();
     }
 
     return node("div", {}, [
@@ -1202,6 +1330,349 @@ export function mountApp(container: HTMLElement): void {
     );
   }
 
+  function renderFlowTemplates(): HTMLElement {
+    const templates = operationsState.flowTemplates?.records ?? [];
+    const actions = {
+      templateCreate: permissionStore.decide({ anyOperations: ["FLOW_TEMPLATE_CREATE"] }),
+      templateEdit: permissionStore.decide({ anyOperations: ["FLOW_TEMPLATE_EDIT"] }),
+      templatePublish: permissionStore.decide({ anyOperations: ["FLOW_TEMPLATE_PUBLISH"] }),
+      bindingEdit: permissionStore.decide({ anyOperations: ["FLOW_BINDING_EDIT"] }),
+    };
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(operationsState.flowTemplates?.total ?? templates.length), "模板总数"],
+        [String(templates.filter((item) => item.status === "PUBLISHED").length), "已发布"],
+        [selectedModule()?.name ?? "未选择", "默认绑定模块"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+        input("模板名称", "flowTemplateName", `P11流程${p10Seed()}`),
+        textarea("模板备注", "flowTemplateRemark", "P11 流程模板页面创建"),
+        button("切换模块", "secondary", switchSelectedModule),
+        button("创建模板", "primary", createFlowTemplate, !actions.templateCreate.enabled),
+      ]),
+      renderDataTable(
+        "flow-templates",
+        ["模板", "模块", "状态", "版本", "操作"],
+        templates.map((item) => [
+          item.name,
+          item.moduleId ?? "-",
+          statusLabel(item.status),
+          String(item.versionNo ?? item.graphVersion ?? "-"),
+          node("div", { className: "row-actions" }, [
+            button("默认图", "secondary", () => saveDefaultFlowGraph(item), !actions.templateEdit.enabled),
+            button("发布检查", "secondary", () => checkFlowTemplate(item), !actions.templatePublish.enabled),
+            button("发布", "primary", () => publishFlowTemplate(item), !actions.templatePublish.enabled || Boolean(flowWorkbench.templates.publishDisabledReason(item))),
+            button(item.status === "DISABLED" ? "启用" : "停用", "secondary", () => toggleFlowTemplate(item), !actions.templateEdit.enabled),
+            button("绑定模块", "secondary", () => bindFlowTemplate(item), !selectedModuleId() || !item.currentVersionId || !actions.bindingEdit.enabled),
+          ]),
+        ]),
+        "暂无流程模板，可在上方创建并保存默认审批图。",
+      ),
+    ]);
+  }
+
+  function renderFlowWorkbench(): HTMLElement {
+    const todos = operationsState.flowTodos?.records ?? [];
+    const cc = operationsState.flowCc?.records ?? [];
+    const started = operationsState.flowStarted?.records ?? [];
+    const instances = operationsState.flowInstances?.records ?? [];
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(todos.length), "待办"],
+        [String(cc.length), "抄送"],
+        [String(instances.length), "流程实例"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        input("关键字", "flowKeyword", ""),
+        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+        button("切换模块", "secondary", switchSelectedModule),
+        button("刷新工作台", "primary", loadFlowWorkbench),
+      ]),
+      renderDataTable(
+        "flow-todos",
+        ["记录", "节点", "处理人", "状态", "操作"],
+        todos.map((item) => [
+          item.recordTitle ?? item.recordId,
+          item.nodeName,
+          item.claimedByName ?? item.assigneeName ?? "-",
+          statusLabel(item.taskStatus),
+          node("div", { className: "row-actions" }, [
+            button("签收", "secondary", () => claimFlowTask(item), Boolean(flowWorkbench.workbench.claimDisabledReason(item))),
+            button("通过", "primary", () => approveFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("APPROVE", item.taskVersion, { comment: "同意" })))),
+            button("退回", "secondary", () => rejectFlowTask(item), Boolean(flowWorkbench.workbench.taskActionDisabledReason(item, flowWorkbench.createActionBody("REJECT", item.taskVersion, { comment: "退回" })))),
+            button("详情", "secondary", () => loadFlowTaskDetail(item.taskId)),
+          ]),
+        ]),
+        "暂无待办任务。",
+      ),
+      renderDataTable(
+        "flow-instances",
+        ["记录", "发起人", "当前节点", "状态", "操作"],
+        [...started, ...instances].map((item) => [
+          item.recordTitle ?? item.recordId,
+          item.starterName ?? item.starterMemberId ?? "-",
+          item.currentNodeName ?? "-",
+          statusLabel(item.status),
+          node("div", { className: "row-actions" }, [
+            button("详情", "secondary", () => loadFlowInstanceDetail(item.instanceId)),
+            button("撤回", "secondary", () => withdrawFlowInstance(item), Boolean(flowWorkbench.workbench.withdrawDisabledReason(item))),
+          ]),
+        ]),
+        "暂无流程实例。",
+      ),
+      renderDataTable(
+        "flow-cc",
+        ["记录", "节点", "已读", "时间"],
+        cc.map((item) => [
+          item.recordTitle ?? item.recordId,
+          item.nodeName ?? "-",
+          item.read ? "是" : "否",
+          item.createdAt ?? "-",
+        ]),
+        "暂无抄送。",
+      ),
+    ]);
+  }
+
+  function renderFileCenter(): HTMLElement {
+    const files = operationsState.files?.records ?? [];
+    const actions = {
+      upload: permissionStore.decide({ anyOperations: ["FILE_UPLOAD"] }),
+      view: permissionStore.decide({ anyOperations: ["FILE_VIEW"] }),
+    };
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(operationsState.files?.total ?? files.length), "文件总数"],
+        [String(files.filter((item) => item.previewable).length), "可预览"],
+        [operationsState.selectedFile?.fileName ?? "-", "当前文件"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        input("业务类型", "fileBizType", ""),
+        input("字段编码", "fileFieldCode", ""),
+        node("label", { className: "field wide-field" }, [
+          node("span", { text: "上传文件" }),
+        node("input", { name: "fileUpload", type: "file" }),
+        ]),
+        textarea("未选择文件时上传文本", "fileFallbackText", "P11 文件中心测试内容"),
+        button("上传文件", "primary", uploadFileCenterFile, !actions.upload.enabled),
+      ]),
+      renderDataTable(
+        "files",
+        ["文件", "类型", "大小", "状态", "操作"],
+        files.map((item) => [
+          item.fileName,
+          item.contentType,
+          formatFileSize(item.size),
+          statusLabel(item.status),
+          node("div", { className: "row-actions" }, [
+            button("详情", "secondary", () => loadFileDetail(item.fileId), !actions.view.enabled),
+            button("预览", "secondary", () => previewFile(item), Boolean(fileCenter.files.previewDisabledReason(item))),
+            button("下载", "secondary", () => downloadFile(item), Boolean(fileCenter.files.downloadDisabledReason(item))),
+            button("删除", "secondary", () => deleteFile(item), Boolean(fileCenter.files.deleteDisabledReason(item))),
+          ]),
+        ]),
+        "暂无文件，上传后会显示在这里。",
+      ),
+    ]);
+  }
+
+  function renderExportJobs(): HTMLElement {
+    const jobs = operationsState.exportJobs?.records ?? [];
+    const templates = operationsState.exportTemplates;
+    const exportModule = selectedModule();
+    const exportModuleReady = Boolean(exportModule && moduleIsPublished(exportModule));
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(templates.length), "导出模板"],
+        [String(operationsState.exportJobs?.total ?? jobs.length), "导出任务"],
+        [selectedModule()?.name ?? "未选择", "当前模块"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
+        input("模板编码", "exportTemplateCode", `p11_tpl_${p10Seed()}`),
+        input("模板名称", "exportTemplateName", `P11导出模板${p10Seed()}`),
+        input("文件名", "exportFileName", `p11-export-${p10Seed()}.csv`),
+        button("切换模块", "secondary", switchSelectedModule),
+        button("创建模板", "primary", createExportTemplate, !selectedModuleId() || !exportModuleReady || appRuntimeState.fields.length === 0),
+        button("创建导出任务", "primary", createExportJob, !selectedModuleId() || !exportModuleReady),
+      ]),
+      node("p", {
+        className: "muted",
+        text: exportModuleReady ? "当前模块已发布，可创建导出模板和任务。" : "当前模块尚未发布，请先在模块配置中发布后再创建导出。",
+      }),
+      renderDataTable(
+        "export-templates",
+        ["模板", "编码", "格式", "字段数", "操作"],
+        templates.map((item) => [
+          item.templateName,
+          item.templateCode,
+          item.exportFormat ?? "CSV",
+          String(item.fields.length),
+          node("div", { className: "row-actions" }, [
+            button("更新", "secondary", () => updateExportTemplate(item)),
+          ]),
+        ]),
+        "暂无导出模板。",
+      ),
+      renderDataTable(
+        "export-jobs",
+        ["文件", "状态", "进度", "结果文件", "操作"],
+        jobs.map((item) => [
+          item.fileName ?? item.jobId,
+          statusLabel(item.status),
+          `${item.progress}%`,
+          item.resultFileId ?? "-",
+          node("div", { className: "row-actions" }, [
+            button("详情", "secondary", () => loadExportJobDetail(item.jobId)),
+            button("重试", "secondary", () => retryExportJob(item), Boolean(exportPage.jobs.retryDisabledReason(item))),
+            button("取消", "secondary", () => cancelExportJob(item), Boolean(exportPage.jobs.cancelDisabledReason(item))),
+          ]),
+        ]),
+        "暂无导出任务。",
+      ),
+    ]);
+  }
+
+  function renderOpenApiClients(): HTMLElement {
+    const state = operationsState.openApi;
+    const clients = state.clients.records ?? [];
+    const permissions = openApiPage.permissions();
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(state.clients.total ?? clients.length), "客户端"],
+        [String(clients.filter((item) => item.status === "ENABLED").length), "启用中"],
+        [String(state.accessLogs.total ?? state.accessLogs.records.length), "调用日志"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        input("客户端名称", "openApiClientName", `P11客户端${p10Seed()}`),
+        input("客户端编码", "openApiClientCode", `p11_client_${p10Seed()}`),
+        input("Scope", "openApiScopes", "record:read,record:write"),
+        input("IP 白名单", "openApiIpWhitelist", ""),
+        input("每分钟限流", "openApiRateLimit", "60"),
+        button("加载 Scope", "secondary", loadOpenApiScopeCatalog),
+        button("创建客户端", "primary", createOpenApiClient, !permissions.createClient.enabled),
+      ]),
+      state.secretOnce?.visible
+        ? node("div", { className: "message" }, [
+            node("strong", { text: `AccessKey: ${state.secretOnce.accessKey}` }),
+            node("span", { text: `Secret: ${state.secretOnce.secretOnce ?? state.secretOnce.maskedSecret ?? "-"}` }),
+            button("我已保存", "secondary", consumeOpenApiSecret),
+          ])
+        : undefined,
+      renderDataTable(
+        "openapi-clients",
+        ["客户端", "AccessKey", "Scope", "状态", "操作"],
+        clients.map((item) => [
+          item.name,
+          item.accessKey,
+          item.scopes.map((scope) => scope.scopeCode).join(", ") || "-",
+          statusLabel(item.status),
+          node("div", { className: "row-actions" }, [
+            button("编辑", "secondary", () => updateOpenApiClient(item), !permissions.editClient.enabled),
+            button(item.status === "ENABLED" ? "停用" : "启用", "secondary", () => toggleOpenApiClient(item), !permissions.changeStatus.enabled),
+            button("轮换密钥", "secondary", () => rotateOpenApiCredential(item), !permissions.rotateCredential.enabled),
+            button("保存Scope", "secondary", () => updateOpenApiScopes(item), !permissions.editScope.enabled),
+            button("保存IP", "secondary", () => updateOpenApiIpWhitelist(item), !permissions.editIp.enabled),
+          ]),
+        ]),
+        "暂无 OpenAPI 客户端。",
+      ),
+      renderDataTable(
+        "openapi-logs",
+        ["请求号", "API", "状态码", "错误码", "耗时"],
+        state.accessLogs.records.map((item) => [
+          item.requestId,
+          String(item.apiId),
+          String(item.statusCode),
+          item.errorCode ?? "-",
+          `${item.durationMs}ms`,
+        ]),
+        "暂无调用日志。",
+      ),
+    ]);
+  }
+
+  function renderAuditLogs(platform: boolean): HTMLElement {
+    const state = platform ? operationsState.platformAudit : operationsState.audit;
+    const kinds: [AuditLogKind, string][] = platform
+      ? [["platformOperation", "平台操作"]]
+      : [["operation", "操作"], ["request", "请求"], ["error", "错误"], ["recordChange", "记录变更"], ["openapi", "OpenAPI"]];
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(state.logs.total ?? state.logs.records.length), "日志总数"],
+        [state.activeKind, "当前分类"],
+        [state.selectedDetail?.requestId ?? "-", "当前请求号"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        selectField("日志类型", platform ? "platformAuditKind" : "auditKind", state.activeKind, kinds),
+        input("请求号", "auditRequestId", ""),
+        input("业务类型", "auditBizType", ""),
+        button("查询", "primary", () => loadAuditLogs(platform)),
+      ]),
+      renderDataTable(
+        platform ? "platform-audit" : "audit",
+        ["请求号", "操作人", "业务", "结果", "时间", "操作"],
+        state.logs.records.map((item) => [
+          item.requestId,
+          item.operatorName ?? item.operatorType ?? "-",
+          [item.bizType, item.bizId].filter(Boolean).join("/") || "-",
+          item.result ?? item.errorCode ?? "-",
+          item.createdAt,
+          node("div", { className: "row-actions" }, [
+            button("详情", "secondary", () => loadAuditDetail(platform, item)),
+            button("标记请求号", "secondary", () => markAuditRequestId(platform, item.requestId)),
+          ]),
+        ]),
+        "暂无审计日志。",
+      ),
+      renderAuditDetail(state.selectedDetail),
+    ]);
+  }
+
+  function renderAuditDetail(detail?: AuditLogDetailPageVO): HTMLElement {
+    return renderDataTable(
+      "audit-detail",
+      ["字段", "值", "说明"],
+      detail
+        ? [
+            ["API", detail.apiId, detail.path],
+            ["Trace", detail.traceId, detail.source],
+            ["操作人", detail.operatorName ?? detail.operatorId ?? "-", detail.operatorType ?? "-"],
+            ["变更字段", detail.changedFields?.join(", ") ?? "-", detail.beforeStatus && detail.afterStatus ? `${detail.beforeStatus} -> ${detail.afterStatus}` : "-"],
+            ["快照", formatValue(detail.afterSnapshot ?? detail.beforeSnapshot), detail.errorCode ?? "-"],
+          ]
+        : [],
+      "选择日志详情后会显示追踪信息。",
+    );
+  }
+
+  function renderOpsHealth(): HTMLElement {
+    const state = operationsState.ops;
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [state.health?.status ?? "-", "健康状态"],
+        [state.version?.version ?? "-", "版本"],
+        [state.migration?.migrationVersion ?? "-", "迁移版本"],
+      ]),
+      node("div", { className: "form-grid" }, [
+        button("刷新运维状态", "primary", loadOpsHealth),
+      ]),
+      renderDataTable(
+        "ops-components",
+        ["组件", "结果", "说明", "建议", "时间"],
+        state.components.map((item) => [
+          item.component,
+          item.result,
+          item.message ?? "-",
+          item.suggestion ?? "-",
+          item.checkedAt ?? "-",
+        ]),
+        "暂无运维检查结果。",
+      ),
+    ]);
+  }
+
   function renderPageMetrics(items: [string, string][]): HTMLElement {
     return node("div", { className: "metric-grid" }, items.map(([value, label]) => stat(value, label)));
   }
@@ -1325,6 +1796,38 @@ export function mountApp(container: HTMLElement): void {
     }
     if (route.name === "runtime.module") {
       await loadRuntimeModule();
+      return;
+    }
+    if (route.name === "flow.templates") {
+      await loadFlowTemplates();
+      return;
+    }
+    if (route.name === "flow.workbench") {
+      await loadFlowWorkbench();
+      return;
+    }
+    if (route.name === "files.center") {
+      await loadFiles();
+      return;
+    }
+    if (route.name === "exports.jobs") {
+      await loadExports();
+      return;
+    }
+    if (route.name === "openapi.clients") {
+      await loadOpenApiClients();
+      return;
+    }
+    if (route.name === "audit.system") {
+      await loadAuditLogs(false);
+      return;
+    }
+    if (route.name === "audit.platform") {
+      await loadAuditLogs(true);
+      return;
+    }
+    if (route.name === "ops.health") {
+      await loadOpsHealth();
       return;
     }
     const apiId = firstRunnableEndpoint(route.meta.apiIds);
@@ -2739,6 +3242,556 @@ export function mountApp(container: HTMLElement): void {
     });
   }
 
+  async function loadFlowTemplates(): Promise<void> {
+    await execute("FLOW-001", async () => {
+      requireSystemContext();
+      await ensureModulesLoaded();
+      const result = await flowWorkbench.templates.list({ pageNo: 1, pageSize: 50 });
+      raisePageModelError(result);
+      operationsState.flowTemplates = normalizePage((result.data ?? []) as FlowTemplateVO[] | PageResult<FlowTemplateVO>);
+      return pageModelResponse(result);
+    });
+  }
+
+  async function createFlowTemplate(): Promise<void> {
+    const form = readForm();
+    await execute("FLOW-002", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.templates.create({
+        code: `flow_${p10Seed()}_${Date.now().toString().slice(-4)}`,
+        name: required(form.flowTemplateName, "模板名称"),
+        description: form.flowTemplateRemark?.trim() || undefined,
+      });
+      raisePageModelError(result);
+      await loadFlowTemplates();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function saveDefaultFlowGraph(item: FlowTemplateVO): Promise<void> {
+    await execute("FLOW-003", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.templates.saveGraph(item.templateId, {
+        nodes: [
+          { nodeKey: "start", nodeName: "开始", nodeType: "START", sortOrder: 1 },
+          { nodeKey: "approve", nodeName: "审批", nodeType: "APPROVAL", actorStrategy: "STARTER", approvalRequired: true, sortOrder: 2 },
+          { nodeKey: "end", nodeName: "结束", nodeType: "END", sortOrder: 3 },
+        ],
+        lines: [
+          { lineKey: "start-approve", fromNodeKey: "start", toNodeKey: "approve", conditionMode: "ALWAYS", sortOrder: 1 },
+          { lineKey: "approve-end", fromNodeKey: "approve", toNodeKey: "end", conditionMode: "ALWAYS", sortOrder: 2 },
+        ],
+      });
+      raisePageModelError(result);
+      await loadFlowTemplates();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function checkFlowTemplate(item: FlowTemplateVO): Promise<void> {
+    await execute("FLOW-004", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.templates.publishCheck(item.templateId);
+      raisePageModelError(result);
+      ui.lastMessage = `发布检查：${result.data?.passed ? "通过" : "未通过"}，问题 ${result.data?.issues?.length ?? 0}`;
+      return pageModelResponse(result);
+    });
+  }
+
+  async function publishFlowTemplate(item: FlowTemplateVO): Promise<void> {
+    await execute("FLOW-005", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.templates.publish(item.templateId);
+      raisePageModelError(result);
+      await loadFlowTemplates();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function bindFlowTemplate(item: FlowTemplateVO): Promise<void> {
+    await execute("FLOW-006", async () => {
+      requireSystemContext();
+      const moduleId = required(selectedModuleId(), "模块");
+      const result = await flowWorkbench.templates.bindModule(moduleId, {
+        templateId: item.templateId,
+        templateVersionId: required(item.currentVersionId, "发布版本"),
+        actionCode: "RECORD_SUBMIT",
+        status: "ENABLED",
+      });
+      raisePageModelError(result);
+      await loadFlowTemplates();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function toggleFlowTemplate(item: FlowTemplateVO): Promise<void> {
+    await execute("FLOW-021", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.templates.changeStatus(item.templateId, {
+        targetStatus: item.status === "DISABLED" ? "DRAFT" : "DISABLED",
+        versionNo: item.versionNo,
+        reason: "流程模板页面操作",
+      });
+      raisePageModelError(result);
+      await loadFlowTemplates();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadFlowWorkbench(): Promise<void> {
+    await execute("FLOW-007/FLOW-013/FLOW-014/FLOW-017", async () => {
+      requireSystemContext();
+      await ensureModulesLoaded();
+      const query = {
+        pageNo: 1,
+        pageSize: 20,
+        moduleId: readForm().selectedModuleId || selectedModuleId(),
+        keyword: readForm().flowKeyword,
+      };
+      const [todo, cc, started, instances] = await Promise.all([
+        flowWorkbench.workbench.todo(query),
+        flowWorkbench.workbench.cc({ pageNo: 1, pageSize: 20 }),
+        flowWorkbench.workbench.started({ pageNo: 1, pageSize: 20 }),
+        flowWorkbench.workbench.instances({ pageNo: 1, pageSize: 20 }),
+      ]);
+      [todo, cc, started, instances].forEach(raisePageModelError);
+      operationsState.flowTodos = todo.data;
+      operationsState.flowCc = cc.data;
+      operationsState.flowStarted = started.data;
+      operationsState.flowInstances = instances.data;
+      return { requestId: todo.state.requestId ?? instances.state.requestId };
+    });
+  }
+
+  async function claimFlowTask(item: FlowTaskListItemVO): Promise<void> {
+    await execute("FLOW-015", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.workbench.claim(item.taskId, flowWorkbench.createTaskVersionBody("FLOW-015", item.taskVersion));
+      raisePageModelError(result);
+      await loadFlowWorkbench();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function approveFlowTask(item: FlowTaskListItemVO): Promise<void> {
+    await handleFlowTask(item, "APPROVE", "同意");
+  }
+
+  async function rejectFlowTask(item: FlowTaskListItemVO): Promise<void> {
+    await handleFlowTask(item, "REJECT", "退回");
+  }
+
+  async function handleFlowTask(item: FlowTaskListItemVO, action: "APPROVE" | "REJECT", comment: string): Promise<void> {
+    await execute("FLOW-009", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.workbench.handleTask(item.taskId, flowWorkbench.createActionBody(action, item.taskVersion, { comment }));
+      raisePageModelError(result);
+      await loadFlowWorkbench();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadFlowTaskDetail(taskId: EntityId): Promise<void> {
+    await execute("FLOW-008", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.workbench.taskDetail(taskId);
+      raisePageModelError(result);
+      const detail = result.data as { task?: { nodeName?: string }; actions?: Array<{ label: string }> } | undefined;
+      ui.lastMessage = `待办详情：${detail?.task?.nodeName ?? "-"}，动作 ${detail?.actions?.map((item) => item.label).join(", ") || "-"}`;
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadFlowInstanceDetail(instanceId: EntityId): Promise<void> {
+    await execute("FLOW-011/FLOW-012/FLOW-018", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.workbench.instanceDetail(instanceId);
+      raisePageModelError(result);
+      const detail = result.data as { instance?: { recordTitle?: string; recordId?: EntityId }; history?: unknown[] } | undefined;
+      ui.lastMessage = `实例详情：${detail?.instance?.recordTitle ?? detail?.instance?.recordId ?? "-"}，历史 ${detail?.history?.length ?? 0}`;
+      return pageModelResponse(result);
+    });
+  }
+
+  async function withdrawFlowInstance(item: FlowInstanceListItemVO): Promise<void> {
+    await execute("FLOW-010", async () => {
+      requireSystemContext();
+      const result = await flowWorkbench.workbench.withdraw(item.instanceId, flowWorkbench.createWithdrawBody("页面撤回"));
+      raisePageModelError(result);
+      await loadFlowWorkbench();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadFiles(): Promise<void> {
+    await execute("FILE-002", async () => {
+      requireSystemContext();
+      const result = await fileCenter.files.list({
+        pageNo: 1,
+        pageSize: 50,
+        bizType: readForm().fileBizType?.trim() || undefined,
+      });
+      raisePageModelError(result);
+      operationsState.files = result.data;
+      return pageModelResponse(result);
+    });
+  }
+
+  async function uploadFileCenterFile(): Promise<void> {
+    const form = readForm();
+    const inputFile = container.querySelector<HTMLInputElement>('input[name="fileUpload"]')?.files?.[0];
+    const file = inputFile ?? new File([form.fileFallbackText || "P11 文件中心测试内容"], `p11-${p10Seed()}.txt`, { type: "text/plain" });
+    await execute("FILE-001", async () => {
+      requireSystemContext();
+      const result = await fileCenter.files.upload(fileCenter.createUploadDraft(file, form.fileFieldCode?.trim() || undefined, {
+        fileName: file.name,
+        bizType: form.fileBizType?.trim() || undefined,
+      }));
+      raisePageModelError(result);
+      await loadFiles();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadFileDetail(fileId: EntityId): Promise<void> {
+    await execute("FILE-003", async () => {
+      requireSystemContext();
+      const result = await fileCenter.files.detail(fileId);
+      raisePageModelError(result);
+      operationsState.selectedFile = result.data;
+      return pageModelResponse(result);
+    });
+  }
+
+  async function previewFile(item: FileListItemVO): Promise<void> {
+    await execute("FILE-004", async () => {
+      requireSystemContext();
+      const result = await fileCenter.files.preview(item);
+      raisePageModelError(result);
+      ui.lastMessage = `预览地址：${result.data?.downloadUrl ?? "后端未返回地址"}`;
+      return pageModelResponse(result);
+    });
+  }
+
+  async function downloadFile(item: FileListItemVO): Promise<void> {
+    await execute("FILE-005", async () => {
+      requireSystemContext();
+      const result = await fileCenter.files.download(item);
+      raisePageModelError(result);
+      if (result.data?.downloadUrl) {
+        window.open(result.data.downloadUrl, "_blank", "noopener");
+      }
+      return pageModelResponse(result);
+    });
+  }
+
+  async function deleteFile(item: FileListItemVO): Promise<void> {
+    await execute("FILE-006", async () => {
+      requireSystemContext();
+      const result = await fileCenter.files.delete(item);
+      raisePageModelError(result);
+      await loadFiles();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadExports(): Promise<void> {
+    await execute("EXP-001/EXP-005", async () => {
+      requireSystemContext();
+      await ensureModulesLoaded(true);
+      preferPublishedModule();
+      if (selectedModuleId()) {
+        await refreshModuleFields(required(selectedModuleId(), "模块"));
+      }
+      const [templates, jobs] = await Promise.all([
+        exportPage.templates.list(selectedModuleId()),
+        exportPage.jobs.list({ pageNo: 1, pageSize: 50, moduleId: selectedModuleId(), keyword: readForm().keyword }),
+      ]);
+      raisePageModelError(templates);
+      raisePageModelError(jobs);
+      operationsState.exportTemplates = templates.data ?? [];
+      operationsState.exportJobs = jobs.data;
+      return { requestId: jobs.state.requestId ?? templates.state.requestId };
+    });
+  }
+
+  async function createExportTemplate(): Promise<void> {
+    const form = readForm();
+    await execute("EXP-002", async () => {
+      requireSystemContext();
+      const moduleId = requiredPublishedModuleId(selectedModuleId() ?? form.selectedModuleId);
+      if (appRuntimeState.fields.length === 0) {
+        await refreshModuleFields(moduleId);
+      }
+      const result = await exportPage.templates.create({
+        moduleId,
+        templateCode: required(form.exportTemplateCode, "模板编码"),
+        templateName: required(form.exportTemplateName, "模板名称"),
+        exportFormat: "CSV",
+        includeHistoryFlag: 0,
+        fields: appRuntimeState.fields.slice(0, 10).map((field, index) => ({
+          fieldId: field.fieldId,
+          headerName: field.name,
+          columnOrder: index + 1,
+          plainRequiredFlag: 1,
+        })),
+      });
+      raisePageModelError(result);
+      await loadExports();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function updateExportTemplate(item: ExportTemplateVO): Promise<void> {
+    await execute("EXP-003", async () => {
+      requireSystemContext();
+      const result = await exportPage.templates.update(item.templateId, exportPage.toTemplateSaveBody(item));
+      raisePageModelError(result);
+      await loadExports();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function createExportJob(): Promise<void> {
+    const form = readForm();
+    await execute("EXP-004", async () => {
+      requireSystemContext();
+      const moduleId = requiredPublishedModuleId(selectedModuleId() ?? form.selectedModuleId);
+      const result = await exportPage.jobs.create(exportPage.createJobBody(moduleId, {
+        templateId: operationsState.exportTemplates[0]?.templateId,
+        fileName: form.exportFileName?.trim() || undefined,
+      }));
+      raisePageModelError(result);
+      await loadExports();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadExportJobDetail(jobId: EntityId): Promise<void> {
+    await execute("EXP-006", async () => {
+      requireSystemContext();
+      const result = await exportPage.jobs.detail(jobId);
+      raisePageModelError(result);
+      const detail = result.data as { job?: { status?: string }; poll?: { shouldPoll?: boolean } } | undefined;
+      ui.lastMessage = `导出任务：${detail?.job?.status ?? "-"}，轮询 ${detail?.poll?.shouldPoll ? "需要" : "不需要"}`;
+      return pageModelResponse(result);
+    });
+  }
+
+  async function retryExportJob(item: ExportJobListItemVO): Promise<void> {
+    await execute("EXP-007", async () => {
+      requireSystemContext();
+      const result = await exportPage.jobs.retry(item, exportPage.createActionBody("EXP-007", "页面重试"));
+      raisePageModelError(result);
+      await loadExports();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function cancelExportJob(item: ExportJobListItemVO): Promise<void> {
+    await execute("EXP-008", async () => {
+      requireSystemContext();
+      const result = await exportPage.jobs.cancel(item, exportPage.createActionBody("EXP-008", "页面取消"));
+      raisePageModelError(result);
+      await loadExports();
+      return pageModelResponse(result);
+    });
+  }
+
+  async function loadOpenApiClients(): Promise<void> {
+    await execute("OPM-001/OPM-008", async () => {
+      requireSystemContext();
+      const [clients, logs] = await Promise.all([
+        openApiPage.loadClients({ pageNo: 1, pageSize: 50 }),
+        openApiPage.loadAccessLogs({ pageNo: 1, pageSize: 20 }),
+      ]);
+      operationsState.openApi = {
+        ...operationsState.openApi,
+        clients: normalizePage(clients as unknown as OpenApiClientListItemVO[] | PageResult<OpenApiClientListItemVO>),
+        accessLogs: logs,
+      };
+      return { requestId: operationsState.openApi.lastRequestId };
+    });
+  }
+
+  async function loadOpenApiScopeCatalog(): Promise<void> {
+    await execute("OPM-009", async () => {
+      requireSystemContext();
+      operationsState.openApi.scopeCatalog = await openApiPage.loadScopeCatalog();
+      return { requestId: operationsState.openApi.lastRequestId };
+    });
+  }
+
+  async function createOpenApiClient(): Promise<void> {
+    const form = readForm();
+    await execute("OPM-002", async () => {
+      requireSystemContext();
+      const client = await openApiPage.createClient({
+        name: required(form.openApiClientName, "客户端名称"),
+        code: required(form.openApiClientCode, "客户端编码"),
+        tenantId: systemContextStore.toTenantHeader(),
+        status: "ENABLED",
+        scopes: parseOpenApiScopes(form.openApiScopes),
+        ipWhitelist: parseOpenApiIpWhitelist(form.openApiIpWhitelist),
+        rateLimitPolicy: [{
+          windowSeconds: 60,
+          maxRequests: optionalNumber(form.openApiRateLimit) ?? 60,
+          status: "ENABLED",
+        }],
+        idempotencyKey: `OPM-002-${Date.now()}`,
+      });
+      operationsState.openApi.secretOnce = createSecretDisplayFromCreatedClient(client, `OPM-002-${Date.now()}`);
+      await loadOpenApiClients();
+      return { requestId: operationsState.openApi.secretOnce?.requestId };
+    });
+  }
+
+  async function updateOpenApiClient(item: OpenApiClientListItemVO): Promise<void> {
+    const form = readForm();
+    await execute("OPM-003", async () => {
+      requireSystemContext();
+      await openApiPage.updateClient(item.clientId, {
+        name: form.openApiClientName?.trim() || item.name,
+        code: item.code,
+        status: item.status,
+        tenantId: item.tenantId,
+        scopes: item.scopes,
+        ipWhitelist: parseOpenApiIpWhitelist(form.openApiIpWhitelist),
+        rateLimitPolicy: [{
+          windowSeconds: 60,
+          maxRequests: optionalNumber(form.openApiRateLimit) ?? item.rateLimitPolicy?.[0]?.maxRequests ?? 60,
+          status: "ENABLED",
+        }],
+        expiresAt: item.expiresAt,
+      });
+      await loadOpenApiClients();
+      return { requestId: `OPM-003-${Date.now()}` };
+    });
+  }
+
+  async function toggleOpenApiClient(item: OpenApiClientListItemVO): Promise<void> {
+    await execute("OPM-004", async () => {
+      requireSystemContext();
+      await openApiPage.changeClientStatus(item.clientId, {
+        status: item.status === "ENABLED" ? "DISABLED" : "ENABLED",
+      });
+      await loadOpenApiClients();
+      return { requestId: `OPM-004-${Date.now()}` };
+    });
+  }
+
+  async function rotateOpenApiCredential(item: OpenApiClientListItemVO): Promise<void> {
+    await execute("OPM-005", async () => {
+      requireSystemContext();
+      operationsState.openApi.secretOnce = await openApiPage.rotateCredential(item.clientId, `OPM-005-${Date.now()}`);
+      await loadOpenApiClients();
+      return { requestId: operationsState.openApi.secretOnce?.requestId };
+    });
+  }
+
+  async function updateOpenApiScopes(item: OpenApiClientListItemVO): Promise<void> {
+    const form = readForm();
+    await execute("OPM-006", async () => {
+      requireSystemContext();
+      await openApiPage.updateScopes(item.clientId, {
+        scopes: parseOpenApiScopes(form.openApiScopes),
+      });
+      await loadOpenApiClients();
+      return { requestId: `OPM-006-${Date.now()}` };
+    });
+  }
+
+  async function updateOpenApiIpWhitelist(item: OpenApiClientListItemVO): Promise<void> {
+    const form = readForm();
+    await execute("OPM-007", async () => {
+      requireSystemContext();
+      await openApiPage.updateIpWhitelist(item.clientId, {
+        ipWhitelist: parseOpenApiIpWhitelist(form.openApiIpWhitelist),
+      });
+      await loadOpenApiClients();
+      return { requestId: `OPM-007-${Date.now()}` };
+    });
+  }
+
+  function consumeOpenApiSecret(): void {
+    operationsState.openApi = openApiPage.consumeSecretOnce(operationsState.openApi);
+    render();
+  }
+
+  async function loadAuditLogs(platform: boolean): Promise<void> {
+    await execute(platform ? "AUD-006" : "AUD-001", async () => {
+      if (!platform) {
+        requireSystemContext();
+      }
+      const form = readForm();
+      const state = platform ? operationsState.platformAudit : operationsState.audit;
+      const kind = (platform ? form.platformAuditKind : form.auditKind) as AuditLogKind | undefined;
+      const activeKind = kind || state.activeKind;
+      const logs = await auditPage.queryLogs(activeKind, {
+        pageNo: 1,
+        pageSize: 50,
+        requestId: form.auditRequestId?.trim() || undefined,
+        bizType: form.auditBizType?.trim() || undefined,
+      });
+      const next = { ...state, activeKind, logs };
+      if (platform) {
+        operationsState.platformAudit = next;
+      } else {
+        operationsState.audit = next;
+      }
+      return { requestId: `AUD-${Date.now()}` };
+    });
+  }
+
+  async function loadAuditDetail(platform: boolean, item: AuditLogListItemVO): Promise<void> {
+    await execute(platform ? "AUD-008" : "AUD-007", async () => {
+      if (!platform) {
+        requireSystemContext();
+      }
+      const state = platform ? operationsState.platformAudit : operationsState.audit;
+      const detail = platform
+        ? await auditPage.loadPlatformDetail(item.logId)
+        : await auditPage.loadDetail(state.activeKind as Exclude<AuditLogKind, "platformOperation">, item.logId);
+      if (platform) {
+        operationsState.platformAudit = { ...state, selectedDetail: detail };
+      } else {
+        operationsState.audit = { ...state, selectedDetail: detail };
+      }
+      return { requestId: detail.requestId };
+    });
+  }
+
+  function markAuditRequestId(platform: boolean, requestId: string): void {
+    if (platform) {
+      operationsState.platformAudit = auditPage.markRequestIdCopied(operationsState.platformAudit, requestId);
+    } else {
+      operationsState.audit = auditPage.markRequestIdCopied(operationsState.audit, requestId);
+    }
+    ui.lastMessage = `已标记请求号：${requestId}`;
+    render();
+  }
+
+  async function loadOpsHealth(): Promise<void> {
+    await execute("OPS-001/OPS-002/OPS-003/OPS-004/OPS-006", async () => {
+      const [health, configCheck, version, migration, components] = await Promise.all([
+        opsPage.loadHealth(),
+        opsPage.loadConfigCheck(),
+        opsPage.loadVersion(),
+        opsPage.loadMigrationStatus(),
+        opsPage.loadComponents(),
+      ]);
+      operationsState.ops = opsPage.summarize({
+        ...operationsState.ops,
+        health,
+        configCheck,
+        version,
+        migration,
+        components,
+      });
+      return { requestId: operationsState.ops.lastRequestId };
+    });
+  }
+
   async function enterSystem(systemId: string): Promise<void> {
     await execute("SYS-001", async () => {
       const result = await enterSystemContext(systemId);
@@ -2794,7 +3847,34 @@ export function mountApp(container: HTMLElement): void {
       },
     });
     permissionStore.setEffectivePermission(toEffectivePermission(entered), entered.permissions?.menus ?? []);
+    resetAppRuntimeStateForSystem(entered.systemId);
     return { requestId: response.requestId };
+  }
+
+  function resetAppRuntimeStateForSystem(systemId: EntityId): void {
+    if (appRuntimeState.loadedSystemId === systemId) {
+      return;
+    }
+    appRuntimeState.loadedSystemId = systemId;
+    appRuntimeState.apps = [];
+    appRuntimeState.selectedAppId = undefined;
+    appRuntimeState.modules = [];
+    appRuntimeState.selectedModuleId = undefined;
+    appRuntimeState.fields = [];
+    appRuntimeState.fieldTypes = [];
+    appRuntimeState.listSchema = undefined;
+    appRuntimeState.formSchema = undefined;
+    appRuntimeState.detailSchema = undefined;
+    appRuntimeState.publishCheck = undefined;
+    appRuntimeState.publishResult = undefined;
+    appRuntimeState.runtimeMenus = [];
+    appRuntimeState.runtimeSchema = undefined;
+    appRuntimeState.recordPage = undefined;
+    appRuntimeState.selectedRecord = undefined;
+    appRuntimeState.recordHistory = [];
+    appRuntimeState.recordRelations = [];
+    ui.settings.appId = "";
+    ui.settings.moduleId = "";
   }
 
   async function execute<T>(scope: string, action: () => Promise<T>): Promise<void> {
@@ -2983,6 +4063,14 @@ export function mountApp(container: HTMLElement): void {
     const result = await moduleConfigPage.apps.load({ pageNo: 1, pageSize: 50, keyword });
     raisePageModelError(result);
     appRuntimeState.apps = result.data ?? [];
+    if (appRuntimeState.selectedAppId && !appRuntimeState.apps.some((item) => item.appId === appRuntimeState.selectedAppId)) {
+      appRuntimeState.selectedAppId = undefined;
+      appRuntimeState.modules = [];
+      appRuntimeState.selectedModuleId = undefined;
+      appRuntimeState.fields = [];
+      ui.settings.appId = "";
+      ui.settings.moduleId = "";
+    }
     if (!appRuntimeState.selectedAppId && appRuntimeState.apps[0]) {
       appRuntimeState.selectedAppId = appRuntimeState.apps[0].appId;
       ui.settings.appId = appRuntimeState.apps[0].appId;
@@ -2994,6 +4082,11 @@ export function mountApp(container: HTMLElement): void {
     const result = await moduleConfigPage.modules.load(appId, { pageNo: 1, pageSize: 50, keyword });
     raisePageModelError(result);
     appRuntimeState.modules = result.data ?? [];
+    if (appRuntimeState.selectedModuleId && !appRuntimeState.modules.some((item) => item.moduleId === appRuntimeState.selectedModuleId)) {
+      appRuntimeState.selectedModuleId = undefined;
+      appRuntimeState.fields = [];
+      ui.settings.moduleId = "";
+    }
     if (!appRuntimeState.selectedModuleId && appRuntimeState.modules[0]) {
       appRuntimeState.selectedModuleId = appRuntimeState.modules[0].moduleId;
       ui.settings.moduleId = appRuntimeState.modules[0].moduleId;
@@ -3013,15 +4106,15 @@ export function mountApp(container: HTMLElement): void {
     return fields;
   }
 
-  async function ensureAppsLoaded(): Promise<void> {
-    if (appRuntimeState.apps.length === 0) {
+  async function ensureAppsLoaded(force = false): Promise<void> {
+    if (force || appRuntimeState.apps.length === 0) {
       await refreshAppsConfig();
     }
   }
 
-  async function ensureModulesLoaded(): Promise<void> {
-    await ensureAppsLoaded();
-    if (appRuntimeState.modules.length === 0 && selectedAppId()) {
+  async function ensureModulesLoaded(force = false): Promise<void> {
+    await ensureAppsLoaded(force);
+    if ((force || appRuntimeState.modules.length === 0) && selectedAppId()) {
       await refreshModulesConfig(required(selectedAppId(), "应用"));
     }
   }
@@ -3069,6 +4162,34 @@ export function mountApp(container: HTMLElement): void {
       throw new Error("请先选择模块");
     }
     return module;
+  }
+
+  function moduleIsPublished(module: ModuleListItemVO): boolean {
+    return module.status === "PUBLISHED" || Boolean(module.publishedVersion);
+  }
+
+  function preferPublishedModule(): void {
+    const current = selectedModule();
+    if (current && moduleIsPublished(current)) {
+      return;
+    }
+    const published = appRuntimeState.modules.find(moduleIsPublished);
+    if (published) {
+      appRuntimeState.selectedModuleId = published.moduleId;
+      ui.settings.moduleId = published.moduleId;
+      appRuntimeState.fields = [];
+    }
+  }
+
+  function requiredPublishedModuleId(moduleId?: EntityId): EntityId {
+    const module = appRuntimeState.modules.find((item) => item.moduleId === moduleId);
+    if (!module) {
+      throw new Error("请先选择模块");
+    }
+    if (!moduleIsPublished(module)) {
+      throw new Error("当前模块尚未发布，请先发布模块后再操作");
+    }
+    return module.moduleId;
   }
 
   function requiredRuntimeSchema(): RuntimeModuleSchemaVO {
@@ -3206,6 +4327,43 @@ export function mountApp(container: HTMLElement): void {
   function runtimeFieldName(field: RuntimeModuleSchemaVO["fieldDefinitions"][number]): string {
     const source = field as RuntimeModuleSchemaVO["fieldDefinitions"][number] & { name?: string; code?: string };
     return field.fieldName || source.name || field.fieldCode || source.code || "未命名字段";
+  }
+
+  function formatFileSize(size: number): string {
+    if (size < 1024) {
+      return `${size} B`;
+    }
+    if (size < 1024 * 1024) {
+      return `${(size / 1024).toFixed(1)} KB`;
+    }
+    return `${(size / 1024 / 1024).toFixed(1)} MB`;
+  }
+
+  function parseOpenApiScopes(value?: string) {
+    const scopes = splitValues(value ?? "");
+    return scopes.length > 0
+      ? scopes.map((scopeCode) => ({
+          scopeCode,
+          actions: scopeCode.includes("write") ? ["CREATE", "UPDATE", "DELETE"] : ["READ"],
+          readableFieldCodes: [],
+          writableFieldCodes: scopeCode.includes("write") ? [] : undefined,
+        }))
+      : [
+          {
+            scopeCode: "record:read",
+            actions: ["READ"],
+            readableFieldCodes: [],
+          },
+        ];
+  }
+
+  function parseOpenApiIpWhitelist(value?: string) {
+    return splitValues(value ?? "").map((ipRule) => ({
+      ipRule,
+      ruleType: ipRule.includes("/") ? "CIDR" as const : "IP" as const,
+      status: "ENABLED" as const,
+      description: "页面维护",
+    }));
   }
 
   function toRuntimeRecordPage(value: unknown): PageResult<RecordListItemVO> | undefined {
@@ -3393,6 +4551,14 @@ export function mountApp(container: HTMLElement): void {
       "modules.ui",
       "runtime.home",
       "runtime.module",
+      "flow.templates",
+      "flow.workbench",
+      "files.center",
+      "exports.jobs",
+      "openapi.clients",
+      "audit.system",
+      "audit.platform",
+      "ops.health",
     ]);
     const routeLoadKey = `${route.name}:${getCurrentPath()}:${systemContextStore.getState().current?.member.memberId ?? ""}`;
     if (!autoLoadNames.has(route.name) || autoLoadedRoutes.has(routeLoadKey) || ui.busy) {

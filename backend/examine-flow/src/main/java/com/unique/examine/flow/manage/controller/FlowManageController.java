@@ -17,6 +17,7 @@ import com.unique.examine.flow.manage.bo.FlowWithdrawBO;
 import com.unique.examine.flow.manage.service.FlowManageService;
 import com.unique.examine.flow.manage.vo.FlowActionResultVO;
 import com.unique.examine.flow.manage.vo.FlowBindingVO;
+import com.unique.examine.flow.manage.vo.FlowCcItemVO;
 import com.unique.examine.flow.manage.vo.FlowDiagramVO;
 import com.unique.examine.flow.manage.vo.FlowHistoryItemVO;
 import com.unique.examine.flow.manage.vo.FlowInstanceVO;
@@ -129,6 +130,22 @@ public class FlowManageController {
             @PathVariable Long systemId, FlowTaskQueryBO queryBO) {
         validateLogin(authorization);
         return flowManageService.todoTasks(systemId, queryBO);
+    }
+
+    @Operation(summary = "查询我的抄送")
+    @GetMapping("/workbench/cc")
+    public PageResult<FlowCcItemVO> ccTasks(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @PathVariable Long systemId, FlowTaskQueryBO queryBO) {
+        validateLogin(authorization);
+        return flowManageService.ccTasks(systemId, queryBO);
+    }
+
+    @Operation(summary = "查询我发起的流程")
+    @GetMapping("/workbench/started")
+    public PageResult<FlowInstanceVO> startedInstances(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @PathVariable Long systemId, FlowTaskQueryBO queryBO) {
+        validateLogin(authorization);
+        return flowManageService.startedInstances(systemId, queryBO);
     }
 
     @Operation(summary = "查询任务详情")

@@ -13,19 +13,24 @@ export function createFetchTransport(options: FetchTransportOptions = {}): HttpT
   return {
     async request<TData>(config: TransportRequestConfig): Promise<{ data: ApiResult<TData> }> {
       const url = buildUrl(baseUrl, config.url, config.params);
+      const multipart = isFormData(config.data);
       const response = await fetchImpl(url, {
         method: config.method,
         headers: {
-          "Content-Type": "application/json",
+          ...(multipart ? {} : { "Content-Type": "application/json" }),
           ...config.headers,
         },
-        body: config.data === undefined ? undefined : JSON.stringify(config.data),
+        body: config.data === undefined ? undefined : multipart ? config.data as BodyInit : JSON.stringify(config.data),
       });
 
       const data = (await response.json()) as ApiResult<TData>;
       return { data };
     },
   };
+}
+
+function isFormData(value: unknown): value is FormData {
+  return typeof FormData !== "undefined" && value instanceof FormData;
 }
 
 function buildUrl(baseUrl: string, path: string, params: unknown): string {

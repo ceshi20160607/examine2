@@ -26,7 +26,7 @@ export interface OpenApiClientListItemVO {
   status: OpenApiClientStatus;
   scopes: OpenApiScope[];
   ipWhitelist: string[];
-  rateLimitPolicy?: OpenApiRateLimitPolicyDTO;
+  rateLimitPolicy?: OpenApiRateLimitPolicyDTO[];
   expiresAt?: IsoDateTimeString;
   createdAt: IsoDateTimeString;
   lastUsedAt?: IsoDateTimeString;
@@ -67,6 +67,7 @@ export interface OpenApiRateLimitPolicyDTO {
   maxRequests: number;
   burst?: number;
   effectiveFrom?: IsoDateTimeString;
+  status?: "ENABLED" | "DISABLED";
 }
 
 export interface OpenApiClientSaveBO {
@@ -74,8 +75,8 @@ export interface OpenApiClientSaveBO {
   code: string;
   tenantId?: EntityId;
   scopes: OpenApiScope[];
-  ipWhitelist: string[];
-  rateLimitPolicy?: OpenApiRateLimitPolicyDTO;
+  ipWhitelist: OpenApiIpWhitelistBO[];
+  rateLimitPolicy?: OpenApiRateLimitPolicyDTO[];
   expiresAt?: IsoDateTimeString;
   status: OpenApiClientStatus;
   idempotencyKey: string;
@@ -83,8 +84,12 @@ export interface OpenApiClientSaveBO {
 
 export interface OpenApiClientUpdateBO {
   name: string;
+  code?: string;
+  status?: OpenApiClientStatus;
   tenantId?: EntityId;
-  rateLimitPolicy?: OpenApiRateLimitPolicyDTO;
+  scopes?: OpenApiScope[];
+  ipWhitelist?: OpenApiIpWhitelistBO[];
+  rateLimitPolicy?: OpenApiRateLimitPolicyDTO[];
   expiresAt?: IsoDateTimeString;
   version?: number;
 }
@@ -100,7 +105,10 @@ export interface OpenApiScopeSaveBO {
 }
 
 export interface OpenApiIpWhitelistBO {
-  ipWhitelist: string[];
+  ipRule: string;
+  ruleType?: "IP" | "CIDR";
+  status?: "ENABLED" | "DISABLED";
+  description?: string;
   version?: number;
 }
 
@@ -164,7 +172,7 @@ export interface OpenApiPageModel {
   changeClientStatus(clientId: EntityId, body: OpenApiClientStatusBO, requestId?: string): Promise<OpenApiClientDetailVO>;
   rotateCredential(clientId: EntityId, idempotencyKey: string, requestId?: string): Promise<SecretOnceDisplayState>;
   updateScopes(clientId: EntityId, body: OpenApiScopeSaveBO, requestId?: string): Promise<OpenApiClientDetailVO>;
-  updateIpWhitelist(clientId: EntityId, body: OpenApiIpWhitelistBO, requestId?: string): Promise<OpenApiClientDetailVO>;
+  updateIpWhitelist(clientId: EntityId, body: { ipWhitelist: OpenApiIpWhitelistBO[] }, requestId?: string): Promise<OpenApiClientDetailVO>;
   loadAccessLogs(query?: OpenApiAccessLogQuery, requestId?: string): Promise<PageResult<OpenApiAccessLogVO>>;
   consumeSecretOnce(state: OpenApiPageState): OpenApiPageState;
 }
@@ -265,18 +273,18 @@ export function createOpenApiPageModel(deps: {
     },
 
     async updateScopes(clientId, body, requestId) {
-      const response = await apiClient.call<OpenApiClientDetailVO, OpenApiScopeSaveBO>("OPM-006", {
+      const response = await apiClient.call<OpenApiClientDetailVO, OpenApiScope[]>("OPM-006", {
         pathParams: systemContext.toPathParams({ clientId }),
-        body,
+        body: body.scopes,
         context: apiContext(auth, systemContext, requestId),
       });
       return response.data;
     },
 
     async updateIpWhitelist(clientId, body, requestId) {
-      const response = await apiClient.call<OpenApiClientDetailVO, OpenApiIpWhitelistBO>("OPM-007", {
+      const response = await apiClient.call<OpenApiClientDetailVO, OpenApiIpWhitelistBO[]>("OPM-007", {
         pathParams: systemContext.toPathParams({ clientId }),
-        body,
+        body: body.ipWhitelist,
         context: apiContext(auth, systemContext, requestId),
       });
       return response.data;

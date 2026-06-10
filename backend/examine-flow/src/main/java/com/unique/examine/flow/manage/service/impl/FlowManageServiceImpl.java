@@ -30,6 +30,7 @@ import com.unique.examine.core.flow.FlowRecordStartResult;
 import com.unique.examine.core.permission.PermissionService;
 import com.unique.examine.flow.base.entity.ActionLog;
 import com.unique.examine.flow.base.entity.Binding;
+import com.unique.examine.flow.base.entity.Cc;
 import com.unique.examine.flow.base.entity.Instance;
 import com.unique.examine.flow.base.entity.Task;
 import com.unique.examine.flow.base.entity.TaskActor;
@@ -40,6 +41,7 @@ import com.unique.examine.flow.base.entity.TemplateNode;
 import com.unique.examine.flow.base.entity.TemplateVersion;
 import com.unique.examine.flow.base.service.IActionLogService;
 import com.unique.examine.flow.base.service.IBindingService;
+import com.unique.examine.flow.base.service.ICcService;
 import com.unique.examine.flow.base.service.IInstanceService;
 import com.unique.examine.flow.base.service.ITaskActorService;
 import com.unique.examine.flow.base.service.ITaskService;
@@ -64,6 +66,7 @@ import com.unique.examine.flow.manage.enums.FlowErrorCode;
 import com.unique.examine.flow.manage.service.FlowManageService;
 import com.unique.examine.flow.manage.vo.FlowActionResultVO;
 import com.unique.examine.flow.manage.vo.FlowBindingVO;
+import com.unique.examine.flow.manage.vo.FlowCcItemVO;
 import com.unique.examine.flow.manage.vo.FlowCheckIssueVO;
 import com.unique.examine.flow.manage.vo.FlowDiagramVO;
 import com.unique.examine.flow.manage.vo.FlowHistoryItemVO;
@@ -139,6 +142,8 @@ public class FlowManageServiceImpl implements FlowManageService, FlowRecordRunti
     private final ITemplateConditionService templateConditionService;
 
     private final IBindingService bindingService;
+
+    private final ICcService ccService;
 
     private final IInstanceService instanceService;
 
@@ -408,6 +413,52 @@ public class FlowManageServiceImpl implements FlowManageService, FlowRecordRunti
                 .sorted(Comparator.comparing(Task::getUpdatedAt, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
                 .toList();
         return page(tasks.stream().map(this::toTaskListItemVO).toList(), queryBO);
+    }
+
+    /**
+     * 查询当前成员的流程抄送。
+     */
+    @Override
+    public PageResult<FlowCcItemVO> ccTasks(Long systemId, FlowTaskQueryBO queryBO) {
+        permissionService.requireOperation("FLOW_INSTANCE_VIEW");
+        Long memberId = currentMemberId();
+        Map<Long, Instance> instanceMap = instanceService.lambdaQuery()
+                .eq(Instance::getSystemId, systemId)
+                .list()
+                .stream()
+                .collect(Collectors.toMap(Instance::getId, Function.identity(), (left, right) -> left));
+        List<FlowCcItemVO> ccItems = ccService.lambdaQuery()
+                .eq(Cc::getSystemId, systemId)
+                .eq(Cc::getCcMemberId, memberId)
+                .list()
+                .stream()
+                .filter(cc -> instanceMap.containsKey(cc.getInstanceId()))
+                .sorted(Comparator.comparing(Cc::getUpdatedAt, Comparator.nullsLast(LocalDateTime::compareTo))
+                        .reversed())
+                .map(cc -> toCcItemVO(cc, instanceMap.get(cc.getInstanceId())))
+                .toList();
+        return page(ccItems, queryBO);
+    }
+
+    /**
+     * 查询当前成员发起的流程实例。
+     */
+    @Override
+    public PageResult<FlowInstanceVO> startedInstances(Long systemId, FlowTaskQueryBO queryBO) {
+        permissionService.requireOperation("FLOW_INSTANCE_VIEW");
+        Long memberId = currentMemberId();
+        List<FlowInstanceVO> instances = instanceService.lambdaQuery()
+                .eq(Instance::getSystemId, systemId)
+                .eq(Instance::getStarterMemberId, memberId)
+                .list()
+                .stream()
+                .filter(instance -> !StringUtils.hasText(queryBO.getStatus())
+                        || Objects.equals(instance.getStatus(), queryBO.getStatus()))
+                .sorted(Comparator.comparing(Instance::getUpdatedAt, Comparator.nullsLast(LocalDateTime::compareTo))
+                        .reversed())
+                .map(this::toInstanceVO)
+                .toList();
+        return page(instances, queryBO);
     }
 
     /**
@@ -1068,6 +1119,27 @@ public class FlowManageServiceImpl implements FlowManageService, FlowRecordRunti
         return summary;
     }
 
+    private String recordTitle(Instance instance) {
+        Record record = recordService.getById(instance.getRecordId());
+        if (Objects.isNull(record)) {
+            return toId(instance.getRecordId());
+        }
+        return StringUtils.hasText(record.getTitle()) ? record.getTitle() : record.getRecordNo();
+    }
+
+    private String currentNodeName(Instance instance) {
+        if (!StringUtils.hasText(instance.getCurrentNodeKeys())) {
+            return null;
+        }
+        return templateNodeService.lambdaQuery()
+                .eq(TemplateNode::getSystemId, instance.getSystemId())
+                .eq(TemplateNode::getTemplateVersionId, instance.getTemplateVersionId())
+                .eq(TemplateNode::getNodeKey, instance.getCurrentNodeKeys())
+                .oneOpt()
+                .map(TemplateNode::getNodeName)
+                .orElse(instance.getCurrentNodeKeys());
+    }
+
     private FlowActionResultVO actionResult(Instance instance, Task task, String taskStatus, List<String> nextNodes) {
         return FlowActionResultVO.builder()
                 .instanceId(toId(instance.getId()))
@@ -1124,6 +1196,19 @@ public class FlowManageServiceImpl implements FlowManageService, FlowRecordRunti
                 .templateVersionId(toId(binding.getTemplateVersionId()))
                 .status(binding.getStatus())
                 .versionNo(binding.getVersionNo())
+                .build();
+    }
+
+    private FlowCcItemVO toCcItemVO(Cc cc, Instance instance) {
+        return FlowCcItemVO.builder()
+                .ccId(toId(cc.getId()))
+                .instanceId(toId(cc.getInstanceId()))
+                .moduleId(toId(instance.getModuleId()))
+                .recordId(toId(instance.getRecordId()))
+                .recordTitle(recordTitle(instance))
+                .nodeName(currentNodeName(instance))
+                .read("READ".equals(cc.getReadStatus()))
+                .createdAt(cc.getCreatedAt())
                 .build();
     }
 

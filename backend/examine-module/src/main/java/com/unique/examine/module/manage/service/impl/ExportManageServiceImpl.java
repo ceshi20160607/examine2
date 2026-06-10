@@ -217,6 +217,9 @@ public class ExportManageServiceImpl implements ExportManageService {
         List<Field> fields = exportFields(systemId, model.getModuleId(), template);
         PublishVersion publishVersion = publishVersionService.getById(model.getCurrentPublishVersionId());
         LocalDateTime now = LocalDateTime.now();
+        List<Long> selectedRecordIds = Objects.isNull(createBO.getSelectedRecordIds()) ? List.of() : createBO.getSelectedRecordIds();
+        List<?> filters = Objects.isNull(createBO.getFilters()) ? List.of() : createBO.getFilters();
+        List<?> sorter = Objects.isNull(createBO.getSorter()) ? List.of() : createBO.getSorter();
         ExportJob job = new ExportJob()
                 .setSystemId(systemId)
                 .setTenantId(currentTenantId())
@@ -225,9 +228,9 @@ public class ExportManageServiceImpl implements ExportManageService {
                 .setPublishVersionId(Objects.isNull(publishVersion) ? null : publishVersion.getPublishVersionId())
                 .setJobStatus(QUEUED)
                 .setProgress(0)
-                .setSelectedRecordIdsJson(writeJson(createBO.getSelectedRecordIds()))
-                .setFilterSnapshotJson(writeJson(createBO.getFilters()))
-                .setSorterSnapshotJson(writeJson(createBO.getSorter()))
+                .setSelectedRecordIdsJson(writeJson(selectedRecordIds))
+                .setFilterSnapshotJson(writeJson(filters))
+                .setSorterSnapshotJson(writeJson(sorter))
                 .setFieldSnapshotJson(writeJson(fieldSnapshot(fields, template)))
                 .setPermissionSnapshotJson(writeJson(permissionService.currentPermission()))
                 .setDataScopeSnapshotJson(writeJson(permissionService.currentPermission().getDataScopes()))

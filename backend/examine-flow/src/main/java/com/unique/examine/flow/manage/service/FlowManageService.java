@@ -14,6 +14,7 @@ import com.unique.examine.flow.manage.bo.FlowTemplateStatusBO;
 import com.unique.examine.flow.manage.bo.FlowWithdrawBO;
 import com.unique.examine.flow.manage.vo.FlowActionResultVO;
 import com.unique.examine.flow.manage.vo.FlowBindingVO;
+import com.unique.examine.flow.manage.vo.FlowCcItemVO;
 import com.unique.examine.flow.manage.vo.FlowDiagramVO;
 import com.unique.examine.flow.manage.vo.FlowHistoryItemVO;
 import com.unique.examine.flow.manage.vo.FlowInstanceVO;
@@ -72,6 +73,16 @@ public interface FlowManageService {
      * 查询待办任务。
      */
     PageResult<FlowTaskListItemVO> todoTasks(Long systemId, FlowTaskQueryBO queryBO);
+
+    /**
+     * 查询当前成员抄送。
+     */
+    PageResult<FlowCcItemVO> ccTasks(Long systemId, FlowTaskQueryBO queryBO);
+
+    /**
+     * 查询当前成员发起的实例。
+     */
+    PageResult<FlowInstanceVO> startedInstances(Long systemId, FlowTaskQueryBO queryBO);
 
     /**
      * 查询任务详情。
