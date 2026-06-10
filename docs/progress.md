@@ -7,16 +7,16 @@
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 69 |
-| 已完成 | 66 |
+| 已完成 | 67 |
 | 进行中 | 0 |
 | 阻塞 | 0 |
-| 剩余 | 3 |
+| 剩余 | 2 |
 
 当前模式：`development`
 
 当前期次：`P12-uiux-frontend-rework`
 
-当前状态：`P12_test010_pass_val008_next_no_package`
+当前状态：`P12_val008_pass_rev008_next_no_package`
 
 ## 分期进度
 
@@ -34,7 +34,7 @@
 | P9-system-management-ui | 系统管理域可用化期 | accepted | FE-015、TEST-007、VAL-005、REV-005 已完成；成员、部门、系统角色、字典真实浏览器写操作 E2E 通过 | 已进入 P10 |
 | P10-app-runtime-ui | 应用模块与运行台可用化期 | accepted | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006 已完成；应用、模块、字段、页面配置、发布和运行台记录浏览器 E2E 通过 | 下一期进入 P11 流程、文件导出、OpenAPI 与审计运维可用化 |
 | P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | accepted | FE-019 至 FE-022、TEST-009、VAL-007、REV-007 已完成；功能试部署包已生成 | 用户反馈 UI 体验不足，进入 P12 |
-| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001、UIUX-002、FE-023、FE-024、TEST-010 已完成；PKG-001 阻塞 | 未通过 VAL-008/REV-008 前禁止打包 |
+| P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | in_progress | UIUX-001、UIUX-002、FE-023、FE-024、TEST-010、VAL-008 已完成；PKG-001 阻塞 | 未通过 REV-008 前禁止打包 |
 
 ## 角色完成度
 
@@ -46,7 +46,7 @@
 | UI/UX | 2 | 0 | 0 | UIUX-001/UIUX-002 已完成，P12 UI 设计和页面级原型已输出。 |
 | Frontend | 24 | 0 | 0 | FE-001 至 FE-024 已完成；业务域页面已按 UI 设计改造，待 test/validator/reviewer 复验。 |
 | Test | 10 | 0 | 0 | TEST-001 至 TEST-010 已完成；TEST-010 真实浏览器复测通过。 |
-| Validator | 7 | 0 | 1 | VAL-001 至 VAL-007 已完成；VAL-008 待执行 P12 clean build/package。 |
+| Validator | 8 | 0 | 0 | VAL-001 至 VAL-008 已完成；P12 clean build/package 通过。 |
 | Reviewer | 7 | 0 | 1 | REV-001 至 REV-007 已完成；REV-008 待重新审查 UI/UX 与最终可用性。 |
 
 ## 当前 Agent 状态
@@ -359,3 +359,11 @@ PM 已做如下调整：
 - 流程工作台刷新成功，`FLOW-007/FLOW-013/FLOW-014/FLOW-017` 返回成功。
 - 系统角色权限目录下拉未再出现 `[object Object]`。
 - TEST-010 结论：pass。下一步执行 VAL-008 clean build；未通过 VAL-008/REV-008 前仍不允许打包。
+
+## 2026-06-11 VAL-008 Clean Build 通过
+
+- 前端已删除旧 `frontend/dist/` 后执行 `npm.cmd run build`，结果 pass，重新生成 `frontend/dist/index.html`、CSS 和 JS 产物。
+- 后端执行 `mvn.cmd -pl examine-web -am clean package -DskipTests`，结果 pass，8 个 Maven 模块 SUCCESS，重新生成 `backend/examine-web/target/unexamine.jar`。
+- 构建报告：`docs/build/p12-clean-build.md`。
+- 本轮未生成新的 `dist/unexamine-full-deploy-*.zip`。
+- 下一步进入 REV-008；REV-008 未通过前，PKG-001 继续阻塞，不允许最终打包。

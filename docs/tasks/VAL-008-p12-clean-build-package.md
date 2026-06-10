@@ -2,7 +2,7 @@
 
 - 所属期次：P12-uiux-frontend-rework
 - 负责人：validator
-- 状态：pending
+- 状态：done/pass（2026-06-11 clean build/package 通过，未生成最终部署包）
 
 ## 目标
 
@@ -18,3 +18,10 @@
 - `mvn -pl examine-web -am -DskipTests package` 通过。
 - 不创建新的 `dist/unexamine-full-deploy-*.zip`。
 - 如果发现测试或审查未通过，validator 必须阻止打包。
+
+## 验证结果
+
+- `npm.cmd run build`：pass，重新生成 `frontend/dist/`。
+- `mvn.cmd -pl examine-web -am clean package -DskipTests`：pass，8 个 Maven 模块 SUCCESS，生成 `backend/examine-web/target/unexamine.jar`。
+- 未生成新的 `dist/unexamine-full-deploy-*.zip`。
+- 构建报告：`docs/build/p12-clean-build.md`。
