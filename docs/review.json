@@ -1,65 +1,24 @@
 {
-  "status": "pass",
-  "target": "none",
-  "phase": "P12-uiux-frontend-rework",
-  "reviewedAt": "2026-06-11T01:45:00+08:00",
-  "summary": "P12 has closed the PM/UI gap: UI/UX design and page prototypes were frozen, FE-023/FE-024 reworked navigation, overview and domain pages, TEST-010 passed real browser usability E2E, and VAL-008 passed frontend clean build plus backend clean package. Remaining risks are P2 deferred production hardening items, not blockers for generating the final deployable package.",
-  "nextRoute": [
-    "PKG-001"
-  ],
-  "issues": [
-    {
-      "issueId": "P12-UI-001",
-      "severity": "P1",
-      "target": "frontend",
-      "status": "resolved",
-      "file": "frontend/src/App.ts",
-      "problem": "Current frontend is functionally connected but organized as an API-driven engineering UI, with too much page logic concentrated in App.ts and no prior frozen information architecture, wireframe, interaction state or component guideline.",
-      "suggestion": "FE-023 and FE-024 have been implemented against docs/ui/ui-design.md; TEST-010, VAL-008 and REV-008 have passed."
-    },
-    {
-      "issueId": "P12-PM-001",
-      "severity": "P1",
-      "target": "pm",
-      "status": "resolved",
-      "file": "docs/ui/ui-design.md",
-      "problem": "Previous PM acceptance over-weighted build, API closure and browser E2E, but under-specified UI/UX design as a separate delivery gate.",
-      "suggestion": "P12 has added a UI/UX design gate and task plan; UI rework, real browser E2E, clean build and final review have passed."
-    }
-  ],
-  "backendTrialDeployable": true,
-  "frontendDeployable": true,
-  "fullProjectDeployable": true,
-  "deferredRisks": [
-    {
-      "issueId": "REV-001-BE-IDEMPOTENCY-STORAGE",
-      "severity": "P2",
-      "target": "backend",
-      "status": "deferred",
-      "reason": "Create-system idempotency still uses single-JVM memory storage. Production multi-instance consistency needs shared storage or a database idempotency table."
-    },
-    {
-      "issueId": "NPM-AUDIT-MODERATE-001",
-      "severity": "P2",
-      "target": "frontend",
-      "status": "deferred",
-      "reason": "npm ci previously reported moderate audit items. Dependency governance should be handled separately from feature delivery."
-    },
-    {
-      "issueId": "REV-003-TEST-RISK-MATRIX",
-      "severity": "P2",
-      "target": "test",
-      "status": "deferred",
-      "reason": "OpenAPI nonce replay, IP whitelist, idempotency conflict and high-concurrency scenarios remain recommended before production launch."
-    }
-  ],
-  "verification": [
-    "UIUX-001 produced docs/ui/ui-design.md",
-    "UIUX-002 produced docs/ui/prototypes/page-prototypes.md",
-    "FE-023 produced shell navigation and system overview UI",
-    "FE-024 produced domain UI rework, removed window.prompt interactions, added stateful tabs, and npm.cmd run build pass",
-    "TEST-010 passed real browser E2E for login, entering system, runtime record create/query/submit, flow workbench refresh, and permission multi-select",
-    "VAL-008 passed frontend clean build and backend clean package without generating final deploy zip",
-    "REV-008 passed; PKG-001 may generate the final deployable package"
-  ]
+    "status": "pass",
+    "target": "none",
+    "phase": "P13-usability-rework",
+    "reviewedAt": "2026-06-11T15:50:00+08:00",
+    "summary": "REV-009 pass. P13 closed the ordinary-user usability blockers reported after deployment: create-system now enters system overview, SYS-001 nested tenant/member/permissions are written into frontend context, system navigation no longer exposes invalid current links or platform ops entries, runtime no longer pre-fills P10 test data or exposes schema/module ID wording, and TEST-011 plus VAL-009 passed.",
+    "frontendDeployable": true,
+    "backendTrialDeployable": true,
+    "fullProjectDeployable": true,
+    "packageGate": "PKG-002 allowed",
+    "issues": [],
+    "verification": [
+        "docs/ui/p13-usability-rework-spec.md exists",
+        "docs/ui/prototypes/p13-usability-delta.md exists",
+        "frontend/docs/page-contracts/FE-025-p13-usability-frontend-rework.md exists",
+        "docs/test_runs/p13-usability-e2e.md records login -> system -> app -> module -> field -> publish -> runtime record",
+        "docs/test_report.md summarizes TEST-011 pass",
+        "docs/build/p13-clean-build.md records frontend build and backend clean package pass",
+        "npm.cmd run build pass",
+        "mvn.cmd -pl examine-web -am clean package -DskipTests pass",
+        "git diff --check has only LF/CRLF warnings",
+        "backend/examine-generator follows command-as-config; backend/docs/mybatis-plus-generation.md is intentionally not required per AGENTS.md and backend/examine-generator/README.md"
+    ]
 }

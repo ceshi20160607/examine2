@@ -386,3 +386,42 @@ PM 已做如下调整：
 - `backend/start.sh` 已修复直接执行问题：项目新增 `.gitattributes` 固化 `.sh` 为 LF；fixed zip 中 `start.sh` 外部属性为 Unix `100755`，tar.gz 中为 `-rwxr-xr-x`。
 - P12 阶段验收记录：`docs/phases/P12-uiux-frontend-rework-acceptance.md`。
 - 当前结论：P12 accepted，最终试部署包 ready。
+
+## 2026-06-11 P13 用户部署反馈可用性返工
+
+用户反馈成立：部署地址 `http://192.168.0.211:19999/` 的 P12 包仍不能称为“普通人可正常使用的完整系统”。PM、Analyst、UI/UX、Frontend 复盘确认，P12 将构建、管理员 E2E 和打包结果扩大解释为最终用户可用，验收口径需要撤回。
+
+本轮 PM/角色结论：
+
+- PM：P12 `fullProjectDeployable=true` 结论过宽，P13 前不得继续把 P12 包当成用户反馈后的最终交付。
+- Analyst：当前应区分“可试部署 MVP”和“完整普通用户可用”，不能混用。
+- UI/UX：普通用户主链路必须覆盖登录、我的系统、系统总览、应用、模块、字段、发布、运行台和中文可恢复提示。
+- Frontend：`mySystemsPageModel` 未写入 SYS-001 嵌套成员/权限，创建系统后直接进入空运行台，是普通用户主链路 P0 卡点。
+- Planner：已新增 P13 任务链 `UIUX-003 -> FE-025 -> TEST-011 -> VAL-009 -> REV-009 -> PKG-002`。
+
+本轮修复：
+
+- 前端创建系统后默认进入系统总览，不再直接跳到空运行台。
+- `SYS-001` 返回的 `currentTenant/currentMember/permissions` 已在 `frontend/src/pages/my-systems/mySystemsPageModel.ts` 中兼容并写入系统上下文与权限仓库。
+- 系统内侧栏隐藏无效 `current` 路由和平台级“平台审计/运维”入口。
+- 生产环境不再执行 `smokeApi` 调试查询参数。
+- 成功提示改成“操作已完成”，`requestId` 只作为辅助排障信息展示，避免把 `COMMON_OK` 暴露为主提示。
+- 应用、模块、字段表单移除 P10/P12 测试默认值。
+
+验证结果：
+
+- TEST-011 浏览器 E2E 通过，记录见 `docs/test_runs/p13-usability-e2e.md`。
+- 前端 `npm.cmd run build` 通过，生成 `frontend/dist/`。
+- 后端 `mvn.cmd -pl examine-web -am clean package -DskipTests` 通过，生成 `backend/examine-web/target/unexamine.jar`。
+- P13 build 记录见 `docs/build/p13-clean-build.md`。
+
+REV-009 复审结论：pass。上一轮 reviewer 要求 `backend/docs/mybatis-plus-generation.md` 属于旧口径，已按当前 `AGENTS.md` 和 `backend/examine-generator/README.md` 修正为“命令即配置，不生成默认报告文件”，以 README、脚本、生成路径和编译结果作为留痕。
+
+PKG-002 已完成：
+
+- P13 zip 包：`dist/unexamine-full-deploy-20260611-160935-p13.zip`，大小 40,005,971 B。
+- P13 Linux 推荐包：`dist/unexamine-full-deploy-20260611-160935-p13.tar.gz`，大小 39,994,975 B。
+- 包内已核验 `frontend/index.html`、`backend/unexamine.jar`、`backend/start.sh`、`docs/review.json`、`docs/p13-usability-e2e.md`。
+- `backend/start.sh` 权限已核验：tar.gz 中为 `-rwxr-xr-x`，zip 外部属性为 `0755`。
+
+当前状态：P13 accepted，P13 包可用于重新部署验证；P12 fixed 包只作为旧基线保留。

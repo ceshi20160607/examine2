@@ -23,7 +23,7 @@ P1-generator 阶段通过，允许进入 `P2-auth-platform`。
 | Mapper XML | 源码目录生成 83 个 `mapper/base/*.xml` |
 | Controller 约束 | `base` 包 Controller 目录数量为 0 |
 | 旧项目污染检查 | `com.kakarote`、Swagger2 注解、旧 base controller 命中为 0 |
-| 生成报告 | `datasourceSource` 已标记为 `environment variables`，不记录密码 |
+| 生成留痕 | `backend/examine-generator/README.md` 和 `scripts/generate-base-crud.ps1` 记录命令参数与数据源环境变量；不生成 `backend/docs/mybatis-plus-generation.md` 默认报告 |
 | 构建产物清理 | `backend/**/target` 已清理 |
 
 ## PM 决策

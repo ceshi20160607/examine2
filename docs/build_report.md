@@ -1,3 +1,15 @@
+# 2026-06-11 P13 Clean Build 摘要
+
+结论：VAL-009 通过，P13 前端 clean build、后端 clean package 和浏览器可用性主链路均已通过；REV-009 通过前仍不生成 PKG-002 最终包。
+
+| 项目 | 结果 |
+| --- | --- |
+| 前端构建 | `npm.cmd run build` pass，生成 `frontend/dist/` |
+| 后端打包 | `mvn.cmd -pl examine-web -am clean package -DskipTests` pass，生成 `backend/examine-web/target/unexamine.jar` |
+| 浏览器 E2E | TEST-011 pass，记录见 `docs/test_runs/p13-usability-e2e.md` |
+| 修复重点 | 创建系统进入总览、SYS-001 成员/权限上下文写入、系统内导航收敛、生产 smoke 参数禁用、成功提示业务化 |
+| 阶段状态 | 待 REV-009 审查和 PKG-002 打包 |
+
 # P8 平台中心 UI 构建验证报告
 
 # 2026-06-10 P11 Clean Build 摘要

@@ -16,7 +16,7 @@
 | 期次 | 名称 | 任务范围 | 退出标准 | 状态 |
 | --- | --- | --- | --- | --- |
 | P0-foundation | 基础冻结与骨架期 | DBA-001 至 DBA-006、TEST-001 至 TEST-002、FE-001 至 FE-007、FE-011、BE-001 至 BE-002、GEN-001 | DB/SQL、后端骨架、core、生成器骨架、前端 SDK/Layout/基础页面和测试计划完成，相关自检通过。 | done |
-| P1-generator | 生成器闭环期 | GEN-002、GEN-003、GEN-004 | 生成器能按表前缀和模块映射生成各业务模块 `base` 包，并输出生成报告；后端 compile 通过。 | accepted |
+| P1-generator | 生成器闭环期 | GEN-002、GEN-003、GEN-004 | 生成器能按命令参数生成各业务模块 `base` 包，README 和脚本可复跑；后端 compile 通过。 | accepted |
 | P2-auth-platform | 认证与平台期 | BE-003、BE-004、FE-003/FE-004 联调补充、阶段测试验证 | 登录、刷新、退出、当前用户、我的系统、平台系统创建、平台账号角色核心闭环通过。 | accepted |
 | P3-system-config | 系统配置与权限期 | BE-005、BE-006、BE-007、BE-014、FE-005/FE-006 联调补充 | 系统成员、部门、角色、权限、字典、应用/模块/字段/页面配置闭环，权限与数据范围基础可用。 | accepted |
 | P4-runtime-mvp | 运行台 MVP 期 | BE-008、FE-008、阶段测试验证 | 动态 schema、记录列表/详情/保存/历史/提交审批入口按权限跑通。 | accepted |
@@ -28,14 +28,15 @@
 | P10-app-runtime-ui | 应用模块与运行台可用化期 | FE-016、FE-017、FE-018、TEST-008、VAL-006、REV-006：应用、模块、字段、页面配置、发布、运行台记录真实业务 UI，浏览器 E2E、clean build 和审查 | 应用、模块、字段、页面配置、发布和运行台记录主链路不再是通用占位页；页面完成真实写操作和回显，P10 只能声明应用运行域完成。 | accepted |
 | P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | FE-019、FE-020、FE-021、FE-022、TEST-009、VAL-007、REV-007：流程工作台、文件与导出、OpenAPI、审计运维真实业务 UI | 流程、文件导出、OpenAPI、审计运维不再是占位页；主要写操作、查询和异常态通过浏览器 E2E。 | accepted |
 | P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | UIUX-001、FE-023、FE-024、TEST-010、VAL-008、REV-008、PKG-001：先冻结 UI/UX 设计，再按设计重构导航、系统总览、页面布局、业务表单、状态反馈和可用性 E2E，最终生成部署包 | 前端不再只是功能可点；信息架构、导航、主流程、状态反馈、空态/错误态、组件规范和部署包均通过验收。 | accepted |
+| P13-usability-rework | 用户部署反馈可用性返工期 | UIUX-003、FE-025、TEST-011、VAL-009、REV-009、PKG-002：撤回 P12 最终用户可用性误判，修复创建系统进入总览、SYS-001 上下文/权限、导航、提示和普通用户主链路 | 普通用户可从登录、我的系统、应用、模块、字段、发布走到运行台新增记录；clean build/package 和审查通过后刷新最终包。 | accepted |
 
 ## 当前期
 
-当前已完成：P12 UI/UX 设计、前端可用化改造、真实浏览器 E2E、clean build、review 和最终部署包。
+当前已完成：P13 UI/UX 返工设计、前端修复、TEST-011 浏览器 E2E、VAL-009 clean build/package gate、REV-009 复审和 PKG-002 打包。
 
-当前期：P12 UI/UX 设计与前端可用化改造期已验收。
+当前期：P13 用户部署反馈可用性返工期已验收。
 
-下一阶段：用户可使用 `dist/unexamine-full-deploy-20260611-100441-fixed.tar.gz` 或 `dist/unexamine-full-deploy-20260611-100441-fixed.zip` 进行最终试部署，Linux 优先使用 tar.gz。
+下一阶段：用户可使用 `dist/unexamine-full-deploy-20260611-160935-p13.tar.gz` 或 `dist/unexamine-full-deploy-20260611-160935-p13.zip` 重新部署验证；Linux 优先使用 tar.gz。P12 的 `dist/unexamine-full-deploy-20260611-100441-fixed.*` 只作为旧基线，不再作为用户反馈后的最终可用性交付结论。
 
 原因：
 
@@ -54,6 +55,8 @@
 - P11 已完成流程工作台、文件导出、OpenAPI、审计运维真实 UI，验收记录为 `docs/phases/P11-flow-file-openapi-ui-acceptance.md`。
 - 用户反馈成立：P11 虽然功能试部署可用，但缺独立 UI/UX 设计，不能作为最终用户体验完成结论。
 - P12 已冻结 `docs/ui/ui-design.md`，完成前端可用化改造、TEST-010、VAL-008、REV-008 和 PKG-001；验收记录为 `docs/phases/P12-uiux-frontend-rework-acceptance.md`。
+- 用户在部署地址反馈普通人无法正常使用，PM/Analyst/UIUX/Frontend 复盘确认 P12 “最终可用”口径过宽，已启动 P13。
+- P13 已修复创建系统进入总览、`SYS-001` 嵌套上下文和权限写入、系统内导航收敛、生产 smoke 参数禁用、成功提示业务化，并通过浏览器 E2E 到运行台新增记录。
 
 ## 暂停与继续
 

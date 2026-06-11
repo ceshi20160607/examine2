@@ -1,5 +1,5 @@
 import type { ApiClient } from "../../api/client";
-import type { AvailableAction, EntityId, IsoDateTimeString, SystemStatus, TenantStatus } from "../../api/types";
+import type { AvailableAction, EffectivePermissionVO, EntityId, IsoDateTimeString, SystemStatus, TenantStatus } from "../../api/types";
 import { buildPath, DEFAULT_AUTHENTICATED_ROUTE } from "../../router";
 import {
   authStore,
@@ -103,11 +103,36 @@ interface EnterSystemResponse {
   tenantCode?: string;
   tenantName?: string;
   tenantStatus?: TenantStatus;
-  memberId: EntityId;
+  memberId?: EntityId;
   memberDisplayName?: string;
   memberRoles?: string[];
   memberRoleNames?: string[];
   memberStatus?: "ENABLED" | "DISABLED";
+  currentTenant?: {
+    tenantId: EntityId;
+    tenantCode?: string;
+    tenantName?: string;
+    code?: string;
+    name?: string;
+    status: TenantStatus;
+  };
+  currentMember?: {
+    memberId: EntityId;
+    displayName?: string;
+    roles?: string[];
+    roleIds?: EntityId[];
+    status?: "ENABLED" | "DISABLED";
+  };
+  permissions?: {
+    memberId?: EntityId;
+    roles?: string[];
+    menus?: string[];
+    operations?: string[];
+    fieldPermissions?: EffectivePermissionVO["fieldPermissions"];
+    dataScopes?: EffectivePermissionVO["dataScopes"];
+    availableActions?: AvailableAction[];
+    version?: number | string;
+  };
   runtimeHomePage?: string;
   enteredAt?: IsoDateTimeString;
 }
@@ -184,9 +209,14 @@ export function createMySystemsPageModel(dependencies: MySystemsPageModelDepende
       const snapshot = toSystemContextSnapshot(response.data, system);
       systemContext.setContext(snapshot);
       permission.clear();
-      permission.markStale();
+      const effectivePermission = toEffectivePermission(response.data, snapshot);
+      if (effectivePermission) {
+        permission.setEffectivePermission(effectivePermission, effectivePermission.menus);
+      } else {
+        permission.markStale();
+      }
       return {
-        route: response.data.runtimeHomePage ?? buildPath("runtime.home", { systemId: snapshot.system.systemId }),
+        route: buildPath("system.overview", { systemId: snapshot.system.systemId }),
         requestId: response.requestId,
       };
     } catch (error) {
@@ -279,22 +309,45 @@ function toSystemContextSnapshot(response: EnterSystemResponse, fallback?: MySys
       status: response.status ?? fallback?.status ?? "ENABLED",
     },
     tenant:
-      response.tenantId || fallback?.tenantId
+      response.tenantId || response.currentTenant?.tenantId || fallback?.tenantId
         ? {
-            tenantId: response.tenantId ?? fallback?.tenantId ?? "",
-            tenantCode: response.tenantCode ?? fallback?.tenantCode,
-            tenantName: response.tenantName ?? fallback?.tenantName ?? "default",
-            status: response.tenantStatus ?? fallback?.tenantStatus ?? "ENABLED",
+            tenantId: response.tenantId ?? response.currentTenant?.tenantId ?? fallback?.tenantId ?? "",
+            tenantCode: response.tenantCode ?? response.currentTenant?.tenantCode ?? response.currentTenant?.code ?? fallback?.tenantCode,
+            tenantName: response.tenantName ?? response.currentTenant?.tenantName ?? response.currentTenant?.name ?? fallback?.tenantName ?? "default",
+            status: response.tenantStatus ?? response.currentTenant?.status ?? fallback?.tenantStatus ?? "ENABLED",
           }
         : undefined,
     member: {
-      memberId: response.memberId,
-      displayName: response.memberDisplayName ?? fallback?.memberDisplayName ?? "",
-      roles: response.memberRoles ?? response.memberRoleNames ?? fallback?.memberRoleNames ?? [],
-      status: response.memberStatus,
+      memberId: response.memberId ?? response.currentMember?.memberId ?? fallback?.memberId ?? "",
+      displayName: response.memberDisplayName ?? response.currentMember?.displayName ?? fallback?.memberDisplayName ?? "",
+      roles: response.memberRoles ?? response.memberRoleNames ?? response.currentMember?.roles ?? response.currentMember?.roleIds ?? fallback?.memberRoleNames ?? [],
+      status: response.memberStatus ?? response.currentMember?.status,
     },
     runtimeHomePage: response.runtimeHomePage,
     enteredAt: response.enteredAt,
+  };
+}
+
+function toEffectivePermission(response: EnterSystemResponse, snapshot: SystemContextSnapshot): EffectivePermissionVO | undefined {
+  if (!response.permissions) {
+    return undefined;
+  }
+  const operations = response.permissions.operations ?? [];
+  return {
+    memberId: response.permissions.memberId ?? snapshot.member.memberId,
+    roles: response.permissions.roles ?? snapshot.member.roles,
+    version: Number(response.permissions.version ?? 1),
+    menus: response.permissions.menus ?? [],
+    operations,
+    fieldPermissions: response.permissions.fieldPermissions ?? [],
+    availableActions: response.permissions.availableActions ?? operations.map((operationCode) => ({
+      actionCode: operationCode,
+      label: operationCode,
+      visible: true,
+      enabled: true,
+      requiredPermission: operationCode,
+    })),
+    dataScopes: response.permissions.dataScopes ?? [],
   };
 }
 

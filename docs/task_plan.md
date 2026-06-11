@@ -272,3 +272,93 @@ flowchart TD
 ## 当前阶段结论
 
 本文件与 `docs/tasks/` 已完成任务拆分，并通过 DBA、backend、frontend、test 的任务清单复审。任务文件状态仍默认 `pending`，作为开发模式的待执行任务池；当前仍不执行 DB 设计、不生成 `sql/init.sql`、不写后端代码、不写前端代码。只有用户明确切换到开发模式后，才按冻结任务文档、冻结 API 和基础需求文档启动实现。
+
+## P13 可用性返工期追加计划
+
+### P13 任务边界
+
+P13 期次名称为 `P13-usability-rework`，定位为用户反馈触发的可用性返工期。P13 只处理 P12 最终包在真实用户使用中暴露的入口、路径、页面组织、表单填写、状态反馈、错误恢复、空态引导、权限禁用说明和部署后首次使用体验问题。
+
+P13 不新增业务模块，不扩大冻结 API，不修改数据库设计，不重做后端业务能力，不处理生产增强类 deferred 风险。若返工中发现冻结 API 无法支持必要体验，必须登记契约问题交 PM/API 回环，不能由 frontend 私自改接口语义。
+
+### 入口条件
+
+- P12 已完成 UI/UX 设计、前端可用化改造、TEST-010、VAL-008、REV-008 和 PKG-001。
+- 用户反馈明确指向最终包可用性仍不足，PM 将反馈整理为 P13 development issue 或阶段启动说明。
+- `docs/review.json` 需要撤回或暂停 P12 的最终可用性结论，直到 P13 复验通过。
+- P13 启动前必须更新 `.codex/state.json.current_phase = "P13-usability-rework"`、`docs/progress.md` 和 `docs/phases/development-phases.md`，但 Planner 本轮只定义任务边界，不写这些状态文档。
+
+### 退出标准
+
+- UIUX-003 输出 P13 设计修订并由 PM 确认。
+- FE-025 按设计修订完成前端返工，前端 build 自检通过，且不引入旁路请求、硬编码 API 地址、原生 prompt 或调试占位页。
+- TEST-011 用真实浏览器验证用户反馈对应链路，`docs/test_report.md` 给出 pass。
+- VAL-009 完成前端 clean build、后端 package 和契约同步检查。
+- REV-009 审查通过，`docs/review.json.status=pass`，P13 无 P0/P1 阻塞问题。
+- PKG-002 刷新最终部署包，包内证据全部对应 P13。
+
+### 角色职责
+
+| 角色 | P13 职责 |
+| --- | --- |
+| planner | 维护 P13 任务边界、依赖、可并行关系和退出标准；本轮只写 `docs/task_plan.md` 与 `docs/tasks/`。 |
+| pm | 整理用户反馈、裁决 P13 验收口径、维护 `docs/phases/development-phases.md`、`docs/progress.md`、阶段验收文档和是否允许进入后续期。 |
+| uiux | 执行 UIUX-003，冻结 P13 可用性问题归因、设计修订和页面级验收口径。 |
+| frontend | 执行 FE-025，只按 P13 设计修订修复前端体验，不改 API/DB/后端。 |
+| test | 执行 TEST-011，用真实浏览器验证用户反馈链路，不用接口 smoke 替代用户可用性结论。 |
+| validator | 执行 VAL-009 和 PKG-002，先构建验证，REV-009 通过后才刷新最终包。 |
+| reviewer | 执行 REV-009，判断 P13 是否真的关闭用户反馈并给出合法 `docs/review.json`。 |
+
+### P13 任务总览
+
+| taskId | 名称 | 所属大模块 | 责任角色 | 优先级 | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| UIUX-003 | P13 可用性问题归因与设计修订 | P13-usability-rework | uiux | P0 | pending |
+| FE-025 | P13 前端可用性返工实现 | P13-usability-rework | frontend | P0 | pending |
+| TEST-011 | P13 可用性返工浏览器 E2E | P13-usability-rework | test | P0 | pending |
+| VAL-009 | P13 Clean Build 与打包闸门 | P13-usability-rework | validator | P0 | pending |
+| REV-009 | P13 可用性返工审查 | P13-usability-rework | reviewer | P0 | pending |
+| PKG-002 | P13 最终部署包刷新 | P13-usability-rework | validator | P1 | pending |
+
+### P13 依赖图
+
+```mermaid
+flowchart TD
+  P12["P12 accepted + 用户反馈成立"] --> UIUX3["UIUX-003 设计修订"]
+  UIUX3 --> FE25["FE-025 前端可用性返工"]
+  FE25 --> TEST11["TEST-011 浏览器 E2E"]
+  TEST11 --> VAL9["VAL-009 clean build/package gate"]
+  TEST11 --> REV9["REV-009 可用性审查"]
+  VAL9 --> REV9
+  REV9 --> PKG2["PKG-002 最终部署包刷新"]
+```
+
+### 并行批次
+
+| 批次 | 可并行任务 | 串行任务 | 原因 |
+| --- | --- | --- | --- |
+| P13-B0 | 无 | UIUX-003 | P13 必须先把用户反馈转成冻结设计修订，frontend 不能跳过 UI/UX 直接改页面。 |
+| P13-B1 | 无 | FE-025 | 前端返工集中写 `frontend/src/`，为避免输出路径重叠，P13 只设一个前端实现任务。 |
+| P13-B2 | 无 | TEST-011 | TEST-011 依赖 FE-025 产物，用独立 `docs/test_runs/` 记录真实浏览器 E2E。 |
+| P13-B3 | 无 | VAL-009 -> REV-009 | REV-009 必须读取 TEST-011 与 VAL-009 结果，不能并行抢先判定。 |
+| P13-B4 | 无 | PKG-002 | 最终包只能在 REV-009 pass 后生成。 |
+
+### 必须更新的文档
+
+- Planner 本轮已更新：`docs/task_plan.md`、`docs/tasks/UIUX-003-p13-usability-rework-spec.md`、`docs/tasks/FE-025-p13-usability-frontend-rework.md`、`docs/tasks/TEST-011-p13-usability-e2e.md`、`docs/tasks/VAL-009-p13-clean-build-package-gate.md`、`docs/tasks/REV-009-p13-usability-review.md`、`docs/tasks/PKG-002-p13-final-deploy-package.md`。
+- P13 启动时由 PM/Orchestrator 必须更新：`docs/phases/development-phases.md`、`docs/progress.md`、`.codex/state.json`。
+- P13 执行中由对应角色必须更新：`docs/ui/p13-usability-rework-spec.md`、`docs/ui/prototypes/p13-usability-delta.md`、`frontend/docs/page-contracts/FE-025-p13-usability-frontend-rework.md`、`docs/test_runs/p13-usability-e2e.md`、`docs/test_report.md`、`docs/build/p13-clean-build.md`、`docs/build_report.md`、`docs/review.json`、`docs/issues/verification/development/p13_reviewer_verification.md`。
+- P13 验收收口必须更新：`docs/phases/P13-usability-rework-acceptance.md`，并刷新最终包到 `dist/unexamine-full-deploy-{P13时间戳}.zip` 与 `.tar.gz`。
+
+### 暂停恢复点
+
+- UIUX-003 后暂停：恢复时先复核 P13 设计修订是否已由 PM 确认，再启动 FE-025。
+- FE-025 后暂停：恢复时先执行前端 build 和源码扫描，确认没有半成品页面，再启动 TEST-011。
+- TEST-011 失败或中断：恢复时从失败步骤继续，但必须保留原始失败摘要，不得直接覆盖测试记录为 pass。
+- VAL-009 失败：恢复时先修复 target 对应任务，再重新 clean build，不使用旧 dist/jar。
+- REV-009 fail：按 `docs/review.json.target` 回环到 uiux/frontend/test/validator，不进入 PKG-002。
+- PKG-002 前暂停：恢复时重新读取 `docs/review.json`、`docs/build_report.md` 和 `docs/test_report.md`，确认均为 P13 最新产物。
+
+### 是否允许进入后续期
+
+不允许。P13 是用户反馈触发的最终可用性返工期，在 UIUX-003、FE-025、TEST-011、VAL-009、REV-009、PKG-002 全部通过，并由 PM 写明 P13 验收结论前，后续任何新期次只能保持 `pending`。P12 的最终包可作为旧基线保留，但不能继续作为用户反馈后的最终可用性交付结论。
