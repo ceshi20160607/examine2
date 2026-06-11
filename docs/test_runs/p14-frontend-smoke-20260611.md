@@ -13,11 +13,28 @@
 - `systemPath` 不再生成 `/current/` 占位链接。
 - 执行 `npm.cmd run build` 通过，生成 `frontend/dist/index.html` 与 `frontend/dist/assets/index-Syyl9-qs.js`。
 
-## 未通过/待复验
+## 浏览器烟测
 
-- Chrome DevTools Protocol 已能打开 Vite 页面，但真实页面登录点击流未稳定进入认证态，页面正文仍停留在登录页。
-- 本次不把浏览器点击流计为 pass。
-- P14-PKG-001 继续阻塞，不能打包。
+已使用 Chrome DevTools Protocol 打开本地 Vite 服务 `http://127.0.0.1:5180/`，同源代理到 `http://192.168.0.211:19999`，并通过页面真实登录 `platform_admin / 123123aa`。
+
+验证结果：
+
+| 页面 | 路由 | 结果 |
+| --- | --- | --- |
+| 平台对外应用中心 | `#/platform/openapi` | 渲染成功，页面有 13 个按钮、13 行系统数据，标题包含“对外应用中心”。 |
+| 系统对外授权 | `#/systems/2065034340583424001/openapi` | 渲染成功，存在 `openApiModuleId`、`openApiActions`、`openApiReadableFields` 控件。 |
+| 业务运行台 | `#/systems/2065034340583424001/runtime` | 渲染成功，存在“刷新业务入口”和“进入”按钮，并展示业务入口行。 |
+
+修复过程中发现并处理：
+
+- 路由级权限在系统有效权限快照加载前可能误判 `PERM_DENIED`。
+- 已调整为系统路由在权限快照加载中或 stale 时先放行页面，由页面动作权限控制按钮状态。
+- 平台对外应用中心不再依赖不存在的 `LOGIN_USER` 平台权限。
+
+## 待继续
+
+- 当前浏览器烟测覆盖登录、路由、页面渲染和关键控件存在，不等价于完整浏览器点击创建数据。
+- P14-PKG-001 仍需等待 validator/reviewer 结论后才能执行。
 
 ## 静态扫描
 

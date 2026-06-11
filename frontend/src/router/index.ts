@@ -120,7 +120,6 @@ export const APP_ROUTES: AppRouteRecord[] = [
   }),
   route("platform.openapi", "/platform/openapi", "对外应用中心", "openapi", "platform", ["PLAT-001"], "FE-011", {
     requiresAuth: true,
-    permission: { anyOperations: ["LOGIN_USER"] },
   }),
   route("system.overview", "/systems/:systemId/overview", "系统总览", "system", "system", ["SYS-001", "SYS-002", "SYS-004"], "FE-005", {
     requiresAuth: true,
@@ -300,6 +299,17 @@ export function createRouteGuard(options: CreateRouteGuardOptions) {
       meta.layout === "platform"
         ? decidePlatformPermission(options.auth, meta.permission)
         : options.permission.decide(meta.permission);
+    const permissionState = options.permission.getState();
+    if (
+      meta.layout === "system"
+      && meta.permission
+      && (permissionState.loading || permissionState.stale || !permissionState.effective)
+    ) {
+      return {
+        type: "allow",
+        route: routeRecord,
+      };
+    }
     if (!decision.visible || !decision.enabled) {
       return {
         type: "block",

@@ -4663,7 +4663,7 @@ export function mountApp(container: HTMLElement): void {
 
   function isDevelopmentMode(): boolean {
     const meta = import.meta as unknown as { env?: Record<string, string | boolean | undefined> };
-    return meta.env?.DEV === true || meta.env?.MODE === "development";
+    return meta.env?.DEV === true || meta.env?.DEV === "true" || meta.env?.MODE === "development";
   }
 
   function input(label: string, name: string, value: string, type = "text"): HTMLElement {
@@ -5554,8 +5554,8 @@ function loadSettings(): RuntimeSettings {
 }
 
 function isDevPreviewMode(): boolean {
-  const meta = import.meta as unknown as { env?: { DEV?: boolean; MODE?: string } };
-  return meta.env?.DEV === true || meta.env?.MODE === "development";
+  const meta = import.meta as unknown as { env?: { DEV?: boolean | string; MODE?: string } };
+  return meta.env?.DEV === true || meta.env?.DEV === "true" || meta.env?.MODE === "development";
 }
 
 function defaultSettings(): RuntimeSettings {
