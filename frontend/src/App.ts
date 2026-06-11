@@ -5420,15 +5420,21 @@ function node<K extends keyof HTMLElementTagNameMap>(
 function loadSettings(): RuntimeSettings {
   const query = new URLSearchParams(window.location.search);
   const base = defaultSettings();
+  const allowPreviewQuery = isDevPreviewMode();
   return {
     ...base,
-    baseUrl: query.get("baseUrl") ?? base.baseUrl,
-    accessToken: query.get("accessToken") ?? base.accessToken,
-    systemId: query.get("systemId") ?? base.systemId,
-    tenantId: query.get("tenantId") ?? base.tenantId,
-    appId: query.get("appId") ?? base.appId,
-    moduleId: query.get("moduleId") ?? base.moduleId,
+    baseUrl: allowPreviewQuery ? query.get("baseUrl") ?? base.baseUrl : base.baseUrl,
+    accessToken: allowPreviewQuery ? query.get("accessToken") ?? base.accessToken : base.accessToken,
+    systemId: allowPreviewQuery ? query.get("systemId") ?? base.systemId : base.systemId,
+    tenantId: allowPreviewQuery ? query.get("tenantId") ?? base.tenantId : base.tenantId,
+    appId: allowPreviewQuery ? query.get("appId") ?? base.appId : base.appId,
+    moduleId: allowPreviewQuery ? query.get("moduleId") ?? base.moduleId : base.moduleId,
   };
+}
+
+function isDevPreviewMode(): boolean {
+  const meta = import.meta as unknown as { env?: { DEV?: boolean; MODE?: string } };
+  return meta.env?.DEV === true || meta.env?.MODE === "development";
 }
 
 function defaultSettings(): RuntimeSettings {

@@ -516,3 +516,16 @@ PM/UIUX/Planner 本轮已把 P14 从“概念纠偏”升级为“完整系统 U
 - 前端 `npm.cmd run build` 通过。
 
 下一步：进入 `P14-TEST-001/002/003`，用真实浏览器和真实接口验证剧本 A/B/C；未通过前不执行 P14 打包。
+
+## 2026-06-11 P14 测试闸门探测
+
+本轮完成 P14 测试前置探测，记录见 `docs/test_runs/p14-test-gate-probe.md`：
+
+- 本地 18080/8080 后端未运行。
+- 部署环境 `http://192.168.0.211:19999/api/v1/ops/health` 可达，返回 401，说明需要认证。
+- 使用 `platform_admin / 123123aa` 登录部署后端成功，返回 accessToken。
+- 新增 `frontend/vite.config.ts` 开发态 `/api` 与 `/openapi` 代理，可通过 `VITE_API_PROXY_TARGET` 指向部署环境做本地联调；生产 build 不受影响。
+- Headless Chrome 打开本地 Vite 页面可渲染 P14 登录/平台工作空间文案。
+- 地址栏 `accessToken/baseUrl/systemId` 预览参数已限制为 dev 模式，生产 build 不读取。
+
+结论：环境具备进入 P14-TEST-001/002/003 的条件，但本记录不是完整 E2E。`package_gate` 继续 blocked。

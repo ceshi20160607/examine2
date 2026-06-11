@@ -19,6 +19,7 @@
 3. secret 展示区域增加保存提醒，说明离开页面后不能再明文查看。
 4. 增加授权与安全说明，解释 scope、IP 白名单、限流和对外交付前确认范围。
 5. 审计页增加平台层日志和业务系统层日志说明，区分平台账号/对外应用/运维诊断与系统内成员/建模/数据/流程/文件日志。
+6. 地址栏 `accessToken/baseUrl/systemId` 预览参数限制为 dev 模式，生产 build 不再读取这些调试参数。
 
 ## 验证
 
@@ -30,6 +31,8 @@ npm.cmd run build
 ```
 
 结果：pass。
+
+Headless Chrome smoke 和环境探测记录见 `docs/test_runs/p14-test-gate-probe.md`。
 
 ## 后续任务
 
