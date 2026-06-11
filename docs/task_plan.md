@@ -362,3 +362,51 @@ flowchart TD
 ### 是否允许进入后续期
 
 不允许。P13 是用户反馈触发的最终可用性返工期，在 UIUX-003、FE-025、TEST-011、VAL-009、REV-009、PKG-002 全部通过，并由 PM 写明 P13 验收结论前，后续任何新期次只能保持 `pending`。P12 的最终包可作为旧基线保留，但不能继续作为用户反馈后的最终可用性交付结论。
+
+## P14 完整系统 UI 重设计与原型流程纠偏
+
+### P14 PM 结论
+
+P13 结论已撤回。P14 不再只纠正“应用”术语，而是按普通人可正常使用的完整系统目标，一次性完成产品运行模型、集成 UI/UX、前端重组、必要后端补缺、真实浏览器 E2E、clean build、review 和打包闸门。
+
+冻结输入：
+
+- `docs/product/product-vision-and-operating-model.md`
+- `docs/product/integrated-system-baseline.md`
+- `docs/ui/p14-integrated-ui.md`
+- `docs/tasks/P14-integrated-rework-plan.md`
+
+### P14 任务
+
+| taskId | 阶段 | 角色 | 状态 | 说明 |
+| --- | --- | --- | --- | --- |
+| P14-APP-000 | 产品模型 | pm | done | 已输出产品愿景与运行模型。 |
+| P14-APP-001 | 概念复核 | analyst | done | 已输出 `docs/issues/replies/development/p14_analyst_app_concept_reply.md`，复核平台级对外应用、系统内业务应用、OpenAPI 客户端边界。 |
+| P14-APP-002 | UI/UX | uiux | done | 已输出 `docs/ui/p14-integrated-ui.md`。 |
+| P14-APP-003 | 任务拆分 | planner | done | 已输出 `docs/tasks/P14-integrated-rework-plan.md`。 |
+| P14-FE-001 | 前端实现 | frontend | pending | 重构壳层、导航、视觉和页面文案。 |
+| P14-FE-002 | 前端实现 | frontend | pending | 重做系统总览、系统设置、建模配置和运行台体验。 |
+| P14-FE-003 | 前端实现 | frontend | pending | 重做平台级对外应用和日志分层体验。 |
+| P14-BE-001 | 后端补缺 | backend | conditional | 只补 UI/测试发现的真实缺口。 |
+| P14-TEST-001 | 测试 | test | pending | 剧本 A：管理员到普通用户完整链路。 |
+| P14-TEST-002 | 测试 | test | pending | 剧本 B：平台级对外应用链路。 |
+| P14-TEST-003 | 测试 | test | pending | 剧本 C：审计与恢复链路。 |
+| P14-VAL-001 | 验证 | validator | pending | 前端 clean build 和后端 clean package。 |
+| P14-REV-001 | 审查 | reviewer | pending | 对照产品模型和 UI/UX 审查。 |
+| P14-PKG-001 | 打包 | validator | blocked | 仅 reviewer pass 后执行。 |
+
+### P14 并行规则
+
+- P14-FE-001、P14-FE-002、P14-FE-003 默认串行，避免同时改 `App.ts`、壳层和样式造成冲突。
+- P14-BE-001 只有在前端或测试发现真实契约缺口时启动。
+- P14-TEST-001/002/003 可在前端完成后分场景执行，但最终 review 必须汇总三条剧本。
+- P14-VAL-001 不得在三条测试 pass 前执行。
+- P14-PKG-001 不得在 review pass 前执行。
+
+### P14 打包禁止条件
+
+- 普通业务用户未单独验证。
+- 平台级对外应用未单独验证。
+- 平台日志和系统日志未分层验证。
+- 页面仍出现接口调试痕迹、英文散落文案、技术 ID 主导操作或测试默认值。
+- `docs/review.json.fullProjectDeployable` 未由 reviewer 在证据齐全后置 true。

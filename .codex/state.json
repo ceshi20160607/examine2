@@ -2442,12 +2442,24 @@
                                                                       "P14-APP-003",
                                                                       "P14-APP-004",
                                                                       "P14-APP-005",
-                                                                      "P14-APP-006"
+                                                                      "P14-APP-006",
+                                                                      "P14-FE-001",
+                                                                      "P14-FE-002",
+                                                                      "P14-FE-003",
+                                                                      "P14-BE-001",
+                                                                      "P14-TEST-001",
+                                                                      "P14-TEST-002",
+                                                                      "P14-TEST-003",
+                                                                      "P14-VAL-001",
+                                                                      "P14-REV-001",
+                                                                      "P14-PKG-001"
                                                                   ],
-                                                        "reason":  "Repeated deployment feedback from P7 to P14 shows fragmented phase acceptance. P14 is upgraded to an integrated system baseline reset before further packaging.",
+                                                        "reason":  "Repeated deployment feedback from P7 to P14 shows fragmented phase acceptance. P14 is upgraded to an integrated UI redesign and prototype flow reset before further packaging.",
                                                         "issue_record":  "docs/issues/pm/development/p14_app_concept_rework.md",
                                                         "baseline_record":  "docs/product/integrated-system-baseline.md",
                                                         "product_model_record":  "docs/product/product-vision-and-operating-model.md",
+                                                        "ui_record":  "docs/ui/p14-integrated-ui.md",
+                                                        "task_record":  "docs/tasks/P14-integrated-rework-plan.md",
                                                         "review_record":  "docs/review.json",
                                                         "package_gate":  "blocked"
                                                     }
