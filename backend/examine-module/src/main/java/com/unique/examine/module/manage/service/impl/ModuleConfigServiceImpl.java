@@ -24,6 +24,8 @@ import com.unique.examine.module.base.entity.Menu;
 import com.unique.examine.module.base.entity.Model;
 import com.unique.examine.module.base.entity.PageSchema;
 import com.unique.examine.module.base.entity.PublishVersion;
+import com.unique.examine.module.base.entity.SystemMenu;
+import com.unique.examine.module.base.entity.SystemOperation;
 import com.unique.examine.module.base.service.IActionService;
 import com.unique.examine.module.base.service.IAppService;
 import com.unique.examine.module.base.service.IFieldOptionService;
@@ -33,6 +35,8 @@ import com.unique.examine.module.base.service.IModelService;
 import com.unique.examine.module.base.service.IPageSchemaService;
 import com.unique.examine.module.base.service.IPublishVersionService;
 import com.unique.examine.module.base.service.IRecordService;
+import com.unique.examine.module.base.service.ISystemMenuService;
+import com.unique.examine.module.base.service.ISystemOperationService;
 import com.unique.examine.module.manage.bo.ActionConfigBO;
 import com.unique.examine.module.manage.bo.ActionConfigSaveBO;
 import com.unique.examine.module.manage.bo.AppSaveBO;
@@ -124,6 +128,10 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
     private final IPublishVersionService publishVersionService;
 
     private final IRecordService recordService;
+
+    private final ISystemMenuService systemMenuService;
+
+    private final ISystemOperationService systemOperationService;
 
     private final PermissionService permissionService;
 
@@ -625,6 +633,7 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
         } else {
             menuService.updateById(menu);
         }
+        syncRuntimePermissionCatalog(model, menu);
         touchModule(model);
         return toMenuConfigVO(menu);
     }
@@ -644,12 +653,7 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
                         "动作编码重复：" + action.getActionCode());
             }
         }
-        actionService.lambdaUpdate()
-                .eq(Action::getSystemId, systemId)
-                .eq(Action::getModuleId, moduleId)
-                .eq(Action::getDeleteMarker, ACTIVE_DELETE_MARKER)
-                .set(Action::getDeleteMarker, "REPLACED")
-                .update();
+        replaceActiveActions(systemId, moduleId);
         List<Action> actions = defaultList(saveBO.getActions()).stream()
                 .map(actionBO -> new Action()
                         .setSystemId(systemId)
@@ -670,8 +674,110 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
         if (!actions.isEmpty()) {
             actionService.saveBatch(actions);
         }
+        Menu menu = menuService.lambdaQuery()
+                .eq(Menu::getSystemId, systemId)
+                .eq(Menu::getModuleId, moduleId)
+                .eq(Menu::getDeleteMarker, ACTIVE_DELETE_MARKER)
+                .one();
+        if (Objects.nonNull(menu)) {
+            syncRuntimePermissionCatalog(model, menu);
+        }
         touchModule(model);
         return actions.stream().map(this::toActionConfigVO).toList();
+    }
+
+    /**
+     * 同步业务运行菜单到 RBAC 授权目录。
+     *
+     * <p>业务建模菜单保存在动态模块表中，而系统角色授权读取的是 RBAC 目录表。
+     * 管理员保存运行菜单或动作后需要同步目录，否则普通业务用户无法被授权使用运行台。</p>
+     */
+    private void syncRuntimePermissionCatalog(Model model, Menu menu) {
+        LocalDateTime now = LocalDateTime.now();
+        SystemMenu systemMenu = systemMenuService.lambdaQuery()
+                .eq(SystemMenu::getSystemId, model.getSystemId())
+                .eq(SystemMenu::getSourceType, "MODULE")
+                .eq(SystemMenu::getSourceId, model.getModuleId())
+                .eq(SystemMenu::getDeleteToken, 0L)
+                .last("limit 1")
+                .one();
+        boolean created = Objects.isNull(systemMenu);
+        if (created) {
+            systemMenu = new SystemMenu()
+                    .setSystemId(model.getSystemId())
+                    .setTenantId(0L)
+                    .setParentId(0L)
+                    .setMenuType("RUNTIME")
+                    .setSourceType("MODULE")
+                    .setSourceId(model.getModuleId())
+                    .setDepthLevel(1)
+                    .setDepthPath("/")
+                    .setDeleteToken(0L)
+                    .setCreatedAt(now);
+        }
+        systemMenu.setCode(menu.getCode())
+                .setName(menu.getName())
+                .setPath(menu.getRoutePath())
+                .setStatus(Objects.equals(menu.getEnabledFlag(), YES) ? ENABLED : DISABLED)
+                .setSortOrder(defaultInteger(menu.getSortOrder(), 100))
+                .setUpdatedAt(now);
+        if (created) {
+            systemMenuService.save(systemMenu);
+        } else {
+            systemMenuService.updateById(systemMenu);
+        }
+        syncRuntimeOperation(model.getSystemId(), systemMenu.getId(), "MENU_VISIBLE", "查看运行菜单",
+                "BUTTON", "MODULE", model.getModuleId(), null, null, now);
+        syncRuntimeOperation(model.getSystemId(), systemMenu.getId(), "RECORD_VIEW", "查看业务记录",
+                "API", "MODULE", model.getModuleId(), "/api/v1/systems/" + model.getSystemId()
+                        + "/runtime/modules/*/records/**", "*", now);
+        syncRuntimeOperation(model.getSystemId(), systemMenu.getId(), "RECORD_CREATE", "新建业务记录",
+                "API", "MODULE", model.getModuleId(), "/api/v1/systems/" + model.getSystemId()
+                        + "/runtime/modules/*/records", "POST", now);
+        syncRuntimeOperation(model.getSystemId(), systemMenu.getId(), "RECORD_EDIT", "编辑业务记录",
+                "API", "MODULE", model.getModuleId(), "/api/v1/systems/" + model.getSystemId()
+                        + "/runtime/modules/*/records/*", "PUT", now);
+        syncRuntimeOperation(model.getSystemId(), systemMenu.getId(), "RECORD_SUBMIT", "提交业务记录",
+                "API", "MODULE", model.getModuleId(), "/api/v1/systems/" + model.getSystemId()
+                        + "/runtime/modules/*/records/*/submit", "POST", now);
+        syncRuntimeOperation(model.getSystemId(), systemMenu.getId(), "RECORD_HISTORY_VIEW", "查看业务记录历史",
+                "API", "MODULE", model.getModuleId(), "/api/v1/systems/" + model.getSystemId()
+                        + "/runtime/modules/*/records/*/history", "GET", now);
+    }
+
+    /**
+     * 按系统级唯一操作编码创建或更新运行台操作目录。
+     */
+    private void syncRuntimeOperation(Long systemId, Long menuId, String code, String name, String operationType,
+            String resourceType, Long resourceId, String apiPattern, String method, LocalDateTime now) {
+        SystemOperation operation = systemOperationService.lambdaQuery()
+                .eq(SystemOperation::getSystemId, systemId)
+                .eq(SystemOperation::getCode, code)
+                .eq(SystemOperation::getDeleteToken, 0L)
+                .last("limit 1")
+                .one();
+        boolean created = Objects.isNull(operation);
+        if (created) {
+            operation = new SystemOperation()
+                    .setSystemId(systemId)
+                    .setCode(code)
+                    .setDeleteToken(0L)
+                    .setCreatedAt(now);
+        }
+        operation.setMenuId(menuId)
+                .setName(name)
+                .setOperationType(operationType)
+                .setResourceType(resourceType)
+                .setResourceId(resourceId)
+                .setApiPattern(apiPattern)
+                .setMethod(method)
+                .setStatus(ENABLED)
+                .setUpdatedAt(now);
+        if (created) {
+            systemOperationService.save(operation);
+        } else {
+            systemOperationService.updateById(operation);
+        }
     }
 
     private PublishCheckResultVO buildPublishCheck(Model model) {
@@ -764,11 +870,7 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
     }
 
     private void replaceOptions(Field field, List<FieldOptionBO> options) {
-        fieldOptionService.lambdaUpdate()
-                .eq(FieldOption::getFieldId, field.getFieldId())
-                .eq(FieldOption::getDeleteMarker, ACTIVE_DELETE_MARKER)
-                .set(FieldOption::getDeleteMarker, "REPLACED")
-                .update();
+        replaceActiveFieldOptions(field.getFieldId());
         if (CollectionUtils.isEmpty(options)) {
             return;
         }
@@ -793,6 +895,37 @@ public class ModuleConfigServiceImpl implements ModuleConfigService {
                         .setUpdatedAt(LocalDateTime.now()))
                 .toList();
         fieldOptionService.saveBatch(rows);
+    }
+
+    /**
+     * 替换当前模块动作配置，使用动作自身 ID 作为删除标记，避免多条历史动作写入相同删除标记后撞唯一索引。
+     */
+    private void replaceActiveActions(Long systemId, Long moduleId) {
+        List<Action> activeActions = actionService.lambdaQuery()
+                .eq(Action::getSystemId, systemId)
+                .eq(Action::getModuleId, moduleId)
+                .eq(Action::getDeleteMarker, ACTIVE_DELETE_MARKER)
+                .list();
+        for (Action action : activeActions) {
+            action.setDeleteMarker(String.valueOf(action.getActionId()))
+                    .setUpdatedAt(LocalDateTime.now());
+            actionService.updateById(action);
+        }
+    }
+
+    /**
+     * 替换当前字段选项配置，使用选项自身 ID 作为删除标记，保证重复保存字段选项时仍然幂等。
+     */
+    private void replaceActiveFieldOptions(Long fieldId) {
+        List<FieldOption> activeOptions = fieldOptionService.lambdaQuery()
+                .eq(FieldOption::getFieldId, fieldId)
+                .eq(FieldOption::getDeleteMarker, ACTIVE_DELETE_MARKER)
+                .list();
+        for (FieldOption option : activeOptions) {
+            option.setDeleteMarker(String.valueOf(option.getOptionId()))
+                    .setUpdatedAt(LocalDateTime.now());
+            fieldOptionService.updateById(option);
+        }
     }
 
     private App activeApp(Long systemId, Long appId) {

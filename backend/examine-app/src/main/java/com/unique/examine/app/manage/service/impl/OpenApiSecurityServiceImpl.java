@@ -41,6 +41,8 @@ import com.unique.examine.app.manage.enums.OpenApiErrorCode;
 import com.unique.examine.app.manage.service.OpenApiSecurityService;
 import com.unique.examine.app.manage.support.OpenApiConstants;
 import com.unique.examine.app.manage.vo.OpenApiRequestContext;
+import com.unique.examine.core.context.RequestContext;
+import com.unique.examine.core.context.RequestContextHolder;
 import com.unique.examine.core.error.CommonErrorCode;
 import com.unique.examine.core.error.ErrorCode;
 import com.unique.examine.core.exception.BusinessException;
@@ -107,6 +109,7 @@ public class OpenApiSecurityServiceImpl implements OpenApiSecurityService {
             validateScope(client, scopeCode, moduleId);
             validateRateLimit(client, apiId, scopeCode, log.getSourceIp(), log.getRequestId());
             validateIdempotencyIfNeeded(client, apiId, scopeCode, request, body, idempotent);
+            bindOpenApiRequestContext(client);
 
             log.setSignatureResult("PASS")
                     .setNonceResult("PASS")
@@ -309,6 +312,16 @@ public class OpenApiSecurityServiceImpl implements OpenApiSecurityService {
         if (!matched) {
             throw new BusinessException(OpenApiErrorCode.SCOPE_DENIED);
         }
+    }
+
+    private void bindOpenApiRequestContext(Client client) {
+        RequestContext context = RequestContextHolder.get();
+        if (Objects.isNull(context)) {
+            return;
+        }
+        context.setSystemId(String.valueOf(client.getSystemId()));
+        context.setTenantId(String.valueOf(client.getTenantId()));
+        context.setClientId(String.valueOf(client.getId()));
     }
 
     private void validateRateLimit(Client client, String apiId, String scopeCode, String sourceIp, String requestId) {

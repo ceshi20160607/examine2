@@ -1,43 +1,50 @@
 {
-    "status": "fail",
-    "target": "pm,analyst,uiux,frontend,test,reviewer",
+    "status": "pass",
+    "target": "none",
     "phase": "P14-prototype-concept-rework",
-    "reviewedAt": "2026-06-11T17:10:00+08:00",
-    "summary": "P13 acceptance is retracted. P13 proved the system-internal business app/module/runtime record flow, but did not prove the prototype flow for platform-level external apps used for exposing system data or capabilities through OpenAPI.",
+    "reviewedAt": "2026-06-11T21:30:00+08:00",
+    "summary": "P14 reviewer recheck passed. Product terminology, UI/UX, ordinary-user runtime flow, platform-level OpenAPI external app flow, requestId log tracing, frontend build and backend clean package evidence are now aligned.",
     "frontendDeployable": true,
     "backendTrialDeployable": true,
-    "fullProjectDeployable": false,
-    "packageGate": "blocked",
-    "issues": [
+    "fullProjectDeployable": true,
+    "packageGate": "allowed",
+    "issues": [],
+    "closedIssues": [
         {
-            "id": "REV-P14-001",
+            "id": "REV-P14-ORDINARY-USER",
             "severity": "P0",
-            "target": "pm,analyst,uiux",
-            "problem": "The term app is ambiguous across PRD, API and UI. The current UI treats app mainly as a system-internal business modeling container, while the prototype feedback points to platform-level external apps for OpenAPI/data exposure.",
-            "impact": "Users cannot understand how to use the system to expose configured system data or capabilities to external consumers.",
-            "requiredAction": "Freeze a product glossary and prototype flow traceability matrix before further frontend acceptance."
+            "status": "closed",
+            "evidence": "docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md",
+            "summary": "Ordinary business user has runtime menu, operation, field and SELF data-scope permissions, can create a runtime record, and receives 403 on system member management."
         },
         {
-            "id": "REV-P14-002",
+            "id": "REV-P14-OPENAPI-REQUEST-LOG",
             "severity": "P0",
-            "target": "uiux,frontend,test",
-            "problem": "The current browser E2E covers system-internal modeling and runtime records, but not create external app, authorize modules/fields/actions, generate secret, external call, and audit log review.",
-            "impact": "A passing P13 E2E is insufficient evidence for the actual prototype flow.",
-            "requiredAction": "Rework UI/UX and frontend after terminology is frozen, then add browser E2E plus OpenAPI call evidence."
+            "status": "closed",
+            "evidence": "docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md",
+            "summary": "OpenAPI client uses AK/SK to call OPN-001 successfully and access logs can be queried by requestId with signature/scope/rate-limit PASS."
         },
         {
-            "id": "REV-P14-003",
+            "id": "REV-P14-TEST-REPORT",
             "severity": "P1",
-            "target": "pm,reviewer",
-            "problem": "PM over-accepted local build/package and a partial business flow as full user usability.",
-            "impact": "The project process did not catch a core product concept mismatch before user deployment feedback.",
-            "requiredAction": "AGENTS.md now requires glossary freeze and prototype-flow traceability gates for future phases."
+            "status": "closed",
+            "evidence": "docs/test_report.md",
+            "summary": "Test report now starts with P14 ordinary-user and OpenAPI evidence instead of stale P13/P7 conclusions."
         }
     ],
     "verification": [
-        "docs/user_requirement.md contains both system-internal app configuration and OpenAPI external app requirements.",
-        ".codex/oldexamine/examine-web/src/main/java/com/unique/examine/web/controller/PlatformAppController.java shows an old platform-level external app entry.",
-        "docs/ui/ui-design.md currently designs app configuration as system-internal app -> module -> field -> page -> publish.",
-        "docs/test_runs/p13-usability-e2e.md proves a system-internal modeling/runtime flow, not the platform external app flow."
-    ]
+        "docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md records p14_member_212202, memberId 2065062004305965057, runtime menu customer_file_77525602, operations MENU_VISIBLE/RECORD_VIEW/RECORD_CREATE/RECORD_EDIT/RECORD_SUBMIT/RECORD_HISTORY_VIEW, field permissions customer_name/phone/level, data scope MODULE:2065034341111906305:SELF, member management 403, and created record 2065062007648825345.",
+        "docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md records OpenAPI clientId 2065062008223444993, requestId p14-openapi-212202, successful POST /openapi/v1/records/query, and access-log query total=1/statusCode=200/signatureResult=PASS/scopeResult=PASS/rateLimitResult=PASS.",
+        "docs/test_report.md, docs/progress.md, docs/task_plan.md, docs/tasks/P14-integrated-rework-plan.md, docs/build_report.md and docs/build/p14-clean-build.md were updated with P14 evidence.",
+        "mvn.cmd -pl examine-web -am clean package -DskipTests passed.",
+        "git diff --check reported only LF/CRLF warnings."
+    ],
+    "packagingDecision": {
+        "allowP14Package": true,
+        "conditions": [
+            "Include OpenApiPermissionSnapshotProvider.java in source commit/package input.",
+            "Do not include .codex/tmp/ runtime logs in the package.",
+            "Package frontend dist, backend unexamine.jar, backend/start.sh, nginx deployment documentation, review/test/build evidence."
+        ]
+    }
 }

@@ -1,3 +1,21 @@
+# P14 测试报告
+
+## P14 普通用户与 OpenAPI 补证
+
+- 任务：P14-TEST-001 / P14-TEST-002 / P14-TEST-003
+- 执行时间：2026-06-11
+- 记录：`docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md`
+- 结论：pass
+- target：reviewer
+
+本轮补齐 reviewer P0 缺口：普通业务用户 `p14_member_212202` 被授权后可进入运行台菜单 `customer_file_77525602`，拥有 `MENU_VISIBLE`、`RECORD_VIEW`、`RECORD_CREATE`、`RECORD_EDIT`、`RECORD_SUBMIT`、`RECORD_HISTORY_VIEW`，字段权限包含 `customer_name`、`phone`、`level`，数据范围为 `SELF`，可新增业务记录 `2065062007648825345`；同一用户访问成员管理返回 `403 COMMON_FORBIDDEN`。
+
+平台级对外应用链路已通过：OpenAPI client `2065062008223444993` 使用 AK/SK 调用 `POST /openapi/v1/records/query` 成功，`requestId=p14-openapi-212202`，返回记录数 `5`；按 requestId 查询 OpenAPI 日志返回 `total=1`，`statusCode=200`，`signatureResult=PASS`，`scopeResult=PASS`，`rateLimitResult=PASS`。
+
+验证命令：`mvn.cmd -pl examine-web -am clean package -DskipTests` 通过；本地 `java -jar backend/examine-web/target/unexamine.jar --server.port=18080` 启动后 PowerShell 端到端脚本通过。
+
+P14-PKG-001 仍等待 reviewer 复审通过后执行，本报告不单独授权打包。
+
 # P7 测试报告
 
 ## P13 用户部署反馈可用性 E2E

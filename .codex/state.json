@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-11T19:45:00+08:00",
+    "updated_at":  "2026-06-11T21:45:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2270,7 +2270,7 @@
                          "P11-flow-file-openapi-ui":  "accepted",
                          "P12-uiux-frontend-rework":  "accepted",
                          "P13-usability-rework":  "retracted",
-                         "P14-prototype-concept-rework":  "in_progress"
+                         "P14-prototype-concept-rework":  "accepted"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2432,7 +2432,7 @@
                                                         "next_phase":  "P14-prototype-concept-rework"
                                                     },
                              "P14-prototype-concept-rework":  {
-                                                        "status":  "in_progress",
+                                                        "status":  "accepted",
                                                         "started_at":  "2026-06-11T17:10:00+08:00",
                                                         "started_by":  "pm",
                                                         "tasks":  [
@@ -2460,8 +2460,15 @@
                                                         "product_model_record":  "docs/product/product-vision-and-operating-model.md",
                                                         "ui_record":  "docs/ui/p14-integrated-ui.md",
                                                         "task_record":  "docs/tasks/P14-integrated-rework-plan.md",
+                                                        "test_record":  "docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md",
+                                                        "build_record":  "docs/build_report.md",
                                                         "review_record":  "docs/review.json",
-                                                        "package_gate":  "blocked"
+                                                        "accepted_at":  "2026-06-11T21:45:00+08:00",
+                                                        "accepted_by":  "pm",
+                                                        "record":  "docs/phases/P14-prototype-concept-rework-acceptance.md",
+                                                        "package_path":  "dist/unexamine-full-deploy-20260611-213200-p14.zip",
+                                                        "linux_package_path":  "dist/unexamine-full-deploy-20260611-213200-p14.tar.gz",
+                                                        "package_gate":  "passed"
                                                     }
                          },
     "last_governance_fix":  {
@@ -2471,6 +2478,6 @@
                                 "reason":  "Development must be managed by role issue discovery, PM decision, owner reply, reviewer verification, test, validator, and stage commit instead of ad-hoc continue prompts.",
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
-    "last_completed_batch":  "DEV-BATCH-P13-ACCEPTANCE-RETRACTED",
-    "active_batch":  "DEV-BATCH-P14-FRONTEND-P0-API-E2E"
+    "last_completed_batch":  "DEV-BATCH-P14-PACKAGE",
+    "active_batch":  "DEV-BATCH-P14-PACKAGE"
 }

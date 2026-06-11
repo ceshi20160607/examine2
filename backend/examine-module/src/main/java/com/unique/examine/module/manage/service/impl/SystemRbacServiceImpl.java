@@ -1040,22 +1040,44 @@ public class SystemRbacServiceImpl implements SystemRbacService {
         }
         LocalDateTime now = LocalDateTime.now();
         roleFieldPermissionService.saveBatch(permissions.stream()
-                .map(permission -> new RoleFieldPermission()
-                        .setSystemId(systemId)
-                        .setTenantId(parseLongOrDefault(permission.getTenantId(), SYSTEM_LEVEL_TENANT_ID))
-                        .setRoleId(roleId)
-                        .setModuleId(parseLong(permission.getModuleId()))
-                        .setFieldId(parseLong(permission.getFieldId()))
-                        .setFieldCode(permission.getFieldCode())
-                        .setVisible(bool(permission.getVisible()))
-                        .setWritable(bool(permission.getWritable()))
-                        .setExportPlain(bool(permission.getExportPlain()))
-                        .setOpenapiReadable(bool(permission.getOpenapiReadable()))
-                        .setOpenapiWritable(bool(permission.getOpenapiWritable()))
-                        .setDeleteToken(ACTIVE_DELETE_TOKEN)
-                        .setCreatedAt(now)
-                        .setUpdatedAt(now))
+                .map(permission -> {
+                    Field field = resolveRolePermissionField(systemId, permission);
+                    return new RoleFieldPermission()
+                            .setSystemId(systemId)
+                            .setTenantId(parseLongOrDefault(permission.getTenantId(), SYSTEM_LEVEL_TENANT_ID))
+                            .setRoleId(roleId)
+                            .setModuleId(field.getModuleId())
+                            .setFieldId(field.getFieldId())
+                            .setFieldCode(field.getCode())
+                            .setVisible(bool(permission.getVisible()))
+                            .setWritable(bool(permission.getWritable()))
+                            .setExportPlain(bool(permission.getExportPlain()))
+                            .setOpenapiReadable(bool(permission.getOpenapiReadable()))
+                            .setOpenapiWritable(bool(permission.getOpenapiWritable()))
+                            .setDeleteToken(ACTIVE_DELETE_TOKEN)
+                            .setCreatedAt(now)
+                            .setUpdatedAt(now);
+                })
                 .toList());
+    }
+
+    /**
+     * 解析角色字段权限引用的真实字段。
+     */
+    private Field resolveRolePermissionField(Long systemId, RoleFieldPermissionBO permission) {
+        Long fieldId = parseLong(permission.getFieldId());
+        Long moduleId = parseLong(permission.getModuleId());
+        Field field = fieldService.lambdaQuery()
+                .eq(Field::getSystemId, systemId)
+                .eq(Objects.nonNull(fieldId), Field::getFieldId, fieldId)
+                .eq(Objects.nonNull(moduleId), Field::getModuleId, moduleId)
+                .eq(StringUtils.hasText(permission.getFieldCode()), Field::getCode, permission.getFieldCode())
+                .last("limit 1")
+                .one();
+        if (Objects.isNull(field)) {
+            throw new BusinessException(SystemManageErrorCode.PERMISSION_TARGET_NOT_FOUND);
+        }
+        return field;
     }
 
     private void replaceRoleDataScopes(Long systemId, Long roleId, List<DataScopeRuleBO> scopes) {

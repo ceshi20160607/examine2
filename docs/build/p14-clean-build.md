@@ -1,6 +1,6 @@
 # P14 Clean Build 记录
 
-执行时间：2026-06-11 20:38
+执行时间：2026-06-11 21:20
 
 ## 前端
 
@@ -50,4 +50,4 @@ Reactor：
 
 - `backend/examine-web/target/unexamine.jar`
 
-说明：本次后端为 clean package with `-DskipTests`；P14 功能验证以 API E2E、浏览器点击流和既有模块测试记录为准。
+说明：本次后端为 clean package with `-DskipTests`；P14 功能验证以 API E2E、浏览器点击流、普通用户权限隔离和 OpenAPI requestId 日志追踪记录为准，新增证据见 `docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md`。

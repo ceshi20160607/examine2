@@ -232,12 +232,19 @@ public class OpenApiManageServiceImpl implements OpenApiManageService {
                 .eq(StringUtils.hasText(queryBO.getErrorCode()), AccessLog::getErrorCode, queryBO.getErrorCode())
                 .orderByDesc(AccessLog::getCreatedAt)
                 .page(page);
+        Long total = accessLogService.lambdaQuery()
+                .eq(AccessLog::getSystemId, systemId)
+                .eq(Objects.nonNull(queryBO.getClientId()), AccessLog::getClientId, queryBO.getClientId())
+                .eq(StringUtils.hasText(queryBO.getRequestId()), AccessLog::getRequestId, queryBO.getRequestId())
+                .eq(StringUtils.hasText(queryBO.getApiId()), AccessLog::getApiId, queryBO.getApiId())
+                .eq(StringUtils.hasText(queryBO.getErrorCode()), AccessLog::getErrorCode, queryBO.getErrorCode())
+                .count();
         return PageResult.<OpenApiAccessLogVO>builder()
                 .records(result.getRecords().stream().map(this::toAccessLogVO).toList())
-                .total(result.getTotal())
+                .total(total)
                 .pageNo(result.getCurrent())
                 .pageSize(result.getSize())
-                .hasNext(result.getCurrent() * result.getSize() < result.getTotal())
+                .hasNext(result.getCurrent() * result.getSize() < total)
                 .build();
     }
 

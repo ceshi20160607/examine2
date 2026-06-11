@@ -26,6 +26,8 @@ import com.unique.examine.module.base.service.IModelService;
 import com.unique.examine.module.base.service.IPageSchemaService;
 import com.unique.examine.module.base.service.IPublishVersionService;
 import com.unique.examine.module.base.service.IRecordService;
+import com.unique.examine.module.base.service.ISystemMenuService;
+import com.unique.examine.module.base.service.ISystemOperationService;
 import com.unique.examine.module.manage.bo.FieldSaveBO;
 import com.unique.examine.module.manage.bo.PageSchemaSaveBO;
 import com.unique.examine.module.manage.bo.PublishRequestBO;
@@ -53,6 +55,10 @@ class ModuleConfigServiceImplTest {
 
     private IRecordService recordService;
 
+    private ISystemMenuService systemMenuService;
+
+    private ISystemOperationService systemOperationService;
+
     private PermissionService permissionService;
 
     private ModuleConfigServiceImpl service;
@@ -68,10 +74,12 @@ class ModuleConfigServiceImplTest {
         actionService = mock(IActionService.class);
         publishVersionService = mock(IPublishVersionService.class);
         recordService = mock(IRecordService.class);
+        systemMenuService = mock(ISystemMenuService.class);
+        systemOperationService = mock(ISystemOperationService.class);
         permissionService = mock(PermissionService.class);
         service = new ModuleConfigServiceImpl(appService, modelService, fieldService, fieldOptionService,
-                pageSchemaService, menuService, actionService, publishVersionService, recordService, permissionService,
-                new ObjectMapper());
+                pageSchemaService, menuService, actionService, publishVersionService, recordService, systemMenuService,
+                systemOperationService, permissionService, new ObjectMapper());
         doNothing().when(permissionService).requireOperation(anyString());
     }
 

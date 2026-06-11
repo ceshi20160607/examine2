@@ -1,6 +1,6 @@
 # 2026-06-11 P14 Clean Build 摘要
 
-结论：VAL-010/P14-VAL-001 通过，P14 前端 clean build、后端 clean package、API E2E 和浏览器点击流证据已完成；P14-PKG-001 仍需等待 reviewer pass 后执行。
+结论：VAL-010/P14-VAL-001 与 P14-PKG-001 通过，P14 前端 clean build、后端 clean package、API E2E、浏览器点击流、普通用户权限隔离、OpenAPI requestId 日志追踪和最终部署包均已完成。
 
 | 项目 | 结果 |
 | --- | --- |
@@ -8,7 +8,10 @@
 | 后端打包 | `mvn.cmd -pl examine-web -am clean package -DskipTests` pass，生成 `backend/examine-web/target/unexamine.jar` |
 | API E2E | pass，记录见 `docs/test_runs/p14-integrated-api-e2e-20260611.md` |
 | 浏览器点击流 | pass，记录见 `docs/test_runs/p14-frontend-smoke-20260611.md` |
-| 阶段状态 | 待 P14 reviewer 复审；review pass 前不生成 P14 最终部署包 |
+| 普通用户与 OpenAPI 补证 | pass，记录见 `docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md` |
+| 部署包 | `dist/unexamine-full-deploy-20260611-213200-p14.zip`、`dist/unexamine-full-deploy-20260611-213200-p14.tar.gz` |
+| 包权限 | `tar.gz` 内 `backend/start.sh` 为 `rwxr-xr-x`；zip 元数据为 `100755` |
+| 阶段状态 | P14 accepted，`fullProjectDeployable=true` |
 
 # 2026-06-11 P13 Clean Build 摘要
 
