@@ -834,6 +834,72 @@ code {
   background: #fffaf3;
 }
 
+.secret-message small {
+  color: #8a4f1d;
+  line-height: 1.5;
+}
+
+.integration-path {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.integration-step {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.integration-step span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  background: #1f5f6f;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.integration-step strong {
+  color: #17212b;
+}
+
+.integration-step small {
+  color: #697989;
+  line-height: 1.6;
+}
+
+.log-layer-banner {
+  display: grid;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.log-layer-banner strong {
+  color: #17212b;
+}
+
+.log-layer-banner span {
+  color: #52616f;
+  line-height: 1.6;
+}
+
+.platform-log {
+  border: 1px solid #b5d4dc;
+  background: #eef8fa;
+}
+
+.system-log {
+  border: 1px solid #d9c8a8;
+  background: #fff9ee;
+}
+
 .ops-page .task-card {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;

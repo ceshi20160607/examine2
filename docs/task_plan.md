@@ -386,7 +386,7 @@ P13 结论已撤回。P14 不再只纠正“应用”术语，而是按普通人
 | P14-APP-003 | 任务拆分 | planner | done | 已输出 `docs/tasks/P14-integrated-rework-plan.md`。 |
 | P14-FE-001 | 前端实现 | frontend | done | 已重构壳层、导航、视觉和页面文案，记录见 `frontend/docs/page-contracts/P14-FE-001-shell-navigation-visual.md`。 |
 | P14-FE-002 | 前端实现 | frontend | done | 已重做系统总览、系统设置、建模配置和业务运行体验，记录见 `frontend/docs/page-contracts/P14-FE-002-system-builder-runtime.md`。 |
-| P14-FE-003 | 前端实现 | frontend | pending | 重做平台级对外应用和日志分层体验。 |
+| P14-FE-003 | 前端实现 | frontend | done | 已重做平台级对外应用和日志分层体验，记录见 `frontend/docs/page-contracts/P14-FE-003-external-app-audit.md`。 |
 | P14-BE-001 | 后端补缺 | backend | conditional | 只补 UI/测试发现的真实缺口。 |
 | P14-TEST-001 | 测试 | test | pending | 剧本 A：管理员到普通用户完整链路。 |
 | P14-TEST-002 | 测试 | test | pending | 剧本 B：平台级对外应用链路。 |

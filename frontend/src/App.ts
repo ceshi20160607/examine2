@@ -1918,6 +1918,12 @@ export function mountApp(container: HTMLElement): void {
         [String(clients.filter((item) => item.status === "ENABLED").length), "启用中"],
         [String(state.accessLogs.total ?? state.accessLogs.records.length), "调用日志"],
       ]),
+      node("section", { className: "integration-path" }, [
+        integrationStep("1", "创建对外应用", "登记外部系统名称、编码和负责人，生成只展示一次的密钥。"),
+        integrationStep("2", "授权范围", "选择可访问的系统、模块、字段、动作、数据范围和平台级能力。"),
+        integrationStep("3", "安全策略", "配置 IP 白名单、限流、过期时间、签名和幂等策略。"),
+        integrationStep("4", "调用追踪", "外部调用后按 requestId 查看鉴权、scope、限流和业务错误。"),
+      ]),
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
           node("strong", { text: "创建对外应用" }),
@@ -1937,9 +1943,16 @@ export function mountApp(container: HTMLElement): void {
         ? node("div", { className: "message secret-message" }, [
             node("strong", { text: `AccessKey: ${state.secretOnce.accessKey}` }),
             node("span", { text: `Secret: ${state.secretOnce.secretOnce ?? state.secretOnce.maskedSecret ?? "-"}` }),
+            node("small", { text: "请立即保存 secret。离开本页面后系统不会再明文展示，只能轮换新密钥。" }),
             button("我已保存", "secondary", consumeOpenApiSecret),
           ])
         : undefined,
+      node("section", { className: "task-card is-warn" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "授权与安全说明" }),
+          node("span", { text: "Scope 决定这个对外应用能调用什么能力；IP 白名单和限流决定它从哪里、以多高频率调用。创建后请先确认授权范围，再交付给外部系统。" }),
+        ]),
+      ]),
       renderDataTable(
         "openapi-clients",
         ["对外应用", "AccessKey", "授权 scope", "状态", "操作"],
@@ -1983,6 +1996,14 @@ export function mountApp(container: HTMLElement): void {
         [String(state.logs.total ?? state.logs.records.length), "日志总数"],
         [state.activeKind, "当前分类"],
         [state.selectedDetail?.requestId ?? "-", "当前请求号"],
+      ]),
+      node("section", { className: platform ? "log-layer-banner platform-log" : "log-layer-banner system-log" }, [
+        node("strong", { text: platform ? "平台层日志" : "业务系统层日志" }),
+        node("span", {
+          text: platform
+            ? "用于追踪平台账号、业务系统创建、平台级对外应用、密钥轮换、平台能力调用和运维诊断。"
+            : "用于追踪当前业务系统内成员、权限、建模发布、业务数据、流程、文件和系统相关对外调用。",
+        }),
       ]),
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
@@ -2031,6 +2052,14 @@ export function mountApp(container: HTMLElement): void {
         : [],
       "选择日志详情后会显示追踪信息。",
     );
+  }
+
+  function integrationStep(index: string, title: string, description: string): HTMLElement {
+    return node("div", { className: "integration-step" }, [
+      node("span", { text: index }),
+      node("strong", { text: title }),
+      node("small", { text: description }),
+    ]);
   }
 
   function renderOpsHealth(): HTMLElement {
