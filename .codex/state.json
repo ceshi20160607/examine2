@@ -2443,8 +2443,9 @@
                                                                       "P14-APP-005",
                                                                       "P14-APP-006"
                                                                   ],
-                                                        "reason":  "Terminology and prototype flow mismatch: platform-level external app/OpenAPI exposure was not proven by the P13 system-internal app/module/runtime E2E.",
+                                                        "reason":  "Repeated deployment feedback from P7 to P14 shows fragmented phase acceptance. P14 is upgraded to an integrated system baseline reset before further packaging.",
                                                         "issue_record":  "docs/issues/pm/development/p14_app_concept_rework.md",
+                                                        "baseline_record":  "docs/product/integrated-system-baseline.md",
                                                         "review_record":  "docs/review.json",
                                                         "package_gate":  "blocked"
                                                     }
