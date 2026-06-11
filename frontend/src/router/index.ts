@@ -120,6 +120,7 @@ export const APP_ROUTES: AppRouteRecord[] = [
   }),
   route("platform.openapi", "/platform/openapi", "对外应用中心", "openapi", "platform", ["PLAT-001"], "FE-011", {
     requiresAuth: true,
+    permission: { anyOperations: ["OPENAPI_POLICY_VIEW", "PLAT_SYSTEM_VIEW"] },
   }),
   route("system.overview", "/systems/:systemId/overview", "系统总览", "system", "system", ["SYS-001", "SYS-002", "SYS-004"], "FE-005", {
     requiresAuth: true,

@@ -25,6 +25,14 @@
 | 系统对外授权 | `#/systems/2065034340583424001/openapi` | 渲染成功，存在 `openApiModuleId`、`openApiActions`、`openApiReadableFields` 控件。 |
 | 业务运行台 | `#/systems/2065034340583424001/runtime` | 渲染成功，存在“刷新业务入口”和“进入”按钮，并展示业务入口行。 |
 
+Reviewer P0 回环复测：
+
+- `#/platform/openapi` 已要求平台权限 `OPENAPI_POLICY_VIEW` 或 `PLAT_SYSTEM_VIEW`。
+- 页面“配置对外授权”按钮同时受业务系统启用状态和平台授权权限控制。
+- 使用 `platform_admin` 登录后，平台对外应用中心渲染 13 行系统数据，“配置对外授权”按钮可见且可用。
+- 已清理 `P11流程`、`P11 流程模板页面创建`、`P11 文件中心测试内容`、`p11-*.txt`。
+- `AppShell` 不再为模块级导航生成 `/current/` 占位路径。
+
 修复过程中发现并处理：
 
 - 路由级权限在系统有效权限快照加载前可能误判 `PERM_DENIED`。

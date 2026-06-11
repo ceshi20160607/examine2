@@ -122,11 +122,12 @@ function decidePlatformPermission(auth: AuthStore, permission?: AppRouteRecord["
 
 function buildNavigationPath(routeRecord: AppRouteRecord, systemContext: SystemContextStore): string {
   const context = systemContext.getState().current;
+  if (routeRecord.path.includes(":appId") || routeRecord.path.includes(":moduleId")) {
+    return context ? `/systems/${context.system.systemId}/overview` : routeRecord.path;
+  }
   try {
     return buildPath(routeRecord.name, {
       systemId: context?.system.systemId,
-      appId: "current",
-      moduleId: "current",
     });
   } catch {
     return routeRecord.path;

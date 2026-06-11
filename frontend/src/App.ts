@@ -775,6 +775,9 @@ export function mountApp(container: HTMLElement): void {
   }
 
   function renderPlatformOpenApiCenter(): HTMLElement {
+    const canConfigureExternal = authStore.getState().user?.platformPermissions.some((item) =>
+      item === "OPENAPI_POLICY_VIEW" || item === "PLAT_SYSTEM_VIEW",
+    ) ?? false;
     return node("div", { className: "admin-page" }, [
       renderPageMetrics([
         [String(mySystemsPage.state.systems.length), "可接入系统"],
@@ -793,7 +796,7 @@ export function mountApp(container: HTMLElement): void {
           tenantModeLabel(item.tenantMode),
           statusLabel(item.status),
           node("div", { className: "row-actions" }, [
-            button("配置对外授权", "primary", () => enterSystemForOpenApi(item.systemId), item.status !== "ENABLED"),
+            button("配置对外授权", "primary", () => enterSystemForOpenApi(item.systemId), item.status !== "ENABLED" || !canConfigureExternal),
           ]),
         ]),
         "暂无可接入系统，请先创建或加入一个业务系统。",
@@ -1802,8 +1805,8 @@ export function mountApp(container: HTMLElement): void {
         ]),
         node("div", { className: "form-grid" }, [
           selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
-          input("模板名称", "flowTemplateName", `P11流程${p10Seed()}`),
-          textarea("模板备注", "flowTemplateRemark", "P11 流程模板页面创建"),
+          input("模板名称", "flowTemplateName", `审批流程${p10Seed()}`),
+          textarea("模板备注", "flowTemplateRemark", "业务审批流程模板"),
           button("切换模块", "secondary", switchSelectedModule),
           button("创建模板", "primary", createFlowTemplate, !actions.templateCreate.enabled),
         ]),
@@ -1888,7 +1891,7 @@ export function mountApp(container: HTMLElement): void {
             node("span", { text: "上传文件" }),
             node("input", { name: "fileUpload", type: "file" }),
           ]),
-          textarea("未选择文件时上传文本", "fileFallbackText", "P11 文件中心测试内容"),
+          textarea("未选择文件时上传文本", "fileFallbackText", "业务文件示例内容"),
           button("上传文件", "primary", uploadFileCenterFile, !actions.upload.enabled),
         ]),
       ]),
@@ -4149,7 +4152,7 @@ export function mountApp(container: HTMLElement): void {
   async function uploadFileCenterFile(): Promise<void> {
     const form = readForm();
     const inputFile = container.querySelector<HTMLInputElement>('input[name="fileUpload"]')?.files?.[0];
-    const file = inputFile ?? new File([form.fileFallbackText || "P11 文件中心测试内容"], `p11-${p10Seed()}.txt`, { type: "text/plain" });
+    const file = inputFile ?? new File([form.fileFallbackText || "业务文件示例内容"], `business-file-${p10Seed()}.txt`, { type: "text/plain" });
     await execute("FILE-001", async () => {
       requireSystemContext();
       const result = await fileCenter.files.upload(fileCenter.createUploadDraft(file, form.fileFieldCode?.trim() || undefined, {

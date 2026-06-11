@@ -548,5 +548,6 @@ Reviewer 对 P14 前端提出的 P0 问题成立，本轮已修复：
 - 静态扫描未发现 `schema 摘要`、`schemaSummary`、`P11导出模板`、`p11-export`、`授权 scope`、`保存Scope`、`/current/` 等可见调试痕迹。
 - 真实 API E2E 通过，记录见 `docs/test_runs/p14-integrated-api-e2e-20260611.md`：登录、建系统、进系统、建应用、建模块、建字段、保存页面、保存菜单动作、发布、运行台新增记录、记录详情/历史、OpenAPI scope 目录、创建对外应用、日志查询均通过。
 - CDP 浏览器真实登录、平台对外应用中心、系统对外授权表单和业务运行台关键页面烟测通过，记录见 `docs/test_runs/p14-frontend-smoke-20260611.md`。
+- Reviewer P0 回环已补：平台对外应用中心增加 `OPENAPI_POLICY_VIEW/PLAT_SYSTEM_VIEW` 权限要求，按钮受权限控制，P11 调试默认值和 `/current/` 导航占位已清理。
 
 PM 结论：P14 已从“前端 P0 不可交付”推进到“API 主链路通过、前后端构建通过、关键页面浏览器烟测通过”。`fullProjectDeployable=false` 和 `package_gate=blocked` 保持不变，继续执行 reviewer 后才能打包。
