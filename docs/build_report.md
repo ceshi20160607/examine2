@@ -1,3 +1,15 @@
+# 2026-06-11 P14 Clean Build 摘要
+
+结论：VAL-010/P14-VAL-001 通过，P14 前端 clean build、后端 clean package、API E2E 和浏览器点击流证据已完成；P14-PKG-001 仍需等待 reviewer pass 后执行。
+
+| 项目 | 结果 |
+| --- | --- |
+| 前端构建 | `npm.cmd run build` pass，生成 `frontend/dist/index.html`、`frontend/dist/assets/index-BoxiNZTv.css`、`frontend/dist/assets/index-C4ikCUrv.js` |
+| 后端打包 | `mvn.cmd -pl examine-web -am clean package -DskipTests` pass，生成 `backend/examine-web/target/unexamine.jar` |
+| API E2E | pass，记录见 `docs/test_runs/p14-integrated-api-e2e-20260611.md` |
+| 浏览器点击流 | pass，记录见 `docs/test_runs/p14-frontend-smoke-20260611.md` |
+| 阶段状态 | 待 P14 reviewer 复审；review pass 前不生成 P14 最终部署包 |
+
 # 2026-06-11 P13 Clean Build 摘要
 
 结论：VAL-009 通过，P13 前端 clean build、后端 clean package 和浏览器可用性主链路均已通过；REV-009 通过前仍不生成 PKG-002 最终包。
