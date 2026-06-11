@@ -7,6 +7,7 @@ import type {
   EntityId,
   FieldPermission,
   JsonValue,
+  OpenApiScope,
   PageResult,
   RecordDetailVO,
   RecordListItemVO,
@@ -630,6 +631,10 @@ export function mountApp(container: HTMLElement): void {
       return renderPlatformConfigs();
     }
 
+    if (route.name === "platform.openapi") {
+      return renderPlatformOpenApiCenter();
+    }
+
     if (route.name === "system.overview") {
       return renderSystemOverview();
     }
@@ -769,23 +774,58 @@ export function mountApp(container: HTMLElement): void {
     ]);
   }
 
+  function renderPlatformOpenApiCenter(): HTMLElement {
+    return node("div", { className: "admin-page" }, [
+      renderPageMetrics([
+        [String(mySystemsPage.state.systems.length), "可接入系统"],
+        [mySystemsPage.state.loading ? "同步中" : "就绪", "中心状态"],
+        ["系统授权", "配置方式"],
+      ]),
+      pageIntro(
+        "对外应用中心",
+        "对外应用是平台级开放能力入口。先选择要开放数据或能力的业务系统，再进入该系统的授权页面配置模块、字段、动作、数据范围、IP 白名单和限流策略。",
+      ),
+      renderDataTable(
+        "platform-openapi-systems",
+        ["业务系统", "租户模式", "状态", "操作"],
+        mySystemsPage.state.systems.map((item) => [
+          item.systemName,
+          tenantModeLabel(item.tenantMode),
+          statusLabel(item.status),
+          node("div", { className: "row-actions" }, [
+            button("配置对外授权", "primary", () => enterSystemForOpenApi(item.systemId), item.status !== "ENABLED"),
+          ]),
+        ]),
+        "暂无可接入系统，请先创建或加入一个业务系统。",
+      ),
+    ]);
+  }
+
   function renderSystemOverview(): HTMLElement {
     const context = systemContextStore.getState().current;
     const permissionCount = permissionStore.getState().effective?.operations.length ?? systemState.profile?.permissions?.operations?.length ?? 0;
     const publishedModules = appRuntimeState.modules.filter((item) => item.status === "PUBLISHED").length;
     const canConfigureSystem = permissionStore.decide({ anyOperations: ["SYS_MEMBER_VIEW", "SYS_ROLE_VIEW", "APP_VIEW", "MODULE_VIEW"] }).enabled;
-    const readinessItems: [string, boolean, string, string][] = [
+    const readinessItems: [string, boolean, string, string][] = canConfigureSystem ? [
       ["成员", systemState.members.length > 0, "至少添加一个系统成员", systemPath("system.members")],
       ["角色", systemState.roles.length > 0, "至少配置一个系统角色", systemPath("system.roles")],
       ["业务应用", appRuntimeState.apps.length > 0, "创建系统内业务应用", systemPath("apps.list")],
       ["业务模块", appRuntimeState.modules.length > 0, "创建业务模块和字段", systemPath("modules.list")],
       ["发布", publishedModules > 0, "发布后普通用户才能使用", systemPath("modules.ui")],
+    ] : [
+      ["业务入口", appRuntimeState.runtimeMenus.length > 0 || publishedModules > 0, "管理员发布并授权后会出现在业务运行台", systemPath("runtime.home")],
+      ["我的权限", permissionCount > 0, "只能使用已授权的菜单、字段和数据范围", systemPath("runtime.home")],
+      ["问题追踪", true, "遇到错误请把 requestId 提供给管理员排查", systemPath("runtime.home")],
     ];
-    const setupSteps: [string, string, string, string][] = [
+    const setupSteps: [string, string, string, string][] = canConfigureSystem ? [
       ["1", "系统设置", "维护租户、成员、部门、角色和字典，为业务运行建立权限上下文。", systemPath("system.members")],
       ["2", "建模配置", "创建业务应用和模块，配置字段、页面和发布检查。", systemPath("apps.list")],
       ["3", "业务运行", "进入业务运行台使用已发布模块，新增记录并提交审批。", systemPath("runtime.home")],
       ["4", "协同与开放", "配置流程、文件导出、对外应用和审计追踪。", systemPath("flow.workbench")],
+    ] : [
+      ["1", "进入业务运行台", "查看自己被授权的业务入口。", systemPath("runtime.home")],
+      ["2", "处理业务数据", "在已发布模块里新增、查看或更新自己的业务记录。", systemPath("runtime.home")],
+      ["3", "反馈问题", "页面报错时记录 requestId，由管理员在审计日志中追踪。", systemPath("runtime.home")],
     ];
     const healthItems: [string, string, string][] = [
       ["成员", String(systemState.members.length), "系统内可授权成员"],
@@ -856,10 +896,12 @@ export function mountApp(container: HTMLElement): void {
         )),
       ]),
       node("section", { className: "quick-grid" }, [
-        quickAction("成员与权限", "添加成员、部门和角色授权", systemPath("system.members")),
-        quickAction("建模配置", "创建业务应用、模块、字段和页面", systemPath("apps.list")),
+        ...(canConfigureSystem ? [
+          quickAction("成员与权限", "添加成员、部门和角色授权", systemPath("system.members")),
+          quickAction("建模配置", "创建业务应用、模块、字段和页面", systemPath("apps.list")),
+        ] : []),
         quickAction("业务运行", "使用已发布模块填报业务", systemPath("runtime.home")),
-        quickAction("系统审计", "按 requestId 追踪系统内问题", systemPath("audit.system")),
+        ...(canConfigureSystem ? [quickAction("系统审计", "按 requestId 追踪系统内问题", systemPath("audit.system"))] : []),
       ]),
     ]);
   }
@@ -1452,14 +1494,14 @@ export function mountApp(container: HTMLElement): void {
         ]),
       ]),
       renderDataTable(
-        "schemas",
-        ["配置", "状态", "版本", "内容"],
+        "page-configs",
+        ["页面", "状态", "版本", "可用情况"],
         [
-          ["列表视图", appRuntimeState.listSchema?.status ?? "-", String(appRuntimeState.listSchema?.version ?? "-"), schemaSummary(appRuntimeState.listSchema)],
-          ["表单视图", appRuntimeState.formSchema?.status ?? "-", String(appRuntimeState.formSchema?.version ?? "-"), schemaSummary(appRuntimeState.formSchema)],
-          ["详情视图", appRuntimeState.detailSchema?.status ?? "-", String(appRuntimeState.detailSchema?.version ?? "-"), schemaSummary(appRuntimeState.detailSchema)],
+          ["列表视图", appRuntimeState.listSchema?.status ?? "-", String(appRuntimeState.listSchema?.version ?? "-"), pageConfigSummary(appRuntimeState.listSchema)],
+          ["表单视图", appRuntimeState.formSchema?.status ?? "-", String(appRuntimeState.formSchema?.version ?? "-"), pageConfigSummary(appRuntimeState.formSchema)],
+          ["详情视图", appRuntimeState.detailSchema?.status ?? "-", String(appRuntimeState.detailSchema?.version ?? "-"), pageConfigSummary(appRuntimeState.detailSchema)],
         ],
-        "加载或保存页面配置后会显示 schema 摘要。",
+        "加载或保存页面配置后会显示当前页面是否已经可用。",
       ),
       renderDataTable(
         "publish-issues",
@@ -1890,9 +1932,9 @@ export function mountApp(container: HTMLElement): void {
         ]),
         node("div", { className: "form-grid" }, [
           selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
-          input("模板编码", "exportTemplateCode", `p11_tpl_${p10Seed()}`),
-          input("模板名称", "exportTemplateName", `P11导出模板${p10Seed()}`),
-          input("文件名", "exportFileName", `p11-export-${p10Seed()}.csv`),
+          input("模板编码", "exportTemplateCode", `export_tpl_${p10Seed()}`),
+          input("模板名称", "exportTemplateName", `业务导出模板${p10Seed()}`),
+          input("文件名", "exportFileName", `business-export-${p10Seed()}.csv`),
           button("切换模块", "secondary", switchSelectedModule),
           button("创建模板", "primary", createExportTemplate, !selectedModuleId() || !exportModuleReady || appRuntimeState.fields.length === 0),
           button("创建导出任务", "primary", createExportJob, !selectedModuleId() || !exportModuleReady),
@@ -1932,10 +1974,25 @@ export function mountApp(container: HTMLElement): void {
         node("div", { className: "form-grid" }, [
           input("对外应用名称", "openApiClientName", ""),
           input("对外应用编码", "openApiClientCode", ""),
-          input("授权 scope", "openApiScopes", "record:read,record:write"),
+          selectField("授权业务模块", "openApiModuleId", selectedModuleId() ?? "", publishedModuleOptions()),
+          multiSelectField("允许动作", "openApiActions", ["record:read"], [
+            ["record:read", "读取记录"],
+            ["record:create", "新增记录"],
+            ["record:update", "更新记录"],
+            ["record:submit", "提交审批"],
+          ]),
+          multiSelectField("可读字段", "openApiReadableFields", openApiDefaultFieldCodes(), moduleFieldOptions()),
+          multiSelectField("可写字段", "openApiWritableFields", [], moduleFieldOptions()),
+          selectField("数据范围", "openApiDataScope", "SELF", [
+            ["SELF", "仅本人数据"],
+            ["DEPT", "本部门数据"],
+            ["DEPT_TREE", "本部门及下级"],
+            ["ALL", "全部数据"],
+          ]),
+          input("平台能力", "openApiPlatformCapabilities", ""),
           input("IP 白名单", "openApiIpWhitelist", ""),
           input("每分钟限流", "openApiRateLimit", "60"),
-          button("加载 Scope", "secondary", loadOpenApiScopeCatalog),
+          button("加载授权目录", "secondary", loadOpenApiScopeCatalog),
           button("创建对外应用", "primary", createOpenApiClient, !permissions.createClient.enabled),
         ]),
       ]),
@@ -1955,7 +2012,7 @@ export function mountApp(container: HTMLElement): void {
       ]),
       renderDataTable(
         "openapi-clients",
-        ["对外应用", "AccessKey", "授权 scope", "状态", "操作"],
+        ["对外应用", "AccessKey", "授权范围", "状态", "操作"],
         clients.map((item) => [
           item.name,
           item.accessKey,
@@ -1965,7 +2022,7 @@ export function mountApp(container: HTMLElement): void {
             button("编辑", "secondary", () => updateOpenApiClient(item), !permissions.editClient.enabled),
             button(item.status === "ENABLED" ? "停用" : "启用", "secondary", () => toggleOpenApiClient(item), !permissions.changeStatus.enabled),
             button("轮换密钥", "secondary", () => rotateOpenApiCredential(item), !permissions.rotateCredential.enabled),
-            button("保存Scope", "secondary", () => updateOpenApiScopes(item), !permissions.editScope.enabled),
+            button("保存授权", "secondary", () => updateOpenApiScopes(item), !permissions.editScope.enabled),
             button("保存IP", "secondary", () => updateOpenApiIpWhitelist(item), !permissions.editIp.enabled),
           ]),
         ]),
@@ -2175,20 +2232,31 @@ export function mountApp(container: HTMLElement): void {
 
   function systemPath(routeName: string): string {
     const context = systemContextStore.getState().current;
-    const appId = appRuntimeState.selectedAppId ?? appRuntimeState.apps[0]?.appId ?? "current";
-    const moduleId = appRuntimeState.selectedModuleId ?? appRuntimeState.modules[0]?.moduleId ?? "current";
     if (!context) {
       return "/platform/my-systems";
+    }
+    const appId = appRuntimeState.selectedAppId ?? appRuntimeState.apps[0]?.appId;
+    const moduleId = appRuntimeState.selectedModuleId ?? appRuntimeState.modules[0]?.moduleId;
+    const route = findRouteByName(routeName);
+    if (route?.path.includes(":appId") && !appId) {
+      return `/systems/${context.system.systemId}/apps`;
+    }
+    if (route?.path.includes(":moduleId") && !moduleId) {
+      return appId ? `/systems/${context.system.systemId}/apps/${appId}/modules` : `/systems/${context.system.systemId}/apps`;
     }
     try {
       return buildPath(routeName, {
         systemId: context.system.systemId,
-        appId,
-        moduleId,
+        appId: appId ?? "",
+        moduleId: moduleId ?? "",
       });
     } catch {
       return `/systems/${context.system.systemId}/overview`;
     }
+  }
+
+  function findRouteByName(routeName: string): AppRouteRecord | undefined {
+    return APP_ROUTES.find((item) => item.name === routeName);
   }
 
   function renderModuleSummary(route: AppRouteRecord): HTMLElement {
@@ -2217,9 +2285,14 @@ export function mountApp(container: HTMLElement): void {
         ["2", "进入系统总览", "系统总览会告诉你成员、业务应用、模块和业务运行台还差什么。", "#/platform/my-systems"],
       ],
       "system.overview": [
-        ["1", "配置成员与权限", "先让系统有人、有角色，再配置业务。", `#${systemPath("system.members")}`],
-        ["2", "创建业务应用和模块", "用业务应用和模块描述你的业务对象。", `#${systemPath("apps.list")}`],
-        ["3", "发布后使用", "模块发布后再进入业务运行台填报数据。", `#${systemPath("runtime.home")}`],
+        ...(permissionStore.decide({ anyOperations: ["SYS_MEMBER_VIEW", "SYS_ROLE_VIEW", "APP_VIEW", "MODULE_VIEW"] }).enabled ? [
+          ["1", "配置成员与权限", "先让系统有人、有角色，再配置业务。", `#${systemPath("system.members")}`],
+          ["2", "创建业务应用和模块", "用业务应用和模块描述你的业务对象。", `#${systemPath("apps.list")}`],
+          ["3", "发布后使用", "模块发布后再进入业务运行台填报数据。", `#${systemPath("runtime.home")}`],
+        ] as [string, string, string, string][] : [
+          ["1", "进入业务运行台", "查看自己可以使用的业务入口。", `#${systemPath("runtime.home")}`],
+          ["2", "开始处理数据", publishedModules > 0 ? "点击业务模块进入列表并处理数据。" : "当前还没有可用业务模块，请联系管理员发布并授权。", `#${systemPath("runtime.home")}`],
+        ] as [string, string, string, string][]),
       ],
       "apps.list": [
         ["1", "创建业务应用", "业务应用相当于一个系统内业务分组，例如合同、车辆、客户。", `#${systemPath("apps.list")}`],
@@ -2238,8 +2311,8 @@ export function mountApp(container: HTMLElement): void {
         ["2", "发布模块", "发布检查通过后发布，业务运行台才会出现。", `#${systemPath("runtime.home")}`],
       ],
       "runtime.home": [
-        ["1", "加载业务入口", "只显示已发布模块。没有菜单时，回到建模配置发布模块。", `#${systemPath("runtime.home")}`],
-        ["2", "开始填报", publishedModules > 0 ? "点击模块进入列表并新增记录。" : "当前没有已发布模块，请先完成建模配置。", `#${systemPath("apps.list")}`],
+        ["1", "加载业务入口", "只显示你已被授权的业务模块。", `#${systemPath("runtime.home")}`],
+        ["2", "开始填报", publishedModules > 0 ? "点击模块进入列表并新增记录。" : "当前没有可用业务模块，请联系管理员发布并授权。", `#${systemPath("runtime.home")}`],
       ],
     };
     const items = guidance[route.name] ?? [
@@ -2297,6 +2370,10 @@ export function mountApp(container: HTMLElement): void {
     }
     if (route.name === "platform.configs") {
       await loadPlatformConfigs();
+      return;
+    }
+    if (route.name === "platform.openapi") {
+      await execute("PLAT-001", () => mySystemsPage.loadSystems());
       return;
     }
     if (route.name === "system.overview") {
@@ -2368,6 +2445,11 @@ export function mountApp(container: HTMLElement): void {
       return;
     }
     if (route.name === "openapi.clients") {
+      await ensureModulesLoaded();
+      preferPublishedModule();
+      if (selectedModuleId()) {
+        await loadModuleFields();
+      }
       await loadOpenApiClients();
       return;
     }
@@ -4258,7 +4340,7 @@ export function mountApp(container: HTMLElement): void {
         code: required(form.openApiClientCode, "对外应用编码"),
         tenantId: systemContextStore.toTenantHeader(),
         status: "ENABLED",
-        scopes: parseOpenApiScopes(form.openApiScopes),
+        scopes: buildOpenApiScopes(form),
         ipWhitelist: parseOpenApiIpWhitelist(form.openApiIpWhitelist),
         rateLimitPolicy: [{
           windowSeconds: 60,
@@ -4321,7 +4403,7 @@ export function mountApp(container: HTMLElement): void {
     await execute("OPM-006", async () => {
       requireSystemContext();
       await openApiPage.updateScopes(item.clientId, {
-        scopes: parseOpenApiScopes(form.openApiScopes),
+        scopes: buildOpenApiScopes(form, item),
       });
       await loadOpenApiClients();
       return { requestId: `OPM-006-${Date.now()}` };
@@ -4423,6 +4505,14 @@ export function mountApp(container: HTMLElement): void {
     await execute("SYS-001", async () => {
       const result = await enterSystemContext(systemId);
       navigate(`/systems/${systemId}/overview`);
+      return result;
+    });
+  }
+
+  async function enterSystemForOpenApi(systemId: string): Promise<void> {
+    await execute("SYS-001", async () => {
+      const result = await enterSystemContext(systemId);
+      navigate(`/systems/${systemId}/openapi`);
       return result;
     });
   }
@@ -4891,6 +4981,27 @@ export function mountApp(container: HTMLElement): void {
     ];
   }
 
+  function publishedModuleOptions(): [string, string][] {
+    const modules = appRuntimeState.modules.filter(moduleIsPublished);
+    return [
+      ["", modules.length > 0 ? "请选择已发布模块" : "请先发布业务模块"],
+      ...modules.map((item) => [item.moduleId, `${item.name} / ${item.code}`] as [string, string]),
+    ];
+  }
+
+  function moduleFieldOptions(): [string, string][] {
+    return appRuntimeState.fields
+      .filter((field) => field.status !== "DELETED")
+      .map((field) => [field.code, `${field.name} / ${field.code}`] as [string, string]);
+  }
+
+  function openApiDefaultFieldCodes(): string[] {
+    return appRuntimeState.fields
+      .filter((field) => field.status !== "DELETED")
+      .slice(0, 6)
+      .map((field) => field.code);
+  }
+
   function fieldTypeOptions(): [string, string][] {
     const types = appRuntimeState.fieldTypes.length > 0
       ? appRuntimeState.fieldTypes.map((item) => ({ code: String(item.code), name: item.name }))
@@ -4932,11 +5043,11 @@ export function mountApp(container: HTMLElement): void {
       }));
   }
 
-  function schemaSummary(schema?: PageSchemaVO): string {
-    if (!schema) {
-      return "-";
+  function pageConfigSummary(config?: PageSchemaVO): string {
+    if (!config) {
+      return "尚未加载";
     }
-    return formatValue(schema.schema).slice(0, 180);
+    return config.status === "ENABLED" ? "已启用" : statusLabel(config.status ?? "DRAFT");
   }
 
   function flattenRuntimeMenus(menus: RuntimeMenuVO[] = []): RuntimeMenuVO[] {
@@ -5004,22 +5115,31 @@ export function mountApp(container: HTMLElement): void {
     return `${(size / 1024 / 1024).toFixed(1)} MB`;
   }
 
-  function parseOpenApiScopes(value?: string) {
-    const scopes = splitValues(value ?? "");
-    return scopes.length > 0
-      ? scopes.map((scopeCode) => ({
-          scopeCode,
-          actions: scopeCode.includes("write") ? ["CREATE", "UPDATE", "DELETE"] : ["READ"],
-          readableFieldCodes: [],
-          writableFieldCodes: scopeCode.includes("write") ? [] : undefined,
-        }))
-      : [
-          {
-            scopeCode: "record:read",
-            actions: ["READ"],
-            readableFieldCodes: [],
-          },
-        ];
+  function buildOpenApiScopes(form: Record<string, string>, fallback?: OpenApiClientListItemVO): OpenApiScope[] {
+    const moduleId = form.openApiModuleId || selectedModuleId();
+    const module = appRuntimeState.modules.find((item) => item.moduleId === moduleId);
+    const moduleCode = module?.code ?? fallback?.scopes[0]?.moduleCode;
+    const actions = splitValues(form.openApiActions || "record:read");
+    const readableFieldCodes = splitValues(form.openApiReadableFields || openApiDefaultFieldCodes().join(","));
+    const writableFieldCodes = splitValues(form.openApiWritableFields || "");
+    const platformCapabilities = splitValues(form.openApiPlatformCapabilities || "");
+    const dataScope = { scopeType: (form.openApiDataScope || "SELF") as "SELF" | "DEPT" | "DEPT_TREE" | "ALL" };
+    const scopes: OpenApiScope[] = moduleCode ? [{
+      scopeCode: `${moduleCode}:records`,
+      moduleCode,
+      actions,
+      readableFieldCodes,
+      writableFieldCodes: writableFieldCodes.length > 0 ? writableFieldCodes : undefined,
+      dataScope,
+    }] : [];
+    return platformCapabilities.reduce((result, capability) => {
+      result.push({
+        scopeCode: capability,
+        actions: [capability],
+        dataScope,
+      });
+      return result;
+    }, scopes);
   }
 
   function parseOpenApiIpWhitelist(value?: string) {
@@ -5251,6 +5371,7 @@ export function mountApp(container: HTMLElement): void {
       "platform.accounts",
       "platform.roles",
       "platform.configs",
+      "platform.openapi",
       "system.profile",
       "system.tenants",
       "system.members",

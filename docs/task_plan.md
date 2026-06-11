@@ -386,12 +386,12 @@ P13 结论已撤回。P14 不再只纠正“应用”术语，而是按普通人
 | P14-APP-003 | 任务拆分 | planner | done | 已输出 `docs/tasks/P14-integrated-rework-plan.md`。 |
 | P14-FE-001 | 前端实现 | frontend | done | 已重构壳层、导航、视觉和页面文案，记录见 `frontend/docs/page-contracts/P14-FE-001-shell-navigation-visual.md`。 |
 | P14-FE-002 | 前端实现 | frontend | done | 已重做系统总览、系统设置、建模配置和业务运行体验，记录见 `frontend/docs/page-contracts/P14-FE-002-system-builder-runtime.md`。 |
-| P14-FE-003 | 前端实现 | frontend | done | 已重做平台级对外应用和日志分层体验，记录见 `frontend/docs/page-contracts/P14-FE-003-external-app-audit.md`。 |
+| P14-FE-003 | 前端实现 | frontend | done | 已重做平台级对外应用和日志分层体验，并补充平台对外应用中心、系统对外授权、结构化授权表单和普通用户配置入口隔离；记录见 `frontend/docs/page-contracts/P14-FE-003-external-app-audit.md`。 |
 | P14-BE-001 | 后端补缺 | backend | conditional | 只补 UI/测试发现的真实缺口。 |
-| P14-TEST-001 | 测试 | test | pending | 剧本 A：管理员到普通用户完整链路。 |
-| P14-TEST-002 | 测试 | test | pending | 剧本 B：平台级对外应用链路。 |
-| P14-TEST-003 | 测试 | test | pending | 剧本 C：审计与恢复链路。 |
-| P14-VAL-001 | 验证 | validator | pending | 前端 clean build 和后端 clean package。 |
+| P14-TEST-001 | 测试 | test | partial | 剧本 A API 链路通过：建系统、建应用、建模块、字段、页面、发布、运行台记录均通过；浏览器点击流待复验，记录见 `docs/test_runs/p14-integrated-api-e2e-20260611.md`。 |
+| P14-TEST-002 | 测试 | test | partial | 剧本 B API 链路通过：OpenAPI scope 目录和对外应用创建通过；浏览器授权表单点击流待复验。 |
+| P14-TEST-003 | 测试 | test | partial | 剧本 C API 链路通过：平台/系统/OpenAPI 日志接口均可查询；浏览器检索流待复验。 |
+| P14-VAL-001 | 验证 | validator | partial | 前端 `npm.cmd run build` 通过；后端 clean package 与浏览器 E2E 仍待执行。 |
 | P14-REV-001 | 审查 | reviewer | pending | 对照产品模型和 UI/UX 审查。 |
 | P14-PKG-001 | 打包 | validator | blocked | 仅 reviewer pass 后执行。 |
 

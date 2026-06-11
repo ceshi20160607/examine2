@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-10T16:45:00+08:00",
+    "updated_at":  "2026-06-11T19:45:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2472,5 +2472,5 @@
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
     "last_completed_batch":  "DEV-BATCH-P13-ACCEPTANCE-RETRACTED",
-    "active_batch":  "DEV-BATCH-P14-CONCEPT-REWORK"
+    "active_batch":  "DEV-BATCH-P14-FRONTEND-P0-API-E2E"
 }

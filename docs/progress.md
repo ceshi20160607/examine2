@@ -7,8 +7,8 @@
 PM 已撤回 `P13-usability-rework` 的完整可用结论：
 
 - 当前期次：`P14-prototype-concept-rework`
-- 当前状态：`P13_acceptance_retracted_app_concept_rework_required`
-- 当前阻塞：`P14-APP-001` 至 `P14-APP-006`
+- 当前状态：`P14_frontend_p0_rework_and_api_e2e_partial_pass`
+- 当前阻塞：浏览器点击流 E2E、P14 reviewer 复审、最终打包闸门
 - 当前结论：`fullProjectDeployable=false`
 - 打包策略：P14 术语、原型流程、UI/前端和测试闭环前，不再生成新的“最终可用”部署包。
 
@@ -22,7 +22,7 @@ P14 目标：
 4. 基于冻结后的 UI/UX 重新调整前端入口和页面文案。
 5. 用真实浏览器连续验证“登录 -> 创建系统 -> 建模块字段 -> 发布 -> 运行台使用 -> 创建对外应用 -> 授权系统数据/能力 -> 外部调用 -> 调用日志/审计”的完整链路。
 
-更新时间：2026-06-11
+更新时间：2026-06-11 19:45
 
 ## 总览
 
@@ -529,3 +529,23 @@ PM/UIUX/Planner 本轮已把 P14 从“概念纠偏”升级为“完整系统 U
 - 地址栏 `accessToken/baseUrl/systemId` 预览参数已限制为 dev 模式，生产 build 不读取。
 
 结论：环境具备进入 P14-TEST-001/002/003 的条件，但本记录不是完整 E2E。`package_gate` 继续 blocked。
+
+## 2026-06-11 P14 前端 P0 修复与 API E2E
+
+Reviewer 对 P14 前端提出的 P0 问题成立，本轮已修复：
+
+- 普通业务用户系统总览不再展示成员、角色、建模配置等管理入口，也不再引导用户去建模配置。
+- 新增平台工作空间 `#/platform/openapi` 对外应用中心，系统内页面收敛为 `#/systems/:systemId/openapi` 系统对外授权。
+- 对外应用授权从手填 scope 字符串改为业务模块、动作、读写字段、数据范围、平台能力、IP 白名单和限流策略。
+- 页面配置区不再展示可见 schema 摘要。
+- 导出页清理 P11 测试默认值。
+- `systemPath` 不再生成 `/current/` 占位链接。
+
+验证结果：
+
+- 前端生产构建通过：`npm.cmd run build`，产物 `frontend/dist/index.html`、`frontend/dist/assets/index-Syyl9-qs.js`。
+- 静态扫描未发现 `schema 摘要`、`schemaSummary`、`P11导出模板`、`p11-export`、`授权 scope`、`保存Scope`、`/current/` 等可见调试痕迹。
+- 真实 API E2E 通过，记录见 `docs/test_runs/p14-integrated-api-e2e-20260611.md`：登录、建系统、进系统、建应用、建模块、建字段、保存页面、保存菜单动作、发布、运行台新增记录、记录详情/历史、OpenAPI scope 目录、创建对外应用、日志查询均通过。
+- CDP 浏览器真实登录流未稳定进入认证态，记录见 `docs/test_runs/p14-frontend-smoke-20260611.md`，不能计为浏览器 E2E pass。
+
+PM 结论：P14 已从“前端 P0 不可交付”推进到“API 主链路通过、前端构建通过、浏览器点击流待复验”。`fullProjectDeployable=false` 和 `package_gate=blocked` 保持不变，继续执行浏览器 E2E、validator、reviewer 后才能打包。
