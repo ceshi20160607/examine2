@@ -37,7 +37,7 @@ P14 必须补齐以下流程图和页面追踪矩阵，并纳入 `docs/product/i
 | --- | --- | --- | --- |
 | P14-APP-000 | pm | 输出并冻结 `docs/product/product-vision-and-operating-model.md`，主动定义角色、工作空间、信息架构、端到端剧本、权限边界、错误恢复和验收证据。 | PM 不再以“用户指出什么就补什么”为工作方式；UI/UX、planner、frontend、test、reviewer 后续都必须引用该模型。 |
 | P14-APP-001 | analyst | 对照 `docs/user_requirement.md`、旧项目 `PlatformAppController` 和 OpenAPI 旧表，输出应用概念复核摘要。 | 明确平台级对外应用、系统内业务应用、OpenAPI 客户端三者边界。 |
-| P14-APP-002 | pm/uiux | 基于 `docs/product/integrated-system-baseline.md` 重画信息架构和页面流程，输出 `docs/ui/p14-integrated-ui.md`。 | 页面能让普通人理解如何创建系统、建模块、用运行台、配置对外应用并排错恢复。 |
+| P14-APP-002 | pm/uiux | 基于 `docs/product/integrated-system-baseline.md` 和 `docs/product/product-vision-and-operating-model.md` 重画信息架构、页面流程、视觉层级、状态和中文文案，输出 `docs/ui/p14-integrated-ui.md`。 | 页面能让普通人理解如何创建系统、建模块、用运行台、配置对外应用并排错恢复；明确哪些前端能力复用、哪些页面必须重设计。 |
 | P14-APP-003 | planner | 按完整系统剧本拆分一次性返工任务，不再按割裂页面局部验收。 | 每个任务映射到剧本 A/B/C，并说明输入、输出、验证和是否需要改 API/DB。 |
 | P14-APP-004 | frontend | 在 UI/UX 冻结后重组导航、页面入口和文案。 | 浏览器 E2E 可连续走通系统创建、建模、发布、运行台和平台级对外应用配置。 |
 | P14-APP-005 | test | 补充真实浏览器 E2E 和 OpenAPI 调用链路测试。 | 测试报告按完整剧本 A/B/C、普通业务用户权限、平台级对外应用、平台/系统日志分层输出，禁止用局部 smoke 替代。 |
