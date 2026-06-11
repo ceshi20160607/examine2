@@ -773,6 +773,14 @@ export function mountApp(container: HTMLElement): void {
     const context = systemContextStore.getState().current;
     const permissionCount = permissionStore.getState().effective?.operations.length ?? systemState.profile?.permissions?.operations?.length ?? 0;
     const publishedModules = appRuntimeState.modules.filter((item) => item.status === "PUBLISHED").length;
+    const canConfigureSystem = permissionStore.decide({ anyOperations: ["SYS_MEMBER_VIEW", "SYS_ROLE_VIEW", "APP_VIEW", "MODULE_VIEW"] }).enabled;
+    const readinessItems: [string, boolean, string, string][] = [
+      ["成员", systemState.members.length > 0, "至少添加一个系统成员", systemPath("system.members")],
+      ["角色", systemState.roles.length > 0, "至少配置一个系统角色", systemPath("system.roles")],
+      ["业务应用", appRuntimeState.apps.length > 0, "创建系统内业务应用", systemPath("apps.list")],
+      ["业务模块", appRuntimeState.modules.length > 0, "创建业务模块和字段", systemPath("modules.list")],
+      ["发布", publishedModules > 0, "发布后普通用户才能使用", systemPath("modules.ui")],
+    ];
     const setupSteps: [string, string, string, string][] = [
       ["1", "系统设置", "维护租户、成员、部门、角色和字典，为业务运行建立权限上下文。", systemPath("system.members")],
       ["2", "建模配置", "创建业务应用和模块，配置字段、页面和发布检查。", systemPath("apps.list")],
@@ -794,6 +802,14 @@ export function mountApp(container: HTMLElement): void {
           node("p", { className: "eyebrow", text: "系统工作台" }),
           node("h2", { text: context?.system.systemName ?? "未进入系统" }),
           node("p", { className: "form-note", text: "先完成系统设置，再配置业务应用和模块，最后进入业务运行台处理真实数据。这里聚合当前系统的配置进度和下一步入口。" }),
+          node("div", { className: canConfigureSystem ? "role-banner is-admin" : "role-banner is-user" }, [
+            node("strong", { text: canConfigureSystem ? "你正在管理这个系统" : "你正在使用这个系统" }),
+            node("span", {
+              text: canConfigureSystem
+                ? "请按推荐路径完成成员、角色、建模和发布。"
+                : "你只能看到被授权的业务模块和数据范围，配置入口会自动隐藏。",
+            }),
+          ]),
         ]),
         node("div", { className: "overview-context" }, [
           node("span", { text: `租户：${context?.tenant?.tenantName ?? "默认租户"}` }),
@@ -820,6 +836,22 @@ export function mountApp(container: HTMLElement): void {
             node("span", { className: "step-index", text: order }),
             node("strong", { text: title }),
             node("p", { text: desc }),
+          ]),
+        )),
+      ]),
+      node("section", { className: "flow-board" }, [
+        node("div", { className: "panel-heading" }, [
+          node("div", {}, [
+            node("p", { className: "eyebrow", text: "就绪度检查" }),
+            node("h2", { text: "普通用户能不能开始使用" }),
+          ]),
+          node("span", { className: publishedModules > 0 ? "status-pill ok" : "status-pill", text: publishedModules > 0 ? "可运行" : "待发布" }),
+        ]),
+        node("div", { className: "readiness-list" }, readinessItems.map(([title, passed, description, href]) =>
+          node("a", { className: `readiness-item${passed ? " is-done" : " is-pending"}`, href: `#${href}` }, [
+            node("span", { text: passed ? "完成" : "待办" }),
+            node("strong", { text: title }),
+            node("small", { text: description }),
           ]),
         )),
       ]),
@@ -982,6 +1014,7 @@ export function mountApp(container: HTMLElement): void {
         [statusLabel(profile?.status ?? context?.system.status), "系统状态"],
         [tenantModeLabel(tenantMode), "租户模式"],
       ]),
+      pageIntro("系统资料", "这里维护当前业务系统的基础信息。平台账号负责登录，系统资料只定义这个业务空间本身。"),
       node("div", { className: "form-grid" }, [
         input("系统名称", "systemProfileName", systemName),
         input("访问域名", "systemProfileDomain", ""),
@@ -1015,6 +1048,7 @@ export function mountApp(container: HTMLElement): void {
         [enabledCount(systemState.tenants), "启用中"],
         [systemContextStore.getState().current?.system.systemName ?? "-", "所属系统"],
       ]),
+      pageIntro("租户管理", "单租户系统通常只需要默认租户；多租户系统需要先建租户，再给成员分配租户上下文。"),
       node("div", { className: "form-grid" }, [
         input("租户编码", "tenantCode", ""),
         input("租户名称", "tenantName", ""),
@@ -1052,6 +1086,7 @@ export function mountApp(container: HTMLElement): void {
         [enabledCount(systemState.members), "启用成员"],
         [String(systemState.roles.length), "可分配角色"],
       ]),
+      pageIntro("成员是平台账号在当前系统里的身份", "先选择平台账号，再补充岗位、部门、租户和系统角色。普通业务用户能看到什么，由这里分配的角色和数据范围决定。", "warn"),
       node("div", { className: "form-grid" }, [
         input("平台账号登录名", "memberLoginName", ""),
         input("岗位", "memberPostName", ""),
@@ -1095,6 +1130,7 @@ export function mountApp(container: HTMLElement): void {
         [String(departments.filter((item) => !item.parentId).length), "根部门"],
         [String(departments.reduce((sum, item) => sum + (item.memberCount ?? 0), 0)), "关联成员"],
       ]),
+      pageIntro("部门组织", "部门用于组织成员和数据范围。删除前先确认没有子部门和成员引用。"),
       node("div", { className: "form-grid" }, [
         input("部门编码", "deptCode", ""),
         input("部门名称", "deptName", ""),
@@ -1134,6 +1170,7 @@ export function mountApp(container: HTMLElement): void {
         [enabledCount(systemState.roles), "启用角色"],
         [permissionCatalogLabel(systemState.permissionCatalog), "权限目录"],
       ]),
+      pageIntro("系统角色", "角色由菜单权限、操作权限、字段权限和数据范围组成。页面可见性不能写死角色名称，必须基于这些权限判断。"),
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
           node("strong", { text: "角色资料" }),
@@ -1204,6 +1241,7 @@ export function mountApp(container: HTMLElement): void {
         [selectedType?.name ?? "未选择", "当前类型"],
         [systemState.dictCache ? String(systemState.dictCache.cacheVersion) : "-", "缓存版本"],
       ]),
+      pageIntro("业务字典", "字典用于字段选项、状态和分类。先维护字典类型，再维护字典项；存在引用时不要直接删除。"),
       node("div", { className: "form-grid" }, [
         input("类型编码", "dictTypeCode", ""),
         input("类型名称", "dictTypeName", ""),
@@ -1310,7 +1348,7 @@ export function mountApp(container: HTMLElement): void {
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
           node("strong", { text: "创建模块" }),
-          node("span", { text: app ? "模块发布后会出现在业务运行台。" : "请先创建或选择业务应用。" }),
+          node("span", { text: app ? "模块就是一类业务数据，发布后会出现在业务运行台。" : "请先创建或选择业务应用。" }),
         ]),
         node("div", { className: "form-grid" }, [
           selectField("业务应用", "selectedAppId", appRuntimeState.selectedAppId ?? "", appSelectOptions()),
@@ -1355,7 +1393,7 @@ export function mountApp(container: HTMLElement): void {
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
           node("strong", { text: "字段设计" }),
-          node("span", { text: module ? "字段决定业务运行台列表、表单和详情的数据结构。" : "请先选择模块。" }),
+          node("span", { text: module ? "字段决定业务运行台列表、表单、详情和权限控制。普通用户只能看到授权字段。" : "请先选择模块。" }),
         ]),
         node("div", { className: "form-grid" }, [
           selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
@@ -1444,6 +1482,12 @@ export function mountApp(container: HTMLElement): void {
         [selectedModule()?.name ?? "未选择", "当前模块"],
         [appRuntimeState.runtimeSchema ? "已准备" : "待打开", "业务表单状态"],
       ]),
+      node("section", { className: "task-card" }, [
+        node("div", { className: "task-card-title" }, [
+          node("strong", { text: "我的业务入口" }),
+          node("span", { text: "这里只展示已经发布且你有权限访问的业务模块。看不到模块时，请联系管理员完成建模发布或分配权限。" }),
+        ]),
+      ]),
       node("div", { className: "form-grid" }, [
         button("刷新业务入口", "primary", loadRuntimeMenus),
       ]),
@@ -1474,8 +1518,8 @@ export function mountApp(container: HTMLElement): void {
       ]),
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
-          node("strong", { text: "运行列表" }),
-          node("span", { text: "选择业务模块后，可查询、新增、查看和提交记录。" }),
+          node("strong", { text: "业务数据列表" }),
+          node("span", { text: "你看到的是当前角色和数据范围内的记录。保存、提交和导出按钮会按权限自动启用或禁用。" }),
         ]),
         node("div", { className: "form-grid" }, [
           selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
@@ -2088,6 +2132,15 @@ export function mountApp(container: HTMLElement): void {
     return node("a", { className: "quick-card", href: `#${href}` }, [
       node("strong", { text: title }),
       node("span", { text: description }),
+    ]);
+  }
+
+  function pageIntro(title: string, description: string, variant: "default" | "warn" = "default"): HTMLElement {
+    return node("section", { className: `task-card${variant === "warn" ? " is-warn" : ""}` }, [
+      node("div", { className: "task-card-title" }, [
+        node("strong", { text: title }),
+        node("span", { text: description }),
+      ]),
     ]);
   }
 

@@ -335,6 +335,35 @@ a {
   font-size: 13px;
 }
 
+.role-banner {
+  display: grid;
+  gap: 4px;
+  max-width: 680px;
+  margin-top: 14px;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.role-banner strong {
+  color: #17212b;
+}
+
+.role-banner span {
+  color: #52616f;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.role-banner.is-admin {
+  border: 1px solid #b5d4dc;
+  background: #eef8fa;
+}
+
+.role-banner.is-user {
+  border: 1px solid #d9c8a8;
+  background: #fff9ee;
+}
+
 .overview-metrics {
   margin-bottom: 0;
 }
@@ -344,6 +373,49 @@ a {
   border-radius: 8px;
   background: #ffffff;
   padding: 16px;
+}
+
+.readiness-list {
+  display: grid;
+  gap: 10px;
+}
+
+.readiness-item {
+  display: grid;
+  grid-template-columns: 62px 140px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 11px 12px;
+}
+
+.readiness-item span {
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.readiness-item strong {
+  color: #17212b;
+}
+
+.readiness-item small {
+  color: #697989;
+  line-height: 1.5;
+}
+
+.readiness-item.is-done span {
+  background: #e7f5ef;
+  color: #27624d;
+}
+
+.readiness-item.is-pending span {
+  background: #fff3df;
+  color: #8a4f1d;
 }
 
 .step-grid,
