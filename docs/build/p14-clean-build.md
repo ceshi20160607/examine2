@@ -1,6 +1,6 @@
 # P14 Clean Build 记录
 
-执行时间：2026-06-11 20:02
+执行时间：2026-06-11 20:38
 
 ## 前端
 
@@ -19,7 +19,7 @@ npm.cmd run build
 
 - `frontend/dist/index.html`
 - `frontend/dist/assets/index-BoxiNZTv.css`
-- `frontend/dist/assets/index-BH8i0OMe.js`
+- `frontend/dist/assets/index-C4ikCUrv.js`
 
 ## 后端
 
@@ -50,4 +50,4 @@ Reactor：
 
 - `backend/examine-web/target/unexamine.jar`
 
-说明：本次后端为 clean package with `-DskipTests`，测试覆盖以 P14 API E2E 和既有模块测试记录为准。
+说明：本次后端为 clean package with `-DskipTests`；P14 功能验证以 API E2E、浏览器点击流和既有模块测试记录为准。

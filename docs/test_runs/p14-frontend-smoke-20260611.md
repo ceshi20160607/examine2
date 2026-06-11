@@ -1,6 +1,12 @@
-# P14 前端烟测记录
+# P14 前端浏览器烟测记录
 
 执行时间：2026-06-11
+
+账号：`platform_admin / 123123aa`
+
+前端服务：`http://127.0.0.1:5181/`
+
+后端代理：`http://192.168.0.211:19999`
 
 ## 已通过
 
@@ -11,45 +17,46 @@
 - 页面配置区不再展示可见的 schema 摘要。
 - 导出页清除 `P11导出模板`、`p11-export` 等测试默认值。
 - `systemPath` 不再生成 `/current/` 占位链接。
-- 执行 `npm.cmd run build` 通过，生成 `frontend/dist/index.html` 与 `frontend/dist/assets/index-Syyl9-qs.js`。
+- 运行台模块页的模块下拉在 URL 直接进入时能显示当前模块。
+- 运行台已有记录更新按钮从“保存当前详情”改为“更新当前记录”，避免和新增记录混淆。
 
-## 浏览器烟测
+## 浏览器点击流
 
-已使用 Chrome DevTools Protocol 打开本地 Vite 服务 `http://127.0.0.1:5180/`，同源代理到 `http://192.168.0.211:19999`，并通过页面真实登录 `platform_admin / 123123aa`。
+已使用浏览器真实打开本地 Vite 服务，并通过页面完成以下点击链路：
 
-验证结果：
-
-| 页面 | 路由 | 结果 |
+| 步骤 | 路由/动作 | 结果 |
 | --- | --- | --- |
-| 平台对外应用中心 | `#/platform/openapi` | 渲染成功，页面有 13 个按钮、13 行系统数据，标题包含“对外应用中心”。 |
-| 系统对外授权 | `#/systems/2065034340583424001/openapi` | 渲染成功，存在 `openApiModuleId`、`openApiActions`、`openApiReadableFields` 控件。 |
-| 业务运行台 | `#/systems/2065034340583424001/runtime` | 渲染成功，存在“刷新业务入口”和“进入”按钮，并展示业务入口行。 |
-
-Reviewer P0 回环复测：
-
-- `#/platform/openapi` 已要求平台权限 `OPENAPI_POLICY_VIEW` 或 `PLAT_SYSTEM_VIEW`。
-- 页面“配置对外授权”按钮同时受业务系统启用状态和平台授权权限控制。
-- 使用 `platform_admin` 登录后，平台对外应用中心渲染 13 行系统数据，“配置对外授权”按钮可见且可用。
-- 已清理 `P11流程`、`P11 流程模板页面创建`、`P11 文件中心测试内容`、`p11-*.txt`。
-- `AppShell` 不再为模块级导航生成 `/current/` 占位路径。
-
-修复过程中发现并处理：
-
-- 路由级权限在系统有效权限快照加载前可能误判 `PERM_DENIED`。
-- 已调整为系统路由在权限快照加载中或 stale 时先放行页面，由页面动作权限控制按钮状态。
-- 平台对外应用中心不再依赖不存在的 `LOGIN_USER` 平台权限。
-
-## 待继续
-
-- 当前浏览器烟测覆盖登录、路由、页面渲染和关键控件存在，不等价于完整浏览器点击创建数据。
-- P14-PKG-001 仍需等待 validator/reviewer 结论后才能执行。
+| 登录 | `#/auth/login` 填写 `platform_admin / 123123aa` 并点击登录 | 成功进入 `#/platform/my-systems` |
+| 平台对外应用中心 | 打开 `#/platform/openapi` | 页面标题包含“对外应用中心”，存在 12 个可用“配置对外授权”按钮 |
+| 进入系统授权 | 点击第一条“配置对外授权” | 成功进入 `#/systems/2063994726481473538/openapi`，页面标题为“系统对外授权” |
+| 授权表单 | 检查表单字段 | 存在 `openApiModuleId`、`openApiActions`、`openApiReadableFields`、`openApiWritableFields`、数据范围、平台能力、IP 白名单和限流；未出现“授权 scope/保存Scope”旧文案 |
+| 运行台入口 | 打开 `#/systems/2065034340583424001/runtime` | 页面显示业务运行台且存在唯一可用“进入”按钮 |
+| 进入模块 | 点击“进入” | 成功进入 `#/systems/2065034340583424001/runtime/modules/2065034341111906305` |
+| 新增业务记录 | 填写运行态字段并点击“新建记录” | 列表和详情回显 `浏览器客户186160`，请求号 `req_20260611_ccb2b9dfdf3f4875` |
+| 运行台体验修复复验 | 刷新后重新登录并打开模块页 | 模块下拉选中 `2065034341111906305`，按钮文案为“更新当前记录”，旧“保存当前详情”已消失 |
 
 ## 静态扫描
 
 执行扫描：
 
 ```powershell
-rg -n 'schema 摘要|schemaSummary|p11_tpl|P11导出|p11-export|授权 scope|保存Scope|/current/' frontend/src/App.ts frontend/src/router/index.ts -S
+rg -n 'P11|p11|LOGIN_USER|授权 scope|保存Scope|/current/|schema 摘要|schemaSummary' frontend/src/App.ts frontend/src/router/index.ts frontend/src/layouts/AppShell.ts -S
 ```
 
 结果：未发现上述可见调试痕迹。
+
+## 构建
+
+执行命令：
+
+```powershell
+$env:Path='D:\java\nodejs;'+$env:Path
+npm.cmd run build
+```
+
+结果：通过，生成 `frontend/dist/index.html`、`frontend/dist/assets/index-BoxiNZTv.css`、`frontend/dist/assets/index-C4ikCUrv.js`。
+
+## 待复核
+
+- 本记录和 `p14-integrated-api-e2e-20260611.md` 合起来覆盖 API 主链路、浏览器登录、平台级对外应用入口、系统级授权表单、运行台模块进入和页面新增业务数据。
+- P14-PKG-001 仍需等待 reviewer 确认 `docs/review.json.status=pass` 且 `fullProjectDeployable=true` 后才能执行。

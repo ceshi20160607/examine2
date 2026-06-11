@@ -7,8 +7,8 @@
 PM 已撤回 `P13-usability-rework` 的完整可用结论：
 
 - 当前期次：`P14-prototype-concept-rework`
-- 当前状态：`P14_frontend_p0_rework_and_api_e2e_partial_pass`
-- 当前阻塞：浏览器点击流 E2E、P14 reviewer 复审、最终打包闸门
+- 当前状态：`P14_test_evidence_ready_for_review`
+- 当前阻塞：P14 reviewer 复审、最终打包闸门
 - 当前结论：`fullProjectDeployable=false`
 - 打包策略：P14 术语、原型流程、UI/前端和测试闭环前，不再生成新的“最终可用”部署包。
 
@@ -550,4 +550,16 @@ Reviewer 对 P14 前端提出的 P0 问题成立，本轮已修复：
 - CDP 浏览器真实登录、平台对外应用中心、系统对外授权表单和业务运行台关键页面烟测通过，记录见 `docs/test_runs/p14-frontend-smoke-20260611.md`。
 - Reviewer P0 回环已补：平台对外应用中心增加 `OPENAPI_POLICY_VIEW/PLAT_SYSTEM_VIEW` 权限要求，按钮受权限控制，P11 调试默认值和 `/current/` 导航占位已清理。
 
-PM 结论：P14 已从“前端 P0 不可交付”推进到“API 主链路通过、前后端构建通过、关键页面浏览器烟测通过”。`fullProjectDeployable=false` 和 `package_gate=blocked` 保持不变，继续执行 reviewer 后才能打包。
+PM 结论：P14 已从“前端 P0 不可交付”推进到“API 主链路通过、前后端构建通过、浏览器点击流覆盖平台对外应用中心、系统对外授权、运行台进入模块和页面新增业务数据”。`fullProjectDeployable=false` 和 `package_gate=blocked` 保持不变，继续执行 reviewer 后才能打包。
+
+## 2026-06-11 P14 浏览器点击流补证完成
+
+本轮补充真实浏览器点击流：
+
+- 登录 `platform_admin / 123123aa` 后进入平台工作空间。
+- `#/platform/openapi` 渲染平台级对外应用中心，12 个“配置对外授权”按钮可用。
+- 点击“配置对外授权”进入系统级 `#/systems/2063994726481473538/openapi`，表单包含业务模块、动作、字段、数据范围、平台能力、IP 白名单和限流。
+- 进入 `#/systems/2065034340583424001/runtime/modules/2065034341111906305` 后页面新增 `浏览器客户186160`，列表和详情均回显。
+- 修复运行台当前模块下拉兜底和“更新当前记录”文案，`npm.cmd run build` 通过。
+
+当前结论：P14 测试证据已补齐到可交 reviewer 复审；`package_gate` 仍保持 blocked，等 `docs/review.json.status=pass` 且 `fullProjectDeployable=true` 后再打包。

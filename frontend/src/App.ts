@@ -1613,7 +1613,7 @@ export function mountApp(container: HTMLElement): void {
         }),
       textarea("备注", "runtimeRemark", ""),
       button("新建记录", "primary", createRuntimeRecord),
-      button("保存当前详情", "secondary", () => detail ? updateRuntimeRecord(detail) : undefined, !detail),
+      button("更新当前记录", "secondary", () => detail ? updateRuntimeRecord(detail) : undefined, !detail),
     ]);
   }
 
@@ -4978,9 +4978,14 @@ export function mountApp(container: HTMLElement): void {
   }
 
   function moduleSelectOptions(): [string, string][] {
+    const options = appRuntimeState.modules.map((item) => [item.moduleId, `${item.name} / ${item.code}`] as [string, string]);
+    const schema = appRuntimeState.runtimeSchema;
+    if (appRuntimeState.selectedModuleId && schema && !options.some(([moduleId]) => moduleId === appRuntimeState.selectedModuleId)) {
+      options.push([appRuntimeState.selectedModuleId, `${schema.moduleCode} / ${schema.moduleCode}`]);
+    }
     return [
       ["", "请选择模块"],
-      ...appRuntimeState.modules.map((item) => [item.moduleId, `${item.name} / ${item.code}`] as [string, string]),
+      ...options,
     ];
   }
 

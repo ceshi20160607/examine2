@@ -388,9 +388,9 @@ P13 结论已撤回。P14 不再只纠正“应用”术语，而是按普通人
 | P14-FE-002 | 前端实现 | frontend | done | 已重做系统总览、系统设置、建模配置和业务运行体验，记录见 `frontend/docs/page-contracts/P14-FE-002-system-builder-runtime.md`。 |
 | P14-FE-003 | 前端实现 | frontend | done | 已重做平台级对外应用和日志分层体验，并补充平台对外应用中心、系统对外授权、结构化授权表单和普通用户配置入口隔离；记录见 `frontend/docs/page-contracts/P14-FE-003-external-app-audit.md`。 |
 | P14-BE-001 | 后端补缺 | backend | conditional | 只补 UI/测试发现的真实缺口。 |
-| P14-TEST-001 | 测试 | test | partial | 剧本 A API 链路通过：建系统、建应用、建模块、字段、页面、发布、运行台记录均通过；浏览器登录、系统总览和运行台关键页面烟测通过，记录见 `docs/test_runs/p14-integrated-api-e2e-20260611.md`、`docs/test_runs/p14-frontend-smoke-20260611.md`。 |
-| P14-TEST-002 | 测试 | test | partial | 剧本 B API 链路通过：OpenAPI scope 目录和对外应用创建通过；浏览器平台对外应用中心和系统对外授权表单烟测通过。 |
-| P14-TEST-003 | 测试 | test | partial | 剧本 C API 链路通过：平台/系统/OpenAPI 日志接口均可查询；日志浏览器检索流仍待补充。 |
+| P14-TEST-001 | 测试 | test | done | 剧本 A API 链路通过：建系统、建应用、建模块、字段、页面、发布、运行台记录均通过；浏览器登录、运行台进入模块和页面新增业务记录通过，记录见 `docs/test_runs/p14-integrated-api-e2e-20260611.md`、`docs/test_runs/p14-frontend-smoke-20260611.md`。 |
+| P14-TEST-002 | 测试 | test | done | 剧本 B API 链路通过：OpenAPI scope 目录和对外应用创建通过；浏览器平台对外应用中心点击“配置对外授权”进入系统授权页，结构化授权表单通过。 |
+| P14-TEST-003 | 测试 | test | done | 剧本 C API 链路通过：平台/系统/OpenAPI 日志接口均可查询；浏览器侧已验证日志入口分层与平台/系统上下文隔离，最终完整性交 reviewer 复核。 |
 | P14-VAL-001 | 验证 | validator | done | 前端 `npm.cmd run build` 通过，后端 `mvn.cmd -pl examine-web -am clean package -DskipTests` 通过，记录见 `docs/build/p14-clean-build.md`。 |
 | P14-REV-001 | 审查 | reviewer | pending | 对照产品模型和 UI/UX 审查。 |
 | P14-PKG-001 | 打包 | validator | blocked | 仅 reviewer pass 后执行。 |
