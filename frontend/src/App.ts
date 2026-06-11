@@ -435,20 +435,23 @@ export function mountApp(container: HTMLElement): void {
         items: group.items.filter((item) => shouldShowNavItem(item, route.meta.layout, Boolean(context))),
       }))
       .filter((group) => group.items.length > 0);
-    return node("aside", { className: "sidebar" }, [
+    const shellMode = route.meta.layout === "system" && context ? "系统工作空间" : "平台工作空间";
+    return node("aside", { className: `sidebar ${route.meta.layout === "system" ? "system-sidebar" : "platform-sidebar"}` }, [
       node("a", { className: "brand", href: "#/platform/my-systems" }, [
         node("span", { className: "brand-mark", text: "U" }),
         node("span", { className: "brand-name", text: "unexamine" }),
       ]),
+      node("div", { className: "workspace-badge", text: shellMode }),
       context
         ? node("div", { className: "system-switcher" }, [
             node("span", { text: "当前系统" }),
             node("strong", { text: context.system.systemName }),
+            node("small", { text: `${context.tenant?.tenantName ?? "默认租户"} / ${context.member.displayName}` }),
             node("a", { href: "#/platform/my-systems", text: "切换系统" }),
           ])
         : node("div", { className: "system-switcher" }, [
             node("span", { text: "平台工作台" }),
-            node("strong", { text: "请选择或创建系统" }),
+            node("strong", { text: "选择系统或管理平台能力" }),
           ]),
       node("nav", { className: "nav-groups" }, visibleGroups.map((group) =>
         node("section", { className: "nav-group" }, [
@@ -494,7 +497,7 @@ export function mountApp(container: HTMLElement): void {
         node("h1", { text: title }),
       ]),
       node("div", { className: "context-strip" }, [
-        node("span", { text: context?.system.systemName ?? "未进入系统" }),
+        node("span", { text: route.meta.layout === "system" ? context?.system.systemName ?? "未进入系统" : "平台层" }),
         node("span", { text: context?.tenant?.tenantName ?? "默认租户" }),
         node("span", { text: authStore.getState().user?.displayName ?? "未登录" }),
       ]),
@@ -511,7 +514,7 @@ export function mountApp(container: HTMLElement): void {
             node("span", { className: "brand-name", text: "unexamine" }),
           ]),
           node("h1", { text: isRegister ? "创建平台账号" : "登录平台" }),
-          node("p", { className: "form-note", text: "进入平台后可管理系统、成员、应用配置、运行台、流程、文件、OpenAPI 和审计运维。" }),
+          node("p", { className: "form-note", text: "登录后可以创建业务系统、配置业务模块、让普通用户处理数据，并通过对外应用安全开放数据和流程能力。" }),
           input("账号", "loginName", ""),
           input("密码", "password", "", "password"),
           isRegister ? input("显示名称", "displayName", "") : undefined,
@@ -527,9 +530,9 @@ export function mountApp(container: HTMLElement): void {
         ]),
         node("div", { className: "auth-media" }, [
           node("div", { className: "media-board" }, [
-            stat("系统", "动态建模"),
-            stat("流程", "审批协同"),
-            stat("审计", "全链路追踪"),
+            stat("建系统", "配置业务空间"),
+            stat("用业务", "处理真实数据"),
+            stat("对外开放", "授权外部接入"),
           ]),
         ]),
       ]),
@@ -572,7 +575,7 @@ export function mountApp(container: HTMLElement): void {
         node("section", { className: "task-card primary-task" }, [
           node("div", { className: "task-card-title" }, [
             node("strong", { text: "创建一个业务系统" }),
-            node("span", { text: "如果还没有系统，从这里填写名称和编码，创建后再进入系统配置应用和模块。" }),
+            node("span", { text: "如果还没有系统，从这里填写名称和编码，创建后进入系统总览继续配置成员、建模和业务运行台。" }),
           ]),
           node("div", { className: "form-grid" }, [
             input("系统名称", "mySystemName", ""),
@@ -772,17 +775,17 @@ export function mountApp(container: HTMLElement): void {
     const publishedModules = appRuntimeState.modules.filter((item) => item.status === "PUBLISHED").length;
     const setupSteps: [string, string, string, string][] = [
       ["1", "系统设置", "维护租户、成员、部门、角色和字典，为业务运行建立权限上下文。", systemPath("system.members")],
-      ["2", "应用建模", "创建应用和模块，配置字段、页面和发布检查。", systemPath("apps.list")],
-      ["3", "运行填报", "进入运行台使用已发布模块，新增记录并提交审批。", systemPath("runtime.home")],
-      ["4", "协同集成", "配置流程、文件导出、OpenAPI 和审计追踪。", systemPath("flow.workbench")],
+      ["2", "建模配置", "创建业务应用和模块，配置字段、页面和发布检查。", systemPath("apps.list")],
+      ["3", "业务运行", "进入业务运行台使用已发布模块，新增记录并提交审批。", systemPath("runtime.home")],
+      ["4", "协同与开放", "配置流程、文件导出、对外应用和审计追踪。", systemPath("flow.workbench")],
     ];
     const healthItems: [string, string, string][] = [
       ["成员", String(systemState.members.length), "系统内可授权成员"],
       ["部门", String(flattenDepartments(systemState.departments).length), "组织结构节点"],
       ["角色", String(systemState.roles.length), "系统内权限角色"],
-      ["应用", String(appRuntimeState.apps.length), "已配置应用"],
-      ["模块", String(appRuntimeState.modules.length), "应用下模块"],
-      ["已发布", String(publishedModules), "可进入运行台"],
+      ["业务应用", String(appRuntimeState.apps.length), "已配置业务分组"],
+      ["业务模块", String(appRuntimeState.modules.length), "业务应用下模块"],
+      ["已发布", String(publishedModules), "可进入业务运行台"],
     ];
 
     return node("div", { className: "overview-page" }, [
@@ -790,7 +793,7 @@ export function mountApp(container: HTMLElement): void {
         node("div", {}, [
           node("p", { className: "eyebrow", text: "系统工作台" }),
           node("h2", { text: context?.system.systemName ?? "未进入系统" }),
-          node("p", { className: "form-note", text: "先完成系统设置，再配置应用模块，最后进入运行台执行业务。这里聚合当前系统的配置进度和下一步入口。" }),
+          node("p", { className: "form-note", text: "先完成系统设置，再配置业务应用和模块，最后进入业务运行台处理真实数据。这里聚合当前系统的配置进度和下一步入口。" }),
         ]),
         node("div", { className: "overview-context" }, [
           node("span", { text: `租户：${context?.tenant?.tenantName ?? "默认租户"}` }),
@@ -822,9 +825,9 @@ export function mountApp(container: HTMLElement): void {
       ]),
       node("section", { className: "quick-grid" }, [
         quickAction("成员与权限", "添加成员、部门和角色授权", systemPath("system.members")),
-        quickAction("应用配置", "创建应用、模块、字段和页面", systemPath("apps.list")),
-        quickAction("运行台", "使用已发布模块填报业务", systemPath("runtime.home")),
-        quickAction("审计运维", "按 requestId 追踪问题", systemPath("audit.system")),
+        quickAction("建模配置", "创建业务应用、模块、字段和页面", systemPath("apps.list")),
+        quickAction("业务运行", "使用已发布模块填报业务", systemPath("runtime.home")),
+        quickAction("系统审计", "按 requestId 追踪系统内问题", systemPath("audit.system")),
       ]),
     ]);
   }
@@ -1256,28 +1259,28 @@ export function mountApp(container: HTMLElement): void {
 
   function renderAppList(): HTMLElement {
     const actions = moduleConfigPage.permissions();
-    return renderConfigWorkbench("应用", [
+    return renderConfigWorkbench("业务应用", [
       renderPageMetrics([
-        [String(appRuntimeState.apps.length), "应用总数"],
-        [selectedApp()?.name ?? "未选择", "当前应用"],
-        [enabledCount(appRuntimeState.apps), "启用应用"],
+        [String(appRuntimeState.apps.length), "业务应用总数"],
+        [selectedApp()?.name ?? "未选择", "当前业务应用"],
+        [enabledCount(appRuntimeState.apps), "启用业务应用"],
       ]),
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
-          node("strong", { text: "创建应用" }),
-          node("span", { text: "应用是业务模块的分组，先创建应用再配置模块和字段。" }),
+          node("strong", { text: "创建业务应用" }),
+          node("span", { text: "业务应用用于组织系统内模块和运行入口，不是平台级对外应用。" }),
         ]),
         node("div", { className: "form-grid" }, [
-          input("应用名称", "appName", ""),
-          input("应用编码", "appCode", ""),
+          input("业务应用名称", "appName", ""),
+          input("业务应用编码", "appCode", ""),
           input("图标", "appIcon", "grid"),
-          textarea("应用说明", "appDescription", ""),
-          button("创建应用", "primary", createAppConfig, !actions.appCreate.enabled),
+          textarea("业务应用说明", "appDescription", ""),
+          button("创建业务应用", "primary", createAppConfig, !actions.appCreate.enabled),
         ]),
       ]),
       renderDataTable(
         "apps",
-        ["应用", "编码", "状态", "模块数", "操作"],
+        ["业务应用", "编码", "状态", "模块数", "操作"],
         appRuntimeState.apps.map((item) => [
           item.name,
           item.code,
@@ -1290,7 +1293,7 @@ export function mountApp(container: HTMLElement): void {
             button("模块", "primary", () => openModulesForApp(item)),
           ]),
         ]),
-        "暂无应用，创建后会显示在这里。",
+        "暂无业务应用，创建后可继续配置模块、字段、页面和发布。",
       ),
     ]);
   }
@@ -1300,21 +1303,21 @@ export function mountApp(container: HTMLElement): void {
     const app = selectedApp();
     return renderConfigWorkbench("模块", [
       renderPageMetrics([
-        [app?.name ?? "未选择", "所属应用"],
+        [app?.name ?? "未选择", "所属业务应用"],
         [String(appRuntimeState.modules.length), "模块总数"],
         [selectedModule()?.name ?? "未选择", "当前模块"],
       ]),
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
           node("strong", { text: "创建模块" }),
-          node("span", { text: app ? "模块发布后会出现在运行台。" : "请先创建或选择应用。" }),
+          node("span", { text: app ? "模块发布后会出现在业务运行台。" : "请先创建或选择业务应用。" }),
         ]),
         node("div", { className: "form-grid" }, [
-          selectField("应用", "selectedAppId", appRuntimeState.selectedAppId ?? "", appSelectOptions()),
+          selectField("业务应用", "selectedAppId", appRuntimeState.selectedAppId ?? "", appSelectOptions()),
           input("模块名称", "moduleName", ""),
           input("模块编码", "moduleCode", ""),
           textarea("模块说明", "moduleDescription", ""),
-          button("切换应用", "secondary", switchSelectedApp),
+          button("切换业务应用", "secondary", switchSelectedApp),
           button("创建模块", "primary", createModuleConfig, !app || !actions.moduleCreate.enabled),
         ]),
       ]),
@@ -1335,7 +1338,7 @@ export function mountApp(container: HTMLElement): void {
             button("运行", "primary", () => openRuntimeModule(item), item.status !== "PUBLISHED"),
           ]),
         ]),
-        app ? "暂无模块，创建后会显示在这里。" : "请先创建或选择应用。",
+        app ? "暂无模块，创建后会显示在这里。" : "请先创建或选择业务应用。",
       ),
     ]);
   }
@@ -1352,7 +1355,7 @@ export function mountApp(container: HTMLElement): void {
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
           node("strong", { text: "字段设计" }),
-          node("span", { text: module ? "字段决定运行台列表、表单和详情的数据结构。" : "请先选择模块。" }),
+          node("span", { text: module ? "字段决定业务运行台列表、表单和详情的数据结构。" : "请先选择模块。" }),
         ]),
         node("div", { className: "form-grid" }, [
           selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
@@ -1396,7 +1399,7 @@ export function mountApp(container: HTMLElement): void {
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
           node("strong", { text: "页面、菜单与发布" }),
-          node("span", { text: "先保存默认页面和菜单动作，再执行发布检查，通过后发布到运行台。" }),
+          node("span", { text: "先保存默认页面和菜单动作，再执行发布检查，通过后发布到业务运行台。" }),
         ]),
         node("div", { className: "form-grid" }, [
           selectField("模块", "selectedModuleId", appRuntimeState.selectedModuleId ?? "", moduleSelectOptions()),
@@ -1437,16 +1440,16 @@ export function mountApp(container: HTMLElement): void {
   function renderRuntimeHome(): HTMLElement {
     return node("div", { className: "admin-page" }, [
       renderPageMetrics([
-        [String(appRuntimeState.runtimeMenus.length), "可用入口"],
+        [String(appRuntimeState.runtimeMenus.length), "可用业务入口"],
         [selectedModule()?.name ?? "未选择", "当前模块"],
-        [appRuntimeState.runtimeSchema ? "已准备" : "待打开", "表单状态"],
+        [appRuntimeState.runtimeSchema ? "已准备" : "待打开", "业务表单状态"],
       ]),
       node("div", { className: "form-grid" }, [
         button("刷新业务入口", "primary", loadRuntimeMenus),
       ]),
       renderDataTable(
         "runtime-menus",
-        ["业务模块", "入口", "操作"],
+        ["业务模块", "入口编码", "操作"],
         flattenRuntimeMenus(appRuntimeState.runtimeMenus).map((item) => [
           item.name,
           item.code,
@@ -1454,7 +1457,7 @@ export function mountApp(container: HTMLElement): void {
             button("进入", "primary", () => item.moduleId ? openRuntimeModuleById(item.moduleId) : undefined, !item.moduleId),
           ]),
         ]),
-        "暂无可用业务模块，请联系管理员发布模块。",
+        "暂无可用业务模块，请联系管理员在建模配置中发布模块。",
       ),
     ]);
   }
@@ -1838,7 +1841,7 @@ export function mountApp(container: HTMLElement): void {
         node("div", { className: "task-card-title" }, [
           node("strong", { text: "导出准备" }),
           node("span", {
-            text: exportModuleReady ? "当前模块已发布，可创建导出模板和任务。" : "当前模块尚未发布，请先在应用配置中发布模块。",
+            text: exportModuleReady ? "当前模块已发布，可创建导出模板和任务。" : "当前模块尚未发布，请先在建模配置中发布模块。",
           }),
         ]),
         node("div", { className: "form-grid" }, [
@@ -1867,23 +1870,23 @@ export function mountApp(container: HTMLElement): void {
     const permissions = openApiPage.permissions();
     return node("div", { className: "domain-page" }, [
       renderPageMetrics([
-        [String(state.clients.total ?? clients.length), "客户端"],
+        [String(state.clients.total ?? clients.length), "对外应用"],
         [String(clients.filter((item) => item.status === "ENABLED").length), "启用中"],
         [String(state.accessLogs.total ?? state.accessLogs.records.length), "调用日志"],
       ]),
       node("section", { className: "task-card" }, [
         node("div", { className: "task-card-title" }, [
-          node("strong", { text: "客户端接入" }),
-          node("span", { text: "密钥只展示一次，Scope、IP 白名单和限流集中在同一接入面板处理。" }),
+          node("strong", { text: "创建对外应用" }),
+          node("span", { text: "对外应用用于外部系统接入，密钥只展示一次，授权范围、IP 白名单和限流集中在同一面板处理。" }),
         ]),
         node("div", { className: "form-grid" }, [
-          input("客户端名称", "openApiClientName", `P11客户端${p10Seed()}`),
-          input("客户端编码", "openApiClientCode", `p11_client_${p10Seed()}`),
-          input("Scope", "openApiScopes", "record:read,record:write"),
+          input("对外应用名称", "openApiClientName", ""),
+          input("对外应用编码", "openApiClientCode", ""),
+          input("授权 scope", "openApiScopes", "record:read,record:write"),
           input("IP 白名单", "openApiIpWhitelist", ""),
           input("每分钟限流", "openApiRateLimit", "60"),
           button("加载 Scope", "secondary", loadOpenApiScopeCatalog),
-          button("创建客户端", "primary", createOpenApiClient, !permissions.createClient.enabled),
+          button("创建对外应用", "primary", createOpenApiClient, !permissions.createClient.enabled),
         ]),
       ]),
       state.secretOnce?.visible
@@ -1895,7 +1898,7 @@ export function mountApp(container: HTMLElement): void {
         : undefined,
       renderDataTable(
         "openapi-clients",
-        ["客户端", "AccessKey", "Scope", "状态", "操作"],
+        ["对外应用", "AccessKey", "授权 scope", "状态", "操作"],
         clients.map((item) => [
           item.name,
           item.accessKey,
@@ -1909,7 +1912,7 @@ export function mountApp(container: HTMLElement): void {
             button("保存IP", "secondary", () => updateOpenApiIpWhitelist(item), !permissions.editIp.enabled),
           ]),
         ]),
-        "暂无 OpenAPI 客户端。",
+        "暂无对外应用。创建后可授权外部系统访问指定业务数据和平台能力。",
       ),
       renderDataTable(
         "openapi-logs",
@@ -1921,7 +1924,7 @@ export function mountApp(container: HTMLElement): void {
           item.errorCode ?? "-",
           `${item.durationMs}ms`,
         ]),
-        "暂无调用日志。",
+        "暂无对外调用日志。",
       ),
     ]);
   }
@@ -1930,7 +1933,7 @@ export function mountApp(container: HTMLElement): void {
     const state = platform ? operationsState.platformAudit : operationsState.audit;
     const kinds: [AuditLogKind, string][] = platform
       ? [["platformOperation", "平台操作"]]
-      : [["operation", "操作"], ["request", "请求"], ["error", "错误"], ["recordChange", "记录变更"], ["openapi", "OpenAPI"]];
+      : [["operation", "操作"], ["request", "请求"], ["error", "错误"], ["recordChange", "记录变更"], ["openapi", "对外调用"]];
     return node("div", { className: "domain-page" }, [
       renderPageMetrics([
         [String(state.logs.total ?? state.logs.records.length), "日志总数"],
@@ -2021,7 +2024,7 @@ export function mountApp(container: HTMLElement): void {
   }
 
   function renderConfigWorkbench(activeStep: string, children: Child[]): HTMLElement {
-    const steps = ["应用", "模块", "字段", "页面与发布"];
+    const steps = ["业务应用", "模块", "字段", "页面与发布"];
     return node("div", { className: "config-workbench" }, [
       node("div", { className: "config-steps" }, steps.map((item, index) =>
         {
@@ -2046,7 +2049,7 @@ export function mountApp(container: HTMLElement): void {
   }
 
   function configStepPath(step: string): string | undefined {
-    if (step === "应用") {
+    if (step === "业务应用") {
       return systemPath("apps.list");
     }
     if (step === "模块") {
@@ -2129,16 +2132,16 @@ export function mountApp(container: HTMLElement): void {
     const guidance: Record<string, [string, string, string, string][]> = {
       "platform.mySystems": [
         ["1", "新建或进入系统", "先选择一个系统。没有系统时，直接在左侧表单创建。", "#/platform/my-systems"],
-        ["2", "进入系统总览", "系统总览会告诉你成员、应用、模块和运行台还差什么。", "#/platform/my-systems"],
+        ["2", "进入系统总览", "系统总览会告诉你成员、业务应用、模块和业务运行台还差什么。", "#/platform/my-systems"],
       ],
       "system.overview": [
         ["1", "配置成员与权限", "先让系统有人、有角色，再配置业务。", `#${systemPath("system.members")}`],
-        ["2", "创建应用模块", "用应用和模块描述你的业务对象。", `#${systemPath("apps.list")}`],
-        ["3", "发布后使用", "模块发布后再进入运行台填报数据。", `#${systemPath("runtime.home")}`],
+        ["2", "创建业务应用和模块", "用业务应用和模块描述你的业务对象。", `#${systemPath("apps.list")}`],
+        ["3", "发布后使用", "模块发布后再进入业务运行台填报数据。", `#${systemPath("runtime.home")}`],
       ],
       "apps.list": [
-        ["1", "创建应用", "应用相当于一个业务分组，例如合同、车辆、客户。", `#${systemPath("apps.list")}`],
-        ["2", "进入模块", "创建应用后点击“模块”，继续创建业务模块。", `#${systemPath("modules.list")}`],
+        ["1", "创建业务应用", "业务应用相当于一个系统内业务分组，例如合同、车辆、客户。", `#${systemPath("apps.list")}`],
+        ["2", "进入模块", "创建业务应用后点击“模块”，继续创建业务模块。", `#${systemPath("modules.list")}`],
       ],
       "modules.list": [
         ["1", "创建模块", "模块就是一张业务表，例如客户档案或订单。", `#${systemPath("modules.list")}`],
@@ -2150,11 +2153,11 @@ export function mountApp(container: HTMLElement): void {
       ],
       "modules.ui": [
         ["1", "保存页面", "先保存默认页面和菜单动作。", `#${systemPath("modules.ui")}`],
-        ["2", "发布模块", "发布检查通过后发布，运行台才会出现。", `#${systemPath("runtime.home")}`],
+        ["2", "发布模块", "发布检查通过后发布，业务运行台才会出现。", `#${systemPath("runtime.home")}`],
       ],
       "runtime.home": [
-        ["1", "加载运行菜单", "只显示已发布模块。没有菜单时，回到应用配置发布模块。", `#${systemPath("runtime.home")}`],
-        ["2", "开始填报", publishedModules > 0 ? "点击模块进入列表并新增记录。" : "当前没有已发布模块，请先完成应用配置。", `#${systemPath("apps.list")}`],
+        ["1", "加载业务入口", "只显示已发布模块。没有菜单时，回到建模配置发布模块。", `#${systemPath("runtime.home")}`],
+        ["2", "开始填报", publishedModules > 0 ? "点击模块进入列表并新增记录。" : "当前没有已发布模块，请先完成建模配置。", `#${systemPath("apps.list")}`],
       ],
     };
     const items = guidance[route.name] ?? [
@@ -3319,8 +3322,8 @@ export function mountApp(container: HTMLElement): void {
     await execute("APP-002", async () => {
       requireSystemContext();
       const result = await moduleConfigPage.apps.create({
-        name: required(form.appName, "应用名称"),
-        code: required(form.appCode, "应用编码"),
+        name: required(form.appName, "业务应用名称"),
+        code: required(form.appCode, "业务应用编码"),
         icon: form.appIcon?.trim() || undefined,
         description: form.appDescription?.trim() || undefined,
         status: "ENABLED",
@@ -3356,7 +3359,7 @@ export function mountApp(container: HTMLElement): void {
       requireSystemContext();
       const result = await moduleConfigPage.apps.changeStatus(item.appId, {
         targetStatus,
-        reason: "应用配置页面操作",
+        reason: "建模配置页面操作",
         version: item.version,
       });
       raisePageModelError(result);
@@ -3384,7 +3387,7 @@ export function mountApp(container: HTMLElement): void {
       requireSystemContext();
       await ensureAppsLoaded();
       readRouteSelection();
-      const appId = required(selectedAppId(), "应用");
+      const appId = required(selectedAppId(), "业务应用");
       const result = await refreshModulesConfig(appId, readForm().keyword);
       return pageModelResponse(result);
     });
@@ -3392,7 +3395,7 @@ export function mountApp(container: HTMLElement): void {
 
   async function switchSelectedApp(): Promise<void> {
     const form = readForm();
-    const appId = required(form.selectedAppId, "应用");
+    const appId = required(form.selectedAppId, "业务应用");
     appRuntimeState.selectedAppId = appId;
     ui.settings.appId = appId;
     appRuntimeState.modules = [];
@@ -3404,7 +3407,7 @@ export function mountApp(container: HTMLElement): void {
     const form = readForm();
     await execute("MOD-002", async () => {
       requireSystemContext();
-      const appId = required(selectedAppId() ?? form.selectedAppId, "应用");
+      const appId = required(selectedAppId() ?? form.selectedAppId, "业务应用");
       const result = await moduleConfigPage.modules.create(appId, {
         name: required(form.moduleName, "模块名称"),
         code: required(form.moduleCode, "模块编码"),
@@ -3429,7 +3432,7 @@ export function mountApp(container: HTMLElement): void {
         version: item.version,
       });
       raisePageModelError(result);
-      await refreshModulesConfig(required(selectedAppId(), "应用"));
+      await refreshModulesConfig(required(selectedAppId(), "业务应用"));
       return pageModelResponse(result);
     });
   }
@@ -3444,7 +3447,7 @@ export function mountApp(container: HTMLElement): void {
         version: item.version,
       });
       raisePageModelError(result);
-      await refreshModulesConfig(required(selectedAppId(), "应用"));
+      await refreshModulesConfig(required(selectedAppId(), "业务应用"));
       return pageModelResponse(result);
     });
   }
@@ -3663,7 +3666,7 @@ export function mountApp(container: HTMLElement): void {
       });
       raisePageModelError(result);
       appRuntimeState.publishResult = result.data;
-      await refreshModulesConfig(required(selectedAppId(), "应用"));
+      await refreshModulesConfig(required(selectedAppId(), "业务应用"));
       await loadRuntimeMenus();
       return pageModelResponse(result);
     });
@@ -4169,8 +4172,8 @@ export function mountApp(container: HTMLElement): void {
     await execute("OPM-002", async () => {
       requireSystemContext();
       const client = await openApiPage.createClient({
-        name: required(form.openApiClientName, "客户端名称"),
-        code: required(form.openApiClientCode, "客户端编码"),
+        name: required(form.openApiClientName, "对外应用名称"),
+        code: required(form.openApiClientCode, "对外应用编码"),
         tenantId: systemContextStore.toTenantHeader(),
         status: "ENABLED",
         scopes: parseOpenApiScopes(form.openApiScopes),
@@ -4704,7 +4707,7 @@ export function mountApp(container: HTMLElement): void {
   async function ensureModulesLoaded(force = false): Promise<void> {
     await ensureAppsLoaded(force);
     if ((force || appRuntimeState.modules.length === 0) && selectedAppId()) {
-      await refreshModulesConfig(required(selectedAppId(), "应用"));
+      await refreshModulesConfig(required(selectedAppId(), "业务应用"));
     }
   }
 
@@ -4794,7 +4797,7 @@ export function mountApp(container: HTMLElement): void {
 
   function appSelectOptions(): [string, string][] {
     return [
-      ["", "请选择应用"],
+      ["", "请选择业务应用"],
       ...appRuntimeState.apps.map((item) => [item.appId, `${item.name} / ${item.code}`] as [string, string]),
     ];
   }

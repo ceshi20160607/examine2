@@ -1,6 +1,6 @@
 :root {
-  color: #1f2933;
-  background: #f3f5f7;
+  color: #17212b;
+  background: #eef2f5;
   font-family:
     Inter, "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-synthesis: none;
@@ -32,7 +32,7 @@ a {
 
 .app-frame {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 272px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -46,9 +46,17 @@ a {
   top: 0;
   height: 100vh;
   overflow: auto;
-  border-right: 1px solid #d7dde4;
+  border-right: 1px solid #d5dde5;
+  background: #fbfcfd;
+  padding: 18px 14px;
+}
+
+.platform-sidebar {
+  background: #f8fbfc;
+}
+
+.system-sidebar {
   background: #ffffff;
-  padding: 20px 14px;
 }
 
 .brand {
@@ -64,7 +72,7 @@ a {
   height: 34px;
   place-items: center;
   border-radius: 8px;
-  background: #205a72;
+  background: #1f5f6f;
   color: #ffffff;
   font-weight: 700;
 }
@@ -72,6 +80,18 @@ a {
 .brand-name {
   font-size: 18px;
   font-weight: 700;
+}
+
+.workspace-badge {
+  margin: 0 8px 14px;
+  border: 1px solid #c9d6de;
+  border-radius: 999px;
+  background: #edf6f8;
+  padding: 7px 10px;
+  color: #1f5f6f;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .system-switcher {
@@ -96,6 +116,12 @@ a {
   font-size: 14px;
 }
 
+.system-switcher small {
+  overflow-wrap: anywhere;
+  color: #687887;
+  font-size: 12px;
+}
+
 .system-switcher a {
   color: #205a72;
   font-size: 13px;
@@ -114,24 +140,26 @@ a {
 
 .nav-title {
   padding: 8px;
-  color: #687482;
+  color: #667684;
   font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
 }
 
 .nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 38px;
   border-radius: 6px;
   padding: 9px 10px;
   color: #354250;
   font-size: 14px;
+  font-weight: 600;
 }
 
 .nav-link:hover,
 .nav-link.active {
-  background: #e5eef2;
-  color: #163f52;
+  background: #e3f0f3;
+  color: #174c5b;
 }
 
 .nav-link.is-muted {
@@ -144,7 +172,7 @@ a {
 
 .workspace {
   min-width: 0;
-  padding: 22px;
+  padding: 24px;
 }
 
 .topbar {
@@ -152,7 +180,9 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #d9e1e8;
+  padding-bottom: 16px;
 }
 
 .topbar h1,
@@ -166,7 +196,7 @@ a {
 }
 
 .topbar h1 {
-  font-size: 26px;
+  font-size: 24px;
 }
 
 .eyebrow {
@@ -202,7 +232,7 @@ a {
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 16px;
 }
 
@@ -214,10 +244,12 @@ a {
   border-radius: 8px;
   background: #ffffff;
   padding: 18px;
+  box-shadow: 0 1px 2px rgba(23, 33, 43, 0.04);
 }
 
 .primary-panel {
   min-height: 420px;
+  grid-row: span 2;
 }
 
 .panel-heading {
@@ -244,13 +276,13 @@ a {
   border: 1px solid #d7dde4;
   border-radius: 8px;
   padding: 14px;
-  background: #f9fafb;
+  background: #f8fafb;
 }
 
 .stat strong {
   display: block;
   overflow-wrap: anywhere;
-  color: #205a72;
+  color: #1f5f6f;
   font-size: 24px;
 }
 
@@ -344,7 +376,7 @@ a {
   height: 28px;
   place-items: center;
   border-radius: 999px;
-  background: #205a72;
+  background: #1f5f6f;
   color: #ffffff;
   font-weight: 700;
 }
@@ -439,8 +471,8 @@ code {
 }
 
 .btn.primary {
-  border-color: #205a72;
-  background: #205a72;
+  border-color: #1f5f6f;
+  background: #1f5f6f;
   color: #ffffff;
 }
 
@@ -487,7 +519,7 @@ code {
   min-height: 420px;
   border-radius: 8px;
   background:
-    linear-gradient(rgba(20, 37, 48, 0.14), rgba(20, 37, 48, 0.14)),
+    linear-gradient(rgba(20, 37, 48, 0.12), rgba(20, 37, 48, 0.12)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='640' viewBox='0 0 900 640'%3E%3Crect width='900' height='640' fill='%23d8e4e8'/%3E%3Cpath d='M110 130h680v380H110z' fill='%23ffffff'/%3E%3Cpath d='M145 178h170v292H145zM342 178h410v86H342zM342 292h190v178H342zM562 292h190v178H562z' fill='%23eef3f5'/%3E%3Cpath d='M145 178h170v48H145zM342 178h410v48H342z' fill='%23205a72'/%3E%3Ccircle cx='690' cy='382' r='46' fill='%23d49a57'/%3E%3C/svg%3E");
   background-position: center;
   background-size: cover;

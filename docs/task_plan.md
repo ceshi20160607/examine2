@@ -384,7 +384,7 @@ P13 结论已撤回。P14 不再只纠正“应用”术语，而是按普通人
 | P14-APP-001 | 概念复核 | analyst | done | 已输出 `docs/issues/replies/development/p14_analyst_app_concept_reply.md`，复核平台级对外应用、系统内业务应用、OpenAPI 客户端边界。 |
 | P14-APP-002 | UI/UX | uiux | done | 已输出 `docs/ui/p14-integrated-ui.md`。 |
 | P14-APP-003 | 任务拆分 | planner | done | 已输出 `docs/tasks/P14-integrated-rework-plan.md`。 |
-| P14-FE-001 | 前端实现 | frontend | pending | 重构壳层、导航、视觉和页面文案。 |
+| P14-FE-001 | 前端实现 | frontend | done | 已重构壳层、导航、视觉和页面文案，记录见 `frontend/docs/page-contracts/P14-FE-001-shell-navigation-visual.md`。 |
 | P14-FE-002 | 前端实现 | frontend | pending | 重做系统总览、系统设置、建模配置和运行台体验。 |
 | P14-FE-003 | 前端实现 | frontend | pending | 重做平台级对外应用和日志分层体验。 |
 | P14-BE-001 | 后端补缺 | backend | conditional | 只补 UI/测试发现的真实缺口。 |

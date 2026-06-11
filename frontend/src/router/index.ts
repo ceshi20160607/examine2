@@ -84,7 +84,7 @@ export const APP_ROUTES: AppRouteRecord[] = [
   route("platform.mySystems", "/platform/my-systems", "我的系统", "platform", "platform", ["PLAT-001"], "FE-003", {
     requiresAuth: true,
   }),
-  route("platform.systems", "/platform/systems", "平台系统", "platform", "platform", ["PLAT-003"], "FE-004", {
+  route("platform.systems", "/platform/systems", "业务系统管理", "platform", "platform", ["PLAT-003"], "FE-004", {
     requiresAuth: true,
     permission: { anyOperations: ["PLAT_SYSTEM_VIEW"] },
   }),
@@ -152,7 +152,7 @@ export const APP_ROUTES: AppRouteRecord[] = [
     requiredContext: { system: true, member: true },
     permission: { anyOperations: ["DICT_VIEW"] },
   }),
-  route("apps.list", "/systems/:systemId/apps", "应用", "app", "system", ["APP-001", "APP-002", "APP-003", "APP-004", "APP-005"], "FE-006", {
+  route("apps.list", "/systems/:systemId/apps", "业务应用", "app", "system", ["APP-001", "APP-002", "APP-003", "APP-004", "APP-005"], "FE-006", {
     requiresAuth: true,
     requiredContext: { system: true, tenant: true, member: true },
     permission: { anyOperations: ["APP_VIEW"] },
@@ -172,7 +172,7 @@ export const APP_ROUTES: AppRouteRecord[] = [
     requiredContext: { system: true, tenant: true, member: true },
     permission: { anyOperations: ["PAGE_VIEW"] },
   }),
-  route("runtime.home", "/systems/:systemId/runtime", "运行台", "runtime", "system", ["RUN-001"], "FE-008", {
+  route("runtime.home", "/systems/:systemId/runtime", "业务运行台", "runtime", "system", ["RUN-001"], "FE-008", {
     requiresAuth: true,
     requiredContext: { system: true, tenant: true, member: true },
   }),
@@ -200,7 +200,7 @@ export const APP_ROUTES: AppRouteRecord[] = [
     requiredContext: { system: true, tenant: true, member: true },
     permission: { anyOperations: ["EXPORT_JOB_VIEW"] },
   }),
-  route("openapi.clients", "/systems/:systemId/openapi", "OpenAPI", "openapi", "system", ["OPM-001", "OPM-002", "OPM-003", "OPM-004", "OPM-005", "OPM-006", "OPM-007", "OPM-008", "OPM-009"], "FE-011", {
+  route("openapi.clients", "/systems/:systemId/openapi", "对外应用", "openapi", "system", ["OPM-001", "OPM-002", "OPM-003", "OPM-004", "OPM-005", "OPM-006", "OPM-007", "OPM-008", "OPM-009"], "FE-011", {
     requiresAuth: true,
     requiredContext: { system: true, tenant: true, member: true },
     permission: { anyOperations: ["OPENAPI_CLIENT_VIEW"] },
@@ -214,7 +214,7 @@ export const APP_ROUTES: AppRouteRecord[] = [
     requiresAuth: true,
     permission: { anyOperations: ["PLAT_AUDIT_VIEW"] },
   }),
-  route("ops.health", "/ops", "运维", "audit-ops", "platform", ["OPS-001", "OPS-002", "OPS-003", "OPS-004", "OPS-005", "OPS-006"], "FE-011", {
+  route("ops.health", "/ops", "运维诊断", "audit-ops", "platform", ["OPS-001", "OPS-002", "OPS-003", "OPS-004", "OPS-005", "OPS-006"], "FE-011", {
     requiresAuth: true,
     permission: { anyOperations: ["OPS_HEALTH_VIEW", "OPS_CONFIG_VIEW", "OPS_VERSION_VIEW", "OPS_MIGRATION_VIEW"] },
   }),

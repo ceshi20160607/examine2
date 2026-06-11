@@ -33,15 +33,15 @@ export interface AppShellState {
 
 export const SHELL_SECTION_LABELS: Record<RouteSection, string> = {
   auth: "认证",
-  platform: "平台中心",
-  system: "系统管理",
-  rbac: "成员与权限",
-  app: "应用配置",
-  runtime: "运行台",
-  flow: "流程",
+  platform: "平台工作空间",
+  system: "系统总览",
+  rbac: "系统设置",
+  app: "建模配置",
+  runtime: "业务运行",
+  flow: "协同流程",
   "file-export": "文件与导出",
-  openapi: "OpenAPI",
-  "audit-ops": "审计运维",
+  openapi: "对外应用",
+  "audit-ops": "审计与运维",
 };
 
 export interface ResolveAppShellOptions {
@@ -63,7 +63,7 @@ export function resolveAppShellState(options: ResolveAppShellOptions): AppShellS
     memberName: context.current?.member.displayName,
     contextDisabledReason: context.disabledReason,
     navigation,
-    requestIdVisible: true,
+    requestIdVisible: options.auth?.getState().status === "authenticated",
   };
 }
 
