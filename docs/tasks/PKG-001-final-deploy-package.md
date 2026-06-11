@@ -29,9 +29,11 @@
 
 ## 打包结果
 
-- 包目录：`dist/unexamine-full-deploy-20260611-014302/`
-- zip 包：`dist/unexamine-full-deploy-20260611-014302.zip`
-- zip 大小：39,997,301 B
+- 包目录：`dist/unexamine-full-deploy-20260611-100441-fixed/`
+- zip 包：`dist/unexamine-full-deploy-20260611-100441-fixed.zip`
+- Linux 推荐包：`dist/unexamine-full-deploy-20260611-100441-fixed.tar.gz`
+- zip 大小：39,997,421 B
+- tar.gz 大小：39,993,789 B
 
 包内核验结果：
 
@@ -39,5 +41,6 @@
 - `frontend/assets/*`：存在，包含 CSS 和 JS。
 - `backend/unexamine.jar`：存在。
 - `backend/start.sh`：存在。
+- `backend/start.sh` 权限：zip 外部属性为 Unix `100755`，tar.gz 中为 `-rwxr-xr-x`，脚本为 LF 换行。
 - `docs/nginx-deploy.md`：存在。
 - `docs/p12-clean-build.md`、`docs/p12-ui-usable-e2e.md`、`docs/p12_reviewer_verification.md`、`docs/review.json`：存在。

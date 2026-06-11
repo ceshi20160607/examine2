@@ -2398,7 +2398,8 @@
                                                                       "PKG-001"
                                                                   ],
                                                         "record":  "docs/phases/P12-uiux-frontend-rework-acceptance.md",
-                                                        "package_path":  "dist/unexamine-full-deploy-20260611-014302.zip",
+                                                        "package_path":  "dist/unexamine-full-deploy-20260611-100441-fixed.zip",
+                                                        "linux_package_path":  "dist/unexamine-full-deploy-20260611-100441-fixed.tar.gz",
                                                         "reason":  "User feedback confirmed that frontend has functional pages but lacks frozen UI/UX design and product-level usability.",
                                                         "package_gate":  "passed",
                                                         "next_phase":  "complete"

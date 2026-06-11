@@ -15,15 +15,17 @@
 | Test | `docs/test_runs/p12-ui-usable-e2e.md` | pass |
 | Validator | `docs/build/p12-clean-build.md` | pass |
 | Reviewer | `docs/issues/verification/development/p12_reviewer_verification.md`、`docs/review.json` | pass |
-| Package | `dist/unexamine-full-deploy-20260611-014302.zip` | pass |
+| Package | `dist/unexamine-full-deploy-20260611-100441-fixed.zip` / `dist/unexamine-full-deploy-20260611-100441-fixed.tar.gz` | pass |
 
 ## 最终部署包
 
 | 项目 | 路径 |
 | --- | --- |
-| 包目录 | `dist/unexamine-full-deploy-20260611-014302/` |
-| zip 包 | `dist/unexamine-full-deploy-20260611-014302.zip` |
-| 大小 | 39,997,301 B |
+| 包目录 | `dist/unexamine-full-deploy-20260611-100441-fixed/` |
+| zip 包 | `dist/unexamine-full-deploy-20260611-100441-fixed.zip` |
+| Linux 推荐包 | `dist/unexamine-full-deploy-20260611-100441-fixed.tar.gz` |
+| zip 大小 | 39,997,421 B |
+| tar.gz 大小 | 39,993,789 B |
 
 包内已核验：
 
@@ -37,6 +39,12 @@
 - `docs/p12-ui-usable-e2e.md`
 - `docs/p12_reviewer_verification.md`
 - `docs/review.json`
+
+`backend/start.sh` 权限核验：
+
+- zip 外部属性：Unix `100755`。
+- tar.gz 清单：`-rwxr-xr-x`。
+- 文件换行：LF，无 CRLF。
 
 ## 验收依据
 

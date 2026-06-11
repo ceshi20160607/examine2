@@ -22,7 +22,9 @@ backend/
   start.sh
 ```
 
-Linux 环境推荐进入后端目录后使用脚本启停：
+Linux 环境推荐优先使用 `.tar.gz` 部署包解压，包内会保留 `backend/start.sh` 的可执行权限。若使用 zip 包，部分解压工具仍可能丢失可执行位，执行前请按下面命令确认或补充 `chmod +x start.sh`。
+
+进入后端目录后使用脚本启停：
 
 ```bash
 cd /data/unexamine/backend

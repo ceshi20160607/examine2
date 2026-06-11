@@ -379,8 +379,10 @@ PM 已做如下调整：
 
 ## 2026-06-11 PKG-001 最终部署包完成
 
-- 最终包目录：`dist/unexamine-full-deploy-20260611-014302/`。
-- 最终 zip 包：`dist/unexamine-full-deploy-20260611-014302.zip`，大小 39,997,301 B。
+- 最终包目录：`dist/unexamine-full-deploy-20260611-100441-fixed/`。
+- 最终 zip 包：`dist/unexamine-full-deploy-20260611-100441-fixed.zip`，大小 39,997,421 B。
+- Linux 推荐包：`dist/unexamine-full-deploy-20260611-100441-fixed.tar.gz`，大小 39,993,789 B。
 - 包内已核验 `frontend/index.html`、`frontend/assets/*`、`backend/unexamine.jar`、`backend/start.sh`、`docs/nginx-deploy.md`、P12 build/test/review 证据和 `docs/review.json`。
+- `backend/start.sh` 已修复直接执行问题：项目新增 `.gitattributes` 固化 `.sh` 为 LF；fixed zip 中 `start.sh` 外部属性为 Unix `100755`，tar.gz 中为 `-rwxr-xr-x`。
 - P12 阶段验收记录：`docs/phases/P12-uiux-frontend-rework-acceptance.md`。
 - 当前结论：P12 accepted，最终试部署包 ready。

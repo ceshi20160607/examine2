@@ -35,7 +35,7 @@
 
 当前期：P12 UI/UX 设计与前端可用化改造期已验收。
 
-下一阶段：用户可使用 `dist/unexamine-full-deploy-20260611-014302.zip` 进行最终试部署。
+下一阶段：用户可使用 `dist/unexamine-full-deploy-20260611-100441-fixed.tar.gz` 或 `dist/unexamine-full-deploy-20260611-100441-fixed.zip` 进行最终试部署，Linux 优先使用 tar.gz。
 
 原因：
 
