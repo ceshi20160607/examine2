@@ -1,44 +1,47 @@
 # 项目进度看板
 
-## 2026-06-11 当前更正状态
+## 2026-06-12 当前更正状态
 
-用户反馈成立：P13 只跑通了系统内业务应用、模块、字段、发布和运行台新增记录链路，不能证明原型中的平台级对外应用/外部应用流程已经正确实现。
+用户反馈继续成立：P14 虽然补充了普通用户、OpenAPI 和日志追踪证据，但部署后的实际体验仍不能让普通人自然使用系统。
 
-PM 已撤回 `P13-usability-rework` 的完整可用结论：
+PM 撤回 `P14-prototype-concept-rework` 的完整可用结论：
 
-- 当前期次：`P14-prototype-concept-rework`
-- 当前状态：`P14_accepted_package_ready`
-- 当前阻塞：无
-- 当前结论：`fullProjectDeployable=true`
-- 打包结果：P14-PKG-001 已完成，部署包已生成并完成清单、`start.sh` 权限和临时目录排除核验。
+- 当前期次：`P15-project-rebaseline`
+- 当前状态：`P15_pm_rebaseline_in_progress`
+- 当前阻塞：P14 过度验收结论已撤回，禁止继续打最终包
+- 当前结论：`fullProjectDeployable=false`
+- 当前处理：先执行 `docs/product/p15-project-rebaseline.md`，重新梳理产品目标、角色、信息架构、主流程和不打包条件。
+- 多角色梳理：PM、UI/UX、frontend、backend、test、reviewer 已完成独立审查，统一裁决见 `docs/product/p15-multi-role-pm-decision.md`。
 
-P14 已升级为完整系统基线重整，基线文件：`docs/product/integrated-system-baseline.md`。
+P15 目标：重新整理整个项目，让平台管理员、系统管理员和普通业务用户都能在页面上自然完成工作，而不是依赖文档或技术理解。
 
-P14 目标：
+P15 当前冻结剧本：
 
-1. 冻结术语表，区分平台级对外应用、系统内业务应用、模块、OpenAPI 客户端。
-2. 生成原型流程追踪矩阵，把原始流程图映射到页面、路由、接口、权限、状态和 E2E。
-3. 基于完整系统剧本重新设计 UI/UX，不再按割裂模块局部验收。
-4. 基于冻结后的 UI/UX 重新调整前端入口和页面文案。
-5. 用真实浏览器连续验证“登录 -> 创建系统 -> 建模块字段 -> 发布 -> 运行台使用 -> 创建对外应用 -> 授权系统数据/能力 -> 外部调用 -> 调用日志/审计”的完整链路。
+1. 平台管理员创建“车”系统。
+2. 系统管理员在“车”系统内直接开通 `che` 成员账号。
+3. 系统管理员创建车辆模块、字段、页面和菜单并发布。
+4. 系统管理员给 `che` 授权车辆模块。
+5. `che` 登录后直接进入“车系统 / 业务运行台”。
+6. `che` 只能看到车辆模块，并能新增、查询、编辑车辆数据。
+7. `che` 看不到平台管理、建模、字段设计、发布和权限配置入口。
 
-更新时间：2026-06-11 21:45
+更新时间：2026-06-12 09:00
 
 ## 总览
 
 | 项目 | 数量 |
 | --- | ---: |
 | 开发执行任务总数 | 69 |
-| 已完成 | 69 |
-| 进行中 | 0 |
-| 阻塞 | 0 |
-| 剩余 | 0 |
+| 已完成 | 68 |
+| 进行中 | 1 |
+| 阻塞 | 1 |
+| 剩余 | 待 P15 重新拆分 |
 
 当前模式：`development`
 
-当前期次：`P12-uiux-frontend-rework`
+当前期次：`P15-project-rebaseline`
 
-当前状态：`P12_accepted_final_package_ready`
+当前状态：`P15_pm_rebaseline_in_progress`
 
 ## 分期进度
 
@@ -58,7 +61,8 @@ P14 目标：
 | P11-flow-file-openapi-ui | 流程、文件导出、OpenAPI 与审计运维可用化期 | accepted | FE-019 至 FE-022、TEST-009、VAL-007、REV-007 已完成；功能试部署包已生成 | 用户反馈 UI 体验不足，进入 P12 |
 | P12-uiux-frontend-rework | UI/UX 设计与前端可用化改造期 | accepted | UIUX-001、UIUX-002、FE-023、FE-024、TEST-010、VAL-008、REV-008、PKG-001 已完成 | 最终部署包已生成 |
 | P13-usability-rework | 用户部署反馈可用性返工期 | retracted | 已证明系统内建模/运行台链路，但未覆盖平台级对外应用完整流程 | 结论已撤回，进入 P14 |
-| P14-prototype-concept-rework | 完整系统 UI 重设计与原型流程纠偏期 | accepted | P14-APP、FE、BE、TEST、VAL、REV、PKG 全部完成；普通用户、平台级对外应用、OpenAPI 和日志追踪证据齐全 | 部署包 ready |
+| P14-prototype-concept-rework | 完整系统 UI 重设计与原型流程纠偏期 | retracted | 部分技术链路通过，但部署反馈证明普通人仍不知道怎么用，不能作为完整可用系统 | 进入 P15 全项目可用性重整 |
+| P15-project-rebaseline | 全项目可用性重整期 | in_progress | PM 正在重新梳理产品定位、角色、信息架构、主流程、UI/UX 和验收剧本 | 冻结 P15 后再继续代码修复 |
 
 ## 角色完成度
 

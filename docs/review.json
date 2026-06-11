@@ -1,50 +1,55 @@
 {
-    "status": "pass",
-    "target": "none",
-    "phase": "P14-prototype-concept-rework",
-    "reviewedAt": "2026-06-11T21:30:00+08:00",
-    "summary": "P14 reviewer recheck passed. Product terminology, UI/UX, ordinary-user runtime flow, platform-level OpenAPI external app flow, requestId log tracing, frontend build and backend clean package evidence are now aligned.",
-    "frontendDeployable": true,
+    "status": "fail",
+    "target": "pm,uiux,frontend,backend,test,reviewer",
+    "phase": "P15-project-rebaseline",
+    "reviewedAt": "2026-06-12T09:00:00+08:00",
+    "summary": "P14 fullProjectDeployable conclusion is retracted. Deployment feedback proves the system is still not understandable or usable enough for ordinary users: ordinary members can land in platform-oriented views, system member onboarding exposes the platform-account/member split, logout/pagination/new-create UX is incomplete, and page layout is still too engineering-driven.",
+    "frontendDeployable": false,
     "backendTrialDeployable": true,
-    "fullProjectDeployable": true,
-    "packageGate": "allowed",
-    "issues": [],
-    "closedIssues": [
+    "fullProjectDeployable": false,
+    "packageGate": "blocked",
+    "issues": [
         {
-            "id": "REV-P14-ORDINARY-USER",
+            "id": "P15-PM-001",
             "severity": "P0",
-            "status": "closed",
-            "evidence": "docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md",
-            "summary": "Ordinary business user has runtime menu, operation, field and SELF data-scope permissions, can create a runtime record, and receives 403 on system member management."
+            "target": "pm",
+            "summary": "PM accepted P14 despite deployed ordinary-user usability failure.",
+            "evidence": "docs/product/p15-project-rebaseline.md"
         },
         {
-            "id": "REV-P14-OPENAPI-REQUEST-LOG",
+            "id": "P15-UX-001",
             "severity": "P0",
-            "status": "closed",
-            "evidence": "docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md",
-            "summary": "OpenAPI client uses AK/SK to call OPN-001 successfully and access logs can be queried by requestId with signature/scope/rate-limit PASS."
+            "target": "uiux,frontend",
+            "summary": "Pages remain admin/API-module oriented instead of task-oriented for ordinary users.",
+            "evidence": "User feedback on 2026-06-12"
         },
         {
-            "id": "REV-P14-TEST-REPORT",
+            "id": "P15-AUTH-ENTRY",
+            "severity": "P0",
+            "target": "frontend,test",
+            "summary": "A system member account can still feel like it enters platform space instead of its business system runtime.",
+            "evidence": "User feedback: che account login still sees platform system"
+        },
+        {
+            "id": "P15-MEMBER-ONBOARDING",
+            "severity": "P0",
+            "target": "pm,backend,frontend",
+            "summary": "System member onboarding requires users to understand platform account first, then bind into a system.",
+            "evidence": "User feedback: must create platform account then add it to car system"
+        },
+        {
+            "id": "P15-BASIC-UX",
             "severity": "P1",
-            "status": "closed",
-            "evidence": "docs/test_report.md",
-            "summary": "Test report now starts with P14 ordinary-user and OpenAPI evidence instead of stale P13/P7 conclusions."
+            "target": "frontend,uiux",
+            "summary": "Logout, pagination and new-create interaction are not at normal business-system quality.",
+            "evidence": "User feedback on logout, pagination and header-form creation"
         }
     ],
-    "verification": [
-        "docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md records p14_member_212202, memberId 2065062004305965057, runtime menu customer_file_77525602, operations MENU_VISIBLE/RECORD_VIEW/RECORD_CREATE/RECORD_EDIT/RECORD_SUBMIT/RECORD_HISTORY_VIEW, field permissions customer_name/phone/level, data scope MODULE:2065034341111906305:SELF, member management 403, and created record 2065062007648825345.",
-        "docs/test_runs/p14-ordinary-user-openapi-e2e-20260611.md records OpenAPI clientId 2065062008223444993, requestId p14-openapi-212202, successful POST /openapi/v1/records/query, and access-log query total=1/statusCode=200/signatureResult=PASS/scopeResult=PASS/rateLimitResult=PASS.",
-        "docs/test_report.md, docs/progress.md, docs/task_plan.md, docs/tasks/P14-integrated-rework-plan.md, docs/build_report.md and docs/build/p14-clean-build.md were updated with P14 evidence.",
-        "mvn.cmd -pl examine-web -am clean package -DskipTests passed.",
-        "git diff --check reported only LF/CRLF warnings."
-    ],
-    "packagingDecision": {
-        "allowP14Package": true,
-        "conditions": [
-            "Include OpenApiPermissionSnapshotProvider.java in source commit/package input.",
-            "Do not include .codex/tmp/ runtime logs in the package.",
-            "Package frontend dist, backend unexamine.jar, backend/start.sh, nginx deployment documentation, review/test/build evidence."
-        ]
-    }
+    "requiredBeforePackage": [
+        "Freeze docs/product/p15-project-rebaseline.md",
+        "Freeze P15 UI/UX page-level design",
+        "Run real browser script with platform_admin creating car system and che ordinary user using vehicle module",
+        "Verify che cannot see platform management, modeling, field design, publish or permission pages",
+        "Verify logout, pagination and task-oriented create entry on key pages"
+    ]
 }

@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-11T21:45:00+08:00",
+    "updated_at":  "2026-06-12T09:00:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2251,7 +2251,7 @@
                                               ]
                                 }
                             ],
-    "current_phase":  "P14-prototype-concept-rework",
+    "current_phase":  "P15-project-rebaseline",
     "running_tasks":  [
 
                       ],
@@ -2270,7 +2270,8 @@
                          "P11-flow-file-openapi-ui":  "accepted",
                          "P12-uiux-frontend-rework":  "accepted",
                          "P13-usability-rework":  "retracted",
-                         "P14-prototype-concept-rework":  "accepted"
+                         "P14-prototype-concept-rework":  "retracted",
+                         "P15-project-rebaseline":  "in_progress"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2367,7 +2368,7 @@
                                                         "next_phase":  "P11-flow-file-openapi-ui"
                                                     },
                              "P11-flow-file-openapi-ui":  {
-                                                        "status":  "accepted",
+                                                        "status":  "retracted",
                                                         "started_at":  "2026-06-10T08:00:00+08:00",
                                                         "started_by":  "pm",
                                                         "tasks":  [
@@ -2468,7 +2469,35 @@
                                                         "record":  "docs/phases/P14-prototype-concept-rework-acceptance.md",
                                                         "package_path":  "dist/unexamine-full-deploy-20260611-213200-p14.zip",
                                                         "linux_package_path":  "dist/unexamine-full-deploy-20260611-213200-p14.tar.gz",
-                                                        "package_gate":  "passed"
+                                                        "package_gate":  "blocked",
+                                                        "retracted_at":  "2026-06-12T09:00:00+08:00",
+                                                        "retract_reason":  "User deployment feedback confirmed P14 still exposes platform/admin-oriented experience to ordinary users, lacks clear logout/pagination/new-create UX, and does not let ordinary users naturally land in their business system runtime.",
+                                                        "next_phase":  "P15-project-rebaseline"
+                                                    },
+                             "P15-project-rebaseline":  {
+                                                        "status":  "in_progress",
+                                                        "started_at":  "2026-06-12T09:00:00+08:00",
+                                                        "started_by":  "pm",
+                                                        "reason":  "P14 deployment feedback shows the project needs a whole-project usability and PM reset instead of local frontend/backend patches.",
+                                                        "product_record":  "docs/product/p15-project-rebaseline.md",
+                                                        "pm_decision_record":  "docs/product/p15-multi-role-pm-decision.md",
+                                                        "issue_record":  "docs/issues/pm/development/p15_project_rebaseline_wenti.md",
+                                                        "agent_coordination_record":  "docs/process/p15-agent-coordination.md",
+                                                        "role_reviews":  [
+                                                                             "docs/understanding/p15_pm_rebaseline_review.md",
+                                                                             "docs/understanding/p15_uiux_rebaseline_review.md",
+                                                                             "docs/understanding/p15_frontend_rebaseline_review.md",
+                                                                             "docs/understanding/p15_backend_rebaseline_review.md",
+                                                                             "docs/understanding/p15_test_rebaseline_review.md",
+                                                                             "docs/understanding/p15_reviewer_rebaseline_review.md"
+                                                                         ],
+                                                        "partial_code_changes":  [
+                                                                                     "backend/examine-module/src/main/java/com/unique/examine/module/manage/bo/MemberInviteBO.java",
+                                                                                     "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/SystemRbacServiceImpl.java",
+                                                                                     "frontend/src/App.ts",
+                                                                                     "frontend/src/pages/system/types.ts"
+                                                                                 ],
+                                                        "package_gate":  "blocked"
                                                     }
                          },
     "last_governance_fix":  {
@@ -2479,5 +2508,5 @@
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
     "last_completed_batch":  "DEV-BATCH-P14-PACKAGE",
-    "active_batch":  "DEV-BATCH-P14-PACKAGE"
+    "active_batch":  "DEV-BATCH-P15-PM-REBASELINE"
 }
