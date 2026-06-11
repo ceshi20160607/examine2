@@ -1,24 +1,43 @@
 {
-    "status": "pass",
-    "target": "none",
-    "phase": "P13-usability-rework",
-    "reviewedAt": "2026-06-11T15:50:00+08:00",
-    "summary": "REV-009 pass. P13 closed the ordinary-user usability blockers reported after deployment: create-system now enters system overview, SYS-001 nested tenant/member/permissions are written into frontend context, system navigation no longer exposes invalid current links or platform ops entries, runtime no longer pre-fills P10 test data or exposes schema/module ID wording, and TEST-011 plus VAL-009 passed.",
+    "status": "fail",
+    "target": "pm,analyst,uiux,frontend,test,reviewer",
+    "phase": "P14-prototype-concept-rework",
+    "reviewedAt": "2026-06-11T17:10:00+08:00",
+    "summary": "P13 acceptance is retracted. P13 proved the system-internal business app/module/runtime record flow, but did not prove the prototype flow for platform-level external apps used for exposing system data or capabilities through OpenAPI.",
     "frontendDeployable": true,
     "backendTrialDeployable": true,
-    "fullProjectDeployable": true,
-    "packageGate": "PKG-002 allowed",
-    "issues": [],
+    "fullProjectDeployable": false,
+    "packageGate": "blocked",
+    "issues": [
+        {
+            "id": "REV-P14-001",
+            "severity": "P0",
+            "target": "pm,analyst,uiux",
+            "problem": "The term app is ambiguous across PRD, API and UI. The current UI treats app mainly as a system-internal business modeling container, while the prototype feedback points to platform-level external apps for OpenAPI/data exposure.",
+            "impact": "Users cannot understand how to use the system to expose configured system data or capabilities to external consumers.",
+            "requiredAction": "Freeze a product glossary and prototype flow traceability matrix before further frontend acceptance."
+        },
+        {
+            "id": "REV-P14-002",
+            "severity": "P0",
+            "target": "uiux,frontend,test",
+            "problem": "The current browser E2E covers system-internal modeling and runtime records, but not create external app, authorize modules/fields/actions, generate secret, external call, and audit log review.",
+            "impact": "A passing P13 E2E is insufficient evidence for the actual prototype flow.",
+            "requiredAction": "Rework UI/UX and frontend after terminology is frozen, then add browser E2E plus OpenAPI call evidence."
+        },
+        {
+            "id": "REV-P14-003",
+            "severity": "P1",
+            "target": "pm,reviewer",
+            "problem": "PM over-accepted local build/package and a partial business flow as full user usability.",
+            "impact": "The project process did not catch a core product concept mismatch before user deployment feedback.",
+            "requiredAction": "AGENTS.md now requires glossary freeze and prototype-flow traceability gates for future phases."
+        }
+    ],
     "verification": [
-        "docs/ui/p13-usability-rework-spec.md exists",
-        "docs/ui/prototypes/p13-usability-delta.md exists",
-        "frontend/docs/page-contracts/FE-025-p13-usability-frontend-rework.md exists",
-        "docs/test_runs/p13-usability-e2e.md records login -> system -> app -> module -> field -> publish -> runtime record",
-        "docs/test_report.md summarizes TEST-011 pass",
-        "docs/build/p13-clean-build.md records frontend build and backend clean package pass",
-        "npm.cmd run build pass",
-        "mvn.cmd -pl examine-web -am clean package -DskipTests pass",
-        "git diff --check has only LF/CRLF warnings",
-        "backend/examine-generator follows command-as-config; backend/docs/mybatis-plus-generation.md is intentionally not required per AGENTS.md and backend/examine-generator/README.md"
+        "docs/user_requirement.md contains both system-internal app configuration and OpenAPI external app requirements.",
+        ".codex/oldexamine/examine-web/src/main/java/com/unique/examine/web/controller/PlatformAppController.java shows an old platform-level external app entry.",
+        "docs/ui/ui-design.md currently designs app configuration as system-internal app -> module -> field -> page -> publish.",
+        "docs/test_runs/p13-usability-e2e.md proves a system-internal modeling/runtime flow, not the platform external app flow."
     ]
 }

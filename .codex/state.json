@@ -2251,7 +2251,7 @@
                                               ]
                                 }
                             ],
-    "current_phase":  "P13-usability-rework",
+    "current_phase":  "P14-prototype-concept-rework",
     "running_tasks":  [
 
                       ],
@@ -2269,7 +2269,8 @@
                          "P10-app-runtime-ui":  "accepted",
                          "P11-flow-file-openapi-ui":  "accepted",
                          "P12-uiux-frontend-rework":  "accepted",
-                         "P13-usability-rework":  "accepted"
+                         "P13-usability-rework":  "retracted",
+                         "P14-prototype-concept-rework":  "in_progress"
                      },
     "phase_protocol":  {
                            "planner":  "maintains docs/phases/development-phases.md and task-to-phase mapping",
@@ -2406,7 +2407,7 @@
                                                         "next_phase":  "P13-usability-rework"
                                                     },
                              "P13-usability-rework":  {
-                                                        "status":  "accepted",
+                                                        "status":  "retracted",
                                                         "started_at":  "2026-06-11T15:13:58+08:00",
                                                         "started_by":  "pm",
                                                         "tasks":  [
@@ -2426,7 +2427,26 @@
                                                         "linux_package_path":  "dist/unexamine-full-deploy-20260611-160935-p13.tar.gz",
                                                         "accepted_at":  "2026-06-11T16:09:38+08:00",
                                                         "accepted_by":  "pm",
-                                                        "next_phase":  "user-trial-deploy"
+                                                        "retracted_at":  "2026-06-11T17:10:00+08:00",
+                                                        "retract_reason":  "User feedback confirmed P13 only proved the system-internal business app/module/runtime flow, not the prototype platform-level external app/OpenAPI exposure flow.",
+                                                        "next_phase":  "P14-prototype-concept-rework"
+                                                    },
+                             "P14-prototype-concept-rework":  {
+                                                        "status":  "in_progress",
+                                                        "started_at":  "2026-06-11T17:10:00+08:00",
+                                                        "started_by":  "pm",
+                                                        "tasks":  [
+                                                                      "P14-APP-001",
+                                                                      "P14-APP-002",
+                                                                      "P14-APP-003",
+                                                                      "P14-APP-004",
+                                                                      "P14-APP-005",
+                                                                      "P14-APP-006"
+                                                                  ],
+                                                        "reason":  "Terminology and prototype flow mismatch: platform-level external app/OpenAPI exposure was not proven by the P13 system-internal app/module/runtime E2E.",
+                                                        "issue_record":  "docs/issues/pm/development/p14_app_concept_rework.md",
+                                                        "review_record":  "docs/review.json",
+                                                        "package_gate":  "blocked"
                                                     }
                          },
     "last_governance_fix":  {
@@ -2436,6 +2456,6 @@
                                 "reason":  "Development must be managed by role issue discovery, PM decision, owner reply, reviewer verification, test, validator, and stage commit instead of ad-hoc continue prompts.",
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
-    "last_completed_batch":  "DEV-BATCH-P13-PKG002-FINAL-PACKAGE-PASS",
-    "active_batch":  "none"
+    "last_completed_batch":  "DEV-BATCH-P13-ACCEPTANCE-RETRACTED",
+    "active_batch":  "DEV-BATCH-P14-CONCEPT-REWORK"
 }
