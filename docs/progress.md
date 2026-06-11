@@ -447,3 +447,14 @@ PKG-002 已完成：
 - `backend/start.sh` 权限已核验：tar.gz 中为 `-rwxr-xr-x`，zip 外部属性为 `0755`。
 
 当前状态：P13 accepted，P13 包可用于重新部署验证；P12 fixed 包只作为旧基线保留。
+
+## 2026-06-11 P14 PM 产品运行模型启动
+
+用户反馈成立：P14 不能继续靠用户指出问题后追加规则，也不能让 PM 只做任务收集和阶段盖章。PM 必须具备现代主流系统的产品整合视角，先回答“这个系统给谁用、在什么工作空间里用、按什么连续剧本完成业务、失败后怎么恢复”，再组织 UI、前端、后端、测试和验收。
+
+本轮修正：
+
+- 新增 `docs/product/product-vision-and-operating-model.md`，作为 P14 的 PM 产品运行模型。
+- P14 任务新增 `P14-APP-000`，要求 PM 先冻结产品运行模型，再进入 UI/UX 和前后端返工。
+- `AGENTS.md` 已升级 PM 验收规则：缺少产品运行模型时，UI/UX 不得冻结，frontend 不得进入实现，reviewer 必须 fail。
+- 当前仍保持 `fullProjectDeployable=false` 和 `package_gate=blocked`；P14 不打包，先完成产品模型、UI/UX、任务重拆和连续 E2E。

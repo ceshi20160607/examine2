@@ -2436,6 +2436,7 @@
                                                         "started_at":  "2026-06-11T17:10:00+08:00",
                                                         "started_by":  "pm",
                                                         "tasks":  [
+                                                                      "P14-APP-000",
                                                                       "P14-APP-001",
                                                                       "P14-APP-002",
                                                                       "P14-APP-003",
@@ -2446,6 +2447,7 @@
                                                         "reason":  "Repeated deployment feedback from P7 to P14 shows fragmented phase acceptance. P14 is upgraded to an integrated system baseline reset before further packaging.",
                                                         "issue_record":  "docs/issues/pm/development/p14_app_concept_rework.md",
                                                         "baseline_record":  "docs/product/integrated-system-baseline.md",
+                                                        "product_model_record":  "docs/product/product-vision-and-operating-model.md",
                                                         "review_record":  "docs/review.json",
                                                         "package_gate":  "blocked"
                                                     }

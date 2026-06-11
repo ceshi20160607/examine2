@@ -4,9 +4,9 @@
 
 P13 验收结论撤回。当前系统可以跑通登录、创建系统、系统内业务应用、模块、字段、发布和运行台新增记录，但这条链路不能证明这是一个普通人可以连续使用的完整系统。
 
-从 P7 到 P14 多次出现“局部通过、整体割裂”的问题，说明不能继续用碎片化分期补丁推进。P14 升级为完整系统基线重整，基线文件为 `docs/product/integrated-system-baseline.md`。
+从 P7 到 P14 多次出现“局部通过、整体割裂”的问题，说明不能继续用碎片化分期补丁推进。P14 升级为完整系统基线重整，基线文件为 `docs/product/integrated-system-baseline.md`，产品运行模型文件为 `docs/product/product-vision-and-operating-model.md`。
 
-本轮先由 PM/Analyst/UIUX 冻结完整系统目标、术语、信息架构和连续验收剧本，再决定前端和后端返工范围。
+本轮先由 PM 主动冻结产品运行模型，再由 Analyst/UIUX 对照原始需求、旧项目和当前实现冻结完整系统目标、术语、信息架构和连续验收剧本，最后决定前端和后端返工范围。
 
 ## 术语裁决草案
 
@@ -35,6 +35,7 @@ P14 必须补齐以下流程图和页面追踪矩阵，并纳入 `docs/product/i
 
 | issueId | owner | actionRequired | closeCondition |
 | --- | --- | --- | --- |
+| P14-APP-000 | pm | 输出并冻结 `docs/product/product-vision-and-operating-model.md`，主动定义角色、工作空间、信息架构、端到端剧本、权限边界、错误恢复和验收证据。 | PM 不再以“用户指出什么就补什么”为工作方式；UI/UX、planner、frontend、test、reviewer 后续都必须引用该模型。 |
 | P14-APP-001 | analyst | 对照 `docs/user_requirement.md`、旧项目 `PlatformAppController` 和 OpenAPI 旧表，输出应用概念复核摘要。 | 明确平台级对外应用、系统内业务应用、OpenAPI 客户端三者边界。 |
 | P14-APP-002 | pm/uiux | 基于 `docs/product/integrated-system-baseline.md` 重画信息架构和页面流程，输出 `docs/ui/p14-integrated-ui.md`。 | 页面能让普通人理解如何创建系统、建模块、用运行台、配置对外应用并排错恢复。 |
 | P14-APP-003 | planner | 按完整系统剧本拆分一次性返工任务，不再按割裂页面局部验收。 | 每个任务映射到剧本 A/B/C，并说明输入、输出、验证和是否需要改 API/DB。 |
