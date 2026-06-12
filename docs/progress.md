@@ -1,5 +1,24 @@
 # 项目进度看板
 
+## 2026-06-12 P15 普通用户运行台复验通过
+
+PM/Frontend/Backend/Test/Reviewer 本轮结论：
+
+- 当前期次：`P15-project-rebaseline`
+- 当前结论：P15 普通业务用户运行台关键链路通过。
+- 浏览器证据：`docs/test_runs/p15-ordinary-runtime-browser-e2e-20260612.md`
+- 后端验证：`mvn -pl examine-web -am -DskipTests package` 通过，产物 `backend/examine-web/target/unexamine.jar`
+- 前端验证：`npm.cmd run build` 通过，产物 `frontend/dist/`
+- 代码修复：运行台授权菜单、运行记录数据范围、发布快照字段名兜底、删除历史快照、普通用户运行模块加载、运行台下一步提示和状态中文化。
+- 当前打包闸门：`package_gate=blocked_until_final_package`。本轮没有生成最终部署包；进入打包前还需要执行最终 clean build、nginx `/api/` 转发验收和部署包清单核对。
+
+普通业务用户剧本结果：
+
+1. `che_p15_20260612061303 / 123123aa` 登录后直接进入 `车系统P15-134900 / 业务运行台`。
+2. 普通用户只看到 `切换系统`、`业务运行台`、`流程工作台`，看不到平台管理、系统设置、建模配置、字段设计、发布和权限配置入口。
+3. 授权模块可进入，字段显示为 `车型`、`颜色`、`车牌号`、`登记日期`，状态显示 `草稿`、`已提交`。
+4. 新增记录 `P15-FINAL-001` 成功，列表分页显示 `共 2 条，第 1 / 1 页`。
+
 ## 2026-06-12 当前更正状态
 
 用户反馈继续成立：P14 虽然补充了普通用户、OpenAPI 和日志追踪证据，但部署后的实际体验仍不能让普通人自然使用系统。

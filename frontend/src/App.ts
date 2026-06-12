@@ -2408,6 +2408,7 @@ export function mountApp(container: HTMLElement): void {
   function renderUserGuidance(route: AppRouteRecord): HTMLElement {
     const context = systemContextStore.getState().current;
     const publishedModules = appRuntimeState.modules.filter((item) => item.status === "PUBLISHED").length;
+    const runtimeEntryCount = appRuntimeState.runtimeMenus.length;
     const guidance: Record<string, [string, string, string, string][]> = {
       "platform.mySystems": [
         ["1", "新建或进入系统", "先选择一个系统。没有系统时，直接在左侧表单创建。", "#/platform/my-systems"],
@@ -2420,7 +2421,7 @@ export function mountApp(container: HTMLElement): void {
           ["3", "发布后使用", "模块发布后再进入业务运行台填报数据。", `#${systemPath("runtime.home")}`],
         ] as [string, string, string, string][] : [
           ["1", "进入业务运行台", "查看自己可以使用的业务入口。", `#${systemPath("runtime.home")}`],
-          ["2", "开始处理数据", publishedModules > 0 ? "点击业务模块进入列表并处理数据。" : "当前还没有可用业务模块，请联系管理员发布并授权。", `#${systemPath("runtime.home")}`],
+          ["2", "开始处理数据", runtimeEntryCount > 0 || publishedModules > 0 ? "点击业务模块进入列表并处理数据。" : "当前还没有可用业务模块，请联系管理员发布并授权。", `#${systemPath("runtime.home")}`],
         ] as [string, string, string, string][]),
       ],
       "apps.list": [
@@ -2441,7 +2442,7 @@ export function mountApp(container: HTMLElement): void {
       ],
       "runtime.home": [
         ["1", "加载业务入口", "只显示你已被授权的业务模块。", `#${systemPath("runtime.home")}`],
-        ["2", "开始填报", publishedModules > 0 ? "点击模块进入列表并新增记录。" : "当前没有可用业务模块，请联系管理员发布并授权。", `#${systemPath("runtime.home")}`],
+        ["2", "开始填报", runtimeEntryCount > 0 || publishedModules > 0 ? "点击模块进入列表并新增记录。" : "当前没有可用业务模块，请联系管理员发布并授权。", `#${systemPath("runtime.home")}`],
       ],
     };
     const items = guidance[route.name] ?? [
@@ -4023,7 +4024,6 @@ export function mountApp(container: HTMLElement): void {
   async function loadRuntimeModule(): Promise<void> {
     await execute("RUN-002/RUN-003", async () => {
       requireSystemContext();
-      await ensureModulesLoaded();
       readRouteSelection();
       const moduleId = required(selectedModuleId(), "模块");
       const schema = await runtimeWorkbench.schema.load(moduleId);
@@ -5613,6 +5613,14 @@ export function mountApp(container: HTMLElement): void {
       ARCHIVED: "归档",
       NORMAL: "正常",
       LOCKED: "锁定",
+      SUBMITTED: "已提交",
+      APPROVED: "已通过",
+      REJECTED: "已驳回",
+      WITHDRAWN: "已撤回",
+      DELETED: "已删除",
+      COMPLETED: "已完成",
+      RUNNING: "处理中",
+      FAILED: "失败",
     };
     return status ? mapping[status] ?? status : "-";
   }

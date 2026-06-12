@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.DecimalNode;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.unique.examine.core.common.response.PageResult;
 import com.unique.examine.core.context.RequestContext;
@@ -144,7 +145,9 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
      */
     @Override
     public List<RuntimeMenuVO> runtimeMenus(Long systemId) {
-        permissionService.requireOperation("SYSTEM_MEMBER");
+        var permission = permissionService.currentPermission();
+        Set<String> visibleMenus = permission.getMenus();
+        boolean systemManager = permission.getOperations().contains("SYS_MANAGE_ALL");
         List<Menu> menus = menuService.lambdaQuery()
                 .eq(Menu::getSystemId, systemId)
                 .eq(Menu::getMenuType, "RUNTIME")
@@ -153,6 +156,7 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
                 .eq(Menu::getDeleteMarker, ACTIVE_DELETE_MARKER)
                 .list();
         Map<Long, RuntimeMenuVO> menuMap = menus.stream()
+                .filter(menu -> systemManager || visibleMenus.contains(menu.getCode()))
                 .sorted(Comparator.comparing(Menu::getSortOrder, Comparator.nullsLast(Integer::compareTo))
                         .thenComparing(Menu::getCode, Comparator.nullsLast(String::compareTo)))
                 .collect(Collectors.toMap(Menu::getMenuId, menu -> RuntimeMenuVO.builder()
@@ -169,6 +173,9 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
         List<RuntimeMenuVO> roots = new ArrayList<>();
         menus.forEach(menu -> {
             RuntimeMenuVO current = menuMap.get(menu.getMenuId());
+            if (Objects.isNull(current)) {
+                return;
+            }
             RuntimeMenuVO parent = menuMap.get(menu.getParentId());
             if (Objects.nonNull(parent)) {
                 parent.getChildren().add(current);
@@ -188,14 +195,16 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
         Model model = activeRuntimeModule(systemId, moduleId);
         PublishVersion publishVersion = currentPublishVersion(model);
         JsonNode pageSnapshot = readJson(publishVersion.getPageSnapshotJson());
+        Map<String, String> fieldLabels = activeFieldMap(systemId, moduleId).values().stream()
+                .collect(Collectors.toMap(Field::getCode, Field::getName, (left, right) -> left, LinkedHashMap::new));
         return RuntimeModuleSchemaVO.builder()
                 .moduleId(toId(moduleId))
                 .moduleCode(model.getCode())
                 .publishedVersionId(toId(publishVersion.getPublishVersionId()))
-                .listSchema(pageSchema(pageSnapshot, "LIST"))
-                .formSchema(pageSchema(pageSnapshot, "FORM"))
-                .detailSchema(pageSchema(pageSnapshot, "DETAIL"))
-                .fieldDefinitions(readJson(publishVersion.getFieldSnapshotJson()))
+                .listSchema(applyFieldLabels(pageSchema(pageSnapshot, "LIST"), fieldLabels))
+                .formSchema(applyFieldLabels(pageSchema(pageSnapshot, "FORM"), fieldLabels))
+                .detailSchema(applyFieldLabels(pageSchema(pageSnapshot, "DETAIL"), fieldLabels))
+                .fieldDefinitions(applyFieldLabels(readJson(publishVersion.getFieldSnapshotJson()), fieldLabels))
                 .availableActions(availableActions(systemId, moduleId))
                 .permissionHints(permissionService.currentPermission().getOperations().stream().toList())
                 .statusRules(readJson(publishVersion.getFlowBindingSnapshotJson()))
@@ -285,7 +294,7 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
     public RecordDetailVO recordDetail(Long systemId, Long moduleId, Long recordId) {
         permissionService.requireOperation("RECORD_VIEW");
         Record record = activeRecord(systemId, moduleId, recordId);
-        permissionService.requireDataScope("RECORD", toId(recordId), toId(record.getCreatedBy()));
+        permissionService.requireDataScope("MODULE", toId(moduleId), toId(record.getCreatedBy()));
         List<RecordValue> values = values(recordId);
         return RecordDetailVO.builder()
                 .recordId(toId(recordId))
@@ -310,7 +319,7 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
         permissionService.requireOperation("RECORD_EDIT");
         Model model = activeRuntimeModule(systemId, moduleId);
         Record record = activeRecord(systemId, moduleId, recordId);
-        permissionService.requireDataScope("RECORD", toId(recordId), toId(record.getCreatedBy()));
+        permissionService.requireDataScope("MODULE", toId(moduleId), toId(record.getCreatedBy()));
         ensureEditable(record, updateBO.getRecordVersion());
         Map<String, Field> fields = activeFieldMap(systemId, moduleId);
         List<RecordValue> beforeValues = values(recordId);
@@ -343,7 +352,7 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
     public RecordMutationResultVO deleteRecord(Long systemId, Long moduleId, Long recordId) {
         permissionService.requireOperation("RECORD_DELETE");
         Record record = activeRecord(systemId, moduleId, recordId);
-        permissionService.requireDataScope("RECORD", toId(recordId), toId(record.getCreatedBy()));
+        permissionService.requireDataScope("MODULE", toId(moduleId), toId(record.getCreatedBy()));
         if (Objects.equals(record.getLockedFlag(), YES)) {
             throw new BusinessException(RuntimeRecordErrorCode.RECORD_STATUS_CONFLICT);
         }
@@ -363,7 +372,7 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
                 .set(RecordUniqueIndex::getUpdatedAt, now)
                 .update();
         saveHistory(record, "DELETE", beforeStatus, record.getRecordStatus(), List.of(), valueSnapshot(values(recordId)),
-                null, "删除运行记录");
+                readJson("{}"), "删除运行记录");
         return mutationResult(record, List.of());
     }
 
@@ -376,7 +385,7 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
         permissionService.requireOperation("RECORD_SUBMIT");
         Model model = activeRuntimeModule(systemId, moduleId);
         Record record = activeRecord(systemId, moduleId, recordId);
-        permissionService.requireDataScope("RECORD", toId(recordId), toId(record.getCreatedBy()));
+        permissionService.requireDataScope("MODULE", toId(moduleId), toId(record.getCreatedBy()));
         ensureEditable(record, submitBO.getRecordVersion());
         String beforeStatus = record.getRecordStatus();
         FlowRecordStartResult flowStart = startFlowIfBound(model, record);
@@ -865,6 +874,35 @@ public class RuntimeRecordServiceImpl implements RuntimeRecordService {
             }
         }
         return pageSnapshot.path(pageType).isMissingNode() ? readJson(null) : pageSnapshot.path(pageType);
+    }
+
+    private JsonNode applyFieldLabels(JsonNode schema, Map<String, String> fieldLabels) {
+        if (Objects.isNull(schema) || schema.isNull() || fieldLabels.isEmpty()) {
+            return schema;
+        }
+        JsonNode copy = schema.deepCopy();
+        applyFieldLabelsRecursive(copy, fieldLabels);
+        return copy;
+    }
+
+    private void applyFieldLabelsRecursive(JsonNode node, Map<String, String> fieldLabels) {
+        if (node.isObject()) {
+            ObjectNode objectNode = (ObjectNode) node;
+            String fieldCode = objectNode.path("fieldCode").asText(null);
+            if (!StringUtils.hasText(fieldCode)) {
+                fieldCode = objectNode.path("code").asText(null);
+            }
+            String fieldName = fieldLabels.get(fieldCode);
+            if (StringUtils.hasText(fieldName)) {
+                if (objectNode.has("label")) {
+                    objectNode.put("label", fieldName);
+                }
+                if (objectNode.has("name")) {
+                    objectNode.put("name", fieldName);
+                }
+            }
+        }
+        node.elements().forEachRemaining(child -> applyFieldLabelsRecursive(child, fieldLabels));
     }
 
     private JsonNode valueNode(RecordValue value) {
