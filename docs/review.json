@@ -1,13 +1,14 @@
 {
-    "status": "pass",
+    "status": "fail",
     "target": "pm,uiux,frontend,backend,test,reviewer",
     "phase": "P15-project-rebaseline",
-    "reviewedAt": "2026-06-12T16:10:00+08:00",
-    "summary": "P15 ordinary-user runtime browser E2E passed and a fresh deploy package was generated after final backend package and frontend build. The che ordinary account now lands in its business system runtime, sees only business/runtime navigation, can open the authorized vehicle module, sees readable Chinese field labels and Chinese record statuses, and can create runtime records. Backend runtime menu filtering, module data-scope checks, runtime schema label fallback, delete history snapshot handling, and frontend runtime entry/status guidance were fixed.",
+    "reviewedAt": "2026-06-12T16:35:00+08:00",
+    "summary": "User UI review rejected the current P15 frontend as not matching mainstream usable system style and flow. The generated package remains a technical trial package only. P15 ordinary-user runtime browser E2E proved several functional fixes, but the frontend is still organized too much like an engineering configuration console: large hand-written App.ts, inline create forms above tables, card/form/table stacking, and insufficient task-level page design. PM/reviewer must not treat this as a normal user-ready system UI.",
     "frontendDeployable": true,
+    "frontendUsable": false,
     "backendTrialDeployable": true,
     "fullProjectDeployable": false,
-    "packageGate": "package_ready_live_nginx_pending",
+    "packageGate": "trial_package_only_ui_rework_required",
     "packageReady": true,
     "packagePath": "dist/unexamine-full-deploy-20260612-160003-p15.zip",
     "linuxPackagePath": "dist/unexamine-full-deploy-20260612-160003-p15.tar.gz",
@@ -18,7 +19,8 @@
         "backend: mvn -pl examine-web -am -DskipTests package pass",
         "frontend: npm.cmd run build pass",
         "package: tar.gz contains backend/unexamine.jar, backend/start.sh, frontend/index.html, frontend/assets/* and docs",
-        "package: backend/start.sh mode verified as 755 in tar.gz and zip metadata"
+        "package: backend/start.sh mode verified as 755 in tar.gz and zip metadata",
+        "ui-review: current frontend still does not meet mainstream usable system style and flow"
     ],
     "passedScopes": [
         "ordinary user login lands in business runtime",
@@ -30,8 +32,10 @@
         "runtime record delete no longer fails with after_snapshot_json database error"
     ],
     "remainingBeforeFullAcceptance": [
-        "Deploy the generated package to the target server",
-        "Verify nginx static frontend and /api/ forwarding against the packaged backend jar",
-        "Run the P15 ordinary-user browser flow on the deployed URL after replacement"
+        "Redo UI/UX at page level before further final packaging",
+        "Split current engineering-console pages into mainstream task pages with clear primary actions, drawers/pages for create/edit, consistent table pagination, detail views and empty/error states",
+        "Deploy the generated package only as a technical trial package if needed",
+        "After UI rework, verify nginx static frontend and /api/ forwarding against the packaged backend jar",
+        "Run the ordinary-user and administrator browser flows on the deployed URL after replacement"
     ]
 }
