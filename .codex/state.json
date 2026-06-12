@@ -2497,6 +2497,22 @@
                                                                                      "frontend/src/App.ts",
                                                                                      "frontend/src/pages/system/types.ts"
                                                                                  ],
+                                                        "implemented_changes":  [
+                                                                                   "backend/examine-plat/src/main/java/com/unique/examine/plat/manage/service/impl/PlatformCenterServiceImpl.java",
+                                                                                   "backend/examine-web/src/main/java/com/unique/examine/web/config/AuthenticatedRequestContextFilter.java",
+                                                                                   "backend/examine-module/src/main/java/com/unique/examine/module/manage/permission/ModulePermissionSnapshotProvider.java",
+                                                                                   "backend/examine-module/src/main/java/com/unique/examine/module/manage/bo/MemberInviteBO.java",
+                                                                                   "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/SystemRbacServiceImpl.java",
+                                                                                   "frontend/src/App.ts",
+                                                                                   "frontend/src/pages/system/types.ts",
+                                                                                   "frontend/src/styles.css"
+                                                                               ],
+                                                        "last_build":  {
+                                                                           "backend":  "mvn -pl examine-web -am -DskipTests test pass",
+                                                                           "frontend":  "npm.cmd run build pass",
+                                                                           "verified_at":  "2026-06-12T13:17:03+08:00"
+                                                                       },
+                                                        "remaining_gate":  "real browser E2E for platform_admin -> car system -> che ordinary runtime is not yet recorded",
                                                         "package_gate":  "blocked"
                                                     }
                          },

@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,7 @@ import com.unique.examine.core.permission.DataScopeRuleVO;
 import com.unique.examine.core.permission.EffectivePermissionVO;
 import com.unique.examine.core.permission.FieldPermissionVO;
 import com.unique.examine.core.permission.PermissionSnapshotProvider;
+import com.unique.examine.module.base.entity.Member;
 import com.unique.examine.module.base.entity.MemberRole;
 import com.unique.examine.module.base.entity.PermissionVersion;
 import com.unique.examine.module.base.entity.RoleDataScope;
@@ -21,6 +23,7 @@ import com.unique.examine.module.base.entity.RoleMenu;
 import com.unique.examine.module.base.entity.RoleOpenapiScope;
 import com.unique.examine.module.base.entity.RoleOperation;
 import com.unique.examine.module.base.entity.SystemMenu;
+import com.unique.examine.module.base.service.IMemberService;
 import com.unique.examine.module.base.service.IMemberRoleService;
 import com.unique.examine.module.base.service.IPermissionVersionService;
 import com.unique.examine.module.base.service.IRoleDataScopeService;
@@ -44,6 +47,10 @@ public class ModulePermissionSnapshotProvider implements PermissionSnapshotProvi
 
     private static final long SYSTEM_LEVEL_TENANT_ID = 0L;
 
+    private static final String ENABLED = "ENABLED";
+
+    private final IMemberService memberService;
+
     private final IMemberRoleService memberRoleService;
 
     private final IRoleOperationService roleOperationService;
@@ -62,14 +69,21 @@ public class ModulePermissionSnapshotProvider implements PermissionSnapshotProvi
 
     @Override
     public boolean supports(RequestContext context) {
-        return StringUtils.hasText(context.getSystemId()) && StringUtils.hasText(context.getMemberId());
+        return StringUtils.hasText(context.getAccountId())
+                && StringUtils.hasText(context.getSystemId())
+                && StringUtils.hasText(context.getMemberId());
     }
 
     @Override
     public EffectivePermissionVO load(RequestContext context) {
+        Long accountId = Long.valueOf(context.getAccountId());
         Long systemId = Long.valueOf(context.getSystemId());
         Long tenantId = parseTenantId(context.getTenantId());
         Long memberId = Long.valueOf(context.getMemberId());
+        Member member = currentMember(systemId, memberId);
+        if (Objects.isNull(member) || !Objects.equals(member.getAccountId(), accountId)) {
+            return EffectivePermissionVO.empty();
+        }
         Set<Long> roleIds = roleIds(systemId, memberId);
         if (roleIds.isEmpty()) {
             return EffectivePermissionVO.empty();
@@ -86,6 +100,15 @@ public class ModulePermissionSnapshotProvider implements PermissionSnapshotProvi
                 .dataScopes(dataScopes(systemId, tenantId, roleIds))
                 .version(permissionVersion(systemId, tenantId))
                 .build();
+    }
+
+    private Member currentMember(Long systemId, Long memberId) {
+        return memberService.lambdaQuery()
+                .eq(Member::getId, memberId)
+                .eq(Member::getSystemId, systemId)
+                .eq(Member::getStatus, ENABLED)
+                .eq(Member::getDeleteToken, ACTIVE_DELETE_TOKEN)
+                .one();
     }
 
     private Set<Long> roleIds(Long systemId, Long memberId) {

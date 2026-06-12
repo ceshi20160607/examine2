@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,6 +63,7 @@ import com.unique.examine.plat.manage.vo.PlatformPermissionCatalogVO;
 import com.unique.examine.plat.manage.vo.PlatformRoleVO;
 import com.unique.examine.plat.manage.vo.PlatformSystemVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,6 +108,8 @@ public class PlatformCenterServiceImpl implements PlatformCenterService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final JdbcTemplate jdbcTemplate;
+
     /**
      * 查询当前账号的系统列表。
      *
@@ -114,9 +118,15 @@ public class PlatformCenterServiceImpl implements PlatformCenterService {
      */
     @Override
     public List<PlatformSystemVO> mySystems(Long accountId) {
+        Set<Long> memberSystemIds = memberSystemIdsByAccount(accountId);
         return systemService.lambdaQuery()
-                .eq(System::getOwnerAccountId, accountId)
                 .eq(System::getDeleteToken, ACTIVE_DELETE_TOKEN)
+                .and(wrapper -> {
+                    wrapper.eq(System::getOwnerAccountId, accountId);
+                    if (!memberSystemIds.isEmpty()) {
+                        wrapper.or().in(System::getId, memberSystemIds);
+                    }
+                })
                 .list()
                 .stream()
                 .map(system -> toSystemVO(system, List.of()))
@@ -828,6 +838,17 @@ public class PlatformCenterServiceImpl implements PlatformCenterService {
             }
         }
         return false;
+    }
+
+    private Set<Long> memberSystemIdsByAccount(Long accountId) {
+        List<Long> systemIds = jdbcTemplate.queryForList("""
+                select distinct system_id
+                from un_module_member
+                where account_id = ?
+                  and status = 'ENABLED'
+                  and delete_token = 0
+                """, Long.class, accountId);
+        return Objects.isNull(systemIds) ? Set.of() : new LinkedHashSet<>(systemIds);
     }
 
     private String defaultDisplayName(String displayName, String loginName) {

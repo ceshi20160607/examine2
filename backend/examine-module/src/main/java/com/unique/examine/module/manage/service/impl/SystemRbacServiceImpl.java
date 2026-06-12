@@ -83,6 +83,7 @@ import com.unique.examine.plat.base.service.IAccountService;
 import com.unique.examine.plat.base.service.ISystemService;
 import com.unique.examine.plat.base.service.ITenantService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -142,6 +143,8 @@ public class SystemRbacServiceImpl implements SystemRbacService {
     private final IFieldService fieldService;
 
     private final PermissionService permissionService;
+
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * 进入系统并建立成员上下文。
@@ -311,7 +314,7 @@ public class SystemRbacServiceImpl implements SystemRbacService {
     public MemberVO inviteMember(Long systemId, MemberInviteBO inviteBO) {
         permissionService.requireOperation("SYS_MEMBER_INVITE");
         System system = activeSystem(systemId);
-        Account account = resolveAccount(inviteBO);
+        Account account = resolveOrCreateAccount(inviteBO);
         ensureMemberNotExists(systemId, account.getId());
         Long defaultTenantId = parseLong(inviteBO.getDefaultTenantId());
         if (Objects.isNull(defaultTenantId)) {
@@ -836,7 +839,7 @@ public class SystemRbacServiceImpl implements SystemRbacService {
         return role;
     }
 
-    private Account resolveAccount(MemberInviteBO inviteBO) {
+    private Account resolveOrCreateAccount(MemberInviteBO inviteBO) {
         if (StringUtils.hasText(inviteBO.getAccountId())) {
             return accountService.lambdaQuery()
                     .eq(Account::getId, Long.valueOf(inviteBO.getAccountId()))
@@ -849,9 +852,34 @@ public class SystemRbacServiceImpl implements SystemRbacService {
                     .eq(Account::getLoginName, inviteBO.getLoginName())
                     .eq(Account::getDeleteToken, ACTIVE_DELETE_TOKEN)
                     .oneOpt()
-                    .orElseThrow(() -> new BusinessException(SystemManageErrorCode.MEMBER_ACCOUNT_REQUIRED));
+                    .orElseGet(() -> createAccountForMemberInvite(inviteBO));
         }
         throw new BusinessException(SystemManageErrorCode.MEMBER_ACCOUNT_REQUIRED);
+    }
+
+    /**
+     * 在系统成员开通流程中自动创建平台登录账号。
+     *
+     * @param inviteBO 成员邀请入参
+     * @return 新建平台账号
+     */
+    private Account createAccountForMemberInvite(MemberInviteBO inviteBO) {
+        if (!StringUtils.hasText(inviteBO.getInitialPassword())) {
+            throw new BusinessException(SystemManageErrorCode.MEMBER_ACCOUNT_REQUIRED, "新账号必须填写初始密码");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        Account account = new Account()
+                .setLoginName(inviteBO.getLoginName())
+                .setPasswordHash(passwordEncoder.encode(inviteBO.getInitialPassword()))
+                .setDisplayName(defaultText(inviteBO.getDisplayName(), inviteBO.getLoginName()))
+                .setStatus("NORMAL")
+                .setFirstLoginChangePwd((byte) 1)
+                .setFailedLoginCount(0)
+                .setDeleteToken(ACTIVE_DELETE_TOKEN)
+                .setCreatedAt(now)
+                .setUpdatedAt(now);
+        accountService.save(account);
+        return account;
     }
 
     private void ensureMemberNotExists(Long systemId, Long accountId) {

@@ -18,6 +18,12 @@ public class MemberInviteBO {
     @Schema(description = "平台账号登录名，accountId 为空时使用")
     private String loginName;
 
+    @Schema(description = "账号展示名称；登录名不存在且需要自动创建平台账号时使用")
+    private String displayName;
+
+    @Schema(description = "初始密码；登录名不存在且需要自动创建平台账号时必填")
+    private String initialPassword;
+
     @Schema(description = "成员编码，不传则使用平台账号登录名")
     private String memberCode;
 

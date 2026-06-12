@@ -41,6 +41,7 @@ import com.unique.examine.plat.manage.enums.PlatErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 class PlatformCenterServiceImplTest {
@@ -80,10 +81,11 @@ class PlatformCenterServiceImplTest {
         roleOperationService = mock(IRoleOperationService.class);
         configService = mock(IConfigService.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
 
         service = new PlatformCenterServiceImpl(accountService, systemService, tenantService, roleService, menuService,
                 operationService, accountRoleService, roleMenuService, roleOperationService, configService,
-                command -> null, passwordEncoder);
+                command -> null, passwordEncoder, jdbcTemplate);
     }
 
     @Test

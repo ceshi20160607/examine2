@@ -39,7 +39,7 @@ import type {
   RolePermissionDetailVO,
   RoleVO,
 } from "./pages/system/types";
-import { APP_ROUTES, DEFAULT_AUTHENTICATED_ROUTE, LOGIN_ROUTE, buildPath, resolveRoute, type AppRouteRecord } from "./router";
+import { APP_ROUTES, DEFAULT_AUTHENTICATED_ROUTE, LOGIN_ROUTE, buildPath, createRouteGuard, resolveRoute, type AppRouteRecord } from "./router";
 import { authStore, errorStore, permissionStore, systemContextStore } from "./stores";
 import {
   createModuleConfigPageModel,
@@ -107,6 +107,13 @@ interface UiState {
   lastRequestId?: string;
   lastMessage?: string;
   lastError?: string;
+}
+
+interface TablePagination {
+  pageNo: number;
+  pageSize: number;
+  total: number;
+  onPageChange: (pageNo: number) => void | Promise<void>;
 }
 
 interface PlatformUiState {
@@ -376,6 +383,11 @@ export function mountApp(container: HTMLElement): void {
     exportTab: "templates",
   };
   const autoLoadedRoutes = new Set<string>();
+  const routeGuard = createRouteGuard({
+    auth: authStore,
+    systemContext: systemContextStore,
+    permission: permissionStore,
+  });
 
   syncHash();
   window.addEventListener("hashchange", render);
@@ -399,10 +411,12 @@ export function mountApp(container: HTMLElement): void {
   function render(): void {
     const path = getCurrentPath();
     const resolvedRoute = resolveRoute({ path }) ?? APP_ROUTES[0];
-    const authState = authStore.getState();
-    const route = resolvedRoute.meta.requiresAuth && authState.status !== "authenticated"
-      ? resolveRoute({ path: LOGIN_ROUTE }) ?? APP_ROUTES[0]
-      : resolvedRoute;
+    const guardResult = routeGuard({ path });
+    if (guardResult.type === "redirect") {
+      navigate(guardResult.to);
+      return;
+    }
+    const route = guardResult.type === "allow" ? guardResult.route : resolvedRoute;
     const shell = resolveAppShellState({
       currentPath: path,
       auth: authStore,
@@ -415,14 +429,16 @@ export function mountApp(container: HTMLElement): void {
       return;
     }
 
-    autoLoadRoute(route);
+    if (guardResult.type === "allow") {
+      autoLoadRoute(route);
+    }
 
     container.replaceChildren(
       node("div", { className: "app-frame" }, [
         renderSidebar(path, shell.navigation, route),
         node("main", { className: "workspace" }, [
           renderTopbar(shell.currentTitle, route),
-          renderWorkspace(route),
+          guardResult.type === "block" ? renderBlockedWorkspace(guardResult.message) : renderWorkspace(route),
         ]),
       ]),
     );
@@ -472,6 +488,7 @@ export function mountApp(container: HTMLElement): void {
 
   function shouldShowNavItem(item: { key: string; section: string; disabled?: boolean }, layout: string, hasSystemContext: boolean): boolean {
     const contextOnlyRoutes = new Set(["modules.list", "modules.fields", "modules.ui", "runtime.module"]);
+    const ordinarySystemRoutes = new Set(["runtime.home", "flow.workbench", "files.center", "exports.jobs"]);
     if (contextOnlyRoutes.has(item.key)) {
       return false;
     }
@@ -485,9 +502,31 @@ export function mountApp(container: HTMLElement): void {
       return false;
     }
     if (layout === "system") {
-      return hasSystemContext && item.section !== "platform";
+      if (!hasSystemContext || item.section === "platform") {
+        return false;
+      }
+      if (!canConfigureSystemNavigation()) {
+        return ordinarySystemRoutes.has(item.key);
+      }
+      return true;
     }
     return item.section === "platform" || item.section === "audit-ops";
+  }
+
+  function canConfigureSystemNavigation(): boolean {
+    return permissionStore.decide({
+      anyOperations: [
+        "SYS_PROFILE_VIEW",
+        "SYS_MEMBER_VIEW",
+        "SYS_ROLE_VIEW",
+        "APP_VIEW",
+        "MODULE_VIEW",
+        "FIELD_VIEW",
+        "PAGE_VIEW",
+        "OPENAPI_CLIENT_VIEW",
+        "AUDIT_OPERATION_VIEW",
+      ],
+    }).enabled;
   }
 
   function renderTopbar(title: string, route: AppRouteRecord): HTMLElement {
@@ -497,10 +536,14 @@ export function mountApp(container: HTMLElement): void {
         node("p", { className: "eyebrow", text: sectionLabel(route) }),
         node("h1", { text: title }),
       ]),
-      node("div", { className: "context-strip" }, [
-        node("span", { text: route.meta.layout === "system" ? context?.system.systemName ?? "未进入系统" : "平台层" }),
-        node("span", { text: context?.tenant?.tenantName ?? "默认租户" }),
-        node("span", { text: authStore.getState().user?.displayName ?? "未登录" }),
+      node("div", { className: "topbar-actions" }, [
+        node("div", { className: "context-strip" }, [
+          node("span", { text: route.meta.layout === "system" ? context?.system.systemName ?? "未进入系统" : "平台层" }),
+          node("span", { text: context?.tenant?.tenantName ?? "默认租户" }),
+          node("span", { text: authStore.getState().user?.displayName ?? "未登录" }),
+        ]),
+        route.meta.layout === "system" ? button("业务运行台", "secondary", () => navigate(systemPath("runtime.home"))) : undefined,
+        button("退出", "secondary", logout),
       ]),
     ]);
   }
@@ -570,6 +613,28 @@ export function mountApp(container: HTMLElement): void {
     ]);
   }
 
+  function renderBlockedWorkspace(message: string): HTMLElement {
+    return node("section", { className: "content-grid" }, [
+      node("div", { className: "work-panel primary-panel" }, [
+        node("div", { className: "empty-state blocked-state" }, [
+          node("strong", { text: "当前账号不能进入这个页面" }),
+          node("span", { text: message || "请回到自己的业务入口，或联系系统管理员调整权限。" }),
+          node("div", { className: "button-row" }, [
+            button("回到我的系统", "primary", () => navigate("/platform/my-systems")),
+            button("进入业务运行台", "secondary", () => navigate(systemPath("runtime.home")), !systemContextStore.getState().current),
+          ]),
+        ]),
+      ]),
+      node("div", { className: "work-panel" }, [
+        node("div", { className: "panel-heading" }, [
+          node("h2", { text: "操作结果" }),
+          node("span", { className: statusClass(), text: authStatusLabel() }),
+        ]),
+        renderMessage(),
+      ]),
+    ]);
+  }
+
   function renderRouteBody(route: AppRouteRecord): HTMLElement {
     if (route.name === "platform.mySystems") {
       return node("div", {}, [
@@ -611,6 +676,12 @@ export function mountApp(container: HTMLElement): void {
               ]),
             ]),
           ),
+          mySystemsPage.state.systems.length === 0
+            ? node("div", { className: "empty-state" }, [
+                node("strong", { text: "还没有可进入的业务系统" }),
+                node("span", { text: mySystemsPage.state.createEnabled ? "创建一个系统后会显示在这里。" : "请联系平台管理员把你加入业务系统。" }),
+              ])
+            : undefined,
         ]),
       ]);
     }
@@ -770,6 +841,7 @@ export function mountApp(container: HTMLElement): void {
           ]),
         ]),
         platformState.systems.empty ? "暂无平台系统，创建后会显示在这里。" : undefined,
+        platformPagination(platformState.systems, loadPlatformSystems),
       ),
     ]);
   }
@@ -951,6 +1023,7 @@ export function mountApp(container: HTMLElement): void {
           ]),
         ]),
         platformState.accounts.empty ? "暂无平台账号，可在上方创建。" : undefined,
+        platformPagination(platformState.accounts, loadPlatformAccounts),
       ),
     ]);
   }
@@ -1006,6 +1079,7 @@ export function mountApp(container: HTMLElement): void {
           ]),
         ]),
         platformState.roles.empty ? "暂无平台角色，可在上方创建。" : undefined,
+        platformPagination(platformState.roles, loadPlatformRoles),
       ),
     ]);
   }
@@ -1037,6 +1111,7 @@ export function mountApp(container: HTMLElement): void {
           ]),
         ]),
         platformState.configs.empty ? "暂无平台配置。" : undefined,
+        platformPagination(platformState.configs, loadPlatformConfigs),
       ),
     ]);
   }
@@ -1131,14 +1206,22 @@ export function mountApp(container: HTMLElement): void {
         [enabledCount(systemState.members), "启用成员"],
         [String(systemState.roles.length), "可分配角色"],
       ]),
-      pageIntro("成员是平台账号在当前系统里的身份", "先选择平台账号，再补充岗位、部门、租户和系统角色。普通业务用户能看到什么，由这里分配的角色和数据范围决定。", "warn"),
-      node("div", { className: "form-grid" }, [
-        input("平台账号登录名", "memberLoginName", ""),
-        input("岗位", "memberPostName", ""),
-        input("部门 ID", "memberDeptIds", ""),
-        input("角色 ID", "memberRoleIds", ""),
-        input("租户 ID", "memberTenantIds", systemContextStore.getState().current?.tenant?.tenantId ?? ""),
-        button("邀请成员", "primary", inviteSystemMember, !actions.invite.enabled),
+      pageIntro("开通系统成员账号", "在这里直接给当前系统开通登录账号并加入成员。已有平台账号会直接绑定；没有这个登录名时会自动创建平台账号。", "warn"),
+      node("section", { className: "create-card" }, [
+        node("div", { className: "create-card-heading" }, [
+          node("strong", { text: "新建成员" }),
+          node("span", { text: "成员登录后会直接进入自己所属的业务系统，不需要理解平台账号和系统成员的技术关系。" }),
+        ]),
+        node("div", { className: "form-grid" }, [
+          input("成员登录账号", "memberLoginName", ""),
+          input("成员姓名", "memberDisplayName", ""),
+          input("初始密码", "memberInitialPassword", "", "password"),
+          input("岗位", "memberPostName", ""),
+          input("部门 ID", "memberDeptIds", ""),
+          input("角色 ID", "memberRoleIds", ""),
+          input("租户 ID", "memberTenantIds", systemContextStore.getState().current?.tenant?.tenantId ?? ""),
+          button("开通并加入本系统", "primary", inviteSystemMember, !actions.invite.enabled),
+        ]),
       ]),
       renderDataTable(
         "members",
@@ -1591,6 +1674,7 @@ export function mountApp(container: HTMLElement): void {
           ]),
         ]),
         "暂无记录，创建后会显示在这里。",
+        runtimeRecordPagination(appRuntimeState.recordPage),
       ),
       renderRuntimeDetailTabs(detail),
     ]);
@@ -2203,7 +2287,13 @@ export function mountApp(container: HTMLElement): void {
     return systemPath("modules.ui");
   }
 
-  function renderDataTable(className: string, headers: string[], rows: Child[][], emptyText?: string): HTMLElement {
+  function renderDataTable(
+    className: string,
+    headers: string[],
+    rows: Child[][],
+    emptyText?: string,
+    pagination?: TablePagination,
+  ): HTMLElement {
     return node("div", { className: "data-table" }, [
       node("div", { className: `data-row data-head ${className}` }, headers.map((item) => node("span", { text: item }))),
       rows.length > 0
@@ -2214,7 +2304,43 @@ export function mountApp(container: HTMLElement): void {
             node("strong", { text: "暂无数据" }),
             node("span", { text: emptyText ?? "点击刷新后会加载当前模块数据。" }),
           ]),
+      pagination ? renderPagination(pagination) : undefined,
     ]);
+  }
+
+  function renderPagination(pagination: TablePagination): HTMLElement {
+    const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
+    return node("div", { className: "pagination-bar" }, [
+      node("span", { text: `共 ${pagination.total} 条，第 ${pagination.pageNo} / ${totalPages} 页` }),
+      node("div", { className: "row-actions" }, [
+        button("上一页", "secondary", () => pagination.onPageChange(pagination.pageNo - 1), pagination.pageNo <= 1),
+        button("下一页", "secondary", () => pagination.onPageChange(pagination.pageNo + 1), pagination.pageNo >= totalPages),
+      ]),
+    ]);
+  }
+
+  function platformPagination<TRecord>(
+    state: PlatformPageState<TRecord>,
+    loader: (pageNo: number) => void | Promise<void>,
+  ): TablePagination {
+    return {
+      pageNo: state.pageNo,
+      pageSize: state.pageSize,
+      total: state.total,
+      onPageChange: loader,
+    };
+  }
+
+  function runtimeRecordPagination(page?: PageResult<RecordListItemVO>): TablePagination | undefined {
+    if (!page) {
+      return undefined;
+    }
+    return {
+      pageNo: page.pageNo,
+      pageSize: page.pageSize,
+      total: page.total,
+      onPageChange: loadRuntimeRecords,
+    };
   }
 
   function quickAction(title: string, description: string, href: string): HTMLElement {
@@ -2346,6 +2472,47 @@ export function mountApp(container: HTMLElement): void {
             loginName: form.loginName,
             password: form.password,
           });
+      const route = await resolvePostLoginRoute(result.route);
+      navigate(route);
+      return { ...result, route };
+    });
+  }
+
+  async function resolvePostLoginRoute(fallbackRoute: string): Promise<string> {
+    try {
+      const systems = await mySystemsPage.loadSystems();
+      if (systems.length === 1 && !hasPlatformWorkPermission()) {
+        const entered = await mySystemsPage.enterSystem(systems[0].systemId, systems[0].tenantId);
+        const context = systemContextStore.getState().current;
+        return context ? routeAfterEnter(context.system.systemId) : entered.route;
+      }
+      return systems.length > 0 ? DEFAULT_AUTHENTICATED_ROUTE : fallbackRoute;
+    } catch {
+      return fallbackRoute;
+    }
+  }
+
+  function routeAfterEnter(systemId: EntityId): string {
+    const canConfigure = permissionStore.decide({
+      anyOperations: ["SYS_MEMBER_VIEW", "SYS_ROLE_VIEW", "APP_VIEW", "MODULE_VIEW", "FIELD_VIEW", "PAGE_VIEW"],
+    }).enabled;
+    return canConfigure ? `/systems/${systemId}/overview` : `/systems/${systemId}/runtime`;
+  }
+
+  function hasPlatformWorkPermission(): boolean {
+    const permissions = authStore.getState().user?.platformPermissions ?? [];
+    return permissions.some((item) =>
+      item.startsWith("PLAT_ACCOUNT_")
+      || item.startsWith("PLAT_ROLE_")
+      || item.startsWith("PLAT_CONFIG_")
+      || item === "PLAT_AUDIT_VIEW"
+      || item.startsWith("OPS_"),
+    );
+  }
+
+  async function logout(): Promise<void> {
+    await execute("AUTH-004", async () => {
+      const result = await authPage.logout();
       navigate(result.route);
       return result;
     });
@@ -2481,9 +2648,9 @@ export function mountApp(container: HTMLElement): void {
     );
   }
 
-  async function loadPlatformSystems(): Promise<void> {
+  async function loadPlatformSystems(pageNo = platformState.systems.pageNo || 1): Promise<void> {
     await execute("PLAT-003", async () => {
-      const page = await platformCenter.systems.query({ pageNo: 1, pageSize: 20, keyword: readForm().keyword });
+      const page = await platformCenter.systems.query({ pageNo, pageSize: platformState.systems.pageSize || 20, keyword: readForm().keyword });
       raisePageError(page);
       platformState.systems = page;
       return { requestId: page.lastRequestId };
@@ -2530,9 +2697,9 @@ export function mountApp(container: HTMLElement): void {
     });
   }
 
-  async function loadPlatformAccounts(): Promise<void> {
+  async function loadPlatformAccounts(pageNo = platformState.accounts.pageNo || 1): Promise<void> {
     await execute("PLAT-006", async () => {
-      const page = await platformCenter.accounts.query({ pageNo: 1, pageSize: 20, keyword: readForm().keyword });
+      const page = await platformCenter.accounts.query({ pageNo, pageSize: platformState.accounts.pageSize || 20, keyword: readForm().keyword });
       raisePageError(page);
       platformState.accounts = page;
       return { requestId: page.lastRequestId };
@@ -2628,9 +2795,9 @@ export function mountApp(container: HTMLElement): void {
     });
   }
 
-  async function loadPlatformRoles(): Promise<void> {
+  async function loadPlatformRoles(pageNo = platformState.roles.pageNo || 1): Promise<void> {
     await execute("PLAT-009", async () => {
-      const page = await platformCenter.roles.query({ pageNo: 1, pageSize: 20, keyword: readForm().keyword });
+      const page = await platformCenter.roles.query({ pageNo, pageSize: platformState.roles.pageSize || 20, keyword: readForm().keyword });
       raisePageError(page);
       platformState.roles = page;
       return { requestId: page.lastRequestId };
@@ -2738,9 +2905,9 @@ export function mountApp(container: HTMLElement): void {
     });
   }
 
-  async function loadPlatformConfigs(): Promise<void> {
+  async function loadPlatformConfigs(pageNo = platformState.configs.pageNo || 1): Promise<void> {
     await execute("PLAT-011", async () => {
-      const page = await platformCenter.configs.list({ pageNo: 1, pageSize: 20, keyword: readForm().keyword });
+      const page = await platformCenter.configs.list({ pageNo, pageSize: platformState.configs.pageSize || 20, keyword: readForm().keyword });
       raisePageError(page);
       platformState.configs = page;
       return { requestId: page.lastRequestId };
@@ -2880,6 +3047,8 @@ export function mountApp(container: HTMLElement): void {
       requireSystemContext();
       const response = await apiClient.call<MemberDetailVO, {
         loginName?: string;
+        displayName?: string;
+        initialPassword?: string;
         tenantIds?: EntityId[];
         deptIds?: EntityId[];
         postName?: string;
@@ -2887,7 +3056,9 @@ export function mountApp(container: HTMLElement): void {
       }>("MEM-002", {
         pathParams: pathParams(),
         body: {
-          loginName: required(form.memberLoginName, "平台账号登录名"),
+          loginName: required(form.memberLoginName, "成员登录账号"),
+          displayName: form.memberDisplayName?.trim() || undefined,
+          initialPassword: form.memberInitialPassword?.trim() || undefined,
           tenantIds: splitValues(form.memberTenantIds ?? ""),
           deptIds: splitValues(form.memberDeptIds ?? ""),
           postName: form.memberPostName?.trim() || undefined,
@@ -3867,13 +4038,13 @@ export function mountApp(container: HTMLElement): void {
     });
   }
 
-  async function loadRuntimeRecords(): Promise<void> {
+  async function loadRuntimeRecords(pageNo = appRuntimeState.recordPage?.pageNo ?? 1): Promise<void> {
     await execute("RUN-003", async () => {
       requireSystemContext();
       const schema = requiredRuntimeSchema();
       const result = await runtimeWorkbench.records.query(schema.moduleId, schema, {
-        pageNo: 1,
-        pageSize: 20,
+        pageNo,
+        pageSize: appRuntimeState.recordPage?.pageSize ?? 20,
         keyword: readForm().runtimeKeyword,
       });
       raiseRuntimeError(result);
@@ -4507,7 +4678,7 @@ export function mountApp(container: HTMLElement): void {
   async function enterSystem(systemId: string): Promise<void> {
     await execute("SYS-001", async () => {
       const result = await enterSystemContext(systemId);
-      navigate(`/systems/${systemId}/overview`);
+      navigate(routeAfterEnter(systemId));
       return result;
     });
   }

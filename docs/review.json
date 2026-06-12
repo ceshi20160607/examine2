@@ -2,8 +2,8 @@
     "status": "fail",
     "target": "pm,uiux,frontend,backend,test,reviewer",
     "phase": "P15-project-rebaseline",
-    "reviewedAt": "2026-06-12T09:00:00+08:00",
-    "summary": "P14 fullProjectDeployable conclusion is retracted. Deployment feedback proves the system is still not understandable or usable enough for ordinary users: ordinary members can land in platform-oriented views, system member onboarding exposes the platform-account/member split, logout/pagination/new-create UX is incomplete, and page layout is still too engineering-driven.",
+    "reviewedAt": "2026-06-12T13:17:03+08:00",
+    "summary": "P15 first implementation pass fixed the most direct ordinary-user entry issues: my-systems now includes joined member systems, member onboarding can create/bind a platform account inside the current system, request context binds authenticated accountId before system permission checks, frontend login routing distinguishes platform admins from ordinary members, system navigation hides admin/modeling entries from ordinary members, and logout/pagination/member-create UX is partially improved. Review still remains fail because the required real browser E2E script for platform_admin -> car system -> che ordinary runtime has not been recorded.",
     "frontendDeployable": false,
     "backendTrialDeployable": true,
     "fullProjectDeployable": false,
@@ -44,6 +44,17 @@
             "summary": "Logout, pagination and new-create interaction are not at normal business-system quality.",
             "evidence": "User feedback on logout, pagination and header-form creation"
         }
+    ],
+    "fixedInCurrentPass": [
+        "backend/examine-plat PlatformCenterServiceImpl.mySystems includes member systems",
+        "backend/examine-module SystemRbacServiceImpl inviteMember supports direct account creation from system member onboarding",
+        "backend/examine-web AuthenticatedRequestContextFilter binds authenticated accountId into RequestContext",
+        "backend/examine-module ModulePermissionSnapshotProvider validates accountId/systemId/memberId before loading permissions",
+        "frontend login post-route, ordinary system navigation, logout, member-create card, empty state and pagination controls updated"
+    ],
+    "verification": [
+        "backend: mvn -pl examine-web -am -DskipTests test pass",
+        "frontend: npm.cmd run build pass"
     ],
     "requiredBeforePackage": [
         "Freeze docs/product/p15-project-rebaseline.md",

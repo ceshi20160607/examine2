@@ -115,6 +115,8 @@ export interface MemberDetailVO extends MemberListVO {
 export interface MemberInviteBO {
   accountId?: EntityId;
   loginName?: string;
+  displayName?: string;
+  initialPassword?: string;
   tenantIds?: EntityId[];
   deptIds?: EntityId[];
   postName?: string;
