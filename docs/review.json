@@ -20,7 +20,8 @@
         "frontend: npm.cmd run build pass",
         "package: tar.gz contains backend/unexamine.jar, backend/start.sh, frontend/index.html, frontend/assets/* and docs",
         "package: backend/start.sh mode verified as 755 in tar.gz and zip metadata",
-        "ui-review: current frontend still does not meet mainstream usable system style and flow"
+        "ui-review: current frontend still does not meet mainstream usable system style and flow",
+        "pm-alignment: docs/product/final-user-goal.md frozen as the final user goal baseline"
     ],
     "passedScopes": [
         "ordinary user login lands in business runtime",
@@ -33,6 +34,7 @@
     ],
     "remainingBeforeFullAcceptance": [
         "Redo UI/UX at page level before further final packaging",
+        "Use docs/product/final-user-goal.md as the mandatory PM acceptance baseline",
         "Split current engineering-console pages into mainstream task pages with clear primary actions, drawers/pages for create/edit, consistent table pagination, detail views and empty/error states",
         "Deploy the generated package only as a technical trial package if needed",
         "After UI rework, verify nginx static frontend and /api/ forwarding against the packaged backend jar",

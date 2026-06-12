@@ -2480,6 +2480,7 @@
                                                         "started_by":  "pm",
                                                         "reason":  "P14 deployment feedback shows the project needs a whole-project usability and PM reset instead of local frontend/backend patches.",
                                                         "product_record":  "docs/product/p15-project-rebaseline.md",
+                                                        "final_goal_record":  "docs/product/final-user-goal.md",
                                                         "pm_decision_record":  "docs/product/p15-multi-role-pm-decision.md",
                                                         "issue_record":  "docs/issues/pm/development/p15_project_rebaseline_wenti.md",
                                                         "agent_coordination_record":  "docs/process/p15-agent-coordination.md",
