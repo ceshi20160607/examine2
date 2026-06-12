@@ -2508,12 +2508,16 @@
                                                                                    "frontend/src/styles.css"
                                                                                ],
                                                         "last_build":  {
-                                                                           "backend":  "mvn -pl examine-web -am -DskipTests test pass",
+                                                                           "backend":  "mvn -pl examine-web -am -DskipTests package pass",
                                                                            "frontend":  "npm.cmd run build pass",
-                                                                           "verified_at":  "2026-06-12T13:17:03+08:00"
+                                                                           "verified_at":  "2026-06-12T16:10:00+08:00"
                                                                        },
-                                                        "remaining_gate":  "real browser E2E for platform_admin -> car system -> che ordinary runtime is not yet recorded",
-                                                        "package_gate":  "blocked"
+                                                        "remaining_gate":  "live nginx deployment verification for packaged frontend and /api forwarding is not yet recorded",
+                                                        "package_gate":  "package_ready_live_nginx_pending",
+                                                        "package_path":  "dist/unexamine-full-deploy-20260612-160003-p15.zip",
+                                                        "linux_package_path":  "dist/unexamine-full-deploy-20260612-160003-p15.tar.gz",
+                                                        "package_record":  "docs/build/p15-final-package.md",
+                                                        "packaged_at":  "2026-06-12T16:10:00+08:00"
                                                     }
                          },
     "last_governance_fix":  {
@@ -2523,6 +2527,6 @@
                                 "reason":  "Development must be managed by role issue discovery, PM decision, owner reply, reviewer verification, test, validator, and stage commit instead of ad-hoc continue prompts.",
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
-    "last_completed_batch":  "DEV-BATCH-P14-PACKAGE",
-    "active_batch":  "DEV-BATCH-P15-PM-REBASELINE"
+    "last_completed_batch":  "DEV-BATCH-P15-PACKAGE",
+    "active_batch":  "DEV-BATCH-P15-LIVE-DEPLOY-VERIFY"
 }

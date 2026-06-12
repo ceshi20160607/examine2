@@ -1,5 +1,19 @@
 # 项目进度看板
 
+## 2026-06-12 P15 部署包已生成
+
+PM/Validator/Reviewer 本轮打包结论：
+- 当前期次：`P15-project-rebaseline`
+- 当前包状态：`package_ready_live_nginx_pending`
+- Windows 部署包：`dist/unexamine-full-deploy-20260612-160003-p15.zip`
+- Linux 推荐部署包：`dist/unexamine-full-deploy-20260612-160003-p15.tar.gz`
+- 后端产物：`backend/unexamine.jar`
+- 前端产物：`frontend/index.html`、`frontend/assets/index-ah8_G69b.js`、`frontend/assets/index-B4Yswf8F.css`
+- 启动脚本：`backend/start.sh`，tar.gz 与 zip 元数据均已校验为 `755`
+- 构建验证：`frontend npm.cmd run build` 通过；`backend mvn -pl examine-web -am -DskipTests package` 通过
+- 包内校验：已确认包含后端 jar、start.sh、前端 index/assets、nginx 部署说明、P15 包检查记录、P15 普通用户浏览器 E2E 记录、progress 与 review 状态文件
+- 当前保留项：尚未把该新包部署到 `http://192.168.0.211:19999/` 后执行 nginx `/api/` 转发和真实线上浏览器回归，所以 `fullProjectDeployable=false` 继续保持谨慎状态
+
 ## 2026-06-12 P15 普通用户运行台复验通过
 
 PM/Frontend/Backend/Test/Reviewer 本轮结论：

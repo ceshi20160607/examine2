@@ -2,16 +2,23 @@
     "status": "pass",
     "target": "pm,uiux,frontend,backend,test,reviewer",
     "phase": "P15-project-rebaseline",
-    "reviewedAt": "2026-06-12T15:10:00+08:00",
-    "summary": "P15 ordinary-user runtime browser E2E passed. The che ordinary account now lands in its business system runtime, sees only business/runtime navigation, can open the authorized vehicle module, sees readable Chinese field labels and Chinese record statuses, and can create runtime records. Backend runtime menu filtering, module data-scope checks, runtime schema label fallback, delete history snapshot handling, and frontend runtime entry/status guidance were fixed.",
+    "reviewedAt": "2026-06-12T16:10:00+08:00",
+    "summary": "P15 ordinary-user runtime browser E2E passed and a fresh deploy package was generated after final backend package and frontend build. The che ordinary account now lands in its business system runtime, sees only business/runtime navigation, can open the authorized vehicle module, sees readable Chinese field labels and Chinese record statuses, and can create runtime records. Backend runtime menu filtering, module data-scope checks, runtime schema label fallback, delete history snapshot handling, and frontend runtime entry/status guidance were fixed.",
     "frontendDeployable": true,
     "backendTrialDeployable": true,
     "fullProjectDeployable": false,
-    "packageGate": "blocked_until_final_package",
+    "packageGate": "package_ready_live_nginx_pending",
+    "packageReady": true,
+    "packagePath": "dist/unexamine-full-deploy-20260612-160003-p15.zip",
+    "linuxPackagePath": "dist/unexamine-full-deploy-20260612-160003-p15.tar.gz",
+    "packagedAt": "2026-06-12T16:10:00+08:00",
+    "liveNginxVerified": false,
     "evidence": [
         "docs/test_runs/p15-ordinary-runtime-browser-e2e-20260612.md",
         "backend: mvn -pl examine-web -am -DskipTests package pass",
-        "frontend: npm.cmd run build pass"
+        "frontend: npm.cmd run build pass",
+        "package: tar.gz contains backend/unexamine.jar, backend/start.sh, frontend/index.html, frontend/assets/* and docs",
+        "package: backend/start.sh mode verified as 755 in tar.gz and zip metadata"
     ],
     "passedScopes": [
         "ordinary user login lands in business runtime",
@@ -22,9 +29,9 @@
         "runtime record create/query/list pagination works",
         "runtime record delete no longer fails with after_snapshot_json database error"
     ],
-    "remainingBeforePackage": [
-        "Run final clean build immediately before packaging",
-        "Generate a fresh deploy package only after PM confirms P15 package gate",
-        "Verify packaged frontend under nginx with /api/ prefix forwarding against backend jar"
+    "remainingBeforeFullAcceptance": [
+        "Deploy the generated package to the target server",
+        "Verify nginx static frontend and /api/ forwarding against the packaged backend jar",
+        "Run the P15 ordinary-user browser flow on the deployed URL after replacement"
     ]
 }
