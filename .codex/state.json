@@ -2483,6 +2483,13 @@
                                                         "final_goal_record":  "docs/product/final-user-goal.md",
                                                         "final_rework_charter":  "docs/product/p16-final-rework-charter.md",
                                                         "p16_task_plan":  "docs/tasks/P16-final-ui-rework-plan.md",
+                                                        "p16_ui_records":  [
+                                                                                "docs/ui/p16-information-architecture.md",
+                                                                                "docs/ui/p16-page-blueprints.md",
+                                                                                "docs/ui/p16-component-guidelines.md"
+                                                                            ],
+                                                        "p16_build_record":  "docs/build/p16-ui-structure-build.md",
+                                                        "p16_browser_record":  "docs/test_runs/p16-ui-structure-browser-check.md",
                                                         "pm_decision_record":  "docs/product/p15-multi-role-pm-decision.md",
                                                         "issue_record":  "docs/issues/pm/development/p15_project_rebaseline_wenti.md",
                                                         "agent_coordination_record":  "docs/process/p15-agent-coordination.md",
@@ -2508,14 +2515,17 @@
                                                                                    "backend/examine-module/src/main/java/com/unique/examine/module/manage/service/impl/SystemRbacServiceImpl.java",
                                                                                    "frontend/src/App.ts",
                                                                                    "frontend/src/pages/system/types.ts",
-                                                                                   "frontend/src/styles.css"
+                                                                                   "frontend/src/styles.css",
+                                                                                   "docs/ui/p16-information-architecture.md",
+                                                                                   "docs/ui/p16-page-blueprints.md",
+                                                                                   "docs/ui/p16-component-guidelines.md"
                                                                                ],
                                                         "last_build":  {
                                                                            "backend":  "mvn -pl examine-web -am -DskipTests package pass",
                                                                            "frontend":  "npm.cmd run build pass",
-                                                                           "verified_at":  "2026-06-12T16:10:00+08:00"
+                                                                           "verified_at":  "2026-06-12T22:50:00+08:00"
                                                                        },
-                                                        "remaining_gate":  "P16 UI/UX design must be frozen before frontend implementation or final package",
+                                                        "remaining_gate":  "P16 page-level frontend refactor, full browser flow, review and final package gate remain pending",
                                                         "package_gate":  "trial_package_only_ui_rework_required",
                                                         "package_path":  "dist/unexamine-full-deploy-20260612-160003-p15.zip",
                                                         "linux_package_path":  "dist/unexamine-full-deploy-20260612-160003-p15.tar.gz",

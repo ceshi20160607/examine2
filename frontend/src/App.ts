@@ -433,15 +433,15 @@ export function mountApp(container: HTMLElement): void {
       autoLoadRoute(route);
     }
 
-    container.replaceChildren(
-      node("div", { className: "app-frame" }, [
-        renderSidebar(path, shell.navigation, route),
-        node("main", { className: "workspace" }, [
-          renderTopbar(shell.currentTitle, route),
-          guardResult.type === "block" ? renderBlockedWorkspace(guardResult.message) : renderWorkspace(route),
-        ]),
+    const appFrame = node("div", { className: "app-frame p16-task-frame" }, [
+      renderSidebar(path, shell.navigation, route),
+      node("main", { className: "workspace" }, [
+        renderTopbar(shell.currentTitle, route),
+        guardResult.type === "block" ? renderBlockedWorkspace(guardResult.message) : renderWorkspace(route),
       ]),
-    );
+    ]);
+    enhanceP16Workspace(appFrame, route);
+    container.replaceChildren(appFrame);
   }
 
   function renderSidebar(path: string, groups: ReturnType<typeof resolveAppShellState>["navigation"], route: AppRouteRecord): HTMLElement {
@@ -499,6 +499,12 @@ export function mountApp(container: HTMLElement): void {
       return false;
     }
     if (layout === "system" && (item.key === "audit.platform" || item.key === "ops.health")) {
+      return false;
+    }
+    if (layout === "system" && item.key === "platform.openapi") {
+      return false;
+    }
+    if (layout !== "system" && item.key === "openapi.clients") {
       return false;
     }
     if (layout === "system") {
@@ -2295,6 +2301,13 @@ export function mountApp(container: HTMLElement): void {
     pagination?: TablePagination,
   ): HTMLElement {
     return node("div", { className: "data-table" }, [
+      node("div", { className: "list-toolbar" }, [
+        node("div", {}, [
+          node("strong", { text: humanizeTableName(className) }),
+          node("span", { text: rows.length > 0 ? `当前显示 ${rows.length} 条` : "暂无可显示数据" }),
+        ]),
+        node("span", { className: "count-pill", text: pagination ? `共 ${pagination.total} 条` : `${rows.length} 条` }),
+      ]),
       node("div", { className: `data-row data-head ${className}` }, headers.map((item) => node("span", { text: item }))),
       rows.length > 0
         ? node("div", { className: "data-body" }, rows.map((cells) =>
@@ -2305,6 +2318,84 @@ export function mountApp(container: HTMLElement): void {
             node("span", { text: emptyText ?? "点击刷新后会加载当前模块数据。" }),
           ]),
       pagination ? renderPagination(pagination) : undefined,
+    ]);
+  }
+
+  function humanizeTableName(className: string): string {
+    const names: Record<string, string> = {
+      systems: "业务系统列表",
+      accounts: "平台账号列表",
+      roles: "角色列表",
+      configs: "平台配置列表",
+      members: "成员列表",
+      departments: "部门列表",
+      "dict-types": "字典类型列表",
+      "dict-items": "字典项列表",
+      apps: "业务应用列表",
+      modules: "业务模块列表",
+      fields: "字段列表",
+      pages: "页面配置列表",
+      records: "业务数据列表",
+      files: "文件列表",
+      "openapi-clients": "对外应用列表",
+      "openapi-logs": "调用日志列表",
+      audit: "审计日志列表",
+      "platform-audit": "平台审计日志",
+      "audit-detail": "审计详情",
+      "ops-components": "运维检查结果",
+    };
+    return names[className] ?? "数据列表";
+  }
+
+  function enhanceP16Workspace(root: HTMLElement, route: AppRouteRecord): void {
+    root.querySelectorAll<HTMLElement>(
+      ".admin-page > .form-grid, .domain-page > .form-grid, .task-card > .form-grid, .create-card > .form-grid, .config-main > .form-grid",
+    ).forEach((grid) => {
+      if (grid.closest(".action-drawer") || grid.closest(".auth-panel")) {
+        return;
+      }
+      const owner = grid.parentElement;
+      if (!owner) {
+        return;
+      }
+      wrapActionPanel(owner, grid, route);
+    });
+    root.querySelectorAll<HTMLElement>(".table-shell").forEach((table) => {
+      if (table.previousElementSibling?.classList.contains("list-toolbar")) {
+        return;
+      }
+      const rowCount = table.querySelectorAll(".table-row:not(.table-head)").length;
+      table.parentElement?.insertBefore(renderLegacyListToolbar(route, rowCount), table);
+    });
+  }
+
+  function wrapActionPanel(owner: HTMLElement, grid: HTMLElement, route: AppRouteRecord): void {
+    const details = node("details", { className: "action-drawer" });
+    const title = actionPanelTitle(owner, route);
+    const summary = node("summary", { className: "action-summary" }, [
+      node("span", { text: title }),
+      node("small", { text: "展开填写或调整，完成后再提交操作" }),
+    ]);
+    details.append(summary);
+    owner.insertBefore(details, grid);
+    details.append(grid);
+  }
+
+  function actionPanelTitle(owner: HTMLElement, route: AppRouteRecord): string {
+    const localTitle = owner.querySelector<HTMLElement>(".task-card-title strong, .create-card-heading strong")?.textContent?.trim();
+    if (localTitle) {
+      return localTitle;
+    }
+    return `${route.meta.title}操作面板`;
+  }
+
+  function renderLegacyListToolbar(route: AppRouteRecord, rowCount: number): HTMLElement {
+    return node("div", { className: "list-toolbar legacy-list-toolbar" }, [
+      node("div", {}, [
+        node("strong", { text: `${route.meta.title}列表` }),
+        node("span", { text: rowCount > 0 ? `当前显示 ${rowCount} 条` : "暂无可显示数据" }),
+      ]),
+      node("span", { className: "count-pill", text: `${rowCount} 条` }),
     ]);
   }
 

@@ -1,5 +1,15 @@
 # 项目进度看板
 
+## 2026-06-12 P16 首轮 UI 结构实现通过
+
+本轮已进入 P16 实现，但只完成“页面结构首轮改造”，不是最终可用系统：
+- UI/UX 冻结产物已新增：`docs/ui/p16-information-architecture.md`、`docs/ui/p16-page-blueprints.md`、`docs/ui/p16-component-guidelines.md`
+- 前端已实现 P16 结构增强：常驻大表单自动升级为默认收起的操作面板，通用表格和旧表格补充列表标题与记录数
+- 已修复系统工作空间误显示平台级“对外应用中心”的信息架构问题；系统层只保留“系统对外授权”
+- 构建记录：`docs/build/p16-ui-structure-build.md`
+- 浏览器检查：`docs/test_runs/p16-ui-structure-browser-check.md`
+- 当前仍未完成：页面级组件拆分、逐页重构、普通用户完整运行台剧本、对外应用完整剧本、最终包闸门
+
 ## 2026-06-12 P16 最后一次返工章程已冻结
 
 用户要求“PM 希望这是最后一次”的约束已落地为硬闸门：

@@ -958,6 +958,92 @@ code {
   overflow: auto;
 }
 
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 760px;
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px 14px;
+}
+
+.list-toolbar > div {
+  display: grid;
+  gap: 3px;
+}
+
+.list-toolbar strong {
+  color: #17212b;
+  font-size: 15px;
+}
+
+.list-toolbar span {
+  color: #697989;
+  font-size: 12px;
+}
+
+.action-drawer {
+  border: 1px solid #cfd9e2;
+  border-radius: 8px;
+  background: #ffffff;
+  margin: 12px 0;
+  overflow: hidden;
+}
+
+.action-drawer[open] {
+  box-shadow: 0 8px 22px rgba(23, 33, 43, 0.08);
+}
+
+.action-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  padding: 13px 14px;
+}
+
+.action-summary::-webkit-details-marker {
+  display: none;
+}
+
+.action-summary::after {
+  content: "展开";
+  border: 1px solid #b9c5cf;
+  border-radius: 999px;
+  background: #f8fafb;
+  padding: 5px 10px;
+  color: #263542;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.action-drawer[open] .action-summary::after {
+  content: "收起";
+  border-color: #1f5f6f;
+  color: #1f5f6f;
+}
+
+.action-summary span {
+  color: #17212b;
+  font-weight: 800;
+}
+
+.action-summary small {
+  color: #697989;
+  font-size: 12px;
+}
+
+.action-drawer .form-grid {
+  border-width: 1px 0 0;
+  border-radius: 0;
+  background: #fbfcfd;
+}
+
 .pagination-bar {
   display: flex;
   align-items: center;
