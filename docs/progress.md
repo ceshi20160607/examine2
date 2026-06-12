@@ -1,5 +1,13 @@
 # 项目进度看板
 
+## 2026-06-12 P16 最后一次返工章程已冻结
+
+用户要求“PM 希望这是最后一次”的约束已落地为硬闸门：
+- 新增 `docs/product/p16-final-rework-charter.md`，明确 P16 是最后一次完整 UI/UX 与可用性返工，不再允许局部补丁式推进。
+- 新增 `docs/tasks/P16-final-ui-rework-plan.md`，拆出 PM、UI/UX、frontend、backend、test、validator、reviewer、package 的执行顺序和不打包条件。
+- 更新 `AGENTS.md`：用户明确要求“最后一次”时，PM 必须先冻结最终返工章程，缺少章程不得进入实现或打包。
+- 当前 P16 只允许进入 UI/UX 设计，不允许直接继续前端实现或生成最终部署包。
+
 ## 2026-06-12 PM 最终目标基线已冻结
 
 针对“PM 是否知道用户最终想要什么”的复核结论：
