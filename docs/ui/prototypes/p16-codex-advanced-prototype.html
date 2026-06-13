@@ -1,0 +1,1486 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>P16 统一业务配置平台高级原型</title>
+    <style>
+        :root {
+            --bg: #f4f6f9;
+            --surface: #ffffff;
+            --surface-2: #f8fafc;
+            --text: #182033;
+            --muted: #667085;
+            --soft: #98a2b3;
+            --line: #d8dee8;
+            --line-soft: #edf1f6;
+            --brand: #1f66e5;
+            --brand-dark: #174fb3;
+            --brand-soft: #eaf1ff;
+            --success: #0f8f62;
+            --success-soft: #e8f7f0;
+            --warning: #b86b00;
+            --warning-soft: #fff3dc;
+            --danger: #bd2f3c;
+            --danger-soft: #fff0f2;
+            --nav: #101828;
+            --nav-2: #1d2939;
+            --shadow: 0 14px 36px rgba(16, 24, 40, 0.08);
+            font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 264px minmax(0, 1fr);
+        }
+
+        .side {
+            background: var(--nav);
+            color: #fff;
+            padding: 18px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .logo {
+            padding: 6px 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .logo strong {
+            display: block;
+            font-size: 18px;
+        }
+
+        .logo span {
+            color: #98a2b3;
+            font-size: 12px;
+        }
+
+        .nav-title {
+            color: #98a2b3;
+            font-size: 12px;
+            padding: 10px 10px 4px;
+        }
+
+        .nav-btn {
+            width: 100%;
+            min-height: 38px;
+            border: 0;
+            border-radius: 7px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: transparent;
+            color: #e4e7ec;
+            text-align: left;
+        }
+
+        .nav-btn:hover,
+        .nav-btn.active {
+            background: var(--nav-2);
+            color: #fff;
+        }
+
+        .nav-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            display: inline-grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            flex: 0 0 auto;
+        }
+
+        .main {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top {
+            min-height: 66px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .crumb {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-width: 0;
+        }
+
+        .crumb strong {
+            font-size: 16px;
+        }
+
+        .crumb span {
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .role-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn,
+        .primary,
+        .danger,
+        .subtle {
+            min-height: 34px;
+            border-radius: 7px;
+            padding: 0 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--text);
+        }
+
+        .primary,
+        .role.active {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+        }
+
+        .primary:hover {
+            background: var(--brand-dark);
+        }
+
+        .danger {
+            color: var(--danger);
+            border-color: #f0b7bd;
+        }
+
+        .subtle {
+            background: var(--surface-2);
+        }
+
+        .content {
+            padding: 22px 24px 34px;
+            min-width: 0;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 16px;
+        }
+
+        .title {
+            margin: 0;
+            font-size: 23px;
+            letter-spacing: 0;
+        }
+
+        .desc {
+            margin-top: 6px;
+            color: var(--muted);
+            max-width: 880px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .g2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .g3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .g4 {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .panel,
+        .card,
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .panel {
+            padding: 16px;
+        }
+
+        .card {
+            padding: 14px;
+            box-shadow: none;
+        }
+
+        .panel-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .kpi {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .kpi strong {
+            font-size: 24px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 24px;
+            padding: 0 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            background: #eef2f6;
+            color: #475467;
+            white-space: nowrap;
+        }
+
+        .tag.blue {
+            background: var(--brand-soft);
+            color: var(--brand);
+        }
+
+        .tag.green {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .tag.orange {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .tag.red {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .input,
+        .select,
+        .textarea {
+            min-height: 34px;
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            padding: 7px 10px;
+            background: #fff;
+            min-width: 180px;
+        }
+
+        .textarea {
+            min-height: 82px;
+            resize: vertical;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        th,
+        td {
+            padding: 11px 10px;
+            border-bottom: 1px solid var(--line-soft);
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475467;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .link {
+            border: 0;
+            background: transparent;
+            color: var(--brand);
+            padding: 0;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 999px;
+            background: #eaecf0;
+            overflow: hidden;
+        }
+
+        .progress i {
+            display: block;
+            height: 100%;
+            background: var(--brand);
+            border-radius: inherit;
+        }
+
+        .wizard {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .step {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px;
+            background: #fff;
+            min-height: 72px;
+        }
+
+        .step.done {
+            border-color: #a8dec6;
+            background: #f2fbf6;
+        }
+
+        .step.current {
+            border-color: var(--brand);
+            background: var(--brand-soft);
+        }
+
+        .notice,
+        .empty,
+        .error,
+        .noauth {
+            border-radius: 8px;
+            padding: 13px;
+            margin-top: 12px;
+            border: 1px dashed var(--line);
+            background: var(--surface-2);
+            color: var(--muted);
+        }
+
+        .error {
+            border-color: #f0b7bd;
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .noauth {
+            border-color: #e8c27c;
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .timeline {
+            display: grid;
+            gap: 10px;
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 118px minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            padding: 11px;
+            border: 1px solid var(--line-soft);
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .ability-map {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .ability {
+            border: 1px solid var(--line-soft);
+            border-radius: 8px;
+            padding: 12px;
+            background: #fbfcfe;
+        }
+
+        .ability strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .drawer-mask {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 24, 40, 0.38);
+            z-index: 30;
+        }
+
+        .drawer-mask.open {
+            display: block;
+        }
+
+        .drawer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: min(620px, 100%);
+            height: 100%;
+            background: #fff;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: -18px 0 48px rgba(16, 24, 40, 0.2);
+        }
+
+        .drawer-head,
+        .drawer-foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .drawer-body {
+            overflow: auto;
+            display: grid;
+            gap: 12px;
+        }
+
+        .field {
+            display: grid;
+            gap: 5px;
+        }
+
+        .field label {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .login-page {
+            min-height: calc(100vh - 118px);
+            display: grid;
+            grid-template-columns: minmax(320px, 460px) minmax(0, 1fr);
+            gap: 20px;
+            align-items: center;
+        }
+
+        .login-card {
+            padding: 24px;
+        }
+
+        .login-card h1 {
+            margin: 0 0 8px;
+            font-size: 26px;
+        }
+
+        .product-board {
+            padding: 20px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: var(--shadow);
+        }
+
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 9px;
+        }
+
+        .flow-item {
+            display: flex;
+            gap: 8px;
+            padding: 9px;
+            border: 1px solid var(--line-soft);
+            border-radius: 8px;
+            background: #fbfcfe;
+        }
+
+        .flow-id {
+            color: var(--brand);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 40;
+            display: none;
+            width: min(420px, calc(100vw - 44px));
+            border-radius: 8px;
+            padding: 12px 14px;
+            background: #111827;
+            color: #fff;
+            box-shadow: var(--shadow);
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @media (max-width: 1180px) {
+            .app,
+            .login-page {
+                grid-template-columns: 1fr;
+            }
+
+            .g2,
+            .g3,
+            .g4,
+            .ability-map,
+            .flow-grid,
+            .wizard {
+                grid-template-columns: 1fr;
+            }
+
+            .side {
+                position: static;
+            }
+
+            .top {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .timeline-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="side">
+        <div class="logo">
+            <strong>统一业务配置平台</strong>
+            <span>高级原型 · 初始需求 + P16 brief</span>
+        </div>
+        <div id="nav"></div>
+    </aside>
+    <main class="main">
+        <header class="top">
+            <div class="crumb">
+                <strong id="workspaceTitle">平台工作台</strong>
+                <span class="tag blue" id="roleLabel">平台管理员</span>
+                <span id="workspaceMeta">当前账号 platform_admin</span>
+            </div>
+            <div class="role-bar">
+                <button class="btn role active" data-role="platform">平台管理员</button>
+                <button class="btn role" data-role="system">系统管理员</button>
+                <button class="btn role" data-role="runtime">普通用户 che</button>
+                <button class="btn role" data-role="approval">审批人</button>
+                <button class="btn role" data-role="integration">集成管理员</button>
+                <button class="btn role" data-role="ops">运维审计</button>
+                <button class="btn" data-page="login">退出</button>
+            </div>
+        </header>
+
+        <section class="content">
+            <section class="page active" id="page-login">
+                <div class="login-page">
+                    <div class="login-card">
+                        <h1>统一业务配置平台</h1>
+                        <p class="desc">面向普通企业团队的可配置业务系统平台。登录后按账号、系统成员和权限进入对应工作台。</p>
+                        <div class="grid" style="margin-top:16px">
+                            <div class="field">
+                                <label>账号</label>
+                                <input class="input" value="platform_admin">
+                            </div>
+                            <div class="field">
+                                <label>密码</label>
+                                <input class="input" type="password" value="123123aa">
+                            </div>
+                            <button class="primary" data-role="platform" data-page="platform-home">登录</button>
+                            <button class="btn" data-role="runtime" data-page="runtime-home">模拟 che 登录到业务运行台</button>
+                            <div class="error">登录错误示例：账号不存在、密码错误、账号停用、服务异常会分别提示，并带 requestId。</div>
+                        </div>
+                    </div>
+                    <div class="product-board">
+                        <h2 class="title">产品能力地图</h2>
+                        <p class="desc">这不是接口调试页，而是管理员能搭系统、普通用户能用系统、外部系统能安全接入、运维能排查问题的完整后台。</p>
+                        <div class="ability-map" style="margin-top:14px">
+                            <div class="ability"><strong>平台中心</strong><span class="meta">系统、账号、平台角色、全局策略、健康与审计</span></div>
+                            <div class="ability"><strong>系统配置中心</strong><span class="meta">成员、部门、角色、字典、应用、模块、字段、页面、菜单</span></div>
+                            <div class="ability"><strong>业务运行台</strong><span class="meta">业务列表、表单、详情、附件、历史、导出、仪表盘</span></div>
+                            <div class="ability"><strong>流程工作台</strong><span class="meta">待办、审批、流程图、审批历史、模板发布检查</span></div>
+                            <div class="ability"><strong>开放集成</strong><span class="meta">appKey/secret、scope、字段动作授权、IP 白名单、限流</span></div>
+                            <div class="ability"><strong>运维审计</strong><span class="meta">requestId、OpenAPI 日志、导出任务、版本、系统体检</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-platform-home">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">平台首页</h2>
+                        <div class="desc">平台管理员从这里创建业务系统、查看系统状态、管理平台账号和平台级对外应用。</div>
+                    </div>
+                    <div class="actions">
+                        <button class="primary" data-drawer="system">创建业务系统</button>
+                        <button class="btn" data-page="platform-accounts">平台账号</button>
+                    </div>
+                </div>
+                <div class="grid g4">
+                    <div class="card kpi"><span class="meta">业务系统</span><strong>8</strong><div class="progress"><i style="width:80%"></i></div></div>
+                    <div class="card kpi"><span class="meta">启用系统</span><strong>6</strong><div class="progress"><i style="width:75%"></i></div></div>
+                    <div class="card kpi"><span class="meta">今日 OpenAPI 调用</span><strong>12,406</strong><span class="tag green">稳定</span></div>
+                    <div class="card kpi"><span class="meta">健康检查</span><strong>1 项提醒</strong><span class="tag orange">文件存储容量</span></div>
+                </div>
+                <div class="grid g2" style="margin-top:14px">
+                    <div class="panel">
+                        <div class="panel-title">我的业务系统 <button class="btn" data-page="systems">查看全部</button></div>
+                        <div class="toolbar">
+                            <input class="input" value="车">
+                            <select class="select"><option>全部状态</option><option>已启用</option><option>待发布</option></select>
+                            <button class="btn">查询</button>
+                        </div>
+                        <table>
+                            <thead><tr><th>系统</th><th>业务说明</th><th>就绪度</th><th>最近访问</th><th>操作</th></tr></thead>
+                            <tbody>
+                            <tr><td>车</td><td>车辆档案、巡检和车联网开放</td><td><span class="tag green">可用</span></td><td>今天 11:42</td><td><button class="link" data-role="system" data-page="system-home">进入</button></td></tr>
+                            <tr><td>采购</td><td>采购申请、审批、供应商台账</td><td><span class="tag orange">待发布流程</span></td><td>昨天 18:10</td><td><button class="link">进入</button></td></tr>
+                            </tbody>
+                        </table>
+                        <div class="empty">没有系统时显示：还没有业务系统，点击“创建业务系统”开始配置第一个系统。</div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">从 0 到可用的主流程</div>
+                        <div class="timeline">
+                            <div class="timeline-item"><span class="tag green">已完成</span><strong>创建“车”系统</strong><button class="link" data-page="systems">查看</button></div>
+                            <div class="timeline-item"><span class="tag green">已完成</span><strong>系统内开通 che 成员</strong><button class="link" data-role="system" data-page="members">查看</button></div>
+                            <div class="timeline-item"><span class="tag orange">进行中</span><strong>配置车辆档案模块并发布</strong><button class="link" data-role="system" data-page="builder">继续</button></div>
+                            <div class="timeline-item"><span class="tag">待验证</span><strong>che 登录后填报车辆档案</strong><button class="link" data-role="runtime" data-page="runtime-home">预览</button></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-systems">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">我的业务系统</h2>
+                        <div class="desc">平台层只负责系统、平台账号和全局策略；不会直接把某个系统内的业务数据混在这里。</div>
+                    </div>
+                    <button class="primary" data-drawer="system">创建业务系统</button>
+                </div>
+                <div class="panel">
+                    <div class="toolbar">
+                        <input class="input" placeholder="系统名称">
+                        <select class="select"><option>全部状态</option><option>启用</option><option>停用</option><option>归档</option></select>
+                        <select class="select"><option>全部角色</option><option>创建人</option><option>系统管理员</option><option>普通成员</option></select>
+                        <button class="btn">查询</button>
+                    </div>
+                    <table>
+                        <thead><tr><th>系统名称</th><th>编码</th><th>成员</th><th>应用</th><th>模块</th><th>状态</th><th>最近访问</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td>车</td><td>car_system</td><td>12</td><td>2</td><td>4</td><td><span class="tag green">启用</span></td><td>今天 11:42</td><td><button class="link" data-role="system" data-page="system-home">进入系统</button></td></tr>
+                        <tr><td>资产</td><td>asset_system</td><td>25</td><td>3</td><td>9</td><td><span class="tag green">启用</span></td><td>今天 09:15</td><td><button class="link">进入系统</button></td></tr>
+                        <tr><td>合同</td><td>contract_system</td><td>8</td><td>1</td><td>2</td><td><span class="tag orange">待发布</span></td><td>昨天 18:10</td><td><button class="link">进入系统</button></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="meta" style="margin-top:10px">共 8 条，第 1 / 1 页，每页 10 条。</div>
+                </div>
+            </section>
+
+            <section class="page" id="page-platform-accounts">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">平台账号与平台角色</h2>
+                        <div class="desc">平台账号是全局登录主体；系统成员是该账号进入某个业务系统后的成员扩展。</div>
+                    </div>
+                    <button class="primary">新建平台账号</button>
+                </div>
+                <div class="panel">
+                    <table>
+                        <thead><tr><th>账号</th><th>姓名</th><th>平台角色</th><th>加入系统</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td>platform_admin</td><td>平台超级管理员</td><td>平台超级管理员</td><td>车、资产、合同</td><td><span class="tag green">正常</span></td><td><button class="link">查看</button></td></tr>
+                        <tr><td>che</td><td>车辆专员</td><td>普通平台用户</td><td>车</td><td><span class="tag green">正常</span></td><td><button class="link" data-role="system" data-page="members">系统内成员</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="page" id="page-system-home">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">车 / 系统首页</h2>
+                        <div class="desc">系统管理员在这里看懂系统是否已经可用，下一步该做什么，以及哪些能力还没有发布。</div>
+                    </div>
+                    <button class="primary" data-page="builder">继续配置</button>
+                </div>
+                <div class="grid g4">
+                    <div class="card kpi"><span class="meta">系统就绪度</span><strong>86%</strong><div class="progress"><i style="width:86%"></i></div></div>
+                    <div class="card kpi"><span class="meta">成员</span><strong>12</strong><span class="tag green">已开通 che</span></div>
+                    <div class="card kpi"><span class="meta">已发布模块</span><strong>3/4</strong><span class="tag orange">1 个待发布</span></div>
+                    <div class="card kpi"><span class="meta">待处理风险</span><strong>2</strong><span class="tag orange">权限和导出</span></div>
+                </div>
+                <div class="grid g2" style="margin-top:14px">
+                    <div class="panel">
+                        <div class="panel-title">配置进度</div>
+                        <div class="wizard">
+                            <div class="step done">成员<br><span class="tag green">完成</span></div>
+                            <div class="step done">应用<br><span class="tag green">完成</span></div>
+                            <div class="step done">模块<br><span class="tag green">完成</span></div>
+                            <div class="step done">字段<br><span class="tag green">完成</span></div>
+                            <div class="step current">页面<br><span class="tag blue">配置中</span></div>
+                            <div class="step">流程/导出<br><span class="tag orange">待确认</span></div>
+                            <div class="step">发布<br><span class="tag orange">待发布</span></div>
+                        </div>
+                        <div class="notice">发布前会检查字段、页面、菜单、角色、字段权限、流程状态、导出权限和 OpenAPI 授权边界。</div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">下一步任务</div>
+                        <table>
+                            <tbody>
+                            <tr><td>确认 che 的车辆档案字段权限</td><td><button class="link" data-page="members">去授权</button></td></tr>
+                            <tr><td>给车辆档案绑定审批流程</td><td><button class="link" data-page="flow-config">去配置</button></td></tr>
+                            <tr><td>发布到业务运行台并预览普通用户视角</td><td><button class="link" data-page="publish">去发布</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel" style="margin-top:14px">
+                    <div class="panel-title">系统能力入口</div>
+                    <div class="ability-map">
+                        <div class="ability"><strong>成员与权限</strong><span class="meta">开通成员、角色授权、字段权限、数据范围、权限预览</span></div>
+                        <div class="ability"><strong>建模配置</strong><span class="meta">应用、模块、字段、页面、菜单、发布版本</span></div>
+                        <div class="ability"><strong>流程与协同</strong><span class="meta">流程模板、待办、抄送、审批历史、业务状态联动</span></div>
+                        <div class="ability"><strong>文件与导出</strong><span class="meta">附件、导出模板、导出任务、失败重试</span></div>
+                        <div class="ability"><strong>系统对外授权</strong><span class="meta">确认哪些系统数据可被平台级外部应用访问</span></div>
+                        <div class="ability"><strong>系统审计</strong><span class="meta">成员、角色、模块、字段、运行数据和系统内调用日志</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-members">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">车 / 成员与权限</h2>
+                        <div class="desc">在当前系统内直接开通成员、配置角色、字段权限和数据范围。普通用户无入口。</div>
+                    </div>
+                    <div class="actions">
+                        <button class="primary" data-drawer="member">开通成员</button>
+                        <button class="btn" data-role="runtime" data-page="runtime-home">以 che 预览</button>
+                    </div>
+                </div>
+                <div class="grid g2">
+                    <div class="panel">
+                        <div class="toolbar">
+                            <input class="input" value="che">
+                            <select class="select"><option>全部角色</option><option>普通业务用户</option><option>系统管理员</option></select>
+                            <button class="btn">查询</button>
+                        </div>
+                        <table>
+                            <thead><tr><th>成员</th><th>登录账号</th><th>系统角色</th><th>数据范围</th><th>状态</th><th>操作</th></tr></thead>
+                            <tbody>
+                            <tr><td>车辆专员</td><td>che</td><td>普通业务用户</td><td>本人创建</td><td><span class="tag green">启用</span></td><td><button class="link">授权</button></td></tr>
+                            <tr><td>车辆主管</td><td>car_leader</td><td>审批人</td><td>本部门</td><td><span class="tag green">启用</span></td><td><button class="link">授权</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">che 权限预览</div>
+                        <table>
+                            <tbody>
+                            <tr><td>可见菜单</td><td>业务运行首页、车辆档案、我的待办、导出任务</td></tr>
+                            <tr><td>操作权限</td><td>查看、新增、编辑、提交、导出本人数据</td></tr>
+                            <tr><td>字段权限</td><td>车牌号/车型/颜色/登记日期可写，状态只读</td></tr>
+                            <tr><td>不可见</td><td>平台管理、建模配置、字段设计、页面发布、权限配置</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="noauth">无权限态：没有成员管理权限时，隐藏“开通成员”按钮，并说明“请联系系统管理员”。</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-builder">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">车 / 建模配置工作台</h2>
+                        <div class="desc">管理员按向导创建业务应用、模块、字段、页面、菜单、流程、导出和发布版本。</div>
+                    </div>
+                    <button class="primary" data-page="publish">进入发布检查</button>
+                </div>
+                <div class="panel">
+                    <div class="wizard">
+                        <div class="step done">1 应用<br>车辆业务</div>
+                        <div class="step done">2 模块<br>车辆档案</div>
+                        <div class="step done">3 字段<br>基础 + 附件</div>
+                        <div class="step current">4 页面<br>列表/表单/详情</div>
+                        <div class="step">5 菜单<br>运行台入口</div>
+                        <div class="step">6 流程/导出<br>审批与任务</div>
+                        <div class="step">7 发布<br>版本 v3</div>
+                    </div>
+                    <div class="grid g2">
+                        <div class="card">
+                            <div class="panel-title">字段设计</div>
+                            <table>
+                                <thead><tr><th>字段</th><th>类型</th><th>权限</th><th>用途</th></tr></thead>
+                                <tbody>
+                                <tr><td>车牌号</td><td>文本</td><td><span class="tag green">可写</span></td><td>唯一规则</td></tr>
+                                <tr><td>车型</td><td>字典</td><td><span class="tag green">可写</span></td><td>筛选/统计</td></tr>
+                                <tr><td>颜色</td><td>字典</td><td><span class="tag green">可写</span></td><td>列表显示</td></tr>
+                                <tr><td>登记日期</td><td>日期</td><td><span class="tag green">可写</span></td><td>趋势统计</td></tr>
+                                <tr><td>状态</td><td>状态</td><td><span class="tag orange">只读</span></td><td>流程联动</td></tr>
+                                <tr><td>附件</td><td>附件</td><td><span class="tag green">可上传</span></td><td>行驶证/图片</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card">
+                            <div class="panel-title">页面配置</div>
+                            <table>
+                                <tbody>
+                                <tr><td>列表页</td><td>筛选、排序、分页、保存视图、批量导出</td><td><span class="tag green">完成</span></td></tr>
+                                <tr><td>表单页</td><td>右侧抽屉、字段分组、错误定位、保存草稿</td><td><span class="tag green">完成</span></td></tr>
+                                <tr><td>详情页</td><td>详情、附件、流程、历史、日志、关联数据</td><td><span class="tag green">完成</span></td></tr>
+                                <tr><td>仪表盘</td><td>车辆数量、待办、状态分布、最近数据</td><td><span class="tag orange">待发布</span></td></tr>
+                                </tbody>
+                            </table>
+                            <div class="notice">配置采用草稿/发布版本，普通用户只读取已发布版本，管理员改草稿不会影响运行台。</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-flow-config">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">车 / 流程与导出配置</h2>
+                        <div class="desc">初始需求要求审批、附件、导出、打印和任务状态形成完整闭环。这里展示系统管理员配置侧。</div>
+                    </div>
+                    <button class="primary" data-page="publish">保存并进入发布检查</button>
+                </div>
+                <div class="grid g2">
+                    <div class="panel">
+                        <div class="panel-title">车辆档案审批流程</div>
+                        <div class="timeline">
+                            <div class="timeline-item"><span class="tag green">发起</span><strong>che 提交车辆档案</strong><span class="meta">校验必填和字段权限</span></div>
+                            <div class="timeline-item"><span class="tag blue">审批</span><strong>车辆主管审批</strong><span class="meta">同意/拒绝必须留痕</span></div>
+                            <div class="timeline-item"><span class="tag green">通过</span><strong>状态变为已通过</strong><span class="meta">运行台可导出</span></div>
+                        </div>
+                        <div class="error">发布失败示例：流程没有结束节点或审批人为空时，阻止发布并列出修复入口。</div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">导出和打印配置</div>
+                        <table>
+                            <tbody>
+                            <tr><td>导出模板</td><td>车辆档案标准导出，按字段权限脱敏</td><td><span class="tag green">启用</span></td></tr>
+                            <tr><td>导出任务</td><td>排队、处理中、成功、失败、取消、重试</td><td><span class="tag green">闭环</span></td></tr>
+                            <tr><td>打印模板</td><td>行驶证档案打印，支持预览和 PDF</td><td><span class="tag orange">后续增强</span></td></tr>
+                            <tr><td>附件规则</td><td>行驶证图片，10MB，按记录权限下载</td><td><span class="tag green">启用</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-publish">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">发布检查</h2>
+                        <div class="desc">发布不是点一下按钮，而是确认字段、页面、菜单、角色、流程、导出、OpenAPI 影响范围。</div>
+                    </div>
+                    <button class="primary" data-role="runtime" data-page="runtime-home">发布并预览 che</button>
+                </div>
+                <div class="panel">
+                    <table>
+                        <thead><tr><th>检查项</th><th>结果</th><th>说明</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td>字段配置</td><td><span class="tag green">通过</span></td><td>6 个字段，包含唯一规则和字段权限</td><td><button class="link" data-page="builder">查看</button></td></tr>
+                        <tr><td>页面配置</td><td><span class="tag green">通过</span></td><td>列表、表单、详情、仪表盘已配置</td><td><button class="link" data-page="builder">查看</button></td></tr>
+                        <tr><td>菜单权限</td><td><span class="tag green">通过</span></td><td>che 可见车辆档案和导出任务</td><td><button class="link" data-page="members">查看</button></td></tr>
+                        <tr><td>流程配置</td><td><span class="tag orange">提醒</span></td><td>打印模板为后续增强，不阻塞本次发布</td><td><button class="link" data-page="flow-config">查看</button></td></tr>
+                        <tr><td>OpenAPI 影响</td><td><span class="tag green">通过</span></td><td>外部应用只读取已发布字段和动作授权</td><td><button class="link" data-role="integration" data-page="openapi">查看</button></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="notice">成功态：发布完成后提示“车辆档案已发布到业务运行台”，并给出“以 che 预览”的下一步。</div>
+                </div>
+            </section>
+
+            <section class="page" id="page-runtime-home">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">车 / 业务运行台</h2>
+                        <div class="desc">普通业务用户登录后的默认工作台。只显示业务入口、待办、最近数据、导出和退出，不显示任何配置入口。</div>
+                    </div>
+                    <button class="primary" data-page="vehicle-list">进入车辆档案</button>
+                </div>
+                <div class="grid g4">
+                    <div class="card kpi"><span class="meta">待提交</span><strong>2</strong></div>
+                    <div class="card kpi"><span class="meta">待审批</span><strong>1</strong></div>
+                    <div class="card kpi"><span class="meta">本月新增</span><strong>26</strong></div>
+                    <div class="card kpi"><span class="meta">可导出数据</span><strong>本人范围</strong></div>
+                </div>
+                <div class="grid g2" style="margin-top:14px">
+                    <div class="panel">
+                        <div class="panel-title">我的业务入口</div>
+                        <table>
+                            <tbody>
+                            <tr><td>车辆档案</td><td>新增、查询、编辑、提交、导出本人数据</td><td><button class="link" data-page="vehicle-list">打开</button></td></tr>
+                            <tr><td>我的待办</td><td>查看需要我处理的审批任务</td><td><button class="link" data-role="approval" data-page="approval">打开</button></td></tr>
+                            <tr><td>文件与导出</td><td>我的附件、导出任务和下载结果</td><td><button class="link" data-page="export-center">打开</button></td></tr>
+                            </tbody>
+                        </table>
+                        <div class="noauth">普通用户不可见：平台管理、系统建模、字段设计、页面发布、权限配置、平台级对外应用配置。</div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">最近数据和提醒</div>
+                        <table>
+                            <tbody>
+                            <tr><td>沪A·P1601</td><td>草稿，等待提交</td><td><button class="link" data-page="vehicle-detail">详情</button></td></tr>
+                            <tr><td>沪A·P1602</td><td>已提交，主管审批中</td><td><button class="link" data-role="approval" data-page="approval">流程</button></td></tr>
+                            <tr><td>空态示例</td><td>系统没有开放模块时，提示联系管理员</td><td><span class="tag">说明</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-vehicle-list">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">车辆档案</h2>
+                        <div class="desc">真正的业务列表：筛选、排序、分页、保存视图、批量导出、错误恢复和数据范围说明。</div>
+                    </div>
+                    <button class="primary" data-drawer="vehicle">新增车辆档案</button>
+                </div>
+                <div class="panel">
+                    <div class="toolbar">
+                        <input class="input" placeholder="车牌号">
+                        <select class="select"><option>全部车型</option><option>SUV</option><option>轿车</option></select>
+                        <select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>已通过</option></select>
+                        <input class="input" type="date" value="2026-06-13">
+                        <button class="btn">查询</button>
+                        <button class="btn">保存视图</button>
+                        <button class="btn">导出</button>
+                    </div>
+                    <table>
+                        <thead><tr><th>车牌号</th><th>车型</th><th>颜色</th><th>登记日期</th><th>状态</th><th>附件</th><th>创建人</th><th>更新时间</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td>沪A·P1601</td><td>SUV</td><td>白色</td><td>2026-06-13</td><td><span class="tag orange">草稿</span></td><td>1</td><td>che</td><td>11:50</td><td class="actions"><button class="link" data-page="vehicle-detail">详情</button><button class="link" data-drawer="vehicle">编辑</button><button class="link">提交</button></td></tr>
+                        <tr><td>沪A·P1602</td><td>轿车</td><td>黑色</td><td>2026-06-12</td><td><span class="tag blue">审批中</span></td><td>2</td><td>che</td><td>09:18</td><td class="actions"><button class="link" data-page="vehicle-detail">详情</button><button class="link" data-role="approval" data-page="approval">流程</button></td></tr>
+                        <tr><td>沪A·P1603</td><td>MPV</td><td>灰色</td><td>2026-06-10</td><td><span class="tag green">已通过</span></td><td>1</td><td>che</td><td>昨天</td><td class="actions"><button class="link">详情</button><button class="link">导出</button></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="meta" style="margin-top:10px">每页 10 条，共 26 条，第 1 / 3 页。数据范围：本人创建。</div>
+                    <div class="error">错误态示例：加载失败，请重试。requestId：p16-runtime-0001</div>
+                </div>
+            </section>
+
+            <section class="page" id="page-vehicle-detail">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">车辆档案详情 / 沪A·P1601</h2>
+                        <div class="desc">详情页不是 JSON：字段、附件、流程、关联数据、历史和日志按业务分区展示。</div>
+                    </div>
+                    <div class="actions">
+                        <button class="primary" data-drawer="vehicle">编辑</button>
+                        <button class="btn" data-role="approval" data-page="approval">查看流程</button>
+                    </div>
+                </div>
+                <div class="grid g2">
+                    <div class="panel">
+                        <div class="panel-title">基本信息 <span class="tag orange">草稿</span></div>
+                        <table><tbody>
+                            <tr><td>车牌号</td><td>沪A·P1601</td></tr>
+                            <tr><td>车型</td><td>SUV</td></tr>
+                            <tr><td>颜色</td><td>白色</td></tr>
+                            <tr><td>登记日期</td><td>2026-06-13</td></tr>
+                            <tr><td>附件</td><td>行驶证照片.jpg</td></tr>
+                        </tbody></table>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">历史与日志</div>
+                        <table><tbody>
+                            <tr><td>创建</td><td>che 于 11:50 创建记录</td></tr>
+                            <tr><td>字段变更</td><td>颜色从“银色”改为“白色”</td></tr>
+                            <tr><td>requestId</td><td>p16-run-8891，可进入审计追踪</td></tr>
+                        </tbody></table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-approval">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">流程工作台</h2>
+                        <div class="desc">审批人同时看到业务数据、流程图、审批历史和操作区；拒绝、撤回、终止必须填写原因。</div>
+                    </div>
+                    <div class="actions">
+                        <button class="primary">同意</button>
+                        <button class="danger">拒绝</button>
+                    </div>
+                </div>
+                <div class="grid g2">
+                    <div class="panel">
+                        <div class="panel-title">我的待办</div>
+                        <table>
+                            <thead><tr><th>事项</th><th>发起人</th><th>状态</th><th>操作</th></tr></thead>
+                            <tbody>
+                            <tr><td>车辆档案 沪A·P1602</td><td>che</td><td><span class="tag blue">待审批</span></td><td><button class="link" data-page="vehicle-detail">查看业务数据</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">流程图和历史</div>
+                        <div class="timeline">
+                            <div class="timeline-item"><span class="tag green">已完成</span><strong>che 提交</strong><span>今天 09:18</span></div>
+                            <div class="timeline-item"><span class="tag blue">当前</span><strong>车辆主管审批</strong><span>超时前 21 小时</span></div>
+                            <div class="timeline-item"><span class="tag">下一步</span><strong>状态变为已通过</strong><span>写入业务记录历史</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-export-center">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">文件与导出</h2>
+                        <div class="desc">普通用户只看到自己有权限的附件和导出任务；导出失败可重试，结果可下载。</div>
+                    </div>
+                    <button class="primary">创建导出任务</button>
+                </div>
+                <div class="panel">
+                    <table>
+                        <thead><tr><th>任务</th><th>数据范围</th><th>状态</th><th>结果</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td>车辆档案标准导出</td><td>本人创建</td><td><span class="tag green">成功</span></td><td>car_records_20260613.xlsx</td><td><button class="link">下载</button></td></tr>
+                        <tr><td>车辆档案带附件导出</td><td>本人创建</td><td><span class="tag red">失败</span></td><td>文件存储容量不足</td><td><button class="link">重试</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="page" id="page-openapi">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">对外应用中心</h2>
+                        <div class="desc">平台级外部接入能力。它不是系统内业务应用，也不是模块菜单。</div>
+                    </div>
+                    <button class="primary" data-page="openapi-wizard">创建对外应用</button>
+                </div>
+                <div class="panel">
+                    <table>
+                        <thead><tr><th>应用名称</th><th>appKey</th><th>授权系统</th><th>状态</th><th>最近调用</th><th>限流</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td>车联网外部接入</td><td>ak_car_2026</td><td>车</td><td><span class="tag green">启用</span></td><td>今天 12:05</td><td>1000 次/分钟</td><td><button class="link" data-page="audit">调用日志</button></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="empty">空态：还没有对外应用时，引导创建第一个外部接入应用，并说明 secret 只展示一次。</div>
+                </div>
+            </section>
+
+            <section class="page" id="page-openapi-wizard">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">创建对外应用向导</h2>
+                        <div class="desc">把某个业务系统的数据、模块动作、字段范围、流程、文件或平台能力授权给外部系统。</div>
+                    </div>
+                    <button class="primary" data-page="audit">发布并查看 requestId</button>
+                </div>
+                <div class="panel">
+                    <div class="wizard">
+                        <div class="step done">1 基本信息</div>
+                        <div class="step done">2 凭证</div>
+                        <div class="step done">3 授权系统</div>
+                        <div class="step current">4 字段动作</div>
+                        <div class="step">5 安全策略</div>
+                        <div class="step">6 调用示例</div>
+                        <div class="step">7 发布</div>
+                    </div>
+                    <table>
+                        <tbody>
+                        <tr><td>应用名称</td><td>车联网外部接入</td></tr>
+                        <tr><td>凭证</td><td>appKey 已生成，secret 只展示一次，支持轮换</td></tr>
+                        <tr><td>授权系统</td><td>车</td></tr>
+                        <tr><td>授权模块</td><td>车辆档案</td></tr>
+                        <tr><td>字段范围</td><td>车牌号、车型、颜色、登记日期、状态；手机号等敏感字段默认脱敏</td></tr>
+                        <tr><td>动作</td><td>查询、新增、编辑、提交；删除未授权</td></tr>
+                        <tr><td>安全策略</td><td>IP 白名单、签名、时间窗口、幂等键、限流、过期时间</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="noauth">风险提示：外部应用将访问业务系统数据，授权变更会同时记录平台审计和系统审计。</div>
+                </div>
+            </section>
+
+            <section class="page" id="page-system-openapi">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">车 / 系统对外授权</h2>
+                        <div class="desc">系统管理员确认本系统哪些数据可以被平台级对外应用访问。</div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <table>
+                        <thead><tr><th>对外应用</th><th>模块</th><th>字段</th><th>动作</th><th>数据范围</th><th>风险</th></tr></thead>
+                        <tbody>
+                        <tr><td>车联网外部接入</td><td>车辆档案</td><td>5 个字段</td><td>查询、新增、编辑、提交</td><td>已发布数据</td><td><span class="tag orange">需定期复核</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="page" id="page-audit">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">审计、日志和 requestId 追踪</h2>
+                        <div class="desc">平台日志、系统日志、业务数据变更、导出任务和 OpenAPI 调用分层追踪。</div>
+                    </div>
+                    <button class="primary">查询 requestId</button>
+                </div>
+                <div class="grid g2">
+                    <div class="panel">
+                        <div class="panel-title">requestId 追踪</div>
+                        <table><tbody>
+                            <tr><td>requestId</td><td>p16-openapi-20260613</td></tr>
+                            <tr><td>签名</td><td><span class="tag green">通过</span></td></tr>
+                            <tr><td>scope</td><td><span class="tag green">车辆档案查询通过</span></td></tr>
+                            <tr><td>限流</td><td><span class="tag green">未超限</span></td></tr>
+                            <tr><td>结果</td><td>返回 10 条车辆档案</td></tr>
+                        </tbody></table>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">分层日志</div>
+                        <table><tbody>
+                            <tr><td>平台审计</td><td>创建对外应用、轮换 secret、平台账号变更</td></tr>
+                            <tr><td>系统审计</td><td>成员授权、模块发布、字段权限、运行数据变更</td></tr>
+                            <tr><td>OpenAPI 调用</td><td>签名、授权、幂等、限流、耗时和错误原因</td></tr>
+                            <tr><td>导出任务</td><td>排队、处理中、成功、失败、重试</td></tr>
+                        </tbody></table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="page-ops">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">运维体检</h2>
+                        <div class="desc">部署后管理员不用进服务器翻日志，也能知道数据库、Redis、文件存储、密钥、版本和脚本状态。</div>
+                    </div>
+                    <button class="primary">重新体检</button>
+                </div>
+                <div class="grid g3">
+                    <div class="card kpi"><span class="meta">数据库</span><strong>正常</strong><span class="tag green">脚本 126</span></div>
+                    <div class="card kpi"><span class="meta">Redis</span><strong>正常</strong><span class="tag green">任务队列可用</span></div>
+                    <div class="card kpi"><span class="meta">文件存储</span><strong>提醒</strong><span class="tag orange">容量 82%</span></div>
+                </div>
+                <div class="panel" style="margin-top:14px">
+                    <table>
+                        <thead><tr><th>检查项</th><th>状态</th><th>说明</th><th>恢复建议</th></tr></thead>
+                        <tbody>
+                        <tr><td>生产密钥</td><td><span class="tag green">通过</span></td><td>未使用占位密钥</td><td>定期轮换</td></tr>
+                        <tr><td>nginx /api 转发</td><td><span class="tag green">通过</span></td><td>保留 /api 前缀</td><td>部署后复测</td></tr>
+                        <tr><td>文件目录</td><td><span class="tag orange">提醒</span></td><td>容量超过 80%</td><td>清理归档文件</td></tr>
+                        <tr><td>前后端版本</td><td><span class="tag green">一致</span></td><td>P16 原型阶段，未进入最终包</td><td>实现后重新构建</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="page" id="page-trace">
+                <div class="page-head">
+                    <div>
+                        <h2 class="title">原型追踪矩阵</h2>
+                        <div class="desc">把初始需求、最终用户目标、PRD 和 P16-FLOW 主流程映射到本原型页面。</div>
+                    </div>
+                </div>
+                <div class="grid g2">
+                    <div class="panel">
+                        <div class="panel-title">P16 主流程覆盖</div>
+                        <div class="flow-grid" id="flowGrid"></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">初始需求能力覆盖</div>
+                        <table>
+                            <tbody>
+                            <tr><td>平台中心</td><td><span class="tag green">平台首页、我的系统、平台账号</span></td></tr>
+                            <tr><td>系统配置中心</td><td><span class="tag green">系统首页、成员权限、建模配置、发布检查</span></td></tr>
+                            <tr><td>业务运行台</td><td><span class="tag green">运行首页、车辆档案列表、详情、附件、导出</span></td></tr>
+                            <tr><td>流程工作台</td><td><span class="tag green">待办、流程图、审批历史、业务状态联动</span></td></tr>
+                            <tr><td>文件/导出中心</td><td><span class="tag green">导出任务状态、失败重试、下载</span></td></tr>
+                            <tr><td>OpenAPI</td><td><span class="tag green">对外应用、scope、IP、限流、日志</span></td></tr>
+                            <tr><td>运维审计</td><td><span class="tag green">系统体检、requestId、平台/系统日志分层</span></td></tr>
+                            <tr><td>后续增强</td><td><span class="tag orange">打印模板、KPI、智能助手、命令中心以入口和状态标识表达</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+
+<div class="drawer-mask" id="drawerMask">
+    <aside class="drawer">
+        <div class="drawer-head">
+            <strong id="drawerTitle">抽屉</strong>
+            <button class="btn" id="closeDrawer">关闭</button>
+        </div>
+        <div class="drawer-body" id="drawerBody"></div>
+        <div class="drawer-foot">
+            <button class="btn" id="cancelDrawer">取消</button>
+            <button class="primary" id="saveDrawer">保存并进入下一步</button>
+        </div>
+    </aside>
+</div>
+<div class="toast" id="toast">已保存，下一步已在页面中标出。</div>
+
+<script>
+    const roles = {
+        platform: {
+            title: "平台工作台",
+            label: "平台管理员",
+            meta: "当前账号 platform_admin",
+            nav: [["平台中心", [["platform-home", "平台首页", "首"], ["systems", "我的业务系统", "系"], ["platform-accounts", "平台账号", "账"], ["openapi", "对外应用中心", "开"], ["audit", "平台审计", "审"], ["ops", "运维体检", "运"], ["trace", "原型追踪", "矩"]]]]
+        },
+        system: {
+            title: "车 / 系统管理工作台",
+            label: "系统管理员",
+            meta: "当前系统 车，当前成员 car_admin",
+            nav: [["系统管理", [["system-home", "系统首页", "首"], ["members", "成员与权限", "权"], ["builder", "建模配置", "模"], ["flow-config", "流程与导出配置", "流"], ["publish", "发布检查", "发"], ["system-openapi", "系统对外授权", "外"], ["audit", "系统审计", "审"], ["trace", "原型追踪", "矩"]]]]
+        },
+        runtime: {
+            title: "车 / 业务运行台",
+            label: "普通用户 che",
+            meta: "只显示被授权模块和个人任务",
+            nav: [["业务运行", [["runtime-home", "业务运行首页", "首"], ["vehicle-list", "车辆档案", "车"], ["vehicle-detail", "车辆详情", "详"], ["approval", "我的待办", "办"], ["export-center", "文件与导出", "导"], ["trace", "原型追踪", "矩"]]]]
+        },
+        approval: {
+            title: "流程工作台",
+            label: "审批人",
+            meta: "当前任务：车辆档案审批",
+            nav: [["流程工作", [["approval", "我的待办", "办"], ["vehicle-detail", "关联业务数据", "数"], ["export-center", "附件和导出", "附"], ["trace", "原型追踪", "矩"]]]]
+        },
+        integration: {
+            title: "开放集成工作台",
+            label: "集成管理员",
+            meta: "平台级对外应用和调用追踪",
+            nav: [["开放集成", [["openapi", "对外应用中心", "开"], ["openapi-wizard", "创建向导", "向"], ["system-openapi", "系统对外授权", "授"], ["audit", "调用日志", "志"], ["trace", "原型追踪", "矩"]]]]
+        },
+        ops: {
+            title: "运维审计工作台",
+            label: "运维审计",
+            meta: "健康、日志、版本和 requestId",
+            nav: [["运维审计", [["ops", "运维体检", "体"], ["audit", "日志追踪", "志"], ["export-center", "任务中心", "任"], ["trace", "原型追踪", "矩"]]]]
+        }
+    };
+
+    const drawers = {
+        system: {
+            title: "创建业务系统",
+            fields: [["系统名称", "车"], ["系统编码", "car_system"], ["业务说明", "车辆档案、巡检和车联网开放"], ["租户模式", "单租户，自动创建默认租户"]],
+            nextRole: "system",
+            nextPage: "system-home"
+        },
+        member: {
+            title: "开通成员并加入当前系统",
+            fields: [["姓名", "车辆专员"], ["登录账号", "che"], ["初始密码", "123123aa"], ["部门", "车辆运营部"], ["系统角色", "普通业务用户"], ["数据范围", "本人创建"]],
+            nextRole: "system",
+            nextPage: "members"
+        },
+        vehicle: {
+            title: "新建/编辑车辆档案",
+            fields: [["车牌号", "沪A·P1601"], ["车型", "SUV"], ["颜色", "白色"], ["登记日期", "2026-06-13"], ["行驶证附件", "行驶证照片.jpg"], ["保存方式", "保存草稿 / 保存并提交"]],
+            nextRole: "runtime",
+            nextPage: "vehicle-list"
+        }
+    };
+
+    const flows = [
+        ["P16-FLOW-001", "平台管理员登录并进入平台工作台"],
+        ["P16-FLOW-002", "创建“车”业务系统并进入系统首页"],
+        ["P16-FLOW-003", "系统首页看懂配置进度和下一步"],
+        ["P16-FLOW-004", "系统内直接开通 che 成员"],
+        ["P16-FLOW-005", "创建车辆业务应用和车辆档案模块"],
+        ["P16-FLOW-006", "配置页面、菜单和发布检查"],
+        ["P16-FLOW-007", "给 che 授权菜单、动作、字段和数据范围"],
+        ["P16-FLOW-008", "che 登录后进入业务运行台"],
+        ["P16-FLOW-009", "che 新增车辆档案"],
+        ["P16-FLOW-010", "che 查询、分页、编辑、提交车辆数据"],
+        ["P16-FLOW-011", "创建车联网外部接入应用"],
+        ["P16-FLOW-012", "授权外部应用访问车辆档案"],
+        ["P16-FLOW-013", "通过 requestId 追踪 OpenAPI 调用"]
+    ];
+
+    let currentRole = "platform";
+    let currentPage = "login";
+    let pendingDrawer = null;
+
+    function renderNav() {
+        const nav = document.getElementById("nav");
+        nav.innerHTML = roles[currentRole].nav.map(group => {
+            const items = group[1].map(item => `
+                <button class="nav-btn ${currentPage === item[0] ? "active" : ""}" data-page="${item[0]}">
+                    <span class="nav-icon">${item[2]}</span><span>${item[1]}</span>
+                </button>
+            `).join("");
+            return `<div><div class="nav-title">${group[0]}</div>${items}</div>`;
+        }).join("");
+    }
+
+    function setRole(role) {
+        currentRole = role;
+        document.querySelectorAll(".role").forEach(btn => btn.classList.toggle("active", btn.dataset.role === role));
+        document.getElementById("workspaceTitle").textContent = roles[role].title;
+        document.getElementById("roleLabel").textContent = roles[role].label;
+        document.getElementById("workspaceMeta").textContent = roles[role].meta;
+        renderNav();
+    }
+
+    function setPage(page) {
+        currentPage = page;
+        document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
+        const target = document.getElementById(`page-${page}`);
+        if (target) {
+            target.classList.add("active");
+        }
+        renderNav();
+    }
+
+    function openDrawer(name) {
+        pendingDrawer = drawers[name];
+        if (!pendingDrawer) {
+            return;
+        }
+        document.getElementById("drawerTitle").textContent = pendingDrawer.title;
+        document.getElementById("drawerBody").innerHTML = pendingDrawer.fields.map(([label, value]) => `
+            <div class="field">
+                <label>${label}</label>
+                <input class="input" value="${value}">
+            </div>
+        `).join("");
+        document.getElementById("drawerMask").classList.add("open");
+    }
+
+    function closeDrawer() {
+        document.getElementById("drawerMask").classList.remove("open");
+    }
+
+    function showToast(text) {
+        const toast = document.getElementById("toast");
+        toast.textContent = text;
+        toast.classList.add("show");
+        window.setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function renderFlows() {
+        document.getElementById("flowGrid").innerHTML = flows.map(([id, text]) => `
+            <div class="flow-item">
+                <span class="flow-id">${id}</span>
+                <span>${text} <span class="tag green">已映射</span></span>
+            </div>
+        `).join("");
+    }
+
+    document.addEventListener("click", event => {
+        const roleTarget = event.target.closest("[data-role]");
+        if (roleTarget) {
+            setRole(roleTarget.dataset.role);
+        }
+        const pageTarget = event.target.closest("[data-page]");
+        if (pageTarget) {
+            setPage(pageTarget.dataset.page);
+            return;
+        }
+        const drawerTarget = event.target.closest("[data-drawer]");
+        if (drawerTarget) {
+            openDrawer(drawerTarget.dataset.drawer);
+        }
+    });
+
+    document.getElementById("closeDrawer").addEventListener("click", closeDrawer);
+    document.getElementById("cancelDrawer").addEventListener("click", closeDrawer);
+    document.getElementById("saveDrawer").addEventListener("click", () => {
+        closeDrawer();
+        if (pendingDrawer) {
+            setRole(pendingDrawer.nextRole);
+            setPage(pendingDrawer.nextPage);
+        }
+        showToast("保存成功，已进入下一步。");
+    });
+
+    renderFlows();
+    setRole("platform");
+    setPage("login");
+</script>
+</body>
+</html>

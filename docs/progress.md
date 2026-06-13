@@ -16,6 +16,33 @@ PM/Reviewer 裁决：
 - 原型评审通过前，不允许直接继续最终前端实现和打包。
 - 该原型不代表真实前端完成，`frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞。
 
+## 2026-06-13 Codex 高级原型已重做，补充初始需求
+
+用户指出上一版主要基于 Open Design brief，要求加入项目初始需求并按更高标准重做。当前会话无法在内部自行切换为 Open Design 高级模型；本轮由 Codex 基于完整文档重新生成高级 HTML 原型。
+
+本轮输入：
+
+- `docs/user_requirement.md`
+- `docs/product/final-user-goal.md`
+- `docs/prd.md`
+- `docs/ui/open-design-brief.md`
+- `docs/ui/prototype-traceability.md`
+
+新增产物：
+
+- `docs/ui/prototypes/p16-codex-advanced-prototype.html`
+- `docs/ui/prototypes/p16-codex-advanced-prototype-review.md`
+
+Open Design 项目同步制品：
+
+- `p16-codex-advanced-prototype.html`
+
+PM/Reviewer 裁决：
+
+- 高级原型替代上一版轻量原型，作为后续 PM/UIUX/frontend/test/reviewer 评审的主输入。
+- 高级原型额外覆盖初始需求中的流程工作台、文件/导出、OpenAPI、安全策略、运维体检、配置发布版本、权限预览和完整能力地图。
+- 当前仍只是原型，不代表前端实现完成；`frontendUsable=false`、`fullProjectDeployable=false` 和最终打包阻塞保持不变。
+
 ## 2026-06-13 Open Design Windows MCP 已连通，AMR 登录阻塞生成
 
 本轮 Codex 已通过 Windows 原生 Open Design MCP 直接操作 Open Design：

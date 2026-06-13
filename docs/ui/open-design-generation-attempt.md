@@ -77,6 +77,39 @@ PM/Reviewer 判定：
 - 该文件不调用真实后端接口，不代表前端 E2E 或最终可用系统完成。
 - 后续 frontend 必须基于该原型补充 `docs/ui/prototype-implementation-diff.md`，再进入页面级实现、浏览器 E2E、clean build、review 和最终包闸门。
 
+## 0.3 Codex 高级原型重做
+
+用户要求“换高级模型再来一次，并加入项目初始需求”。当前会话不能直接切换 Open Design 模型，且 Open Design 内置模型需要账号，因此本轮由 Codex 基于完整文档重新生成高级 HTML 原型。
+
+新增输入：
+
+```text
+docs/user_requirement.md
+docs/product/final-user-goal.md
+docs/prd.md
+docs/ui/open-design-brief.md
+docs/ui/prototype-traceability.md
+```
+
+新增产物：
+
+```text
+docs/ui/prototypes/p16-codex-advanced-prototype.html
+docs/ui/prototypes/p16-codex-advanced-prototype-review.md
+```
+
+Open Design 项目同步文件：
+
+```text
+p16-codex-advanced-prototype.html
+```
+
+PM/Reviewer 判定：
+
+- 高级原型作为当前 P16 主要评审原型，上一版 `p16-codex-high-fidelity-prototype.html` 只保留为历史版本。
+- 高级原型补充了初始需求中的完整产品能力地图、流程工作台、文件/导出中心、OpenAPI、安全策略、运维体检、配置发布版本和权限预览。
+- 该原型仍不是生产前端，不代表真实接口、真实 E2E 或最终打包通过。
+
 ## 1. 本地服务检查
 
 Docker 容器：
