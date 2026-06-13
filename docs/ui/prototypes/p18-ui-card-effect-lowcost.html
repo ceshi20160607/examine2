@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>P18 UI 效果看板</title>
+    <style>
+        :root {
+            --bg: #f3f6fa;
+            --ink: #172033;
+            --muted: #667085;
+            --line: #d7dee9;
+            --panel: #fff;
+            --nav: #102a2a;
+            --green: #00796b;
+            --green-soft: #e2f4ee;
+            --blue: #2563eb;
+            --orange: #b45309;
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--ink); font-size: 14px; }
+        .shell { min-height: 100vh; display: grid; grid-template-columns: 244px 1fr; }
+        aside { background: var(--nav); color: #d8e6e3; padding: 18px 12px; display: grid; align-content: start; gap: 18px; }
+        .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; color: #fff; font-weight: 700; }
+        .logo { width: 34px; height: 34px; border-radius: 8px; background: var(--green); display: grid; place-items: center; }
+        .ctx { border: 1px solid rgba(255,255,255,.13); background: rgba(255,255,255,.06); border-radius: 8px; padding: 12px; line-height: 1.7; }
+        .ctx small, .nav-title { color: #97b3ad; }
+        .nav-title { font-size: 12px; padding: 8px 10px 2px; }
+        .nav { display: grid; gap: 5px; }
+        .nav button { height: 38px; border: 0; border-radius: 7px; color: #d8e6e3; background: transparent; text-align: left; padding: 0 12px; }
+        .nav button.active { background: var(--green); color: #fff; }
+        main { display: grid; grid-template-rows: 58px 1fr; min-width: 0; }
+        header { background: #fff; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 22px; }
+        header strong { font-size: 16px; }
+        .user { display: flex; gap: 8px; align-items: center; color: var(--muted); }
+        .content { padding: 22px; display: grid; gap: 18px; }
+        .hero { display: flex; justify-content: space-between; gap: 18px; align-items: end; }
+        h1, h2, h3, p { margin: 0; }
+        h1 { font-size: 24px; }
+        .muted { color: var(--muted); line-height: 1.7; }
+        button, .btn { height: 34px; border-radius: 6px; border: 1px solid var(--line); background: #fff; padding: 0 12px; color: var(--ink); }
+        .primary { border-color: var(--green); background: var(--green); color: #fff; }
+        .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; box-shadow: 0 14px 34px rgba(25, 38, 59, .08); display: grid; gap: 12px; min-height: 142px; }
+        .card-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+        .num { font-size: 28px; font-weight: 800; }
+        .tag { width: max-content; height: 24px; border-radius: 999px; padding: 0 9px; display: inline-flex; align-items: center; background: #eef2f6; color: #475467; font-size: 12px; }
+        .tag.ok { background: #dcfce7; color: #166534; }
+        .tag.blue { background: #dbeafe; color: #1d4ed8; }
+        .tag.warn { background: #fef3c7; color: var(--orange); }
+        .layout { display: grid; grid-template-columns: 1.2fr .8fr; gap: 14px; }
+        .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 14px 34px rgba(25, 38, 59, .06); }
+        .panel-title { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; }
+        th { background: #f8fafc; color: #475467; }
+        tr:last-child td { border-bottom: 0; }
+        .steps { padding: 14px; display: grid; gap: 10px; }
+        .step { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 5px; background: #fbfcfe; }
+        .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+        .input { height: 34px; min-width: 160px; border: 1px solid var(--line); border-radius: 6px; background: #fff; padding: 0 10px; color: var(--muted); display: inline-flex; align-items: center; }
+        @media (max-width: 1100px) { .shell, .layout, .grid { grid-template-columns: 1fr; } aside { position: static; } }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <aside>
+        <div class="brand"><div class="logo">统</div><div>统一业务平台</div></div>
+        <div class="ctx"><strong>车 / 自建系统</strong><br><small>系统组织、模块、应用配置、Flow 绑定</small></div>
+        <div class="nav">
+            <div class="nav-title">平台</div>
+            <button class="active">统一入口</button>
+            <button>平台组织</button>
+            <button>Flow 与应用</button>
+            <button>日志审计</button>
+            <div class="nav-title">自建系统</div>
+            <button>系统首页</button>
+            <button>组织权限</button>
+            <button>模块配置</button>
+            <button>应用与流程</button>
+            <button>业务运行台</button>
+        </div>
+    </aside>
+    <main>
+        <header>
+            <div><strong>系统管理工作台</strong><div class="muted">A 稳重企业控制台 + B 运行台亲和度</div></div>
+            <div class="user"><span>platform_admin</span><button>切换系统</button><button>退出</button></div>
+        </header>
+        <section class="content">
+            <div class="hero">
+                <div>
+                    <h1>车系统配置总览</h1>
+                    <p class="muted">创建系统后，创建人成为系统管理员；平台用户仍由平台内统一管理。</p>
+                </div>
+                <div class="toolbar"><button>高级筛选</button><button>表头配置</button><button class="primary">创建系统内应用配置</button></div>
+            </div>
+            <div class="grid">
+                <div class="card"><div class="card-head"><h3>系统组织</h3><span class="tag ok">已配置</span></div><div class="num">42</div><p class="muted">成员、部门、岗位、系统角色</p></div>
+                <div class="card"><div class="card-head"><h3>业务模块</h3><span class="tag blue">运行中</span></div><div class="num">24</div><p class="muted">模块、字段、页面、模块分组</p></div>
+                <div class="card"><div class="card-head"><h3>应用配置</h3><span class="tag warn">待复核</span></div><div class="num">3</div><p class="muted">使用平台应用能力，对内或对外调用</p></div>
+                <div class="card"><div class="card-head"><h3>Flow 绑定</h3><span class="tag ok">已发布</span></div><div class="num">9</div><p class="muted">模块事件触发审批、待办、消息</p></div>
+            </div>
+            <div class="layout">
+                <div class="panel">
+                    <div class="panel-title"><h2>模块与运行页面</h2><span class="tag">保存视图：系统管理员</span></div>
+                    <table>
+                        <thead><tr><th>模块</th><th>分组</th><th>页面</th><th>流程事件</th><th>状态</th></tr></thead>
+                        <tbody>
+                        <tr><td>车辆档案</td><td>车辆业务</td><td>列表 / 表单 / 详情</td><td>提交后审批</td><td><span class="tag ok">运行中</span></td></tr>
+                        <tr><td>年检记录</td><td>车辆业务</td><td>列表 / 表单 / 详情</td><td>变更后审批</td><td><span class="tag warn">配置中</span></td></tr>
+                        <tr><td>外部协同记录</td><td>开放能力</td><td>列表 / 详情</td><td>调用失败通知</td><td><span class="tag blue">联调中</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel">
+                    <div class="panel-title"><h2>系统内应用配置</h2><button class="primary">新建</button></div>
+                    <div class="steps">
+                        <div class="step"><strong>车辆外部协同</strong><span class="muted">使用平台“开放调用应用”，开放车辆档案字段和提交动作。</span><span class="tag ok">对外调用</span></div>
+                        <div class="step"><strong>门店车源同步</strong><span class="muted">使用平台“系统协同应用”，同步门店系统数据。</span><span class="tag blue">对内调用</span></div>
+                        <div class="step"><strong>车辆审批 Flow</strong><span class="muted">车辆档案提交后触发平台 Flow，生成系统待办和消息。</span><span class="tag warn">事件绑定</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
