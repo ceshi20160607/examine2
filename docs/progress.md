@@ -1,5 +1,29 @@
 # 项目进度看板
 
+## 2026-06-13 P18 UI 角色流程失效，低成本效果稿撤回
+
+用户反馈成立：`docs/ui/prototypes/p18-ui-card-effect-lowcost.html` 页面错乱，不能称为可接受 UI 设计。该文件不是 Open Design 产物，也不是 UI/UX agent 冻结产物，而是主 agent 手写的低成本草稿。
+
+直接问题：
+
+- 平台管理、自建系统管理、系统普通用户运行台混在同一左侧菜单。
+- 系统数量上百上千时，左侧菜单无法承载系统入口。
+- Flow 和应用被合并，破坏同级关系。
+- 日志审计不像列表，也没有筛选、分页、追踪结构。
+- 内容区空白过多，卡片异常拉伸。
+- reviewer 没有在用户看到前拦住失败稿。
+
+已新增事故记录：
+
+- `docs/process/p18-ui-agent-process-failure.md`
+
+PM/Reviewer 当前裁决：
+
+- `p18-ui-card-effect-lowcost.html` 状态改为 `failed-main-agent-scratch`。
+- 后续不得基于该文件进入前端实现。
+- 下一次 UI 输出必须由 `uiux` 角色产出设计结构和视觉规范；Open Design 可用时优先进入 Open Design；展示给用户前必须经 reviewer 检查。
+- `frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞。
+
 ## 2026-06-13 P18 架构对齐 UI 原型已产出，等待用户复核
 
 用户确认采用“A 稳重企业控制台为主，吸收 B 普通用户亲和度”的方向，并补充平台/系统/应用/流程的关键规则。当前已将规则沉淀到 `AGENTS.md`、最终目标基线和架构修正文档。
