@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-13T14:35:00+08:00",
+    "updated_at":  "2026-06-13T23:05:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2514,6 +2514,20 @@
                                                         "p19_open_design_codex_prototype":  "docs/ui/prototypes/p19-open-design-codex-prototype.html",
                                                         "p19_open_design_codex_review":  "docs/ui/prototypes/p19-open-design-codex-prototype-review.md",
                                                         "p19_open_design_codex_preview":  "http://127.0.0.1:4188/index.html",
+                                                        "p19_open_design_codex_status":  "rejected_user_feedback",
+                                                        "p20_open_design_brief":  "docs/ui/open-design-brief-p20.md",
+                                                        "p20_open_design_brief_status":  "generated_after_p19_user_rejection",
+                                                        "p20_open_design_project_id":  "876a14c0-e959-4562-a0b8-9ee014f36b7d",
+                                                        "p20_open_design_project_dir":  "C:\\Users\\sheji\\AppData\\Roaming\\Open Design\\namespaces\\release-stable-win\\data\\projects\\876a14c0-e959-4562-a0b8-9ee014f36b7d",
+                                                        "p20_open_design_conversation_id":  "c6b9c0d6-e255-48c1-ae8d-b21e08896434",
+                                                        "p20_open_design_run_id":  "d12676df-0119-4065-86de-3978813f9695",
+                                                        "p20_open_design_agent":  "codex",
+                                                        "p20_open_design_model":  "codex_cli_default",
+                                                        "p20_open_design_generation_source":  "open-design-codex-agent",
+                                                        "p20_open_design_prototype":  "docs/ui/prototypes/p20-open-design-codex-prototype.html",
+                                                        "p20_open_design_review":  "docs/ui/prototypes/p20-open-design-codex-prototype-review.md",
+                                                        "p20_open_design_preview":  "http://127.0.0.1:4190/index.html",
+                                                        "p20_open_design_status":  "draft_for_user_review_browser_checked",
                                                         "codex_ui_prototype":  "docs/ui/prototypes/p16-codex-advanced-prototype.html",
                                                         "codex_ui_prototype_review":  "docs/ui/prototypes/p16-codex-advanced-prototype-review.md",
                                                         "codex_ui_prototype_previous":  "docs/ui/prototypes/p16-codex-high-fidelity-prototype.html",
@@ -2580,8 +2594,8 @@
                                                                            "frontend":  "npm.cmd run build pass",
                                                                            "verified_at":  "2026-06-12T22:50:00+08:00"
                                                                        },
-                                                        "remaining_gate":  "P19 UIUX brief has passed reviewer and Open Design Web has generated a Codex-agent prototype. User, PM and reviewer must review the prototype before page-level frontend refactor, full browser flow, review and final package gate",
-                                                        "package_gate":  "trial_package_only_ui_rework_required",
+                                                        "remaining_gate":  "P20 Open Design Codex prototype is browser-checked draft. User, PM and reviewer must review and freeze it before page-level frontend refactor, full browser flow, review and final package gate.",
+                                                        "package_gate":  "blocked_ui_review",
                                                         "package_path":  "dist/unexamine-full-deploy-20260612-160003-p15.zip",
                                                         "linux_package_path":  "dist/unexamine-full-deploy-20260612-160003-p15.tar.gz",
                                                         "package_record":  "docs/build/p15-final-package.md",
@@ -2596,5 +2610,5 @@
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
     "last_completed_batch":  "DEV-BATCH-P15-PACKAGE",
-    "active_batch":  "DEV-BATCH-P19-OPENDESIGN-UI"
+    "active_batch":  "DEV-BATCH-P20-OPENDESIGN-UI"
 }

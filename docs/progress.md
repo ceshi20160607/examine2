@@ -1,5 +1,43 @@
 # 项目进度看板
 
+## 2026-06-13 P20 Open Design Codex 原型已生成并完成首轮浏览器复核
+
+用户对 P19 的复核结论成立：P19 虽然拆开了一部分概念，但整体仍不像主流后台，顶部/左侧/右上任务区、角色登录落点和系统选择方式不足以支撑普通用户真实使用。当前 P19 已撤为历史中间稿，不允许进入 frontend 实现。
+
+本轮按 P20 brief 重新通过 Windows 原生 Open Design Web 调度 Codex CLI 生成：
+
+- Open Design Web：`http://127.0.0.1:52975/`
+- projectId：`876a14c0-e959-4562-a0b8-9ee014f36b7d`
+- conversationId：`c6b9c0d6-e255-48c1-ae8d-b21e08896434`
+- runId：`d12676df-0119-4065-86de-3978813f9695`
+- agent：`codex`
+- 输入 brief：`docs/ui/open-design-brief-p20.md`
+- 仓库归档：`docs/ui/prototypes/p20-open-design-codex-prototype.html`
+- 复核记录：`docs/ui/prototypes/p20-open-design-codex-prototype-review.md`
+- 本地预览：`http://127.0.0.1:4190/index.html`
+
+浏览器复核结果：
+
+- 默认平台首页有顶部全局栏、平台工作区左侧导航，无 P/S/R 原型切换器。
+- 顶部包含审批、待办、消息、日志、切换系统和用户基础信息。
+- 四类登录态区分为平台管理员、系统管理员、普通业务用户、集成管理员。
+- 普通业务用户登录态只看到工作台、待办、授权模块、文件/导出、消息和个人中心，不显示配置、权限、字段、页面发布、流程绑定或日志审计管理。
+- 右上待办在普通业务用户态只显示业务待办，不显示系统配置任务。
+- 车辆档案列表包含高级筛选、查询、列配置、保存视图、分页、详情、编辑和提交审批。
+- 新建、编辑和详情使用右侧抽屉。
+- 平台级 Flow 与平台级对外应用已分离并作为同级能力出现。
+
+已回修：
+
+- 普通业务用户抽屉中的“发布检查 / 缺少菜单入口”改为业务操作历史。
+- 平台侧“平台级应用”统一为“平台级对外应用”。
+
+当前裁决：
+
+- P20 状态为 `draft-for-user-review`。
+- `frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞。
+- 必须等用户/PM/reviewer 复核 P20 后，才能进入前端页面级重构。
+
 ## 2026-06-13 P19 Open Design 已通过 Codex CLI 生成原型，进入用户复核
 
 用户纠正成立：Windows 原生 Open Design 可以配置本地 Codex CLI agent。当前已核实 Open Design 配置为 `agentId=codex`，并通过 Open Design Web 发起生成。

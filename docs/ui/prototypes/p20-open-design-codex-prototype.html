@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>examine2 P20 企业后台原型</title>
+  <style>
+    :root {
+      --bg: oklch(98% 0.005 250);
+      --surface: oklch(100% 0 0);
+      --surface-2: oklch(96.5% 0.006 250);
+      --fg: oklch(22% 0.02 240);
+      --muted: oklch(50% 0.018 240);
+      --border: oklch(90% 0.008 240);
+      --accent: oklch(58% 0.16 145);
+      --accent-soft: oklch(94% 0.045 145);
+      --nav: oklch(25% 0.05 250);
+      --nav-2: oklch(30% 0.055 250);
+      --danger: oklch(58% 0.2 25);
+      --warn: oklch(72% 0.14 80);
+      --success: oklch(58% 0.16 145);
+      --blue: oklch(56% 0.14 245);
+      --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+      --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Microsoft YaHei", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 14px/1.55 var(--font-body);
+      letter-spacing: 0;
+      overflow: hidden;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { height: 100vh; display: grid; grid-template-rows: 56px 1fr; }
+    .topbar {
+      display: grid;
+      grid-template-columns: 280px minmax(280px, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      padding: 0 18px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      z-index: 20;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .mark {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: grid; place-items: center;
+      color: white; background: linear-gradient(135deg, oklch(42% 0.08 250), oklch(56% 0.14 145));
+      font-weight: 700;
+    }
+    .brand-title { font-weight: 650; white-space: nowrap; }
+    .context { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .search {
+      height: 34px;
+      display: flex; align-items: center; gap: 8px;
+      max-width: 560px;
+      padding: 0 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+    }
+    .search input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--fg); }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      position: relative;
+      height: 34px; min-width: 34px; padding: 0 9px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--fg);
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .icon-btn:hover, .icon-btn.active { background: var(--surface-2); border-color: var(--border); }
+    .badge {
+      position: absolute; top: 1px; right: 1px;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: 999px;
+      background: var(--danger);
+      color: #fff; font-size: 10px; line-height: 16px; text-align: center;
+    }
+    .user-chip {
+      height: 36px; border: 1px solid var(--border); border-radius: 999px;
+      padding: 0 10px 0 4px; background: var(--surface);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: grid; place-items: center;
+      color: white; background: var(--nav);
+      font-size: 12px; font-weight: 650;
+    }
+    .shell { min-height: 0; display: grid; grid-template-columns: 232px 1fr; }
+    .shell.collapsed { grid-template-columns: 72px 1fr; }
+    .sider {
+      background: var(--nav);
+      color: oklch(92% 0.01 250);
+      display: flex; flex-direction: column;
+      min-width: 0;
+    }
+    .sider-head {
+      height: 50px; padding: 0 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .workspace-name { font-size: 12px; color: rgba(255,255,255,.62); letter-spacing: .06em; text-transform: uppercase; }
+    .collapse { color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.12); border-radius: 6px; width: 30px; height: 30px; }
+    .nav { padding: 10px 8px; overflow: auto; }
+    .nav button {
+      width: 100%; border: 0; color: rgba(255,255,255,.84);
+      background: transparent; border-radius: 6px;
+      min-height: 38px; padding: 0 10px; margin: 2px 0;
+      display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 8px;
+      text-align: left;
+    }
+    .nav button:hover { background: rgba(255,255,255,.08); }
+    .nav button.active { background: var(--nav-2); color: white; box-shadow: inset 3px 0 0 var(--accent); }
+    .nav .group { margin: 14px 10px 6px; color: rgba(255,255,255,.45); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .shell.collapsed .nav span.label, .shell.collapsed .workspace-name { display: none; }
+    .content { min-width: 0; min-height: 0; overflow: auto; padding: 18px 22px 28px; }
+    .page-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0 0 4px; font: 650 24px/1.2 var(--font-display); letter-spacing: -0.01em; }
+    .desc { color: var(--muted); max-width: 72ch; }
+    .btns { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      height: 32px; padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--fg);
+      display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 520;
+    }
+    .btn.primary { background: var(--fg); color: #fff; border-color: var(--fg); }
+    .btn.ghost { background: transparent; }
+    .btn.danger { color: var(--danger); }
+    .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--surface); }
+    .seg button { height: 30px; border: 0; border-right: 1px solid var(--border); padding: 0 12px; background: transparent; }
+    .seg button:last-child { border-right: 0; }
+    .seg button.active { background: var(--accent-soft); color: oklch(34% 0.12 145); font-weight: 650; }
+    .grid { display: grid; gap: 12px; }
+    .cards-4 { grid-template-columns: repeat(4, minmax(160px, 1fr)); }
+    .cards-3 { grid-template-columns: repeat(3, minmax(220px, 1fr)); }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .metric { display: flex; justify-content: space-between; gap: 12px; }
+    .metric .num { font: 650 26px/1 var(--font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .metric .label { color: var(--muted); font-size: 13px; }
+    .trend { color: var(--success); font: 12px/1.4 var(--font-mono); }
+    .split { display: grid; grid-template-columns: 1.1fr .9fr; gap: 12px; margin-top: 12px; }
+    .panel-title { display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
+    .panel-title h2 { margin:0; font: 650 16px/1.2 var(--font-display); letter-spacing: 0; }
+    .list { display: grid; gap: 8px; }
+    .item {
+      display: flex; justify-content: space-between; gap: 12px; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .item:last-child { border-bottom: 0; }
+    .title { font-weight: 560; }
+    .sub { color: var(--muted); font-size: 12px; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      height: 22px; padding: 0 8px; border-radius: 999px;
+      font-size: 12px; border: 1px solid var(--border); background: var(--surface-2);
+      white-space: nowrap;
+    }
+    .tag.ok { color: oklch(38% 0.13 145); background: var(--accent-soft); border-color: oklch(86% 0.07 145); }
+    .tag.warn { color: oklch(42% 0.12 80); background: oklch(95% 0.045 80); border-color: oklch(86% 0.07 80); }
+    .tag.bad { color: var(--danger); background: oklch(96% 0.035 25); border-color: oklch(88% 0.06 25); }
+    .toolbar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .filters { display: grid; grid-template-columns: 1.2fr 160px 160px 160px auto; gap: 8px; align-items: center; }
+    .field {
+      height: 32px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface); padding: 0 10px; min-width: 0;
+    }
+    .advanced { display: none; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .advanced.show { display: grid; }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      font-variant-numeric: tabular-nums;
+    }
+    th, td {
+      height: 42px; padding: 0 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left; white-space: nowrap;
+    }
+    th { background: var(--surface-2); color: var(--muted); font-weight: 600; font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    td.actions-cell { color: var(--blue); }
+    td.actions-cell button { border: 0; background: transparent; color: var(--blue); margin-right: 8px; padding: 0; }
+    .pagination {
+      height: 44px; display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+      color: var(--muted); font-size: 13px;
+    }
+    .pager-btn { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; width: 30px; height: 30px; }
+    .drawer-mask, .popover-mask {
+      position: fixed; inset: 0; background: rgba(10, 14, 26, .18); display: none; z-index: 50;
+    }
+    .drawer-mask.show, .popover-mask.show { display: block; }
+    .drawer {
+      position: absolute; top: 0; right: 0; width: min(640px, 100vw); height: 100%;
+      background: var(--surface);
+      box-shadow: -20px 0 45px rgba(15, 23, 42, .16);
+      display: grid; grid-template-rows: 56px 1fr 58px;
+    }
+    .drawer-head, .drawer-foot {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 0 18px; border-bottom: 1px solid var(--border);
+    }
+    .drawer-foot { border-top: 1px solid var(--border); border-bottom: 0; justify-content: flex-end; }
+    .drawer-body { overflow: auto; padding: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-row { display: grid; gap: 6px; }
+    .form-row.full { grid-column: 1 / -1; }
+    .form-row label { color: var(--muted); font-size: 12px; }
+    textarea.field { height: 78px; padding-top: 8px; resize: vertical; }
+    .popover {
+      position: fixed; top: 54px; right: 18px; width: 360px; max-height: calc(100vh - 80px); overflow: auto;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, .18); padding: 12px; z-index: 60;
+    }
+    .role-menu { display: grid; gap: 6px; margin-top: 10px; }
+    .role-menu button { text-align: left; height: 38px; border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 0 10px; }
+    .role-menu button.active { background: var(--accent-soft); border-color: oklch(82% 0.07 145); }
+    .progress { display: grid; gap: 8px; }
+    .step { display: grid; grid-template-columns: 24px 1fr auto; gap: 8px; align-items: center; }
+    .dot { width: 20px; height: 20px; border-radius: 50%; background: var(--accent-soft); color: oklch(34% 0.12 145); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+    .bar { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+    .bar i { display:block; height:100%; background: var(--accent); }
+    .chart { height: 210px; display: flex; align-items: end; gap: 12px; padding: 14px 6px 2px; border-bottom: 1px solid var(--border); }
+    .chart b { flex: 1; min-width: 18px; background: color-mix(in oklch, var(--accent), white 18%); border-radius: 4px 4px 0 0; }
+    .empty {
+      min-height: 160px; display:grid; place-items:center; text-align:center;
+      color: var(--muted); border: 1px dashed var(--border); border-radius: 8px; background: var(--surface);
+    }
+    .kbd { font: 12px/1 var(--font-mono); padding: 2px 5px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-2); }
+    @media (max-width: 1180px) {
+      .topbar { grid-template-columns: 220px 1fr auto; }
+      .cards-4 { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+      .split { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: 1fr 1fr; }
+      .advanced { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 760px) {
+      body { overflow: auto; }
+      .app { min-height: 100vh; height: auto; }
+      .topbar { position: sticky; top:0; grid-template-columns: 1fr; height:auto; padding:10px; gap:10px; }
+      .actions { flex-wrap: wrap; }
+      .shell, .shell.collapsed { grid-template-columns: 1fr; }
+      .sider { position: sticky; top: 0; z-index: 10; max-height: 260px; }
+      .content { overflow: visible; padding: 14px; }
+      .page-head { display: grid; }
+      .cards-4, .cards-3, .form-grid, .filters, .advanced { grid-template-columns: 1fr; }
+      table { display:block; overflow:auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">E2</div>
+        <div>
+          <div class="brand-title">统一业务平台</div>
+          <div class="context" id="contextText">平台管理</div>
+        </div>
+      </div>
+      <label class="search" aria-label="全局搜索">
+        <span>⌕</span>
+        <input id="globalSearch" placeholder="搜索当前上下文可见内容、业务数据、requestId" />
+      </label>
+      <div class="actions">
+        <button class="icon-btn" data-pop="approval" title="审批">审<span class="badge">6</span></button>
+        <button class="icon-btn" data-pop="todo" title="待办">待<span class="badge">12</span></button>
+        <button class="icon-btn" data-pop="message" title="消息">信<span class="badge">8</span></button>
+        <button class="icon-btn" data-pop="log" title="日志">日志</button>
+        <button class="icon-btn" data-page="systemCenter" title="切换系统">切换系统</button>
+        <button class="user-chip" data-pop="user" title="用户菜单"><span class="avatar">陈</span><span id="userText">陈知远 · 平台管理员</span></button>
+      </div>
+    </header>
+    <main class="shell" id="shell">
+      <aside class="sider">
+        <div class="sider-head">
+          <span class="workspace-name" id="workspaceName">平台工作区</span>
+          <button class="collapse" id="collapseBtn" title="展开或收起左侧导航">☰</button>
+        </div>
+        <nav class="nav" id="sideNav" aria-label="当前角色导航"></nav>
+      </aside>
+      <section class="content" id="content"></section>
+    </main>
+  </div>
+
+  <div class="popover-mask" id="popoverMask"></div>
+  <div class="drawer-mask" id="drawerMask">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <div class="drawer-head">
+        <strong id="drawerTitle">详情</strong>
+        <button class="icon-btn" id="closeDrawer" title="关闭">×</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+      <div class="drawer-foot">
+        <button class="btn" id="cancelDrawer">取消</button>
+        <button class="btn primary" id="saveDrawer">保存</button>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const state = {
+      role: "platform",
+      page: "platformHome",
+      collapsed: false,
+      advanced: false,
+      cardView: false
+    };
+
+    const roles = {
+      platform: {
+        name: "平台管理员",
+        user: "陈知远",
+        workspace: "平台工作区",
+        context: "平台管理",
+        home: "platformHome",
+        nav: [
+          ["总览", [["platformHome", "平台首页", "⌂"], ["systemCenter", "系统中心", "▦"], ["platformAccounts", "平台账号", "人"]]],
+          ["平台能力", [["platformFlow", "平台级 Flow", "流"], ["platformApps", "平台级对外应用", "钥"], ["platformLogs", "平台日志 / 审计", "志"]]],
+          ["治理", [["ops", "运维监控", "仪"]]]
+        ]
+      },
+      system: {
+        name: "系统管理员",
+        user: "林若楠",
+        workspace: "系统管理工作区",
+        context: "车队运营系统 / 系统管理",
+        home: "systemHome",
+        nav: [
+          ["系统", [["systemHome", "系统首页", "⌂"], ["members", "成员与部门", "人"], ["roles", "角色与权限", "权"], ["dict", "字典管理", "典"]]],
+          ["建模配置", [["modules", "模块与字段", "模"], ["pages", "页面与菜单", "页"], ["internalApps", "系统内应用配置", "配"], ["eventBinding", "流程事件绑定", "绑"]]],
+          ["审计", [["systemLogs", "系统日志 / 审计", "志"]]]
+        ]
+      },
+      business: {
+        name: "普通业务用户",
+        user: "周启明",
+        workspace: "业务运行工作区",
+        context: "车队运营系统 / 业务运行",
+        home: "businessHome",
+        nav: [
+          ["我的工作", [["businessHome", "工作台", "⌂"], ["myTodo", "我的待办", "待"]]],
+          ["授权模块", [["moduleData", "车辆档案", "车"], ["maintenance", "维保与保险", "修"], ["driverTask", "司机任务", "任"]]],
+          ["个人", [["files", "文件 / 导出", "文"], ["myMessage", "我的消息", "信"], ["profile", "个人中心", "人"]]]
+        ]
+      },
+      integration: {
+        name: "集成管理员",
+        user: "许知秋",
+        workspace: "开放中心工作区",
+        context: "平台开放中心",
+        home: "openHome",
+        nav: [
+          ["开放治理", [["openHome", "开放首页", "⌂"], ["platformApps", "对外应用", "钥"], ["credential", "凭证管理", "证"], ["scope", "授权范围", "权"]]],
+          ["安全", [["ipList", "IP 白名单", "网"], ["rateLimit", "限流策略", "限"], ["callLogs", "调用日志", "志"], ["riskAudit", "风险审计", "审"]]]
+        ]
+      }
+    };
+
+    const pageMeta = {
+      platformHome: ["平台首页", "查看平台系统、账号、对外应用、Flow 和审计的总体运行情况。"],
+      systemCenter: ["系统选择中心", "面向上百上千系统的搜索、筛选、收藏和进入入口，不进入左侧导航。"],
+      platformAccounts: ["平台账号", "维护平台账号、开通状态、风险状态和所属组织。"],
+      platformFlow: ["平台级 Flow", "平台层流程模板、流程实例、待审批和流程日志，独立于平台级对外应用。"],
+      platformApps: ["平台级对外应用", "创建外部接入应用，维护凭证、授权范围、白名单、限流和调用日志。"],
+      platformLogs: ["平台日志 / 审计", "平台账号、系统创建、对外应用、平台流程和运维诊断的分层追踪。"],
+      ops: ["运维监控", "平台健康、服务状态、异常队列和部署版本。"],
+      systemHome: ["系统首页", "当前业务系统的搭建进度、配置建议、快捷入口和最近变更。"],
+      members: ["成员与部门", "在当前系统内开通成员、维护部门和角色，不要求跳转到平台账号。"],
+      roles: ["角色与权限", "配置菜单、按钮、字段、数据范围和导出权限。"],
+      dict: ["字典管理", "维护当前系统内的业务字典和级联字典。"],
+      modules: ["模块与字段", "配置业务模块、字段、发布状态和运行台入口。"],
+      pages: ["页面与菜单", "维护列表页、表单页、详情页、菜单入口和发布检查。"],
+      internalApps: ["系统内应用配置", "配置当前系统如何启用平台级对外应用能力，独立于流程事件绑定。"],
+      eventBinding: ["流程事件绑定", "把模块事件绑定到流程模板，表达数据提交后的审批触发规则。"],
+      systemLogs: ["系统日志 / 审计", "当前系统内配置、业务数据、流程、文件和 OpenAPI 调用追踪。"],
+      businessHome: ["工作台", "普通业务用户的待办、常用模块、快速新建、最近数据和消息。"],
+      myTodo: ["我的待办", "只展示当前用户需要处理的审批、抄送和业务任务。"],
+      moduleData: ["车辆档案", "授权模块数据列表，支持查询、筛选、分页、新建、编辑、详情和导出。"],
+      maintenance: ["维保与保险", "授权业务模块列表，普通用户只能处理有权限的数据。"],
+      driverTask: ["司机任务", "司机任务的查询、处理、提交和历史追踪。"],
+      files: ["文件 / 导出", "普通用户可查看自己的导出任务和有权限文件。"],
+      myMessage: ["我的消息", "系统消息、流程通知和业务提醒。"],
+      profile: ["个人中心", "个人资料、当前身份、所属组织和退出入口。"],
+      openHome: ["开放首页", "集成管理员查看对外应用、异常调用、凭证到期和限流命中。"],
+      credential: ["凭证管理", "appKey、secret、轮换、停用和到期提醒。"],
+      scope: ["授权范围", "配置可访问系统、模块、字段、动作、流程能力和数据范围。"],
+      ipList: ["IP 白名单", "维护外部接入来源和安全策略。"],
+      rateLimit: ["限流策略", "按 appKey、IP、系统和接口配置调用阈值。"],
+      callLogs: ["调用日志", "按 requestId 查询签名、授权、scope、限流和业务结果。"],
+      riskAudit: ["风险审计", "高风险授权变更、密钥轮换、停用和异常访问记录。"]
+    };
+
+    const tableSets = {
+      systems: {
+        cols: ["收藏", "系统名称", "系统编号", "状态", "我的身份", "最近访问", "待办数", "创建人", "操作"],
+        rows: [
+          ["★", "车队运营系统", "SYS-FLEET-001", "运行中", "系统管理员 / 业务用户", "今天 09:42", "16", "陈知远", "进入运行台｜进入管理｜详情"],
+          ["☆", "采购协同系统", "SYS-PUR-018", "运行中", "业务用户", "昨天 17:08", "3", "王雅洁", "进入运行台｜详情｜收藏"],
+          ["☆", "设备巡检系统", "SYS-IOT-026", "维护中", "只读审计", "2026-06-10", "0", "刘北辰", "查看信息｜收藏"]
+        ]
+      },
+      account: {
+        cols: ["姓名", "账号", "组织", "状态", "风险", "最近登录", "操作"],
+        rows: [
+          ["林若楠", "linrn", "运营管理部", "已启用", "正常", "今天 09:18", "详情｜编辑｜停用"],
+          ["周启明", "zhouqm", "车辆业务部", "已启用", "密码即将过期", "今天 08:54", "详情｜重置密码"],
+          ["许知秋", "xuzq", "开放平台组", "已启用", "高权限待复核", "昨天 16:20", "详情｜审计"]
+        ]
+      },
+      flow: {
+        cols: ["流程名称", "所属层级", "版本", "状态", "待审批", "失败实例", "最近发布", "操作"],
+        rows: [
+          ["平台应用授权审批", "平台级", "v4", "已发布", "6", "1", "2026-06-12", "实例｜日志｜编辑"],
+          ["车辆档案提交审批", "系统事件绑定", "v2", "运行中", "18", "0", "2026-06-08", "查看绑定｜实例"],
+          ["密钥轮换复核", "平台级", "v1", "草稿", "0", "0", "未发布", "发布检查｜编辑"]
+        ]
+      },
+      apps: {
+        cols: ["应用名称", "appKey", "状态", "授权系统", "异常调用", "凭证到期", "限流命中", "操作"],
+        rows: [
+          ["车联网外部接入", "ak_fleet_iot", "已启用", "车队运营系统", "2", "29 天", "14", "详情｜授权｜轮换 secret"],
+          ["财务报销同步", "ak_fin_expense", "待复核", "采购协同系统", "0", "96 天", "0", "审批｜详情"],
+          ["BI 只读分析", "ak_bi_readonly", "已启用", "3 个系统", "1", "182 天", "3", "详情｜调用日志"]
+        ]
+      },
+      logs: {
+        cols: ["时间", "操作者", "对象", "动作", "结果", "来源", "requestId", "操作"],
+        rows: [
+          ["10:24:18", "许知秋", "车联网外部接入", "轮换 secret", "成功", "Web", "REQ-9F2A-021", "详情"],
+          ["10:18:42", "外部系统", "车辆档案 OpenAPI", "查询数据", "失败：scope 不足", "OpenAPI", "REQ-7C4D-884", "详情"],
+          ["09:58:03", "林若楠", "车辆档案页面", "发布检查", "失败：缺少菜单入口", "Web", "REQ-51AB-771", "详情"]
+        ]
+      },
+      member: {
+        cols: ["成员", "部门", "系统角色", "数据范围", "状态", "最近活跃", "操作"],
+        rows: [
+          ["周启明", "车辆业务部", "车辆业务员", "本人及本部门", "已启用", "今天 08:54", "详情｜编辑权限"],
+          ["王雅洁", "维保组", "维保专员", "本人数据", "已启用", "昨天 18:02", "详情｜调整部门"],
+          ["陈知远", "平台办公室", "系统管理员", "全部数据", "已启用", "今天 10:12", "详情｜移交"]
+        ]
+      },
+      modules: {
+        cols: ["模块名称", "分组", "字段数", "列表页", "表单页", "菜单", "发布状态", "操作"],
+        rows: [
+          ["车辆档案", "车辆业务", "18", "已配置", "已配置", "已发布", "运行中", "详情｜字段｜发布检查"],
+          ["保单记录", "维保与保险", "12", "已配置", "待完善", "未发布", "草稿", "详情｜继续配置"],
+          ["司机任务", "司机任务", "15", "已配置", "已配置", "已发布", "运行中", "详情｜字段"]
+        ]
+      },
+      business: {
+        cols: ["车牌号", "车型", "所属部门", "状态", "年检到期", "负责人", "最近更新", "操作"],
+        rows: [
+          ["沪A·8K26", "厢式货车", "一队", "营运中", "2026-09-18", "周启明", "今天 09:31", "详情｜编辑｜提交审批"],
+          ["苏E·3P92", "冷链车", "二队", "维保中", "2026-07-02", "王雅洁", "昨天 16:48", "详情｜编辑"],
+          ["浙B·6C18", "牵引车", "外协", "待启用", "2027-01-12", "周启明", "2026-06-09", "详情｜提交审批"]
+        ]
+      },
+      todo: {
+        cols: ["事项", "所属模块", "状态", "截止时间", "来源", "最近更新", "操作"],
+        rows: [
+          ["车辆档案补充年检照片", "车辆档案", "待处理", "今天 18:00", "流程待办", "10:08", "处理｜详情"],
+          ["维保记录确认", "维保与保险", "待处理", "明天 12:00", "业务提醒", "09:46", "处理｜详情"],
+          ["车辆档案审批退回", "车辆档案", "需修改", "今天 17:30", "审批退回", "09:12", "编辑｜详情"]
+        ]
+      }
+    };
+
+    function currentRole() { return roles[state.role]; }
+    function renderNav() {
+      const nav = document.getElementById("sideNav");
+      nav.innerHTML = currentRole().nav.map(group => `
+        <div class="group">${group[0]}</div>
+        ${group[1].map(item => `<button class="${state.page === item[0] ? "active" : ""}" data-page="${item[0]}"><span>${item[2]}</span><span class="label">${item[1]}</span></button>`).join("")}
+      `).join("");
+      document.getElementById("workspaceName").textContent = currentRole().workspace;
+      document.getElementById("contextText").textContent = currentRole().context;
+      document.getElementById("userText").textContent = `${currentRole().user} · ${currentRole().name}`;
+    }
+
+    function metricCards(items) {
+      return `<div class="grid cards-4">${items.map(x => `<article class="card metric"><div><div class="label">${x[0]}</div><div class="num">${x[1]}</div></div><span class="trend">${x[2]}</span></article>`).join("")}</div>`;
+    }
+
+    function tableBlock(type) {
+      const set = tableSets[type] || tableSets.logs;
+      return `
+        <div class="toolbar">
+          <div class="filters">
+            <input class="field" placeholder="输入名称、编号、操作者或 requestId" />
+            <select class="field"><option>全部状态</option><option>运行中</option><option>待复核</option><option>失败</option></select>
+            ${state.role === "business" ? `<select class="field"><option>全部模块分组</option><option>车辆业务</option><option>维保与保险</option><option>司机任务</option></select>` : `<select class="field"><option>全部角色</option><option>平台管理员</option><option>系统管理员</option><option>普通业务用户</option></select>`}
+            <input class="field" type="date" value="2026-06-13" />
+            <div class="btns"><button class="btn" id="advancedBtn">高级筛选</button><button class="btn">查询</button></div>
+          </div>
+          <div class="advanced ${state.advanced ? "show" : ""}" id="advancedFilters">
+            <input class="field" placeholder="创建人 / 操作者" />
+            <input class="field" placeholder="对象 / 模块" />
+            <input class="field" placeholder="来源 Web / OpenAPI" />
+            <select class="field"><option>保存视图：默认视图</option><option>我的常用筛选</option></select>
+          </div>
+        </div>
+        <div class="btns" style="justify-content:flex-end;margin-bottom:8px;">
+          <button class="btn">列配置</button><button class="btn">保存视图</button><button class="btn">导出</button>
+        </div>
+        <table>
+          <thead><tr>${set.cols.map(c => `<th>${c}</th>`).join("")}</tr></thead>
+          <tbody>${set.rows.map(row => `<tr>${row.map((c, i) => `<td class="${i === row.length - 1 ? "actions-cell" : ""}">${formatCell(c, i === row.length - 1)}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>
+        <div class="pagination"><span>共 1,268 条</span><button class="pager-btn">‹</button><button class="pager-btn">1</button><button class="pager-btn">2</button><button class="pager-btn">3</button><button class="pager-btn">›</button><select class="field" style="width:92px"><option>20 / 页</option><option>50 / 页</option><option>100 / 页</option></select></div>
+      `;
+    }
+
+    function formatCell(text, action) {
+      if (action) return String(text).split("｜").map(x => `<button data-drawer="${x}">${x}</button>`).join("");
+      if (["运行中", "已启用", "已发布", "成功", "正常"].includes(text)) return `<span class="tag ok">${text}</span>`;
+      if (String(text).includes("失败") || String(text).includes("高权限")) return `<span class="tag bad">${text}</span>`;
+      if (String(text).includes("待") || String(text).includes("维护") || String(text).includes("即将")) return `<span class="tag warn">${text}</span>`;
+      return text;
+    }
+
+    function pageHead(meta, actions = "") {
+      return `<div class="page-head"><div><h1>${meta[0]}</h1><div class="desc">${meta[1]}</div></div><div class="btns">${actions}</div></div>`;
+    }
+
+    function dashboard(kind) {
+      if (kind === "platform") return `
+        ${pageHead(pageMeta.platformHome, `<button class="btn primary" data-drawer="创建业务系统">创建系统</button><button class="btn" data-drawer="创建平台账号">创建平台账号</button><button class="btn" data-drawer="创建对外应用">创建对外应用</button>`)}
+        ${metricCards([["业务系统总数","1,248","+32 本月"],["异常系统","7","需处理"],["外部调用量","86.4万","+12.8%"],["Flow 超时","18","今日"]])}
+        <div class="split">
+          <section class="card"><div class="panel-title"><h2>平台级应用调用趋势</h2><span class="tag ok">按小时刷新</span></div><div class="chart"><b style="height:42%"></b><b style="height:54%"></b><b style="height:48%"></b><b style="height:66%"></b><b style="height:73%"></b><b style="height:58%"></b><b style="height:82%"></b><b style="height:76%"></b></div></section>
+          <section class="card"><div class="panel-title"><h2>平台待办与最近审计</h2><button class="btn" data-pop="approval">查看审批</button></div>${listItems([["对外应用授权待复核","车联网外部接入申请访问车辆档案字段"],["密钥轮换高风险确认","BI 只读分析将在 29 天后到期"],["系统创建审批","采购协同系统申请开通外部访问"]])}</section>
+        </div>
+      `;
+      if (kind === "system") return `
+        ${pageHead(pageMeta.systemHome, `<button class="btn primary" data-drawer="新建模块">新建模块</button><button class="btn" data-drawer="邀请成员">邀请成员</button><button class="btn" data-page="moduleData">进入运行台</button>`)}
+        ${metricCards([["系统状态","运行中","SYS-FLEET-001"],["搭建完成度","82%","页面待发布"],["已发布模块","8","车辆业务"],["未处理配置","5","需复核"]])}
+        <div class="split">
+          <section class="card"><div class="panel-title"><h2>搭建进度</h2><span class="tag warn">下一步：发布保单记录表单</span></div>${progressSteps()}</section>
+          <section class="card"><div class="panel-title"><h2>最近配置变更</h2><button class="btn" data-page="systemLogs">查看日志</button></div>${listItems([["车辆档案新增字段“年检到期日”","林若楠 · 10:21"],["页面发布检查失败","缺少菜单入口 · 09:58"],["流程事件绑定更新","车辆档案提交 → 车辆审批流程"]])}</section>
+        </div>
+      `;
+      if (kind === "business") return `
+        ${pageHead(pageMeta.businessHome, `<button class="btn primary" data-drawer="新建车辆档案">新建业务数据</button><button class="btn" data-page="myTodo">处理待办</button>`)}
+        ${metricCards([["我的待办","12","3 个即将超时"],["常用模块","6","已授权"],["最近处理","28","本周"],["系统消息","8","2 条未读"]])}
+        <div class="split">
+          <section class="card"><div class="panel-title"><h2>常用模块</h2><span class="sub">只显示已授权入口</span></div><div class="grid cards-3"><button class="card" data-page="moduleData"><div class="title">车辆档案</div><div class="sub">新增、编辑、提交车辆基础数据</div></button><button class="card" data-page="maintenance"><div class="title">维保与保险</div><div class="sub">处理保单、维保、年检提醒</div></button><button class="card" data-page="driverTask"><div class="title">司机任务</div><div class="sub">派车、回单、异常上报</div></button></div></section>
+          <section class="card"><div class="panel-title"><h2>我的待办</h2><button class="btn" data-pop="todo">展开</button></div>${listItems([["车辆档案待补充年检照片","沪A·8K26 · 今天 18:00 前"],["维保记录待确认","苏E·3P92 · 保险即将到期"],["审批退回需修改","浙B·6C18 · 缺少负责人"]])}</section>
+        </div>
+      `;
+      return `
+        ${pageHead(pageMeta.openHome, `<button class="btn primary" data-drawer="创建对外应用">创建对外应用</button><button class="btn" data-page="callLogs">查 requestId</button>`)}
+        ${metricCards([["对外应用","42","3 个待复核"],["异常调用","17","较昨日 -8"],["凭证到期","5","30 天内"],["限流命中","126","今日"]])}
+        <div class="split">
+          <section class="card"><div class="panel-title"><h2>高风险授权变更</h2><button class="btn" data-page="riskAudit">查看审计</button></div>${listItems([["车联网外部接入申请字段明文访问","车辆档案：车牌号、负责人、维保状态"],["BI 只读分析新增系统范围","从 2 个系统扩大到 3 个系统"],["外部同步应用触发限流","10 分钟内 126 次命中"]])}</section>
+          <section class="card"><div class="panel-title"><h2>最近调用日志</h2><span class="kbd">requestId</span></div>${listItems([["REQ-7C4D-884 scope 不足","OpenAPI 查询车辆档案失败"],["REQ-9F2A-021 secret 轮换成功","许知秋 · Web"],["REQ-103A-440 限流命中","来源 IP 10.6.18.24"]])}</section>
+        </div>
+      `;
+    }
+
+    function listItems(items) {
+      return `<div class="list">${items.map(x => `<div class="item"><div><div class="title">${x[0]}</div><div class="sub">${x[1]}</div></div><button class="btn" data-drawer="${x[0]}">处理</button></div>`).join("")}</div>`;
+    }
+
+    function progressSteps() {
+      const steps = [["成员与部门", "100%"], ["模块与字段", "88%"], ["页面与菜单", "72%"], ["系统内应用配置", "66%"], ["流程事件绑定", "60%"]];
+      return `<div class="progress">${steps.map((s, i) => `<div class="step"><span class="dot">${i + 1}</span><div><div class="title">${s[0]}</div><div class="bar"><i style="width:${s[1]}"></i></div></div><span class="sub">${s[1]}</span></div>`).join("")}</div>`;
+    }
+
+    function systemsCenter() {
+      return `
+        ${pageHead(pageMeta.systemCenter, `<div class="seg"><button class="${state.cardView ? "" : "active"}" id="tableView">表格</button><button class="${state.cardView ? "active" : ""}" id="cardView">紧凑卡片</button></div><button class="btn primary" data-drawer="创建业务系统">创建系统</button>`)}
+        ${state.cardView ? `<div class="grid cards-3">${tableSets.systems.rows.map(r => `<article class="card"><div class="panel-title"><h2>${r[1]}</h2>${formatCell(r[3])}</div><div class="sub">${r[2]} · ${r[4]} · 待办 ${r[6]}</div><div class="btns" style="margin-top:12px"><button class="btn primary" data-page="moduleData">进入运行台</button><button class="btn" data-page="systemHome">进入管理</button><button class="btn" data-drawer="系统信息">详情</button></div></article>`).join("")}</div>` : tableBlock("systems")}
+      `;
+    }
+
+    function listPage(page) {
+      const meta = pageMeta[page];
+      const map = {
+        platformAccounts: ["account", "创建平台账号"],
+        platformFlow: ["flow", "新建流程模板"],
+        platformApps: ["apps", "创建对外应用"],
+        platformLogs: ["logs", ""],
+        members: ["member", "邀请成员"],
+        modules: ["modules", "新建模块"],
+        pages: ["modules", "配置页面"],
+        internalApps: ["apps", "启用系统内应用能力"],
+        eventBinding: ["flow", "新建事件绑定"],
+        systemLogs: ["logs", ""],
+        moduleData: ["business", "新建车辆档案"],
+        myTodo: ["todo", ""],
+        maintenance: ["business", "新建维保记录"],
+        driverTask: ["business", "新建司机任务"],
+        files: ["logs", "新建导出任务"],
+        myMessage: ["logs", ""],
+        credential: ["apps", "轮换 secret"],
+        scope: ["apps", "新增授权范围"],
+        ipList: ["apps", "新增白名单"],
+        rateLimit: ["apps", "新增限流策略"],
+        callLogs: ["logs", ""],
+        riskAudit: ["logs", ""],
+        roles: ["member", "新建角色"],
+        dict: ["modules", "新建字典"],
+        ops: ["logs", ""],
+        profile: ["member", "编辑资料"]
+      };
+      const [type, action] = map[page] || ["logs", ""];
+      return `${pageHead(meta, `${action ? `<button class="btn primary" data-drawer="${action}">${action}</button>` : ""}<button class="btn">刷新</button>`)}${tableBlock(type)}`;
+    }
+
+    function render() {
+      renderNav();
+      document.getElementById("shell").classList.toggle("collapsed", state.collapsed);
+      const content = document.getElementById("content");
+      if (state.page === "platformHome") content.innerHTML = dashboard("platform");
+      else if (state.page === "systemHome") content.innerHTML = dashboard("system");
+      else if (state.page === "businessHome") content.innerHTML = dashboard("business");
+      else if (state.page === "openHome") content.innerHTML = dashboard("open");
+      else if (state.page === "systemCenter") content.innerHTML = systemsCenter();
+      else content.innerHTML = listPage(state.page);
+    }
+
+    function openDrawer(title) {
+      document.getElementById("drawerTitle").textContent = title;
+      const isCreateSystem = title.includes("创建业务系统");
+      document.getElementById("drawerBody").innerHTML = isCreateSystem ? createSystemForm() : genericDrawer(title);
+      document.getElementById("drawerMask").classList.add("show");
+    }
+
+    function createSystemForm() {
+      return `
+        <div class="progress" style="margin-bottom:18px">${[["填写系统信息", "100%"], ["初始化成员与角色", "45%"], ["选择默认业务模板", "20%"], ["确认并创建", "0%"]].map((s, i) => `<div class="step"><span class="dot">${i + 1}</span><div><div class="title">${s[0]}</div><div class="bar"><i style="width:${s[1]}"></i></div></div><span class="sub">${s[1]}</span></div>`).join("")}</div>
+        <div class="form-grid">
+          <div class="form-row"><label>系统名称</label><input class="field" value="车队运营系统" /></div>
+          <div class="form-row"><label>系统编号</label><input class="field" value="SYS-FLEET-001" /></div>
+          <div class="form-row"><label>创建人</label><input class="field" value="${currentRole().user}" /></div>
+          <div class="form-row"><label>默认管理员</label><input class="field" value="林若楠" /></div>
+          <div class="form-row full"><label>业务说明</label><textarea class="field">用于车辆档案、维保保险、司机任务和车联网对外接入管理。</textarea></div>
+        </div>`;
+    }
+
+    function genericDrawer(title) {
+      const historyItems = state.role === "business"
+        ? [["新增记录", "今天 09:18 · 周启明"], ["补充年检照片", "今天 09:58 · 已保存"], ["提交审批", "今天 10:21 · 等待处理"]]
+        : [["创建草稿", "今天 09:18 · 林若楠"], ["发布检查", "今天 09:58 · 缺少菜单入口"], ["修复并重新提交", "今天 10:21 · 通过"]];
+      return `
+        <div class="form-grid">
+          <div class="form-row"><label>名称</label><input class="field" value="${title}" /></div>
+          <div class="form-row"><label>状态</label><select class="field"><option>已启用</option><option>草稿</option><option>待复核</option></select></div>
+          <div class="form-row"><label>所属上下文</label><input class="field" value="${currentRole().context}" /></div>
+          <div class="form-row"><label>负责人</label><input class="field" value="${currentRole().user}" /></div>
+          <div class="form-row full"><label>${state.role === "business" ? "业务说明" : "权限与影响范围"}</label><textarea class="field">${state.role === "business" ? "保存前会校验必填字段、审批状态和本人数据范围。保存失败时抽屉不会关闭，并会提示可恢复原因。" : "保存前会校验菜单权限、字段权限、数据范围和发布状态。无权限入口会隐藏或禁用，并给出中文原因。"}</textarea></div>
+          <div class="form-row full"><label>最近追踪</label><input class="field" value="requestId：REQ-9F2A-021 · 来源：Web · 结果：成功" /></div>
+        </div>
+        <div class="card" style="margin-top:14px"><div class="panel-title"><h2>操作历史</h2><span class="tag ok">可追溯</span></div>${listItems(historyItems)}</div>`;
+    }
+
+    function openPopover(type) {
+      closePopover();
+      const mask = document.getElementById("popoverMask");
+      const node = document.createElement("div");
+      node.className = "popover";
+      node.id = "activePopover";
+      const titles = { approval: "待审批", todo: "我的待办", message: "消息中心", log: "快捷日志", user: "用户菜单" };
+      if (type === "user") {
+        node.innerHTML = `<div class="panel-title"><h2>${currentRole().user}</h2><span class="tag">${currentRole().name}</span></div><div class="sub">${currentRole().context}</div><div class="role-menu">${Object.entries(roles).map(([key, r]) => `<button class="${state.role === key ? "active" : ""}" data-role="${key}">${r.name} · ${r.context}</button>`).join("")}</div><div class="btns" style="margin-top:12px"><button class="btn" data-drawer="个人中心">个人中心</button><button class="btn danger" id="logoutBtn">退出登录</button></div>`;
+      } else {
+        const byRole = {
+          platform: {
+            approval: [["对外应用授权审批", "车联网外部接入申请访问车辆档案"], ["流程发布复核", "密钥轮换复核 v1 待发布"]],
+            todo: [["系统创建审批", "采购协同系统申请开通"], ["平台账号风险复核", "许知秋存在高权限变更"]],
+            message: [["平台消息", "7 个系统健康检查完成"], ["安全提醒", "BI 只读分析凭证 29 天后到期"]]
+          },
+          system: {
+            approval: [["页面发布复核", "车辆档案列表页待发布"], ["流程绑定复核", "车辆档案提交事件待确认"]],
+            todo: [["页面发布失败处理", "缺少菜单入口，需系统管理员修复"], ["成员授权待完善", "周启明缺少导出权限"]],
+            message: [["系统消息", "车辆审批流程已产生 3 条新待办"], ["发布检查", "保单记录表单仍缺必填提示"]]
+          },
+          business: {
+            approval: [["车辆档案审批退回", "浙B·6C18 缺少负责人"], ["维保记录待确认", "苏E·3P92 保险即将到期"]],
+            todo: [["车辆档案待补充", "沪A·8K26 · 今天 18:00 前"], ["司机任务待回单", "任务 T-20260613-08 待提交"]],
+            message: [["业务消息", "车辆审批流程有 2 条处理结果"], ["系统提醒", "你有 3 条车辆档案即将年检到期"]]
+          },
+          integration: {
+            approval: [["授权范围复核", "车联网外部接入申请新增字段"], ["密钥轮换审批", "BI 只读分析将在 29 天后到期"]],
+            todo: [["异常调用排查", "REQ-7C4D-884 scope 不足"], ["限流策略复核", "外部同步应用命中阈值"]],
+            message: [["开放中心消息", "14 次限流命中已归档"], ["安全提醒", "新增 IP 白名单待确认"]]
+          }
+        };
+        const items = type === "log"
+          ? [["平台日志", "查看平台账号、应用、Flow 和运维记录"], ["系统日志", "查看当前系统配置和业务数据变更"]]
+          : byRole[state.role][type];
+        node.innerHTML = `<div class="panel-title"><h2>${titles[type]}</h2><button class="btn" data-page="${type === "log" ? (state.role === "platform" ? "platformLogs" : "systemLogs") : "myTodo"}">进入列表</button></div>${listItems(items)}`;
+      }
+      document.body.appendChild(node);
+      mask.classList.add("show");
+    }
+
+    function closePopover() {
+      document.getElementById("popoverMask").classList.remove("show");
+      const old = document.getElementById("activePopover");
+      if (old) old.remove();
+    }
+
+    document.addEventListener("click", (e) => {
+      const pageBtn = e.target.closest("[data-page]");
+      if (pageBtn) {
+        state.page = pageBtn.dataset.page;
+        closePopover();
+        render();
+        return;
+      }
+      const popBtn = e.target.closest("[data-pop]");
+      if (popBtn) { openPopover(popBtn.dataset.pop); return; }
+      const drawerBtn = e.target.closest("[data-drawer]");
+      if (drawerBtn) { openDrawer(drawerBtn.dataset.drawer); return; }
+      const roleBtn = e.target.closest("[data-role]");
+      if (roleBtn) {
+        state.role = roleBtn.dataset.role;
+        state.page = roles[state.role].home;
+        closePopover();
+        render();
+        return;
+      }
+      if (e.target.id === "advancedBtn") { state.advanced = !state.advanced; render(); return; }
+      if (e.target.id === "cardView") { state.cardView = true; render(); return; }
+      if (e.target.id === "tableView") { state.cardView = false; render(); return; }
+    });
+    document.getElementById("collapseBtn").addEventListener("click", () => { state.collapsed = !state.collapsed; render(); });
+    document.getElementById("popoverMask").addEventListener("click", closePopover);
+    document.getElementById("closeDrawer").addEventListener("click", () => document.getElementById("drawerMask").classList.remove("show"));
+    document.getElementById("cancelDrawer").addEventListener("click", () => document.getElementById("drawerMask").classList.remove("show"));
+    document.getElementById("saveDrawer").addEventListener("click", () => {
+      const btn = document.getElementById("saveDrawer");
+      btn.textContent = "已保存";
+      setTimeout(() => { btn.textContent = "保存"; document.getElementById("drawerMask").classList.remove("show"); }, 650);
+    });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closePopover(); document.getElementById("drawerMask").classList.remove("show"); } });
+    render();
+  </script>
+</body>
+</html>
