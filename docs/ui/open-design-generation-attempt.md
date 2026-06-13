@@ -1,3 +1,51 @@
+# Open Design 原型生成尝试记录
+
+## 2026-06-13 P19 Windows 原生 Open Design 尝试
+
+本次按角色流程执行，不再由主 agent 手写原型：
+
+- brief 来源：`uiux-agent`
+- brief 文件：`docs/ui/open-design-brief-p19.md`
+- reviewer 结论：`pass`
+- Open Design project：`examine2-p19-ui-prototype`
+- Open Design project dir：`C:\Users\sheji\AppData\Roaming\Open Design\namespaces\release-stable-win\data\projects\examine2-p19-ui-prototype`
+
+已同步到 Open Design 项目的输入材料：
+
+- `brief.md`
+- `requirements/user_requirement.md`
+- `requirements/final-user-goal.md`
+- `requirements/product-vision-and-operating-model.md`
+- `requirements/integrated-system-baseline.md`
+- `requirements/p18-ui-agent-process-failure.md`
+- `requirements/open-design-prototype-workflow.md`
+
+已发起生成任务：
+
+```text
+runId: 353aa73c-eb03-468a-bc27-1e7e03a859cc
+agent: amr
+model: deepseek-v4-flash
+plugin: example-web-prototype
+```
+
+生成结果：
+
+```text
+status: failed
+errorCode: AMR_AUTH_REQUIRED
+error: AMR sign-in is required. Sign in to AMR Cloud again, then retry this run.
+```
+
+PM/Reviewer 当前判定：
+
+- P19 brief 已经是当前正确输入，旧 `docs/ui/open-design-brief.md` 只保留为 P16 历史输入。
+- Open Design 链路可创建项目、同步输入材料、发起 run，但当前未产出 `index.html`。
+- 阻塞原因是 AMR Cloud 登录，不是 brief 缺失，也不是 Codex 未调用 Open Design。
+- 在 AMR 登录完成前，不得把本次尝试称为“Open Design 已生成 UI 原型”。
+
+---
+
 # P16 Open Design 原型生成尝试记录
 
 时间：2026-06-13

@@ -1,5 +1,59 @@
 # 项目进度看板
 
+## 2026-06-13 P19 Open Design 生成已尝试，当前阻塞于 AMR 登录
+
+本轮执行链路已经按角色拆开：
+
+- `uiux` agent 重新生成 `docs/ui/open-design-brief-p19.md`。
+- `reviewer` agent 对真实仓库文件、状态文件和 Open Design 工作流复审后判定 `pass`。
+- Orchestrator 只负责把材料同步到 Open Design 项目并启动 run，没有手写替代原型。
+
+已同步到 Open Design 项目：
+
+- Open Design project：`examine2-p19-ui-prototype`
+- 项目目录：`C:\Users\sheji\AppData\Roaming\Open Design\namespaces\release-stable-win\data\projects\examine2-p19-ui-prototype`
+- 输入材料：`brief.md`、`requirements/user_requirement.md`、`requirements/final-user-goal.md`、`requirements/product-vision-and-operating-model.md`、`requirements/integrated-system-baseline.md`、`requirements/p18-ui-agent-process-failure.md`、`requirements/open-design-prototype-workflow.md`
+
+Open Design run：
+
+- agent：`amr`
+- model：`deepseek-v4-flash`
+- plugin：`example-web-prototype`
+- runId：`353aa73c-eb03-468a-bc27-1e7e03a859cc`
+- 结果：`failed`
+- 错误码：`AMR_AUTH_REQUIRED`
+- 错误信息：需要重新登录 AMR Cloud 后重试。
+
+当前结论：
+
+- P19 brief 可作为新一轮正确输入，但 Open Design 原型尚未产出。
+- `frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞。
+- 若继续坚持 Open Design 产物，需要先完成 AMR 登录；否则只能明确降级为 Codex/UIUX 产物，不能冒充 Open Design 产物。
+
+## 2026-06-13 P19 Open Design Brief 已由 UIUX 重新生成，版本闸门已修正
+
+旧 `docs/ui/open-design-brief.md` 继承 P16 错误口径，已判定为历史输入，不再作为当前 Open Design 生成依据。
+
+本轮严格按角色流程执行：
+
+- `uiux` agent 产出新的自包含 brief。
+- `reviewer` 首轮判定方向正确但不够自包含，已退回 UIUX。
+- `uiux` 二轮补齐信息架构、三套工作空间、路由、页面线框、日志审计分域、状态和验收矩阵。
+- `reviewer` 再次指出仓库版本门禁仍指向 P16，当前已修正 `.codex/state.json` 和 `docs/process/open-design-prototype-workflow.md`，并已基于真实文件复审通过。
+
+当前 P19 输入：
+
+- `docs/ui/open-design-brief-p19.md`
+- 来源：`uiux-agent`
+- 状态：`reviewer_passed`
+
+当前闸门：
+
+- 已由 reviewer 基于真实文件复审通过。
+- 已投 Open Design，但生成被 `AMR_AUTH_REQUIRED` 阻塞。
+- Open Design 成功生成后仍需 reviewer 检查来源、追踪矩阵、三工作空间、系统选择页、Flow/应用分域和日志审计列表。
+- `frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞。
+
 ## 2026-06-13 P18 UI 角色流程失效，低成本效果稿撤回
 
 用户反馈成立：`docs/ui/prototypes/p18-ui-card-effect-lowcost.html` 页面错乱，不能称为可接受 UI 设计。该文件不是 Open Design 产物，也不是 UI/UX agent 冻结产物，而是主 agent 手写的低成本草稿。

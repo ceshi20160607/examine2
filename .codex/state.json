@@ -22,7 +22,7 @@
                             19,
                             20
                         ],
-    "updated_at":  "2026-06-12T09:00:00+08:00",
+    "updated_at":  "2026-06-13T14:35:00+08:00",
     "started_at":  "2026-06-04T16:22:34.1721427Z",
     "review_loops":  0,
     "artifacts":  [
@@ -2490,16 +2490,23 @@
                                                         "open_design_data_dir":  "C:\\Users\\sheji\\AppData\\Roaming\\Open Design\\namespaces\\release-stable-win\\data",
                                                         "open_design_mcp_server":  "open_design",
                                                         "node_path":  "D:\\java\\nodejs\\node.exe",
-                                                        "open_design_brief":  "docs/ui/open-design-brief.md",
+                                                        "open_design_brief":  "docs/ui/open-design-brief-p19.md",
+                                                        "open_design_brief_previous":  "docs/ui/open-design-brief.md",
+                                                        "open_design_brief_previous_status":  "rejected_stale_p16_input",
+                                                        "p19_open_design_brief":  "docs/ui/open-design-brief-p19.md",
+                                                        "p19_open_design_brief_source":  "uiux-agent",
+                                                        "p19_open_design_brief_status":  "reviewer_passed",
                                                         "open_design_traceability":  "docs/ui/prototype-traceability.md",
                                                         "open_design_attempt":  "docs/ui/open-design-generation-attempt.md",
-                                                        "open_design_web_generation_status":  "codex_advanced_prototype_rejected_rework_required",
-                                                        "open_design_project_id":  "examine2-p16-ui-prototype",
-                                                        "open_design_project_dir":  "C:\\Users\\sheji\\AppData\\Roaming\\Open Design\\namespaces\\release-stable-win\\data\\projects\\examine2-p16-ui-prototype",
-                                                        "open_design_run_id":  "347d52d1-e88d-4302-9cee-8c7a7ccc4075",
-                                                        "open_design_agent":  "AMR",
+                                                        "open_design_web_generation_status":  "blocked_amr_auth_required",
+                                                        "open_design_project_id":  "examine2-p19-ui-prototype",
+                                                        "open_design_project_dir":  "C:\\Users\\sheji\\AppData\\Roaming\\Open Design\\namespaces\\release-stable-win\\data\\projects\\examine2-p19-ui-prototype",
+                                                        "open_design_run_id":  "353aa73c-eb03-468a-bc27-1e7e03a859cc",
+                                                        "open_design_agent":  "amr",
+                                                        "open_design_model":  "deepseek-v4-flash",
                                                         "open_design_plugin":  "example-web-prototype",
                                                         "open_design_error_code":  "AMR_AUTH_REQUIRED",
+                                                        "open_design_error":  "AMR sign-in is required. Sign in to AMR Cloud again, then retry this run.",
                                                         "codex_ui_prototype":  "docs/ui/prototypes/p16-codex-advanced-prototype.html",
                                                         "codex_ui_prototype_review":  "docs/ui/prototypes/p16-codex-advanced-prototype-review.md",
                                                         "codex_ui_prototype_previous":  "docs/ui/prototypes/p16-codex-high-fidelity-prototype.html",
@@ -2566,7 +2573,7 @@
                                                                            "frontend":  "npm.cmd run build pass",
                                                                            "verified_at":  "2026-06-12T22:50:00+08:00"
                                                                        },
-                                                        "remaining_gate":  "P16 terminology freeze and corrected prototype are required before page-level frontend refactor, full browser flow, review and final package gate",
+                                                        "remaining_gate":  "P19 UIUX brief has passed reviewer, but Open Design generation is blocked by AMR_AUTH_REQUIRED. Open Design must generate a traceable prototype before page-level frontend refactor, full browser flow, review and final package gate",
                                                         "package_gate":  "trial_package_only_ui_rework_required",
                                                         "package_path":  "dist/unexamine-full-deploy-20260612-160003-p15.zip",
                                                         "linux_package_path":  "dist/unexamine-full-deploy-20260612-160003-p15.tar.gz",
@@ -2582,5 +2589,5 @@
                                 "agent_session_failure":  "planner/frontend subagents spawned in the previous attempt could not be addressed by send_input; their work is not counted as complete."
                             },
     "last_completed_batch":  "DEV-BATCH-P15-PACKAGE",
-    "active_batch":  "DEV-BATCH-P16-UI-REWORK"
+    "active_batch":  "DEV-BATCH-P19-OPENDESIGN-UI"
 }
