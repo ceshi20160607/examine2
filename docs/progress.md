@@ -1,5 +1,37 @@
 # 项目进度看板
 
+## 2026-06-13 P19 Open Design 已通过 Codex CLI 生成原型，进入用户复核
+
+用户纠正成立：Windows 原生 Open Design 可以配置本地 Codex CLI agent。当前已核实 Open Design 配置为 `agentId=codex`，并通过 Open Design Web 发起生成。
+
+本次真实生成记录：
+
+- Open Design Web：`http://127.0.0.1:52975/`
+- Open Design projectId：`58283603-3f8b-469f-b6fb-9d5282c4af70`
+- Open Design conversationId：`c46240ed-09e6-4710-8596-4657b80126b7`
+- runId：`0009499a-39cb-4832-936d-57c42d3dcfa0`
+- agent：`codex`
+- 结果：`succeeded`
+- 原始产物：`C:\Users\sheji\AppData\Roaming\Open Design\namespaces\release-stable-win\data\projects\58283603-3f8b-469f-b6fb-9d5282c4af70\index.html`
+- 仓库归档：`docs/ui/prototypes/p19-open-design-codex-prototype.html`
+- 复核记录：`docs/ui/prototypes/p19-open-design-codex-prototype-review.md`
+- 本地预览：`http://127.0.0.1:4188/index.html`
+
+浏览器复核：
+
+- 系统选择中心为独立列表，支持上百上千系统场景，未把系统塞进左侧导航。
+- 平台级 Flow 与平台级应用为独立页面。
+- 系统内应用配置与流程事件绑定为独立页面。
+- 平台管理、系统管理、系统运行台三类工作空间已拆分。
+- 列表包含高级筛选、列配置、保存视图、分页和操作列。
+- 新建、编辑、详情统一使用右侧抽屉。
+
+当前裁决：
+
+- 之前 `AMR_AUTH_REQUIRED` 是 AMR 路径失败记录，已降级为历史阻塞，不再代表当前 Open Design 无法使用。
+- 当前 P19 原型状态为 `draft-for-user-review`，不是最终前端实现冻结稿。
+- `frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞；必须等用户/PM/reviewer 确认原型方向后，才能进入前端页面级实现。
+
 ## 2026-06-13 P19 Open Design 生成已尝试，当前阻塞于 AMR 登录
 
 本轮执行链路已经按角色拆开：
@@ -29,6 +61,12 @@ Open Design run：
 - P19 brief 可作为新一轮正确输入，但 Open Design 原型尚未产出。
 - `frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞。
 - 若继续坚持 Open Design 产物，需要先完成 AMR 登录；否则只能明确降级为 Codex/UIUX 产物，不能冒充 Open Design 产物。
+
+历史补充裁决：
+
+- 当时曾允许 `codex-to-open-design` 作为 AMR 失败后的降级路径。
+- 用户随后确认 Windows 原生 Open Design 已配置 Codex，本次已改走 `open-design-codex-agent`，即 Open Design Web 调度 Codex CLI 生成。
+- 后续优先按 `docs/process/open-design-prototype-workflow.md` 中的 `open-design-codex-agent` 路径处理，不再把本次产物标记为 `codex-generated-open-design-artifact`。
 
 ## 2026-06-13 P19 Open Design Brief 已由 UIUX 重新生成，版本闸门已修正
 

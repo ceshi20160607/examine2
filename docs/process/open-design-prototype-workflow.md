@@ -45,6 +45,21 @@ Docker 版 Open Design 仅作为历史尝试保留，不再作为当前原型生
 7. test 必须按原型流程跑真实浏览器 E2E，不能只跑接口或局部 smoke。
 8. reviewer 必须检查“原型 -> 页面 -> 测试证据”是否闭环；不闭环时 `frontendUsable=false`。
 
+## 生成路径说明
+
+当前允许三条原型生成路径，但必须如实标记来源：
+
+1. `open-design-native-amr`：通过 Open Design MCP 或 Web 调用 Open Design 内置 AMR agent/model 生成。该路径受 Open Design 账号和 AMR Cloud 登录状态影响。
+2. `open-design-codex-agent`：在 Windows 原生 Open Design 中把本地 CLI 配置为 Codex，由 Open Design Web 调度 Codex CLI 生成原型。该路径属于 Open Design 编排产物，来源标记为 `open-design-codex-agent`，不能误写成 AMR 生成，也不能误判为主 agent 脱离 Open Design 手写。
+3. `codex-to-open-design`：由当前 Codex 会话基于 UIUX brief 和需求材料生成 HTML/SVG/Markdown 等原型文件，再写入 Open Design 项目作为 Artifact 进行预览、管理和后续审查。该路径使用 Codex 当前会话模型，不依赖 Open Design 调度，产物来源必须标记为 `codex-generated-open-design-artifact`。
+
+当 `open-design-native-amr` 因 `AMR_AUTH_REQUIRED` 或类似账号问题阻塞时，PM 必须优先检查 Windows 原生 Open Design 是否已配置本地 Codex CLI。如果已配置，应走 `open-design-codex-agent`，不得直接判定 Open Design 不可用。只有 Open Design 无法调度 Codex 时，才允许降级为 `codex-to-open-design`。无论哪条路径都必须满足：
+
+- 输入仍使用 UIUX agent 产出的当前 brief 和原始需求材料。
+- Orchestrator 不得把随手草稿当成正式 UI；必须按 brief 生成可审查的完整原型文件。
+- reviewer 必须审查来源标记、三工作空间、系统选择页、Flow/应用分域、日志审计列表、列表分页/筛选/抽屉和普通用户可用性。
+- 若产物未通过 reviewer，不得进入 frontend 实现或最终打包。
+
 ## Open Design Brief 必填内容
 
 - 产品定位：这个系统给谁用，解决什么日常工作。

@@ -1,5 +1,51 @@
 # Open Design 原型生成尝试记录
 
+## 2026-06-13 P19 Windows 原生 Open Design + Codex CLI 成功生成
+
+用户确认 Open Design 已配置 Codex。当前重新扫描后确认：
+
+- Open Design Web：`http://127.0.0.1:52975/`
+- Open Design 页面显示：本地 CLI 使用 Codex CLI。
+- Open Design app 配置包含 `agentId=codex`。
+- Codex 当前 MCP 工具仍指向旧 daemon 端口 `57023`，但 Windows 原生 Open Design Web 可用，实际 daemon 运行在当前 Open Design 实例端口。
+
+本次通过 Open Design Web 发起生成任务：
+
+```text
+projectId: 58283603-3f8b-469f-b6fb-9d5282c4af70
+conversationId: c46240ed-09e6-4710-8596-4657b80126b7
+runId: 0009499a-39cb-4832-936d-57c42d3dcfa0
+agent: codex
+status: succeeded
+```
+
+产物：
+
+```text
+Open Design 原始产物:
+C:\Users\sheji\AppData\Roaming\Open Design\namespaces\release-stable-win\data\projects\58283603-3f8b-469f-b6fb-9d5282c4af70\index.html
+
+仓库归档:
+docs/ui/prototypes/p19-open-design-codex-prototype.html
+
+复核记录:
+docs/ui/prototypes/p19-open-design-codex-prototype-review.md
+```
+
+浏览器复核要点：
+
+- 系统选择中心支持上百上千系统场景，系统不进入左侧导航。
+- 平台级 Flow 与平台级应用拆成独立页面。
+- 系统内应用配置与流程事件绑定拆成独立页面。
+- 平台管理、系统管理、系统运行台拆成三套工作空间。
+- 列表具备高级筛选、列配置、保存视图、分页和右侧抽屉。
+
+当前判定：
+
+- 本次可称为 Open Design 调度 Codex CLI 生成的原型。
+- 本次不是 AMR 生成，也不是主 agent 绕过 Open Design 手写。
+- 原型仍需用户/PM/reviewer 复核后才能冻结给 frontend。
+
 ## 2026-06-13 P19 Windows 原生 Open Design 尝试
 
 本次按角色流程执行，不再由主 agent 手写原型：

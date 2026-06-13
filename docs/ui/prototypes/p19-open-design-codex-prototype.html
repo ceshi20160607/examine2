@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P19 Codex Open Design Prototype</title>
+  <style>
+    :root {
+      --bg: oklch(98% 0.004 245);
+      --surface: oklch(100% 0 0);
+      --surface-2: oklch(96.5% 0.006 245);
+      --fg: oklch(20% 0.018 245);
+      --muted: oklch(52% 0.018 245);
+      --border: oklch(90% 0.008 245);
+      --accent: oklch(55% 0.16 246);
+      --accent-2: oklch(59% 0.12 166);
+      --success: oklch(58% 0.13 150);
+      --warn: oklch(68% 0.14 72);
+      --danger: oklch(56% 0.18 28);
+      --info: oklch(60% 0.12 230);
+      --font-display: "Microsoft YaHei UI", "PingFang SC", "Segoe UI", system-ui, sans-serif;
+      --font-body: "Microsoft YaHei UI", "PingFang SC", "Segoe UI", system-ui, sans-serif;
+      --font-mono: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+      --shadow: 0 10px 30px rgba(20, 32, 54, .10);
+      --topbar: 56px;
+      --sidebar: 248px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.55;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { height: 100vh; display: grid; grid-template-rows: var(--topbar) 1fr; }
+    .topbar {
+      display: grid;
+      grid-template-columns: 248px 1fr auto;
+      align-items: center;
+      gap: 16px;
+      height: var(--topbar);
+      padding: 0 18px;
+      background: rgba(255,255,255,.92);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      z-index: 20;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    .brand-mark {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; display: grid; place-items: center; font-size: 13px;
+      font-family: var(--font-mono);
+    }
+    .global-search {
+      max-width: 560px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+    }
+    .global-search input { border: 0; outline: 0; background: transparent; flex: 1; min-width: 180px; }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .layout { min-height: 0; display: grid; grid-template-columns: var(--sidebar) 1fr; }
+    body.collapsed { --sidebar: 72px; }
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .workspace-tabs { padding: 10px; display: grid; gap: 6px; border-bottom: 1px solid var(--border); }
+    .workspace-tabs button,
+    .nav-item,
+    .side-section button {
+      border: 0;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: var(--fg);
+      border-radius: 6px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+    }
+    .workspace-tabs button.active,
+    .nav-item.active,
+    .side-section button.active {
+      background: color-mix(in oklch, var(--accent) 12%, white);
+      color: oklch(42% 0.17 246);
+      font-weight: 600;
+    }
+    .workspace-tabs .dot, .nav-ico {
+      width: 22px; height: 22px; flex: 0 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: grid; place-items: center;
+      font: 11px/1 var(--font-mono);
+      color: var(--muted);
+      background: var(--surface);
+    }
+    body.collapsed .nav-label, body.collapsed .workspace-label, body.collapsed .side-title, body.collapsed .side-meta { display: none; }
+    .side-head { padding: 12px 10px; display: flex; gap: 8px; align-items: center; }
+    .ghost-btn, .icon-btn, .btn, .chip, .page-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--fg);
+      border-radius: 6px;
+      min-height: 32px;
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .icon-btn { width: 34px; padding: 0; }
+    .primary { border-color: color-mix(in oklch, var(--accent) 72%, black); background: var(--accent); color: white; }
+    .danger { border-color: color-mix(in oklch, var(--danger) 55%, white); color: var(--danger); }
+    .side-section { padding: 8px 10px 14px; overflow: auto; }
+    .side-title {
+      margin: 12px 10px 6px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .main { min-width: 0; overflow: auto; }
+    .screen { display: none; min-height: 100%; padding: 18px; }
+    .screen.active { display: block; }
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .breadcrumb { color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+    h1 { margin: 0; font-family: var(--font-display); font-size: 24px; line-height: 1.2; letter-spacing: -0.01em; }
+    .sub { color: var(--muted); max-width: 72ch; margin-top: 6px; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .tool-left, .tool-right, .filters, .inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .panel, .card, .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .panel { padding: 14px; box-shadow: 0 1px 0 rgba(16, 24, 40, .02); }
+    .grid { display: grid; gap: 12px; }
+    .grid.cols-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .metric { padding: 14px; min-height: 96px; }
+    .metric .label { color: var(--muted); font-size: 13px; }
+    .metric .num { margin-top: 8px; font: 600 26px/1.1 var(--font-display); letter-spacing: -0.02em; }
+    .metric .hint { margin-top: 8px; color: var(--muted); font-size: 12px; }
+    .split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(360px, .8fr); gap: 12px; }
+    .input, .select, .textarea {
+      min-height: 32px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 0 10px;
+      outline: 0;
+      min-width: 150px;
+    }
+    .textarea { padding: 8px 10px; min-height: 82px; resize: vertical; }
+    .chip { color: var(--muted); background: var(--surface-2); min-height: 28px; padding: 0 10px; font-size: 13px; }
+    .chip.active { color: oklch(42% 0.17 246); border-color: color-mix(in oklch, var(--accent) 38%, white); background: color-mix(in oklch, var(--accent) 10%, white); }
+    .status {
+      display: inline-flex; align-items: center; gap: 6px;
+      min-height: 22px; padding: 0 8px; border-radius: 999px;
+      font-size: 12px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--muted);
+    }
+    .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .ok { color: var(--success); background: color-mix(in oklch, var(--success) 9%, white); }
+    .warn { color: var(--warn); background: color-mix(in oklch, var(--warn) 12%, white); }
+    .bad { color: var(--danger); background: color-mix(in oklch, var(--danger) 9%, white); }
+    .info { color: var(--info); background: color-mix(in oklch, var(--info) 9%, white); }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+    th { color: var(--muted); background: var(--surface-2); font-weight: 600; letter-spacing: .02em; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: oklch(98.2% 0.006 245); }
+    .table-card { overflow: hidden; }
+    .table-title { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+    .table-scroll { overflow: auto; }
+    .actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .link-btn { border: 0; background: transparent; color: oklch(42% 0.17 246); padding: 0; min-height: 24px; }
+    .pagination { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-top: 1px solid var(--border); color: var(--muted); }
+    .page-btn { min-width: 30px; min-height: 28px; padding: 0 8px; }
+    .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .drawer-mask, .modal-mask { position: fixed; inset: 0; display: none; z-index: 40; background: rgba(15, 23, 42, .24); }
+    .drawer-mask.open, .modal-mask.open { display: block; }
+    .drawer {
+      position: absolute; right: 0; top: 0; height: 100%; width: min(720px, 96vw);
+      background: var(--surface); box-shadow: -18px 0 40px rgba(20,32,54,.18);
+      display: grid; grid-template-rows: auto 1fr auto;
+    }
+    .drawer-head, .drawer-foot { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .drawer-foot { border-top: 1px solid var(--border); border-bottom: 0; justify-content: flex-end; }
+    .drawer-body { padding: 16px 18px; overflow: auto; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 13px; color: var(--muted); }
+    .field.full { grid-column: 1 / -1; }
+    .form-section { margin-bottom: 18px; }
+    .form-section h3 { margin: 0 0 10px; font-size: 15px; letter-spacing: 0; }
+    .notice { border: 1px solid color-mix(in oklch, var(--warn) 30%, white); background: color-mix(in oklch, var(--warn) 10%, white); padding: 10px 12px; border-radius: 6px; color: oklch(45% 0.11 72); }
+    .modal {
+      width: min(440px, calc(100vw - 32px)); background: var(--surface); border-radius: 8px;
+      box-shadow: var(--shadow); margin: 12vh auto; border: 1px solid var(--border);
+    }
+    .modal-head, .modal-body, .modal-foot { padding: 16px; }
+    .modal-head { border-bottom: 1px solid var(--border); font-weight: 600; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border); }
+    .toast { position: fixed; right: 22px; bottom: 22px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); transition: .18s; z-index: 80; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .identity-grid { grid-template-columns: 1fr 1fr; align-items: stretch; }
+    .route-card { padding: 16px; display: grid; gap: 12px; }
+    .route-card h3 { margin: 0; font-size: 18px; }
+    .route-steps { display: grid; gap: 8px; }
+    .route-step { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; padding: 9px; background: var(--surface-2); border-radius: 6px; }
+    .step-num { width: 24px; height: 24px; border-radius: 6px; background: var(--fg); color: white; display: grid; place-items: center; font: 12px/1 var(--font-mono); }
+    .system-row { display: grid; grid-template-columns: 28px minmax(220px, 1.4fr) 120px 120px 130px 80px 160px; gap: 12px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .system-row.head { color: var(--muted); font-weight: 600; background: var(--surface-2); }
+    .fav { color: oklch(65% 0.13 82); font-size: 16px; }
+    .progress-list { display: grid; gap: 8px; }
+    .progress-line { display: grid; grid-template-columns: 130px 1fr 44px; gap: 10px; align-items: center; }
+    .bar { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+    .bar > span { display: block; height: 100%; background: var(--accent-2); }
+    .kanban { display: grid; grid-template-columns: 280px 1fr; gap: 12px; }
+    .dept-tree { padding: 12px; display: grid; gap: 6px; }
+    .tree-node { padding: 8px 10px; border-radius: 6px; }
+    .tree-node.active { background: color-mix(in oklch, var(--accent) 10%, white); color: oklch(42% 0.17 246); font-weight: 600; }
+    .adv-panel { display: none; margin-bottom: 12px; }
+    .adv-panel.open { display: block; }
+    .empty-state { padding: 26px; text-align: center; color: var(--muted); }
+    .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); padding: 0 12px; }
+    .tab { border: 0; background: transparent; padding: 11px 10px; color: var(--muted); border-bottom: 2px solid transparent; }
+    .tab.active { color: oklch(42% 0.17 246); border-bottom-color: var(--accent); font-weight: 600; }
+    .source-badge { font-size: 12px; color: var(--muted); }
+    @media (max-width: 1100px) {
+      .grid.cols-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .grid.cols-3, .split, .identity-grid, .kanban { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: 72px 1fr; }
+      .nav-label, .workspace-label, .side-title, .side-meta { display: none; }
+      .topbar { grid-template-columns: 180px 1fr auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">P19</div><span>P19 Codex Open Design Prototype</span></div>
+      <label class="global-search"><span>搜索</span><input id="globalSearch" placeholder="系统、账号、Flow、对外应用、requestId" /></label>
+      <div class="top-actions">
+        <button class="ghost-btn" data-go="identity">登录分流</button>
+        <button class="ghost-btn" data-go="systems">系统选择中心</button>
+        <button class="icon-btn" id="collapseBtn" title="折叠导航">≡</button>
+        <button class="ghost-btn">王管理员</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="workspace-tabs" id="workspaceTabs">
+          <button class="active" data-workspace="platform"><span class="dot">P</span><span class="workspace-label">平台管理</span></button>
+          <button data-workspace="system"><span class="dot">S</span><span class="workspace-label">系统管理</span></button>
+          <button data-workspace="runtime"><span class="dot">R</span><span class="workspace-label">系统运行台</span></button>
+        </div>
+        <div class="side-head">
+          <button class="ghost-btn" data-go="systems"><span class="nav-ico">切</span><span class="nav-label">切换系统</span></button>
+        </div>
+        <div class="side-section" id="navList"></div>
+      </aside>
+
+      <main class="main" id="main">
+        <section class="screen active" id="identity"></section>
+        <section class="screen" id="systems"></section>
+        <section class="screen" id="create-system"></section>
+        <section class="screen" id="platform-overview"></section>
+        <section class="screen" id="platform-accounts"></section>
+        <section class="screen" id="platform-flow"></section>
+        <section class="screen" id="platform-apps"></section>
+        <section class="screen" id="platform-logs"></section>
+        <section class="screen" id="platform-audits"></section>
+        <section class="screen" id="system-overview"></section>
+        <section class="screen" id="system-members"></section>
+        <section class="screen" id="system-modules"></section>
+        <section class="screen" id="system-pages"></section>
+        <section class="screen" id="system-app-configs"></section>
+        <section class="screen" id="system-flow-bindings"></section>
+        <section class="screen" id="system-logs"></section>
+        <section class="screen" id="system-audits"></section>
+        <section class="screen" id="runtime-home"></section>
+        <section class="screen" id="runtime-data"></section>
+      </main>
+    </div>
+  </div>
+
+  <div class="drawer-mask" id="drawerMask">
+    <aside class="drawer" role="dialog" aria-modal="true">
+      <div class="drawer-head"><div><strong id="drawerTitle">详情</strong><div class="source-badge" id="drawerSub">右侧抽屉</div></div><button class="icon-btn" id="drawerClose">×</button></div>
+      <div class="drawer-body" id="drawerBody"></div>
+      <div class="drawer-foot"><button class="ghost-btn" id="drawerCancel">取消</button><button class="btn primary" id="drawerSave">保存</button></div>
+    </aside>
+  </div>
+
+  <div class="modal-mask" id="modalMask">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head" id="modalTitle">危险操作确认</div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot"><button class="ghost-btn" id="modalCancel">取消</button><button class="btn danger" id="modalConfirm">确认停用</button></div>
+    </div>
+  </div>
+  <div class="toast" id="toast">保存成功</div>
+
+  <script>
+    const navs = {
+      platform: [
+        ["platform-overview", "总览", "总"], ["systems", "系统选择中心", "系"], ["platform-accounts", "平台账号", "账"],
+        ["platform-flow", "平台级 Flow", "流"], ["platform-apps", "平台级应用", "应"], ["platform-logs", "平台日志", "志"], ["platform-audits", "平台审计", "审"]
+      ],
+      system: [
+        ["system-overview", "系统总览", "总"], ["system-members", "成员与部门", "人"], ["system-modules", "模块与字段", "模"],
+        ["system-pages", "页面与菜单", "页"], ["system-app-configs", "系统内应用配置", "用"], ["system-flow-bindings", "流程事件绑定", "流"],
+        ["system-logs", "系统日志", "志"], ["system-audits", "系统审计", "审"]
+      ],
+      runtime: [
+        ["runtime-home", "工作台", "工"], ["runtime-data", "车辆档案", "车"], ["systems", "切换系统", "切"]
+      ]
+    };
+    const state = { workspace: "platform", current: "identity", tab: "templates" };
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+    function renderNav() {
+      const list = $("#navList");
+      list.innerHTML = `<div class="side-title">${state.workspace === "platform" ? "平台工作空间" : state.workspace === "system" ? "系统管理工作空间" : "系统运行工作空间"}</div>` +
+        navs[state.workspace].map(([id, label, icon]) => `<button class="nav-item ${state.current === id ? "active" : ""}" data-go="${id}"><span class="nav-ico">${icon}</span><span class="nav-label">${label}</span></button>`).join("");
+      $$("[data-go]", list).forEach(btn => btn.addEventListener("click", () => go(btn.dataset.go)));
+    }
+    function go(id) {
+      state.current = id;
+      $$(".screen").forEach(s => s.classList.toggle("active", s.id === id));
+      renderNav();
+      $("#main").scrollTop = 0;
+    }
+    function setWorkspace(workspace, target) {
+      state.workspace = workspace;
+      $$("#workspaceTabs button").forEach(btn => btn.classList.toggle("active", btn.dataset.workspace === workspace));
+      renderAll();
+      go(target || navs[workspace][0][0]);
+    }
+    function status(text, cls = "ok") { return `<span class="status ${cls}">${text}</span>`; }
+    function pageHead(title, sub, actions = "") {
+      return `<div class="page-head"><div><div class="breadcrumb">${state.workspace === "platform" ? "平台管理" : state.workspace === "system" ? "系统管理 / 车队运营系统" : "系统运行台 / 车队运营系统"}</div><h1>${title}</h1><div class="sub">${sub}</div></div><div class="tool-right">${actions}</div></div>`;
+    }
+    function filters(extra = "") {
+      return `<div class="toolbar"><div class="tool-left"><input class="input" placeholder="关键词搜索" /><select class="select"><option>全部状态</option><option>正常</option><option>停用</option><option>维护中</option></select><button class="ghost-btn adv-toggle">高级筛选</button><span class="chip active">已选：最近 30 天</span></div><div class="tool-right">${extra}<button class="ghost-btn">列配置</button><button class="ghost-btn">保存视图</button></div></div><div class="panel adv-panel"><div class="filters"><select class="select"><option>操作者</option></select><select class="select"><option>风险等级</option></select><input class="input" placeholder="requestId / 追踪 ID" /><button class="btn">应用筛选</button><button class="ghost-btn">清空</button></div></div>`;
+    }
+    function pagination(total = "共 1,248 条") {
+      return `<div class="pagination"><span>${total}，每页 20 条</span><div class="inline"><button class="page-btn">上一页</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">3</button><button class="page-btn">下一页</button><input class="input" style="width:74px;min-width:74px" value="1" /></div></div>`;
+    }
+    function table(title, headers, rows, actions = true) {
+      const head = headers.map(h => `<th>${h}</th>`).join("") + (actions ? "<th style='text-align:right'>操作</th>" : "");
+      const body = rows.map((r, i) => `<tr>${r.map(c => `<td>${c}</td>`).join("")}${actions ? `<td><div class="actions"><button class="link-btn open-detail" data-title="${title}详情" data-row="${i}">详情</button><button class="link-btn open-edit" data-title="编辑${title}">编辑</button><button class="link-btn danger-action">停用</button></div></td>` : ""}</tr>`).join("");
+      return `<div class="table-card"><div class="table-title"><strong>${title}</strong><span class="source-badge">筛选、分页、详情抽屉、操作列完整</span></div><div class="table-scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${pagination()}</div>`;
+    }
+
+    function renderIdentity() {
+      $("#identity").innerHTML = pageHead("统一登录后的身份落点", "按平台权限和系统归属分流，用户登录后先知道自己在哪个工作空间，再进入对应任务。", `<button class="btn primary" data-go="systems">进入系统选择</button>`) +
+      `<div class="grid identity-grid"><div class="panel route-card"><h3>登录成功分流</h3><div class="route-steps">
+        <div class="route-step"><span class="step-num">1</span><div><strong>有平台管理权限</strong><br><span class="sub">进入平台管理工作台，处理平台账号、Flow、对外应用、日志审计。</span></div><button class="btn" data-work="platform">进入</button></div>
+        <div class="route-step"><span class="step-num">2</span><div><strong>无平台权限 + 多个系统</strong><br><span class="sub">进入系统选择中心，按搜索、收藏、角色、状态筛选目标系统。</span></div><button class="btn" data-go="systems">选择系统</button></div>
+        <div class="route-step"><span class="step-num">3</span><div><strong>无平台权限 + 单个系统</strong><br><span class="sub">直接进入该系统的普通运行台，只展示授权模块和待办。</span></div><button class="btn" data-work="runtime">运行台</button></div>
+        <div class="route-step"><span class="step-num">4</span><div><strong>无可进入系统</strong><br><span class="sub">显示“暂无可进入的系统”，引导联系管理员或创建系统。</span></div><button class="btn" data-go="create-system">创建系统</button></div>
+      </div></div><div class="panel route-card"><h3>权限边界检查</h3>
+        <div class="grid cols-2">
+          <div class="metric card"><div class="label">平台管理员</div><div class="num">平台能力</div><div class="hint">不默认进入系统业务数据</div></div>
+          <div class="metric card"><div class="label">系统管理员</div><div class="num">当前系统</div><div class="hint">只管理当前系统配置</div></div>
+          <div class="metric card"><div class="label">普通业务用户</div><div class="num">运行台</div><div class="hint">不显示字段设计和权限配置</div></div>
+          <div class="metric card"><div class="label">集成管理员</div><div class="num">对外应用</div><div class="hint">处理 AppKey、scope、限流和日志</div></div>
+        </div>
+        <div class="notice">创建系统后，创建人成为该系统管理员，但不会自动获得平台组织、平台权限、平台应用或平台 Flow 的管理权限。</div>
+      </div></div>`;
+    }
+
+    function renderSystems() {
+      const rows = [
+        ["★", "<strong>车队运营系统</strong><br><span class='source-badge'>SYS-CAR-2026</span>", status("正常"), "系统管理员", "今天 09:42", "18", "<button class='link-btn' data-work='runtime'>进入运行台</button>　<button class='link-btn' data-work='system'>进入管理</button>"],
+        ["☆", "<strong>采购协同系统</strong><br><span class='source-badge'>SYS-PUR-081</span>", status("正常"), "普通成员", "昨天 18:10", "6", "<button class='link-btn' data-work='runtime'>进入运行台</button>"],
+        ["★", "<strong>合同归档系统</strong><br><span class='source-badge'>SYS-CON-218</span>", status("维护中", "warn"), "只读成员", "06-11 14:22", "0", "<button class='link-btn'>查看信息</button>"],
+        ["☆", "<strong>设备巡检系统</strong><br><span class='source-badge'>SYS-DEV-144</span>", status("停用", "bad"), "系统管理员", "06-09 16:05", "2", "<button class='link-btn'>查看信息</button>"]
+      ];
+      $("#systems").innerHTML = pageHead("系统选择中心", "用于上百上千系统场景。系统不进入左侧导航，统一通过搜索、收藏、角色、状态和分页定位。", `<button class="btn primary" data-go="create-system">创建系统</button><button class="ghost-btn">刷新</button>`) +
+      `<div class="panel" style="margin-bottom:12px"><div class="filters"><input class="input" style="min-width:320px" id="systemSearch" placeholder="搜索系统名称、系统编号、创建人" /><button class="ghost-btn adv-toggle">高级筛选</button><span class="chip active">最近 30 天</span><span class="chip">已收藏</span><span class="chip">系统管理员</span><span class="chip">正常</span></div></div>
+      <div class="panel adv-panel"><div class="filters"><select class="select"><option>我的角色：全部</option><option>系统管理员</option><option>普通成员</option></select><select class="select"><option>系统状态：全部</option><option>正常</option><option>维护中</option></select><select class="select"><option>最近访问：全部</option><option>最近 7 天</option></select><button class="btn">筛选</button><button class="ghost-btn">清空条件</button></div></div>
+      <div class="table-card"><div class="table-title"><strong>可进入系统</strong><span class="source-badge">共 1,248 个系统，当前展示 1-20</span></div><div class="system-row head"><span>收藏</span><span>系统</span><span>状态</span><span>我的角色</span><span>最近访问</span><span>待办</span><span>操作</span></div>${rows.map(r => `<div class="system-row"><span class="fav">${r[0]}</span>${r.slice(1).map(c => `<span>${c}</span>`).join("")}</div>`).join("")}${pagination("共 1,248 个系统")}</div>`;
+    }
+
+    function renderCreateSystem() {
+      $("#create-system").innerHTML = pageHead("创建业务系统", "创建完成后进入新系统管理工作台；创建人获得当前系统管理员身份，但不会获得平台管理权限。") +
+      `<div class="split"><div class="panel"><div class="tabs"><button class="tab active">1 基础信息</button><button class="tab">2 初始化配置</button><button class="tab">3 创建完成</button></div><div style="padding:16px">
+        <div class="form-grid"><div class="field"><label>系统名称</label><input class="input" value="车队运营系统" /></div><div class="field"><label>系统编号</label><input class="input" value="SYS-CAR-2026" /></div><div class="field full"><label>系统描述</label><textarea class="textarea">用于车辆档案、维保、保险、年检和司机任务协同。</textarea></div><div class="field"><label>所属组织</label><select class="select"><option>运营中心</option></select></div><div class="field"><label>初始化模板</label><select class="select"><option>车辆管理模板</option><option>空白系统</option></select></div></div>
+        <div class="notice" style="margin-top:14px">创建成功后，你将成为该系统管理员；该操作不会授予你平台管理权限。</div>
+      </div></div><div class="panel"><h3>初始化检查</h3><div class="progress-list"><div class="progress-line"><span>系统成员</span><div class="bar"><span style="width:60%"></span></div><b>60%</b></div><div class="progress-line"><span>默认角色</span><div class="bar"><span style="width:100%"></span></div><b>完成</b></div><div class="progress-line"><span>模块模板</span><div class="bar"><span style="width:72%"></span></div><b>72%</b></div><div class="progress-line"><span>运行菜单</span><div class="bar"><span style="width:42%"></span></div><b>42%</b></div></div><div class="toolbar" style="margin-top:18px"><button class="ghost-btn" data-go="systems">取消</button><button class="btn primary" data-work="system">创建并进入系统管理</button></div></div></div>`;
+    }
+
+    function renderPlatform() {
+      $("#platform-overview").innerHTML = pageHead("平台管理总览", "平台只承载统一入口、平台组织权限、平台级 Flow、平台级应用、平台日志审计和系统状态，不直接作为某个业务系统后台。", `<button class="btn primary" data-go="create-system">创建系统</button>`) +
+      `<div class="grid cols-4"><div class="metric card"><div class="label">系统总数</div><div class="num">1,248</div><div class="hint">正常 1,184 / 维护 42</div></div><div class="metric card"><div class="label">平台账号</div><div class="num">8,926</div><div class="hint">今日新增 18</div></div><div class="metric card"><div class="label">平台级应用</div><div class="num">126</div><div class="hint">待轮换密钥 7</div></div><div class="metric card"><div class="label">异常审计</div><div class="num">12</div><div class="hint">高风险 3</div></div></div>
+      <div class="split" style="margin-top:12px">${table("最近创建系统", ["系统名称","状态","创建人","最近活动"], [["车辆维保系统",status("正常"),"李芳","10 分钟前"],["供应商准入系统",status("正常"),"赵敏","45 分钟前"],["资产盘点系统",status("维护中","warn"),"王雷","昨天"]], false)}${table("平台审计事件", ["时间","对象","动作","风险"], [["09:41","车联网外部接入","查看密钥",status("高风险","bad")],["09:20","平台角色","变更授权",status("中风险","warn")],["08:58","Flow 模板","发布",status("正常")]], false)}</div>`;
+      $("#platform-accounts").innerHTML = pageHead("平台账号", "平台账号只能由平台内有权限的管理员创建、导入或受控开通，不提供外部普通账号自助注册。", `<button class="btn primary open-drawer" data-kind="创建平台账号">创建账号</button><button class="ghost-btn open-drawer" data-kind="导入账号">导入账号</button>`) + filters(`<button class="ghost-btn">启用</button><button class="ghost-btn danger-action">停用</button>`) + table("平台账号", ["账号","姓名","组织","平台角色","状态","最近登录","创建方式"], [["wang.admin","王管理员","平台运营部","平台超级管理员",status("正常"),"今天 09:32","平台创建"],["li.audit","李审计","合规部","审计人员",status("正常"),"昨天 17:24","导入"],["chen.int","陈集成","技术协作部","集成管理员",status("停用","bad"),"06-10 11:08","受控开通"]]);
+      $("#platform-flow").innerHTML = pageHead("平台级 Flow", "平台级 Flow 管平台能力相关流程模板、实例、待办审批和流程日志，不承载系统内模块事件绑定配置。", `<button class="btn primary open-drawer" data-kind="新建平台 Flow 模板">新建模板</button>`) + `<div class="tabs"><button class="tab active">流程模板</button><button class="tab">流程实例</button><button class="tab">待办审批</button><button class="tab">流程日志</button></div>` + filters() + table("平台级 Flow", ["模板名称","状态","版本","适用范围","创建人","更新时间"], [["平台账号开通审批",status("正常"),"v3","平台账号","张宁","今天 08:10"],["对外应用授权审批",status("正常"),"v5","平台级应用","陈集成","昨天"],["系统停用审批",status("维护中","warn"),"v2","系统管理","李审计","06-11"]]);
+      $("#platform-apps").innerHTML = pageHead("平台级应用", "平台级应用是外部接入和能力开放域，包含应用、凭证、授权范围、IP 白名单、限流策略和调用日志。", `<button class="btn primary open-drawer" data-kind="新建平台级应用">新建对外应用</button>`) + `<div class="tabs"><button class="tab active">应用列表</button><button class="tab">凭证管理</button><button class="tab">授权范围</button><button class="tab">IP 白名单</button><button class="tab">限流策略</button><button class="tab">调用日志</button></div>` + filters() + table("平台级应用", ["应用名称","调用方","应用类型","状态","授权系统数","创建时间"], [["车联网外部接入","华东车联平台","OpenAPI",status("正常"),"3","2026-06-08"],["财务共享对接","集团财务系统","系统间调用",status("正常"),"8","2026-05-21"],["旧版巡检接口","巡检终端","OpenAPI",status("停用","bad"),"1","2025-12-02"]]);
+      $("#platform-logs").innerHTML = pageHead("平台日志", "只覆盖平台能力运行日志：平台账号、平台组织权限、平台级应用调用、平台级 Flow 和平台消息待办。") + filters() + table("平台日志", ["时间","操作者","平台能力域","对象","动作","结果","来源","追踪 ID"], [["09:43:18","陈集成","平台级应用","车联网外部接入","调用车辆档案查询",status("成功"),"OpenAPI","req-8f23a9"],["09:20:02","李审计","平台权限","审计员角色","变更权限",status("成功"),"Web","req-61c3be"],["08:59:44","王管理员","平台账号","zhao.min","登录失败",status("失败","bad"),"SSO","req-1902bd"]]);
+      $("#platform-audits").innerHTML = pageHead("平台审计", "覆盖平台高风险和合规变更，查看密钥、重置凭证、授权范围变更需要二次确认。") + filters() + table("平台审计", ["时间","操作者","审计对象","审计动作","风险等级","结果","来源","追踪 ID"], [["09:41","陈集成","车联网外部接入","查看密钥",status("高风险","bad"),status("已确认"),"Web","aud-9921"],["09:12","王管理员","系统：合同归档","停用系统",status("中风险","warn"),status("成功"),"Web","aud-8830"],["08:46","李审计","平台 Flow 模板","发布",status("低风险","info"),status("成功"),"Web","aud-7719"]]);
+    }
+
+    function renderSystem() {
+      $("#system-overview").innerHTML = pageHead("系统管理总览", "当前系统：车队运营系统。这里管理成员、角色、字典、模块、页面、菜单、系统内应用配置、流程事件绑定和系统审计。", `<button class="btn primary" data-work="runtime">进入运行台</button>`) +
+      `<div class="grid cols-4"><div class="metric card"><div class="label">系统状态</div><div class="num">正常</div><div class="hint">我的身份：系统管理员</div></div><div class="metric card"><div class="label">模块</div><div class="num">12</div><div class="hint">已发布 9</div></div><div class="metric card"><div class="label">字段</div><div class="num">184</div><div class="hint">敏感字段 18</div></div><div class="metric card"><div class="label">待处理配置</div><div class="num">5</div><div class="hint">发布检查未通过 2</div></div></div><div class="split" style="margin-top:12px"><div class="panel"><h3>搭建进度</h3><div class="progress-list"><div class="progress-line"><span>成员已配置</span><div class="bar"><span style="width:90%"></span></div><b>90%</b></div><div class="progress-line"><span>角色已配置</span><div class="bar"><span style="width:84%"></span></div><b>84%</b></div><div class="progress-line"><span>模块已创建</span><div class="bar"><span style="width:78%"></span></div><b>78%</b></div><div class="progress-line"><span>页面已发布</span><div class="bar"><span style="width:66%"></span></div><b>66%</b></div><div class="progress-line"><span>流程已绑定</span><div class="bar"><span style="width:52%"></span></div><b>52%</b></div></div></div>${table("最近系统活动", ["时间","对象","动作","结果"], [["09:38","车辆档案","发布菜单",status("成功")],["09:18","司机档案","字段权限变更",status("成功")],["08:55","维保申请","发布检查",status("失败","bad")]], false)}</div>`;
+      $("#system-members").innerHTML = pageHead("成员与部门", "系统管理员添加的是已有平台账号到当前系统成员上下文，不是创建平台账号。") + `<div class="kanban"><div class="panel dept-tree"><strong>部门树</strong><div class="tree-node active">运营中心</div><div class="tree-node">　车辆管理组</div><div class="tree-node">　维保调度组</div><div class="tree-node">财务共享组</div><div class="tree-node">外协司机组</div></div><div>${filters(`<button class="btn primary open-drawer" data-kind="添加系统成员">添加成员</button><button class="ghost-btn open-drawer" data-kind="批量导入成员">批量导入</button>`)}${table("系统成员", ["姓名","账号","部门","系统角色","状态","最近登录"], [["陈晓","chen.xiao","车辆管理组","系统管理员",status("正常"),"今天 09:12"],["马航","ma.hang","维保调度组","普通成员",status("正常"),"昨天"],["周琪","zhou.qi","外协司机组","只读成员",status("停用","bad"),"06-07"]])}</div></div>`;
+      $("#system-modules").innerHTML = pageHead("模块与字段配置", "模块承载字段、页面和业务数据；模块分组只用于组织模块，不是应用。字段设计、新建、编辑、详情统一使用右侧抽屉。", `<button class="btn primary open-drawer" data-kind="新建模块">新建模块</button>`) + `<div class="kanban"><div class="panel dept-tree"><strong>模块分组</strong><div class="tree-node active">车辆业务</div><div class="tree-node">维保与保险</div><div class="tree-node">司机任务</div><div class="tree-node">基础台账</div><button class="ghost-btn open-drawer" data-kind="新建模块分组">新建分组</button></div><div>${filters(`<button class="ghost-btn">设计字段</button><button class="ghost-btn">配置页面</button>`)}${table("业务模块", ["模块名称","模块编号","所属分组","状态","字段数","页面数","数据量","更新时间"], [["车辆档案","car_profile","车辆业务",status("正常"),"32","3","12,480","今天"],["维保申请","maintenance_order","维保与保险",status("正常"),"28","3","3,294","昨天"],["司机排班","driver_shift","司机任务",status("维护中","warn"),"21","2","9,102","06-10"]])}</div></div>`;
+      $("#system-pages").innerHTML = pageHead("页面与菜单", "页面配置、菜单配置和发布记录是同一能力域下的平级子页；菜单只显示当前系统内菜单，不显示平台菜单。", `<button class="btn primary open-drawer" data-kind="新建页面">新建页面</button>`) + `<div class="tabs"><button class="tab active">页面配置</button><button class="tab">菜单配置</button><button class="tab">发布记录</button></div>` + filters() + table("页面与菜单", ["页面名称","关联模块","页面类型","状态","更新时间","发布人"], [["车辆档案列表","车辆档案","列表页",status("已发布"),"今天","陈晓"],["维保申请表单","维保申请","表单页",status("草稿","warn"),"昨天","陈晓"],["司机任务详情","司机排班","详情页",status("已发布"),"06-10","马航"]]);
+      $("#system-app-configs").innerHTML = pageHead("系统内应用配置", "表达当前系统如何启用平台级应用能力，不承载流程事件触发逻辑，也不等于模块或模块分组。", `<button class="btn primary open-drawer" data-kind="新建系统内应用配置">新建配置</button>`) + filters() + table("系统内应用配置", ["配置名称","关联平台应用","开放模块","字段范围","授权动作","状态","更新时间"], [["车辆外部协同","车联网外部接入","车辆档案、维保申请","12 个字段","查询、新增、提交",status("正常"),"今天"],["财务报销同步","财务共享对接","维保申请","8 个字段","查询、回写",status("正常"),"昨天"],["旧版终端接入","旧版巡检接口","司机任务","4 个字段","查询",status("停用","bad"),"06-01"]]);
+      $("#system-flow-bindings").innerHTML = pageHead("流程事件绑定", "只表达当前系统内模块事件与流程的绑定，不管理平台级应用凭证、IP、限流或调用日志。", `<button class="btn primary open-drawer" data-kind="新建流程事件绑定">新建绑定</button>`) + filters() + table("流程事件绑定", ["绑定名称","模块","触发事件","关联流程","状态","更新时间"], [["车辆档案提交审批","车辆档案","提交后","车辆资料审批流程",status("正常"),"今天"],["维保费用审批","维保申请","金额超过 3000","维保费用审批",status("正常"),"昨天"],["司机任务撤回提醒","司机排班","状态变更后","任务通知 Flow",status("维护中","warn"),"06-09"]]);
+      $("#system-logs").innerHTML = pageHead("系统日志", "只覆盖当前自建系统运行日志，不展示平台级应用密钥、平台组织、平台权限等信息。") + filters() + table("系统日志", ["时间","操作者","系统对象","模块 / 能力","动作","结果","来源","追踪 ID"], [["09:40","马航","车辆档案：沪A8123","车辆档案","编辑字段",status("成功"),"Web","sys-1292"],["09:12","陈晓","维保申请","流程事件绑定","触发 Flow",status("成功"),"系统事件","sys-1190"],["08:45","周琪","车辆档案导出","文件 / 导出","导出失败",status("失败","bad"),"Web","sys-1011"]]);
+      $("#system-audits").innerHTML = pageHead("系统审计", "覆盖当前系统配置和业务高风险变更，只能看当前系统，不得跨系统查看。") + filters() + table("系统审计", ["时间","操作者","审计对象","所属模块 / 能力","审计动作","风险等级","结果","追踪 ID"], [["09:36","陈晓","字段权限","车辆档案","变更敏感字段可见性",status("高风险","bad"),status("已确认"),"sa-221"],["09:06","马航","维保申请","业务数据","删除记录",status("中风险","warn"),status("成功"),"sa-198"],["08:22","陈晓","菜单发布","页面与菜单","发布",status("低风险","info"),status("成功"),"sa-172"]]);
+    }
+
+    function renderRuntime() {
+      $("#runtime-home").innerHTML = pageHead("车队运营系统 / 工作台", "普通业务用户只看到授权模块、待办、消息、常用数据和个人入口，不出现字段设计、页面发布或权限配置入口。", `<button class="btn primary open-drawer" data-kind="新建车辆档案">新建车辆档案</button>`) +
+      `<div class="grid cols-4"><div class="metric card"><div class="label">我的待办</div><div class="num">18</div><div class="hint">超时 3</div></div><div class="metric card"><div class="label">可用模块</div><div class="num">7</div><div class="hint">按角色授权显示</div></div><div class="metric card"><div class="label">今日更新</div><div class="num">42</div><div class="hint">车辆、维保、保险</div></div><div class="metric card"><div class="label">未读消息</div><div class="num">9</div><div class="hint">系统公告 2</div></div></div><div class="split" style="margin-top:12px">${table("最近处理数据", ["模块","标题","状态","更新时间"], [["车辆档案","沪A8123 保险到期提醒",status("待处理","info"),"10 分钟前"],["维保申请","保养工单 MO-20260613-18",status("审批中","warn"),"38 分钟前"],["司机排班","周末高峰临时排班",status("已完成"),"昨天"]], false)}${table("我的待办", ["标题","流程","到达时间","优先级"], [["维保费用确认","维保费用审批","09:36",status("高","bad")],["车辆档案补全","车辆资料审批","08:50",status("中","warn")],["司机任务确认","任务通知 Flow","昨天",status("普通","info")]], false)}</div>`;
+      $("#runtime-data").innerHTML = pageHead("车辆档案", "授权模块数据列表。动态字段、筛选、列配置、保存视图、分页、新建/编辑/详情抽屉和字段权限都在同一工作区内完成。", `<button class="btn primary open-drawer" data-kind="新建车辆档案">新建</button>`) + filters(`<button class="ghost-btn">批量操作</button><button class="ghost-btn">导出</button>`) + table("车辆档案", ["车牌号","车型","使用部门","保险状态","年检状态","负责人","更新时间"], [["沪A8123","厢式货车","运营中心",status("即将到期","warn"),status("正常"),"马航","今天 09:18"],["苏D3201","冷链车","配送一组",status("正常"),status("逾期","bad"),"周琪","昨天"],["浙B2290","新能源厢车","配送二组",status("正常"),status("正常"),"陈晓","06-11"]]);
+    }
+
+    function drawerContent(kind) {
+      const isDetail = kind.includes("详情");
+      return `<div class="form-section"><h3>基础信息</h3><div class="form-grid">
+        <div class="field"><label>名称</label><input class="input" value="${kind.replace("新建","").replace("编辑","") || "车辆档案"}" ${isDetail ? "readonly" : ""}></div>
+        <div class="field"><label>状态</label><select class="select"><option>正常</option><option>停用</option><option>维护中</option></select></div>
+        <div class="field full"><label>说明</label><textarea class="textarea" ${isDetail ? "readonly" : ""}>用于展示统一右侧抽屉体系：新建、编辑、详情使用同一交互框架，保存失败不关闭抽屉。</textarea></div>
+      </div></div><div class="form-section"><h3>权限与范围</h3><div class="form-grid"><div class="field"><label>可见角色</label><input class="input" value="系统管理员、普通成员" /></div><div class="field"><label>数据范围</label><select class="select"><option>本人及本部门</option><option>全部数据</option></select></div><div class="field full"><label>字段范围</label><input class="input" value="车牌号、车型、状态、负责人、更新时间" /></div></div></div><div class="notice">如果保存失败，字段级错误显示在字段下方，全局错误显示在抽屉顶部，用户输入会保留。</div>`;
+    }
+    function openDrawer(kind) {
+      $("#drawerTitle").textContent = kind;
+      $("#drawerSub").textContent = kind.includes("详情") ? "详情分组 / 操作日志 / 追踪信息" : "新建、编辑、详情统一右侧抽屉";
+      $("#drawerBody").innerHTML = drawerContent(kind);
+      $("#drawerMask").classList.add("open");
+    }
+    function closeDrawer() { $("#drawerMask").classList.remove("open"); }
+    function openModal() {
+      $("#modalBody").innerHTML = `<p>该操作会影响当前对象的访问和调用能力。停用后，相关入口将不可用，历史数据仍保留，可在审计日志中追踪。</p><p><strong>影响范围：</strong>当前系统、授权成员、对外应用调用和关联 Flow。</p>`;
+      $("#modalMask").classList.add("open");
+    }
+    function showToast(text = "保存成功") {
+      const t = $("#toast"); t.textContent = text; t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 1800);
+    }
+    function bindDynamic(root = document) {
+      $$("[data-go]", root).forEach(btn => btn.onclick = () => go(btn.dataset.go));
+      $$("[data-work]", root).forEach(btn => btn.onclick = () => setWorkspace(btn.dataset.work));
+      $$(".open-drawer", root).forEach(btn => btn.onclick = () => openDrawer(btn.dataset.kind || "详情"));
+      $$(".open-detail", root).forEach(btn => btn.onclick = () => openDrawer(btn.dataset.title || "详情"));
+      $$(".open-edit", root).forEach(btn => btn.onclick = () => openDrawer(btn.dataset.title || "编辑"));
+      $$(".danger-action", root).forEach(btn => btn.onclick = () => openModal());
+      $$(".adv-toggle", root).forEach(btn => btn.onclick = () => {
+        const panel = btn.closest(".screen").querySelector(".adv-panel");
+        if (panel) panel.classList.toggle("open");
+      });
+    }
+    function renderAll() {
+      renderIdentity(); renderSystems(); renderCreateSystem(); renderPlatform(); renderSystem(); renderRuntime();
+      renderNav(); bindDynamic();
+    }
+    $("#workspaceTabs").addEventListener("click", e => {
+      const btn = e.target.closest("button[data-workspace]");
+      if (btn) setWorkspace(btn.dataset.workspace);
+    });
+    $("#collapseBtn").onclick = () => document.body.classList.toggle("collapsed");
+    $("#drawerClose").onclick = closeDrawer;
+    $("#drawerCancel").onclick = closeDrawer;
+    $("#drawerSave").onclick = () => { showToast("保存成功"); closeDrawer(); };
+    $("#modalCancel").onclick = () => $("#modalMask").classList.remove("open");
+    $("#modalConfirm").onclick = () => { $("#modalMask").classList.remove("open"); showToast("操作已确认，审计记录已生成"); };
+    renderAll();
+  </script>
+</body>
+</html>
