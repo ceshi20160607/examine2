@@ -1270,3 +1270,10 @@ reviewer 还必须检查以下架构项；任一不满足时必须判定 fail：
 * 本机全系统验证必须区分“后端/接口功能链路通过”和“前端完整业务 UI 可用”。即使 AUTH、平台、系统、成员/RBAC、字典、模块/运行态、流程、文件、OpenAPI、审计/运维等接口链路全部通过，也只能说明后端核心功能可验收；若对应业务模块没有真实页面、表单、列表、详情和浏览器流程验证，PM 不得宣称完整系统已完成。
 * PM/Orchestrator 每次给出阶段状态时，必须拆开说明：后端功能状态、前端页面状态、部署包状态、测试覆盖状态、剩余模块和下一阶段计划。不能用一个笼统的 `pass/accepted` 覆盖这些维度。
 * 用户要求“本机启动前后端，跑整个项目功能”时，验证对象是系统业务链路，不是只跑前端构建或页面冒烟；但若要判定“给用户使用的完整系统”，还必须补充真实浏览器 UI 流程。
+
+# 2026-06-13 补充规则：Open Design 原型优先
+
+* 涉及真实用户使用的前端重构、最终 UI、可上线 UI 或“普通人可用”验收时，PM/UIUX 必须优先执行 `docs/process/open-design-prototype-workflow.md`。
+* Open Design 作为本项目高保真原型生成和冻结工具；UIUX 必须先输出可投喂 Open Design 的 `docs/ui/open-design-brief.md`，再生成或导出原型产物。
+* frontend 不得在 Open Design 原型未冻结前继续最终页面实现或申请最终打包；只能做技术 Spike、接口联调或被 PM 明确批准的非最终页面验证。
+* test/reviewer 必须检查“Open Design 原型 -> 前端页面 -> 真实浏览器 E2E 证据”的闭环。没有闭环时，即使构建通过，也必须保持 `frontendUsable=false` 和 `fullProjectDeployable=false`。

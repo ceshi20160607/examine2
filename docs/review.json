@@ -25,7 +25,8 @@
         "pm-charter: docs/product/p16-final-rework-charter.md frozen before implementation",
         "p16-ui: docs/ui/p16-information-architecture.md, docs/ui/p16-page-blueprints.md and docs/ui/p16-component-guidelines.md frozen",
         "p16-build: docs/build/p16-ui-structure-build.md pass",
-        "p16-browser: docs/test_runs/p16-ui-structure-browser-check.md pass"
+        "p16-browser: docs/test_runs/p16-ui-structure-browser-check.md pass",
+        "open-design: local Docker daemon verified at http://127.0.0.1:7456 and workflow documented in docs/process/open-design-prototype-workflow.md"
     ],
     "passedScopes": [
         "ordinary user login lands in business runtime",
@@ -40,6 +41,7 @@
         "Redo UI/UX at page level before further final packaging",
         "Use docs/product/final-user-goal.md as the mandatory PM acceptance baseline",
         "Use docs/product/p16-final-rework-charter.md and docs/tasks/P16-final-ui-rework-plan.md as the P16 execution gate",
+        "Create docs/ui/open-design-brief.md and freeze an Open Design prototype before further final frontend implementation",
         "Continue P16 page-level frontend refactor; current App.ts structural enhancement is only the first implementation slice",
         "Split current engineering-console pages into mainstream task pages with clear primary actions, drawers/pages for create/edit, consistent table pagination, detail views and empty/error states",
         "Deploy the generated package only as a technical trial package if needed",

@@ -2483,6 +2483,10 @@
                                                         "final_goal_record":  "docs/product/final-user-goal.md",
                                                         "final_rework_charter":  "docs/product/p16-final-rework-charter.md",
                                                         "p16_task_plan":  "docs/tasks/P16-final-ui-rework-plan.md",
+                                                        "open_design_workflow":  "docs/process/open-design-prototype-workflow.md",
+                                                        "open_design_daemon":  "http://127.0.0.1:7456",
+                                                        "open_design_mcp_server":  "open_design",
+                                                        "open_design_next_gate":  "docs/ui/open-design-brief.md and frozen Open Design prototype required before final frontend implementation",
                                                         "p16_ui_records":  [
                                                                                 "docs/ui/p16-information-architecture.md",
                                                                                 "docs/ui/p16-page-blueprints.md",

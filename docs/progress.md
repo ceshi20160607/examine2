@@ -1,5 +1,19 @@
 # 项目进度看板
 
+## 2026-06-13 Open Design 原型闸门已接入
+
+本轮确认 Docker 版 Open Design 已可用：
+- Web 入口：`http://127.0.0.1:7456/`
+- 容器：`open-design`
+- MCP 命令：`docker exec -i open-design node /app/apps/daemon/dist/cli.js mcp --daemon-url http://127.0.0.1:7456`
+- Codex 全局配置已追加 `mcp_servers.open_design`，需要重启 Codex 或新开线程后生效。
+
+PM/Reviewer 裁决：
+- 当前 P16 不允许继续“边写前端边猜 UI”。
+- 后续真实用户 UI 必须先执行 `docs/process/open-design-prototype-workflow.md`。
+- 下一步是 UIUX 输出 `docs/ui/open-design-brief.md`，通过 Open Design 生成并冻结高保真原型。
+- 原型冻结前，`frontendUsable=false`、`fullProjectDeployable=false` 保持不变，不进入最终打包。
+
 ## 2026-06-12 P16 首轮 UI 结构实现通过
 
 本轮已进入 P16 实现，但只完成“页面结构首轮改造”，不是最终可用系统：
