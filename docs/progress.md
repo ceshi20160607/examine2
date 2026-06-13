@@ -14,6 +14,21 @@ PM/Reviewer 裁决：
 - 下一步是 UIUX 输出 `docs/ui/open-design-brief.md`，通过 Open Design 生成并冻结高保真原型。
 - 原型冻结前，`frontendUsable=false`、`fullProjectDeployable=false` 保持不变，不进入最终打包。
 
+## 2026-06-13 P16 Open Design Brief 已完成，Web 生成受阻
+
+本轮 UIUX 已补齐 Open Design 原型输入：
+- `docs/ui/open-design-brief.md`
+- `docs/ui/prototype-traceability.md`
+- `docs/ui/open-design-generation-attempt.md`
+
+本轮尝试把 brief 中的 prompt 填入本地 Open Design Web 工作台并点击“运行”，但没有生成项目。检查“本地 CLI”菜单后确认：Docker 容器内显示 `PATH 中未发现可用 CLI`，因此 Web 工作台当前无法直接调用 Windows 宿主机的 Codex CLI。
+
+PM/Reviewer 裁决：
+- `docs/ui/open-design-brief.md` 是原型输入，不是高保真原型冻结产物。
+- P16 继续受 Open Design 原型冻结闸门约束。
+- 可选路径：安装 Windows 原生 Open Design、在 Docker 内配置自带 Key/agent CLI，或重启 Codex 后使用 `open_design` MCP 管理制品。
+- 在原型生成并冻结前，不进入最终前端实现和最终打包。
+
 ## 2026-06-12 P16 首轮 UI 结构实现通过
 
 本轮已进入 P16 实现，但只完成“页面结构首轮改造”，不是最终可用系统：

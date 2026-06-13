@@ -16,6 +16,14 @@ MCP command: docker exec -i open-design node /app/apps/daemon/dist/cli.js mcp --
 
 Codex 全局 MCP 配置已追加 `mcp_servers.open_design`。该配置需要重启 Codex 或新开线程后才会暴露 Open Design MCP 工具。
 
+注意：Docker 版 Open Design 的 Web 工作台运行在 Linux 容器内，默认无法发现 Windows 宿主机 PATH 中的 `codex.exe`。如果 Web 页“本地 CLI”显示“PATH 中未发现可用 CLI”，则不能通过 Web 页直接点击“运行”生成原型。此时必须改用以下任一方式：
+
+1. 安装并运行 Windows 原生 Open Design，让它扫描宿主机 Codex/Claude/Gemini 等 CLI。
+2. 在 Docker Open Design 中配置“自带 Key”或容器内可用 agent CLI。
+3. 重启 Codex 后通过 `open_design` MCP 创建和读取 Open Design 制品。
+
+未成功生成 Open Design 项目前，`docs/ui/open-design-brief.md` 只能算原型输入，不得算高保真原型冻结产物。
+
 ## 阶段闸门
 
 1. PM 输出产品目标和主流程，不允许只列功能点。
