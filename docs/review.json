@@ -2,8 +2,8 @@
     "status": "fail",
     "target": "pm,uiux,frontend,backend,test,reviewer",
     "phase": "P15-project-rebaseline",
-    "reviewedAt": "2026-06-12T16:35:00+08:00",
-    "summary": "User UI review rejected the current P15 frontend as not matching mainstream usable system style and flow. The generated package remains a technical trial package only. P15 ordinary-user runtime browser E2E proved several functional fixes, but the frontend is still organized too much like an engineering configuration console: large hand-written App.ts, inline create forms above tables, card/form/table stacking, and insufficient task-level page design. PM/reviewer must not treat this as a normal user-ready system UI.",
+    "reviewedAt": "2026-06-13T13:10:00+08:00",
+    "summary": "User review rejected the P16 advanced prototype. The issue is product-model correctness, not only visual detail: application was still partially treated as an internal business-module concept, while the project requires application to be a peer of system and flow for system-to-system, external, and flow/module capability invocation management. The prototype also missed mandatory mainstream backend interaction gates: collapsible navigation, consistent drawer-based create/edit/detail, advanced filters, column configuration, full page/field/data/export/application permission expression, and multi-system login routing. The current P15/P16 frontend and prototypes remain non-final and must not be packaged as a usable system.",
     "frontendDeployable": true,
     "frontendUsable": false,
     "backendTrialDeployable": true,
@@ -28,7 +28,9 @@
         "p16-browser: docs/test_runs/p16-ui-structure-browser-check.md pass",
         "open-design: Windows native Open Design verified at http://127.0.0.1:57033 with daemon http://127.0.0.1:57023 and workflow documented in docs/process/open-design-prototype-workflow.md",
         "open-design-brief: docs/ui/open-design-brief.md and docs/ui/prototype-traceability.md created",
-        "open-design-attempt: docs/ui/open-design-generation-attempt.md records the superseded Docker Web generation failure; current path is Windows native Open Design"
+        "open-design-attempt: docs/ui/open-design-generation-attempt.md records the superseded Docker Web generation failure; current path is Windows native Open Design",
+        "p16-advanced-prototype: docs/ui/prototypes/p16-codex-advanced-prototype.html generated then rejected by user review",
+        "p16-retrospective: docs/product/p16-agent-retrospective-and-rework-rules.md freezes multi-agent reflection and corrected prototype rules"
     ],
     "passedScopes": [
         "ordinary user login lands in business runtime",
@@ -43,7 +45,10 @@
         "Redo UI/UX at page level before further final packaging",
         "Use docs/product/final-user-goal.md as the mandatory PM acceptance baseline",
         "Use docs/product/p16-final-rework-charter.md and docs/tasks/P16-final-ui-rework-plan.md as the P16 execution gate",
-        "Use Windows native Open Design or restarted open_design MCP to generate and freeze the actual prototype before further final frontend implementation",
+        "Freeze terminology for application/system/flow/module/runtime/caller before any further prototype or frontend implementation",
+        "Regenerate a corrected prototype that treats application as the system-to-system/external invocation management domain, not an internal business module",
+        "Corrected prototype must include collapsible navigation, multi-system login selection, platform normal/admin states, system normal/admin states, consistent drawers for create/edit/detail, advanced filters, column configuration, and full permission preview",
+        "Use Windows native Open Design only as artifact host unless AMR account is available; Codex-generated prototype still requires PM/UIUX/reviewer acceptance before implementation",
         "Continue P16 page-level frontend refactor; current App.ts structural enhancement is only the first implementation slice",
         "Split current engineering-console pages into mainstream task pages with clear primary actions, drawers/pages for create/edit, consistent table pagination, detail views and empty/error states",
         "Deploy the generated package only as a technical trial package if needed",

@@ -1,5 +1,32 @@
 # 项目进度看板
 
+## 2026-06-13 P16 高级原型用户复核未通过，已完成多角色反思沉淀
+
+用户复核结论成立：`docs/ui/prototypes/p16-codex-advanced-prototype.html` 虽比上一版详细，但仍不能冻结为最终原型。
+
+核心问题：
+
+- “应用”概念仍有偏差。本项目中应用应与系统、流程同级，是系统间调用、系统对外调用和外部使用项目内流程/模块能力的管理主体；系统内部不得再把模块或模块分组称为应用。
+- 缺少左侧导航折叠/展开交互。
+- 新建、编辑、详情的交互体系不一致；采用右侧抽屉时应统一抽屉体系。
+- 动态字段驱动列表缺少高级筛选、表头配置、保存视图、字段权限联动。
+- 权限表达不足，必须覆盖菜单、页面、动作、字段、数据、导出和应用调用范围。
+- 登录分流不足，必须覆盖平台登录、系统直登、多系统选择、平台普通态/管理态、系统普通态/管理态。
+
+多角色反思：
+
+- PM、Analyst、UIUX、Frontend、Reviewer 已分别输出原因和规则。
+- 新增沉淀文档：`docs/product/p16-agent-retrospective-and-rework-rules.md`
+- 更新硬规则：`AGENTS.md`
+- 更新最终目标基线：`docs/product/final-user-goal.md`
+- 更新原型评审：`docs/ui/prototypes/p16-codex-advanced-prototype-review.md`
+
+PM/Reviewer 裁决：
+
+- `p16-codex-advanced-prototype.html` 仅保留为历史草稿。
+- 当前必须先冻结术语表和重做原型，不允许进入最终前端实现或打包。
+- `frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞。
+
 ## 2026-06-13 Codex 低成本原型已产出，替代 Open Design 模型生成
 
 用户确认当前只有 Codex 可用，Open Design 内置 AMR/模型均需要账号登录，P16 不再等待 Open Design 模型生成。
