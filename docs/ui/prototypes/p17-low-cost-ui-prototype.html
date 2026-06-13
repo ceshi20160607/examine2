@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>P17 低成本 UI 原型 - 统一业务配置平台</title>
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --panel: #ffffff;
+            --line: #d9dee7;
+            --text: #1f2937;
+            --muted: #667085;
+            --soft: #eef2f6;
+            --primary: #0f766e;
+            --primary-soft: #d9f3ee;
+            --warn: #b45309;
+            --danger: #b42318;
+            --shadow: 0 14px 32px rgba(31, 41, 55, .12);
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            color: var(--text);
+            height: 34px;
+            padding: 0 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        button.ghost {
+            background: transparent;
+        }
+
+        button.danger {
+            color: var(--danger);
+            border-color: #f2c7c4;
+        }
+
+        input,
+        select {
+            height: 34px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 0 10px;
+            background: #fff;
+            min-width: 150px;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 248px 1fr;
+        }
+
+        .app.nav-collapsed {
+            grid-template-columns: 72px 1fr;
+        }
+
+        .sidebar {
+            background: #ffffff;
+            border-right: 1px solid var(--line);
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 8px;
+            height: 40px;
+        }
+
+        .brand-mark {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .brand-text {
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .nav-collapsed .brand-text,
+        .nav-collapsed .nav-label,
+        .nav-collapsed .section-title,
+        .nav-collapsed .context-text {
+            display: none;
+        }
+
+        .context-box {
+            background: var(--soft);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px;
+            line-height: 1.6;
+        }
+
+        .context-title {
+            font-weight: 700;
+        }
+
+        .context-text {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .section-title {
+            color: var(--muted);
+            font-size: 12px;
+            padding: 8px 10px 4px;
+        }
+
+        .nav-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: flex-start;
+            border: 0;
+            background: transparent;
+            height: 38px;
+            padding: 0 10px;
+        }
+
+        .nav-btn.active {
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .nav-icon {
+            width: 24px;
+            text-align: center;
+            flex: 0 0 24px;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            display: grid;
+            gap: 8px;
+        }
+
+        .main {
+            min-width: 0;
+            display: grid;
+            grid-template-rows: 56px 1fr;
+        }
+
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .crumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+        }
+
+        .crumb strong {
+            color: var(--text);
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content {
+            padding: 20px;
+            display: grid;
+            gap: 16px;
+        }
+
+        .screen {
+            display: none;
+            gap: 16px;
+        }
+
+        .screen.active {
+            display: grid;
+        }
+
+        .page-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .page-desc {
+            margin: 6px 0 0;
+            color: var(--muted);
+        }
+
+        .toolbar {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chip,
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            height: 24px;
+            border-radius: 999px;
+            padding: 0 9px;
+            background: var(--soft);
+            color: #344054;
+            font-size: 12px;
+        }
+
+        .tag.ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .tag.warn {
+            background: #fef3c7;
+            color: var(--warn);
+        }
+
+        .tag.block {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .grid.cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .grid.cols-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .panel,
+        .table-wrap {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        .panel {
+            padding: 14px;
+        }
+
+        .panel h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+        }
+
+        .metric {
+            display: grid;
+            gap: 6px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475467;
+            font-weight: 700;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .table-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            color: var(--muted);
+        }
+
+        .login-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            background: #eef2f6;
+        }
+
+        .login-info {
+            padding: 56px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 22px;
+        }
+
+        .login-card {
+            align-self: center;
+            justify-self: center;
+            width: min(420px, 90vw);
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            display: grid;
+            gap: 14px;
+        }
+
+        .field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+        }
+
+        .role-switch {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .role-switch button {
+            height: auto;
+            min-height: 52px;
+            white-space: normal;
+        }
+
+        .system-choice {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .system-card {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 14px;
+            background: #fff;
+            display: grid;
+            gap: 10px;
+        }
+
+        .system-card.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .steps {
+            display: grid;
+            gap: 10px;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 28px 1fr auto;
+            gap: 10px;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .step-no {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .advanced {
+            display: none;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            width: 100%;
+            border-top: 1px solid var(--line);
+            padding-top: 12px;
+        }
+
+        .advanced.open {
+            display: grid;
+        }
+
+        .drawer-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .24);
+            display: none;
+            z-index: 20;
+        }
+
+        .drawer-mask.open {
+            display: block;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: min(680px, 94vw);
+            height: 100vh;
+            background: #fff;
+            box-shadow: var(--shadow);
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        .drawer-head,
+        .drawer-foot {
+            padding: 16px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .drawer-foot {
+            border-top: 1px solid var(--line);
+            border-bottom: 0;
+            justify-content: flex-end;
+        }
+
+        .drawer-body {
+            padding: 16px;
+            overflow: auto;
+            display: grid;
+            gap: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .preview {
+            border: 1px dashed #9aa4b2;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fbfcfe;
+        }
+
+        .notice {
+            border-left: 4px solid var(--primary);
+            background: var(--primary-soft);
+            padding: 10px 12px;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 980px) {
+            .app,
+            .app.nav-collapsed {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                height: auto;
+            }
+
+            .grid.cols-2,
+            .grid.cols-3,
+            .system-choice,
+            .login-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .advanced,
+            .advanced.open,
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="loginScreen" class="login-shell">
+    <section class="login-info">
+        <div class="brand">
+            <div class="brand-mark">统</div>
+            <div>
+                <div class="brand-text">统一业务配置平台</div>
+                <div class="muted">低成本 UI 原型，用来校正产品模型和主流程</div>
+            </div>
+        </div>
+        <div>
+            <h1>先选对工作空间，再处理业务</h1>
+            <p class="muted">平台、系统、流程、应用是清楚分层的。普通用户不需要理解技术 ID，只需要进入自己的系统运行台。</p>
+        </div>
+        <div class="role-switch">
+            <button onclick="quickLogin('platformAdmin')">平台管理员</button>
+            <button onclick="quickLogin('systemAdmin')">系统管理员</button>
+            <button onclick="quickLogin('multiUser')">多系统用户</button>
+            <button onclick="quickLogin('normalUser')">普通用户 che</button>
+        </div>
+    </section>
+    <section class="login-card">
+        <h2>登录</h2>
+        <div class="field">
+            <label>账号</label>
+            <input value="platform_admin">
+        </div>
+        <div class="field">
+            <label>密码</label>
+            <input type="password" value="123123aa">
+        </div>
+        <button class="primary" onclick="quickLogin('platformAdmin')">登录</button>
+        <div class="notice">登录后按账号权限分流：平台管理态、系统管理态、业务运行台或多系统选择页。</div>
+    </section>
+</div>
+
+<div id="app" class="app" style="display:none">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">统</div>
+            <div class="brand-text">统一业务配置平台</div>
+        </div>
+
+        <div class="context-box">
+            <div class="context-title">当前：车</div>
+            <div class="context-text">系统管理员 / 可切换系统</div>
+        </div>
+
+        <div>
+            <div class="section-title">平台入口</div>
+            <button class="nav-btn active" data-screen="platformHome" aria-label="我的系统"><span class="nav-icon">台</span><span class="nav-label">我的系统</span></button>
+            <button class="nav-btn" data-screen="platformAdmin" aria-label="平台管理"><span class="nav-icon">管</span><span class="nav-label">平台管理</span></button>
+            <button class="nav-btn" data-screen="integrationApp" aria-label="应用中心"><span class="nav-icon">应</span><span class="nav-label">应用中心</span></button>
+        </div>
+
+        <div>
+            <div class="section-title">系统入口</div>
+            <button class="nav-btn" data-screen="systemHome" aria-label="系统首页"><span class="nav-icon">首</span><span class="nav-label">系统首页</span></button>
+            <button class="nav-btn" data-screen="memberPermission" aria-label="成员与权限"><span class="nav-icon">权</span><span class="nav-label">成员与权限</span></button>
+            <button class="nav-btn" data-screen="moduleDesigner" aria-label="模块建模"><span class="nav-icon">模</span><span class="nav-label">模块建模</span></button>
+            <button class="nav-btn" data-screen="runtimeList" aria-label="业务运行台"><span class="nav-icon">运</span><span class="nav-label">业务运行台</span></button>
+        </div>
+
+        <div>
+            <div class="section-title">审计</div>
+            <button class="nav-btn" data-screen="logs" aria-label="日志追踪"><span class="nav-icon">志</span><span class="nav-label">日志追踪</span></button>
+        </div>
+
+        <div class="sidebar-footer">
+            <button onclick="toggleNav()">收起/展开</button>
+            <button onclick="showLogin()">退出</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div class="crumb"><strong id="topTitle">我的系统</strong><span>租户：默认租户</span><span>当前系统：车</span></div>
+            <div class="user-area">
+                <button onclick="showScreen('systemSelect')">切换系统</button>
+                <span class="tag ok">已登录</span>
+                <button onclick="showLogin()">退出</button>
+            </div>
+        </header>
+
+        <section class="content">
+            <div id="systemSelect" class="screen">
+                <div class="page-head">
+                    <div>
+                        <h2 class="page-title">选择要进入的业务系统</h2>
+                        <p class="page-desc">一个人属于多个系统时，先选择系统，再进入对应运行台或管理态。</p>
+                    </div>
+                </div>
+                <div class="system-choice">
+                    <div class="system-card selected">
+                        <h3>车</h3>
+                        <div class="muted">角色：系统管理员、业务用户</div>
+                        <div><span class="tag ok">已发布</span> <span class="tag warn">3 条待办</span></div>
+                        <button class="primary" onclick="showScreen('systemHome')">进入车系统</button>
+                    </div>
+                    <div class="system-card">
+                        <h3>门店</h3>
+                        <div class="muted">角色：普通成员</div>
+                        <div><span class="tag ok">运行中</span> <span class="tag">最近访问 2 天前</span></div>
+                        <button onclick="showScreen('runtimeList')">进入运行台</button>
+                    </div>
+                    <div class="system-card">
+                        <h3>售后</h3>
+                        <div class="muted">角色：审批人</div>
+                        <div><span class="tag warn">待完善菜单</span></div>
+                        <button>查看原因</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="platformHome" class="screen active">
+                <div class="page-head">
+                    <div>
+                        <h2 class="page-title">我的系统</h2>
+                        <p class="page-desc">平台普通态：创建或进入业务系统。普通平台用户只看到自己有权限进入的系统。</p>
+                    </div>
+                    <button class="primary" onclick="openDrawer('创建业务系统', 'system')">创建业务系统</button>
+                </div>
+                <div class="toolbar">
+                    <input placeholder="搜索系统名称">
+                    <select><option>全部状态</option><option>已发布</option><option>配置中</option></select>
+                    <button>筛选</button>
+                    <button onclick="toggleAdvanced()">高级筛选</button>
+                </div>
+                <div class="grid cols-3">
+                    <div class="panel metric"><span class="muted">业务系统</span><span class="metric-value">3</span><span>车、门店、售后</span></div>
+                    <div class="panel metric"><span class="muted">今日待办</span><span class="metric-value">9</span><span>来自 2 个系统</span></div>
+                    <div class="panel metric"><span class="muted">最近进入</span><span class="metric-value">车</span><span>默认进入系统首页</span></div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>系统</th><th>说明</th><th>本人角色</th><th>发布状态</th><th>最近访问</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td>车</td><td>车辆档案和审批</td><td>系统管理员</td><td><span class="tag ok">已发布</span></td><td>今天 10:42</td><td><button onclick="showScreen('systemHome')">进入系统</button></td></tr>
+                        <tr><td>门店</td><td>门店巡检</td><td>普通成员</td><td><span class="tag ok">已发布</span></td><td>昨天 18:11</td><td><button onclick="showScreen('runtimeList')">进入运行台</button></td></tr>
+                        <tr><td>售后</td><td>售后工单</td><td>审批人</td><td><span class="tag warn">配置中</span></td><td>2 天前</td><td><button>查看配置进度</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="platformAdmin" class="screen">
+                <div class="page-head">
+                    <div>
+                        <h2 class="page-title">平台管理</h2>
+                        <p class="page-desc">管理业务系统、平台账号、平台角色、平台审计和运维，不和系统内建模混在一起。</p>
+                    </div>
+                </div>
+                <div class="grid cols-3">
+                    <div class="panel"><h3>业务系统</h3><p class="muted">创建系统、停用系统、查看系统配置健康度。</p><button onclick="openDrawer('创建业务系统', 'system')">创建系统</button></div>
+                    <div class="panel"><h3>平台账号</h3><p class="muted">维护平台账号和平台角色。系统成员可在系统内直接开通。</p><button>查看账号</button></div>
+                    <div class="panel"><h3>平台审计</h3><p class="muted">登录、系统创建、应用授权、运维事件。</p><button onclick="showScreen('logs')">查看日志</button></div>
+                </div>
+            </div>
+
+            <div id="systemHome" class="screen">
+                <div class="page-head">
+                    <div>
+                        <h2 class="page-title">车 / 系统首页</h2>
+                        <p class="page-desc">系统管理态：告诉管理员下一步如何把系统配置到可用。</p>
+                    </div>
+                    <button onclick="showScreen('runtimeList')">进入业务运行台</button>
+                </div>
+                <div class="grid cols-3">
+                    <div class="panel metric"><span class="muted">成员</span><span class="metric-value">12</span><span class="tag ok">已开通 che</span></div>
+                    <div class="panel metric"><span class="muted">模块</span><span class="metric-value">4</span><span class="tag ok">车辆档案已发布</span></div>
+                    <div class="panel metric"><span class="muted">权限预览</span><span class="metric-value">通过</span><span>che 看不到管理入口</span></div>
+                </div>
+                <div class="steps">
+                    <div class="step"><div class="step-no">1</div><div><strong>开通成员</strong><div class="muted">在当前系统内开通成员，不要求先去平台账号页。</div></div><button onclick="showScreen('memberPermission')">处理</button></div>
+                    <div class="step"><div class="step-no">2</div><div><strong>配置模块字段页面</strong><div class="muted">车辆档案：字段、列表页、表单页、详情页、菜单。</div></div><button onclick="showScreen('moduleDesigner')">处理</button></div>
+                    <div class="step"><div class="step-no">3</div><div><strong>发布并授权</strong><div class="muted">发布到运行台，并给 che 授权菜单、字段、动作和数据范围。</div></div><button onclick="showScreen('memberPermission')">预览权限</button></div>
+                </div>
+            </div>
+
+            <div id="memberPermission" class="screen">
+                <div class="page-head">
+                    <div>
+                        <h2 class="page-title">成员与权限</h2>
+                        <p class="page-desc">系统管理员在当前系统内开通成员、配置角色、字段权限、页面权限和数据权限。</p>
+                    </div>
+                    <button class="primary" onclick="openDrawer('开通成员', 'member')">开通成员</button>
+                </div>
+                <div class="toolbar">
+                    <input placeholder="姓名/账号">
+                    <select><option>全部角色</option><option>系统管理员</option><option>普通成员</option></select>
+                    <select><option>全部数据范围</option><option>本人</option><option>本部门</option><option>全部</option></select>
+                    <button>筛选</button>
+                    <button onclick="openDrawer('权限效果预览：che', 'permission')">预览 che 权限</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>成员</th><th>账号</th><th>系统角色</th><th>页面权限</th><th>字段权限</th><th>数据范围</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td>车管理员</td><td>car_admin</td><td>系统管理员</td><td>全部管理页</td><td>全部字段</td><td>全部</td><td><button>编辑</button></td></tr>
+                        <tr><td>che</td><td>che</td><td>普通成员</td><td>运行台、车辆档案</td><td>车牌号/车型/状态</td><td>本人</td><td><button onclick="openDrawer('权限效果预览：che', 'permission')">预览</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="moduleDesigner" class="screen">
+                <div class="page-head">
+                    <div>
+                        <h2 class="page-title">模块建模</h2>
+                        <p class="page-desc">系统内只叫模块、字段、页面、菜单，不再把它称为应用。</p>
+                    </div>
+                    <button class="primary" onclick="openDrawer('新建业务模块', 'module')">新建模块</button>
+                </div>
+                <div class="steps">
+                    <div class="step"><div class="step-no">1</div><div><strong>车辆档案模块</strong><div class="muted">承载车辆业务数据。</div></div><span class="tag ok">完成</span></div>
+                    <div class="step"><div class="step-no">2</div><div><strong>字段设计</strong><div class="muted">车牌号、车型、颜色、登记日期、状态。</div></div><button onclick="openDrawer('字段设计：车辆档案', 'fields')">配置</button></div>
+                    <div class="step"><div class="step-no">3</div><div><strong>页面与菜单</strong><div class="muted">列表页、表单页、详情页、运行台菜单。</div></div><button>配置</button></div>
+                    <div class="step"><div class="step-no">4</div><div><strong>发布检查</strong><div class="muted">检查字段、页面、菜单、权限是否完整。</div></div><span class="tag ok">可发布</span></div>
+                </div>
+            </div>
+
+            <div id="runtimeList" class="screen">
+                <div class="page-head">
+                    <div>
+                        <h2 class="page-title">车 / 业务运行台 / 车辆档案</h2>
+                        <p class="page-desc">普通用户只处理被授权模块数据，看不到平台管理和系统建模。</p>
+                    </div>
+                    <button class="primary" onclick="openDrawer('新建车辆档案', 'record')">新增车辆档案</button>
+                </div>
+                <div class="toolbar">
+                    <input placeholder="搜索车牌号/车型">
+                    <select><option>状态：全部</option><option>草稿</option><option>已提交</option><option>审批中</option></select>
+                    <button>查询</button>
+                    <button onclick="toggleAdvanced()">高级筛选</button>
+                    <button onclick="openDrawer('表头配置', 'columns')">表头配置</button>
+                    <button>保存视图</button>
+                    <div id="advancedFilter" class="advanced">
+                        <div class="field"><label>登记日期</label><input value="2026-06-01 至 2026-06-13"></div>
+                        <div class="field"><label>车型</label><select><option>SUV</option><option>轿车</option></select></div>
+                        <div class="field"><label>数据范围</label><select><option>我的数据</option><option>本部门</option></select></div>
+                        <div class="field"><label>字段条件</label><input value="颜色 = 白色"></div>
+                    </div>
+                    <div class="chips"><span class="chip">状态：全部</span><span class="chip">视图：我的常用列</span><span class="chip">数据范围：本人</span></div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th><input type="checkbox"></th><th>车牌号</th><th>车型</th><th>颜色</th><th>登记日期</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td><input type="checkbox"></td><td>浙A12345</td><td>SUV</td><td>白色</td><td>2026-06-11</td><td><span class="tag warn">草稿</span></td><td><button onclick="openDrawer('车辆档案详情', 'recordDetail')">详情</button> <button onclick="openDrawer('编辑车辆档案', 'record')">编辑</button></td></tr>
+                        <tr><td><input type="checkbox"></td><td>沪B88990</td><td>轿车</td><td>黑色</td><td>2026-06-10</td><td><span class="tag ok">已提交</span></td><td><button onclick="openDrawer('车辆档案详情', 'recordDetail')">详情</button></td></tr>
+                        <tr><td><input type="checkbox"></td><td>苏C56789</td><td>货车</td><td>灰色</td><td>2026-06-09</td><td><span class="tag">审批中</span></td><td><button onclick="openDrawer('车辆档案详情', 'recordDetail')">详情</button></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="table-footer"><span>共 36 条，每页 10 条，第 1 / 4 页</span><span><button>上一页</button> <button>下一页</button></span></div>
+                </div>
+            </div>
+
+            <div id="integrationApp" class="screen">
+                <div class="page-head">
+                    <div>
+                        <h2 class="page-title">应用中心</h2>
+                        <p class="page-desc">应用是对外/跨系统调用管理主体，可授权系统数据、模块动作、流程、文件和后续能力。</p>
+                    </div>
+                    <button class="primary" onclick="openDrawer('创建应用', 'integration')">创建应用</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>应用</th><th>调用方</th><th>授权系统</th><th>授权能力</th><th>安全策略</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody>
+                        <tr><td>车联网外部接入</td><td>外部系统</td><td>车</td><td>车辆档案读取、发起年检流程</td><td>IP 白名单、限流、签名</td><td><span class="tag ok">启用</span></td><td><button onclick="openDrawer('应用授权范围', 'integration')">配置</button></td></tr>
+                        <tr><td>门店同步</td><td>其它系统</td><td>门店</td><td>门店数据读取</td><td>requestId 追踪</td><td><span class="tag warn">待审核</span></td><td><button>审核</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="logs" class="screen">
+                <div class="page-head">
+                    <div>
+                        <h2 class="page-title">日志追踪</h2>
+                        <p class="page-desc">平台日志、系统日志、应用调用日志分层展示，通过 requestId 串联。</p>
+                    </div>
+                </div>
+                <div class="toolbar"><input value="REQ-20260613-0007"><button class="primary">追踪 requestId</button><select><option>全部日志</option><option>平台日志</option><option>系统日志</option><option>应用调用日志</option></select></div>
+                <div class="steps">
+                    <div class="step"><div class="step-no">1</div><div><strong>应用签名校验通过</strong><div class="muted">车联网外部接入 / appKey 已识别。</div></div><span class="tag ok">应用日志</span></div>
+                    <div class="step"><div class="step-no">2</div><div><strong>授权范围命中</strong><div class="muted">允许读取车系统车辆档案字段：车牌号、车型、状态。</div></div><span class="tag ok">系统日志</span></div>
+                    <div class="step"><div class="step-no">3</div><div><strong>返回结果</strong><div class="muted">耗时 132ms，命中限流策略 1000 次/小时。</div></div><span class="tag ok">平台日志</span></div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div id="drawerMask" class="drawer-mask" onclick="closeDrawer(event)">
+    <aside class="drawer" onclick="event.stopPropagation()">
+        <header class="drawer-head">
+            <div>
+                <strong id="drawerTitle">抽屉</strong>
+                <div class="muted">新建、编辑、详情使用同一右侧抽屉体系</div>
+            </div>
+            <button onclick="closeDrawer()">关闭</button>
+        </header>
+        <section id="drawerBody" class="drawer-body"></section>
+        <footer class="drawer-foot">
+            <button onclick="closeDrawer()">取消</button>
+            <button id="drawerSave" class="primary">保存</button>
+        </footer>
+    </aside>
+</div>
+
+<script>
+    const app = document.getElementById('app');
+    const loginScreen = document.getElementById('loginScreen');
+    const drawerMask = document.getElementById('drawerMask');
+    const drawerBody = document.getElementById('drawerBody');
+    const drawerTitle = document.getElementById('drawerTitle');
+    const topTitle = document.getElementById('topTitle');
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => showScreen(btn.dataset.screen));
+    });
+
+    function quickLogin(type) {
+        loginScreen.style.display = 'none';
+        app.style.display = 'grid';
+        if (type === 'multiUser') {
+            showScreen('systemSelect');
+        } else if (type === 'normalUser') {
+            showScreen('runtimeList');
+            applyNormalUserNav();
+        } else if (type === 'systemAdmin') {
+            showScreen('systemHome');
+        } else {
+            showScreen('platformHome');
+        }
+    }
+
+    function showLogin() {
+        app.style.display = 'none';
+        loginScreen.style.display = 'grid';
+        restoreNav();
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.screen === id));
+        const current = document.querySelector(`#${id} .page-title`);
+        topTitle.textContent = current ? current.textContent : '选择系统';
+    }
+
+    function toggleNav() {
+        app.classList.toggle('nav-collapsed');
+    }
+
+    function toggleAdvanced() {
+        const panel = document.getElementById('advancedFilter');
+        if (panel) {
+            panel.classList.toggle('open');
+        }
+    }
+
+    function applyNormalUserNav() {
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            const allowed = ['runtimeList'].includes(btn.dataset.screen);
+            btn.style.display = allowed ? 'flex' : 'none';
+        });
+        document.querySelectorAll('.section-title').forEach(title => {
+            title.style.display = title.textContent.includes('系统入口') ? 'block' : 'none';
+        });
+    }
+
+    function restoreNav() {
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.style.display = 'flex');
+        document.querySelectorAll('.section-title').forEach(title => title.style.display = '');
+    }
+
+    function openDrawer(title, type) {
+        drawerTitle.textContent = title;
+        drawerBody.innerHTML = drawerTemplate(type);
+        document.getElementById('drawerSave').style.display = type === 'recordDetail' || type === 'permission' ? 'none' : 'inline-flex';
+        drawerMask.classList.add('open');
+    }
+
+    function closeDrawer(event) {
+        if (event && event.target !== drawerMask) return;
+        drawerMask.classList.remove('open');
+    }
+
+    function drawerTemplate(type) {
+        const templates = {
+            system: `
+                <div class="form-grid">
+                    <div class="field"><label>系统名称</label><input value="车"></div>
+                    <div class="field"><label>系统编码</label><input value="che"></div>
+                    <div class="field"><label>默认管理员</label><input value="car_admin"></div>
+                    <div class="field"><label>状态</label><select><option>启用</option></select></div>
+                </div>
+                <div class="notice">创建成功后进入系统首页，引导开通成员、创建模块、配置页面、授权并发布。</div>
+            `,
+            member: `
+                <div class="form-grid">
+                    <div class="field"><label>姓名</label><input value="che"></div>
+                    <div class="field"><label>登录账号</label><input value="che"></div>
+                    <div class="field"><label>初始密码</label><input value="123123aa"></div>
+                    <div class="field"><label>系统角色</label><select><option>普通成员</option><option>系统管理员</option></select></div>
+                    <div class="field"><label>数据范围</label><select><option>本人</option><option>本部门</option><option>全部</option></select></div>
+                    <div class="field"><label>状态</label><select><option>启用</option></select></div>
+                </div>
+                <div class="notice">系统管理员可以在当前系统内直接开通成员，不要求先去平台账号页。</div>
+            `,
+            module: `
+                <div class="form-grid">
+                    <div class="field"><label>模块名称</label><input value="车辆档案"></div>
+                    <div class="field"><label>模块编码</label><input value="vehicle_record"></div>
+                    <div class="field"><label>所属分组</label><input value="车辆业务"></div>
+                    <div class="field"><label>发布菜单</label><select><option>业务运行台</option></select></div>
+                </div>
+                <div class="notice">这里是系统内模块，不叫应用。应用只用于对外/跨系统调用管理。</div>
+            `,
+            fields: `
+                <table>
+                    <thead><tr><th>字段</th><th>类型</th><th>列表可见</th><th>详情可见</th><th>表单可写</th><th>可筛选</th></tr></thead>
+                    <tbody>
+                    <tr><td>车牌号</td><td>文本</td><td>是</td><td>是</td><td>是</td><td>是</td></tr>
+                    <tr><td>车型</td><td>选项</td><td>是</td><td>是</td><td>是</td><td>是</td></tr>
+                    <tr><td>内部成本</td><td>金额</td><td>否</td><td>否</td><td>否</td><td>否</td></tr>
+                    </tbody>
+                </table>
+            `,
+            record: `
+                <div class="form-grid">
+                    <div class="field"><label>车牌号</label><input value="浙A12345"></div>
+                    <div class="field"><label>车型</label><select><option>SUV</option><option>轿车</option><option>货车</option></select></div>
+                    <div class="field"><label>颜色</label><input value="白色"></div>
+                    <div class="field"><label>登记日期</label><input value="2026-06-13"></div>
+                    <div class="field"><label>状态</label><select><option>草稿</option><option>提交审批</option></select></div>
+                </div>
+                <div class="notice">字段由模块 schema 和字段权限决定，普通用户看不到无权限字段。</div>
+            `,
+            recordDetail: `
+                <div class="preview">
+                    <h3>车辆档案详情</h3>
+                    <p><strong>车牌号：</strong>浙A12345</p>
+                    <p><strong>车型：</strong>SUV</p>
+                    <p><strong>颜色：</strong>白色</p>
+                    <p><strong>登记日期：</strong>2026-06-11</p>
+                    <p><strong>状态：</strong>草稿</p>
+                    <p class="muted">内部成本字段因 che 无权限不可见。</p>
+                </div>
+                <button class="primary" onclick="openDrawer('编辑车辆档案', 'record')">在当前抽屉切换编辑</button>
+            `,
+            columns: `
+                <table>
+                    <thead><tr><th>列名</th><th>显示</th><th>排序</th><th>字段权限</th></tr></thead>
+                    <tbody>
+                    <tr><td>车牌号</td><td><input type="checkbox" checked></td><td>1</td><td><span class="tag ok">允许</span></td></tr>
+                    <tr><td>车型</td><td><input type="checkbox" checked></td><td>2</td><td><span class="tag ok">允许</span></td></tr>
+                    <tr><td>内部成本</td><td><input type="checkbox" disabled></td><td>-</td><td><span class="tag block">无权限</span></td></tr>
+                    </tbody>
+                </table>
+            `,
+            permission: `
+                <div class="preview">
+                    <h3>以 che 视角预览</h3>
+                    <p><strong>可见导航：</strong>业务运行台、车辆档案、待办、退出</p>
+                    <p><strong>不可见：</strong>平台管理、系统建模、字段设计、页面发布、权限配置</p>
+                    <p><strong>字段：</strong>可见车牌号、车型、颜色、状态；不可见内部成本</p>
+                    <p><strong>动作：</strong>查看、新增、编辑、提交；不可删除</p>
+                    <p><strong>数据范围：</strong>本人创建的数据</p>
+                </div>
+            `,
+            integration: `
+                <div class="form-grid">
+                    <div class="field"><label>应用名称</label><input value="车联网外部接入"></div>
+                    <div class="field"><label>调用方</label><select><option>外部系统</option><option>其它业务系统</option></select></div>
+                    <div class="field"><label>授权系统</label><select><option>车</option></select></div>
+                    <div class="field"><label>授权能力</label><select><option>车辆档案读取 + 发起年检流程</option></select></div>
+                    <div class="field"><label>IP 白名单</label><input value="192.168.0.0/24"></div>
+                    <div class="field"><label>限流</label><input value="1000 次/小时"></div>
+                </div>
+                <div class="notice">应用生成 appKey/secret，secret 只展示一次；调用日志通过 requestId 追踪。</div>
+            `
+        };
+        return templates[type] || '<div class="notice">低成本原型占位内容</div>';
+    }
+</script>
+</body>
+</html>
