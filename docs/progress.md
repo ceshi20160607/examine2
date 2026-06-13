@@ -1,5 +1,28 @@
 # 项目进度看板
 
+## 2026-06-13 Open Design Windows MCP 已连通，AMR 登录阻塞生成
+
+本轮 Codex 已通过 Windows 原生 Open Design MCP 直接操作 Open Design：
+
+- 创建项目：`examine2-p16-ui-prototype`
+- 项目目录：`C:\Users\sheji\AppData\Roaming\Open Design\namespaces\release-stable-win\data\projects\examine2-p16-ui-prototype`
+- 已写入输入制品：`brief.md`、`traceability.md`
+- 已发起生成任务：`347d52d1-e88d-4302-9cee-8c7a7ccc4075`
+- 使用 agent/plugin：`AMR` + `example-web-prototype`
+
+生成任务返回：
+
+```text
+AMR_AUTH_REQUIRED: AMR sign-in is required. Sign in to AMR Cloud again, then retry this run.
+```
+
+PM/Reviewer 裁决：
+
+- Codex 与 Windows 原生 Open Design 的 MCP 链路已验证可用。
+- 当前仍未生成高保真 HTML 原型，P16 原型冻结闸门未通过。
+- 用户需要先在 Windows 版 Open Design 中完成 AMR Cloud 登录，然后由 Codex 复用 `examine2-p16-ui-prototype` 重新发起生成。
+- 原型生成并通过追踪矩阵前，`frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞。
+
 ## 2026-06-13 Open Design Windows 原生环境已切换
 
 本轮确认 Windows 原生 Open Design 已可用，Docker 版不再作为主路径：

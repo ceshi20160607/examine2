@@ -15,6 +15,46 @@ Node.js: D:\java\nodejs\node.exe
 
 Docker 版 `http://127.0.0.1:7456/` 和 `docker exec open-design ...` 不再作为 P16 原型生成主路径。
 
+## 0.1 Windows 原生 MCP 调用结果
+
+时间：2026-06-13
+
+Codex 已通过 Windows 原生 Open Design MCP 创建当前项目原型工作区：
+
+```text
+Open Design project: examine2-p16-ui-prototype
+Project name: examine2 P16 Unified Business Platform Prototype
+Project dir: C:\Users\sheji\AppData\Roaming\Open Design\namespaces\release-stable-win\data\projects\examine2-p16-ui-prototype
+```
+
+已写入 Open Design 项目制品：
+
+- `brief.md`
+- `traceability.md`
+
+已发起生成任务：
+
+```text
+runId: 347d52d1-e88d-4302-9cee-8c7a7ccc4075
+agent: AMR
+plugin: example-web-prototype
+```
+
+生成结果：
+
+```text
+status: failed
+errorCode: AMR_AUTH_REQUIRED
+error: AMR sign-in is required. Sign in to AMR Cloud again, then retry this run.
+```
+
+PM/Reviewer 判定：
+
+- Windows 原生 Open Design MCP 链路已打通，Codex 可以创建项目、写入输入制品并发起生成。
+- 当前未生成高保真 HTML 原型，原因是 AMR Cloud 需要在 Windows 版 Open Design 中重新登录。
+- 不得把 `brief.md`、`traceability.md` 或本记录视为已冻结 UI 原型。
+- 用户在 Open Design Windows 客户端完成 AMR 登录后，可复用 `examine2-p16-ui-prototype` 项目重新运行生成。
+
 ## 1. 本地服务检查
 
 Docker 容器：
