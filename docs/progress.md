@@ -1,12 +1,15 @@
 # 项目进度看板
 
-## 2026-06-13 Open Design 原型闸门已接入
+## 2026-06-13 Open Design Windows 原生环境已切换
 
-本轮确认 Docker 版 Open Design 已可用：
-- Web 入口：`http://127.0.0.1:7456/`
-- 容器：`open-design`
-- MCP 命令：`docker exec -i open-design node /app/apps/daemon/dist/cli.js mcp --daemon-url http://127.0.0.1:7456`
-- Codex 全局配置已追加 `mcp_servers.open_design`，需要重启 Codex 或新开线程后生效。
+本轮确认 Windows 原生 Open Design 已可用，Docker 版不再作为主路径：
+- App：`D:\java\opendesign\Open Design\Open Design.exe`
+- Web 入口：`http://127.0.0.1:57033/` 或 `http://127.0.0.1:57029/`
+- Daemon：`http://127.0.0.1:57023`
+- 数据目录：`C:\Users\sheji\AppData\Roaming\Open Design\namespaces\release-stable-win\data`
+- 当前执行通道：`本地 CLI · AMR · gpt-5.4-mini`
+- Node.js：`D:\java\nodejs\node.exe`
+- Codex 全局 `mcp_servers.open_design` 已从 Docker 版切换到 Windows 原生版，重启 Codex 或新开线程后生效。
 
 PM/Reviewer 裁决：
 - 当前 P16 不允许继续“边写前端边猜 UI”。
@@ -14,19 +17,19 @@ PM/Reviewer 裁决：
 - 下一步是 UIUX 输出 `docs/ui/open-design-brief.md`，通过 Open Design 生成并冻结高保真原型。
 - 原型冻结前，`frontendUsable=false`、`fullProjectDeployable=false` 保持不变，不进入最终打包。
 
-## 2026-06-13 P16 Open Design Brief 已完成，Web 生成受阻
+## 2026-06-13 P16 Open Design Brief 已完成，Docker 生成受阻记录已降级为历史
 
 本轮 UIUX 已补齐 Open Design 原型输入：
 - `docs/ui/open-design-brief.md`
 - `docs/ui/prototype-traceability.md`
 - `docs/ui/open-design-generation-attempt.md`
 
-本轮尝试把 brief 中的 prompt 填入本地 Open Design Web 工作台并点击“运行”，但没有生成项目。检查“本地 CLI”菜单后确认：Docker 容器内显示 `PATH 中未发现可用 CLI`，因此 Web 工作台当前无法直接调用 Windows 宿主机的 Codex CLI。
+此前尝试把 brief 中的 prompt 填入 Docker 版 Open Design Web 工作台并点击“运行”，但没有生成项目。检查“本地 CLI”菜单后确认：Docker 容器内显示 `PATH 中未发现可用 CLI`，因此 Docker Web 工作台无法直接调用 Windows 宿主机的 CLI。
 
 PM/Reviewer 裁决：
 - `docs/ui/open-design-brief.md` 是原型输入，不是高保真原型冻结产物。
 - P16 继续受 Open Design 原型冻结闸门约束。
-- 可选路径：安装 Windows 原生 Open Design、在 Docker 内配置自带 Key/agent CLI，或重启 Codex 后使用 `open_design` MCP 管理制品。
+- 当前主路径已切换为 Windows 原生 Open Design；下一步通过 Windows 原生 Web 工作台或重启后的 `open_design` MCP 生成并冻结原型。
 - 在原型生成并冻结前，不进入最终前端实现和最终打包。
 
 ## 2026-06-12 P16 首轮 UI 结构实现通过

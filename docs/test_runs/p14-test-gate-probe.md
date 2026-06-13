@@ -52,11 +52,13 @@ DOM 中可见：
 命令：
 
 ```powershell
-$env:Path='D:\Tools\node-v24.15.0-win-x64;'+$env:Path
+$env:Path='D:\java\nodejs;'+$env:Path
 npm.cmd run build
 ```
 
 结果：pass。
+
+环境修正：2026-06-13 之后，本机 Node.js 固定使用 `D:\java\nodejs\node.exe`，不再使用 `D:\Tools\node-v24.15.0-win-x64`。
 
 ## 重要边界
 

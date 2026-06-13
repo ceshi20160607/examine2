@@ -20,4 +20,4 @@
 ## 默认构建命令
 
 - 后端：优先在 `backend/` 目录执行 Maven 编译；如需 JDK 21，使用 `D:\java\jdk\jdk21`。
-- 前端：优先在 `frontend/` 目录执行依赖安装和构建命令，Node.js 可使用 `D:\java\nodejs`。
+- 前端：优先在 `frontend/` 目录执行依赖安装和构建命令，Node.js 固定使用 `D:\java\nodejs\node.exe`，npm 使用 `D:\java\nodejs\npm.cmd`。

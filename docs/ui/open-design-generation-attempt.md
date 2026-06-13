@@ -2,6 +2,19 @@
 
 时间：2026-06-13
 
+## 0. 后续状态
+
+该记录描述的是 Docker 版 Open Design 的失败尝试。当前主路径已切换为 Windows 原生 Open Design：
+
+```text
+Open Design App: D:\java\opendesign\Open Design\Open Design.exe
+Open Design Web: http://127.0.0.1:57033/
+Open Design Daemon: http://127.0.0.1:57023
+Node.js: D:\java\nodejs\node.exe
+```
+
+Docker 版 `http://127.0.0.1:7456/` 和 `docker exec open-design ...` 不再作为 P16 原型生成主路径。
+
 ## 1. 本地服务检查
 
 Docker 容器：
@@ -49,26 +62,30 @@ PATH 中未发现可用 CLI
 
 原因不是需求输入缺失，而是 Docker 版 Open Design daemon 运行在 Linux 容器内，无法发现 Windows 宿主机上的 Codex CLI。当前 Web 工作台可打开，MCP server 可配置，但 Web 中的“运行”需要可用 agent CLI 或自带 Key 配置。
 
-## 5. 可选解决方式
+## 5. 当前解决方式
 
-### 5.1 推荐：安装 Windows 原生 Open Design
+### 5.1 已采用：Windows 原生 Open Design
 
-Windows 原生 Open Design 运行在宿主机上，能扫描 Windows PATH 中的 `codex.exe`。适合通过 Web 工作台直接选择 Codex/Claude/Gemini 等 CLI 生成原型。
+Windows 原生 Open Design 已运行在宿主机上，能使用宿主机环境和 Open Design 自身的 AMR 通道。适合通过 Web 工作台直接生成原型。
 
-### 5.2 可选：Docker 内配置可用 agent 或自带 Key
+### 5.2 当前 Web 通道
 
-在容器内安装并认证可用 agent CLI，或在 Open Design 的“自带 Key”中配置模型 Key。该方式涉及凭证和容器持久化，需要单独处理，不应在未确认凭证方案前自动执行。
+当前 Open Design Web 显示执行通道：
 
-### 5.3 当前可用：Codex MCP 连接 Docker Open Design
+```text
+本地 CLI · AMR · gpt-5.4-mini
+```
 
-Codex 全局配置已追加 `mcp_servers.open_design`，重启 Codex 或新开线程后可通过 MCP 读取/创建 Open Design 制品。该方式适合把原型产物纳入 Open Design 项目，但不等同于 Web 工作台自动生成。
+### 5.3 当前 MCP 通道
+
+Codex 全局配置已切换为 Windows 原生 Open Design，重启 Codex 或新开线程后可通过 MCP 读取/创建 Open Design 制品。
 
 ## 6. 下一步
 
-P16 继续推进时，必须先选定一种原型生成通道：
+P16 继续推进时，必须使用当前 Windows 原生通道生成原型：
 
-1. Windows 原生 Open Design + Codex CLI 直接生成。
-2. Docker Open Design + 自带 Key 生成。
-3. Docker Open Design MCP + Codex 生成制品后导入/登记。
+1. Open Design Web 工作台选择当前项目目录。
+2. 使用 `docs/ui/open-design-brief.md` 中的 prompt 生成原型。
+3. 将生成结果登记到 `docs/ui/prototypes/` 或通过 Open Design MCP 读取制品。
 
 未选定并成功生成原型前，`frontendUsable=false`、`fullProjectDeployable=false`、`packageGate=trial_package_only_ui_rework_required` 保持不变。

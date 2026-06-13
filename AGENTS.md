@@ -1277,3 +1277,9 @@ reviewer 还必须检查以下架构项；任一不满足时必须判定 fail：
 * Open Design 作为本项目高保真原型生成和冻结工具；UIUX 必须先输出可投喂 Open Design 的 `docs/ui/open-design-brief.md`，再生成或导出原型产物。
 * frontend 不得在 Open Design 原型未冻结前继续最终页面实现或申请最终打包；只能做技术 Spike、接口联调或被 PM 明确批准的非最终页面验证。
 * test/reviewer 必须检查“Open Design 原型 -> 前端页面 -> 真实浏览器 E2E 证据”的闭环。没有闭环时，即使构建通过，也必须保持 `frontendUsable=false` 和 `fullProjectDeployable=false`。
+
+# 2026-06-13 补充规则：Node 与 Open Design 本机路径
+
+* 当前 Windows 本机 Node.js 固定使用 `D:\java\nodejs\node.exe`，前端命令使用同目录下的 `npm.cmd`；不得再使用 `D:\Tools\node-v24.15.0-win-x64\node.exe`。
+* Open Design 当前使用 Windows 原生版，不使用 Docker 版作为主流程。应用路径为 `D:\java\opendesign\Open Design\Open Design.exe`，数据目录为 `C:\Users\sheji\AppData\Roaming\Open Design\namespaces\release-stable-win\data`。
+* Open Design Windows 原生版 daemon 当前通过 sidecar IPC 暴露给 Codex MCP；如需重新注册，优先使用 Open Design 官方 `od mcp install codex --print` 输出的 Windows 原生配置，不再回退到 `docker exec open-design ... 7456`。

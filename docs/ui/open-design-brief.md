@@ -4,7 +4,7 @@
 
 更新时间：2026-06-13
 
-目标工具：Open Design Docker 本地服务 `http://127.0.0.1:7456/`
+目标工具：Open Design Windows 原生本地服务，Web 入口 `http://127.0.0.1:57033/`，daemon `http://127.0.0.1:57023`
 
 ## 1. 一句话目标
 
