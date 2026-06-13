@@ -55,6 +55,28 @@ PM/Reviewer 判定：
 - 不得把 `brief.md`、`traceability.md` 或本记录视为已冻结 UI 原型。
 - 用户在 Open Design Windows 客户端完成 AMR 登录后，可复用 `examine2-p16-ui-prototype` 项目重新运行生成。
 
+## 0.2 Codex 低成本替代产出
+
+用户确认当前只有 Codex 可用，Open Design 内置模型均需要账号登录，因此 P16 不再等待 Open Design 模型生成。
+
+Codex 已基于冻结 brief 和流程追踪矩阵直接生成自包含 HTML 原型：
+
+```text
+docs/ui/prototypes/p16-codex-high-fidelity-prototype.html
+```
+
+配套评审记录：
+
+```text
+docs/ui/prototypes/p16-codex-prototype-review.md
+```
+
+PM/Reviewer 判定：
+
+- 该文件可以作为 P16 的高保真流程原型输入，进入 PM/UIUX/frontend/test/reviewer 评审。
+- 该文件不调用真实后端接口，不代表前端 E2E 或最终可用系统完成。
+- 后续 frontend 必须基于该原型补充 `docs/ui/prototype-implementation-diff.md`，再进入页面级实现、浏览器 E2E、clean build、review 和最终包闸门。
+
 ## 1. 本地服务检查
 
 Docker 容器：

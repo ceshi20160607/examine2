@@ -1,5 +1,21 @@
 # 项目进度看板
 
+## 2026-06-13 Codex 低成本原型已产出，替代 Open Design 模型生成
+
+用户确认当前只有 Codex 可用，Open Design 内置 AMR/模型均需要账号登录，P16 不再等待 Open Design 模型生成。
+
+本轮 Codex 已直接生成高保真流程原型：
+
+- 原型文件：`docs/ui/prototypes/p16-codex-high-fidelity-prototype.html`
+- 评审记录：`docs/ui/prototypes/p16-codex-prototype-review.md`
+- 生成方式：基于 `docs/ui/open-design-brief.md` 和 `docs/ui/prototype-traceability.md` 手写自包含 HTML，不调用外部模型。
+
+PM/Reviewer 裁决：
+
+- 当前可以进入 PM/UIUX 原型评审。
+- 原型评审通过前，不允许直接继续最终前端实现和打包。
+- 该原型不代表真实前端完成，`frontendUsable=false`、`fullProjectDeployable=false`、最终打包继续阻塞。
+
 ## 2026-06-13 Open Design Windows MCP 已连通，AMR 登录阻塞生成
 
 本轮 Codex 已通过 Windows 原生 Open Design MCP 直接操作 Open Design：
