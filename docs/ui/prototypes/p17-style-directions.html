@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>P17 UI 风格方向选择</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --ink: #1d2939;
+            --muted: #667085;
+            --line: #d9e0ea;
+            --panel: #ffffff;
+            --teal: #00796b;
+            --blue: #2563eb;
+            --indigo: #3446a8;
+            --green-soft: #e6f4ef;
+            --blue-soft: #eaf1ff;
+            --shadow: 0 18px 45px rgba(22, 34, 51, .12);
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-size: 14px;
+        }
+
+        .page {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 28px;
+            display: grid;
+            gap: 22px;
+        }
+
+        .hero {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 28px;
+        }
+
+        .desc {
+            color: var(--muted);
+            margin-top: 8px;
+            line-height: 1.7;
+        }
+
+        .note {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            border-radius: 8px;
+            padding: 12px 14px;
+            line-height: 1.7;
+        }
+
+        .directions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .direction {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            min-height: 720px;
+        }
+
+        .direction-head {
+            padding: 18px;
+            border-bottom: 1px solid var(--line);
+            display: grid;
+            gap: 8px;
+        }
+
+        .direction-title {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .badge {
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 9px;
+            border-radius: 999px;
+            background: #eef2f6;
+            color: #475467;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .mock {
+            padding: 14px;
+            background: #eef2f6;
+        }
+
+        .shell {
+            height: 430px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 66px 1fr;
+        }
+
+        .side {
+            padding: 12px 8px;
+            display: grid;
+            align-content: start;
+            gap: 10px;
+        }
+
+        .side .mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            margin: 0 auto 8px;
+        }
+
+        .nav-dot {
+            width: 38px;
+            height: 34px;
+            border-radius: 7px;
+            display: grid;
+            place-items: center;
+            margin: 0 auto;
+            font-size: 12px;
+        }
+
+        .work {
+            display: grid;
+            grid-template-rows: 50px 1fr;
+            min-width: 0;
+        }
+
+        .top {
+            border-bottom: 1px solid var(--line);
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .tabset,
+        .actions,
+        .filters {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .pill,
+        .btn,
+        .input {
+            height: 28px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 9px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font-size: 12px;
+            color: #475467;
+        }
+
+        .btn.primary {
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .body {
+            padding: 14px;
+            display: grid;
+            gap: 12px;
+            align-content: start;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .metric {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px;
+            background: #fff;
+        }
+
+        .metric strong {
+            display: block;
+            font-size: 20px;
+            margin-top: 4px;
+        }
+
+        .table {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr .8fr .8fr;
+            min-height: 36px;
+            align-items: center;
+            border-bottom: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .row:last-child {
+            border-bottom: 0;
+        }
+
+        .row.header {
+            background: #f8fafc;
+            color: #667085;
+            font-weight: 700;
+        }
+
+        .cell {
+            padding: 0 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .drawer {
+            position: absolute;
+            right: 15px;
+            top: 112px;
+            width: 185px;
+            height: 285px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 12px 30px rgba(22, 34, 51, .18);
+            padding: 10px;
+            display: grid;
+            gap: 8px;
+            align-content: start;
+        }
+
+        .mock-inner {
+            position: relative;
+        }
+
+        .line {
+            height: 10px;
+            border-radius: 999px;
+            background: #e4e7ec;
+        }
+
+        .line.short {
+            width: 62%;
+        }
+
+        .line.mid {
+            width: 80%;
+        }
+
+        .direction-foot {
+            padding: 16px 18px;
+            border-top: 1px solid var(--line);
+            display: grid;
+            gap: 10px;
+            line-height: 1.7;
+        }
+
+        .pros {
+            color: #344054;
+            display: grid;
+            gap: 5px;
+            padding-left: 18px;
+        }
+
+        .style-a .side {
+            background: #102a2a;
+        }
+
+        .style-a .mark,
+        .style-a .nav-dot.active,
+        .style-a .btn.primary {
+            background: var(--teal);
+            color: #fff;
+        }
+
+        .style-a .nav-dot {
+            color: #c7d7d3;
+        }
+
+        .style-a .pill.active {
+            background: var(--green-soft);
+            color: var(--teal);
+            border-color: #b7ded3;
+        }
+
+        .style-b .shell {
+            grid-template-columns: 178px 1fr;
+        }
+
+        .style-b .side {
+            background: #ffffff;
+            border-right: 1px solid var(--line);
+            padding: 14px 12px;
+        }
+
+        .style-b .mark {
+            background: var(--blue-soft);
+            color: var(--blue);
+            margin: 0 0 12px;
+        }
+
+        .style-b .nav-dot {
+            width: 100%;
+            justify-content: flex-start;
+            padding-left: 10px;
+            background: transparent;
+            color: #475467;
+        }
+
+        .style-b .nav-dot.active,
+        .style-b .btn.primary {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        .style-b .pill.active {
+            background: var(--blue-soft);
+            color: var(--blue);
+            border-color: #b9c9ff;
+        }
+
+        .style-c .shell {
+            grid-template-columns: 1fr;
+            grid-template-rows: 48px 1fr;
+        }
+
+        .style-c .side {
+            grid-row: 1;
+            display: flex;
+            align-items: center;
+            background: #1f2a44;
+            padding: 8px 12px;
+        }
+
+        .style-c .mark {
+            background: #edf2ff;
+            color: var(--indigo);
+            margin: 0;
+        }
+
+        .style-c .nav-dot {
+            width: auto;
+            padding: 0 10px;
+            color: #d9e2ff;
+        }
+
+        .style-c .nav-dot.active,
+        .style-c .btn.primary {
+            background: var(--indigo);
+            color: #fff;
+        }
+
+        .style-c .work {
+            grid-row: 2;
+        }
+
+        .style-c .pill.active {
+            background: #eef2ff;
+            color: var(--indigo);
+            border-color: #c7d2fe;
+        }
+
+        @media (max-width: 1180px) {
+            .directions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <section class="hero">
+        <div>
+            <h1>P17 UI 风格方向选择</h1>
+            <p class="desc">这不是最终页面，只用于选择视觉气质和后台框架方向。上一版低成本结构稿不是 Open Design 输出，是 Codex 手写的流程校正稿，视觉质量不达标。</p>
+        </div>
+    </section>
+
+    <section class="note">
+        已按新的架构理解重置：平台是统一登录入口加平台级能力中心；自建系统是业务后台配置空间；系统内应用配置用于使用平台级应用能力；模块和模块分组只负责业务页面和数据。
+    </section>
+
+    <section class="directions">
+        <article class="direction style-a">
+            <header class="direction-head">
+                <div class="direction-title">
+                    <h2>A. 稳重企业控制台</h2>
+                    <span class="badge">推荐</span>
+                </div>
+                <p class="desc">适合权限、流程、组织、审计较重的系统。导航清楚，信息密度高，后续实现也稳。</p>
+            </header>
+            <div class="mock">
+                <div class="mock-inner">
+                    <div class="shell">
+                        <aside class="side">
+                            <div class="mark">统</div>
+                            <div class="nav-dot active">平台</div>
+                            <div class="nav-dot">系统</div>
+                            <div class="nav-dot">流程</div>
+                            <div class="nav-dot">应用</div>
+                            <div class="nav-dot">审计</div>
+                        </aside>
+                        <section class="work">
+                            <div class="top">
+                                <div class="tabset"><span class="pill active">车系统</span><span class="pill">系统管理</span><span class="pill">运行台</span></div>
+                                <span class="btn primary">新建模块</span>
+                            </div>
+                            <div class="body">
+                                <div class="metrics">
+                                    <div class="metric">组织成员<strong>128</strong></div>
+                                    <div class="metric">业务模块<strong>24</strong></div>
+                                    <div class="metric">流程绑定<strong>9</strong></div>
+                                </div>
+                                <div class="filters"><span class="input">搜索模块</span><span class="pill">高级筛选</span><span class="pill">表头配置</span></div>
+                                <div class="table">
+                                    <div class="row header"><div class="cell">模块</div><div class="cell">分组</div><div class="cell">流程</div><div class="cell">状态</div></div>
+                                    <div class="row"><div class="cell">车辆档案</div><div class="cell">车辆业务</div><div class="cell">提交审批</div><div class="cell">已发布</div></div>
+                                    <div class="row"><div class="cell">年检记录</div><div class="cell">车辆业务</div><div class="cell">变更审批</div><div class="cell">配置中</div></div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                    <div class="drawer">
+                        <strong>模块详情</strong>
+                        <div class="line"></div>
+                        <div class="line mid"></div>
+                        <div class="line short"></div>
+                        <span class="pill active">字段权限</span>
+                        <span class="pill">流程事件</span>
+                    </div>
+                </div>
+            </div>
+            <footer class="direction-foot">
+                <strong>适合当前项目的原因</strong>
+                <ul class="pros">
+                    <li>平台/系统/应用/流程分层最清楚。</li>
+                    <li>适合复杂权限和配置后台。</li>
+                    <li>可以直接演进成生产级前端。</li>
+                </ul>
+            </footer>
+        </article>
+
+        <article class="direction style-b">
+            <header class="direction-head">
+                <div class="direction-title">
+                    <h2>B. 轻量协作工作台</h2>
+                    <span class="badge">更亲和</span>
+                </div>
+                <p class="desc">更像现代协作产品，页面更轻，适合普通业务用户，但复杂配置区需要额外治理。</p>
+            </header>
+            <div class="mock">
+                <div class="mock-inner">
+                    <div class="shell">
+                        <aside class="side">
+                            <div class="mark">业</div>
+                            <div class="nav-dot active">我的系统</div>
+                            <div class="nav-dot">车 / 运行台</div>
+                            <div class="nav-dot">模块分组</div>
+                            <div class="nav-dot">待办流程</div>
+                            <div class="nav-dot">个人中心</div>
+                        </aside>
+                        <section class="work">
+                            <div class="top">
+                                <div class="tabset"><span class="pill active">车辆业务</span><span class="pill">门店业务</span></div>
+                                <span class="btn primary">新增车辆</span>
+                            </div>
+                            <div class="body">
+                                <div class="metrics">
+                                    <div class="metric">待处理<strong>7</strong></div>
+                                    <div class="metric">草稿<strong>12</strong></div>
+                                    <div class="metric">本周新增<strong>31</strong></div>
+                                </div>
+                                <div class="filters"><span class="input">搜索车牌号</span><span class="pill">我的视图</span><span class="pill">筛选</span></div>
+                                <div class="table">
+                                    <div class="row header"><div class="cell">车牌号</div><div class="cell">车型</div><div class="cell">待办</div><div class="cell">状态</div></div>
+                                    <div class="row"><div class="cell">浙A12345</div><div class="cell">SUV</div><div class="cell">待提交</div><div class="cell">草稿</div></div>
+                                    <div class="row"><div class="cell">沪B88990</div><div class="cell">轿车</div><div class="cell">审批中</div><div class="cell">流转中</div></div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+            <footer class="direction-foot">
+                <strong>适合当前项目的原因</strong>
+                <ul class="pros">
+                    <li>普通用户更容易上手。</li>
+                    <li>业务运行台观感更舒服。</li>
+                    <li>管理配置需要另起更严肃的后台视图。</li>
+                </ul>
+            </footer>
+        </article>
+
+        <article class="direction style-c">
+            <header class="direction-head">
+                <div class="direction-title">
+                    <h2>C. 平台级产品中台</h2>
+                    <span class="badge">更平台化</span>
+                </div>
+                <p class="desc">顶部域切换更强，适合强调平台级应用、流程、系统入口，但系统内长列表效率略弱。</p>
+            </header>
+            <div class="mock">
+                <div class="mock-inner">
+                    <div class="shell">
+                        <aside class="side">
+                            <div class="mark">P</div>
+                            <div class="nav-dot active">统一入口</div>
+                            <div class="nav-dot">平台组织</div>
+                            <div class="nav-dot">平台应用</div>
+                            <div class="nav-dot">平台流程</div>
+                            <div class="nav-dot">审计运维</div>
+                        </aside>
+                        <section class="work">
+                            <div class="top">
+                                <div class="tabset"><span class="pill active">平台级应用</span><span class="pill">系统内配置</span></div>
+                                <span class="btn primary">创建应用</span>
+                            </div>
+                            <div class="body">
+                                <div class="metrics">
+                                    <div class="metric">接入系统<strong>8</strong></div>
+                                    <div class="metric">应用凭证<strong>16</strong></div>
+                                    <div class="metric">流程开放<strong>5</strong></div>
+                                </div>
+                                <div class="filters"><span class="input">搜索调用方</span><span class="pill">授权范围</span><span class="pill">调用日志</span></div>
+                                <div class="table">
+                                    <div class="row header"><div class="cell">应用</div><div class="cell">系统</div><div class="cell">能力</div><div class="cell">策略</div></div>
+                                    <div class="row"><div class="cell">车联网接入</div><div class="cell">车</div><div class="cell">数据+流程</div><div class="cell">限流</div></div>
+                                    <div class="row"><div class="cell">门店同步</div><div class="cell">门店</div><div class="cell">数据读取</div><div class="cell">签名</div></div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+            <footer class="direction-foot">
+                <strong>适合当前项目的原因</strong>
+                <ul class="pros">
+                    <li>平台级能力表达最强。</li>
+                    <li>适合展示应用、流程、系统入口的关系。</li>
+                    <li>系统内业务后台还需配合左侧二级导航。</li>
+                </ul>
+            </footer>
+        </article>
+    </section>
+</main>
+</body>
+</html>
