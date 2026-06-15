@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>流程 · 系统后台</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">车系统</div>
+      <nav class="app-sidebar-nav">
+        <a href="admin-home.html">首页引导</a>
+        <a href="admin-basic.html">基础参数</a>
+        <a href="admin-dict.html">数据字典</a>
+        <a href="admin-datasource.html">数据源</a>
+        <a href="admin-dashboard-cfg.html">仪表盘配置</a>
+        <a href="admin-module-group.html">模块组</a>
+        <a href="admin-module.html">模块</a>
+        <a href="admin-modeling.html">建模</a>
+        <a href="admin-members.html">成员与角色</a>
+        <a href="admin-flow.html" class="active">流程</a>
+        <a href="admin-external-app.html">对外应用</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="dashboard-admin.html" class="btn btn-ghost btn-sm" style="width:100%">返回运行态</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left">
+          <span style="font-weight:600">流程设计</span>
+          <span style="color:var(--muted);font-size:var(--text-xs);margin-left:var(--space-2)">车辆报废审批</span>
+        </div>
+        <div class="app-topbar-right">
+          <button type="button" class="btn btn-primary btn-sm">保存流程</button>
+        </div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>流程画布</h1>
+          <p>从左侧节点面板拖入节点，连接成审批流程。动态加签功能为二期规划。</p>
+        </div>
+        <div class="flow-layout">
+          <div class="flow-palette">
+            <h4>节点面板</h4>
+            <div class="flow-node-item">审批</div>
+            <div class="flow-node-item">条件</div>
+            <div class="flow-node-item">抄送</div>
+            <div class="flow-node-item">外部 API</div>
+          </div>
+          <div class="flow-canvas">
+            <div class="flow-node accent">开始 · 提交报废申请</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node">审批 · 部门主管</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node">条件 · 车辆价值 &gt; 10 万？</div>
+            <div class="flow-arrow">↓</div>
+            <div style="display:flex;gap:var(--space-6);align-items:flex-start">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:var(--space-2)">
+                <div class="flow-node">审批 · 财务总监</div>
+                <div class="flow-arrow">↓</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:var(--space-2)">
+                <div class="flow-node">抄送 · 档案管理员</div>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node">外部 API · 同步至资产系统</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node accent">结束 · 报废完成</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>

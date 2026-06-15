@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "unexamine v3 原型索引",
+  "entry": "unexamine-v3-index.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "primary": true,
+  "createdAt": "2026-06-15T12:21:06.577Z",
+  "updatedAt": "2026-06-15T12:21:06.595Z",
+  "sourceSkillId": "agent-browser",
+  "designSystemId": "default",
+  "metadata": {
+    "identifier": "unexamine-v3-index",
+    "artifactType": "text/html",
+    "inferred": false
+  }
+}

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>工作台 · 车系统</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="runtime-shell">
+    <header class="runtime-topbar">
+      <span class="runtime-brand">车系统</span>
+      <nav class="runtime-group-nav" aria-label="模块组">
+        <button type="button" class="active" data-module-group="vehicle">车辆管理</button>
+      </nav>
+      <div class="app-topbar-right">
+        <button type="button" class="btn-icon" aria-label="待办">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <span class="badge-dot" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="btn-icon" aria-label="消息">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </button>
+        <span style="color: var(--muted); font-size: var(--text-xs);">陈和 · che</span>
+      </div>
+    </header>
+    <div class="runtime-body">
+      <aside class="runtime-sidebar" data-sidebar-group="vehicle" aria-label="模块">
+        <a href="dashboard-che.html" class="active">概览</a>
+        <a href="runtime-list.html">车辆档案</a>
+        <a href="runtime-list.html">维保记录</a>
+        <a href="runtime-list.html">驾驶员</a>
+      </aside>
+      <main class="runtime-content">
+        <div class="page-header">
+          <h1>工作台</h1>
+          <p>车辆管理模块组概览 · 成员 che 视角</p>
+        </div>
+
+        <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary btn-sm">全部</button>
+          <button type="button" class="btn btn-ghost btn-sm">在用</button>
+          <button type="button" class="btn btn-ghost btn-sm">维保中</button>
+          <button type="button" class="btn btn-ghost btn-sm">闲置</button>
+        </div>
+
+        <div class="stat-grid" style="margin-bottom: var(--space-6);">
+          <div class="stat-card">
+            <div class="label">在册车辆</div>
+            <div class="value">4</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">本月维保</div>
+            <div class="value">2</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">驾驶员</div>
+            <div class="value">3</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">我的待办</div>
+            <div class="value">2</div>
+          </div>
+        </div>
+
+        <h2 style="font-size: var(--text-base); font-weight: 600; margin-bottom: var(--space-4);">模块组</h2>
+        <div class="module-group-cards">
+          <a href="runtime-list.html" class="module-group-card">
+            <h3>车辆管理</h3>
+            <p>车辆档案 · 维保记录 · 驾驶员</p>
+            <p style="margin-top: var(--space-2); font-size: var(--text-xs); color: var(--accent);">我的车辆：京A·12345</p>
+          </a>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>

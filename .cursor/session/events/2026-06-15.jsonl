@@ -1,0 +1,5 @@
+{"ts":"2026-06-15T12:00:00+08:00","actor":"conductor","action":"phase_complete","ref":"phase-0-discovery","detail":"outputs: requirements/analysis, legacy-summary, product/prd, product/understanding"}
+{"ts":"2026-06-15T12:00:00+08:00","actor":"conductor","action":"gate_pass","ref":"prd_frozen","detail":"pm understanding: no open P0"}
+{"ts":"2026-06-15T14:00:00+08:00","actor":"uiux","action":"artifact_created","ref":"docs/design/ui-spec.md","detail":"MVP IA, P0 pages, car-system matrix, Naive UI recommend"}
+{"ts":"2026-06-15T16:00:00+08:00","actor":"uiux","action":"artifact_created","ref":"docs/design/design-diff.md","detail":"prototypes vs ui-spec, 9/9 P0, no blockers"}
+{"ts":"2026-06-15T16:00:00+08:00","actor":"conductor","action":"phase_pause","ref":"design_user_approval","detail":"await user sign user-approval.md"}

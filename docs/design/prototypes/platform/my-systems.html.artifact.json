@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "platform/my-systems.html",
+  "entry": "platform/my-systems.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-06-15T12:20:33.610Z",
+  "updatedAt": "2026-06-15T12:20:33.610Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

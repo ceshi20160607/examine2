@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "system/admin-module-group.html",
+  "entry": "system/admin-module-group.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-06-15T12:18:46.441Z",
+  "updatedAt": "2026-06-15T12:18:46.441Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

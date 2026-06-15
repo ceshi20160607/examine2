@@ -1,0 +1,27 @@
+{
+    "sessionId": "unexamine-v2-init",
+    "architecture": "cursor-v2",
+    "phase": "design",
+    "mode": "ready-for-open-design",
+    "updated_at": "2026-06-15T22:00:00+08:00",
+    "gates": {
+        "prd_frozen": true,
+        "design_package_complete": true,
+        "design_user_approved": false,
+        "api_frozen": false,
+        "tasks_planned": false,
+        "build_batch_accepted": false,
+        "user_script_passed": false
+    },
+    "blockers": [
+        "等待用户调用 Open Design 生成 prototypes/v3",
+        "等待 user-approval.md 签字"
+    ],
+    "design_package": {
+        "version": "1.0.0-res003",
+        "p0_pages": 21,
+        "reviews": "docs/design/reviews/*.md all pass",
+        "brief": "docs/design/prototype-brief.md"
+    },
+    "notes": "内部设计包已完工。不向用户索要 IA 勾选。用户仅 OD 后审原型。"
+}

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>平台后台 · 概览 · unexamine</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">unexamine</div>
+      <nav class="app-sidebar-nav">
+        <a href="my-systems.html">我的系统</a>
+        <a href="flow.html">Flow</a>
+        <a href="apps.html">应用</a>
+        <a href="logs.html">日志</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="plat-admin-overview.html" style="font-size: var(--text-xs); color: var(--accent); font-weight: 500;">平台后台</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left">
+          <h2 style="font-size: var(--text-base); font-weight: 600;">平台后台</h2>
+        </div>
+        <div class="app-topbar-right">
+          <a href="todos.html" class="btn-icon" title="待办" aria-label="待办">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            <span class="badge-dot"></span>
+          </a>
+          <a href="messages.html" class="btn-icon" title="消息" aria-label="消息">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <span class="badge-dot"></span>
+          </a>
+        </div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>平台概览</h1>
+          <p>unexamine 平台运行状态与关键指标</p>
+        </div>
+
+        <div class="sub-tabs" style="margin-bottom: var(--space-6);">
+          <a href="plat-admin-overview.html" class="sub-tab-btn active">概览</a>
+          <a href="plat-admin-users.html" class="sub-tab-btn">用户管理</a>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="label">注册用户</div>
+            <div class="value">128</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">活跃系统</div>
+            <div class="value">36</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">今日 API 调用</div>
+            <div class="value">12.4k</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">待处理待办</div>
+            <div class="value">7</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: var(--space-6);">
+          <div class="card">
+            <div class="card-title">系统分布</div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>系统类型</th>
+                  <th>数量</th>
+                  <th>占比</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>车辆管理</td>
+                  <td class="num">12</td>
+                  <td class="num">33%</td>
+                </tr>
+                <tr>
+                  <td>库存仓储</td>
+                  <td class="num">9</td>
+                  <td class="num">25%</td>
+                </tr>
+                <tr>
+                  <td>客户关系</td>
+                  <td class="num">8</td>
+                  <td class="num">22%</td>
+                </tr>
+                <tr>
+                  <td>其他</td>
+                  <td class="num">7</td>
+                  <td class="num">20%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">近期动态</div>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li style="padding: var(--space-3) 0; border-bottom: 1px solid var(--border);">
+                <p style="font-size: var(--text-sm);">新用户 <strong>che@demo.cn</strong> 注册并创建「车系统 Demo」</p>
+                <p class="meta" style="margin-top: var(--space-1);">2026-06-15 07:58</p>
+              </li>
+              <li style="padding: var(--space-3) 0; border-bottom: 1px solid var(--border);">
+                <p style="font-size: var(--text-sm);">系统 <strong>库存管理系统</strong> 进入配置阶段</p>
+                <p class="meta" style="margin-top: var(--space-1);">2026-06-14 15:30</p>
+              </li>
+              <li style="padding: var(--space-3) 0;">
+                <p style="font-size: var(--text-sm);">平台例行维护计划已发布</p>
+                <p class="meta" style="margin-top: var(--space-1);">2026-06-12 09:00</p>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>登录 · unexamine</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <h1>登录 unexamine</h1>
+      <p class="subtitle">企业可配置业务系统平台</p>
+      <form data-validate-form data-redirect="my-systems.html" data-success="登录成功">
+        <div class="field">
+          <label for="email">邮箱</label>
+          <input type="email" id="email" name="email" placeholder="name@company.com" required autocomplete="email" />
+          <span class="field-error">请输入有效的邮箱地址</span>
+        </div>
+        <div class="field">
+          <label for="password">密码</label>
+          <input type="password" id="password" name="password" placeholder="请输入密码" required autocomplete="current-password" />
+          <span class="field-error">请输入密码</span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--space-2);">登录</button>
+      </form>
+      <p style="margin-top: var(--space-5); text-align: center; font-size: var(--text-sm); color: var(--muted);">
+        还没有账号？<a href="register.html" style="color: var(--accent);">立即注册</a>
+      </p>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>

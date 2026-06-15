@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "system/runtime-form.html",
+  "entry": "system/runtime-form.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-06-15T12:18:19.652Z",
+  "updatedAt": "2026-06-15T12:18:19.652Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

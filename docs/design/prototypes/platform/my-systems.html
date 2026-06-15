@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>我的系统 · unexamine</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">unexamine</div>
+      <nav class="app-sidebar-nav">
+        <a href="my-systems.html" class="active">我的系统</a>
+        <a href="flow.html">Flow</a>
+        <a href="apps.html">应用</a>
+        <a href="logs.html">日志</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="plat-admin-overview.html" style="font-size: var(--text-xs); color: var(--muted);">平台后台</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left">
+          <h2 style="font-size: var(--text-base); font-weight: 600;">我的系统</h2>
+        </div>
+        <div class="app-topbar-right">
+          <a href="todos.html" class="btn-icon" title="待办" aria-label="待办">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            <span class="badge-dot"></span>
+          </a>
+          <a href="messages.html" class="btn-icon" title="消息" aria-label="消息">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <span class="badge-dot"></span>
+          </a>
+        </div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>我的系统</h1>
+          <p>管理您创建和加入的业务系统</p>
+        </div>
+        <div class="module-group-cards">
+          <a href="../system/dashboard-admin.html" class="module-group-card">
+            <h3>车系统 Demo</h3>
+            <p>车辆管理 · 管理员视角 · 京A·12345</p>
+            <span class="badge badge-success" style="margin-top: var(--space-3);">运行中</span>
+          </a>
+          <a href="../system/dashboard-che.html" class="module-group-card">
+            <h3>车系统 Demo</h3>
+            <p>车辆管理 · 成员 che（陈和）视角</p>
+            <span class="badge badge-success" style="margin-top: var(--space-3);">运行中</span>
+          </a>
+          <div class="module-group-card" style="cursor: default; opacity: 0.7;">
+            <h3>库存管理系统</h3>
+            <p>仓储与出入库 · 配置中</p>
+            <span class="badge badge-warn" style="margin-top: var(--space-3);">草稿</span>
+          </div>
+          <div class="module-group-card" style="cursor: default; opacity: 0.7;">
+            <h3>客户 CRM</h3>
+            <p>客户关系 · 待发布</p>
+            <span class="badge badge-muted" style="margin-top: var(--space-3);">未发布</span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>

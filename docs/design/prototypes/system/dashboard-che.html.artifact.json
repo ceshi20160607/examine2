@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "system/dashboard-che.html",
+  "entry": "system/dashboard-che.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-06-15T12:20:28.541Z",
+  "updatedAt": "2026-06-15T12:20:28.541Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>对外应用 · 系统后台</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">车系统</div>
+      <nav class="app-sidebar-nav">
+        <a href="admin-home.html">首页引导</a>
+        <a href="admin-basic.html">基础参数</a>
+        <a href="admin-dict.html">数据字典</a>
+        <a href="admin-datasource.html">数据源</a>
+        <a href="admin-dashboard-cfg.html">仪表盘配置</a>
+        <a href="admin-module-group.html">模块组</a>
+        <a href="admin-module.html">模块</a>
+        <a href="admin-modeling.html">建模</a>
+        <a href="admin-members.html">成员与角色</a>
+        <a href="admin-flow.html">流程</a>
+        <a href="admin-external-app.html" class="active">对外应用</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="dashboard-admin.html" class="btn btn-ghost btn-sm" style="width:100%">返回运行态</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left"><span style="font-weight:600">对外应用</span></div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>对外应用</h1>
+          <p>本系统对外 API 入口，与业务模块无关。配置字段到接口参数的映射关系。</p>
+        </div>
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-input">
+              <input type="search" placeholder="搜索应用…">
+            </div>
+          </div>
+          <div class="toolbar-right">
+            <button type="button" class="btn btn-primary" data-open-modal="modal-create-app">新建应用</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:var(--space-4)">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>应用名称</th>
+                <th>App ID</th>
+                <th>接口地址</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>车辆信息查询 API</strong></td>
+                <td class="num">app_fleet_query</td>
+                <td class="num">/open/v1/vehicle/query</td>
+                <td><span class="badge badge-success">已启用</span></td>
+                <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+              </tr>
+              <tr>
+                <td><strong>维保记录推送 API</strong></td>
+                <td class="num">app_maintain_push</td>
+                <td class="num">/open/v1/maintain/push</td>
+                <td><span class="badge badge-success">已启用</span></td>
+                <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">参数映射 · 车辆信息查询 API</h3>
+          <p style="color:var(--muted);font-size:var(--text-sm);margin-bottom:var(--space-4)">将系统字段映射为对外接口请求/响应参数</p>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>系统字段</th>
+                <th>→</th>
+                <th>接口参数</th>
+                <th>方向</th>
+                <th>必填</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>车牌号 (plate_no)</td>
+                <td>→</td>
+                <td class="num">plateNumber</td>
+                <td>请求</td>
+                <td>是</td>
+                <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+              </tr>
+              <tr>
+                <td>车辆状态 (status)</td>
+                <td>→</td>
+                <td class="num">vehicleStatus</td>
+                <td>响应</td>
+                <td>是</td>
+                <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+              </tr>
+              <tr>
+                <td>品牌型号 (brand_model)</td>
+                <td>→</td>
+                <td class="num">brandModel</td>
+                <td>响应</td>
+                <td>否</td>
+                <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+              </tr>
+              <tr>
+                <td>购置日期 (purchase_date)</td>
+                <td>→</td>
+                <td class="num">purchaseDate</td>
+                <td>响应</td>
+                <td>否</td>
+                <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+              </tr>
+              <tr>
+                <td>样例值</td>
+                <td>→</td>
+                <td class="num">京A·12345</td>
+                <td>示例</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-create-app">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>新建对外应用</h3>
+        <button type="button" class="btn-icon" data-close-modal aria-label="关闭"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <form data-validate-form data-success="应用已创建">
+        <div class="modal-body">
+          <div class="field">
+            <label for="app-name">应用名称</label>
+            <input type="text" id="app-name" required>
+          </div>
+          <div class="field">
+            <label for="app-path">接口路径</label>
+            <input type="text" id="app-path" placeholder="/open/v1/..." required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>取消</button>
+          <button type="submit" class="btn btn-primary">创建</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/app.js"></script>
+</body>
+</html>

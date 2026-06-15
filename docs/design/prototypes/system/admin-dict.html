@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>数据字典 · 系统后台</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">车系统</div>
+      <nav class="app-sidebar-nav">
+        <a href="admin-home.html">首页引导</a>
+        <a href="admin-basic.html">基础参数</a>
+        <a href="admin-dict.html" class="active">数据字典</a>
+        <a href="admin-datasource.html">数据源</a>
+        <a href="admin-dashboard-cfg.html">仪表盘配置</a>
+        <a href="admin-module-group.html">模块组</a>
+        <a href="admin-module.html">模块</a>
+        <a href="admin-modeling.html">建模</a>
+        <a href="admin-members.html">成员与角色</a>
+        <a href="admin-flow.html">流程</a>
+        <a href="admin-external-app.html">对外应用</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="dashboard-admin.html" class="btn btn-ghost btn-sm" style="width:100%">返回运行态</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left"><span style="font-weight:600">数据字典</span></div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>数据字典</h1>
+          <p>维护字典类型与字典项，建模时字段可通过下拉关联字典项。</p>
+        </div>
+        <div class="card" style="margin-bottom:var(--space-4);padding:var(--space-3) var(--space-4);background:color-mix(in oklab,var(--accent),transparent 94%);border-color:color-mix(in oklab,var(--accent),transparent 80%)">
+          <p style="font-size:var(--text-sm);color:var(--fg)">提示：在建模页配置字段时，「字典」类型字段可关联本页字典项，表单中将以下拉选项展示。</p>
+        </div>
+        <div class="card" data-tabs>
+          <div class="tabs">
+            <button type="button" class="tab-btn active" data-tab-btn="types">字典类型</button>
+            <button type="button" class="tab-btn" data-tab-btn="items">字典项</button>
+          </div>
+          <div class="tab-panel active" data-tab-panel="types">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <div class="search-input">
+                  <input type="search" placeholder="搜索字典类型…">
+                </div>
+              </div>
+              <div class="toolbar-right">
+                <button type="button" class="btn btn-primary btn-sm">新建类型</button>
+              </div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>类型编码</th>
+                  <th>类型名称</th>
+                  <th>字典项数</th>
+                  <th>备注</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="num">vehicle_status</td>
+                  <td>车辆状态</td>
+                  <td class="num">4</td>
+                  <td>在用 / 维修 / 报废 / 闲置</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+                <tr>
+                  <td class="num">vehicle_type</td>
+                  <td>车辆类型</td>
+                  <td class="num">3</td>
+                  <td>轿车 / 货车 / 特种</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+                <tr>
+                  <td class="num">maintain_type</td>
+                  <td>维保类型</td>
+                  <td class="num">5</td>
+                  <td>保养 / 维修 / 年检等</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tab-panel" data-tab-panel="items">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <select class="filter-select">
+                  <option>车辆状态</option>
+                  <option>车辆类型</option>
+                  <option>维保类型</option>
+                </select>
+              </div>
+              <div class="toolbar-right">
+                <button type="button" class="btn btn-primary btn-sm">新建字典项</button>
+              </div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>所属类型</th>
+                  <th>项编码</th>
+                  <th>显示名称</th>
+                  <th>排序</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>车辆状态</td>
+                  <td class="num">in_use</td>
+                  <td>在用</td>
+                  <td class="num">1</td>
+                  <td><span class="badge badge-success">启用</span></td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>车辆状态</td>
+                  <td class="num">repair</td>
+                  <td>维修中</td>
+                  <td class="num">2</td>
+                  <td><span class="badge badge-success">启用</span></td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>车辆状态</td>
+                  <td class="num">retired</td>
+                  <td>报废</td>
+                  <td class="num">3</td>
+                  <td><span class="badge badge-muted">停用</span></td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>

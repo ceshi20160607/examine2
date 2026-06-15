@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "platform/plat-admin-users.html",
+  "entry": "platform/plat-admin-users.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-06-15T12:18:42.821Z",
+  "updatedAt": "2026-06-15T12:18:42.821Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

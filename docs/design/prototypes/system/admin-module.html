@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>模块 · 系统后台</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">车系统</div>
+      <nav class="app-sidebar-nav">
+        <a href="admin-home.html">首页引导</a>
+        <a href="admin-basic.html">基础参数</a>
+        <a href="admin-dict.html">数据字典</a>
+        <a href="admin-datasource.html">数据源</a>
+        <a href="admin-dashboard-cfg.html">仪表盘配置</a>
+        <a href="admin-module-group.html">模块组</a>
+        <a href="admin-module.html" class="active">模块</a>
+        <a href="admin-modeling.html">建模</a>
+        <a href="admin-members.html">成员与角色</a>
+        <a href="admin-flow.html">流程</a>
+        <a href="admin-external-app.html">对外应用</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="dashboard-admin.html" class="btn btn-ghost btn-sm" style="width:100%">返回运行态</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left">
+          <span style="font-weight:600">模块</span>
+          <span style="color:var(--muted);font-size:var(--text-xs);margin-left:var(--space-2)">当前组：车辆管理</span>
+        </div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>模块列表</h1>
+          <p>在选定模块组「车辆管理」下管理业务模块，配置字段请前往建模页。</p>
+        </div>
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <select class="filter-select">
+              <option selected>车辆管理</option>
+            </select>
+            <div class="search-input">
+              <input type="search" placeholder="搜索模块…">
+            </div>
+          </div>
+          <div class="toolbar-right">
+            <button type="button" class="btn btn-primary" data-open-modal="modal-create-module">新建模块</button>
+          </div>
+        </div>
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>模块名称</th>
+                <th>模块编码</th>
+                <th>类型</th>
+                <th>字段数</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>车辆档案</strong></td>
+                <td class="num">vehicle_record</td>
+                <td>业务列表</td>
+                <td class="num">12</td>
+                <td><span class="badge badge-success">已发布</span></td>
+                <td>
+                  <a href="admin-modeling.html" class="btn btn-ghost btn-sm">建模</a>
+                  <button type="button" class="btn btn-ghost btn-sm">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>维保记录</strong></td>
+                <td class="num">maintain_log</td>
+                <td>业务列表</td>
+                <td class="num">8</td>
+                <td><span class="badge badge-success">已发布</span></td>
+                <td>
+                  <a href="admin-modeling.html" class="btn btn-ghost btn-sm">建模</a>
+                  <button type="button" class="btn btn-ghost btn-sm">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>驾驶员</strong></td>
+                <td class="num">driver</td>
+                <td>业务列表</td>
+                <td class="num">10</td>
+                <td><span class="badge badge-success">已发布</span></td>
+                <td>
+                  <a href="admin-modeling.html" class="btn btn-ghost btn-sm">建模</a>
+                  <button type="button" class="btn btn-ghost btn-sm">编辑</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-create-module">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>新建模块</h3>
+        <button type="button" class="btn-icon" data-close-modal aria-label="关闭"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <form data-validate-form data-success="模块已创建">
+        <div class="modal-body">
+          <div class="field">
+            <label for="mod-group">所属模块组</label>
+            <select id="mod-group" required>
+              <option selected>车辆管理</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="mod-name">模块名称</label>
+            <input type="text" id="mod-name" placeholder="如：车辆档案" required>
+          </div>
+          <div class="field">
+            <label for="mod-code">模块编码</label>
+            <input type="text" id="mod-code" placeholder="如：vehicle_record" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>取消</button>
+          <button type="submit" class="btn btn-primary">创建</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/app.js"></script>
+</body>
+</html>

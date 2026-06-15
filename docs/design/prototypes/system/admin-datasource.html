@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>数据源 · 系统后台</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">车系统</div>
+      <nav class="app-sidebar-nav">
+        <a href="admin-home.html">首页引导</a>
+        <a href="admin-basic.html">基础参数</a>
+        <a href="admin-dict.html">数据字典</a>
+        <a href="admin-datasource.html" class="active">数据源</a>
+        <a href="admin-dashboard-cfg.html">仪表盘配置</a>
+        <a href="admin-module-group.html">模块组</a>
+        <a href="admin-module.html">模块</a>
+        <a href="admin-modeling.html">建模</a>
+        <a href="admin-members.html">成员与角色</a>
+        <a href="admin-flow.html">流程</a>
+        <a href="admin-external-app.html">对外应用</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="dashboard-admin.html" class="btn btn-ghost btn-sm" style="width:100%">返回运行态</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left"><span style="font-weight:600">数据源</span></div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>数据源</h1>
+          <p>为仪表盘组件与计算字段提供数据来源，支持系统内公式、外部 API 与数据库直连。</p>
+        </div>
+        <div class="card" data-tabs>
+          <div class="tabs">
+            <button type="button" class="tab-btn active" data-tab-btn="internal">系统内（含公式）</button>
+            <button type="button" class="tab-btn" data-tab-btn="api">外部 API</button>
+            <button type="button" class="tab-btn" data-tab-btn="db">数据库直连</button>
+          </div>
+          <div class="tab-panel active" data-tab-panel="internal">
+            <div class="toolbar">
+              <div class="toolbar-right">
+                <button type="button" class="btn btn-primary btn-sm">新建系统内数据源</button>
+              </div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>名称</th>
+                  <th>关联模块</th>
+                  <th>公式 / 聚合</th>
+                  <th>说明</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>在册车辆数</td>
+                  <td>车辆档案</td>
+                  <td class="num">COUNT(*)</td>
+                  <td>统计全部车辆记录</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>本月维保次数</td>
+                  <td>维保记录</td>
+                  <td class="num">COUNT(WHERE month=当前月)</td>
+                  <td>当月维保记录数</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>驾驶员在岗数</td>
+                  <td>驾驶员</td>
+                  <td class="num">COUNT(status=在岗)</td>
+                  <td>状态为在岗的驾驶员</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tab-panel" data-tab-panel="api">
+            <div class="toolbar">
+              <div class="toolbar-right">
+                <button type="button" class="btn btn-primary btn-sm">新建 API 数据源</button>
+              </div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>名称</th>
+                  <th>请求地址</th>
+                  <th>方法</th>
+                  <th>认证</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>违章查询接口</td>
+                  <td class="num">/api/violation/query</td>
+                  <td>POST</td>
+                  <td>API Key</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>GPS 定位同步</td>
+                  <td class="num">/api/gps/sync</td>
+                  <td>GET</td>
+                  <td>OAuth2</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tab-panel" data-tab-panel="db">
+            <div class="toolbar">
+              <div class="toolbar-right">
+                <button type="button" class="btn btn-primary btn-sm">新建数据库连接</button>
+              </div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>连接名称</th>
+                  <th>类型</th>
+                  <th>主机</th>
+                  <th>数据库</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>历史档案库</td>
+                  <td>MySQL</td>
+                  <td class="num">192.168.1.100:3306</td>
+                  <td>fleet_archive</td>
+                  <td><span class="badge badge-success">已连接</span></td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>

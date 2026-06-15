@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>成员与角色 · 系统后台</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">车系统</div>
+      <nav class="app-sidebar-nav">
+        <a href="admin-home.html">首页引导</a>
+        <a href="admin-basic.html">基础参数</a>
+        <a href="admin-dict.html">数据字典</a>
+        <a href="admin-datasource.html">数据源</a>
+        <a href="admin-dashboard-cfg.html">仪表盘配置</a>
+        <a href="admin-module-group.html">模块组</a>
+        <a href="admin-module.html">模块</a>
+        <a href="admin-modeling.html">建模</a>
+        <a href="admin-members.html" class="active">成员与角色</a>
+        <a href="admin-flow.html">流程</a>
+        <a href="admin-external-app.html">对外应用</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="dashboard-admin.html" class="btn btn-ghost btn-sm" style="width:100%">返回运行态</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left"><span style="font-weight:600">成员与角色</span></div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>成员与角色</h1>
+          <p>管理系统成员账号与角色权限，角色支持模块、字段、数据三个维度。</p>
+        </div>
+        <div class="card" data-tabs>
+          <div class="tabs">
+            <button type="button" class="tab-btn active" data-tab-btn="members">成员</button>
+            <button type="button" class="tab-btn" data-tab-btn="roles">角色</button>
+          </div>
+
+          <div class="tab-panel active" data-tab-panel="members">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <div class="search-input">
+                  <input type="search" placeholder="搜索成员…">
+                </div>
+              </div>
+              <div class="toolbar-right">
+                <button type="button" class="btn btn-primary btn-sm">邀请成员</button>
+              </div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>姓名</th>
+                  <th>账号</th>
+                  <th>角色</th>
+                  <th>状态</th>
+                  <th>加入时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>平台管理员</td>
+                  <td class="num">plat_admin</td>
+                  <td>系统管理员</td>
+                  <td><span class="badge badge-success">正常</span></td>
+                  <td class="num">2026-01-15</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>陈和</td>
+                  <td class="num">che</td>
+                  <td>车辆操作员</td>
+                  <td><span class="badge badge-success">正常</span></td>
+                  <td class="num">2026-03-20</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tab-panel" data-tab-panel="roles">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <select class="filter-select">
+                  <option selected>车辆操作员</option>
+                  <option>系统管理员</option>
+                </select>
+              </div>
+              <div class="toolbar-right">
+                <button type="button" class="btn btn-primary btn-sm">新建角色</button>
+              </div>
+            </div>
+            <div data-subtabs>
+              <div class="sub-tabs">
+                <button type="button" class="sub-tab-btn active" data-subtab-btn="mod-perm">模块权限</button>
+                <button type="button" class="sub-tab-btn" data-subtab-btn="field-perm">字段权限</button>
+                <button type="button" class="sub-tab-btn" data-subtab-btn="data-perm">数据权限</button>
+              </div>
+
+              <div class="sub-tab-panel active" data-subtab-panel="mod-perm">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>模块</th>
+                      <th>查看</th>
+                      <th>新建</th>
+                      <th>编辑</th>
+                      <th>删除</th>
+                      <th>导出</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>车辆档案</td>
+                      <td>✓</td>
+                      <td>✓</td>
+                      <td>✓</td>
+                      <td>—</td>
+                      <td>✓</td>
+                    </tr>
+                    <tr>
+                      <td>维保记录</td>
+                      <td>✓</td>
+                      <td>✓</td>
+                      <td>✓</td>
+                      <td>—</td>
+                      <td>✓</td>
+                    </tr>
+                    <tr>
+                      <td>驾驶员</td>
+                      <td>✓</td>
+                      <td>—</td>
+                      <td>—</td>
+                      <td>—</td>
+                      <td>—</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="sub-tab-panel" data-subtab-panel="field-perm">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>模块</th>
+                      <th>字段</th>
+                      <th>可见</th>
+                      <th>可编辑</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>车辆档案</td>
+                      <td>车牌号</td>
+                      <td>✓</td>
+                      <td>✓</td>
+                    </tr>
+                    <tr>
+                      <td>车辆档案</td>
+                      <td>购置日期</td>
+                      <td>✓</td>
+                      <td>—</td>
+                    </tr>
+                    <tr>
+                      <td>车辆档案</td>
+                      <td>购置价格</td>
+                      <td>—</td>
+                      <td>—</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="sub-tab-panel" data-subtab-panel="data-perm">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>模块</th>
+                      <th>数据范围</th>
+                      <th>规则说明</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>车辆档案</td>
+                      <td>本人负责</td>
+                      <td>仅可查看分配给自己的车辆（如京A·12345）</td>
+                    </tr>
+                    <tr>
+                      <td>维保记录</td>
+                      <td>关联车辆</td>
+                      <td>可查看本人负责车辆的维保记录</td>
+                    </tr>
+                    <tr>
+                      <td>驾驶员</td>
+                      <td>只读全部</td>
+                      <td>可查看全部驾驶员信息，不可修改</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>

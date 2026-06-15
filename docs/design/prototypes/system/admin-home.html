@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>首页引导 · 系统后台</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">车系统</div>
+      <nav class="app-sidebar-nav">
+        <a href="admin-home.html" class="active">首页引导</a>
+        <a href="admin-basic.html">基础参数</a>
+        <a href="admin-dict.html">数据字典</a>
+        <a href="admin-datasource.html">数据源</a>
+        <a href="admin-dashboard-cfg.html">仪表盘配置</a>
+        <a href="admin-module-group.html">模块组</a>
+        <a href="admin-module.html">模块</a>
+        <a href="admin-modeling.html">建模</a>
+        <a href="admin-members.html">成员与角色</a>
+        <a href="admin-flow.html">流程</a>
+        <a href="admin-external-app.html">对外应用</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="dashboard-admin.html" class="btn btn-ghost btn-sm" style="width:100%">返回运行态</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left"><span style="font-weight:600">系统后台</span></div>
+        <div class="app-topbar-right">
+          <span style="color:var(--muted);font-size:var(--text-xs)">管理员 · plat_admin</span>
+        </div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>欢迎使用系统后台</h1>
+          <p>按以下顺序完成配置，即可让成员（如 che 陈和）在运行态使用车辆管理功能。</p>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)">
+              <span class="badge badge-muted">1</span>
+              <h3 class="card-title" style="margin:0">创建模块组</h3>
+            </div>
+            <p style="color:var(--muted);font-size:var(--text-sm);margin-bottom:var(--space-4)">定义顶栏导航分组，如「车辆管理」。运行态顶栏将显示模块组名称。</p>
+            <a href="admin-module-group.html" class="btn btn-primary btn-sm">前往模块组</a>
+          </div>
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)">
+              <span class="badge badge-muted">2</span>
+              <h3 class="card-title" style="margin:0">添加组内模块</h3>
+            </div>
+            <p style="color:var(--muted);font-size:var(--text-sm);margin-bottom:var(--space-4)">在模块组下创建业务模块：车辆档案、维保记录、驾驶员等。</p>
+            <a href="admin-module.html" class="btn btn-primary btn-sm">前往模块</a>
+          </div>
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)">
+              <span class="badge badge-muted">3</span>
+              <h3 class="card-title" style="margin:0">配置字段与页面</h3>
+            </div>
+            <p style="color:var(--muted);font-size:var(--text-sm);margin-bottom:var(--space-4)">在建模页定义字段、列表页动作（含导出）、菜单结构。</p>
+            <a href="admin-modeling.html" class="btn btn-primary btn-sm">前往建模</a>
+          </div>
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)">
+              <span class="badge badge-muted">4</span>
+              <h3 class="card-title" style="margin:0">发布上线</h3>
+            </div>
+            <p style="color:var(--muted);font-size:var(--text-sm);margin-bottom:var(--space-4)">检查发布清单并发布，成员即可在运行态看到最新配置。</p>
+            <a href="admin-modeling.html" class="btn btn-primary btn-sm">查看发布清单</a>
+          </div>
+        </div>
+        <div class="card" style="margin-top:var(--space-4)">
+          <h3 class="card-title">推荐配置路径</h3>
+          <p style="color:var(--muted);font-size:var(--text-sm);line-height:1.8">
+            模块组 → 模块 → 字段 → 页面动作 → 菜单 → 发布<br>
+            当前 Demo：模块组「车辆管理」· 模块「车辆档案 / 维保记录 / 驾驶员」· 样例车辆「京A·12345」
+          </p>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>

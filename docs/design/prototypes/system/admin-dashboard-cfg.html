@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>仪表盘配置 · 系统后台</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">车系统</div>
+      <nav class="app-sidebar-nav">
+        <a href="admin-home.html">首页引导</a>
+        <a href="admin-basic.html">基础参数</a>
+        <a href="admin-dict.html">数据字典</a>
+        <a href="admin-datasource.html">数据源</a>
+        <a href="admin-dashboard-cfg.html" class="active">仪表盘配置</a>
+        <a href="admin-module-group.html">模块组</a>
+        <a href="admin-module.html">模块</a>
+        <a href="admin-modeling.html">建模</a>
+        <a href="admin-members.html">成员与角色</a>
+        <a href="admin-flow.html">流程</a>
+        <a href="admin-external-app.html">对外应用</a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <a href="dashboard-admin.html" class="btn btn-ghost btn-sm" style="width:100%">返回运行态</a>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header class="app-topbar">
+        <div class="app-topbar-left"><span style="font-weight:600">仪表盘配置</span></div>
+        <div class="app-topbar-right">
+          <button type="button" class="btn btn-primary btn-sm">保存布局</button>
+        </div>
+      </header>
+      <main class="app-content">
+        <div class="page-header">
+          <h1>仪表盘配置</h1>
+          <p>从左侧拖入组件，在 12 列栅格画布上排列；可绑定数据源、图标与筛选条件。</p>
+        </div>
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:var(--space-4)">
+          <div class="component-panel">
+            <h4 style="font-size:var(--text-xs);color:var(--muted);margin-bottom:var(--space-3)">组件面板</h4>
+            <div class="component-item">统计卡</div>
+            <div class="component-item">柱状图</div>
+            <div class="component-item">折线图</div>
+            <div class="component-item">筛选器</div>
+            <div class="component-item">快捷入口</div>
+            <div class="component-item">模块组卡片</div>
+          </div>
+          <div>
+            <div class="dash-canvas">
+              <div class="dash-widget span-4">
+                <span class="widget-label">统计卡 · 在册车辆</span>
+                <span class="value" style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:600">128</span>
+              </div>
+              <div class="dash-widget span-4">
+                <span class="widget-label">统计卡 · 本月维保</span>
+                <span class="value" style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:600">23</span>
+              </div>
+              <div class="dash-widget span-4">
+                <span class="widget-label">统计卡 · 驾驶员</span>
+                <span class="value" style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:600">45</span>
+              </div>
+              <div class="dash-widget span-12">
+                <span class="widget-label">筛选 · 车辆状态</span>
+                <div style="display:flex;gap:var(--space-2);margin-top:var(--space-2)">
+                  <button type="button" class="btn btn-secondary btn-sm">全部</button>
+                  <button type="button" class="btn btn-ghost btn-sm">在用</button>
+                  <button type="button" class="btn btn-ghost btn-sm">维修中</button>
+                  <button type="button" class="btn btn-ghost btn-sm">闲置</button>
+                </div>
+              </div>
+              <div class="dash-widget span-6">
+                <span class="widget-label">图表 · 月度维保趋势</span>
+                <div style="height:120px;background:var(--bg);border-radius:var(--radius-sm);margin-top:var(--space-2);display:flex;align-items:flex-end;gap:var(--space-2);padding:var(--space-3)">
+                  <div style="flex:1;height:40%;background:color-mix(in oklab,var(--accent),transparent 70%);border-radius:2px"></div>
+                  <div style="flex:1;height:65%;background:color-mix(in oklab,var(--accent),transparent 70%);border-radius:2px"></div>
+                  <div style="flex:1;height:50%;background:color-mix(in oklab,var(--accent),transparent 70%);border-radius:2px"></div>
+                  <div style="flex:1;height:80%;background:var(--accent);border-radius:2px"></div>
+                  <div style="flex:1;height:55%;background:color-mix(in oklab,var(--accent),transparent 70%);border-radius:2px"></div>
+                </div>
+              </div>
+              <div class="dash-widget span-6">
+                <span class="widget-label">图表 · 车辆类型分布</span>
+                <div style="height:120px;background:var(--bg);border-radius:var(--radius-sm);margin-top:var(--space-2);display:flex;align-items:center;justify-content:center;gap:var(--space-4);font-size:var(--text-xs);color:var(--muted)">
+                  <span>轿车 62%</span>
+                  <span>货车 28%</span>
+                  <span>特种 10%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="../js/app.js"></script>
+</body>
+</html>
