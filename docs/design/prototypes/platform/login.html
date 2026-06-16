@@ -1,34 +1,43 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>登录 · unexamine</title>
-  <link rel="stylesheet" href="../css/app.css" />
+  <link rel="stylesheet" href="../assets/app.css">
 </head>
 <body>
-  <div class="auth-page">
-    <div class="auth-card">
-      <h1>登录 unexamine</h1>
-      <p class="subtitle">企业可配置业务系统平台</p>
-      <form data-validate-form data-redirect="my-systems.html" data-success="登录成功">
-        <div class="field">
-          <label for="email">邮箱</label>
-          <input type="email" id="email" name="email" placeholder="name@company.com" required autocomplete="email" />
-          <span class="field-error">请输入有效的邮箱地址</span>
+  <main class="auth-shell" data-od-id="login">
+    <section class="auth-panel">
+      <a class="auth-brand" href="../index.html">unexamine</a>
+      <h1 class="auth-title">登录平台</h1>
+      <p class="auth-copy">账号登录后再进入平台工作台、系统运行态或有权限的后台。</p>
+      <form class="auth-form">
+        <label class="auth-field">
+          <span>账号</span>
+          <input class="input" value="che" autocomplete="username">
+        </label>
+        <label class="auth-field">
+          <span>密码</span>
+          <input class="input" type="password" value="123456" autocomplete="current-password">
+        </label>
+        <div class="auth-actions">
+          <a class="muted" href="register.html">注册并创建系统</a>
+          <a class="btn primary" href="my-systems.html">登录</a>
         </div>
-        <div class="field">
-          <label for="password">密码</label>
-          <input type="password" id="password" name="password" placeholder="请输入密码" required autocomplete="current-password" />
-          <span class="field-error">请输入密码</span>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--space-2);">登录</button>
       </form>
-      <p style="margin-top: var(--space-5); text-align: center; font-size: var(--text-sm); color: var(--muted);">
-        还没有账号？<a href="register.html" style="color: var(--accent);">立即注册</a>
-      </p>
-    </div>
-  </div>
-  <script src="../js/app.js"></script>
+    </section>
+    <aside class="auth-side">
+      <div class="panel pad">
+        <h2 style="font-size:18px;margin:0 0 12px">登录前不展示业务导航</h2>
+        <p class="muted" style="margin:0 0 16px">待办、消息、系统切换、平台后台入口都依赖登录态和权限判断。</p>
+        <div class="list-card">
+          <div class="list-row">普通成员 <span>进入车系统运行态</span></div>
+          <div class="list-row">系统管理员 <span>可见系统后台入口</span></div>
+          <div class="list-row">平台管理员 <span>可见平台后台入口</span></div>
+        </div>
+      </div>
+    </aside>
+  </main>
 </body>
 </html>

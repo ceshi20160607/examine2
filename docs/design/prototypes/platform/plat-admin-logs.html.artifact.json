@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "platform/plat-admin-logs.html",
+  "entry": "platform/plat-admin-logs.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-06-15T16:31:42.173Z",
+  "updatedAt": "2026-06-15T16:31:42.173Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

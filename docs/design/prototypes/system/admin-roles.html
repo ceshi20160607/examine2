@@ -1,0 +1,33 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>角色权限 · unexamine</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html">unexamine</a>
+      <select class="context-switch" aria-label="当前上下文"><option>车系统</option></select>
+      <nav class="top-tabs"><a class="active" href="../system/dashboard-admin.html">仪表盘</a><a href="../system/runtime-list.html">车辆管理</a><a href="../system/admin-home.html">系统后台</a></nav>
+      <div class="top-actions">
+        <a class="icon-btn" href="../platform/todos.html" aria-label="待办">✓<span class="badge-count">3</span></a>
+        <a class="icon-btn" href="../platform/messages.html" aria-label="消息">●<span class="badge-count">6</span></a>
+        <span class="avatar">陈</span>
+      </div>
+    </header>
+    <aside class="sidebar"><div class="side-title">系统后台</div><nav class="nav"><div class="nav-group"><div class="nav-group-title">概览</div><a class="" href="admin-home.html">首页引导</a></div><div class="nav-group"><div class="nav-group-title">基础设置</div><a class="" href="admin-basic.html">基础参数</a><a class="" href="admin-org.html">组织结构</a><a class="" href="admin-dict.html">数据字典</a></div><div class="nav-group"><div class="nav-group-title">应用建模</div><a class="" href="admin-module-group.html">模块组</a><a class="" href="admin-module.html">模块</a><a class="" href="admin-modeling.html">建模</a><a class="" href="admin-dashboard-cfg.html">仪表盘配置</a><a class="" href="admin-datasource.html">数据源</a></div><div class="nav-group"><div class="nav-group-title">权限与成员</div><a class="" href="admin-users.html">成员管理</a><a class="active" href="admin-roles.html">角色权限</a></div><div class="nav-group"><div class="nav-group-title">流程与集成</div><a class="" href="admin-flow.html">流程配置</a><a class="" href="admin-external-app.html">对外应用</a></div><div class="nav-group"><div class="nav-group-title">审计运维</div><a class="" href="admin-logs.html">系统日志</a></div></nav></aside>
+    <main class="main">
+      <div class="page-head">
+        <div class="page-title"><h1>角色权限</h1><p>系统后台 · 模块、字段、数据、动作权限分区配置。</p></div>
+        <button class="btn primary">新建角色</button>
+      </div>
+      <div class="toolbar"><input class="search" placeholder="搜索角色、状态或操作人"><select class="select"><option>全部状态</option><option>启用</option><option>停用</option></select><button class="btn">高级筛选</button><button class="btn">列设置</button><button class="btn">导出</button></div><section class="panel table-wrap" data-od-id="generic-table"><table class="table"><thead><tr><th>角色</th><th>绑定成员</th><th>模块权限</th><th>字段权限</th><th>数据权限</th><th>动作权限</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>角色1</td><td>绑定成员1</td><td>模块权限1</td><td>字段权限1</td><td>数据权限1</td><td>动作权限1</td><td><span class="status warn"><span class="dot"></span>待发布</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色2</td><td>绑定成员2</td><td>模块权限2</td><td>字段权限2</td><td>数据权限2</td><td>动作权限2</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色3</td><td>绑定成员3</td><td>模块权限3</td><td>字段权限3</td><td>数据权限3</td><td>动作权限3</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色4</td><td>绑定成员4</td><td>模块权限4</td><td>字段权限4</td><td>数据权限4</td><td>动作权限4</td><td><span class="status bad"><span class="dot"></span>停用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色5</td><td>绑定成员5</td><td>模块权限5</td><td>字段权限5</td><td>数据权限5</td><td>动作权限5</td><td><span class="status warn"><span class="dot"></span>待发布</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色6</td><td>绑定成员6</td><td>模块权限6</td><td>字段权限6</td><td>数据权限6</td><td>动作权限6</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色7</td><td>绑定成员7</td><td>模块权限7</td><td>字段权限7</td><td>数据权限7</td><td>动作权限7</td><td><span class="status bad"><span class="dot"></span>停用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr></tbody></table><div class="pagination"><span>共 63 条 · 当前页 7 条</span><span>第 1 / 9 页</span></div></section>
+    </main>
+  </div>
+  
+  <script src="../assets/app.js"></script>
+</body>
+</html>

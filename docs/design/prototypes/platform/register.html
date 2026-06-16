@@ -1,40 +1,51 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>注册 · unexamine</title>
-  <link rel="stylesheet" href="../css/app.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>注册并创建系统 · unexamine</title>
+  <link rel="stylesheet" href="../assets/app.css">
 </head>
 <body>
-  <div class="auth-page">
-    <div class="auth-card">
-      <h1>创建账号</h1>
-      <p class="subtitle">注册并创建您的第一个业务系统</p>
-      <form data-validate-form data-redirect="login.html" data-success="注册成功，请登录">
-        <div class="field">
-          <label for="account">账号（邮箱）</label>
-          <input type="email" id="account" name="account" placeholder="name@company.com" required autocomplete="email" />
-          <span class="field-error">请输入有效的邮箱地址</span>
+  <main class="auth-shell" data-od-id="register">
+    <section class="auth-panel">
+      <a class="auth-brand" href="../index.html">unexamine</a>
+      <h1 class="auth-title">注册并创建系统</h1>
+      <p class="auth-copy">注册人会成为新系统管理员，创建后再进入系统后台配置。</p>
+      <form class="auth-form">
+        <label class="auth-field">
+          <span>姓名</span>
+          <input class="input" value="平台管理员">
+        </label>
+        <label class="auth-field">
+          <span>登录账号</span>
+          <input class="input" value="admin@example.com">
+        </label>
+        <label class="auth-field">
+          <span>系统名称</span>
+          <input class="input" value="车系统">
+        </label>
+        <label class="auth-field">
+          <span>首个模块组</span>
+          <input class="input" value="车辆管理">
+        </label>
+        <div class="auth-actions">
+          <a class="muted" href="login.html">已有账号，去登录</a>
+          <a class="btn primary" href="../system/admin-home.html">创建并进入配置引导</a>
         </div>
-        <div class="field">
-          <label for="password">密码</label>
-          <input type="password" id="password" name="password" placeholder="至少 6 位字符" required minlength="6" autocomplete="new-password" />
-          <span class="field-error">请输入至少 6 位密码</span>
-        </div>
-        <div class="field">
-          <label for="system-name">系统名称</label>
-          <input type="text" id="system-name" name="system-name" placeholder="例如：车系统" required />
-          <span class="field-help">将为您自动创建首个业务系统</span>
-          <span class="field-error">请输入系统名称</span>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--space-2);">注册</button>
       </form>
-      <p style="margin-top: var(--space-5); text-align: center; font-size: var(--text-sm); color: var(--muted);">
-        已有账号？<a href="login.html" style="color: var(--accent);">返回登录</a>
-      </p>
-    </div>
-  </div>
-  <script src="../js/app.js"></script>
+    </section>
+    <aside class="auth-side">
+      <div class="panel pad">
+        <h2 style="font-size:18px;margin:0 0 12px">创建后的默认权限</h2>
+        <div class="list-card">
+          <div class="list-row">系统角色 <span>系统管理员</span></div>
+          <div class="list-row">默认模块组 <span>车辆管理</span></div>
+          <div class="list-row">后续成员 <span>从平台用户中邀请</span></div>
+        </div>
+        <p class="muted" style="margin:16px 0 0">注册页本身保持登录前状态，不出现平台侧栏和运行态菜单。</p>
+      </div>
+    </aside>
+  </main>
 </body>
 </html>

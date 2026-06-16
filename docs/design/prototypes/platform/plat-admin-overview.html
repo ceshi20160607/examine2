@@ -1,127 +1,33 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>平台后台 · 概览 · unexamine</title>
-  <link rel="stylesheet" href="../css/app.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>平台后台概览 · unexamine</title>
+  <link rel="stylesheet" href="../assets/app.css">
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="app-sidebar">
-      <div class="app-sidebar-brand">unexamine</div>
-      <nav class="app-sidebar-nav">
-        <a href="my-systems.html">我的系统</a>
-        <a href="flow.html">Flow</a>
-        <a href="apps.html">应用</a>
-        <a href="logs.html">日志</a>
-      </nav>
-      <div class="app-sidebar-footer">
-        <a href="plat-admin-overview.html" style="font-size: var(--text-xs); color: var(--accent); font-weight: 500;">平台后台</a>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html">unexamine</a>
+      <select class="context-switch" aria-label="当前上下文"><option>平台工作台</option></select>
+      <nav class="top-tabs"><a class="active" href="../platform/my-systems.html">平台工作台</a><a href="../platform/plat-admin-overview.html">平台后台</a></nav>
+      <div class="top-actions">
+        <a class="icon-btn" href="../platform/todos.html" aria-label="待办">✓<span class="badge-count">3</span></a>
+        <a class="icon-btn" href="../platform/messages.html" aria-label="消息">●<span class="badge-count">6</span></a>
+        <span class="avatar">陈</span>
       </div>
-    </aside>
-    <div class="app-main">
-      <header class="app-topbar">
-        <div class="app-topbar-left">
-          <h2 style="font-size: var(--text-base); font-weight: 600;">平台后台</h2>
-        </div>
-        <div class="app-topbar-right">
-          <a href="todos.html" class="btn-icon" title="待办" aria-label="待办">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            <span class="badge-dot"></span>
-          </a>
-          <a href="messages.html" class="btn-icon" title="消息" aria-label="消息">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            <span class="badge-dot"></span>
-          </a>
-        </div>
-      </header>
-      <main class="app-content">
-        <div class="page-header">
-          <h1>平台概览</h1>
-          <p>unexamine 平台运行状态与关键指标</p>
-        </div>
-
-        <div class="sub-tabs" style="margin-bottom: var(--space-6);">
-          <a href="plat-admin-overview.html" class="sub-tab-btn active">概览</a>
-          <a href="plat-admin-users.html" class="sub-tab-btn">用户管理</a>
-        </div>
-
-        <div class="stat-grid">
-          <div class="stat-card">
-            <div class="label">注册用户</div>
-            <div class="value">128</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">活跃系统</div>
-            <div class="value">36</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">今日 API 调用</div>
-            <div class="value">12.4k</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">待处理待办</div>
-            <div class="value">7</div>
-          </div>
-        </div>
-
-        <div class="grid-2" style="margin-top: var(--space-6);">
-          <div class="card">
-            <div class="card-title">系统分布</div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>系统类型</th>
-                  <th>数量</th>
-                  <th>占比</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>车辆管理</td>
-                  <td class="num">12</td>
-                  <td class="num">33%</td>
-                </tr>
-                <tr>
-                  <td>库存仓储</td>
-                  <td class="num">9</td>
-                  <td class="num">25%</td>
-                </tr>
-                <tr>
-                  <td>客户关系</td>
-                  <td class="num">8</td>
-                  <td class="num">22%</td>
-                </tr>
-                <tr>
-                  <td>其他</td>
-                  <td class="num">7</td>
-                  <td class="num">20%</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="card">
-            <div class="card-title">近期动态</div>
-            <ul style="list-style: none; padding: 0; margin: 0;">
-              <li style="padding: var(--space-3) 0; border-bottom: 1px solid var(--border);">
-                <p style="font-size: var(--text-sm);">新用户 <strong>che@demo.cn</strong> 注册并创建「车系统 Demo」</p>
-                <p class="meta" style="margin-top: var(--space-1);">2026-06-15 07:58</p>
-              </li>
-              <li style="padding: var(--space-3) 0; border-bottom: 1px solid var(--border);">
-                <p style="font-size: var(--text-sm);">系统 <strong>库存管理系统</strong> 进入配置阶段</p>
-                <p class="meta" style="margin-top: var(--space-1);">2026-06-14 15:30</p>
-              </li>
-              <li style="padding: var(--space-3) 0;">
-                <p style="font-size: var(--text-sm);">平台例行维护计划已发布</p>
-                <p class="meta" style="margin-top: var(--space-1);">2026-06-12 09:00</p>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </main>
-    </div>
+    </header>
+    <aside class="sidebar"><div class="side-title">平台后台</div><nav class="nav"><a class="active" href="plat-admin-overview.html">概览</a><a class="" href="plat-admin-users.html">平台用户</a><a class="" href="plat-admin-roles.html">平台角色</a><a class="" href="plat-admin-flow.html">平台 Flow</a><a class="" href="plat-admin-apps.html">平台应用</a><a class="" href="plat-admin-logs.html">平台日志</a><a class="" href="plat-admin-config.html">全局配置</a></nav></aside>
+    <main class="main">
+      <div class="page-head">
+        <div class="page-title"><h1>平台后台概览</h1><p>平台后台 · 平台级账号、角色、Flow、应用与全局策略概览。</p></div>
+        <button class="btn">刷新</button>
+      </div>
+      <div class="toolbar"><input class="search" placeholder="搜索名称、状态或操作人"><select class="select"><option>全部状态</option><option>启用</option><option>停用</option></select><button class="btn">高级筛选</button><button class="btn">列设置</button><button class="btn">导出</button></div><section class="panel table-wrap" data-od-id="generic-table"><table class="table"><thead><tr><th>名称</th><th>类型</th><th>状态</th><th>归属</th><th>最近更新</th><th>说明</th><th>操作</th></tr></thead><tbody><tr><td>名称1</td><td>类型1</td><td><span class="status warn"><span class="dot"></span>待发布</span></td><td>归属1</td><td><span class="mono">2026-06-16 10:20</span></td><td>说明1</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称2</td><td>类型2</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td>归属2</td><td><span class="mono">2026-06-15 10:21</span></td><td>说明2</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称3</td><td>类型3</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td>归属3</td><td><span class="mono">2026-06-14 10:22</span></td><td>说明3</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称4</td><td>类型4</td><td><span class="status bad"><span class="dot"></span>停用</span></td><td>归属4</td><td><span class="mono">2026-06-13 10:23</span></td><td>说明4</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称5</td><td>类型5</td><td><span class="status warn"><span class="dot"></span>待发布</span></td><td>归属5</td><td><span class="mono">2026-06-12 10:24</span></td><td>说明5</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称6</td><td>类型6</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td>归属6</td><td><span class="mono">2026-06-11 10:25</span></td><td>说明6</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称7</td><td>类型7</td><td><span class="status bad"><span class="dot"></span>停用</span></td><td>归属7</td><td><span class="mono">2026-06-10 10:26</span></td><td>说明7</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr></tbody></table><div class="pagination"><span>共 63 条 · 当前页 7 条</span><span>第 1 / 9 页</span></div></section>
+    </main>
   </div>
-  <script src="../js/app.js"></script>
+  
+  <script src="../assets/app.js"></script>
 </body>
 </html>

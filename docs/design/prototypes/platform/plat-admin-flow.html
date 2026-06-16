@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>平台 Flow 配置 · unexamine</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html">unexamine</a>
+      <select class="context-switch" aria-label="当前上下文"><option>平台工作台</option></select>
+      <nav class="top-tabs"><a class="active" href="../platform/my-systems.html">平台工作台</a><a href="../platform/plat-admin-overview.html">平台后台</a></nav>
+      <div class="top-actions">
+        <a class="icon-btn" href="../platform/todos.html" aria-label="待办">✓<span class="badge-count">3</span></a>
+        <a class="icon-btn" href="../platform/messages.html" aria-label="消息">●<span class="badge-count">6</span></a>
+        <span class="avatar">陈</span>
+      </div>
+    </header>
+    <aside class="sidebar"><div class="side-title">平台后台</div><nav class="nav"><a class="" href="plat-admin-overview.html">概览</a><a class="" href="plat-admin-users.html">平台用户</a><a class="" href="plat-admin-roles.html">平台角色</a><a class="active" href="plat-admin-flow.html">平台 Flow</a><a class="" href="plat-admin-apps.html">平台应用</a><a class="" href="plat-admin-logs.html">平台日志</a><a class="" href="plat-admin-config.html">全局配置</a></nav></aside>
+    <main class="main">
+      <div class="page-head">
+        <div class="page-title"><h1>平台 Flow 配置</h1><p>平台后台 · 配置跨系统或平台级流程，可被平台应用授权开放。</p></div>
+        <button class="btn primary">保存设置</button>
+      </div>
+      <div class="split"><aside class="list-card"><div class="list-row"><strong>节点面板</strong><span class="chip">拖入画布</span></div><a>审批节点 <span>人员/角色</span></a><a>条件节点 <span>字段规则</span></a><a>抄送节点 <span>消息</span></a><a>外部 API <span>安全校验</span></a></aside><section class="canvas" data-od-id="flow-canvas"><div class="node" style="left:40px;top:48px"><strong>触发</strong>平台应用调用</div><div class="node" style="left:250px;top:150px"><strong>审批</strong>平台管理员</div><div class="node" style="left:470px;top:250px"><strong>发布检查</strong>版本与授权范围</div></section></div>
+    </main>
+  </div>
+  
+  <script src="../assets/app.js"></script>
+</body>
+</html>

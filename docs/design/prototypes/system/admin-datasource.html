@@ -1,155 +1,33 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>数据源 · 系统后台</title>
-  <link rel="stylesheet" href="../css/app.css">
+  <title>数据源 · unexamine</title>
+  <link rel="stylesheet" href="../assets/app.css">
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="app-sidebar">
-      <div class="app-sidebar-brand">车系统</div>
-      <nav class="app-sidebar-nav">
-        <a href="admin-home.html">首页引导</a>
-        <a href="admin-basic.html">基础参数</a>
-        <a href="admin-dict.html">数据字典</a>
-        <a href="admin-datasource.html" class="active">数据源</a>
-        <a href="admin-dashboard-cfg.html">仪表盘配置</a>
-        <a href="admin-module-group.html">模块组</a>
-        <a href="admin-module.html">模块</a>
-        <a href="admin-modeling.html">建模</a>
-        <a href="admin-members.html">成员与角色</a>
-        <a href="admin-flow.html">流程</a>
-        <a href="admin-external-app.html">对外应用</a>
-      </nav>
-      <div class="app-sidebar-footer">
-        <a href="dashboard-admin.html" class="btn btn-ghost btn-sm" style="width:100%">返回运行态</a>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html">unexamine</a>
+      <select class="context-switch" aria-label="当前上下文"><option>车系统</option></select>
+      <nav class="top-tabs"><a class="active" href="../system/dashboard-admin.html">仪表盘</a><a href="../system/runtime-list.html">车辆管理</a><a href="../system/admin-home.html">系统后台</a></nav>
+      <div class="top-actions">
+        <a class="icon-btn" href="../platform/todos.html" aria-label="待办">✓<span class="badge-count">3</span></a>
+        <a class="icon-btn" href="../platform/messages.html" aria-label="消息">●<span class="badge-count">6</span></a>
+        <span class="avatar">陈</span>
       </div>
-    </aside>
-    <div class="app-main">
-      <header class="app-topbar">
-        <div class="app-topbar-left"><span style="font-weight:600">数据源</span></div>
-      </header>
-      <main class="app-content">
-        <div class="page-header">
-          <h1>数据源</h1>
-          <p>为仪表盘组件与计算字段提供数据来源，支持系统内公式、外部 API 与数据库直连。</p>
-        </div>
-        <div class="card" data-tabs>
-          <div class="tabs">
-            <button type="button" class="tab-btn active" data-tab-btn="internal">系统内（含公式）</button>
-            <button type="button" class="tab-btn" data-tab-btn="api">外部 API</button>
-            <button type="button" class="tab-btn" data-tab-btn="db">数据库直连</button>
-          </div>
-          <div class="tab-panel active" data-tab-panel="internal">
-            <div class="toolbar">
-              <div class="toolbar-right">
-                <button type="button" class="btn btn-primary btn-sm">新建系统内数据源</button>
-              </div>
-            </div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>名称</th>
-                  <th>关联模块</th>
-                  <th>公式 / 聚合</th>
-                  <th>说明</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>在册车辆数</td>
-                  <td>车辆档案</td>
-                  <td class="num">COUNT(*)</td>
-                  <td>统计全部车辆记录</td>
-                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
-                </tr>
-                <tr>
-                  <td>本月维保次数</td>
-                  <td>维保记录</td>
-                  <td class="num">COUNT(WHERE month=当前月)</td>
-                  <td>当月维保记录数</td>
-                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
-                </tr>
-                <tr>
-                  <td>驾驶员在岗数</td>
-                  <td>驾驶员</td>
-                  <td class="num">COUNT(status=在岗)</td>
-                  <td>状态为在岗的驾驶员</td>
-                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="tab-panel" data-tab-panel="api">
-            <div class="toolbar">
-              <div class="toolbar-right">
-                <button type="button" class="btn btn-primary btn-sm">新建 API 数据源</button>
-              </div>
-            </div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>名称</th>
-                  <th>请求地址</th>
-                  <th>方法</th>
-                  <th>认证</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>违章查询接口</td>
-                  <td class="num">/api/violation/query</td>
-                  <td>POST</td>
-                  <td>API Key</td>
-                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
-                </tr>
-                <tr>
-                  <td>GPS 定位同步</td>
-                  <td class="num">/api/gps/sync</td>
-                  <td>GET</td>
-                  <td>OAuth2</td>
-                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="tab-panel" data-tab-panel="db">
-            <div class="toolbar">
-              <div class="toolbar-right">
-                <button type="button" class="btn btn-primary btn-sm">新建数据库连接</button>
-              </div>
-            </div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>连接名称</th>
-                  <th>类型</th>
-                  <th>主机</th>
-                  <th>数据库</th>
-                  <th>状态</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>历史档案库</td>
-                  <td>MySQL</td>
-                  <td class="num">192.168.1.100:3306</td>
-                  <td>fleet_archive</td>
-                  <td><span class="badge badge-success">已连接</span></td>
-                  <td><button type="button" class="btn btn-ghost btn-sm">编辑</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </main>
-    </div>
+    </header>
+    <aside class="sidebar"><div class="side-title">系统后台</div><nav class="nav"><div class="nav-group"><div class="nav-group-title">概览</div><a class="" href="admin-home.html">首页引导</a></div><div class="nav-group"><div class="nav-group-title">基础设置</div><a class="" href="admin-basic.html">基础参数</a><a class="" href="admin-org.html">组织结构</a><a class="" href="admin-dict.html">数据字典</a></div><div class="nav-group"><div class="nav-group-title">应用建模</div><a class="" href="admin-module-group.html">模块组</a><a class="" href="admin-module.html">模块</a><a class="" href="admin-modeling.html">建模</a><a class="" href="admin-dashboard-cfg.html">仪表盘配置</a><a class="active" href="admin-datasource.html">数据源</a></div><div class="nav-group"><div class="nav-group-title">权限与成员</div><a class="" href="admin-users.html">成员管理</a><a class="" href="admin-roles.html">角色权限</a></div><div class="nav-group"><div class="nav-group-title">流程与集成</div><a class="" href="admin-flow.html">流程配置</a><a class="" href="admin-external-app.html">对外应用</a></div><div class="nav-group"><div class="nav-group-title">审计运维</div><a class="" href="admin-logs.html">系统日志</a></div></nav></aside>
+    <main class="main">
+      <div class="page-head">
+        <div class="page-title"><h1>数据源</h1><p>系统后台 · 仪表盘统计卡绑定系统内或外部数据源。</p></div>
+        <button class="btn">刷新</button>
+      </div>
+      <div class="toolbar"><input class="search" placeholder="搜索名称、状态或操作人"><select class="select"><option>全部状态</option><option>启用</option><option>停用</option></select><button class="btn">高级筛选</button><button class="btn">列设置</button><button class="btn">导出</button></div><section class="panel table-wrap" data-od-id="generic-table"><table class="table"><thead><tr><th>名称</th><th>类型</th><th>绑定对象</th><th>状态</th><th>最近刷新</th><th>用途</th><th>操作</th></tr></thead><tbody><tr><td>名称1</td><td>类型1</td><td>绑定对象1</td><td><span class="status warn"><span class="dot"></span>待发布</span></td><td><span class="mono">2026-06-16 10:20</span></td><td>用途1</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称2</td><td>类型2</td><td>绑定对象2</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td><span class="mono">2026-06-15 10:21</span></td><td>用途2</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称3</td><td>类型3</td><td>绑定对象3</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td><span class="mono">2026-06-14 10:22</span></td><td>用途3</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称4</td><td>类型4</td><td>绑定对象4</td><td><span class="status bad"><span class="dot"></span>停用</span></td><td><span class="mono">2026-06-13 10:23</span></td><td>用途4</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称5</td><td>类型5</td><td>绑定对象5</td><td><span class="status warn"><span class="dot"></span>待发布</span></td><td><span class="mono">2026-06-12 10:24</span></td><td>用途5</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称6</td><td>类型6</td><td>绑定对象6</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td><span class="mono">2026-06-11 10:25</span></td><td>用途6</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>名称7</td><td>类型7</td><td>绑定对象7</td><td><span class="status bad"><span class="dot"></span>停用</span></td><td><span class="mono">2026-06-10 10:26</span></td><td>用途7</td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr></tbody></table><div class="pagination"><span>共 63 条 · 当前页 7 条</span><span>第 1 / 9 页</span></div></section>
+    </main>
   </div>
-  <script src="../js/app.js"></script>
+  
+  <script src="../assets/app.js"></script>
 </body>
 </html>
