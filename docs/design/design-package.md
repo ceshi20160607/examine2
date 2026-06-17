@@ -124,7 +124,8 @@
 | 文件 | 用途 |
 |------|------|
 | `ui-spec.md` | 字段、按钮、状态、中文文案 |
-| `prototype-brief.md` | Open Design 全量主 brief；从零生成完整原型，压缩业务列表顶部布局，拆分用户/角色，保留平台 Flow/应用配置 |
+| **`config-spec.md`** | **配置态/运行态细粒度：按钮清单、字段抽屉、列表/场景/映射** |
+| `prototype-brief.md` | Open Design 全量主 brief |
 | `design-scope.md` | Design vs Build 分期裁决 |
 | `design-gap-analysis.md` | v1 vs v3 差距；OD 检查清单 |
 | `prototypes/DESIGN.md` | token（可 OD 更新） |
