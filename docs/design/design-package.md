@@ -1,152 +1,46 @@
-# 设计包（Design Package）— 内部完工清单
+# 设计包（Design Package）— 当前版
 
-> **版本:** 1.3.0-res007
-> **差距分析:** 见 [`design-gap-analysis.md`](./design-gap-analysis.md)（v1 原型 9/21，作废）  
-> **维护:** uiux 汇总；PM 裁决；Conductor 置 Gate
+> 版本：`1.6.1-file-only-current-plus-deposits`
+> 当前唯一 Open Design 输入：`docs/design/prototype-brief.md`
 
-**用户不需要填本文件。** 内部角色审阅见 `reviews/`。
+## 当前结论
 
----
+旧 IA、旧原型、旧 review、旧细分规范引用全部作废。下一轮只按 `docs/design/prototype-brief.md` 生成。
 
-## 1. 冻结 IA（团队共识，RES-003）
+## 当前骨架
 
-| 域 | 规则 |
-|----|------|
-| 模块组 | 先建组 → 组下建模块；运行态**顶栏组名**，点组后**左栏模块** |
-| 对外应用 | 本系统对外入口；与模块组/模块解耦 |
-| 平台待办/消息 | **仅顶栏图标**；侧栏不得重复 |
-| 导出 | 模块列表工具栏动作，无导出中心 |
-| 账号 | 平台用户表唯一；添加成员=选平台用户 |
-| 仪表盘 | 后台配置发布；绑定数据源 |
-| 字典 | 字段下拉可关联字典 |
-| 平台 Flow/应用 | 平台后台独立配置；平台 Flow 经平台应用对外开放（RES-005） |
-| 业务列表 | 业务列合理展示、快捷检索、高级筛选、场景、列设置、全部导出、导出选中、表头排序、序号勾选、批量操作限制、导入、详情抽屉；顶部控制区必须紧凑，首屏优先展示表格（RES-005/RES-006/RES-007） |
-| 用户/角色 | 平台用户与平台角色拆页；系统成员与系统角色拆页，角色页承载模块/字段/数据/动作权限（RES-007） |
+| 壳 | 导航原则 |
+|----|----------|
+| 平台工作台 | 顶部：仪表盘、Flow、应用；右侧：待办、消息、个人信息 |
+| 平台后台 | 左侧：平台信息、组织架构、角色管理、仪表盘管理、配置管理、日志管理 |
+| 系统业务页 | 参考 CRM 骨架；顶部模块分组，左侧组内模块，右侧列表/详情 |
+| 系统后台 | 左侧：系统信息、组织架构、角色管理、模块管理、流程管理、字典管理、仪表盘管理、数据源、对外应用、系统日志 |
 
----
+## 已沉淀的旧版好内容
 
-## 2. MVP 页面总表（共 34 个逻辑页面 + 3 弹窗）
+- 业务列表高密度工作台：搜索、场景、高级筛选、列设置、导入、全部导出、导出选中。
+- 勾选批量态：转移、删除、导出选中、批量编辑，按权限和数据状态禁用。
+- 右侧详情工作区：保留列表上下文、顶部摘要、操作按钮、标签页、审批面板。
+- 配置态细节：字段抽屉、列表配置、筛选配置、场景配置、页面动作、发布检查。
+- 导入导出细节：模板下载、字段匹配、预检查、错误行、任务状态、完成消息、下载入口和批次回滚。
+- 打印模板细节：模块字段绑定、模板版本、打印预览、导出 PDF、详情打印记录。
+- 权限态细节：菜单/模块、页面动作、字段、数据权限和权限预览。
+- 流程态细节：审批类型、触发事件、节点库、节点属性、流程模拟、审批人预览、发布检查和错误态。
+- 配置版本细节：草稿/已发布、发布影响、运行端使用已发布版本、历史版本和回滚入口。
+- 待办消息细节：来源/类型/状态/时间筛选、批量已读、进入业务对象、关联任务结果和日志。
+- 日志态细节：筛选、导出、列设置、详情追踪。
 
-### 2.1 平台层（15 页）
+## 复审重点
 
-| ID | 页面 | 原型文件 | P |
-|----|------|----------|---|
-| P-LOGIN | 登录 | `platform/login.html` | P0 |
-| P-REGISTER | 注册并建系统 | `platform/register.html` | P0 |
-| P-MY-SYSTEMS | 我的系统 | `platform/my-systems.html` | P0 |
-| P-PLAT-TODOS | 待办列表（顶栏进入） | `platform/todos.html` | P0 |
-| P-PLAT-MESSAGES | 消息列表（顶栏进入） | `platform/messages.html` | P0 |
-| P-PLAT-FLOW | Flow 汇总 | `platform/flow.html` | P1 |
-| P-PLAT-APPS | 平台应用入口 | `platform/apps.html` | P1 |
-| P-PLAT-LOGS | 平台日志 | `platform/logs.html` | P1 |
-| P-PLAT-ADMIN-OVERVIEW | 平台后台概览 | `platform/plat-admin-overview.html` | P0 |
-| P-PLAT-ADMIN-USERS | 平台用户管理 | `platform/plat-admin-users.html` | P0 |
-| P-PLAT-ADMIN-ROLES | 平台角色管理 | `platform/plat-admin-roles.html` | P0 |
-| P-PLAT-ADMIN-FLOW | 平台 Flow 配置 | `platform/plat-admin-flow.html` | P0 |
-| P-PLAT-ADMIN-APPS | 平台应用配置 | `platform/plat-admin-apps.html` | P0 |
-| P-PLAT-ADMIN-LOGS | 平台后台日志 | `platform/plat-admin-logs.html` | P0 |
-| P-PLAT-ADMIN-CONFIG | 平台全局配置 | `platform/plat-admin-config.html` | P0 |
+生成后优先看：
 
-### 2.2 系统运行态（5 页，均含顶栏组+左栏模块壳）
+- 是否仍按 CRM 骨架表达系统业务页。
+- 顶部是否只放模块分组，组内模块是否在左侧。
+- 详情是否从右侧打开并保留列表上下文。
+- 详情顶部主信息、按钮、标签页、右侧审批面板是否完整。
+- 系统后台与业务页是否完全分离。
+- 角色权限、流程节点、模块配置、导入导出、打印模板、待办消息、日志筛选是否足够开发前确认。
 
-| ID | 页面 | 原型文件 | P |
-|----|------|----------|---|
-| P-SYS-DASHBOARD | 仪表盘（che / admin 各一） | `system/dashboard-che.html`, `dashboard-admin.html` | P0 |
-| P-RUNTIME-LIST | 模块列表（车辆档案） | `system/runtime-list.html` | P0 |
-| P-RUNTIME-FORM | 新建/编辑 | `system/runtime-form.html` | P0 |
-| P-RUNTIME-DETAIL | 详情（抽屉或独立页） | `system/runtime-detail.html` | P1 |
-| P-SYS-FLOW-TODO | 系统内待办处理（简） | `system/flow-todo.html` | P1 |
+## 下一步
 
-**运行态壳（所有 system/runtime 页强制）：**
-
-```
-顶栏：[仪表盘] [车辆管理●] … | 待办图标 | 消息图标 | 用户
-点「车辆管理」→ 左栏：车辆档案 | 维保记录 | 驾驶员
-```
-
-### 2.3 系统后台（14 页）
-
-| ID | 页面 | 原型文件 | P |
-|----|------|----------|---|
-| P-SYS-ADMIN-HOME | 系统后台首页/引导 | `system/admin-home.html` | P0 |
-| P-SYS-ADMIN-BASIC | **系统基础参数**（名称/图标/域名） | `system/admin-basic.html` | P0 |
-| P-SYS-ADMIN-DICT | **数据字典** | `system/admin-dict.html` | P0 |
-| P-SYS-ADMIN-DATASOURCE | **数据源** | `system/admin-datasource.html` | P0 |
-| P-SYS-ADMIN-DASHBOARD-CFG | **仪表盘配置** | `system/admin-dashboard-cfg.html` | P0 |
-| P-SYS-ADMIN-USERS | 成员管理 | `system/admin-users.html` | P0 |
-| P-SYS-ADMIN-ROLES | 角色权限（模块/字段/数据/动作） | `system/admin-roles.html` | P0 |
-| P-SYS-ADMIN-MODULE-GROUP | 模块组管理 | `system/admin-module-group.html` | P0 |
-| P-SYS-ADMIN-MODULE | 组下模块 | `system/admin-module.html` | P0 |
-| P-SYS-ADMIN-MODELING | 字段/动作/菜单/发布 | `system/admin-modeling.html` | P0 |
-| P-SYS-ADMIN-FLOW | 流程配置 | `system/admin-flow.html` | P0 |
-| P-SYS-ADMIN-EXTERNAL-APP | 对外应用 | `system/admin-external-app.html` | P0 |
-| P-SYS-ADMIN-ORG | 组织结构 | `system/admin-org.html` | P1 |
-| P-SYS-ADMIN-LOGS | 系统日志 | `system/admin-logs.html` | P1 |
-
-### 2.4 弹窗/面板（3）
-
-| ID | 场景 | 出现在 |
-|----|------|--------|
-| M-ADD-MEMBER | 搜索平台用户添加成员 | admin-users |
-| M-CREATE-SYSTEM | 创建系统 | my-systems |
-| M-TODO-PANEL | 顶栏待办快览（可选与 todos 页二选一） | 顶栏 |
-
----
-
-## 3. 车系统剧本 → 页面（完整 15 步，见 design-gap-analysis §7）
-
-| 步 | 角色 | 关键页面 |
-|----|------|----------|
-| 1-2 | plat_admin | login → my-systems → plat-admin-users |
-| 3-10 | plat_admin | admin-home → basic → dict → datasource → module-group → module → modeling → dashboard-cfg → users → roles |
-| 11-12 | plat_admin | flow / external-app（可选） |
-| 13-15 | che | dashboard-che → runtime-list/form → 无管理入口 |
-
----
-
-## 4. 内部审阅结论
-
-| 角色 | 文件 | 结论 |
-|------|------|------|
-| analyst | `reviews/analyst.md` | pass |
-| pm | `reviews/pm.md` | pass |
-| uiux | `reviews/uiux.md` | pass |
-| backend | `reviews/backend.md` | pass |
-| frontend | `reviews/frontend.md` | pass |
-| test | `reviews/test.md` | pass |
-
-**PM 裁决：** 无 open P0 design issue（ISS-D03 待原型 v3 验证后关闭）。
-
----
-
-## 5. Open Design 输入
-
-| 文件 | 用途 |
-|------|------|
-| `ui-spec.md` | 字段、按钮、状态、中文文案 |
-| **`config-spec.md`** | **配置态/运行态细粒度：按钮清单、字段抽屉、列表/场景/映射** |
-| `prototype-brief.md` | Open Design 全量主 brief |
-| `design-scope.md` | Design vs Build 分期裁决 |
-| `design-gap-analysis.md` | v1 vs v3 差距；OD 检查清单 |
-| `prototypes/DESIGN.md` | token（可 OD 更新） |
-| 本文件 §2 | 不得漏页 |
-
-**P0 原型最低数量：** **28** 个 HTML（§2 中 P0 行；dashboard-che/dashboard-admin 分别计入 HTML）。
-
----
-
-## 6. 内部完工签字（非用户）
-
-| 字段 | 值 |
-|------|-----|
-| design_package_complete | true |
-| completed_at | 2026-06-15 |
-| signed_by | conductor（依据 reviews/* 全 pass） |
-| open_escalated | 0 |
-
----
-
-## 7. 给用户的一句话
-
-设计包已按 RES-007 更新，请打开 Open Design，粘贴 `prototype-brief.md` 全文作为 brief，输出到 `docs/design/prototypes/redesign/`。
-产出后只需审视觉与细节，在 `user-approval.md` 签字。
+请用 Open Design 粘贴 `docs/design/prototype-brief.md` 全文，输出到 `docs/design/prototypes/`。生成后按 `docs/design/user-approval.md` 审阅。

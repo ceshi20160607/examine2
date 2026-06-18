@@ -1,80 +1,1212 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>unexamine 高保真后台原型</title>
-  <style>:root {
-  --bg: #fafafa;
-  --surface: #ffffff;
-  --surface-warm: var(--surface);
-  --fg: #111111;
-  --fg-2: var(--fg);
-  --muted: #6b6b6b;
-  --meta: var(--muted);
-  --border: #e5e5e5;
-  --border-soft: var(--border);
-  --accent: #2f6feb;
-  --accent-on: #ffffff;
-  --accent-hover: color-mix(in oklab, var(--accent), black 8%);
-  --accent-active: color-mix(in oklab, var(--accent), black 14%);
-  --success: #17a34a;
-  --warn: #eab308;
-  --danger: #dc2626;
-  --font-display: "Inter", -apple-system, system-ui, sans-serif;
-  --font-body: "Inter", -apple-system, system-ui, sans-serif;
-  --font-mono: ui-monospace, "JetBrains Mono", monospace;
-  --text-xs: 12px;
-  --text-sm: 14px;
-  --text-base: 16px;
-  --text-lg: 20px;
-  --text-xl: 24px;
-  --text-2xl: 32px;
-  --text-3xl: 48px;
-  --text-4xl: 64px;
-  --leading-body: 1.5;
-  --leading-tight: 1.2;
-  --tracking-display: -0.01em;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
-  --space-20: 80px;
-  --section-y-desktop: 80px;
-  --section-y-tablet: 48px;
-  --section-y-phone: 32px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-pill: 9999px;
-  --elev-flat: none;
-  --elev-ring: 0 0 0 1px var(--border);
-  --elev-raised: 0 2px 8px color-mix(in oklab, var(--fg), transparent 92%);
-  --focus-ring: 0 0 0 3px color-mix(in oklab, var(--accent), transparent 70%);
-  --motion-fast: 150ms;
-  --motion-base: 200ms;
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --container-max: 1200px;
-  --container-gutter-desktop: 24px;
-  --container-gutter-tablet: 16px;
-  --container-gutter-phone: 12px;
-}
-*{box-sizing:border-box}html{font-size:14px;-webkit-text-size-adjust:100%}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);line-height:var(--leading-body);text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,input,select{font:inherit}button{cursor:pointer}.shell{min-height:100vh;display:grid;grid-template-columns:224px minmax(0,1fr);grid-template-rows:56px minmax(0,1fr)}.topbar{grid-column:1/-1;height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 20px;position:sticky;top:0;z-index:20}.brand{font-weight:600;font-size:16px;letter-spacing:0}.context-switch{border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;background:var(--surface);color:var(--fg);font-size:13px}.top-tabs{display:flex;align-items:center;gap:4px;margin-left:8px}.top-tabs a{padding:7px 10px;border-radius:var(--radius-sm);color:var(--muted);font-size:13px}.top-tabs a.active,.top-tabs a:hover{background:color-mix(in oklab,var(--accent),transparent 92%);color:var(--fg)}.top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}.icon-btn{width:32px;height:32px;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);display:grid;place-items:center;color:var(--muted);position:relative}.badge-count{position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;padding:0 4px;border-radius:var(--radius-pill);background:var(--danger);color:var(--accent-on);font-size:10px;line-height:16px;text-align:center}.avatar{width:28px;height:28px;border-radius:var(--radius-pill);background:color-mix(in oklab,var(--accent),transparent 84%);display:grid;place-items:center;color:var(--accent);font-weight:600}.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:16px 12px;overflow:auto}.side-title{font-size:12px;color:var(--muted);margin:14px 10px 8px}.nav{display:flex;flex-direction:column;gap:2px}.nav a{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);color:var(--muted);font-size:14px}.nav a.active,.nav a:hover{background:color-mix(in oklab,var(--accent),transparent 92%);color:var(--fg)}.main{min-width:0;padding:18px 20px 24px;overflow:auto}.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}.page-title h1{font-family:var(--font-display);font-size:22px;line-height:var(--leading-tight);letter-spacing:0;margin:0 0 4px}.page-title p{margin:0;color:var(--muted);font-size:13px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--fg);font-size:13px;transition:background var(--motion-fast) var(--ease-standard),border-color var(--motion-fast) var(--ease-standard)}.btn:hover{border-color:color-mix(in oklab,var(--fg),transparent 70%)}.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}.btn.primary:hover{background:var(--accent-hover)}.btn.weak{color:var(--muted)}.btn.danger{color:var(--danger);border-color:color-mix(in oklab,var(--danger),transparent 74%)}.btn[disabled]{opacity:.45;cursor:not-allowed}.toolbar{min-height:44px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:10px;overflow:auto}.select,.search,.input{height:32px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);padding:0 10px;color:var(--fg);font-size:13px}.search{min-width:260px}.chip{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:var(--radius-pill);border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:12px;white-space:nowrap}.chip.info{border-color:color-mix(in oklab,var(--accent),transparent 72%);color:var(--accent);background:color-mix(in oklab,var(--accent),transparent 94%)}.selection{display:flex;align-items:center;gap:8px;height:38px;background:color-mix(in oklab,var(--accent),transparent 94%);border:1px solid color-mix(in oklab,var(--accent),transparent 80%);border-radius:var(--radius-sm);padding:0 10px;margin-bottom:10px;color:var(--fg);font-size:13px}.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}.panel.pad{padding:16px}.grid{display:grid;gap:12px}.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px}.metric .label{color:var(--muted);font-size:12px}.metric .value{font-family:var(--font-mono);font-size:24px;line-height:1.1;margin-top:6px}.metric .hint{font-size:12px;color:var(--muted);margin-top:6px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;min-width:920px}.table th,.table td{height:44px;padding:0 12px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}.table th{position:sticky;top:0;background:var(--surface);z-index:1;color:var(--muted);font-weight:500;font-size:12px}.table tbody tr:hover{background:color-mix(in oklab,var(--fg),transparent 97%)}.table .link{color:var(--accent);font-weight:500}.status{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:var(--radius-pill);font-size:12px;border:1px solid var(--border);background:var(--surface)}.dot{width:6px;height:6px;border-radius:var(--radius-pill);background:var(--muted)}.ok .dot{background:var(--success)}.warn .dot{background:var(--warn)}.bad .dot{background:var(--danger)}.muted{color:var(--muted)}.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}.pagination{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;color:var(--muted);font-size:13px}.drawer{position:fixed;right:0;top:56px;bottom:0;width:min(460px,100vw);background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--elev-raised);z-index:30;display:flex;flex-direction:column}.drawer-head{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px}.drawer-body{padding:16px;overflow:auto}.drawer-foot{margin-top:auto;border-top:1px solid var(--border);padding:12px 16px;display:flex;justify-content:flex-end;gap:8px}.form-row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin-bottom:12px}.label{color:var(--muted);font-size:12px}.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:12px}.tabs button{border:0;background:transparent;height:36px;padding:0 10px;color:var(--muted);border-bottom:2px solid transparent}.tabs button.active{color:var(--accent);border-color:var(--accent)}.split{display:grid;grid-template-columns:260px minmax(0,1fr);gap:12px}.list-card{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--surface)}.list-card a,.list-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;border-bottom:1px solid var(--border);font-size:13px}.list-card a:last-child,.list-row:last-child{border-bottom:0}.canvas{min-height:440px;background:linear-gradient(90deg,color-mix(in oklab,var(--border),transparent 60%) 1px,transparent 1px),linear-gradient(color-mix(in oklab,var(--border),transparent 60%) 1px,transparent 1px);background-size:24px 24px;border:1px solid var(--border);border-radius:var(--radius-md);position:relative}.node{position:absolute;min-width:128px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;font-size:12px;box-shadow:var(--elev-raised)}.node strong{display:block;font-size:13px;margin-bottom:4px}.index-wrap{max-width:1180px;margin:0 auto;padding:28px 20px 40px}.hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:28px;margin-bottom:16px}.hero h1{font-family:var(--font-display);font-size:30px;letter-spacing:0;margin:0 0 10px}.hero p{color:var(--muted);max-width:760px;margin:0}.section-title{font-size:15px;font-weight:600;margin:18px 0 10px}.entry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.entry{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;min-height:116px}.entry strong{font-size:14px}.entry span{font-size:12px;color:var(--muted)}.entry b{font-size:11px;color:var(--accent);font-weight:500}.notice{border:1px solid color-mix(in oklab,var(--warn),transparent 72%);background:color-mix(in oklab,var(--warn),transparent 92%);border-radius:var(--radius-sm);padding:10px;font-size:12px;color:var(--fg)}@media(max-width:1024px){.shell{grid-template-columns:1fr}.sidebar{display:none}.entry-grid,.grid.cols-4,.grid.cols-3{grid-template-columns:repeat(2,minmax(0,1fr))}.split{grid-template-columns:1fr}.search{min-width:180px}}@media(max-width:640px){.top-tabs{display:none}.main{padding:12px}.page-head{flex-direction:column}.toolbar{align-items:flex-start;flex-wrap:wrap}.entry-grid,.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr}.hero{padding:18px}.hero h1{font-size:24px}.drawer{top:56px;width:100%}}</style>
+  <title>unexamine 可配置业务系统平台原型</title>
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --surface: #fff;
+      --surface-2: #f8fafc;
+      --fg: #172033;
+      --muted: #657083;
+      --line: #d9e0ea;
+      --line-soft: #edf1f7;
+      --blue: #1f66e5;
+      --blue-weak: #eaf1ff;
+      --green: #15803d;
+      --green-weak: #e9f8ef;
+      --orange: #c26a16;
+      --orange-weak: #fff3df;
+      --red: #c93535;
+      --red-weak: #fff0f0;
+      --radius: 8px;
+      --shadow: 0 14px 36px rgba(17, 32, 62, .16);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-size: 14px; overflow: hidden; }
+    button, input, select, textarea { font: inherit; }
+    button { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 6px; min-height: 30px; padding: 0 11px; cursor: pointer; white-space: nowrap; }
+    button:hover { border-color: #adc4ef; color: var(--blue); }
+    button.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    button.ghost { background: transparent; border-color: transparent; }
+    button.text { border-color: transparent; background: transparent; color: var(--blue); padding: 0 4px; }
+    button.danger { color: var(--red); border-color: #f0b8b8; background: var(--red-weak); }
+    button[disabled] { color: #a0a9b8; background: #f1f3f7; border-color: #e0e5ee; cursor: not-allowed; }
+    input, select, textarea { border: 1px solid var(--line); background: #fff; border-radius: 6px; min-height: 30px; padding: 0 10px; color: var(--fg); }
+    textarea { min-height: 70px; padding: 8px 10px; resize: vertical; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border-bottom: 1px solid var(--line-soft); padding: 0 10px; height: 44px; text-align: left; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    th { height: 38px; background: #f7f9fc; color: #455166; font-weight: 600; }
+    tr:hover td { background: #fbfdff; }
+    .hidden { display: none !important; }
+    .screen { display: none; height: 100vh; }
+    .screen.active { display: flex; }
+    .mono, .num { font-variant-numeric: tabular-nums; font-family: "SF Mono", Consolas, ui-monospace, monospace; }
+    .muted { color: var(--muted); }
+    .strong { font-weight: 650; }
+    .blue { color: var(--blue); }
+    .tag { display: inline-flex; align-items: center; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: #4a5568; font-size: 12px; }
+    .tag.ok { color: var(--green); background: var(--green-weak); border-color: #bce7c8; }
+    .tag.warn { color: var(--orange); background: var(--orange-weak); border-color: #f3d3a8; }
+    .tag.bad { color: var(--red); background: var(--red-weak); border-color: #f2b8b8; }
+    .tag.blue { color: var(--blue); background: var(--blue-weak); border-color: #bfd2ff; }
+    .app-shell { display: flex; flex-direction: column; width: 100%; min-width: 1180px; }
+    .topbar { height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 18px; background: var(--surface); border-bottom: 1px solid var(--line); flex: 0 0 auto; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; min-width: 210px; }
+    .brand-mark { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #1f66e5, #3f8cff); color: #fff; display: grid; place-items: center; font-size: 13px; }
+    .top-nav { display: flex; align-items: center; gap: 4px; height: 100%; }
+    .top-nav button { border: 0; background: transparent; height: 52px; border-radius: 0; padding: 0 14px; color: #38445a; }
+    .top-nav button.active { color: var(--blue); box-shadow: inset 0 -2px 0 var(--blue); }
+    .top-spacer { flex: 1; }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .layout { display: flex; flex: 1 1 auto; min-height: 0; }
+    .sidebar { width: 248px; flex: 0 0 248px; background: var(--surface); border-right: 1px solid var(--line); padding: 12px 10px; overflow: auto; }
+    .sidebar.wide { width: 272px; flex-basis: 272px; }
+    .side-title { color: var(--muted); font-size: 12px; padding: 8px 10px; }
+    .side-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 34px; border: 0; background: transparent; border-radius: 6px; margin: 2px 0; text-align: left; }
+    .side-btn span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .side-btn.active { background: var(--blue-weak); color: var(--blue); font-weight: 650; }
+    .content { flex: 1 1 auto; min-width: 0; padding: 12px; overflow: auto; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+    .panel-head { min-height: 46px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line-soft); }
+    .panel-title { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .panel-body { padding: 12px 14px; }
+    .grid { display: grid; gap: 12px; }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .stat { padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); min-height: 86px; }
+    .stat .num { display: block; margin-top: 8px; font-size: 24px; font-weight: 760; }
+    .toolbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line-soft); flex-wrap: wrap; }
+    .toolbar .search { width: 236px; }
+    .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .split { display: flex; gap: 12px; min-height: 0; }
+    .tree { width: 260px; flex: 0 0 260px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; overflow: auto; }
+    .tree.compact { width: 248px; flex-basis: 248px; }
+    .tree-row { display: flex; align-items: center; justify-content: space-between; height: 30px; padding: 0 8px; border-radius: 6px; color: #334155; }
+    .tree-row.active { background: var(--blue-weak); color: var(--blue); font-weight: 650; }
+    .tree-row.child { padding-left: 22px; }
+    .tree-row.leaf { padding-left: 36px; }
+    .tree-row .twisty { width: 18px; display: inline-block; color: #64748b; font-size: 12px; }
+    .main-fill { flex: 1; min-width: 0; }
+    .tabs { display: flex; align-items: center; gap: 2px; border-bottom: 1px solid var(--line-soft); padding: 0 12px; }
+    .tabs button { border: 0; background: transparent; height: 38px; border-radius: 0; padding: 0 12px; }
+    .tabs button.active { color: var(--blue); box-shadow: inset 0 -2px 0 var(--blue); font-weight: 650; }
+    .subpage { display: none; }
+    .subpage.active { display: block; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .field { display: grid; gap: 6px; }
+    .field label { color: #465268; font-size: 12px; }
+    .field.full { grid-column: 1 / -1; }
+    .list-card { display: flex; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .selection-bar { display: none; align-items: center; gap: 8px; margin: 0 0 8px; padding: 8px 12px; background: #eef5ff; border: 1px solid #bfd2ff; border-radius: var(--radius); }
+    .selection-bar.active { display: flex; }
+    .table-wrap { overflow: auto; }
+    .vehicle-table th:nth-child(1), .vehicle-table td:nth-child(1) { width: 38px; }
+    .vehicle-table th:nth-child(2), .vehicle-table td:nth-child(2) { width: 42px; text-align: center; }
+    .vehicle-table th:nth-child(3), .vehicle-table td:nth-child(3) { width: 58px; }
+    .vehicle-table th:nth-child(4), .vehicle-table td:nth-child(4) { width: 112px; }
+    .vehicle-table th:nth-child(5), .vehicle-table td:nth-child(5) { width: 150px; }
+    .vehicle-table th:nth-child(6), .vehicle-table td:nth-child(6) { width: 82px; }
+    .vehicle-table th:nth-child(7), .vehicle-table td:nth-child(7) { width: 110px; }
+    .vehicle-table th:nth-child(8), .vehicle-table td:nth-child(8) { width: 88px; }
+    .vehicle-table th:nth-child(9), .vehicle-table td:nth-child(9) { width: 112px; }
+    .vehicle-table th:nth-child(10), .vehicle-table td:nth-child(10) { width: 112px; }
+    .vehicle-table th:nth-child(11), .vehicle-table td:nth-child(11) { width: 116px; }
+    .vehicle-table th:nth-child(12), .vehicle-table td:nth-child(12) { width: 112px; }
+    .pager { display: flex; align-items: center; gap: 8px; justify-content: flex-end; padding: 9px 12px; color: var(--muted); border-top: 1px solid var(--line-soft); }
+    .login-wrap { width: 100%; min-height: 100vh; display: grid; place-items: center; background: var(--bg); padding: 48px; }
+    .login-card { width: 460px; max-width: calc(100vw - 48px); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 42px 36px; overflow: auto; box-shadow: 0 12px 30px rgba(16, 32, 58, .08); }
+    .login-hero { display: none; }
+    .role-card { width: 100%; text-align: left; min-height: 70px; padding: 12px; margin: 8px 0; border-radius: var(--radius); }
+    .role-card.active { border-color: var(--blue); background: var(--blue-weak); }
+    .system-card { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .drawer-mask { position: fixed; inset: 0; background: rgba(10, 24, 48, .22); display: none; z-index: 30; }
+    .drawer-mask.active { display: block; }
+    .drawer { position: fixed; top: 0; right: 0; width: min(760px, 72vw); height: 100vh; background: #fff; box-shadow: var(--shadow); transform: translateX(104%); transition: transform .18s ease; z-index: 31; display: flex; flex-direction: column; }
+    .drawer.active { transform: translateX(0); }
+    .drawer.large { width: min(980px, 82vw); }
+    .drawer.small { width: min(540px, 58vw); }
+    .drawer-head { height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; border-bottom: 1px solid var(--line); }
+    .drawer-body { flex: 1; min-height: 0; overflow: auto; padding: 14px; }
+    .drawer-foot { min-height: 52px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); background: #fafcff; }
+    .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; }
+    .approval-side { border-left: 1px solid var(--line-soft); padding-left: 12px; position: sticky; top: 0; align-self: start; }
+    .timeline { display: grid; gap: 10px; margin-top: 10px; }
+    .time-item { position: relative; padding-left: 18px; color: #475569; }
+    .time-item::before { content: ""; position: absolute; left: 2px; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+    .flow-layout { display: grid; grid-template-columns: 252px minmax(420px, 1fr) 284px; gap: 12px; min-height: 600px; }
+    .node-lib, .props { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; overflow: auto; }
+    .node { display: flex; align-items: center; justify-content: space-between; min-height: 34px; padding: 6px 8px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+    .canvas { position: relative; min-height: 600px; background: linear-gradient(#f8fafc 23px, transparent 24px), linear-gradient(90deg, #f8fafc 23px, transparent 24px); background-size: 24px 24px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .flow-node { position: absolute; width: 132px; min-height: 48px; border: 1px solid #b8c5d9; background: #fff; border-radius: 8px; display: grid; place-items: center; text-align: center; padding: 6px; box-shadow: 0 3px 8px rgba(20, 40, 70, .08); }
+    .flow-node.start { left: 42px; top: 54px; border-color: #90c2aa; }
+    .flow-node.approve { left: 246px; top: 54px; border-color: #90b3f5; }
+    .flow-node.cond { left: 450px; top: 54px; border-color: #f0c078; }
+    .flow-node.parallel { left: 246px; top: 188px; border-color: #a6a9ee; }
+    .flow-node.cc { left: 450px; top: 188px; border-color: #bdd1f8; }
+    .flow-node.update { left: 246px; top: 322px; border-color: #9ec8ac; }
+    .flow-node.api { left: 450px; top: 322px; border-color: #a6c7d8; }
+    .flow-node.timer { left: 654px; top: 188px; border-color: #e3b982; }
+    .flow-node.end { left: 654px; top: 322px; border-color: #d8a5a5; }
+    .line { position: absolute; height: 2px; background: #8aa2c7; transform-origin: left center; }
+    .flow-canvas .line::after { content: ""; position: absolute; right: -5px; top: -4px; border-left: 7px solid #8aa2c7; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+    .l1 { left: 174px; top: 78px; width: 72px; }
+    .l2 { left: 378px; top: 78px; width: 72px; }
+    .l3 { left: 312px; top: 102px; width: 2px; height: 86px; }
+    .l4 { left: 582px; top: 78px; width: 2px; height: 134px; }
+    .l5 { left: 378px; top: 212px; width: 72px; }
+    .l6 { left: 312px; top: 236px; width: 2px; height: 86px; }
+    .l7 { left: 582px; top: 346px; width: 72px; }
+    .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px); background: #172033; color: #fff; min-height: 36px; padding: 8px 14px; border-radius: 8px; opacity: 0; pointer-events: none; transition: .18s ease; z-index: 50; box-shadow: var(--shadow); }
+    .toast.active { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .profile-pop { position: absolute; top: 48px; right: 14px; width: 220px; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 8px; z-index: 12; display: none; }
+    .profile-pop.active { display: block; }
+    .profile-pop button { width: 100%; justify-content: flex-start; margin: 2px 0; text-align: left; }
+    .density-note { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 12px; }
+    .kbd { border: 1px solid var(--line); background: var(--surface-2); border-radius: 4px; padding: 1px 5px; font-size: 12px; }
+    @media (max-width: 1180px) {
+      body { overflow: auto; }
+      .screen.active { min-width: 1180px; }
+    }
+  </style>
 </head>
-<body>
-  <main class="index-wrap">
-    <section class="hero" data-od-id="overview">
-      <h1>unexamine 可配置业务系统平台</h1>
-      <p>以“车系统”为演示业务，覆盖平台层、系统运行态、系统后台三类边界。原型采用高密度企业后台布局，重点页面优先展示真实表格、筛选、权限状态和配置关系。</p>
-    </section>
-    <div class="section-title">关键审阅页面</div>
-    <section class="entry-grid" data-od-id="key-pages"><a class="entry" href="system/runtime-list.html"><b>重点审阅</b><strong>车辆档案列表</strong><span>首屏表格、紧凑工具栏、选中条、右侧抽屉</span></a><a class="entry" href="system/admin-modeling.html"><b>重点审阅</b><strong>建模</strong><span>字段、列表、筛选、场景、页面动作、发布</span></a><a class="entry" href="system/admin-users.html"><b>重点审阅</b><strong>成员管理</strong><span>独立页面，成员来自平台用户</span></a><a class="entry" href="system/admin-roles.html"><b>重点审阅</b><strong>角色权限</strong><span>模块/字段/数据/动作权限分区</span></a><a class="entry" href="platform/plat-admin-flow.html"><b>边界审阅</b><strong>平台 Flow 配置</strong><span>平台级 Flow，不绑定单一系统模块</span></a><a class="entry" href="system/admin-external-app.html"><b>边界审阅</b><strong>系统对外应用</strong><span>系统级开放能力，不是模块容器</span></a></section>
-    <div class="section-title">全部页面入口</div>
-    <section class="entry-grid" data-od-id="all-pages"><a class="entry" href="platform/login.html"><b>登录前</b><strong>登录</strong><span>账号进入平台，待办和消息在登录后顶栏出现。</span></a><a class="entry" href="platform/register.html"><b>登录前</b><strong>注册并创建系统</strong><span>注册人自动成为新系统管理员，进入车系统配置引导。</span></a><a class="entry" href="platform/my-systems.html"><b>平台工作台</b><strong>我的系统</strong><span>平台工作台首页，选择车系统或进入平台后台。</span></a><a class="entry" href="platform/todos.html"><b>平台工作台</b><strong>待办列表</strong><span>跨系统待办汇总，侧栏不重复放待办菜单。</span></a><a class="entry" href="platform/messages.html"><b>平台工作台</b><strong>消息列表</strong><span>系统通知和审批消息汇总，只从顶栏入口进入。</span></a><a class="entry" href="platform/flow.html"><b>平台工作台</b><strong>平台 Flow 工作台</strong><span>平台级 Flow 入口，和系统 Flow 保持边界。</span></a><a class="entry" href="platform/apps.html"><b>平台工作台</b><strong>平台应用入口</strong><span>开放平台能力和平台 Flow 的应用入口。</span></a><a class="entry" href="platform/logs.html"><b>平台工作台</b><strong>平台日志</strong><span>平台工作台可见日志入口，不等同平台后台审计。</span></a><a class="entry" href="platform/plat-admin-overview.html"><b>平台后台</b><strong>平台后台概览</strong><span>平台级账号、角色、Flow、应用与全局策略概览。</span></a><a class="entry" href="platform/plat-admin-users.html"><b>平台后台</b><strong>平台用户管理</strong><span>唯一登录账号来源，系统成员从平台用户中选择。</span></a><a class="entry" href="platform/plat-admin-roles.html"><b>平台后台</b><strong>平台角色管理</strong><span>配置平台后台权限，不配置车系统字段权限。</span></a><a class="entry" href="platform/plat-admin-flow.html"><b>平台后台</b><strong>平台 Flow 配置</strong><span>配置跨系统或平台级流程，可被平台应用授权开放。</span></a><a class="entry" href="platform/plat-admin-apps.html"><b>平台后台</b><strong>平台应用配置</strong><span>AppKey 脱敏展示，授权平台 Flow 和平台能力。</span></a><a class="entry" href="platform/plat-admin-logs.html"><b>平台后台</b><strong>平台后台日志</strong><span>审计平台后台操作，不混入普通业务日志。</span></a><a class="entry" href="platform/plat-admin-config.html"><b>平台后台</b><strong>平台全局配置</strong><span>登录安全、OpenAPI、文件存储、配额与功能开关。</span></a><a class="entry" href="system/dashboard-che.html"><b>系统运行态</b><strong>che 视角系统仪表盘</strong><span>普通成员只看运行态业务能力，不显示后台入口。</span></a><a class="entry" href="system/dashboard-admin.html"><b>系统运行态</b><strong>admin 视角系统仪表盘</strong><span>系统管理员可见系统后台入口和配置健康状态。</span></a><a class="entry" href="system/runtime-list.html"><b>系统运行态</b><strong>车辆档案列表</strong><span>重点业务列表：按权限显示新建按钮；行操作进入详情、编辑和更多动作。</span></a><a class="entry" href="system/flow-todo.html"><b>系统运行态</b><strong>系统内审批处理</strong><span>车系统内审批任务处理，不进入平台 Flow 配置。</span></a><a class="entry" href="system/admin-home.html"><b>系统后台</b><strong>系统后台首页引导</strong><span>配置完成度、发布检查和下一步任务。</span></a><a class="entry" href="system/admin-basic.html"><b>系统后台</b><strong>基础参数</strong><span>系统名称、图标、编码、域名和默认首页。</span></a><a class="entry" href="system/admin-dict.html"><b>系统后台</b><strong>数据字典</strong><span>车辆状态字典及下拉字段关联。</span></a><a class="entry" href="system/admin-datasource.html"><b>系统后台</b><strong>数据源</strong><span>仪表盘统计卡绑定系统内或外部数据源。</span></a><a class="entry" href="system/admin-dashboard-cfg.html"><b>系统后台</b><strong>仪表盘配置</strong><span>组件库、画布和属性面板发布运行态仪表盘。</span></a><a class="entry" href="system/admin-module-group.html"><b>系统后台</b><strong>模块组</strong><span>车辆管理模块组，组织运行态左侧模块导航。</span></a><a class="entry" href="system/admin-module.html"><b>系统后台</b><strong>模块</strong><span>车辆档案、维保记录、驾驶员模块管理。</span></a><a class="entry" href="system/admin-modeling.html"><b>系统后台</b><strong>建模</strong><span>字段、列表、筛选、场景、页面动作和菜单发布。</span></a><a class="entry" href="system/admin-users.html"><b>系统后台</b><strong>成员管理</strong><span>邀请、停用、分配角色；成员来自平台用户。</span></a><a class="entry" href="system/admin-roles.html"><b>系统后台</b><strong>角色权限</strong><span>模块、字段、数据、动作权限分区配置。</span></a><a class="entry" href="system/admin-flow.html"><b>系统后台</b><strong>流程配置</strong><span>绑定业务模块的系统 Flow 设计器。</span></a><a class="entry" href="system/admin-external-app.html"><b>系统后台</b><strong>系统对外应用</strong><span>授权外部系统访问当前系统内指定模块动作。</span></a><a class="entry" href="system/admin-org.html"><b>系统后台</b><strong>组织结构</strong><span>部门树和成员归属，支撑数据权限。</span></a><a class="entry" href="system/admin-logs.html"><b>系统后台</b><strong>系统日志</strong><span>车系统配置和运行态业务操作日志。</span></a></section>
-  </main>
+<body data-role="che">
+  <section class="screen active" id="loginScreen">
+    <div class="login-wrap">
+      <aside class="login-card">
+        <div class="brand" style="min-width:0;margin-bottom:28px;">
+          <span class="brand-mark">U</span>
+          <span>unexamine 统一入口</span>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>统一平台账号</label>
+          <input value="zhangwei@demo.com">
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>密码</label>
+          <input type="password" value="12345678">
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label>MFA 动态验证码</label>
+          <input value="086214">
+        </div>
+        <div class="side-title">选择演示身份</div>
+        <button class="role-card active" data-role-pick="che">
+          <div class="strong">系统普通成员 che / 张伟</div>
+          <div class="muted">只进入授权系统业务页，看车辆、待办、消息和个人信息。</div>
+        </button>
+        <button class="role-card" data-role-pick="admin">
+          <div class="strong">系统管理员 admin</div>
+          <div class="muted">进入业务系统，可返回系统后台搭模块、流程、权限。</div>
+        </button>
+        <button class="role-card" data-role-pick="platform_member">
+          <div class="strong">平台普通成员 platform_member</div>
+          <div class="muted">进入平台工作台，看授权系统、平台 Flow、待办和消息，不进入平台后台。</div>
+        </button>
+        <button class="role-card" data-role-pick="plat_admin">
+          <div class="strong">平台管理员 plat_admin</div>
+          <div class="muted">管理平台账号、租户授权、部署健康和平台日志。</div>
+        </button>
+        <div class="toolbar" style="padding-left:0;border:0;">
+          <button class="primary" data-login>登录并进入默认首页</button>
+        </div>
+      </aside>
+      <main class="login-hero">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">系统选择 / 权限边界</div>
+            <span class="tag blue">统一账号映射系统成员</span>
+          </div>
+          <div class="panel-body grid">
+            <div class="system-card">
+              <div>
+                <div class="strong">车辆资产管理系统</div>
+                <div class="muted">授权角色：车辆专员 / 系统管理员；模块：车辆档案、维保记录、驾驶员。</div>
+              </div>
+              <button class="primary" data-screen="systemBusiness">进入业务系统</button>
+            </div>
+            <div class="system-card">
+              <div>
+                <div class="strong">合同履约管理系统</div>
+                <div class="muted">仅展示系统授权入口，当前账号未开通业务模块。</div>
+              </div>
+              <button disabled title="当前账号未被授权为合同系统成员">进入系统</button>
+            </div>
+            <div class="system-card" data-roles="plat_admin">
+              <div>
+                <div class="strong">平台工作台</div>
+                <div class="muted">平台仪表盘、Flow、应用和授权系统列表；平台后台入口在个人信息里。</div>
+              </div>
+              <button data-screen="platformWorkbench">进入平台工作台</button>
+            </div>
+            <div class="system-card" data-roles="admin">
+              <div>
+                <div class="strong">系统后台</div>
+                <div class="muted">仅系统管理员可见，用于配置车辆系统，不办理业务审批。</div>
+              </div>
+              <button data-screen="systemAdmin">进入系统后台</button>
+            </div>
+          </div>
+        </div>
+        <div class="grid cols-3" style="margin-top:12px;">
+          <div class="stat"><span class="muted">平台层</span><span class="num">账号 / 租户 / 授权</span></div>
+          <div class="stat"><span class="muted">系统层</span><span class="num">模块 / 字段 / 流程</span></div>
+          <div class="stat"><span class="muted">运行态</span><span class="num">列表 / 详情 / 审批</span></div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen" id="platformWorkbench">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">U</span><span>平台工作台</span></div>
+        <nav class="top-nav" data-nav-scope="platformMain">
+          <button class="active" data-page="platDash">仪表盘</button>
+          <button data-page="platFlow">Flow</button>
+          <button data-page="platApps">应用</button>
+        </nav>
+        <div class="top-spacer"></div>
+        <div class="top-actions">
+          <button data-drawer="todoDrawer">待办 <span class="tag warn">3</span></button>
+          <button data-page="platMessages">消息</button>
+          <button data-profile>个人信息</button>
+        </div>
+        <div class="profile-pop">
+          <button data-screen="platformAdmin" data-roles="plat_admin">平台后台 / 管理入口</button>
+          <button data-screen="systemBusiness">进入授权系统</button>
+          <button data-screen="loginScreen">退出登录</button>
+        </div>
+      </header>
+      <main class="content">
+        <div class="page active" id="platDash">
+          <div class="grid cols-4">
+            <div class="stat"><span class="muted">租户数</span><span class="num">18</span><span class="tag ok">17 正常</span></div>
+            <div class="stat"><span class="muted">授权系统</span><span class="num">42</span><span class="tag blue">6 个待续期</span></div>
+            <div class="stat"><span class="muted">平台任务</span><span class="num">126</span><span class="tag warn">4 个失败重试</span></div>
+            <div class="stat"><span class="muted">系统健康</span><span class="num">99.91%</span><span class="tag ok">最近 24h</span></div>
+          </div>
+          <div class="split" style="margin-top:12px;">
+            <div class="panel main-fill">
+              <div class="panel-head"><div class="panel-title">授权系统运行概览</div><button data-drawer="platformAuthDrawer">授权详情</button></div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>系统</th><th>租户</th><th>授权状态</th><th>成员数</th><th>版本</th><th>最近部署</th><th>健康</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr><td>车辆资产管理系统</td><td>华东运营中心</td><td><span class="tag ok">有效</span></td><td class="num">286</td><td>v2.8.4</td><td>2026-06-15</td><td><span class="tag ok">正常</span></td><td><button class="text" data-screen="systemBusiness">进入系统</button></td></tr>
+                    <tr><td>合同履约管理系统</td><td>集团法务部</td><td><span class="tag warn">待续期</span></td><td class="num">134</td><td>v2.6.1</td><td>2026-06-12</td><td><span class="tag ok">正常</span></td><td><button class="text" data-toast="平台管理员仅进入授权入口，不能直接改业务数据">查看授权</button></td></tr>
+                    <tr><td>仓储备件管理系统</td><td>西南分公司</td><td><span class="tag ok">有效</span></td><td class="num">79</td><td>v2.7.0</td><td>2026-06-08</td><td><span class="tag warn">队列积压</span></td><td><button class="text" data-drawer="platformTaskDrawer">任务日志</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="panel" style="width:320px;flex:0 0 320px;">
+              <div class="panel-head"><div class="panel-title">平台边界</div></div>
+              <div class="panel-body grid">
+                <div class="tag blue">只管平台账号和授权</div>
+                <div class="tag">不配置业务字段</div>
+                <div class="tag">不办理业务审批</div>
+                <div class="tag">不直接修改业务数据</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="page" id="platFlow">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">平台 Flow：跨系统任务编排</div><button data-drawer="genericFlowDrawer">新建平台 Flow</button></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Flow 名称</th><th>触发源</th><th>影响系统</th><th>最近运行</th><th>失败反馈</th><th>审计</th><th>操作</th></tr></thead>
+                <tbody>
+                  <tr><td>授权到期通知</td><td>授权到期 T-15</td><td>全部租户</td><td>2026-06-18 08:10</td><td><span class="tag ok">无失败</span></td><td>已记录</td><td><button class="text" data-drawer="platformTaskDrawer">运行日志</button></td></tr>
+                  <tr><td>版本发布检查</td><td>部署任务</td><td>车辆 / 合同 / 仓储</td><td>2026-06-17 21:30</td><td><span class="tag warn">2 条重试</span></td><td>已记录</td><td><button class="text" data-toast="已进入平台 Flow 详情">详情</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="page" id="platApps">
+          <div class="panel">
+            <div class="toolbar">
+              <input class="search" placeholder="搜索系统、租户、授权号">
+              <select><option>全部授权状态</option><option>有效</option><option>待续期</option><option>已停用</option></select>
+              <button data-drawer="platformAuthDrawer">新增系统授权</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>授权系统</th><th>租户</th><th>系统管理员</th><th>授权模块</th><th>到期时间</th><th>数据隔离</th><th>操作</th></tr></thead>
+                <tbody>
+                  <tr><td>车辆资产管理系统</td><td>华东运营中心</td><td>李敏</td><td>车辆、维保、驾驶员</td><td>2027-03-31</td><td>租户级隔离</td><td><button class="text" data-screen="systemBusiness">进入</button><button class="text" data-drawer="platformAuthDrawer">授权</button></td></tr>
+                  <tr><td>合同履约管理系统</td><td>集团法务部</td><td>赵欣</td><td>合同台账、履约计划</td><td>2026-08-30</td><td>租户级隔离</td><td><button class="text" data-drawer="platformAuthDrawer">授权</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="page" id="platMessages">
+          <div class="panel"><div class="panel-head"><div class="panel-title">平台消息</div></div><div class="panel-body grid"><div class="list-card"><span>车辆系统 v2.8.4 发布检查通过</span><span class="muted">10:20</span></div><div class="list-card"><span>仓储系统 OpenAPI 任务连续失败 2 次</span><span class="muted">09:14</span></div></div></div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen" id="platformAdmin">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">P</span><span>平台后台</span></div>
+        <span class="tag blue">平台级能力</span>
+        <div class="top-spacer"></div>
+        <button data-screen="platformWorkbench">返回平台工作台</button>
+        <button data-screen="loginScreen">退出</button>
+      </header>
+      <div class="layout">
+        <aside class="sidebar" data-nav-scope="platformAdminNav">
+          <button class="side-btn active" data-page="platInfo"><span>平台信息</span></button>
+          <button class="side-btn" data-page="platOrg"><span>组织架构</span></button>
+          <button class="side-btn" data-page="platRoles"><span>角色管理</span></button>
+          <button class="side-btn" data-page="platDashConfig"><span>仪表盘管理</span></button>
+          <button class="side-btn" data-page="platConfig"><span>配置管理</span></button>
+          <button class="side-btn" data-page="platLogs"><span>日志管理</span></button>
+        </aside>
+        <main class="content">
+          <div class="page active" id="platInfo">
+            <div class="grid cols-3">
+              <div class="stat"><span class="muted">平台版本</span><span class="num">v2.8.4</span><span class="tag ok">稳定</span></div>
+              <div class="stat"><span class="muted">部署环境</span><span class="num">生产集群</span><span class="tag blue">华东双活</span></div>
+              <div class="stat"><span class="muted">许可容量</span><span class="num">5000</span><span class="tag">账号上限</span></div>
+            </div>
+            <div class="panel" style="margin-top:12px;">
+              <div class="panel-head"><div class="panel-title">平台基础信息</div><button data-drawer="platformInfoDrawer">编辑平台信息</button></div>
+              <div class="panel-body form-grid">
+                <div class="field"><label>平台名称</label><input value="unexamine 可配置业务系统平台"></div>
+                <div class="field"><label>认证方式</label><input value="统一账号 + MFA + SSO"></div>
+                <div class="field"><label>平台管理员组</label><input value="平台运营部 / 技术运营部"></div>
+                <div class="field"><label>全局数据策略</label><input value="租户隔离、操作审计、敏感字段脱敏"></div>
+              </div>
+            </div>
+          </div>
+          <div class="page" id="platOrg">
+            <div class="split">
+              <div class="tree org-tree" data-tree="platform-org">
+                <div class="side-title">平台组织</div>
+                <div class="tree-row active"><span><span class="twisty">▾</span>平台运营中心</span><span class="tag">42</span></div>
+                <div class="tree-row child"><span><span class="twisty">•</span>账号与授权组</span><span class="tag">11</span></div>
+                <div class="tree-row child"><span><span class="twisty">•</span>部署运维组</span><span class="tag">9</span></div>
+                <div class="tree-row child"><span><span class="twisty">•</span>审计合规组</span><span class="tag">6</span></div>
+              </div>
+              <div class="panel main-fill">
+                <div class="toolbar"><input class="search" placeholder="搜索平台账号"><button data-drawer="platformUserDrawer">新增平台成员</button></div>
+                <table><thead><tr><th>姓名</th><th>账号</th><th>平台角色</th><th>MFA</th><th>最近登录</th><th>操作</th></tr></thead><tbody><tr><td>陈晨</td><td>chenchen@platform</td><td>平台管理员</td><td><span class="tag ok">已启用</span></td><td>2026-06-18 09:40</td><td><button class="text" data-drawer="platformUserDrawer">详情</button></td></tr><tr><td>宋雅</td><td>songya@platform</td><td>审计员</td><td><span class="tag ok">已启用</span></td><td>2026-06-17 18:24</td><td><button class="text" data-drawer="platformUserDrawer">详情</button></td></tr></tbody></table>
+              </div>
+            </div>
+          </div>
+          <div class="page" id="platRoles">
+            <div class="panel">
+              <div class="toolbar"><button class="primary" data-drawer="platformRoleDrawer">新增平台角色</button><span class="density-note">平台角色只控制平台后台和授权，不控制系统业务数据。</span></div>
+              <table><thead><tr><th>角色</th><th>成员</th><th>平台权限</th><th>授权范围</th><th>审计要求</th><th>操作</th></tr></thead><tbody><tr><td>平台管理员</td><td>8</td><td>平台信息、授权、配置、日志、AI Agent</td><td>全部租户</td><td>MFA + 全量审计</td><td><button class="text" data-drawer="platformRoleDrawer">配置</button></td></tr><tr><td>平台普通成员</td><td>26</td><td>平台工作台、平台 Flow、授权系统入口</td><td>本人授权系统</td><td>操作留痕</td><td><button class="text" data-drawer="platformRoleDrawer">配置</button></td></tr><tr><td>平台审计员</td><td>5</td><td>只读日志、健康、版本</td><td>全部租户</td><td>只读审计</td><td><button class="text" data-drawer="platformRoleDrawer">配置</button></td></tr></tbody></table>
+            </div>
+          </div>
+          <div class="page" id="platDashConfig">
+            <div class="panel">
+              <div class="toolbar"><button data-drawer="dashWidgetDrawer">新增平台指标</button><button data-toast="平台仪表盘配置已保存">保存布局</button></div>
+              <table><thead><tr><th>组件</th><th>数据源</th><th>可见角色</th><th>刷新频率</th><th>脱敏策略</th><th>操作</th></tr></thead><tbody><tr><td>租户授权趋势</td><td>platform_license_snapshot</td><td>平台管理员、审计员</td><td>15 分钟</td><td>租户名称可见</td><td><button class="text" data-drawer="dashWidgetDrawer">配置</button></td></tr><tr><td>任务失败分布</td><td>platform_task_log</td><td>平台管理员</td><td>5 分钟</td><td>隐藏请求参数</td><td><button class="text" data-drawer="dashWidgetDrawer">配置</button></td></tr></tbody></table>
+            </div>
+          </div>
+          <div class="page" id="platConfig">
+            <div class="panel">
+              <div class="toolbar"><input class="search" placeholder="搜索全局配置"><button data-drawer="platformConfigDrawer">新增全局配置</button></div>
+              <table><thead><tr><th>配置项</th><th>类型</th><th>作用域</th><th>当前值</th><th>变更审批</th><th>操作</th></tr></thead><tbody><tr><td>账号锁定策略</td><td>安全</td><td>全平台</td><td>5 次失败锁定 15 分钟</td><td><span class="tag ok">需要</span></td><td><button class="text" data-drawer="platformConfigDrawer">详情</button></td></tr><tr><td>导出任务并发数</td><td>任务</td><td>全平台</td><td>每租户 3 个</td><td><span class="tag warn">无需</span></td><td><button class="text" data-drawer="platformConfigDrawer">详情</button></td></tr><tr><td>AI Agent 模型策略</td><td>智能能力</td><td>平台授权 + 系统继承</td><td>本地模型优先，外部模型需脱敏</td><td><span class="tag ok">需要</span></td><td><button class="text" data-drawer="aiAgentConfigDrawer">配置</button></td></tr></tbody></table>
+            </div>
+          </div>
+          <div class="page" id="platLogs">
+            <div class="panel">
+              <div class="toolbar"><input class="search" placeholder="账号、租户、动作"><select><option>全部动作</option><option>授权变更</option><option>登录失败</option><option>部署发布</option></select><button data-drawer="platformLogDrawer">查看审计详情</button></div>
+              <table><thead><tr><th>时间</th><th>操作者</th><th>动作</th><th>对象</th><th>结果</th><th>IP</th><th>操作</th></tr></thead><tbody><tr><td>2026-06-18 10:22</td><td>陈晨</td><td>授权车辆系统模块</td><td>华东运营中心</td><td><span class="tag ok">成功</span></td><td>10.20.18.11</td><td><button class="text" data-drawer="platformLogDrawer">详情</button></td></tr><tr><td>2026-06-18 09:17</td><td>自动任务</td><td>发布健康检查</td><td>车辆系统 v2.8.4</td><td><span class="tag ok">成功</span></td><td>system</td><td><button class="text" data-drawer="platformLogDrawer">详情</button></td></tr></tbody></table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="systemBusiness">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">车</span><span>车辆资产管理系统</span></div>
+        <button data-drawer="systemSwitchDrawer">系统切换</button>
+        <nav class="top-nav" data-nav-scope="businessTop">
+          <button data-page="bizDashboard">仪表盘</button>
+          <button class="active" data-page="vehicleList">车辆管理</button>
+          <button data-toast="资产统计模块已切换">资产统计</button>
+        </nav>
+        <div class="top-spacer"></div>
+        <div class="top-actions">
+          <button data-page="bizTodo">待办 <span class="tag warn">5</span></button>
+          <button data-page="bizMessages">消息</button>
+          <button data-profile>个人信息</button>
+        </div>
+        <div class="profile-pop">
+          <button data-screen="systemAdmin" data-roles="admin">系统后台</button>
+          <button data-screen="platformWorkbench" data-roles="plat_admin">返回平台工作台</button>
+          <button data-drawer="profileDrawer">个人资料</button>
+          <button data-screen="loginScreen">退出登录</button>
+        </div>
+      </header>
+      <div class="layout">
+        <aside class="sidebar" data-nav-scope="businessSide">
+          <div class="side-title">车辆管理 / 组内模块</div>
+          <button class="side-btn active" data-page="vehicleList"><span>车辆档案</span><span class="tag">128</span></button>
+          <button class="side-btn" data-page="maintenanceList"><span>维保记录</span><span class="tag">342</span></button>
+          <button class="side-btn" data-page="driverList"><span>驾驶员</span><span class="tag">76</span></button>
+          <div class="side-title">授权说明</div>
+          <div class="panel-body" style="padding:8px 10px;color:var(--muted);font-size:12px;line-height:1.7;">
+            左侧只放业务模块。审批办理在详情和待办，不作为菜单出现。
+          </div>
+        </aside>
+        <main class="content">
+          <div class="page" id="bizDashboard">
+            <div class="grid cols-4">
+              <div class="stat"><span class="muted">在册车辆</span><span class="num">128</span><span class="tag ok">116 可用</span></div>
+              <div class="stat"><span class="muted">待审批</span><span class="num">5</span><span class="tag warn">2 个超时预警</span></div>
+              <div class="stat"><span class="muted">本月维保</span><span class="num">31</span><span class="tag blue">8 个待预约</span></div>
+              <div class="stat"><span class="muted">附件合规</span><span class="num">96%</span><span class="tag ok">证照齐全</span></div>
+            </div>
+          </div>
+          <div class="page active" id="vehicleList">
+            <div class="selection-bar" id="selectionBar">
+              <span>已选择 <b id="selectedCount">0</b> 条</span>
+              <button data-toast="已打开车辆转移抽屉">转移</button>
+              <button disabled title="所选车辆包含审批中或已归档数据，不能批量删除">删除</button>
+              <button data-drawer="exportDrawer">导出选中</button>
+              <button data-toast="已进入批量编辑字段确认">批量编辑</button>
+              <button class="text" data-clear-selection>取消选择</button>
+            </div>
+            <div class="panel">
+              <div class="toolbar">
+                <input class="search" placeholder="搜索车牌号、品牌、驾驶员">
+                <select><option>场景：全部车辆</option><option>我的部门车辆</option><option>待年检车辆</option><option>审批中车辆</option></select>
+                <select><option>状态：全部</option><option>在用</option><option>维修中</option><option>停用</option></select>
+                <button data-drawer="advancedFilterDrawer">高级筛选</button>
+                <button data-toast="筛选条件已应用">查询</button>
+                <button data-toast="筛选条件已重置">重置</button>
+                <div class="toolbar-right">
+                  <button data-drawer="columnDrawer">列设置</button>
+                  <button data-drawer="importDrawer">导入</button>
+                  <button data-drawer="exportDrawer">导出</button>
+                  <button class="primary" data-drawer="vehicleFormDrawer" data-business-write>新建车辆</button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="vehicle-table">
+                  <thead>
+                    <tr>
+                      <th><input type="checkbox" id="selectAll"></th>
+                      <th>收藏</th>
+                      <th>序号</th>
+                      <th><button class="text" data-sort="plate">车牌号</button></th>
+                      <th><button class="text" data-sort="model">品牌型号</button></th>
+                      <th>状态</th>
+                      <th>部门</th>
+                      <th>驾驶员</th>
+                      <th><button class="text" data-sort="buyDate">购置日期</button></th>
+                      <th>年检到期</th>
+                      <th>最近维保</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>☆</td><td class="num">001</td><td>沪A·6K912</td><td>别克 GL8 ES</td><td><span class="tag ok">在用</span></td><td>运营一部</td><td>张伟</td><td>2024-03-12</td><td>2027-03-11</td><td>2026-06-02</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" data-drawer="vehicleFormDrawer" data-business-write>编辑</button></td></tr>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>★</td><td class="num">002</td><td>沪B·7P305</td><td>丰田 凯美瑞</td><td><span class="tag warn">审批中</span></td><td>财务共享</td><td>李娜</td><td>2023-11-08</td><td>2026-11-07</td><td>2026-05-19</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" disabled title="审批中车辆暂不可编辑">编辑</button></td></tr>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>☆</td><td class="num">003</td><td>苏E·2D851</td><td>大众 迈腾</td><td><span class="tag ok">在用</span></td><td>运营二部</td><td>周凯</td><td>2022-07-15</td><td>2026-07-14</td><td>2026-04-28</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" data-drawer="vehicleFormDrawer" data-business-write>编辑</button></td></tr>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>☆</td><td class="num">004</td><td>浙A·9M420</td><td>比亚迪 汉 EV</td><td><span class="tag ok">在用</span></td><td>市场拓展</td><td>王强</td><td>2025-01-20</td><td>2028-01-19</td><td>2026-05-06</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" data-drawer="vehicleFormDrawer" data-business-write>编辑</button></td></tr>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>☆</td><td class="num">005</td><td>沪C·5R719</td><td>福特 全顺</td><td><span class="tag bad">维修中</span></td><td>仓储运输</td><td>钱磊</td><td>2021-09-01</td><td>2026-08-31</td><td>2026-06-16</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" data-drawer="vehicleFormDrawer" data-business-write>编辑</button></td></tr>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>☆</td><td class="num">006</td><td>皖A·3X226</td><td>上汽大通 G10</td><td><span class="tag ok">在用</span></td><td>项目交付</td><td>陈敏</td><td>2024-05-18</td><td>2027-05-17</td><td>2026-03-30</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" data-drawer="vehicleFormDrawer" data-business-write>编辑</button></td></tr>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>☆</td><td class="num">007</td><td>沪A·1Q660</td><td>奥迪 A6L</td><td><span class="tag ok">在用</span></td><td>高管用车</td><td>韩雨</td><td>2023-04-10</td><td>2026-04-09</td><td>2026-02-17</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" data-drawer="vehicleFormDrawer" data-business-write>编辑</button></td></tr>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>☆</td><td class="num">008</td><td>苏A·8F023</td><td>日产 途达</td><td><span class="tag warn">待年检</span></td><td>安全巡检</td><td>赵鹏</td><td>2020-12-03</td><td>2026-06-25</td><td>2026-01-11</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" data-drawer="vehicleFormDrawer" data-business-write>编辑</button></td></tr>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>☆</td><td class="num">009</td><td>沪D·0L572</td><td>特斯拉 Model Y</td><td><span class="tag ok">在用</span></td><td>数字化部</td><td>沈悦</td><td>2025-06-06</td><td>2028-06-05</td><td>2026-06-10</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" data-drawer="vehicleFormDrawer" data-business-write>编辑</button></td></tr>
+                    <tr><td><input type="checkbox" class="row-check"></td><td>☆</td><td class="num">010</td><td>赣A·6C811</td><td>江铃 轻客</td><td><span class="tag ok">在用</span></td><td>华中交付</td><td>刘洋</td><td>2022-10-21</td><td>2026-10-20</td><td>2026-05-23</td><td><button class="text" data-drawer="vehicleDetailDrawer">详情</button><button class="text" data-drawer="vehicleFormDrawer" data-business-write>编辑</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="pager"><span>共 128 条</span><button disabled title="已是第一页">上一页</button><span class="tag blue">1</span><button data-toast="已切换到第 2 页">2</button><button data-toast="已切换到下一页">下一页</button><select><option>10 条/页</option><option>20 条/页</option></select></div>
+            </div>
+          </div>
+          <div class="page" id="maintenanceList">
+            <div class="panel">
+              <div class="toolbar"><input class="search" placeholder="车牌号、维修单号"><select><option>全部维保类型</option><option>保养</option><option>维修</option><option>事故</option></select><button data-drawer="vehicleFormDrawer">登记维保</button></div>
+              <table><thead><tr><th>维保单号</th><th>车牌号</th><th>类型</th><th>供应商</th><th>费用</th><th>状态</th><th>附件</th><th>操作</th></tr></thead><tbody><tr><td>WB20260616008</td><td>沪C·5R719</td><td>维修</td><td>上海安驰服务站</td><td class="num">¥4,860</td><td><span class="tag warn">待验收</span></td><td>报价单、照片</td><td><button class="text" data-drawer="genericBizDrawer">详情</button></td></tr><tr><td>WB20260602003</td><td>沪A·6K912</td><td>保养</td><td>上汽售后浦东店</td><td class="num">¥1,240</td><td><span class="tag ok">完成</span></td><td>发票、工单</td><td><button class="text" data-drawer="genericBizDrawer">详情</button></td></tr></tbody></table>
+            </div>
+          </div>
+          <div class="page" id="driverList">
+            <div class="panel">
+              <div class="toolbar"><input class="search" placeholder="驾驶员、手机号、部门"><button data-drawer="genericBizDrawer">新增驾驶员</button></div>
+              <table><thead><tr><th>姓名</th><th>部门</th><th>准驾车型</th><th>证件到期</th><th>授权车辆</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>张伟</td><td>运营一部</td><td>C1</td><td>2029-09-12</td><td>沪A·6K912</td><td><span class="tag ok">有效</span></td><td><button class="text" data-drawer="genericBizDrawer">详情</button></td></tr><tr><td>钱磊</td><td>仓储运输</td><td>B2</td><td>2027-01-05</td><td>沪C·5R719</td><td><span class="tag warn">需复核</span></td><td><button class="text" data-drawer="genericBizDrawer">详情</button></td></tr></tbody></table>
+            </div>
+          </div>
+          <div class="page" id="bizTodo">
+            <div class="panel"><div class="panel-head"><div class="panel-title">我的待办</div></div><div class="table-wrap"><table><thead><tr><th>事项</th><th>来源模块</th><th>当前节点</th><th>提交人</th><th>超时</th><th>操作</th></tr></thead><tbody><tr><td>沪B·7P305 用车部门变更</td><td>车辆档案</td><td>资产管理员复核</td><td>李娜</td><td><span class="tag warn">剩余 3h</span></td><td><button class="text" data-drawer="vehicleDetailDrawer">办理</button></td></tr><tr><td>沪C·5R719 维修费用确认</td><td>维保记录</td><td>费用审批</td><td>钱磊</td><td><span class="tag ok">正常</span></td><td><button class="text" data-drawer="genericBizDrawer">办理</button></td></tr></tbody></table></div></div>
+          </div>
+          <div class="page" id="bizMessages">
+            <div class="panel"><div class="panel-head"><div class="panel-title">业务消息</div></div><div class="panel-body grid"><div class="list-card"><span>沪A·6K912 年检材料已归档</span><span class="muted">10:08</span></div><div class="list-card"><span>驾驶员钱磊证件复核即将到期</span><span class="muted">09:32</span></div></div></div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="systemAdmin">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">管</span><span>车辆系统后台</span></div>
+        <span class="tag blue">配置态管理层</span>
+        <div class="top-spacer"></div>
+        <button data-screen="systemBusiness">返回业务首页</button>
+        <button data-screen="loginScreen">退出</button>
+      </header>
+      <div class="layout">
+        <aside class="sidebar" data-nav-scope="systemAdminNav">
+          <button class="side-btn active" data-page="sysInfo"><span>系统信息</span></button>
+          <button class="side-btn" data-page="sysOrg"><span>组织架构</span></button>
+          <button class="side-btn" data-page="sysRoles"><span>角色管理</span></button>
+          <button class="side-btn" data-page="sysModules"><span>模块管理</span></button>
+          <button class="side-btn" data-page="sysFlows"><span>流程管理</span></button>
+          <button class="side-btn" data-page="sysDict"><span>字典管理</span></button>
+          <button class="side-btn" data-page="sysDash"><span>仪表盘管理</span></button>
+          <button class="side-btn" data-page="sysData"><span>数据源</span></button>
+          <button class="side-btn" data-page="sysApps"><span>对外应用</span></button>
+          <button class="side-btn" data-page="sysLogs"><span>系统日志</span></button>
+        </aside>
+        <main class="content">
+          <div class="page active" id="sysInfo">
+            <div class="panel">
+              <div class="panel-head"><div class="panel-title">系统信息</div><button data-drawer="systemInfoDrawer">编辑系统信息</button></div>
+              <div class="panel-body form-grid">
+                <div class="field"><label>系统名称</label><input value="车辆资产管理系统"></div>
+                <div class="field"><label>系统编码</label><input value="vehicle_asset"></div>
+                <div class="field"><label>系统管理员</label><input value="李敏、周凯"></div>
+                <div class="field"><label>数据权限模型</label><input value="部门树 + 负责人 + 自定义数据范围"></div>
+                <div class="field"><label>租户模式</label><select><option>单租户：隐藏租户切换</option><option>多租户：启用租户隔离</option></select></div>
+                <div class="field"><label>租户隔离策略</label><input value="默认按 tenantId 隔离；可叠加部门/业务主体"></div>
+                <div class="field"><label>默认租户</label><input value="华东运营中心"></div>
+                <div class="field"><label>租户级配额</label><input value="成员 300、模块 80、存储 200GB、导出并发 3"></div>
+                <div class="field full"><label>模式切换影响</label><textarea>从单租户切换到多租户前需检查历史数据归属、角色映射、OpenAPI 授权、导入导出模板、仪表盘数据源和系统日志。</textarea></div>
+                <div class="field full"><label>系统边界</label><textarea>当前后台只配置本系统模块、字段、页面、流程、权限、字典、仪表盘、数据源、对外应用和系统日志，不办理车辆审批，不展示业务数据列表。</textarea></div>
+              </div>
+            </div>
+          </div>
+          <div class="page" id="sysOrg">
+            <div class="split">
+              <div class="tree org-tree" data-tree="system-org">
+                <div class="side-title">部门树</div>
+                <div class="tree-row active"><span><span class="twisty">▾</span>华东运营中心</span><span class="tag">286</span></div>
+                <div class="tree-row child"><span><span class="twisty">▾</span>运营一部</span><span class="tag">64</span></div>
+                <div class="tree-row leaf"><span><span class="twisty">•</span>一车队</span><span class="tag">31</span></div>
+                <div class="tree-row leaf"><span><span class="twisty">•</span>二车队</span><span class="tag">33</span></div>
+                <div class="tree-row child"><span><span class="twisty">•</span>运营二部</span><span class="tag">58</span></div>
+                <div class="tree-row child"><span><span class="twisty">•</span>仓储运输</span><span class="tag">47</span></div>
+                <div class="tree-row child"><span><span class="twisty">•</span>市场拓展</span><span class="tag">39</span></div>
+                <div class="tree-row child"><span><span class="twisty">•</span>数字化部</span><span class="tag">28</span></div>
+              </div>
+              <div class="panel main-fill">
+                <div class="toolbar"><input class="search" placeholder="搜索员工姓名、账号、手机号"><button data-drawer="employeeDrawer">新增员工</button><button data-toast="已同步企业微信组织架构">同步组织</button></div>
+                <table><thead><tr><th>姓名</th><th>账号</th><th>部门</th><th>系统角色</th><th>业务数据范围</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>张伟</td><td>che</td><td>运营一部</td><td>车辆专员</td><td>本部门车辆</td><td><span class="tag ok">启用</span></td><td><button class="text" data-drawer="employeeDrawer">详情</button></td></tr><tr><td>李敏</td><td>admin</td><td>数字化部</td><td>系统管理员</td><td>全部数据</td><td><span class="tag ok">启用</span></td><td><button class="text" data-drawer="employeeDrawer">详情</button></td></tr></tbody></table>
+              </div>
+            </div>
+          </div>
+          <div class="page" id="sysRoles">
+            <div class="split">
+              <div class="tree compact role-tree" data-tree="system-role">
+                <div class="side-title">角色列表</div>
+                <div class="tree-row active">车辆专员 <span class="tag">46</span></div>
+                <div class="tree-row">部门负责人 <span class="tag">18</span></div>
+                <div class="tree-row">资产管理员 <span class="tag">9</span></div>
+                <div class="tree-row">系统管理员 <span class="tag">2</span></div>
+                <button style="width:100%;margin-top:8px;" data-drawer="roleDrawer">新增角色</button>
+              </div>
+              <div class="panel main-fill">
+                <div class="panel-head"><div class="panel-title">车辆专员权限配置</div><button data-drawer="permissionPreviewDrawer">权限预览</button></div>
+                <div class="tabs" data-tab-scope="roleTabs"><button class="active" data-subpage="roleMembers">成员分配</button><button data-subpage="roleMenu">菜单权限</button><button data-subpage="roleModule">模块权限</button><button data-subpage="roleButton">按钮权限</button><button data-subpage="roleField">字段权限</button><button data-subpage="roleData">数据范围</button></div>
+                <div class="panel-body">
+                  <div class="subpage active" id="roleMembers"><table><thead><tr><th>成员</th><th>部门</th><th>授权来源</th><th>生效时间</th><th>操作</th></tr></thead><tbody><tr><td>张伟</td><td>运营一部</td><td>直接分配</td><td>2026-04-01</td><td><button class="text" data-toast="成员分配已打开">调整</button></td></tr><tr><td>赵鹏</td><td>安全巡检</td><td>部门继承</td><td>2026-03-15</td><td><button class="text" data-toast="继承成员需调整部门授权">查看</button></td></tr></tbody></table></div>
+                  <div class="subpage" id="roleMenu"><div class="grid cols-3"><div class="list-card"><span>顶部：仪表盘</span><span class="tag ok">可见</span></div><div class="list-card"><span>顶部：车辆管理</span><span class="tag ok">可见</span></div><div class="list-card"><span>系统后台入口</span><span class="tag bad">隐藏</span></div></div></div>
+                  <div class="subpage" id="roleModule"><table><thead><tr><th>模块</th><th>查看</th><th>新建</th><th>编辑</th><th>删除</th><th>导入导出</th></tr></thead><tbody><tr><td>车辆档案</td><td><span class="tag ok">允许</span></td><td><span class="tag ok">允许</span></td><td><span class="tag ok">本人部门</span></td><td><span class="tag bad">禁止</span></td><td><span class="tag ok">按字段权限</span></td></tr><tr><td>维保记录</td><td><span class="tag ok">允许</span></td><td><span class="tag ok">允许</span></td><td><span class="tag warn">流程中禁止</span></td><td><span class="tag bad">禁止</span></td><td><span class="tag ok">允许</span></td></tr></tbody></table></div>
+                  <div class="subpage" id="roleButton"><div class="grid cols-4"><div class="list-card"><span>新建车辆</span><span class="tag ok">可点</span></div><div class="list-card"><span>批量删除</span><span class="tag bad">禁用</span></div><div class="list-card"><span>提交审批</span><span class="tag ok">可点</span></div><div class="list-card"><span>打印</span><span class="tag warn">审批后</span></div></div></div>
+                  <div class="subpage" id="roleField"><table><thead><tr><th>字段</th><th>列表显示</th><th>详情读取</th><th>编辑</th><th>导出</th><th>审批节点</th></tr></thead><tbody><tr><td>购置金额</td><td>脱敏</td><td>脱敏</td><td>禁止</td><td>禁止</td><td>资产管理员可见</td></tr><tr><td>车架号</td><td>后四位</td><td>可见</td><td>禁止</td><td>脱敏</td><td>发起人只读</td></tr></tbody></table></div>
+                  <div class="subpage" id="roleData"><div class="form-grid"><div class="field"><label>数据范围</label><select><option>本人及本部门车辆</option></select></div><div class="field"><label>额外规则</label><input value="可查看被授权驾驶车辆"></div><div class="field full"><label>权限预览</label><textarea>张伟进入系统后可见运营一部车辆、新建车辆草稿、办理本人待办；不能看到系统后台入口、平台后台入口和跨部门敏感金额。</textarea></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="page" id="sysModules">
+            <div class="split">
+              <div class="tree module-tree" data-tree="module-tree">
+                <div class="side-title">模块组 / 模块树</div>
+                <div class="tree-row active">车辆管理</div>
+                <div class="tree-row child">车辆档案</div>
+                <div class="tree-row child">维保记录</div>
+                <div class="tree-row child">驾驶员</div>
+                <div class="tree-row">资产统计</div>
+                <div class="tree-row child">车队看板</div>
+                <button style="width:100%;margin-top:8px;" data-drawer="moduleGroupDrawer">新建模块组</button>
+              </div>
+              <div class="panel main-fill">
+                <div class="toolbar"><button class="primary" data-toast="已进入创建模块七步配置">创建模块</button><button data-drawer="modulePublishDrawer">发布记录</button></div>
+                <div class="tabs" data-tab-scope="moduleTabs"><button class="active" data-subpage="moduleList">模块列表</button><button data-subpage="moduleCreate">创建模块配置</button></div>
+                <div class="panel-body">
+                  <div class="subpage active" id="moduleList"><table><thead><tr><th>模块</th><th>分组</th><th>字段数</th><th>列表视图</th><th>流程绑定</th><th>发布状态</th><th>操作</th></tr></thead><tbody><tr><td>车辆档案</td><td>车辆管理</td><td>38</td><td>默认列表、待年检</td><td>车辆新增审批</td><td><span class="tag ok">已发布</span></td><td><button class="text" data-drawer="moduleConfigDrawer">配置</button></td></tr><tr><td>维保记录</td><td>车辆管理</td><td>26</td><td>费用列表、待验收</td><td>维修费用审批</td><td><span class="tag ok">已发布</span></td><td><button class="text" data-drawer="moduleConfigDrawer">配置</button></td></tr></tbody></table></div>
+                  <div class="subpage" id="moduleCreate">
+                    <div class="grid">
+                      <div class="panel">
+                        <div class="panel-head"><div class="panel-title">1 模块字段</div><button data-drawer="moduleConfigDrawer">字段设计</button></div>
+                        <div class="panel-body grid">
+                          <div class="grid cols-4">
+                            <div class="list-card"><span>文本 / 手机号 / 邮箱 / URL</span><span class="tag ok">基础</span></div>
+                            <div class="list-card"><span>数字 / 百分比 / 金额 / 日期范围</span><span class="tag ok">数值</span></div>
+                            <div class="list-card"><span>单选 / 多选 / 级联 / 状态</span><span class="tag blue">字典</span></div>
+                            <div class="list-card"><span>人员 / 部门 / 组织租户</span><span class="tag blue">组织</span></div>
+                            <div class="list-card"><span>附件 / 图片 / 签名 / 条码</span><span class="tag">媒体</span></div>
+                            <div class="list-card"><span>关联数据 / 引用 / 子表</span><span class="tag warn">业务关系</span></div>
+                            <div class="list-card"><span>公式 / 汇总 / 查找 / 聚合</span><span class="tag warn">高级</span></div>
+                            <div class="list-card"><span>系统字段 / AI 填充字段</span><span class="tag">扩展</span></div>
+                          </div>
+                          <table><thead><tr><th>字段</th><th>类型</th><th>专属配置</th><th>权限/导出</th><th>校验</th></tr></thead><tbody><tr><td>车辆状态</td><td>状态字典</td><td>绑定 vehicle_status，颜色、图标、停用项历史显示</td><td>列表/详情/导出可控</td><td>必填</td></tr><tr><td>驾驶员</td><td>关联数据</td><td>目标模块：驾驶员；显示字段：姓名；单选；按部门过滤</td><td>审批节点可改</td><td>必须为启用成员</td></tr><tr><td>维保费用</td><td>金额</td><td>币种 CNY，2 位精度，普通成员脱敏</td><td>财务角色可导出</td><td>范围 0-999999</td></tr><tr><td>年检到期</td><td>日期</td><td>临期提醒、可筛选、可排序</td><td>全部角色可见</td><td>不得早于购置日期</td></tr></tbody></table>
+                        </div>
+                      </div>
+                      <div class="panel"><div class="panel-head"><div class="panel-title">2 列表</div><button data-drawer="columnDrawer">配置列</button></div><div class="panel-body">固定选择框、收藏、序号、主字段、状态、部门、人员、日期和操作列；支持排序和列权限。</div></div>
+                      <div class="panel"><div class="panel-head"><div class="panel-title">3 筛选</div><button data-drawer="advancedFilterDrawer">配置筛选</button></div><div class="panel-body">基础搜索、状态、部门、日期区间、年检到期、高级组合条件。</div></div>
+                      <div class="panel"><div class="panel-head"><div class="panel-title">4 场景</div><button data-toast="场景配置已打开">配置场景</button></div><div class="panel-body">全部车辆、我的部门车辆、待年检车辆、审批中车辆、维修中车辆。</div></div>
+                      <div class="panel"><div class="panel-head"><div class="panel-title">5 页面动作</div><button data-toast="页面动作配置已打开">配置动作</button></div><div class="panel-body">新建、编辑、导入、导出、打印、批量转移；按按钮权限和流程状态裁剪。</div></div>
+                      <div class="panel"><div class="panel-head"><div class="panel-title">6 发布检查</div><button data-drawer="modulePublishDrawer">运行检查</button></div><div class="panel-body">字段唯一索引、必填规则、列表性能、流程绑定、权限覆盖、回滚方案。</div></div>
+                      <div class="panel"><div class="panel-head"><div class="panel-title">7 发布</div><button class="primary" data-toast="模块发布任务已提交">发布到业务页</button></div><div class="panel-body">发布后进入运行态业务页，历史版本保留，可灰度给资产管理员验证。</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="page" id="sysFlows">
+            <div class="panel">
+              <div class="toolbar"><input class="search" placeholder="搜索审批类型、触发事件、版本"><select><option>全部流程类型</option><option>审批流</option><option>办公流</option><option>自动化工作流</option></select><button data-toast="已创建审批类型草稿">新增审批类型</button><button data-toast="发布检查通过：节点、字段权限、回写配置完整">发布检查</button><button data-toast="模拟运行：张伟提交后进入资产管理员复核">模拟运行</button><button data-drawer="approverPreviewDrawer">审批人预览</button></div>
+              <div class="table-wrap">
+                <table><thead><tr><th>流程/审批类型</th><th>绑定模块</th><th>触发事件</th><th>版本</th><th>业务状态回写</th><th>场景</th><th>操作</th></tr></thead><tbody><tr><td>车辆信息变更审批</td><td>车辆档案</td><td>编辑字段 / 手动发起</td><td>v12 已发布</td><td>审批中、通过、驳回</td><td>资产变更、跨部门转移</td><td><button class="text" data-drawer="approverPreviewDrawer">模拟</button></td></tr><tr><td>维修费用办公流</td><td>维保记录</td><td>金额 > 5000</td><td>v4 草稿</td><td>待财务确认、已入账</td><td>报销、采购、财务会签</td><td><button class="text" data-toast="已打开流程版本列表">版本</button></td></tr><tr><td>外部同步失败处理</td><td>对外应用</td><td>Webhook 失败</td><td>v2 已发布</td><td>待重试、已补偿</td><td>集成异常、人工确认</td><td><button class="text" data-drawer="platformTaskDrawer">日志</button></td></tr></tbody></table>
+              </div>
+              <div class="flow-layout">
+                <div class="node-lib">
+                  <div class="side-title">节点库</div>
+                  <div class="node">开始 <span class="tag ok">触发</span></div>
+                  <div class="node">审批 <span class="tag blue">人员</span></div>
+                  <div class="node">填写表单 <span class="tag blue">补录</span></div>
+                  <div class="node">任务节点 <span class="tag">协作</span></div>
+                  <div class="node">条件分支 <span class="tag">规则</span></div>
+                  <div class="node">并行网关 <span class="tag">会签</span></div>
+                  <div class="node">合并网关 <span class="tag">汇合</span></div>
+                  <div class="node">抄送 <span class="tag">通知</span></div>
+                  <div class="node">字段更新 <span class="tag">回写</span></div>
+                  <div class="node">数据创建/更新 <span class="tag">自动</span></div>
+                  <div class="node">外部 API <span class="tag warn">集成</span></div>
+                  <div class="node">定时器 <span class="tag warn">超时</span></div>
+                  <div class="node">等待 <span class="tag">定时</span></div>
+                  <div class="node">子流程 <span class="tag">复用</span></div>
+                  <div class="node">AI 辅助 <span class="tag bad">后续</span></div>
+                  <div class="node">结束 <span class="tag bad">归档</span></div>
+                </div>
+                <div class="canvas flow-canvas" data-flow-canvas="vehicle-approval">
+                  <div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div><div class="line l5"></div><div class="line l6"></div><div class="line l7"></div>
+                  <button class="flow-node start" data-toast="开始节点：车辆新增或部门变更触发">开始<br><span class="muted">提交车辆</span></button>
+                  <button class="flow-node approve" data-toast="审批节点：资产管理员复核字段权限">资产管理员<br>复核</button>
+                  <button class="flow-node cond" data-toast="条件分支：购置金额或车辆状态判断">条件分支<br>金额/状态</button>
+                  <button class="flow-node parallel" data-toast="并行网关：财务和部门负责人会签">并行会签</button>
+                  <button class="flow-node cc" data-toast="抄送节点：通知驾驶员和部门文员">抄送通知</button>
+                  <button class="flow-node update" data-toast="字段更新：写回审批状态、车辆状态">字段更新</button>
+                  <button class="flow-node api" data-toast="外部 API：同步保险系统">外部 API</button>
+                  <button class="flow-node timer" data-toast="定时器：24h 未处理升级提醒">超时提醒</button>
+                  <button class="flow-node end" data-toast="结束节点：归档审批日志">结束归档</button>
+                </div>
+                <div class="props">
+                  <div class="panel-title">节点属性：资产管理员复核</div>
+                  <div class="field" style="margin-top:12px;"><label>审批人</label><input value="角色：资产管理员；排除提交人"></div>
+                  <div class="field"><label>审批方式</label><select><option>或签：任意一人通过</option><option>会签：全部同意</option><option>顺序会签</option><option>比例会签：70% 通过</option></select></div>
+                  <div class="field"><label>字段权限</label><textarea>可编辑：部门、驾驶员、附件；只读：车牌号、品牌型号；隐藏：购置金额。</textarea></div>
+                  <div class="field"><label>状态回写</label><input value="通过后写入：审批通过 / 在用"></div>
+                  <div class="field"><label>超时策略</label><input value="24h 提醒，48h 升级部门负责人"></div>
+                  <div class="field"><label>退回策略</label><select><option>退回发起人，重提后回到当前节点</option><option>退回上一节点</option><option>退回指定节点</option></select></div>
+                  <div class="field"><label>转办/加签</label><input value="允许转办、加签；撤回需填写原因"></div>
+                  <div class="field"><label>模拟解释</label><textarea>张伟提交且费用 6,800 元：进入资产管理员复核，再进入财务会签；字段“费用”对车辆专员脱敏，对财务可见。</textarea></div>
+                  <div class="field"><label>日志</label><input value="记录审批人、字段变更、API 回执"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="page" id="sysDict">
+            <div class="split">
+              <div class="tree compact">
+                <div class="side-title">字典分类</div>
+                <div class="tree-row active">业务状态 <span class="tag">6</span></div>
+                <div class="tree-row">组织区域 <span class="tag">3</span></div>
+                <div class="tree-row">费用类型 <span class="tag">4</span></div>
+                <div class="tree-row">系统内置 <span class="tag">12</span></div>
+                <button style="width:100%;margin-top:8px;" data-drawer="dictDrawer">新增字典</button>
+              </div>
+              <div class="panel main-fill">
+                <div class="toolbar"><input class="search" placeholder="搜索字典、编码、引用字段"><select><option>全部类型</option><option>普通字典</option><option>树形字典</option><option>级联字典</option><option>状态字典</option></select><button data-drawer="dictDrawer">新增字典</button><button data-toast="字典发布检查通过">发布</button></div>
+                <table><thead><tr><th>字典</th><th>编码</th><th>类型</th><th>版本</th><th>引用</th><th>项配置</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>车辆状态</td><td>vehicle_status</td><td>状态字典</td><td>v5 已发布</td><td>车辆档案、流程条件、仪表盘</td><td>颜色、图标、默认项、停用历史</td><td><span class="tag ok">启用</span></td><td><button class="text" data-drawer="dictDrawer">详情</button></td></tr><tr><td>行政区域</td><td>region_tree</td><td>级联字典</td><td>v3 已发布</td><td>地址字段、租户档案</td><td>省/市/区，保存完整路径</td><td><span class="tag ok">启用</span></td><td><button class="text" data-drawer="dictDrawer">详情</button></td></tr><tr><td>维保类型</td><td>maintenance_type</td><td>普通字典</td><td>v2 草稿</td><td>维保记录、导入模板</td><td>排序、停用、导入导出</td><td><span class="tag warn">待发布</span></td><td><button class="text" data-drawer="dictDrawer">详情</button></td></tr></tbody></table>
+                <div class="panel-body grid cols-3">
+                  <div class="list-card"><span>引用影响</span><span class="tag warn">3 个字段 / 2 个流程</span></div>
+                  <div class="list-card"><span>历史显示</span><span class="tag ok">停用项保留快照</span></div>
+                  <div class="list-card"><span>运行版本</span><span class="tag blue">发布版 v5</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="page" id="sysDash">
+            <div class="panel"><div class="toolbar"><button data-drawer="dashWidgetDrawer">新增业务组件</button><button data-toast="业务仪表盘布局已保存">保存布局</button></div><table><thead><tr><th>组件</th><th>业务模块</th><th>指标口径</th><th>可见角色</th><th>操作</th></tr></thead><tbody><tr><td>车辆状态分布</td><td>车辆档案</td><td>按状态和部门聚合</td><td>车辆专员、部门负责人</td><td><button class="text" data-drawer="dashWidgetDrawer">配置</button></td></tr><tr><td>维保费用趋势</td><td>维保记录</td><td>按月、供应商、部门</td><td>资产管理员</td><td><button class="text" data-drawer="dashWidgetDrawer">配置</button></td></tr></tbody></table></div>
+          </div>
+          <div class="page" id="sysData">
+            <div class="panel"><div class="toolbar"><input class="search" placeholder="搜索数据源"><button data-drawer="datasourceDrawer">新增数据源</button></div><table><thead><tr><th>数据源</th><th>类型</th><th>用途</th><th>权限</th><th>脱敏</th><th>最近同步</th><th>操作</th></tr></thead><tbody><tr><td>车辆保险库</td><td>MySQL</td><td>保险到期校验</td><td>只读服务账号</td><td>保单号脱敏</td><td>2026-06-18 08:30</td><td><button class="text" data-drawer="datasourceDrawer">详情</button></td></tr><tr><td>油卡消费接口</td><td>HTTP API</td><td>费用核对</td><td>签名认证</td><td>手机号脱敏</td><td>2026-06-17 23:00</td><td><button class="text" data-drawer="datasourceDrawer">详情</button></td></tr></tbody></table></div>
+          </div>
+          <div class="page" id="sysApps">
+            <div class="panel"><div class="toolbar"><input class="search" placeholder="搜索外部应用"><button data-drawer="externalAppDrawer">新增外部应用</button></div><table><thead><tr><th>应用</th><th>授权模块</th><th>OpenAPI 权限</th><th>回调地址</th><th>失败反馈</th><th>审计</th><th>操作</th></tr></thead><tbody><tr><td>保险服务商门户</td><td>车辆档案</td><td>读取车辆基础信息</td><td>https://insure.example/callback</td><td>任务重试 + 告警</td><td>全量记录</td><td><button class="text" data-drawer="externalAppDrawer">详情</button></td></tr><tr><td>维修供应商小程序</td><td>维保记录</td><td>创建报价、上传附件</td><td>https://repair.example/hook</td><td>错误明细回写</td><td>附件留痕</td><td><button class="text" data-drawer="externalAppDrawer">详情</button></td></tr></tbody></table></div>
+          </div>
+          <div class="page" id="sysLogs">
+            <div class="panel"><div class="toolbar"><input class="search" placeholder="模块、人员、数据 ID"><select><option>全部日志类型</option><option>字段变更</option><option>导入导出</option><option>OpenAPI</option><option>审批</option></select><button data-drawer="systemLogDrawer">查看详情</button></div><table><thead><tr><th>时间</th><th>模块</th><th>对象</th><th>动作</th><th>操作者</th><th>结果</th><th>操作</th></tr></thead><tbody><tr><td>2026-06-18 10:35</td><td>车辆档案</td><td>沪B·7P305</td><td>提交审批</td><td>李娜</td><td><span class="tag ok">成功</span></td><td><button class="text" data-drawer="systemLogDrawer">详情</button></td></tr><tr><td>2026-06-18 09:50</td><td>导入任务</td><td>IMP20260618003</td><td>字段匹配失败</td><td>张伟</td><td><span class="tag bad">失败</span></td><td><button class="text" data-drawer="systemLogDrawer">详情</button></td></tr></tbody></table></div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <div class="drawer-mask" id="mask"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-head"><div class="panel-title" id="drawerTitle">详情</div><button class="ghost" data-close-drawer>关闭</button></div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-foot" id="drawerFoot"><button data-close-drawer>关闭</button></div>
+  </aside>
+  <div class="toast" id="toast"></div>
+
+  <template id="vehicleDetailDrawer">
+    <div class="detail-layout">
+      <div>
+        <div class="panel">
+          <div class="panel-head">
+            <div><div class="panel-title">沪A·6K912 / 别克 GL8 ES</div><div class="muted">车辆档案 ID：CAR-20240312-001，保留车辆列表上下文。</div></div>
+            <div><button data-drawer="vehicleFormDrawer" data-business-write>编辑</button><button data-toast="已生成车辆打印预览">打印</button><button data-toast="更多操作：复制、转移、归档">更多</button></div>
+          </div>
+          <div class="panel-body grid cols-4">
+            <div><span class="muted">状态</span><br><span class="tag ok">在用</span></div>
+            <div><span class="muted">部门</span><br>运营一部</div>
+            <div><span class="muted">驾驶员</span><br>张伟</div>
+            <div><span class="muted">年检到期</span><br>2027-03-11</div>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:12px;">
+          <div class="tabs" data-tab-scope="detailTabs"><button class="active" data-subpage="detailBase">详细资料</button><button data-subpage="detailMaintain">维保记录</button><button data-subpage="detailDrivers">授权驾驶员</button><button data-subpage="detailFiles">附件</button><button data-subpage="detailPrints">打印记录</button><button data-subpage="detailOps">操作记录</button></div>
+          <div class="panel-body">
+            <div class="subpage active" id="detailBase"><div class="form-grid"><div class="field"><label>车牌号</label><input value="沪A·6K912" readonly></div><div class="field"><label>品牌型号</label><input value="别克 GL8 ES 陆尊" readonly></div><div class="field"><label>购置金额</label><input value="字段权限：当前角色脱敏" readonly></div><div class="field"><label>车辆识别码</label><input value="LSGUA84L9NE****21" readonly></div><div class="field full"><label>备注</label><textarea readonly>商务接待车辆，需保留审批、附件、打印和操作留痕。</textarea></div></div></div>
+            <div class="subpage" id="detailMaintain"><table><thead><tr><th>日期</th><th>类型</th><th>供应商</th><th>费用</th><th>状态</th></tr></thead><tbody><tr><td>2026-06-02</td><td>保养</td><td>上汽售后浦东店</td><td class="num">¥1,240</td><td><span class="tag ok">完成</span></td></tr><tr><td>2026-02-14</td><td>轮胎更换</td><td>安驰服务站</td><td class="num">¥2,880</td><td><span class="tag ok">完成</span></td></tr></tbody></table></div>
+            <div class="subpage" id="detailDrivers"><table><thead><tr><th>驾驶员</th><th>部门</th><th>授权类型</th><th>有效期</th><th>状态</th></tr></thead><tbody><tr><td>张伟</td><td>运营一部</td><td>主驾驶员</td><td>2026-01-01 至 2026-12-31</td><td><span class="tag ok">有效</span></td></tr><tr><td>周凯</td><td>运营二部</td><td>临时授权</td><td>2026-06-01 至 2026-06-30</td><td><span class="tag warn">即将到期</span></td></tr></tbody></table></div>
+            <div class="subpage" id="detailFiles"><table><thead><tr><th>附件</th><th>类型</th><th>上传人</th><th>脱敏</th><th>操作</th></tr></thead><tbody><tr><td>行驶证扫描件.pdf</td><td>证照</td><td>张伟</td><td>证件号后四位</td><td><button class="text" data-toast="已打开附件预览">预览</button></td></tr><tr><td>购置发票.pdf</td><td>财务</td><td>李娜</td><td>金额对普通成员隐藏</td><td><button class="text" data-toast="无财务字段权限，已记录访问审计">申请查看</button></td></tr></tbody></table></div>
+            <div class="subpage" id="detailPrints"><table><thead><tr><th>打印模板</th><th>打印人</th><th>时间</th><th>水印</th><th>操作</th></tr></thead><tbody><tr><td>车辆档案明细</td><td>张伟</td><td>2026-06-18 10:02</td><td>含账号水印</td><td><button class="text" data-toast="已打开打印记录">查看</button></td></tr></tbody></table></div>
+            <div class="subpage" id="detailOps"><table><thead><tr><th>时间</th><th>操作者</th><th>动作</th><th>字段变化</th><th>IP</th></tr></thead><tbody><tr><td>2026-06-16 14:21</td><td>钱磊</td><td>更新最近维保</td><td>最近维保：2026-06-02</td><td>10.20.7.51</td></tr><tr><td>2026-06-12 09:40</td><td>系统</td><td>年检提醒</td><td>生成消息和待办</td><td>system</td></tr></tbody></table></div>
+          </div>
+        </div>
+      </div>
+      <aside class="approval-side">
+        <div class="panel-title">审批流程信息</div>
+        <div class="panel-body" style="padding-left:0;">
+          <div class="tag warn">当前节点：资产管理员复核</div>
+          <p><b>审批人：</b>李敏、韩雨；排除提交人。</p>
+          <p><b>节点字段权限：</b>可改部门/驾驶员/附件；车牌号只读；购置金额隐藏。</p>
+          <div class="toolbar" style="padding-left:0;border:0;"><button class="primary" data-toast="审批已通过，状态回写将在事务后执行">通过</button><button class="danger" data-toast="已打开驳回原因填写">驳回</button><button data-toast="已打开转交人员选择">转交</button><button data-toast="更多：加签、评论、撤回">更多</button></div>
+          <div class="timeline"><div class="time-item">张伟 2026-06-18 09:12 提交车辆部门变更</div><div class="time-item">系统 09:12 写入待办并锁定编辑</div><div class="time-item">李敏 10:05 查看详情，敏感字段按权限脱敏</div></div>
+        </div>
+      </aside>
+    </div>
+  </template>
+
+  <template id="vehicleFormDrawer">
+    <div class="form-grid">
+      <div class="field"><label>车牌号</label><input value="沪A·6K912"></div>
+      <div class="field"><label>品牌型号</label><input value="别克 GL8 ES"></div>
+      <div class="field"><label>车辆状态</label><select><option>在用</option><option>维修中</option><option>停用</option></select></div>
+      <div class="field"><label>所属部门</label><select><option>运营一部</option><option>运营二部</option><option>仓储运输</option></select></div>
+      <div class="field"><label>驾驶员</label><input value="张伟"></div>
+      <div class="field"><label>购置日期</label><input value="2024-03-12"></div>
+      <div class="field"><label>年检到期</label><input value="2027-03-11"></div>
+      <div class="field"><label>最近维保</label><input value="2026-06-02"></div>
+      <div class="field full"><label>附件</label><div class="list-card"><span>行驶证扫描件.pdf、购置发票.pdf</span><button data-toast="已打开附件上传">上传附件</button></div></div>
+      <div class="field full"><label>提交说明</label><textarea>新建或编辑车辆支持保存草稿和提交审批；提交后进入车辆新增审批流程。</textarea></div>
+    </div>
+  </template>
+
+  <template id="importDrawer">
+    <div class="grid">
+      <div class="panel"><div class="panel-head"><div class="panel-title">1 上传文件</div><button data-toast="已选择 vehicle_import_20260618.xlsx">选择 Excel</button></div><div class="panel-body">支持 .xlsx，最大 20MB；平台记录上传人、IP 和文件校验结果。</div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">2 字段匹配</div></div><div class="panel-body"><table><thead><tr><th>Excel 列</th><th>系统字段</th><th>规则</th></tr></thead><tbody><tr><td>车牌号码</td><td>车牌号</td><td>唯一校验</td></tr><tr><td>所属部门</td><td>部门</td><td>按部门树匹配</td></tr><tr><td>司机姓名</td><td>驾驶员</td><td>需为系统成员</td></tr></tbody></table></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">3 预检查 / 错误明细</div><button data-toast="预检查完成：成功 42 条，失败 3 条">运行预检查</button></div><div class="panel-body"><table><thead><tr><th>行号</th><th>字段</th><th>错误</th></tr></thead><tbody><tr><td>第 7 行</td><td>车牌号</td><td>与沪A·6K912 重复</td></tr><tr><td>第 18 行</td><td>部门</td><td>未找到“运营三部”</td></tr></tbody></table></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">4 确认导入</div><button class="primary" data-toast="导入任务 IMP20260618003 已提交，失败明细将回写任务日志">确认导入</button></div><div class="panel-body">导入结果进入任务日志，失败行可下载；敏感字段按导入人权限校验。</div></div>
+    </div>
+  </template>
+
+  <template id="exportDrawer">
+    <div class="grid">
+      <div class="field"><label>导出范围</label><select><option>当前筛选结果</option><option>全部匹配数据</option><option>选中数据</option></select></div>
+      <div class="field"><label>字段权限</label><textarea readonly>车牌号、品牌型号、状态、部门、驾驶员可导出；购置金额、车架号按当前角色脱敏；无权限字段不会进入文件。</textarea></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">后台任务反馈</div><button class="primary" data-toast="导出任务 EXP20260618011 已提交，可在消息中心查看进度">提交导出</button></div><div class="panel-body"><table><thead><tr><th>任务</th><th>范围</th><th>状态</th><th>失败反馈</th></tr></thead><tbody><tr><td>EXP20260617008</td><td>待年检车辆</td><td><span class="tag ok">完成</span></td><td>无</td></tr><tr><td>EXP20260616002</td><td>全部匹配</td><td><span class="tag warn">部分完成</span></td><td>3 条附件权限不足</td></tr></tbody></table></div></div>
+    </div>
+  </template>
+
+  <template id="advancedFilterDrawer">
+    <div class="form-grid">
+      <div class="field"><label>部门</label><select><option>运营一部</option><option>仓储运输</option></select></div>
+      <div class="field"><label>车辆状态</label><select><option>在用</option><option>维修中</option><option>待年检</option></select></div>
+      <div class="field"><label>年检到期</label><input value="2026-06-01 ~ 2026-12-31"></div>
+      <div class="field"><label>最近维保</label><input value="最近 90 天"></div>
+      <div class="field full"><label>组合条件</label><textarea>状态 = 在用 AND 年检到期 <= 180 天 AND 部门在当前数据范围内。</textarea></div>
+    </div>
+  </template>
+
+  <template id="columnDrawer">
+    <div class="grid cols-3">
+      <div class="list-card"><span>车牌号</span><span class="tag ok">固定</span></div><div class="list-card"><span>品牌型号</span><span class="tag ok">显示</span></div><div class="list-card"><span>状态</span><span class="tag ok">显示</span></div><div class="list-card"><span>部门</span><span class="tag ok">显示</span></div><div class="list-card"><span>驾驶员</span><span class="tag ok">显示</span></div><div class="list-card"><span>购置金额</span><span class="tag bad">无导出权限</span></div>
+    </div>
+  </template>
+
+  <template id="genericBizDrawer">
+    <div class="grid">
+      <div class="panel"><div class="panel-head"><div class="panel-title">业务详情</div><button data-toast="已提交当前业务动作">提交</button></div><div class="panel-body">这里展示维保、驾驶员等业务模块的详情、附件、审批状态和操作记录；与车辆档案使用同一套运行态边界。</div></div>
+      <table><thead><tr><th>记录</th><th>状态</th><th>附件</th><th>审计</th></tr></thead><tbody><tr><td>维修费用确认</td><td><span class="tag warn">待审批</span></td><td>报价单、照片</td><td>已记录</td></tr></tbody></table>
+    </div>
+  </template>
+
+  <template id="defaultDrawer">
+    <div class="grid">
+      <div class="panel"><div class="panel-head"><div class="panel-title">配置详情</div></div><div class="panel-body">当前入口已连接到右侧抽屉，用于查看详情、配置权限、查看日志或执行后台任务。</div></div>
+      <table><thead><tr><th>项</th><th>值</th><th>状态</th></tr></thead><tbody><tr><td>权限</td><td>按当前角色裁剪</td><td><span class="tag ok">已生效</span></td></tr><tr><td>审计</td><td>记录操作者、对象、结果、IP</td><td><span class="tag ok">已记录</span></td></tr></tbody></table>
+    </div>
+  </template>
+
+  <script>
+    const state = { role: 'che', screen: 'loginScreen' };
+    const roleHome = { che: 'systemBusiness', admin: 'systemBusiness', platform_member: 'platformWorkbench', plat_admin: 'platformWorkbench' };
+    const drawerNames = {
+      vehicleDetailDrawer: ['车辆详情工作区', 'large'],
+      vehicleFormDrawer: ['新建 / 编辑车辆', ''],
+      importDrawer: ['车辆导入流程', ''],
+      exportDrawer: ['车辆导出任务', 'small'],
+      advancedFilterDrawer: ['高级筛选', 'small'],
+      columnDrawer: ['列设置', 'small'],
+      todoDrawer: ['待办中心', 'small'],
+      systemSwitchDrawer: ['系统切换', 'small'],
+      platformAuthDrawer: ['系统授权详情', ''],
+      platformTaskDrawer: ['平台任务日志', ''],
+      genericBizDrawer: ['业务详情', ''],
+      permissionPreviewDrawer: ['权限预览', ''],
+      approverPreviewDrawer: ['审批人预览', 'small'],
+      datasourceDrawer: ['数据源详情', ''],
+      externalAppDrawer: ['外部应用详情', ''],
+      systemLogDrawer: ['系统日志详情', ''],
+      dictDrawer: ['字典详情', ''],
+      dashWidgetDrawer: ['仪表盘组件配置', ''],
+      moduleConfigDrawer: ['模块配置详情', ''],
+      modulePublishDrawer: ['模块发布记录', ''],
+      platformLogDrawer: ['平台日志详情', ''],
+      aiAgentConfigDrawer: ['AI Agent / 模型授权配置', ''],
+      defaultDrawer: ['详情', '']
+    };
+
+    const titles = {
+      platformInfoDrawer: '平台信息配置', platformUserDrawer: '平台成员详情', platformRoleDrawer: '平台角色配置',
+      platformConfigDrawer: '平台配置详情', genericFlowDrawer: '平台 Flow 配置', profileDrawer: '个人资料',
+      employeeDrawer: '员工详情', roleDrawer: '系统角色详情', moduleGroupDrawer: '模块组配置',
+      systemInfoDrawer: '系统信息配置'
+    };
+
+    const drawerDetails = {
+      todoDrawer: {
+        summary: '待办按当前角色聚合业务审批、导入失败、导出完成和配置发布检查，点击后回到对应业务详情或配置页。',
+        rows: [['车辆档案审批', '沪B·7P305 用车部门变更，资产管理员复核，剩余 3h'], ['维保费用确认', 'WB20260616008 维修费用确认，费用审批'], ['导入失败处理', 'IMP20260618003 有 3 条失败行，需要下载明细或回滚']],
+        footer: '支持按来源、节点、超时、提交人筛选；批量操作只对同类型、同节点待办开放。'
+      },
+      systemSwitchDrawer: {
+        summary: '同一平台账号可进入多个授权系统；普通成员只能看到已授权系统，平台后台入口不在这里出现。',
+        rows: [['车辆资产管理系统', '当前系统，角色：车辆专员 / 系统管理员'], ['合同履约管理系统', '已授权，只读合同台账和履约计划'], ['仓储备件管理系统', '待管理员授权，入口禁用并显示原因']],
+        footer: '切换系统后重新加载模块分组、角色、字段权限、数据范围和消息数量。'
+      },
+      platformAuthDrawer: {
+        summary: '平台层只做系统授权和租户边界，不配置业务字段、不办理业务审批。',
+        rows: [['授权对象', '华东运营中心 / 车辆资产管理系统'], ['授权模块', '车辆档案、维保记录、驾驶员、业务仪表盘'], ['到期与用量', '2027-03-31 到期，当前成员 128 / 上限 200'], ['安全边界', '租户隔离、OpenAPI 白名单、导出并发阈值']],
+        footer: '授权变更需要平台审批并写入平台审计日志，系统管理员只能在授权范围内继续配置业务模块。'
+      },
+      platformTaskDrawer: {
+        summary: '展示平台级异步任务和健康巡检，不混入业务模块列表。',
+        rows: [['T-20260618-011', '授权到期通知，成功 126，失败 0'], ['T-20260618-009', '导出任务队列巡检，发现华东租户积压 2 个'], ['T-20260617-030', '版本发布健康检查，已完成']],
+        footer: '失败任务保留请求摘要、重试次数、负责人和告警状态，支持跳转到日志详情。'
+      },
+      genericFlowDrawer: {
+        summary: '平台 Flow 是跨系统任务编排入口，和系统内业务审批流程分离。',
+        rows: [['触发器', '授权到期、外部应用回调、定时巡检'], ['节点类型', '条件分支、通知、Webhook、人工确认、失败补偿'], ['运行控制', '重试策略、超时、告警、全链路日志']],
+        footer: '新建 Flow 进入画布：左侧节点库，中间连线画布，右侧属性面板。'
+      },
+      platformInfoDrawer: {
+        summary: '平台信息只维护产品和部署层资料，不出现车辆、驾驶员等业务字段。',
+        rows: [['平台名称', 'Unique Examine 可配置业务系统平台'], ['部署区域', '华东主集群 / 华北灾备'], ['版本', 'v2.8.4，灰度 30%'], ['负责人', '平台运维组，MFA 强制开启']],
+        footer: '变更平台名称、登录策略、部署信息需要平台角色权限，并记录平台日志。'
+      },
+      platformUserDrawer: {
+        summary: '平台成员是统一账号，不等于某个系统里的业务员工；进入系统后再映射为系统成员。',
+        rows: [['账号', 'chenchen@platform，平台管理员'], ['安全', 'MFA 已开启，最近登录 2026-06-18 09:40'], ['授权范围', '全部租户授权管理、平台日志、配置管理'], ['系统映射', '车辆系统：系统管理员；合同系统：只读审计']],
+        footer: '停用平台账号会阻断所有系统入口，但不会删除系统业务数据负责人历史。'
+      },
+      platformRoleDrawer: {
+        summary: '平台角色只控制平台信息、授权、配置、日志和仪表盘，不控制系统业务字段。',
+        rows: [['平台管理员', '平台后台、系统授权、平台配置、AI Agent、平台成员、全局日志'], ['平台普通成员', '平台工作台、平台 Flow、授权系统入口、平台待办和消息'], ['平台审计员', '只读日志、健康检查、授权历史'], ['配置边界', '不能编辑车辆字段、审批节点、业务按钮权限']],
+        footer: 'platform_member 不能进入平台后台；plat_admin 比平台普通成员多平台后台管理和全局配置能力。'
+      },
+      dashWidgetDrawer: {
+        summary: '仪表盘组件按平台/系统分别配置，数据口径、可见角色、刷新频率必须明确。',
+        rows: [['组件名称', '车辆状态分布 / 租户授权趋势'], ['数据来源', '业务模块聚合或平台授权快照'], ['可见角色', '平台管理员、系统管理员、车辆专员'], ['刷新与脱敏', '5-15 分钟刷新；金额、证件号按角色脱敏']],
+        footer: '发布前检查数据源、角色覆盖、空状态、失败反馈和移动端宽度。'
+      },
+      platformConfigDrawer: {
+        summary: '平台配置是全局策略，例如账号安全、任务并发、审计保留，不含业务模块字段。',
+        rows: [['账号锁定策略', '5 次失败锁定 15 分钟，变更需要审批'], ['导出任务并发数', '每租户 3 个，超过进入队列'], ['AI Agent 模型策略', '平台本地模型优先，外部模型需脱敏和授权'], ['日志保留', '平台日志 365 天，敏感参数脱敏']],
+        footer: '每次配置变更展示差异、影响范围、审批状态、回滚方式和操作人。'
+      },
+      platformLogDrawer: {
+        summary: '平台日志记录授权、登录、配置、部署、任务等平台行为。',
+        rows: [['时间', '2026-06-18 10:22'], ['操作者', '陈晨 / platform admin'], ['动作', '授权车辆系统模块'], ['结果', '成功，IP 10.20.18.11，追踪号 PLAT-LOG-0622']],
+        footer: '支持按账号、租户、动作、结果、时间筛选，并可导出审计报告。'
+      },
+      profileDrawer: {
+        summary: '个人资料聚合账号安全、当前系统角色、消息偏好和快捷入口。',
+        rows: [['账号', 'che，运营一部车辆专员'], ['当前系统', '车辆资产管理系统'], ['安全', '密码有效，MFA 未绑定，建议开启'], ['偏好', '默认进入车辆档案，导出完成消息提醒']],
+        footer: '个人资料不能修改角色和数据范围，只能发起申请或查看管理员配置结果。'
+      },
+      systemInfoDrawer: {
+        summary: '系统后台维护当前业务系统资料，和平台信息分离。',
+        rows: [['系统名称', '车辆资产管理系统'], ['租户模式', '单租户隐藏租户切换；多租户启用 tenantId 隔离'], ['业务负责人', '李敏 / 数字化部'], ['模块组', '车辆管理、合同管理、客户管理'], ['发布状态', 'v2.8.4 已发布，存在 1 个草稿配置']],
+        footer: '切换租户模式前必须检查历史数据、角色权限、OpenAPI、导入导出、仪表盘和日志影响。'
+      },
+      employeeDrawer: {
+        summary: '系统员工来自平台账号映射，配置部门、系统角色、业务数据范围和登录状态。',
+        rows: [['员工', '张伟 / che / 运营一部'], ['系统角色', '车辆专员，可见车辆档案、维保记录、驾驶员'], ['数据范围', '本部门车辆 + 本人负责车辆'], ['安全状态', '启用，最近登录 2026-06-18 09:10']],
+        footer: '员工详情右侧抽屉提供分配部门、分配角色、启停用、登录安全和操作记录。'
+      },
+      roleDrawer: {
+        summary: '系统角色配置菜单、模块、按钮、字段、数据范围和权限预览；用户和角色分开维护。',
+        rows: [['模块权限', '车辆档案、维保记录、驾驶员'], ['动作权限', '查看、新建、编辑、删除、转移、导入、全部导出、导出选中、打印'], ['字段权限', '列表显示、详情显示、可编辑、可导出、审批节点可改'], ['数据权限', '全部、本部门及下级、本部门、本人负责、自定义']],
+        footer: '保存前必须预览 che/admin 的最终菜单、按钮、字段和数据范围。'
+      },
+      permissionPreviewDrawer: {
+        summary: '权限预览用于模拟真实用户视角，避免普通用户看到后台或无权按钮。',
+        rows: [['che 视角', '只显示车辆档案、维保记录、驾驶员、待办、消息、个人信息'], ['admin 视角', '显示系统业务页和系统后台入口'], ['字段结果', '购置金额脱敏，删除按钮按审批状态禁用'], ['导出结果', '只导出有字段权限的数据列']],
+        footer: '预览必须覆盖菜单、列表列、详情字段、按钮、审批节点和数据范围。'
+      },
+      moduleGroupDrawer: {
+        summary: '模块组决定业务顶部导航和左侧组内模块，不能把筛选/列设置伪装成模块。',
+        rows: [['车辆管理', '车辆档案、维保记录、驾驶员'], ['合同管理', '合同台账、履约计划、付款记录'], ['客户管理', '客户、联系人、商机'], ['发布规则', '组内至少一个已发布模块才对运行态用户可见']],
+        footer: '模块组支持排序、图标、可见角色、默认模块和停用状态。'
+      },
+      modulePublishDrawer: {
+        summary: '模块发布记录展示配置版本、检查结果、影响范围和回滚入口。',
+        rows: [['v12', '车辆档案新增年检提醒列，检查通过，发布人李敏'], ['v11', '新增导入模板字段映射，回滚可用'], ['发布检查', '主字段、默认列表、筛选、场景、动作、角色覆盖、流程绑定、导入导出、打印模板']],
+        footer: '发布失败必须展示具体失败项和修复入口，不能只给“失败”提示。'
+      },
+      moduleConfigDrawer: {
+        summary: '模块配置必须给开发可落地的字段、列表、筛选、场景、动作和发布链路。',
+        rows: [['字段类型库', '文本、数字、金额、日期范围、选项、级联、人员、部门、附件、关联、子表、公式、汇总、系统字段'], ['字段专属配置', '金额精度/币种、人员范围、关联模块、公式表达式、子表列、附件水印'], ['列表', '选择框、收藏、序号、主字段、状态、部门、人员、日期、操作列'], ['筛选/场景', '快捷搜索、高级筛选、待年检、维保中、我负责的'], ['动作', '新建、编辑、删除、转移、导入、导出、打印，均有权限和禁用规则']],
+        footer: '配置抽屉保留七步链路，目标是通过配置覆盖大多数系统场景，而不是只服务车辆示例。'
+      },
+      approverPreviewDrawer: {
+        summary: '审批人预览根据流程节点、部门、字段条件和提交人动态计算。',
+        rows: [['提交人', '张伟 / 运营一部'], ['流程', '车辆新增审批'], ['当前节点', '资产管理员复核，候选人：李敏、韩雨'], ['异常', '审批人为空时阻断提交并提示配置修复入口']],
+        footer: '预览展示节点字段权限、可处理动作、超时规则和状态回写。'
+      },
+      dictDrawer: {
+        summary: '字典为模块字段、筛选、流程条件和仪表盘口径提供统一选项。',
+        rows: [['车辆状态', '状态字典：颜色、图标、默认项、停用历史'], ['行政区域', '级联字典：省/市/区，保存完整路径'], ['维保类型', '普通字典：导入导出、排序、停用'], ['引用范围', '字段下拉、列表筛选、流程条件、统计分组、导入模板']],
+        footer: '字典有草稿/发布版本，停用项历史可读，发布前检查字段、流程、仪表盘和导入模板影响。'
+      },
+      aiAgentConfigDrawer: {
+        summary: 'AI Agent 是后续设计域，当前先沉淀平台模型授权和系统继承边界。',
+        rows: [['平台模型', '本地模型 qwen-local-32b；外部模型需脱敏、额度和数据出境策略'], ['授权方式', '平台购买授权后分配给系统；系统也可配置第三方模型'], ['系统范围', '按模块、字段、动作、数据范围授权 Agent 读写'], ['交互目标', '对话录入权限内模块数据；对话查询统计、趋势、待办和业务数据']],
+        footer: 'Agent 写入必须展示解析结果并人工确认；查询和写入都受当前用户权限、字段脱敏和日志审计控制。'
+      },
+      datasourceDrawer: {
+        summary: '数据源用于外部校验、仪表盘聚合或 OpenAPI 同步，必须体现权限和失败反馈。',
+        rows: [['车辆保险库', 'MySQL 只读服务账号，保单号脱敏'], ['油卡消费接口', 'HTTP API 签名认证，失败重试 3 次'], ['同步策略', '定时同步、手动重跑、失败明细下载']],
+        footer: '数据源配置包含连接测试、字段映射、脱敏策略、审计日志和告警联系人。'
+      },
+      externalAppDrawer: {
+        summary: '对外应用配置 OpenAPI 权限、回调、失败重试和审计。',
+        rows: [['保险服务商门户', '读取车辆基础信息，回调保险状态'], ['维修供应商小程序', '创建报价、上传附件、回写验收结果'], ['安全', '签名密钥、IP 白名单、接口限流、字段脱敏']],
+        footer: '应用密钥只显示一次，后续通过重置流程生成，并记录操作日志。'
+      },
+      systemLogDrawer: {
+        summary: '系统日志记录业务数据、配置、审批、导入导出和外部应用操作。',
+        rows: [['业务对象', '沪B·7P305 / 车辆档案'], ['动作', '提交审批，写入待办并锁定编辑'], ['操作者', '李娜，IP 10.20.7.51'], ['结果', '成功，追踪号 SYS-LOG-1035']],
+        footer: '支持模块、人员、数据 ID、动作类型、结果和时间筛选；导出受审计权限控制。'
+      },
+      defaultDrawer: {
+        summary: '当前入口已连接到右侧抽屉，展示详情、配置项、权限结果和审计信息。',
+        rows: [['权限', '按当前角色裁剪菜单、按钮、字段和数据范围'], ['审计', '记录操作者、对象、结果、IP 和追踪号']],
+        footer: '开发时不得把这里做成空白弹窗，必须接入对应业务数据。'
+      }
+    };
+
+    function $(selector, root = document) { return root.querySelector(selector); }
+    function $$(selector, root = document) { return Array.from(root.querySelectorAll(selector)); }
+    function toast(text) {
+      const el = $('#toast');
+      el.textContent = text || '操作已响应';
+      el.classList.add('active');
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => el.classList.remove('active'), 2200);
+    }
+
+    function setRole(role) {
+      state.role = role;
+      document.body.dataset.role = role;
+      $$('.role-card').forEach(btn => btn.classList.toggle('active', btn.dataset.rolePick === role));
+      applyRoleVisibility();
+      if (role === 'plat_admin') {
+        $$('[data-business-write]').forEach(btn => {
+          btn.disabled = true;
+          btn.title = '平台管理员不能绕过业务系统规则直接修改业务数据';
+        });
+      } else {
+        $$('[data-business-write]').forEach(btn => {
+          btn.disabled = false;
+          btn.removeAttribute('title');
+        });
+      }
+    }
+
+    function applyRoleVisibility() {
+      $$('[data-roles]').forEach(el => {
+        const roles = el.dataset.roles.split(',').map(v => v.trim());
+        el.classList.toggle('hidden', !roles.includes(state.role));
+      });
+    }
+
+    function canOpenScreen(screen) {
+      if (screen === 'platformAdmin' && state.role !== 'plat_admin') return '只有平台管理员可进入平台后台';
+      if (screen === 'platformWorkbench' && !['platform_member', 'plat_admin'].includes(state.role)) return '只有平台成员或平台管理员可进入平台工作台';
+      if (screen === 'systemAdmin' && state.role !== 'admin') return '只有系统管理员可进入系统后台';
+      return '';
+    }
+
+    function showScreen(screen) {
+      const reason = canOpenScreen(screen);
+      if (reason) { toast(reason); return; }
+      $$('.screen').forEach(el => el.classList.toggle('active', el.id === screen));
+      state.screen = screen;
+      closeDrawer();
+      $('.profile-pop.active')?.classList.remove('active');
+      if (screen === 'systemBusiness') activatePage('vehicleList');
+      if (screen === 'platformWorkbench') activatePage('platDash');
+      if (screen === 'platformAdmin') activatePage('platInfo');
+      if (screen === 'systemAdmin') activatePage('sysInfo');
+      applyRoleVisibility();
+    }
+
+    function activatePage(id) {
+      const page = $('#' + id);
+      if (!page) return;
+      const screen = page.closest('.screen');
+      $$('.page', screen).forEach(p => p.classList.toggle('active', p.id === id));
+      const businessModule = screen.id === 'systemBusiness' && ['vehicleList', 'maintenanceList', 'driverList'].includes(id);
+      $$('[data-page]', screen).forEach(btn => {
+        const topModuleGroup = businessModule && btn.closest('[data-nav-scope="businessTop"]') && btn.dataset.page === 'vehicleList';
+        btn.classList.toggle('active', btn.dataset.page === id || topModuleGroup);
+      });
+    }
+
+    function activateSubpage(id, scopeRoot) {
+      const panel = scopeRoot.closest('.panel') || scopeRoot.closest('.drawer-body') || document;
+      $$('.subpage', panel).forEach(p => p.classList.toggle('active', p.id === id));
+      $$('[data-subpage]', scopeRoot).forEach(btn => btn.classList.toggle('active', btn.dataset.subpage === id));
+    }
+
+    function renderDrawerDetail(name) {
+      const detail = drawerDetails[name] || drawerDetails.defaultDrawer;
+      const rows = detail.rows.map(row => `<tr><td>${row[0]}</td><td>${row[1]}</td></tr>`).join('');
+      return `<div class="grid">
+        <div class="panel"><div class="panel-head"><div class="panel-title">结构说明</div></div><div class="panel-body">${detail.summary}</div></div>
+        <div class="panel"><div class="panel-head"><div class="panel-title">关键数据与配置</div></div><table><thead><tr><th>项目</th><th>内容</th></tr></thead><tbody>${rows}</tbody></table></div>
+        <div class="panel"><div class="panel-head"><div class="panel-title">规则与反馈</div></div><div class="panel-body">${detail.footer}</div></div>
+      </div>`;
+    }
+
+    function openDrawer(name) {
+      const drawer = $('#drawer');
+      const body = $('#drawerBody');
+      const meta = drawerNames[name] || [titles[name] || '详情', ''];
+      const template = $('#' + name) || $('#defaultDrawer');
+      $('#drawerTitle').textContent = meta[0] || titles[name] || '详情';
+      body.innerHTML = '';
+      if ($('#' + name)) {
+        body.appendChild(template.content.cloneNode(true));
+      } else {
+        body.innerHTML = renderDrawerDetail(name);
+      }
+      drawer.className = 'drawer active' + (meta[1] ? ' ' + meta[1] : '');
+      $('#mask').classList.add('active');
+      applyRoleVisibility();
+    }
+
+    function closeDrawer() {
+      $('#drawer').classList.remove('active', 'large', 'small');
+      $('#mask').classList.remove('active');
+    }
+
+    function updateSelection() {
+      const checks = $$('.row-check');
+      const count = checks.filter(c => c.checked).length;
+      $('#selectedCount').textContent = count;
+      $('#selectionBar').classList.toggle('active', count > 0);
+      $('#selectAll').checked = count === checks.length && count > 0;
+    }
+
+    document.addEventListener('click', event => {
+      const btn = event.target.closest('button');
+      if (!btn) return;
+      if (btn.disabled) return;
+      if (btn.dataset.rolePick) { setRole(btn.dataset.rolePick); return; }
+      if (btn.hasAttribute('data-login')) { showScreen(roleHome[state.role]); return; }
+      if (btn.dataset.screen) { showScreen(btn.dataset.screen); return; }
+      if (btn.dataset.page) { activatePage(btn.dataset.page); return; }
+      if (btn.dataset.subpage) { activateSubpage(btn.dataset.subpage, btn.parentElement); return; }
+      if (btn.dataset.drawer) { openDrawer(btn.dataset.drawer); return; }
+      if (btn.hasAttribute('data-close-drawer')) { closeDrawer(); return; }
+      if (btn.hasAttribute('data-clear-selection')) { $$('.row-check').forEach(c => c.checked = false); updateSelection(); return; }
+      if (btn.hasAttribute('data-profile')) {
+        const pop = btn.closest('.topbar').querySelector('.profile-pop');
+        $$('.profile-pop').forEach(p => { if (p !== pop) p.classList.remove('active'); });
+        pop.classList.toggle('active');
+        return;
+      }
+      if (btn.dataset.sort) { toast('已按“' + btn.textContent.trim() + '”切换排序'); return; }
+      if (btn.dataset.toast) { toast(btn.dataset.toast); return; }
+      toast('操作已响应');
+    });
+
+    document.addEventListener('change', event => {
+      if (event.target.id === 'selectAll') {
+        $$('.row-check').forEach(c => c.checked = event.target.checked);
+        updateSelection();
+      }
+      if (event.target.classList.contains('row-check')) updateSelection();
+    });
+
+    $('#mask').addEventListener('click', closeDrawer);
+    setRole('che');
+  </script>
 </body>
 </html>

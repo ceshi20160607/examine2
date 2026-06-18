@@ -5,18 +5,22 @@
 ## 保留
 
 - [user_requirement.md](./user_requirement.md) — 原始需求（唯一旧文档）
+- [product-ns-map.md](./product-ns-map.md) — 当前四套壳全量功能图
+- [design/prototype-brief.md](./design/prototype-brief.md) — 当前唯一 Open Design brief
+- [design/design-package.md](./design/design-package.md) — 当前设计包摘要
+- [design/user-approval.md](./design/user-approval.md) — 设计签字硬闸门
+- [design/reviews/prototype-latest-2026-06-17.md](./design/reviews/prototype-latest-2026-06-17.md) — 最新原型复审
+- `design/prototypes/` — 下一轮 Open Design 输出目录，当前等待重新生成
 
 ## 新产物将写入
 
 | 目录 | 内容 |
 |------|------|
-| `requirements/` | analyst 需求分析 |
-| `product/` | pm PRD、理解 |
-| `design/` | ui-spec、DESIGN.md、原型、**user-approval** |
+| `design/` | 当前唯一 brief、最新原型、复审、**user-approval** |
 | `api/` | 冻结 API |
 | `tasks/` | 任务拆分 |
 | `evidence/` | 验收与构建证据 |
-| `decisions/` | 需用户决策事项 |
+| `decisions/` | 后续新增用户决策事项 |
 
 ## 当前状态
 
