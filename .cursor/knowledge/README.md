@@ -10,6 +10,8 @@
 |------|------|
 | [frozen-rules.md](./frozen-rules.md) | 必须 / 禁止（产品、技术、流程） |
 | [domain-model.md](./domain-model.md) | 平台层 vs 系统层、账号、权限、术语 |
+| [agent-operating-rules.md](./agent-operating-rules.md) | 通用工作规约：适配所有项目的落盘事实、连带推理、主动作唯一、列表/详情、设计自检 |
+| [project-operating-rules.md](./project-operating-rules.md) | unexamine 项目规约：四套壳、工作管理、消息待办、设计闸门和后台配置 |
 | [failure-lessons.md](./failure-lessons.md) | v1 失败教训，不得重复 |
 | [decision-authority.md](./decision-authority.md) | PM 决策 vs 上报你 |
 | [validated-capabilities.md](./validated-capabilities.md) | `.oldbk` 后端已具备、可复用能力清单 |
@@ -19,7 +21,7 @@
 ### Phase 0 不再「从零理解」
 
 ```
-1. 所有 Worker 先读 knowledge/*
+1. 所有 Worker 先读 knowledge/*，其中 `agent-operating-rules.md`、`project-operating-rules.md` 与 `failure-lessons.md` 必读
 2. analyst 只输出：需求与 knowledge 的差异、不确定项
 3. pm 基于 knowledge + analyst 差异写 prd（引用 frozen-rules，不重写）
 4. 无差异项 → 跳过重复评审轮次

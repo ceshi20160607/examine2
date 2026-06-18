@@ -4,6 +4,15 @@
 
 LLM 上下文有限，且长对话易产生 **幻读**（把讨论当事实）和 **假完成**（感觉做过但未落盘）。
 
+### 开工前落盘压缩
+
+平台自动上下文压缩不可手动强制，所以本项目把“压缩上下文”定义为落盘流程：
+
+1. 每次开始实质工作前，先读 `.cursor/session/state.json`、`.cursor/knowledge/agent-operating-rules.md`、`.cursor/knowledge/project-operating-rules.md`、`.cursor/knowledge/failure-lessons.md`、当前阶段 brief/review 和 `docs/user_requirement.md`。
+2. 如果用户在本轮提出新的通用纠偏，先写入 knowledge/review/state，再继续做后续修改。
+3. Worker 不能依赖聊天里的“我记得”，必须以落盘文件恢复上下文。
+4. 中途上下文被系统自动压缩后，继续工作时重新读取上述文件，按文件事实续跑。
+
 **强制：**
 
 1. Worker 之间 **不传递** 对话摘要、聊天记录、口头结论

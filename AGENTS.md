@@ -16,5 +16,6 @@
 
 ```
 读取 .cursor/README.md 与 .cursor/session/state.json，
+先读 .cursor/knowledge/agent-operating-rules.md、.cursor/knowledge/project-operating-rules.md 与 .cursor/knowledge/failure-lessons.md 做落盘上下文压缩，
 执行当前 phase 对应 .cursor/workflows/ 剧本。
 ```

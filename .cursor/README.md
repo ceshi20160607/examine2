@@ -20,6 +20,8 @@
 | [architecture/gates.md](./architecture/gates.md) | 冻结闸门（含 Open Design 用户签字） |
 | [architecture/backend-structure.md](./architecture/backend-structure.md) | Maven 模块、base/manage 分层、MyBatis-Plus 生成器 |
 | [knowledge/](./knowledge/) | **沉淀：冻结规则、领域模型、失败教训、决策权限**（Worker 先读） |
+| [knowledge/agent-operating-rules.md](./knowledge/agent-operating-rules.md) | **通用工作规约**：适配所有项目的落盘事实、连带推理、主动作唯一、列表/详情、设计自检 |
+| [knowledge/project-operating-rules.md](./knowledge/project-operating-rules.md) | **unexamine 项目规约**：四套壳、工作管理、消息待办、设计闸门和后台配置 |
 | [agents/README.md](./agents/README.md) | **Agent 角色总册**（身份、边界、启动协议） |
 | [agents/](./agents/) | 各角色完整规范：pm / analyst / uiux / planner / dba / backend / frontend / test / conductor |
 | [skills/](./skills/) | 无状态可复用能力 |
@@ -61,6 +63,7 @@
 ## 给 Cursor / 任何 Agent 的启动口令
 
 ```
+0. 先读 `.cursor/knowledge/agent-operating-rules.md`、`.cursor/knowledge/project-operating-rules.md`、`.cursor/knowledge/failure-lessons.md`、`.cursor/session/state.json`，以落盘文件压缩上下文
 1. 读 .cursor/agents/README.md 确认角色总册
 2. 读 .cursor/agents/{agentId}.md 全文 —— 你必须知道「我是谁」
 3. 读 .cursor/session/state.json 与本轮 inputs
