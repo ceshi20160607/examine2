@@ -19,7 +19,7 @@ flowchart TD
     D --> D2["右侧：待办 / 消息 / 个人信息"]
     D --> E{"账号权限"}
 
-    E -->|plat_admin| P_ADMIN["平台后台"]
+    E -->|platform_admin_root| P_ADMIN["平台后台"]
     P_ADMIN --> P_NAV["平台信息 / 组织架构 / 角色管理 / 仪表盘管理 / 配置管理 / 日志管理"]
     E -->|admin| S_RUNTIME_ADMIN["系统业务页"]
     S_RUNTIME_ADMIN --> S_ADMIN
@@ -190,7 +190,7 @@ flowchart TD
     A --> A5["右侧：消息"]
     A --> A6["右侧：个人信息"]
     A1 --> A11["我的系统 / 最近访问 / 平台摘要"]
-    A6 -->|plat_admin 可见| B["进入平台后台"]
+    A6 -->|platform_admin_root 可见| B["进入平台后台"]
 
     B --> B1["平台信息"]
     B --> B2["组织架构"]

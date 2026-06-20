@@ -35,4 +35,4 @@
 ## 维护
 
 - 用户决策写入 `docs/decisions/resolution.md` 后同步更新本目录
-- 最新：`RES-2026-06-15-001`（导出动作化、统一认证、平台 IA、generator、plat_admin）
+- 最新：`RES-2026-06-15-001`（导出动作化、统一认证、平台 IA、generator、platform_admin_root）

@@ -28,7 +28,7 @@
 
 ## 种子账号（用户决策）
 
-- `plat_admin` / `123123aa` → 新 `sql/init.sql` 必须包含
+- `platform_admin_root` / `123123aa` → 新 `sql/init.sql` 必须包含，作为平台内置超级管理员种子账号
 
 ## 刻意不继承
 

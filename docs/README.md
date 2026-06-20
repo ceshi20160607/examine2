@@ -9,8 +9,8 @@
 - [design/prototype-brief.md](./design/prototype-brief.md) — 当前唯一 Open Design brief
 - [design/design-package.md](./design/design-package.md) — 当前设计包摘要
 - [design/user-approval.md](./design/user-approval.md) — 设计签字硬闸门
-- [design/reviews/prototype-latest-2026-06-17.md](./design/reviews/prototype-latest-2026-06-17.md) — 最新原型复审
-- `design/prototypes/` — 下一轮 Open Design 输出目录，当前等待重新生成
+- [design/reviews/prototype-latest-2026-06-18.md](./design/reviews/prototype-latest-2026-06-18.md) — 最新原型复审
+- `design/prototypes/` — 当前最新原型输出目录，只保留可用于签字确认的原型产物
 
 ## 新产物将写入
 

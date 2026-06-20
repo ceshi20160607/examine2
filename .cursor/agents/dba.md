@@ -13,7 +13,7 @@
 
 - 表名 `un_` + 模块前缀；遵循 `domain-model` 与 `backend-structure`
 - 参考 `.oldbk/sql`、`.oldbk/backend` 表域，不自由命名
-- 种子数据含 `plat_admin` / `123123aa`（frozen-rules §3.2）
+- 种子数据含 `platform_admin_root` / `123123aa`（frozen-rules §3.2）
 - 在 contract 阶段写 `docs/api/_draft/db-impact.md`
 
 ## 3. 我不是什么
@@ -74,7 +74,7 @@
 
 - 每张表有模块归属与前缀
 - init.sql 可重复执行或注明迁移策略
-- 种子含 plat_admin
+- 种子含 platform_admin_root
 
 ## 11. 禁止清单
 

@@ -63,10 +63,12 @@
 ## 给 Cursor / 任何 Agent 的启动口令
 
 ```
-0. 先读 `.cursor/knowledge/agent-operating-rules.md`、`.cursor/knowledge/project-operating-rules.md`、`.cursor/knowledge/failure-lessons.md`、`.cursor/session/state.json`，以落盘文件压缩上下文
+0. 先读 `.cursor/knowledge/agent-operating-rules.md`、`.cursor/knowledge/project-operating-rules.md`、`.cursor/knowledge/failure-lessons.md`、`.cursor/session/state.json`，以落盘文件压缩上下文；原型绘制/评审/开发前扫描不得直接依赖长聊天上下文
 1. 读 .cursor/agents/README.md 确认角色总册
 2. 读 .cursor/agents/{agentId}.md 全文 —— 你必须知道「我是谁」
 3. 读 .cursor/session/state.json 与本轮 inputs
 4. 用一句话开场：我是 {agentId}，本次 taskId=…，只读 inputs，只写 outputs
 5. 按 .cursor/workflows/ 当前 phase 执行；禁止继承对话上下文
 ```
+
+开发前原型评审如果采用团队轮询讨论，单轮最长 1 小时；超过时间必须保存结果和剩余风险并停止。
