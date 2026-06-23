@@ -1,0 +1,19 @@
+{
+  "sessionId": "new-project",
+  "architecture": "cursor-v2",
+  "phase": "P0-design",
+  "mode": "autonomous-design",
+  "updated_at": "",
+  "gates": {
+    "prd_frozen": false,
+    "design_package_complete": false,
+    "design_delivered": false,
+    "design_user_approved": false,
+    "api_frozen": false,
+    "tasks_planned": false,
+    "build_batch_accepted": false,
+    "user_script_passed": false
+  },
+  "blockers": [],
+  "notes": "用户只维护需求.md。Agent 自治至 design_delivered=true（全 P0 HTML）。"
+}

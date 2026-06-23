@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ExportTemplateFieldMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.ExportTemplateField">
+        <id column="template_field_id" property="templateFieldId" />
+        <result column="template_id" property="templateId" />
+        <result column="field_id" property="fieldId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="header_name" property="headerName" />
+        <result column="column_order" property="columnOrder" />
+        <result column="plain_required_flag" property="plainRequiredFlag" />
+        <result column="mask_strategy" property="maskStrategy" />
+        <result column="format_json" property="formatJson" />
+        <result column="enabled_flag" property="enabledFlag" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        template_field_id, template_id, field_id, field_code, header_name, column_order, plain_required_flag, mask_strategy, format_json, enabled_flag, created_at, updated_at
+    </sql>
+
+</mapper>

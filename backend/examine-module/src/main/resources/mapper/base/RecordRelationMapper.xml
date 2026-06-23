@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.RecordRelationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RecordRelation">
+        <id column="relation_id" property="relationId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="source_module_id" property="sourceModuleId" />
+        <result column="source_record_id" property="sourceRecordId" />
+        <result column="field_id" property="fieldId" />
+        <result column="row_key" property="rowKey" />
+        <result column="target_module_id" property="targetModuleId" />
+        <result column="target_record_id" property="targetRecordId" />
+        <result column="relation_type" property="relationType" />
+        <result column="display_snapshot_json" property="displaySnapshotJson" />
+        <result column="delete_marker" property="deleteMarker" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        relation_id, system_id, tenant_id, source_module_id, source_record_id, field_id, row_key, target_module_id, target_record_id, relation_type, display_snapshot_json, delete_marker, created_at, updated_at
+    </sql>
+
+</mapper>

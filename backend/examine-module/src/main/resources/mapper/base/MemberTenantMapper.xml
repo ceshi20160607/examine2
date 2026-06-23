@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.MemberTenantMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.MemberTenant">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="member_id" property="memberId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="primary_flag" property="primaryFlag" />
+        <result column="delete_token" property="deleteToken" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, member_id, tenant_id, primary_flag, delete_token, created_at, updated_at
+    </sql>
+
+</mapper>

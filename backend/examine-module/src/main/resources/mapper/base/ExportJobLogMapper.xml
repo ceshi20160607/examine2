@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ExportJobLogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.ExportJobLog">
+        <id column="log_id" property="logId" />
+        <result column="job_id" property="jobId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="log_type" property="logType" />
+        <result column="from_status" property="fromStatus" />
+        <result column="to_status" property="toStatus" />
+        <result column="message" property="message" />
+        <result column="snapshot_json" property="snapshotJson" />
+        <result column="request_id" property="requestId" />
+        <result column="operator_id" property="operatorId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="id" property="id" />
+        <result column="deleted" property="deleted" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        log_id, job_id, system_id, tenant_id, log_type, from_status, to_status, message, snapshot_json, request_id, operator_id, created_at, updated_at, id, deleted, created_by, updated_by
+    </sql>
+
+</mapper>

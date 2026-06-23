@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.app.base.mapper.RateLimitPolicyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.app.base.entity.RateLimitPolicy">
+        <id column="id" property="id" />
+        <result column="client_id" property="clientId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="api_id" property="apiId" />
+        <result column="scope_code" property="scopeCode" />
+        <result column="source_ip" property="sourceIp" />
+        <result column="window_seconds" property="windowSeconds" />
+        <result column="max_requests" property="maxRequests" />
+        <result column="burst" property="burst" />
+        <result column="effective_from" property="effectiveFrom" />
+        <result column="effective_to" property="effectiveTo" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, client_id, system_id, tenant_id, api_id, scope_code, source_ip, window_seconds, max_requests, burst, effective_from, effective_to, status, created_at, updated_at
+    </sql>
+
+</mapper>

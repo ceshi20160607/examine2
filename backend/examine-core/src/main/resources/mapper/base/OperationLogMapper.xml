@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.core.base.mapper.OperationLogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.core.base.entity.OperationLog">
+        <id column="id" property="id" />
+        <result column="request_id" property="requestId" />
+        <result column="trace_id" property="traceId" />
+        <result column="operator_type" property="operatorType" />
+        <result column="operator_id" property="operatorId" />
+        <result column="operator_name" property="operatorName" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module" property="module" />
+        <result column="biz_type" property="bizType" />
+        <result column="biz_id" property="bizId" />
+        <result column="action" property="action" />
+        <result column="result" property="result" />
+        <result column="error_code" property="errorCode" />
+        <result column="summary" property="summary" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, request_id, trace_id, operator_type, operator_id, operator_name, system_id, tenant_id, module, biz_type, biz_id, action, result, error_code, summary, created_at, updated_at
+    </sql>
+
+</mapper>

@@ -12,6 +12,7 @@ replay_pid*.log
 dist/
 frontend/dist/
 frontend/node_modules/
+.tools/
 backend-local-run*.log
 frontend-*.log
 npm-debug.log*

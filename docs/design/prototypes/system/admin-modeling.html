@@ -5,29 +5,217 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>建模 · unexamine</title>
   <link rel="stylesheet" href="../assets/app.css">
+  <style>
+    .modeling-workspace{display:grid;grid-template-columns:minmax(0,1fr) 480px;gap:0;min-height:520px;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--surface)}
+    .modeling-main{padding:0;min-width:0;display:flex;flex-direction:column}
+    .modeling-toolbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .field-drawer{border-left:1px solid var(--border);display:flex;flex-direction:column;background:#fafbfc;min-height:0}
+    .field-drawer-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+    .field-drawer-head h2{margin:0;font-size:15px;font-weight:600}
+    .field-drawer-body{padding:0 16px 16px;overflow:auto;flex:1}
+    .cfg-section{padding-top:14px;border-bottom:1px solid #eef0f3;margin-bottom:4px}
+    .cfg-section:last-child{border-bottom:0}
+    .cfg-section h3{margin:0 0 10px;font-size:12px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
+    .cfg-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px 12px;align-items:center;margin-bottom:10px;font-size:13px}
+    .cfg-row label{color:var(--muted)}
+    .cfg-row input,.cfg-row select{width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 8px;background:var(--surface)}
+    .cfg-row .toggle{display:flex;align-items:center;gap:8px}
+    .cfg-row .toggle input{width:auto}
+    .field-drawer-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;background:var(--surface)}
+    .tab-panel{display:none;flex:1;flex-direction:column;min-height:0}
+    .tab-panel.active{display:flex}
+    .hint{font-size:12px;color:var(--muted);padding:8px 14px;background:#f5f7fa;border-bottom:1px solid var(--border)}
+    .modeling-tabs .tabs{margin-bottom:0}
+    tr.row-active td{background:#eef4ff}
+  </style>
 </head>
-<body>
+<body class="config-drawer-open">
   <div class="shell">
     <header class="topbar">
       <a class="brand" href="../index.html">unexamine</a>
       <select class="context-switch" aria-label="当前上下文"><option>车系统</option></select>
-      <nav class="top-tabs"><a class="active" href="../system/dashboard-admin.html">仪表盘</a><a href="../system/runtime-list.html">车辆管理</a><a href="../system/admin-home.html">系统后台</a></nav>
+      <nav class="top-tabs"><a href="../system/dashboard-admin.html">仪表盘</a><a href="../system/runtime-list.html">车辆管理</a><a class="active" href="../system/admin-home.html">系统后台</a></nav>
       <div class="top-actions">
         <a class="icon-btn" href="../platform/todos.html" aria-label="待办">✓<span class="badge-count">3</span></a>
-        <a class="icon-btn" href="../platform/messages.html" aria-label="消息">●<span class="badge-count">6</span></a>
         <span class="avatar">陈</span>
       </div>
     </header>
-    <aside class="sidebar"><div class="side-title">系统后台</div><nav class="nav"><div class="nav-group"><div class="nav-group-title">概览</div><a class="" href="admin-home.html">首页引导</a></div><div class="nav-group"><div class="nav-group-title">基础设置</div><a class="" href="admin-basic.html">基础参数</a><a class="" href="admin-org.html">组织结构</a><a class="" href="admin-dict.html">数据字典</a></div><div class="nav-group"><div class="nav-group-title">应用建模</div><a class="" href="admin-module-group.html">模块组</a><a class="" href="admin-module.html">模块</a><a class="active" href="admin-modeling.html">建模</a><a class="" href="admin-dashboard-cfg.html">仪表盘配置</a><a class="" href="admin-datasource.html">数据源</a></div><div class="nav-group"><div class="nav-group-title">权限与成员</div><a class="" href="admin-users.html">成员管理</a><a class="" href="admin-roles.html">角色权限</a></div><div class="nav-group"><div class="nav-group-title">流程与集成</div><a class="" href="admin-flow.html">流程配置</a><a class="" href="admin-external-app.html">对外应用</a></div><div class="nav-group"><div class="nav-group-title">审计运维</div><a class="" href="admin-logs.html">系统日志</a></div></nav></aside>
+    <aside class="sidebar"><div class="side-title">系统后台</div><nav class="nav"><div class="nav-group"><div class="nav-group-title">应用建模</div><a href="admin-module-group.html">模块组</a><a href="admin-module.html">模块</a><a class="active" href="admin-modeling.html">建模</a></nav></aside>
     <main class="main">
       <div class="page-head">
-        <div class="page-title"><h1>建模</h1><p>系统后台 · 字段、列表、筛选、场景、页面动作和菜单发布。</p></div>
-        <div style="display:flex;gap:8px"><button class="btn">保存草稿</button><button class="btn primary">发布</button></div>
+        <div class="page-title">
+          <h1>建模 · 车辆档案</h1>
+          <p>车辆管理 / 车辆档案 · 字段、列表、筛选、场景、页面动作与菜单发布（见 config-spec.md）</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn">预览运行态</button>
+          <button class="btn">保存草稿</button>
+          <button class="btn primary">发布</button>
+        </div>
       </div>
-      <div class="tabs"><button class="active">字段配置</button><button>列表配置</button><button>筛选配置</button><button>场景配置</button><button>页面动作</button><button>菜单发布</button></div><div class="split"><aside class="list-card"><div class="list-row"><strong>车辆管理 / 车辆档案</strong><span class="chip info">发布中</span></div><a href="#">字段配置 <span>8 项</span></a><a href="#">列表配置 <span>11 列</span></a><a href="#">场景配置 <span>5 个</span></a><a href="#">页面动作 <span>8 项</span></a></aside><section class="panel table-wrap" data-od-id="modeling-table"><table class="table"><thead><tr><th>字段名</th><th>字段类型</th><th>必填</th><th>只读</th><th>列表显示</th><th>详情显示</th><th>可搜索</th><th>可筛选</th><th>操作</th></tr></thead><tbody><tr><td>车牌号</td><td>单行文本</td><td>是</td><td>否</td><td>是</td><td>是</td><td>是</td><td>是</td><td><button class="btn weak">编辑</button></td></tr><tr><td>品牌型号</td><td>单行文本</td><td>是</td><td>否</td><td>是</td><td>是</td><td>是</td><td>是</td><td><button class="btn weak">编辑</button></td></tr><tr><td>车辆状态</td><td>字典下拉</td><td>是</td><td>否</td><td>是</td><td>是</td><td>否</td><td>是</td><td><button class="btn weak">编辑</button></td></tr><tr><td>年检到期</td><td>日期</td><td>是</td><td>否</td><td>是</td><td>是</td><td>否</td><td>是</td><td><button class="btn weak">编辑</button></td></tr><tr><td>最近维保</td><td>日期</td><td>否</td><td>只读</td><td>是</td><td>是</td><td>否</td><td>是</td><td><button class="btn weak">编辑</button></td></tr></tbody></table><div class="pagination"><span>列表页的场景、筛选字段、列设置均从此处发布</span><button class="btn primary">发布到运行态</button></div></section></div>
+
+      <div class="modeling-tabs">
+        <div class="tabs" role="tablist">
+          <button class="active" data-tab="fields">字段配置</button>
+          <button data-tab="list">列表配置</button>
+          <button data-tab="filter">筛选配置</button>
+          <button data-tab="scene">场景配置</button>
+          <button data-tab="action">页面动作</button>
+          <button data-tab="menu">菜单发布</button>
+        </div>
+      </div>
+
+      <!-- 字段配置 -->
+      <div class="tab-panel active" data-panel="fields">
+        <div class="hint">点击「编辑」打开右侧字段抽屉 · 配置项对齐 config-spec §3</div>
+        <div class="modeling-workspace">
+          <section class="modeling-main">
+            <div class="modeling-toolbar">
+              <span><strong>8</strong> 个字段</span>
+              <button class="btn primary">添加字段</button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>显示名</th><th>编码</th><th>类型</th><th>必填</th><th>列表</th><th>详情</th><th>搜索</th><th>筛选</th><th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>车牌号</td><td>plate_no</td><td>单行文本</td><td>是</td><td>是</td><td>是</td><td>是</td><td>是</td><td><button class="btn weak" data-field="plate">编辑</button></td></tr>
+                  <tr><td>品牌型号</td><td>brand_model</td><td>单行文本</td><td>是</td><td>是</td><td>是</td><td>是</td><td>是</td><td><button class="btn weak">编辑</button></td></tr>
+                  <tr class="row-active"><td>车辆状态</td><td>vehicle_status</td><td>单选下拉</td><td>是</td><td>是</td><td>是</td><td>否</td><td>是</td><td><button class="btn weak">编辑</button></td></tr>
+                  <tr><td>驾驶员</td><td>driver_id</td><td>关联数据</td><td>否</td><td>是</td><td>是</td><td>否</td><td>是</td><td><button class="btn weak" data-field="driver">编辑</button></td></tr>
+                  <tr><td>年检到期</td><td>inspect_due</td><td>日期</td><td>是</td><td>是</td><td>是</td><td>否</td><td>是</td><td><button class="btn weak">编辑</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <aside class="field-drawer" aria-label="字段配置抽屉">
+            <div class="field-drawer-head">
+              <h2>编辑字段 · 车辆状态</h2>
+              <button class="btn weak" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="field-drawer-body">
+              <div class="cfg-section">
+                <h3>基础</h3>
+                <div class="cfg-row"><label>显示名称</label><input value="车辆状态"></div>
+                <div class="cfg-row"><label>字段编码</label><input value="vehicle_status" readonly></div>
+                <div class="cfg-row"><label>字段类型</label><select><option>单行文本</option><option selected>单选下拉</option><option>关联数据</option><option>日期</option></select></div>
+                <div class="cfg-row"><label>排序</label><input type="number" value="30"></div>
+              </div>
+              <div class="cfg-section">
+                <h3>展示与布局</h3>
+                <div class="cfg-row"><label>表单中显示</label><div class="toggle"><input type="checkbox" checked> 显示</div></div>
+                <div class="cfg-row"><label>详情中显示</label><div class="toggle"><input type="checkbox" checked> 显示</div></div>
+                <div class="cfg-row"><label>列表中显示</label><div class="toggle"><input type="checkbox" checked> 显示</div></div>
+                <div class="cfg-row"><label>表单宽度占比</label><select><option selected>半行 (50%)</option><option>整行 (100%)</option></select></div>
+                <div class="cfg-row"><label>占位提示</label><input placeholder="请选择车辆状态"></div>
+              </div>
+              <div class="cfg-section">
+                <h3>数据规则</h3>
+                <div class="cfg-row"><label>必填</label><div class="toggle"><input type="checkbox" checked> 是</div></div>
+                <div class="cfg-row"><label>只读</label><div class="toggle"><input type="checkbox"> 否</div></div>
+                <div class="cfg-row"><label>唯一</label><div class="toggle"><input type="checkbox"> 模块内唯一</div></div>
+                <div class="cfg-row"><label>唯一提示</label><input placeholder="该值已存在"></div>
+              </div>
+              <div class="cfg-section">
+                <h3>下拉数据来源</h3>
+                <div class="cfg-row"><label>来源类型</label><select><option>静态选项</option><option selected>数据字典</option><option>模块数据</option></select></div>
+                <div class="cfg-row"><label>字典类型</label><select><option selected>车辆状态</option><option>车辆类型</option></select></div>
+                <p style="font-size:12px;color:var(--muted);margin:0 0 8px">运行态选项来自「数据字典 → 车辆状态」；存 value，显示 label。</p>
+              </div>
+              <div class="cfg-section">
+                <h3>列表与筛选</h3>
+                <div class="cfg-row"><label>可搜索</label><div class="toggle"><input type="checkbox"> 否</div></div>
+                <div class="cfg-row"><label>可高级筛选</label><div class="toggle"><input type="checkbox" checked> 是</div></div>
+                <div class="cfg-row"><label>可排序</label><div class="toggle"><input type="checkbox"> 否</div></div>
+              </div>
+            </div>
+            <div class="field-drawer-foot">
+              <button class="btn weak">停用字段</button>
+              <div style="display:flex;gap:8px"><button class="btn">取消</button><button class="btn primary">保存</button></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- 列表配置 -->
+      <div class="tab-panel" data-panel="list">
+        <div class="hint">列顺序与固定列 · 驱动 runtime-list 默认表头</div>
+        <div class="panel table-wrap">
+          <table class="table">
+            <thead><tr><th>字段</th><th>显示名</th><th>列宽</th><th>固定</th><th>默认显示</th><th>可隐藏</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>plate_no</td><td>车牌号</td><td>120px</td><td>左</td><td>是</td><td>否</td><td>↑ ↓</td></tr>
+              <tr><td>brand_model</td><td>品牌型号</td><td>自动</td><td>无</td><td>是</td><td>是</td><td>↑ ↓</td></tr>
+              <tr><td>vehicle_status</td><td>状态</td><td>96px</td><td>无</td><td>是</td><td>是</td><td>↑ ↓</td></tr>
+              <tr><td>driver_id</td><td>驾驶员</td><td>100px</td><td>无</td><td>是</td><td>是</td><td>↑ ↓</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 筛选配置 -->
+      <div class="tab-panel" data-panel="filter">
+        <div class="panel" style="padding:16px">
+          <h3 style="margin:0 0 12px;font-size:14px">快捷搜索包含字段</h3>
+          <label style="margin-right:16px"><input type="checkbox" checked> 车牌号</label>
+          <label style="margin-right:16px"><input type="checkbox" checked> 品牌型号</label>
+          <label><input type="checkbox" checked> 驾驶员</label>
+        </div>
+      </div>
+
+      <!-- 场景配置 -->
+      <div class="tab-panel" data-panel="scene">
+        <div class="panel table-wrap">
+          <table class="table">
+            <thead><tr><th>场景名称</th><th>默认筛选条件</th><th>系统默认</th><th>排序</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>全部车辆</td><td>—</td><td>否</td><td>1</td><td><button class="btn weak">编辑</button></td></tr>
+              <tr><td>在用车辆</td><td>状态 = 在用</td><td>是</td><td>2</td><td><button class="btn weak">编辑</button></td></tr>
+              <tr><td>待年检</td><td>状态 = 在用 AND 年检到期 ≤ 30天</td><td>否</td><td>3</td><td><button class="btn weak">编辑</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 页面动作 -->
+      <div class="tab-panel" data-panel="action">
+        <div class="hint">导出属于页面动作，不会出现在侧栏菜单</div>
+        <div class="panel" style="padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 24px;font-size:13px">
+          <label><input type="checkbox" checked> 查看 (view)</label>
+          <label><input type="checkbox" checked> 新建 (create)</label>
+          <label><input type="checkbox" checked> 编辑 (edit)</label>
+          <label><input type="checkbox" checked> 删除 (delete)</label>
+          <label><input type="checkbox"> 转移 (transfer)</label>
+          <label><input type="checkbox"> 导入 (import)</label>
+          <label><input type="checkbox" checked> 全部导出 (export_all)</label>
+          <label><input type="checkbox" checked> 导出选中 (export_selected)</label>
+          <label><input type="checkbox"> 批量编辑 (batch_edit)</label>
+        </div>
+      </div>
+
+      <!-- 菜单发布 -->
+      <div class="tab-panel" data-panel="menu">
+        <div class="panel" style="padding:16px;max-width:480px">
+          <div class="cfg-row"><label>归属模块组</label><select><option selected>车辆管理</option></select></div>
+          <div class="cfg-row"><label>运行态菜单名</label><input value="车辆档案"></div>
+          <div class="cfg-row"><label>发布检查</label><span class="chip ok">字段 8 · 列表列 8 · 场景 3 · 动作 6</span></div>
+        </div>
+      </div>
     </main>
   </div>
-  
   <script src="../assets/app.js"></script>
+  <script>
+    document.querySelector('.modeling-tabs .tabs')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-tab]');
+      if (!btn) return;
+      const id = btn.dataset.tab;
+      document.querySelectorAll('.modeling-tabs .tabs button').forEach((b) => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.tab-panel').forEach((p) => p.classList.toggle('active', p.dataset.panel === id));
+    });
+  </script>
 </body>
 </html>

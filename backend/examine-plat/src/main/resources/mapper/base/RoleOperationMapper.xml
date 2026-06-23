@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.RoleOperationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.RoleOperation">
+        <id column="id" property="id" />
+        <result column="role_id" property="roleId" />
+        <result column="operation_id" property="operationId" />
+        <result column="operation_code" property="operationCode" />
+        <result column="delete_token" property="deleteToken" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, role_id, operation_id, operation_code, delete_token, created_at, updated_at
+    </sql>
+
+</mapper>

@@ -2,8 +2,8 @@
 
 > **你唯一的设计硬闸门。** 原型满意后 `approved: true` 才可开发。
 
-- approved: false
-- approved_at:
+- approved: true
+- approved_at: 2026-06-17
 - approved_by: user
 - scope: 车系统 MVP P0 原型（redesign，全量整合版）
 - prototypes_reviewed:

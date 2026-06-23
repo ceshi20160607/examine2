@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.DictReferenceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.DictReference">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="dict_type_id" property="dictTypeId" />
+        <result column="dict_item_id" property="dictItemId" />
+        <result column="reference_type" property="referenceType" />
+        <result column="module_id" property="moduleId" />
+        <result column="field_id" property="fieldId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="published_version_id" property="publishedVersionId" />
+        <result column="record_id" property="recordId" />
+        <result column="usage_count" property="usageCount" />
+        <result column="active_flag" property="activeFlag" />
+        <result column="delete_token" property="deleteToken" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, dict_type_id, dict_item_id, reference_type, module_id, field_id, field_code, published_version_id, record_id, usage_count, active_flag, delete_token, created_at, updated_at
+    </sql>
+
+</mapper>

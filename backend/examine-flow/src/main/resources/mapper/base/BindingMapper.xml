@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.flow.base.mapper.BindingMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.flow.base.entity.Binding">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="action_code" property="actionCode" />
+        <result column="template_id" property="templateId" />
+        <result column="template_version_id" property="templateVersionId" />
+        <result column="status" property="status" />
+        <result column="version_no" property="versionNo" />
+        <result column="deleted" property="deleted" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, module_id, action_code, template_id, template_version_id, status, version_no, deleted, created_at, updated_at
+    </sql>
+
+</mapper>

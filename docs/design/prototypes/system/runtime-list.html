@@ -3,31 +3,273 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>车辆档案列表 · unexamine</title>
+  <title>车辆档案 · 车系统</title>
   <link rel="stylesheet" href="../assets/app.css">
 </head>
-<body>
-  <div class="shell">
+<body class="biz-page detail-open">
+  <!--
+    运行态业务页骨架（ui-spec §2.5）演示：
+    A 顶栏模块组 → B 左栏模块 → C 右区列表
+    D 搜索+场景，场景右侧导出 → E 点行右侧详情
+    F 详情顶摘要+编辑/删除 → G Tab → H Tab内容与审批并列
+    详情区宽度由 Design 定，此处仅为结构示意。
+  -->
+  <div class="shell runtime-shell">
     <header class="topbar">
       <a class="brand" href="../index.html">unexamine</a>
-      <select class="context-switch" aria-label="当前上下文"><option>车系统</option></select>
-      <nav class="top-tabs"><a class="active" href="../system/dashboard-admin.html">仪表盘</a><a href="../system/runtime-list.html">车辆管理</a><a href="../system/admin-home.html">系统后台</a></nav>
+      <select class="context-switch" aria-label="当前系统"><option>车系统</option></select>
+      <!-- A. 顶栏：仪表盘 + 模块组 -->
+      <nav class="top-tabs" aria-label="模块组">
+        <a href="dashboard-che.html">仪表盘</a>
+        <a class="active" href="runtime-list.html">车辆管理</a>
+        <a href="#" class="group-tab-muted" title="未发布">人事管理</a>
+      </nav>
       <div class="top-actions">
         <a class="icon-btn" href="../platform/todos.html" aria-label="待办">✓<span class="badge-count">3</span></a>
-        <a class="icon-btn" href="../platform/messages.html" aria-label="消息">●<span class="badge-count">6</span></a>
-        <span class="avatar">陈</span>
+        <a class="icon-btn" href="../platform/messages.html" aria-label="消息">●</a>
+        <span class="avatar" title="陈和">陈</span>
       </div>
     </header>
-    <aside class="sidebar"><div class="side-title">车系统</div><nav class="nav"><a class="" href="dashboard-che.html">仪表盘</a><a class="active" href="runtime-list.html">车辆档案</a><a class="" href="flow-todo.html">审批处理</a></nav></aside>
-    <main class="main">
-      <div class="page-head">
-        <div class="page-title"><h1>车辆档案列表</h1><p>系统运行态 · 重点业务列表：紧凑工具栏、表格、选中条、右侧抽屉。</p></div>
-        <a class="btn primary" href="runtime-form.html">新建车辆</a>
+
+    <div class="runtime-body">
+      <!-- B. 点模块组 → 左栏组内模块 -->
+      <aside class="module-rail" aria-label="组内模块">
+        <div class="module-rail-title">车辆管理</div>
+        <nav class="nav">
+          <a class="active" href="runtime-list.html">车辆档案</a>
+          <a href="runtime-list.html">维保记录</a>
+          <a href="runtime-list.html">驾驶员</a>
+        </nav>
+      </aside>
+
+      <div class="runtime-workspace">
+        <!-- C + D + E. 列表区 -->
+        <section class="list-pane" aria-label="业务列表">
+          <div class="biz-head">
+            <h1>车辆档案</h1>
+            <div class="biz-head-actions">
+              <a class="btn primary" href="runtime-form.html">新建</a>
+            </div>
+          </div>
+
+          <!-- D. 搜索 + 场景 + 右侧导出 -->
+          <div class="list-toolbar-row">
+            <div class="biz-search-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input class="biz-search" type="search" placeholder="车牌号 / 品牌型号 / 驾驶员" aria-label="搜索">
+            </div>
+            <div class="biz-views" role="tablist" aria-label="列表场景">
+              <button type="button" class="active">全部</button>
+              <button type="button">在用</button>
+              <button type="button">待年检</button>
+              <button type="button">维保中</button>
+              <button type="button">我负责的</button>
+            </div>
+            <div class="list-toolbar-actions">
+              <button type="button" class="btn weak" data-open-filter>高级筛选</button>
+              <button type="button" class="btn weak">列设置</button>
+              <button type="button" class="btn weak">导入</button>
+              <button type="button" class="btn">导出</button>
+            </div>
+          </div>
+
+          <div class="selection" style="margin:0 16px 8px">
+            <strong>已选 3 条</strong>
+            <button type="button" class="btn">转移</button>
+            <button type="button" class="btn danger" disabled title="含在用车辆不可删">删除</button>
+            <button type="button" class="btn weak" data-clear-selection>清除</button>
+          </div>
+
+          <div class="biz-table-panel biz-table" data-od-id="runtime-table">
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="col-check"><input type="checkbox" checked aria-label="全选"></th>
+                    <th class="col-num">#</th>
+                    <th class="col-sort sorted">车牌号 <span class="sort-icon">↕</span></th>
+                    <th>品牌型号</th>
+                    <th>状态</th>
+                    <th>部门</th>
+                    <th>驾驶员</th>
+                    <th class="col-sort">年检到期 <span class="sort-icon">↓</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="row-active" data-open-detail>
+                    <td class="col-check"><input type="checkbox" checked></td>
+                    <td class="col-num mono">1</td>
+                    <td><a class="link" href="#">京A·12345</a></td>
+                    <td>丰田凯美瑞</td>
+                    <td><span class="status ok"><span class="dot"></span>在用</span></td>
+                    <td>行政部</td>
+                    <td>张伟</td>
+                    <td class="mono">2026-06-28</td>
+                  </tr>
+                  <tr data-open-detail>
+                    <td class="col-check"><input type="checkbox" checked></td>
+                    <td class="col-num mono">2</td>
+                    <td><a class="link" href="#">京B·67890</a></td>
+                    <td>大众帕萨特</td>
+                    <td><span class="status warn"><span class="dot"></span>维保中</span></td>
+                    <td>运营部</td>
+                    <td>李娜</td>
+                    <td class="mono">2026-06-20</td>
+                  </tr>
+                  <tr data-open-detail>
+                    <td class="col-check"><input type="checkbox" checked></td>
+                    <td class="col-num mono">3</td>
+                    <td><a class="link" href="#">京D·44556</a></td>
+                    <td>别克 GL8</td>
+                    <td><span class="status"><span class="dot"></span>闲置</span></td>
+                    <td>行政部</td>
+                    <td class="muted">未分配</td>
+                    <td class="mono">2026-07-08</td>
+                  </tr>
+                  <tr data-open-detail>
+                    <td class="col-check"><input type="checkbox"></td>
+                    <td class="col-num mono">4</td>
+                    <td><a class="link" href="#">京C·11223</a></td>
+                    <td>本田雅阁</td>
+                    <td><span class="status ok"><span class="dot"></span>在用</span></td>
+                    <td>销售部</td>
+                    <td>王强</td>
+                    <td class="mono">2026-08-02</td>
+                  </tr>
+                  <tr data-open-detail>
+                    <td class="col-check"><input type="checkbox"></td>
+                    <td class="col-num mono">5</td>
+                    <td><a class="link" href="#">京E·90876</a></td>
+                    <td>奥迪 A6L</td>
+                    <td><span class="status ok"><span class="dot"></span>在用</span></td>
+                    <td>财务部</td>
+                    <td>赵敏</td>
+                    <td class="mono">2026-09-16</td>
+                  </tr>
+                  <tr data-open-detail>
+                    <td class="col-check"><input type="checkbox"></td>
+                    <td class="col-num mono">6</td>
+                    <td><a class="link" href="#">京F·33681</a></td>
+                    <td>比亚迪汉</td>
+                    <td><span class="status ok"><span class="dot"></span>在用</span></td>
+                    <td>运营部</td>
+                    <td>周涛</td>
+                    <td class="mono">2027-02-18</td>
+                  </tr>
+                  <tr data-open-detail>
+                    <td class="col-check"><input type="checkbox"></td>
+                    <td class="col-num mono">7</td>
+                    <td><a class="link" href="#">京H·77290</a></td>
+                    <td>别克君越</td>
+                    <td><span class="status bad"><span class="dot"></span>停用</span></td>
+                    <td>行政部</td>
+                    <td class="muted">未分配</td>
+                    <td class="mono">2026-07-01</td>
+                  </tr>
+                  <tr data-open-detail>
+                    <td class="col-check"><input type="checkbox"></td>
+                    <td class="col-num mono">8</td>
+                    <td><a class="link" href="#">京J·61826</a></td>
+                    <td>特斯拉 Model 3</td>
+                    <td><span class="status warn"><span class="dot"></span>维保中</span></td>
+                    <td>销售部</td>
+                    <td>陈和</td>
+                    <td class="mono">2026-06-25</td>
+                  </tr>
+                  <tr data-open-detail>
+                    <td class="col-check"><input type="checkbox"></td>
+                    <td class="col-num mono">9</td>
+                    <td><a class="link" href="#">京K·90012</a></td>
+                    <td>丰田汉兰达</td>
+                    <td><span class="status ok"><span class="dot"></span>在用</span></td>
+                    <td>运营部</td>
+                    <td>孙磊</td>
+                    <td class="mono">2026-07-21</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="biz-pagination">
+              <span>共 126 条</span>
+              <div class="biz-pagination-pages">
+                <button type="button" class="active">1</button>
+                <button type="button">2</button>
+                <button type="button">›</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- E–H. 详情区（列表右侧，同屏） -->
+        <aside class="detail-pane" aria-label="业务详情">
+          <!-- F. 重要信息 + 编辑/删除 -->
+          <header class="detail-pane-head">
+            <div class="detail-pane-title">
+              <h2>京A·12345</h2>
+              <div class="detail-pane-actions">
+                <a class="btn primary" href="runtime-form.html">编辑</a>
+                <button type="button" class="btn danger">删除</button>
+                <button type="button" class="btn weak" data-close-detail title="关闭详情">×</button>
+              </div>
+            </div>
+            <div class="detail-pane-kpis">
+              <div class="detail-pane-kpi"><div class="k">品牌型号</div><div class="v">丰田凯美瑞</div></div>
+              <div class="detail-pane-kpi"><div class="k">车辆状态</div><div class="v"><span class="status ok"><span class="dot"></span>在用</span></div></div>
+              <div class="detail-pane-kpi"><div class="k">驾驶员 / 部门</div><div class="v">张伟 · 行政部</div></div>
+            </div>
+            <!-- G. 标签页 -->
+            <nav class="detail-pane-tabs" role="tablist">
+              <button type="button" class="active" role="tab">详细资料</button>
+              <button type="button" role="tab">维保记录</button>
+              <button type="button" role="tab">附件</button>
+              <button type="button" role="tab">操作记录</button>
+            </nav>
+          </header>
+          <!-- G + H. Tab 内容 与 审批信息 并列对齐 -->
+          <div class="detail-pane-body">
+            <div class="detail-pane-main">
+              <div class="detail-fields">
+                <div class="detail-field"><label>车牌号</label><div class="val">京A·12345</div></div>
+                <div class="detail-field"><label>品牌型号</label><div class="val">丰田凯美瑞</div></div>
+                <div class="detail-field"><label>购置日期</label><div class="val">2022-03-15</div></div>
+                <div class="detail-field"><label>年检到期</label><div class="val highlight">2026-06-28</div></div>
+                <div class="detail-field"><label>最近维保</label><div class="val">2026-05-18</div></div>
+                <div class="detail-field"><label>备注</label><div class="val">公务用车</div></div>
+              </div>
+            </div>
+            <div class="detail-pane-flow" aria-label="审批流信息">
+              <h3>审批流信息</h3>
+              <div class="detail-flow-item done">
+                <span class="node-dot"></span>
+                <div class="node-title">发起</div>
+                <div class="node-meta">陈和 · 03-10</div>
+              </div>
+              <div class="detail-flow-item done">
+                <span class="node-dot"></span>
+                <div class="node-title">通过</div>
+                <div class="node-meta">张伟 · 03-10</div>
+              </div>
+              <div class="detail-flow-item">
+                <span class="node-dot"></span>
+                <div class="node-title">待复核</div>
+                <div class="node-meta">车管</div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
-      <div class="toolbar"><select class="select"><option>场景：待年检</option><option>全部车辆</option><option>在用车辆</option><option>维保中</option><option>我负责的</option></select><button class="btn">在用</button><button class="btn">维保中</button><input class="search" placeholder="搜索车牌、品牌型号、驾驶员"><button class="btn">高级筛选 <span class="chip info">2</span></button><span class="chip info">状态：在用</span><span class="chip info">年检≤30天</span><button class="btn">列设置</button><button class="btn">导入</button><button class="btn">全部导出</button><button class="btn" disabled title="未勾选时不可用">导出选中</button></div><div class="selection"><strong>已选 3 条</strong><button class="btn">转移</button><button class="btn danger" disabled title="含 1 条在用车辆，不可删除">删除</button><button class="btn">导出选中</button><a class="btn" href="runtime-form.html">批量编辑</a><button class="btn weak">清除选择</button></div><section class="panel table-wrap" data-od-id="runtime-table"><table class="table"><thead><tr><th><input type="checkbox" checked></th><th>序号</th><th>车牌号</th><th>品牌型号</th><th>车辆状态</th><th>归属部门</th><th>驾驶员</th><th>购置日期</th><th>年检到期</th><th>最近维保</th><th>操作</th></tr></thead><tbody><tr><td><input type="checkbox" checked></td><td class="mono">1</td><td><a class="link" href="runtime-detail.html">京A·12345</a></td><td>丰田凯美瑞</td><td><span class="status ok"><span class="dot"></span>在用</span></td><td>行政部</td><td>张伟</td><td class="mono">2022-03-15 ↕</td><td class="mono">2026-06-28 ↓</td><td class="mono">2026-05-18 ↕</td><td><a class="btn weak" href="runtime-detail.html">详情</a><a class="btn weak" href="runtime-form.html">编辑</a><button class="btn weak">更多</button></td></tr><tr><td><input type="checkbox" checked></td><td class="mono">2</td><td><a class="link" href="runtime-detail.html">京B·67890</a></td><td>大众帕萨特</td><td><span class="status warn"><span class="dot"></span>维保中</span></td><td>运营部</td><td>李娜</td><td class="mono">2021-08-20 ↕</td><td class="mono">2026-06-20 ↓</td><td class="mono">2026-06-10 ↕</td><td><a class="btn weak" href="runtime-detail.html">详情</a><a class="btn weak" href="runtime-form.html">编辑</a><button class="btn weak">更多</button></td></tr><tr><td><input type="checkbox" checked></td><td class="mono">3</td><td><a class="link" href="runtime-detail.html">京D·44556</a></td><td>别克 GL8</td><td><span class="status "><span class="dot"></span>闲置</span></td><td>行政部</td><td>未分配</td><td class="mono">2020-11-05 ↕</td><td class="mono">2026-07-08 ↓</td><td class="mono">2026-04-30 ↕</td><td><a class="btn weak" href="runtime-detail.html">详情</a><a class="btn weak" href="runtime-form.html">编辑</a><button class="btn weak">更多</button></td></tr><tr><td><input type="checkbox" ></td><td class="mono">4</td><td><a class="link" href="runtime-detail.html">京C·11223</a></td><td>本田雅阁</td><td><span class="status ok"><span class="dot"></span>在用</span></td><td>销售部</td><td>王强</td><td class="mono">2023-01-10 ↕</td><td class="mono">2026-08-02 ↓</td><td class="mono">2026-03-22 ↕</td><td><a class="btn weak" href="runtime-detail.html">详情</a><a class="btn weak" href="runtime-form.html">编辑</a><button class="btn weak">更多</button></td></tr><tr><td><input type="checkbox" ></td><td class="mono">5</td><td><a class="link" href="runtime-detail.html">京E·90876</a></td><td>奥迪 A6L</td><td><span class="status ok"><span class="dot"></span>在用</span></td><td>财务部</td><td>赵敏</td><td class="mono">2022-09-01 ↕</td><td class="mono">2026-09-16 ↓</td><td class="mono">2026-04-12 ↕</td><td><a class="btn weak" href="runtime-detail.html">详情</a><a class="btn weak" href="runtime-form.html">编辑</a><button class="btn weak">更多</button></td></tr><tr><td><input type="checkbox" ></td><td class="mono">6</td><td><a class="link" href="runtime-detail.html">京F·33681</a></td><td>比亚迪汉</td><td><span class="status ok"><span class="dot"></span>在用</span></td><td>运营部</td><td>周涛</td><td class="mono">2024-02-18 ↕</td><td class="mono">2027-02-18 ↓</td><td class="mono">2026-05-30 ↕</td><td><a class="btn weak" href="runtime-detail.html">详情</a><a class="btn weak" href="runtime-form.html">编辑</a><button class="btn weak">更多</button></td></tr><tr><td><input type="checkbox" ></td><td class="mono">7</td><td><a class="link" href="runtime-detail.html">京H·77290</a></td><td>别克君越</td><td><span class="status bad"><span class="dot"></span>停用</span></td><td>行政部</td><td>未分配</td><td class="mono">2019-05-09 ↕</td><td class="mono">2026-07-01 ↓</td><td class="mono">2026-02-18 ↕</td><td><a class="btn weak" href="runtime-detail.html">详情</a><a class="btn weak" href="runtime-form.html">编辑</a><button class="btn weak">更多</button></td></tr><tr><td><input type="checkbox" ></td><td class="mono">8</td><td><a class="link" href="runtime-detail.html">京J·61826</a></td><td>特斯拉 Model 3</td><td><span class="status warn"><span class="dot"></span>维保中</span></td><td>销售部</td><td>陈和</td><td class="mono">2023-06-22 ↕</td><td class="mono">2026-06-25 ↓</td><td class="mono">2026-06-12 ↕</td><td><a class="btn weak" href="runtime-detail.html">详情</a><a class="btn weak" href="runtime-form.html">编辑</a><button class="btn weak">更多</button></td></tr><tr><td><input type="checkbox" ></td><td class="mono">9</td><td><a class="link" href="runtime-detail.html">京K·90012</a></td><td>丰田汉兰达</td><td><span class="status ok"><span class="dot"></span>在用</span></td><td>运营部</td><td>孙磊</td><td class="mono">2021-12-12 ↕</td><td class="mono">2026-07-21 ↓</td><td class="mono">2026-03-09 ↕</td><td><a class="btn weak" href="runtime-detail.html">详情</a><a class="btn weak" href="runtime-form.html">编辑</a><button class="btn weak">更多</button></td></tr></tbody></table><div class="pagination"><span>共 126 条 · 当前筛选 28 条</span><span>第 1 / 13 页 · 10 条/页</span></div></section><aside class="drawer" aria-label="车辆详情抽屉"><div class="drawer-head"><strong>车辆详情</strong><button class="btn weak">关闭</button></div><div class="drawer-body"><div class="form-row"><span class="label">车牌号</span><strong>京A·12345</strong></div><div class="form-row"><span class="label">品牌型号</span><strong>丰田凯美瑞</strong></div><div class="form-row"><span class="label">车辆状态</span><span class="status ok"><span class="dot"></span>在用</span></div><div class="form-row"><span class="label">归属部门</span><span>行政部</span></div><div class="form-row"><span class="label">驾驶员</span><span>张伟</span></div><div class="form-row"><span class="label">购置日期</span><span class="mono">2022-03-15</span></div><div class="form-row"><span class="label">年检到期</span><span class="mono">2026-06-28</span></div><div class="form-row"><span class="label">最近维保</span><span class="mono">2026-05-18</span></div><div class="notice">详情由车牌或“详情”行操作打开；无编辑权限时顶部和抽屉内的编辑按钮隐藏。</div></div><div class="drawer-foot"><a class="btn" href="runtime-form.html">编辑</a><button class="btn primary">关闭</button></div></aside>
-    </main>
+    </div>
   </div>
-  
+
+  <aside class="filter-drawer" aria-label="高级筛选">
+    <div class="filter-drawer-head"><strong>高级筛选</strong><button type="button" class="btn weak" data-close-filter>关闭</button></div>
+    <div class="filter-drawer-body">
+      <div class="filter-field"><label>车辆状态</label><select><option>在用</option><option>维保中</option></select></div>
+      <div class="filter-field"><label>归属部门</label><select><option>行政部</option><option>运营部</option></select></div>
+    </div>
+    <div class="filter-drawer-foot"><button type="button" class="btn weak">重置</button><button type="button" class="btn primary" data-close-filter>查询</button></div>
+  </aside>
+
   <script src="../assets/app.js"></script>
 </body>
 </html>

@@ -58,3 +58,16 @@ Phase 0 只做：**需求 vs knowledge 差异扫描**，不是全员重新理解
 - 新代码是否跑通车系统剧本 → e2e + 你试用
 
 旧 `.oldbk` 代码**不能**作为「已验收」证据，只能作为能力参考。
+
+## 7. 设计迭代失败（v1→v3.2 多轮原型）
+
+| 现象 | 根因 | 现规则 |
+|------|------|--------|
+| v1 仅 9/21 P0 页 | OD 早于页表冻结 | L2 先 design-package，零 TBD 再 OD |
+| 「应用与模块」整页错 | 名词多义未写清 glossary | L0 domain-glossary + resolution |
+| RES-005～007 三轮补列表/密度 | 体验细则未进 brief | L3 config-spec + 标准页 deep spec |
+| brief 碎片 patch | 聊天改需求 | 仅 `prototype-brief.md` 为 OD 输入 |
+| 用户填 IA 勾选表 | Gate 甩给用户 | 内部 reviews；用户只签 user-approval |
+
+**执行 Skill：** [`.cursor/skills/rough-to-prototype/SKILL.md`](../skills/rough-to-prototype/SKILL.md)  
+**Workflow：** [phase-0-requirement-expansion.md](../workflows/phase-0-requirement-expansion.md)

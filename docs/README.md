@@ -22,4 +22,15 @@
 
 见 [`.cursor/session/state.json`](../.cursor/session/state.json)
 
-**硬闸门：** `design_user_approved = false` → 禁止开发。
+**阶段:** Build（2026-06-17 用户授权全量开发）
+
+| 项 | 状态 |
+|----|------|
+| 设计包 | ✅ ui-spec + config-spec + 37 页原型 |
+| 用户签字 | ✅ `user-approval.md` approved |
+| 代码基线 | ✅ `backend/` `frontend/` `sql/` 已从 `.oldbk` 恢复 |
+| API 契约 | 🔄 `docs/api/README.md` + 前端 SDK |
+| 本地构建 | ⚠️ 需 JDK21/Maven/Node，见 [`DEPLOY.md`](./DEPLOY.md) |
+| UI 对齐新原型 | 🔄 运行态 module-rail 壳等待 frontend rework |
+
+**完备性评估:** [`design/build-readiness.md`](./design/build-readiness.md)

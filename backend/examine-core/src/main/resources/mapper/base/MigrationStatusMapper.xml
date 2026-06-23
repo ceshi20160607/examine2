@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.core.base.mapper.MigrationStatusMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.core.base.entity.MigrationStatus">
+        <id column="id" property="id" />
+        <result column="version" property="version" />
+        <result column="description" property="description" />
+        <result column="status" property="status" />
+        <result column="checksum" property="checksum" />
+        <result column="installed_at" property="installedAt" />
+        <result column="execution_time_ms" property="executionTimeMs" />
+        <result column="error_message" property="errorMessage" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, version, description, status, checksum, installed_at, execution_time_ms, error_message, created_at, updated_at
+    </sql>
+
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.RecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.Record">
+        <id column="record_id" property="recordId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="app_id" property="appId" />
+        <result column="module_id" property="moduleId" />
+        <result column="publish_version_id" property="publishVersionId" />
+        <result column="record_no" property="recordNo" />
+        <result column="title" property="title" />
+        <result column="record_status" property="recordStatus" />
+        <result column="flow_status" property="flowStatus" />
+        <result column="flow_instance_id" property="flowInstanceId" />
+        <result column="locked_flag" property="lockedFlag" />
+        <result column="record_version" property="recordVersion" />
+        <result column="active_unique_marker" property="activeUniqueMarker" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="deleted_by" property="deletedBy" />
+        <result column="deleted_at" property="deletedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        record_id, system_id, tenant_id, app_id, module_id, publish_version_id, record_no, title, record_status, flow_status, flow_instance_id, locked_flag, record_version, active_unique_marker, created_by, updated_by, deleted_by, deleted_at, created_at, updated_at
+    </sql>
+
+</mapper>

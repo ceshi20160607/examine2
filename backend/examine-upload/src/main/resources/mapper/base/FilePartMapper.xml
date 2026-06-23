@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.upload.base.mapper.FilePartMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.upload.base.entity.FilePart">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="file_id" property="fileId" />
+        <result column="upload_id" property="uploadId" />
+        <result column="part_no" property="partNo" />
+        <result column="part_size" property="partSize" />
+        <result column="part_sha256" property="partSha256" />
+        <result column="storage_etag" property="storageEtag" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, file_id, upload_id, part_no, part_size, part_sha256, storage_etag, status, created_at, updated_at
+    </sql>
+
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.flow.base.mapper.CcMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.flow.base.entity.Cc">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="instance_id" property="instanceId" />
+        <result column="task_id" property="taskId" />
+        <result column="cc_member_id" property="ccMemberId" />
+        <result column="read_status" property="readStatus" />
+        <result column="read_at" property="readAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, instance_id, task_id, cc_member_id, read_status, read_at, created_at, updated_at
+    </sql>
+
+</mapper>

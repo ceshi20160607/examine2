@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>角色权限 · unexamine</title>
   <link rel="stylesheet" href="../assets/app.css">
+  <style>
+    .role-workspace{display:grid;grid-template-columns:220px minmax(0,1fr);gap:0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;min-height:520px;background:var(--surface)}
+    .role-list{border-right:1px solid var(--border);background:#fafbfc}
+    .role-list-head{padding:12px 14px;border-bottom:1px solid var(--border);font-weight:600;font-size:13px}
+    .role-item{display:block;padding:10px 14px;border-bottom:1px solid #eef0f3;font-size:13px}
+    .role-item.active{background:#eef4ff;border-left:3px solid var(--accent);padding-left:11px}
+    .role-item small{display:block;color:var(--muted);margin-top:2px}
+    .perm-panel{padding:0;display:flex;flex-direction:column;min-width:0}
+    .perm-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 14px;background:var(--surface)}
+    .perm-tabs button{height:40px;padding:0 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;margin-bottom:-1px}
+    .perm-tabs button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+    .perm-body{padding:14px;overflow:auto;flex:1}
+    .perm-note{font-size:12px;color:var(--muted);margin-bottom:12px}
+  </style>
 </head>
 <body>
   <div class="shell">
@@ -12,22 +26,51 @@
       <a class="brand" href="../index.html">unexamine</a>
       <select class="context-switch" aria-label="当前上下文"><option>车系统</option></select>
       <nav class="top-tabs"><a class="active" href="../system/dashboard-admin.html">仪表盘</a><a href="../system/runtime-list.html">车辆管理</a><a href="../system/admin-home.html">系统后台</a></nav>
-      <div class="top-actions">
-        <a class="icon-btn" href="../platform/todos.html" aria-label="待办">✓<span class="badge-count">3</span></a>
-        <a class="icon-btn" href="../platform/messages.html" aria-label="消息">●<span class="badge-count">6</span></a>
-        <span class="avatar">陈</span>
-      </div>
+      <div class="top-actions"><span class="avatar">陈</span></div>
     </header>
-    <aside class="sidebar"><div class="side-title">系统后台</div><nav class="nav"><div class="nav-group"><div class="nav-group-title">概览</div><a class="" href="admin-home.html">首页引导</a></div><div class="nav-group"><div class="nav-group-title">基础设置</div><a class="" href="admin-basic.html">基础参数</a><a class="" href="admin-org.html">组织结构</a><a class="" href="admin-dict.html">数据字典</a></div><div class="nav-group"><div class="nav-group-title">应用建模</div><a class="" href="admin-module-group.html">模块组</a><a class="" href="admin-module.html">模块</a><a class="" href="admin-modeling.html">建模</a><a class="" href="admin-dashboard-cfg.html">仪表盘配置</a><a class="" href="admin-datasource.html">数据源</a></div><div class="nav-group"><div class="nav-group-title">权限与成员</div><a class="" href="admin-users.html">成员管理</a><a class="active" href="admin-roles.html">角色权限</a></div><div class="nav-group"><div class="nav-group-title">流程与集成</div><a class="" href="admin-flow.html">流程配置</a><a class="" href="admin-external-app.html">对外应用</a></div><div class="nav-group"><div class="nav-group-title">审计运维</div><a class="" href="admin-logs.html">系统日志</a></div></nav></aside>
+    <aside class="sidebar"><div class="side-title">系统后台</div><nav class="nav"><div class="nav-group"><div class="nav-group-title">权限与成员</div><a href="admin-users.html">成员管理</a><a class="active" href="admin-roles.html">角色权限</a></div></nav></aside>
     <main class="main">
       <div class="page-head">
-        <div class="page-title"><h1>角色权限</h1><p>系统后台 · 模块、字段、数据、动作权限分区配置。</p></div>
+        <div class="page-title"><h1>角色权限</h1><p>左选角色 · 右分 Tab 配置模块 / 字段 / 数据 / 动作权限（config-spec §9.4）</p></div>
         <button class="btn primary">新建角色</button>
       </div>
-      <div class="toolbar"><input class="search" placeholder="搜索角色、状态或操作人"><select class="select"><option>全部状态</option><option>启用</option><option>停用</option></select><button class="btn">高级筛选</button><button class="btn">列设置</button><button class="btn">导出</button></div><section class="panel table-wrap" data-od-id="generic-table"><table class="table"><thead><tr><th>角色</th><th>绑定成员</th><th>模块权限</th><th>字段权限</th><th>数据权限</th><th>动作权限</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>角色1</td><td>绑定成员1</td><td>模块权限1</td><td>字段权限1</td><td>数据权限1</td><td>动作权限1</td><td><span class="status warn"><span class="dot"></span>待发布</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色2</td><td>绑定成员2</td><td>模块权限2</td><td>字段权限2</td><td>数据权限2</td><td>动作权限2</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色3</td><td>绑定成员3</td><td>模块权限3</td><td>字段权限3</td><td>数据权限3</td><td>动作权限3</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色4</td><td>绑定成员4</td><td>模块权限4</td><td>字段权限4</td><td>数据权限4</td><td>动作权限4</td><td><span class="status bad"><span class="dot"></span>停用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色5</td><td>绑定成员5</td><td>模块权限5</td><td>字段权限5</td><td>数据权限5</td><td>动作权限5</td><td><span class="status warn"><span class="dot"></span>待发布</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色6</td><td>绑定成员6</td><td>模块权限6</td><td>字段权限6</td><td>数据权限6</td><td>动作权限6</td><td><span class="status ok"><span class="dot"></span>启用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr><tr><td>角色7</td><td>绑定成员7</td><td>模块权限7</td><td>字段权限7</td><td>数据权限7</td><td>动作权限7</td><td><span class="status bad"><span class="dot"></span>停用</span></td><td><button class="btn weak">详情</button><button class="btn weak">编辑</button></td></tr></tbody></table><div class="pagination"><span>共 63 条 · 当前页 7 条</span><span>第 1 / 9 页</span></div></section>
+      <div class="role-workspace">
+        <aside class="role-list">
+          <div class="role-list-head">角色列表</div>
+          <a class="role-item active" href="#">系统管理员<small>3 名成员 · 全部权限</small></a>
+          <a class="role-item" href="#">车辆主管<small>5 名成员 · 车辆模块</small></a>
+          <a class="role-item" href="#">普通成员<small>12 名成员 · 只读+新建</small></a>
+          <a class="role-item" href="#">维保专员<small>2 名成员 · 维保记录</small></a>
+        </aside>
+        <section class="perm-panel">
+          <div class="perm-tabs">
+            <button class="active">模块权限</button>
+            <button>字段权限</button>
+            <button>数据权限</button>
+            <button>动作权限</button>
+          </div>
+          <div class="perm-body">
+            <p class="perm-note">当前角色：<strong>系统管理员</strong> · 勾选可访问的模块组与模块</p>
+            <table class="table">
+              <thead><tr><th>模块组</th><th>模块</th><th>可见</th><th>管理配置</th></tr></thead>
+              <tbody>
+                <tr><td>车辆管理</td><td>车辆档案</td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td></tr>
+                <tr><td>车辆管理</td><td>维保记录</td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td></tr>
+                <tr><td>车辆管理</td><td>驾驶员</td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td></tr>
+                <tr><td>概览</td><td>系统仪表盘</td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td></tr>
+              </tbody>
+            </table>
+            <p class="perm-note" style="margin-top:16px">字段 Tab 示例：车牌号 ☑可见 ☑可编辑 · 购置金额 ☑可见 ☐可编辑</p>
+            <p class="perm-note">数据 Tab 示例：范围 = 本部门及下级 · 条件 builder</p>
+            <p class="perm-note">动作 Tab：create / edit / delete / export_all / export_selected / import / transfer</p>
+          </div>
+          <div style="padding:12px 14px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+            <button class="btn">取消</button><button class="btn primary">保存权限</button>
+          </div>
+        </section>
+      </div>
     </main>
   </div>
-  
   <script src="../assets/app.js"></script>
 </body>
 </html>

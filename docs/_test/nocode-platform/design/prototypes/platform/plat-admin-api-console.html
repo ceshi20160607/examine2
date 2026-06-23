@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API 控制台 · FlexBase</title>
+  <link rel="stylesheet" href="../../../../../design/prototypes/assets/app.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html">FlexBase</a>
+      <select class="context-switch"><option>平台后台</option></select>
+      <div class="top-actions" style="margin-left:auto">
+        <a class="icon-btn" href="todos.html">✓</a>
+        <span class="avatar">管</span>
+      </div>
+    </header>
+    <aside class="sidebar">
+      <div class="side-title">平台后台</div>
+      <nav class="nav">
+        <a href="plat-admin-overview.html">概览</a>
+        <a href="plat-admin-tenants.html">租户</a>
+        <a href="plat-admin-sso.html">SSO</a>
+        <a href="plat-admin-flow.html">平台 Flow</a>
+        <a class="active" href="plat-admin-api-console.html">API 控制台</a>
+        <a href="plat-admin-logs.html">日志</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="page-head">
+        <div class="page-title"><h1>API 控制台</h1><p>参照 Kong Console · 创建/发布对外 API · 配置映射与 scope</p></div>
+        <button class="btn primary">新建 API 产品</button>
+      </div>
+      <div class="split">
+        <div class="list-card">
+          <div class="list-row" style="background:color-mix(in oklab,var(--accent),transparent 94%)"><strong>人事请假开放 API</strong><span class="status ok"><span class="dot"></span>已发布</span></div>
+          <a href="#">CRM 同步接口 <span class="muted">草稿</span></a>
+        </div>
+        <div>
+          <div class="tabs"><button class="active">路由与绑定</button><button>凭证 Scope</button><button>字段映射</button><button>限流</button></div>
+          <div class="panel pad">
+            <div class="form-row"><span class="label">绑定系统</span><select class="select"><option>人事系统</option></select></div>
+            <div class="form-row"><span class="label">模块</span><select class="select"><option>请假申请</option></select></div>
+            <div class="form-row"><span class="label">平台 Flow</span><select class="select"><option>leave-sync-flow</option></select></div>
+            <p class="muted" style="font-size:12px;margin:16px 0 8px">字段映射（外部系统 → 内部字段）</p>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>外部参数</th><th>内部字段</th><th>转换</th><th>必填</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">employee_id</td><td>成员.工号</td><td>—</td><td>是</td></tr>
+                  <tr><td class="mono">leave_type</td><td>字典.请假类型</td><td>代码映射</td><td>是</td></tr>
+                  <tr><td class="mono">start_date</td><td>开始日期</td><td>ISO8601</td><td>是</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn">保存草稿</button>
+            <button class="btn primary">发布版本 v3</button>
+            <a class="btn weak" href="plat-admin-logs.html">查看调用日志</a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

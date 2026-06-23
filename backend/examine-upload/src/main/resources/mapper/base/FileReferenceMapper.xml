@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.upload.base.mapper.FileReferenceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.upload.base.entity.FileReference">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="file_id" property="fileId" />
+        <result column="biz_type" property="bizType" />
+        <result column="biz_id" property="bizId" />
+        <result column="module_id" property="moduleId" />
+        <result column="record_id" property="recordId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="display_name" property="displayName" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="status" property="status" />
+        <result column="bound_by" property="boundBy" />
+        <result column="bound_at" property="boundAt" />
+        <result column="unbound_at" property="unboundAt" />
+        <result column="request_id" property="requestId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, file_id, biz_type, biz_id, module_id, record_id, field_code, display_name, sort_order, status, bound_by, bound_at, unbound_at, request_id, created_at, updated_at
+    </sql>
+
+</mapper>

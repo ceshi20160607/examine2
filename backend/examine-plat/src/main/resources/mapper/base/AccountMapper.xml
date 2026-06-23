@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.AccountMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.Account">
+        <id column="id" property="id" />
+        <result column="login_name" property="loginName" />
+        <result column="password_hash" property="passwordHash" />
+        <result column="display_name" property="displayName" />
+        <result column="mobile" property="mobile" />
+        <result column="email" property="email" />
+        <result column="status" property="status" />
+        <result column="first_login_change_pwd" property="firstLoginChangePwd" />
+        <result column="failed_login_count" property="failedLoginCount" />
+        <result column="locked_until" property="lockedUntil" />
+        <result column="last_login_at" property="lastLoginAt" />
+        <result column="delete_token" property="deleteToken" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, login_name, password_hash, display_name, mobile, email, status, first_login_change_pwd, failed_login_count, locked_until, last_login_at, delete_token, created_at, updated_at
+    </sql>
+
+</mapper>

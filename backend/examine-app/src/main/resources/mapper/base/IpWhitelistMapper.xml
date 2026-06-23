@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.app.base.mapper.IpWhitelistMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.app.base.entity.IpWhitelist">
+        <id column="id" property="id" />
+        <result column="client_id" property="clientId" />
+        <result column="ip_rule" property="ipRule" />
+        <result column="rule_type" property="ruleType" />
+        <result column="status" property="status" />
+        <result column="description" property="description" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, client_id, ip_rule, rule_type, status, description, created_at, updated_at
+    </sql>
+
+</mapper>

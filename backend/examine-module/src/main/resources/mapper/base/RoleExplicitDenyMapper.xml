@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.RoleExplicitDenyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RoleExplicitDeny">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="role_id" property="roleId" />
+        <result column="deny_type" property="denyType" />
+        <result column="target_id" property="targetId" />
+        <result column="target_code" property="targetCode" />
+        <result column="reason" property="reason" />
+        <result column="delete_token" property="deleteToken" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, role_id, deny_type, target_id, target_code, reason, delete_token, created_at, updated_at
+    </sql>
+
+</mapper>

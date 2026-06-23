@@ -1,0 +1,40 @@
+---
+description: 从根目录 需求.md 展开到可 Coding 原型；新项目或 design 未冻结时自动遵循 rough-to-prototype Skill
+globs: 需求.md,docs/需求.md,docs/user_requirement.md
+alwaysApply: false
+---
+
+# 需求 → 原型（可移植规约）
+
+当用户打开或编辑 `需求.md`（或 `docs/需求.md`），或明确要求「出原型 / 完善需求 / 做设计包」时：
+
+## 必须执行
+
+1. 读 `.cursor/METHODOLOGY.md`
+2. 读 `.cursor/knowledge/prototype-pipeline-lessons.md`
+3. 读 `.cursor/skills/rough-to-prototype/SKILL.md` 并 **按 L0→L4 顺序** 执行
+4. 读 `.cursor/skills/rough-to-prototype/defaults.md`（用户未指定时用默认补全）
+5. 读 `.cursor/session/state.json`；若 `design_user_approved: true` 则 **不要** 重跑全套设计，除非用户明确要求改版
+6. L4 完成前：superpowers **verification-before-completion**（跑 checklist）
+7. 若返工：`.cursor/knowledge/learning-loop.md`
+
+## 输入
+
+优先级：`./需求.md` → `./docs/需求.md` → `./docs/user_requirement.md`  
+找到后 **原文复制** 到 `docs/product/rough-input.md`。
+
+## 禁止
+
+- L2 完成前生成 HTML
+- L3 完成前调用 Open Design
+- `design_user_approved: false` 时创建或修改 `backend/**`、`frontend/**`、`sql/**`
+- 用聊天碎片代替 `prototype-brief.md` 作为原型输入
+
+## 输出
+
+以 Skill 中「Coding Ready 定义」11 项为准；L4 至少交付全部 **P0 HTML** + `design-diff.md`。
+
+## 用户触点
+
+- P0 产品歧义 → `docs/decisions/pending.md`，最多问 3 个集中问题
+- 原型满意 → 用户改 `docs/design/user-approval.md` 为 `approved: true`

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.SerialSequenceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.SerialSequence">
+        <id column="sequence_id" property="sequenceId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="field_id" property="fieldId" />
+        <result column="scope_key" property="scopeKey" />
+        <result column="prefix_snapshot" property="prefixSnapshot" />
+        <result column="current_value" property="currentValue" />
+        <result column="step_value" property="stepValue" />
+        <result column="version" property="version" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        sequence_id, system_id, tenant_id, module_id, field_id, scope_key, prefix_snapshot, current_value, step_value, version, created_at, updated_at
+    </sql>
+
+</mapper>

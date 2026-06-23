@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ActionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.Action">
+        <id column="action_id" property="actionId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="action_code" property="actionCode" />
+        <result column="action_name" property="actionName" />
+        <result column="action_type" property="actionType" />
+        <result column="danger_flag" property="dangerFlag" />
+        <result column="confirm_required" property="confirmRequired" />
+        <result column="enabled_flag" property="enabledFlag" />
+        <result column="config_json" property="configJson" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="delete_marker" property="deleteMarker" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        action_id, system_id, tenant_id, module_id, action_code, action_name, action_type, danger_flag, confirm_required, enabled_flag, config_json, sort_order, delete_marker, created_at, updated_at
+    </sql>
+
+</mapper>

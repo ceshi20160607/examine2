@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.FieldMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.Field">
+        <id column="field_id" property="fieldId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="name" property="name" />
+        <result column="code" property="code" />
+        <result column="field_type" property="fieldType" />
+        <result column="required_flag" property="requiredFlag" />
+        <result column="unique_flag" property="uniqueFlag" />
+        <result column="index_flag" property="indexFlag" />
+        <result column="default_value_json" property="defaultValueJson" />
+        <result column="dict_type_id" property="dictTypeId" />
+        <result column="relation_config_json" property="relationConfigJson" />
+        <result column="sub_table_config_json" property="subTableConfigJson" />
+        <result column="serial_config_json" property="serialConfigJson" />
+        <result column="validation_json" property="validationJson" />
+        <result column="display_config_json" property="displayConfigJson" />
+        <result column="field_status" property="fieldStatus" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="version" property="version" />
+        <result column="delete_marker" property="deleteMarker" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        field_id, system_id, tenant_id, module_id, name, code, field_type, required_flag, unique_flag, index_flag, default_value_json, dict_type_id, relation_config_json, sub_table_config_json, serial_config_json, validation_json, display_config_json, field_status, sort_order, version, delete_marker, created_by, updated_by, created_at, updated_at
+    </sql>
+
+</mapper>

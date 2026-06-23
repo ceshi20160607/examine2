@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ExportTemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.ExportTemplate">
+        <id column="template_id" property="templateId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="template_code" property="templateCode" />
+        <result column="template_name" property="templateName" />
+        <result column="template_status" property="templateStatus" />
+        <result column="file_name_pattern" property="fileNamePattern" />
+        <result column="export_format" property="exportFormat" />
+        <result column="include_history_flag" property="includeHistoryFlag" />
+        <result column="config_json" property="configJson" />
+        <result column="version" property="version" />
+        <result column="delete_marker" property="deleteMarker" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        template_id, system_id, tenant_id, module_id, template_code, template_name, template_status, file_name_pattern, export_format, include_history_flag, config_json, version, delete_marker, created_by, updated_by, created_at, updated_at
+    </sql>
+
+</mapper>

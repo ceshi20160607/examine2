@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.flow.base.mapper.ActionLogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.flow.base.entity.ActionLog">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="instance_id" property="instanceId" />
+        <result column="task_id" property="taskId" />
+        <result column="action" property="action" />
+        <result column="operator_member_id" property="operatorMemberId" />
+        <result column="comment" property="comment" />
+        <result column="from_node_key" property="fromNodeKey" />
+        <result column="to_node_key" property="toNodeKey" />
+        <result column="result_status" property="resultStatus" />
+        <result column="request_id" property="requestId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, instance_id, task_id, action, operator_member_id, comment, from_node_key, to_node_key, result_status, request_id, created_at, updated_at
+    </sql>
+
+</mapper>

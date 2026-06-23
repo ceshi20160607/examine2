@@ -1,0 +1,18 @@
+{
+  "sessionId": "new-project",
+  "architecture": "cursor-v2",
+  "phase": "P0-design",
+  "mode": "design-only",
+  "updated_at": "",
+  "gates": {
+    "prd_frozen": false,
+    "design_package_complete": false,
+    "design_user_approved": false,
+    "api_frozen": false,
+    "tasks_planned": false,
+    "build_batch_accepted": false,
+    "user_script_passed": false
+  },
+  "blockers": [],
+  "notes": "新项目：复制 .cursor 后，用 state.template.json 覆盖 state.json，再写 需求.md 启动。"
+}

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.DictTypeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.DictType">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="scope_type" property="scopeType" />
+        <result column="scope_tenant_id" property="scopeTenantId" />
+        <result column="code" property="code" />
+        <result column="name" property="name" />
+        <result column="description" property="description" />
+        <result column="status" property="status" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="system_built_in" property="systemBuiltIn" />
+        <result column="cache_version" property="cacheVersion" />
+        <result column="item_count" property="itemCount" />
+        <result column="enabled_item_count" property="enabledItemCount" />
+        <result column="referenced_flag" property="referencedFlag" />
+        <result column="delete_token" property="deleteToken" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, scope_type, scope_tenant_id, code, name, description, status, sort_order, system_built_in, cache_version, item_count, enabled_item_count, referenced_flag, delete_token, created_at, updated_at
+    </sql>
+
+</mapper>

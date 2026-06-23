@@ -1,7 +1,8 @@
-# unexamine 协作架构 v2
+# 协作架构 v2（Cursor 规约包）
 
-> 本目录是项目唯一协作规范来源。旧工程在 **`.oldbk/`**（只读参考），**不得**再使用 `.codex/` 流水线。
-> 原始需求：`docs/user_requirement.md`
+> **复制到新项目？** 使用仓库根目录 **[`hu/`](../hu/)** 规约包：  
+> `.\hu\install.ps1 -Target D:\your-project` → 见 [`hu/README.md`](../hu/README.md)  
+> 同步更新：`.\scripts\pack-portable.ps1`
 
 ## 一句话
 
@@ -23,6 +24,10 @@
 | [agents/README.md](./agents/README.md) | **Agent 角色总册**（身份、边界、启动协议） |
 | [agents/](./agents/) | 各角色完整规范：pm / analyst / uiux / planner / dba / backend / frontend / test / conductor |
 | [skills/](./skills/) | 无状态可复用能力 |
+| [skills/rough-to-prototype/](./skills/rough-to-prototype/SKILL.md) | **粗糙需求 → 可 Coding 原型**（Agent 主导） |
+| [METHODOLOGY.md](./METHODOLOGY.md) | **方法论总纲**（错因/正解/RPFD/学习循环） |
+| [knowledge/prototype-pipeline-lessons.md](./knowledge/prototype-pipeline-lessons.md) | 通用教训库（跨项目复用） |
+| [knowledge/external-references.md](./knowledge/external-references.md) | 网络规约（多租户/Console/SSO/API） |
 | [workflows/](./workflows/) | 各阶段执行剧本 |
 | [open-design/](./open-design/) | 安装、接入、用户确认闸门 |
 | [session/state.json](./session/state.json) | 当前 Session 唯一状态源 |
@@ -51,9 +56,9 @@
 ## 与你确认的流程（第 6 点）
 
 ```
-需求理解 → ui-spec
-    → 【团队内部】design-package + 多角色 reviews → design_package_complete
-    → 你调用 Open Design（一次，brief 已齐）
+粗糙需求 → 【Agent】phase-0 + rough-to-prototype Skill（L0～L3 文档）
+    → 【团队内部】design-package + reviews → design_package_complete
+    → 你调用 Open Design（一次，prototype-brief 已齐）
     → user-approval（你签字）
     → API 契约 → 实现 → 验收
 ```
