@@ -1,22 +1,33 @@
-# examine2（unexamine）
+# Agent Harness 模板（hu）
 
-可配置业务系统平台。协作规范见 **[`.cursor/README.md`](./.cursor/README.md)**。
+可复制的 **需求 → 全量原型** 方法论。历史业务代码已移除；规约与样例均在 `hu/`。
+
+## 快速开始
+
+```powershell
+# 复制到新 Java 项目
+.\hu\install.ps1 -Target "D:\your-java-project"
+# 在新项目根：复制 requirement.template.md → 需求.md，填写后打开 Cursor
+```
 
 ## 目录
 
 | 路径 | 说明 |
 |------|------|
-| `docs/user_requirement.md` | 原始产品需求 |
-| `.cursor/` | v2 协作架构（Conductor、Agent、Skill、Gate） |
-| `.oldbk/` | 旧工程备份（只读参考：backend、frontend、sql、.codex） |
+| [`hu/`](./hu/) | Harness 权威源 |
+| [`hu/examples/nocode-platform/`](./hu/examples/nocode-platform/) | 试跑样例（33 P0 页表 + 4 页 HTML） |
+| [`AGENTS.md`](./AGENTS.md) | 本仓库说明 |
 
-## 后端分层（重建时）
+详见 [`hu/README.md`](./hu/README.md)。
 
-- **`base/`** — `examine-generator` + MyBatis-Plus 从表生成，禁止 Agent 手写大批量 CRUD
-- **`manage/`** — 业务 Controller、Service、BO/VO、权限与事务
+## 提炼验证（2026-06-23）
 
-详见 [`.cursor/architecture/backend-structure.md`](./.cursor/architecture/backend-structure.md)
-
-## 当前状态
-
-`design_user_approved = false` → 禁止开发；先完成需求理解与 Open Design 原型确认。
+| 检查项 | 状态 |
+|--------|------|
+| L0→L4 剧本完整 | `hu/pipeline/runbook.md` + `harness.yaml` |
+| 质量基线自包含 | `hu/feedforward/reference-case.md`（不再依赖旧仓库路径） |
+| 默认补全 / 外部规约 | `defaults.md` + `external-refs.md` |
+| 教训库 | `lessons.md` + `feedback/learning-loop.md` |
+| 验收传感器 | `feedback/checklist.md` + `gates.md` |
+| 安装脚本 | `install.ps1` → `.cursor/` + `AGENTS.md`（已 smoke test） |
+| 试跑样例 | `examples/nocode-platform/` spec 层可用 |

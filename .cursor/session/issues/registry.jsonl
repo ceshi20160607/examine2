@@ -1,9 +1,0 @@
-{"ts":"2026-06-15T12:00:00+08:00","actor":"pm","action":"issue_closed","ref":"ISS-D01","detail":"取消独立导出中心，动作权限 export"}
-{"ts":"2026-06-15T12:00:00+08:00","actor":"pm","action":"issue_closed","ref":"ISS-D02","detail":"MVP边界写入prd"}
-{"ts":"2026-06-15T12:00:00+08:00","actor":"pm","action":"gate_advice","ref":"prd_frozen","detail":"无open P0 discovery issues，建议true"}
-{"id":"ISS-U06","stage":"discovery","raisedBy":"analyst","owner":"uiux","problem":"UI组件库 Naive UI vs Ant Design Vue 未冻结","impact":"P2","round":1,"status":"open","pmDecision":"Design阶段随ui-spec与原型冻结","actionRequired":"uiux在ui-spec给出推荐并供用户确认","verifier":"pm","closeCondition":"ui-spec写明组件库且user-approval或resolution确认","evidence":["docs/design/ui-spec.md#2.1","docs/design/prototypes/DESIGN.md"]}
-{"ts":"2026-06-15T14:00:00+08:00","actor":"uiux","action":"task_done","ref":"phase-1-ui-spec","detail":"ui-spec.md + prototype-brief.md"}
-{"ts":"2026-06-15T16:00:00+08:00","actor":"uiux","action":"task_done","ref":"phase-1-design-diff","detail":"9 P0 prototypes aligned, no P0 blockers"}
-{"ts":"2026-06-15T16:00:00+08:00","actor":"conductor","action":"task_done","ref":"phase-1-prototypes","detail":"user placed OD output in prototypes/"}
-{"id":"ISS-D03","stage":"design","raisedBy":"user","owner":"uiux","problem":"平台IA重复；平台后台空；建模应用与模块错误；缺流程与应用接入","impact":"P0","round":2,"status":"resolved","pmDecision":"RES-003+design-package内部完工","actionRequired":"OD v3","verifier":"user","closeCondition":"user-approval","evidence":["docs/design/design-package.md"]}
-{"ts":"2026-06-15T22:00:00+08:00","actor":"conductor","action":"gate_pass","ref":"design_package_complete","detail":"6 reviews pass, 18 P0 pages"}

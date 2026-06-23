@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSO 配置 · FlexBase</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html">FlexBase</a>
+      <select class="context-switch"><option>平台后台</option></select>
+      <div class="top-actions" style="margin-left:auto"><span class="avatar">管</span></div>
+    </header>
+    <aside class="sidebar">
+      <nav class="nav">
+        <a href="plat-admin-overview.html">概览</a>
+        <a href="plat-admin-tenants.html">租户</a>
+        <a class="active" href="plat-admin-sso.html">SSO</a>
+        <a href="plat-admin-api-console.html">API 控制台</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="page-head">
+        <div class="page-title"><h1>单点登录 SSO</h1><p>企业 IdP · OIDC 优先 · 参照 WorkOS</p></div>
+        <button class="btn primary">测试连接</button>
+      </div>
+      <div class="panel pad" style="max-width:640px">
+        <div class="form-row"><span class="label">IdP 类型</span><select class="select"><option>OpenID Connect</option><option>SAML 2.0（占位）</option></select></div>
+        <div class="form-row"><span class="label">Issuer URL</span><input class="input" value="https://login.enterprise.com/oauth2/default"></div>
+        <div class="form-row"><span class="label">Client ID</span><input class="input" value="flexbase-prod"></div>
+        <div class="form-row"><span class="label">Client Secret</span><input class="input" type="password" value="••••••••"></div>
+        <div class="form-row"><span class="label">回调 URL</span><code class="mono muted">https://app.flexbase.io/auth/oidc/callback</code></div>
+        <div class="form-row"><span class="label">强制 SSO</span><label><input type="checkbox"> 禁用密码登录（仅企业用户）</label></div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

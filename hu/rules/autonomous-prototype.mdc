@@ -1,38 +1,32 @@
 ---
-description: 用户只给需求.md时，Agent自治完成全spec+全P0原型；不问用户选型，对照reference-case与examine2最终态
+description: Harness 自治原型：有需求.md或未 design_delivered 时自动执行 pipeline/runbook L0-L4
 alwaysApply: true
 ---
 
-# 自治原型流水线
+# hu Prototype Harness
 
-## 何时执行
+## 触发
 
-满足任一且用户未说「只改代码」：
+- 根目录 `需求.md` 或用户描述产品需求
+- 或 `.cursor/state.json` → `gates.design_delivered != true`
+- **跳过：** 用户明确「只改代码」且已 design_delivered
 
-- 项目根有 `需求.md` / `docs/需求.md`
-- 用户消息是产品需求/要做系统/出原型
-- `session/state.json` 中 `design_delivered` 不为 true
+## Agent 必须（按序）
 
-## 用户不做什么
+1. `.cursor/harness.yaml`
+2. `.cursor/feedforward/contract.md`
+3. `.cursor/pipeline/runbook.md` — **L0→L4 单会话跑完**
+4. `.cursor/feedforward/reference-case.md`
+5. `.cursor/feedback/checklist.md` — 传感器
+6. `.cursor/feedback/response-contract.md` — 汇报格式
+7. `.cursor/feedback/learning-loop.md` — 结束自动执行
 
-用户**不需要**指定 Skill、阶段、页表、参照、pending 回答。只维护 `需求.md` 或在对话里贴需求。
+兼容别名：`.cursor/skills/rough-to-prototype/SKILL.md` = runbook 副本。
 
-## Agent 必须
+## 用户
 
-1. 读 `.cursor/AUTONOMOUS.md`（或 `hu/AUTONOMOUS.md` 安装后路径）
-2. 执行 `.cursor/skills/rough-to-prototype/SKILL.md` **L0→L4 一次跑完**
-3. 对照 `.cursor/knowledge/reference-case.md`（examine2 最终态基线）
-4. 歧义 **AUTO** 写入 `docs/decisions/resolution.md`，**禁止** `pending.md` 阻塞
-5. L4 交付 **100% P0 HTML**，禁止抽样停步
-6. 结束跑 checklist + learning-loop
-7. 回复：原型入口 `docs/design/prototypes/index.html`
+只维护 `需求.md`。**禁止**向用户抛选型题；AUTO → `docs/decisions/resolution.md`。
 
-## 禁止
+## 交付
 
-- 向用户抛 IA/租户/SSO/API 选型题
-- 少页/简易表/无 seed 就声称完成
-- 未 `design_delivered` 写业务代码
-
-## 可选用户动作
-
-看完原型后口头说改哪里 → Agent 自治重跑并 learning，仍不问选型清单。
+100% P0 HTML · `docs/design/prototypes/index.html`

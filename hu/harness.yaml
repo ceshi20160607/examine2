@@ -1,0 +1,71 @@
+# Harness 配置（机器可读）
+
+name: hu-prototype-harness
+version: 2.0.0
+mode: autonomous
+
+entry:
+  human: 需求.md
+  agent: AGENTS.md
+  contract: feedforward/contract.md
+  runbook: pipeline/runbook.md
+
+trigger:
+  files: [需求.md, docs/需求.md]
+  rule: rules/autonomous-prototype.mdc
+  skip_when:
+    - gate: design_delivered
+      unless: user_requests_redesign
+
+pipeline:
+  - id: L0
+    name: capture
+    outputs: [docs/product/rough-input.md, docs/product/domain-glossary.md, docs/decisions/resolution.md]
+    block_html: true
+  - id: L1
+    name: slice
+    outputs: [docs/product/prd.md, docs/product/design-scope.md]
+    reads: [feedforward/defaults.md, feedforward/external-refs.md]
+  - id: L2
+    name: ia-freeze
+    outputs: [docs/design/design-package.md, docs/design/ui-spec.md, docs/design/*-seed.md]
+    block_html: true
+  - id: L3
+    name: detail
+    outputs: [docs/design/config-spec.md, docs/design/page-inventory.md, docs/design/reviews/*.md]
+    block_od: true
+  - id: L4
+    name: prototype
+    outputs: [docs/design/prototype-brief.md, docs/design/prototypes/**/*.html, docs/design/design-diff.md]
+    require_html_ratio: 1.0
+
+gates:
+  prd_frozen: { after: L1, set_by: agent }
+  design_package_complete: { after: L3, set_by: agent }
+  design_delivered: { after: L4, set_by: agent, requires: [checklist_pass, html_ratio_1] }
+  design_user_approved: { set_by: human, optional: true, blocks: [backend, frontend, sql] }
+
+feedback:
+  checklist: feedback/checklist.md
+  gates_doc: feedback/gates.md
+  learning: feedback/learning-loop.md
+  response: feedback/response-contract.md
+
+feedforward:
+  - feedforward/contract.md
+  - feedforward/methodology.md
+  - feedforward/reference-case.md
+  - feedforward/lessons.md
+  - feedforward/external-refs.md
+  - feedforward/defaults.md
+
+forbidden:
+  - pending.md blocking pipeline
+  - sample_html_only
+  - chat_patch_instead_of_brief
+  - code_before_design_delivered
+
+stack_extensions:
+  java:
+    after_gate: design_user_approved
+    note: 追加 backend-structure、phase-2-contract（非本包）
