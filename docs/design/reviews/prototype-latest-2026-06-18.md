@@ -2,8 +2,430 @@
 
 > 日期：2026-06-18
 > 审阅对象：`docs/design/prototypes/index.html`
-> 使用 brief：`docs/design/prototype-brief.md`，版本 `1.7.12-pre-coding-ready-polish`
-> 结论：上一轮“ready”口径过早；本轮继续补齐仍停留在泛化抽屉/说明状态的关键设计入口。仍需用户确认签字，未签字前不进入 API 和开发。
+> 使用 brief：`docs/design/prototype-brief.md`，版本 `1.7.24-clean-pre-coding-review-fixes`
+> 结论：当前有效版为 `1.7.24-clean-pre-coding-review-fixes`。本轮采用干净上下文开发前复审，只读落盘文件和当前原型，补齐系统壳重绘、租户切换上下文、无成员申请生命周期、Agent 策略范围、OpenAPI 密钥引用、消息筛选状态、分页按钮结果和 defaultDrawer 阻断态；仍需用户确认签字，未签字前不进入 API 和开发。
+
+## 当前唯一开发口径（1.7.24）
+
+> 作用：给后续 API 契约和 coding 阶段防跑偏。本文下方保留的早期复审段落是历史记录，只用于追溯问题来源；若与本节、`docs/design/prototype-brief.md`、`docs/design/design-package.md`、`docs/design/user-approval.md` 或当前原型冲突，以本节和当前 brief/原型为准。
+
+- 设计输入唯一来源：`docs/design/prototype-brief.md`，版本 `1.7.24-clean-pre-coding-review-fixes`。
+- 当前原型唯一入口：`docs/design/prototypes/index.html`。
+- 开发前交接矩阵：`docs/design/pre-coding-readiness.md`，不是新的需求来源，只做证据索引，不替代 brief 和原型。
+- 四套壳固定：平台工作台、平台后台、系统业务页、系统后台。
+- 消息固定为顶部入口打开右侧消息流抽屉，不做平台消息/系统消息表格页；平台消息中心与系统消息中心拆开。平台消息不得直接跳系统业务详情，涉及系统业务时先进入系统切换或平台授权/平台任务对象；系统消息在系统上下文内整条点击跳转业务对象，卡片内不放重复小按钮。
+- 待办固定为独立工作台：左侧待办类型，右侧待办列表和筛选；进入待办后隐藏业务模块侧栏。
+- 工作管理固定为四个主标签：仪表盘、项目任务、普通任务、日报；项目任务和普通任务的列表/看板互斥切换，日报只展示我的日报和筛选。
+- 后台日志固定为一个“日志管理”入口，平台后台和系统后台都采用“左侧日志类型/审计范围 + 右侧统一列表”的组织架构式布局；左侧日志类型树是唯一主分类，右侧不再重复放日志类型下拉或登录/业务页签。
+- 统一认证 / 企业 SSO 固定为平台身份源 + 系统继承映射两层：登录页只消费已发布身份源；平台后台配置身份源、协议、证书/JWKS、回调、域名、属性映射、JIT、MFA、测试发布和登录审计；系统后台新增一级“统一认证”页，配置系统继承、租户域名、组织映射、员工绑定、systemMemberId、JIT 系统成员策略、无成员映射反馈和登录日志 traceId。系统统一认证左侧树必须能刷新右侧配置视图。
+- 平台运行态 Agent、平台任务确认和系统运行态 Agent 固定拆分：平台 Agent 只处理平台授权、平台日志、平台任务、模型额度、系统健康和系统切换引导；不得直接打开 `vehicleList` 等系统业务模块或写入业务数据。平台 Agent 只进入 `platformAgentConfirmDrawer` 生成平台任务、平台消息和平台日志；系统 Agent 才能在系统切换后的当前系统成员上下文内查询或写入业务模块，并进入 `agentWriteConfirmDrawer` 做业务字段差异和业务日志确认。
+- 后台入口固定在个人信息弹层中按权限显示；普通成员看不到系统后台和平台后台；平台普通成员看不到平台后台。
+- 系统切换固定为唯一多系统入口，必须生成 `SystemSwitchContext`，包含 systemId、tenantId、systemMemberId、effectiveRoleIds、dataScope 和权限快照；平台账号没有系统成员上下文时不得直接打开系统业务页。
+- 多租户系统必须生成 `TenantSwitchContext`；系统切换和租户切换必须重绘业务壳品牌、顶部模块分组、左侧模块、列表数据、待办、消息和字段权限，不得只是换标题或跳 URL。
+- 系统切换列表必须体现 `accountMemberBindingId`；平台账号、系统成员、系统角色、租户数据范围之间的绑定关系不能由前端临时拼。
+- 列表详情主动作固定为整行点击，但只对明确标记的数据列表或业务核心列表启用；操作列不得再用“详情 / 查看 / 打开 / 进入”承接同一详情动作，只保留处理、配置、编辑、撤回、导出、演练记录、风险复核等差异动作。
+- 流程画布必须显示条件分支标签；条件、字段更新、外部 API、超时提醒等节点必须有专属配置承接。
+- 统一后台任务固定包含 taskId、bizType、idempotencyKey、status、progress、cancelable、resultFile、errorFile、createdBy、createdAt、traceId、auditLogId、retryable 和回滚边界。
+- 消息模板与通知渠道固定为可配置对象：templateCode、平台/系统层级、变量、站内消息/待办/邮件/短信/Webhook 渠道、跳转目标、去重键、已读回执、免打扰、失败重试和 `message_delivery_log`。
+- SSO、OpenAPI、Webhook、外部模型等密钥固定使用 SecretRef 和版本表达；密钥轮换固定走 `SecretRotationJob`，不得在页面或日志回显明文。
+- 无系统成员映射固定走 `NoMemberAccessRequest`；认证成功但没有 systemMemberId 时只能申请加入，不能自动进入系统业务页或分配业务权限。
+- `NoMemberAccessRequest` 固定包含 requestId、status、identityProvider、externalUserId、targetSystemId、tenantId、requestRole、approverId、approveResult、roleIds、dataScope、rejectReason 和 traceId。
+- 系统 AI Agent 固定保存 `AgentPolicyScope`：moduleScope、fieldScope、actionScope、dataScopeExpression、外发限制、脱敏策略和策略版本。
+- 外部应用固定用 `OpenApiSecretRef`、版本、轮换状态、到期和最近使用表达密钥，不展示明文 appKey/secret。
+- 消息筛选、全部已读、归档、分页上一页/下一页、加载更多等按钮必须有可见状态变化或结果承接。
+- `defaultDrawer` 固定为设计缺口阻断态，不是开发兜底详情；P0 入口落到 default/generic 时不能进入 coding。
+- 关键提交按钮固定要有明确承接：同步保存结果、后台任务、发布检查、日志追踪或专属抽屉，不能落到泛化“操作已响应”。
+- 字段类型注册表固定包含存储形态、筛选/排序操作符、默认值校验、权限能力和导入导出规则。
+- 签字闸门固定：`docs/design/user-approval.md` 中 `approved: false` 时，`.cursor/session/state.json` 的 `design_user_approved=false`、`api_frozen=false` 仍禁止 API、后端、前端和 SQL coding。
+
+## 38. 最终锁版复审：八角色结论与签字后开发路线
+
+> 时间：2026-06-23
+> 版本：`1.7.24-clean-pre-coding-review-fixes`
+> 复审方式：按用户要求拉起 PM、业务分析、UI/UX、计划、DBA、后端、前端、测试八类角色，只读落盘文件和当前原型，不继续依赖聊天记忆。
+
+### 角色结论
+
+| 角色 | 结论 | 是否需要 PM/用户变更裁决 |
+|---|---|---|
+| PM | LOCK_WITH_NOTES | 不需要。未发现 P0/P1 产品阻断点。 |
+| 业务分析 | LOCK_WITH_NOTES | 不需要。系统切换、无成员申请、权限快照等进入 API 冻结细化。 |
+| UI/UX | LOCK_WITH_NOTES | 不需要。四套壳、导航、列表、详情、待办、消息、日志、流程、后台布局可锁版。 |
+| 计划/排期 | BLOCK（仅门禁） | 不是设计阻断；阻断原因是用户签字、API 冻结、任务计划 gate 尚未打开。 |
+| DBA | LOCK_WITH_NOTES | 不需要。数据模型无 P0，动态字段、SecretRef、流程快照、消息目标进入 API/DB 冻结。 |
+| 后端 | LOCK_WITH_NOTES | 不需要。权限快照、上下文、任务状态机、SSO/JIT、Agent 写入边界进入 API 冻结。 |
+| 前端 | LOCK_WITH_NOTES | 不需要。无断链、无重复详情小按钮、消息卡片无内嵌跳转按钮。 |
+| 测试 | LOCK_WITH_NOTES | 不需要。签字后补正式 E2E 脚本和验收截图/日志规范。 |
+
+### 最终判断
+
+- 当前原型可以作为“锁版候选”进入用户签字；八角色没有提出新的 P0/P1 设计阻断点。
+- 计划角色的 BLOCK 只来自流程门禁：`docs/design/user-approval.md` 仍为 `approved: false`，`.cursor/session/state.json` 仍为 `design_user_approved=false`、`api_frozen=false`、`tasks_planned=false`。
+- 因此本轮不需要提交 PM 变更裁决；需要用户明确签字后，才能进入 API 契约冻结。
+
+### 签字后开发路线
+
+签字后不直接 coding，先执行：
+
+1. API 契约冻结 C1：账号、系统、租户、成员、角色、权限、系统切换、有效权限快照。
+2. API 契约冻结 C2：模块组、模块、字段、字典、页面配置、流程、待办、消息、工作、AI Agent、SSO、日志、后台任务。
+3. 任务计划：由冻结后的 API/数据模型拆正式 `docs/tasks/plan.md`，再划分并行批次。
+4. 分批开发：先基础壳和权限上下文，再后台配置，再运行态业务，再流程/消息/工作/Agent，最后验收与回归。
+
+设计阶段的签字后开发计划草案见：`docs/design/post-approval-development-plan.md`。该文件不是正式开发任务单；正式任务单必须在用户签字和 API 契约冻结后再生成。
+
+## 37. 干净上下文开发前复审：系统壳、消息、分页、租户与 Agent 契约补齐
+
+> 时间：2026-06-23
+> 版本：`1.7.24-clean-pre-coding-review-fixes`
+
+### 本轮方法
+
+- 按用户要求不再只依赖当前聊天上下文，拉起干净视角复审：产品架构、UX、权限/数据模型、QA 验收分别只读落盘文件和当前原型。
+- 复审重点从“有没有页面”提升到“能否让正常企业用户用起来、能否让 API/开发少猜字段和状态”。
+- 复审结论直接回写原型、brief、design-package、user-approval、pre-coding-readiness、state、project rules 和 failure lessons。
+
+### 本轮发现
+
+- 系统切换能进入业务壳，但不同系统之间的品牌、模块分组、左侧模块和列表数据刷新不够明确，容易开发成只换标题。
+- 多租户系统缺少 `TenantSwitchContext` 的开发口径；系统切换和租户切换之间的边界不够稳。
+- 无系统成员申请已有入口，但申请状态、审批人、审批结果、角色和数据范围分配字段还不够完整。
+- 系统 AI Agent 有配置页，但 `AgentPolicyScope` 不是一级契约字段，后续开发容易只做模块范围，不做字段/动作/数据范围和外发限制。
+- 外部应用仍容易被读成 appKey/secret 明文配置，需要显式改为 `OpenApiSecretRef` 和轮换状态。
+- 消息筛选、全部已读、归档、分页按钮、工作保存/提交等部分按钮需要可见状态结果，不能只“能点”。
+- 注册创建系统后的初始化引导缺少“发布业务首页、普通成员预览、发送登录入口、回滚方案”的最后上线闭环。
+- `defaultDrawer` 过去容易被当成兜底详情，本轮改为设计缺口阻断态。
+
+### 已补齐
+
+- 原型新增/强化 `systemShells` 和 `applySystemContext`，系统切换后刷新系统名称、顶部模块分组、左侧模块、统计和消息上下文；`systemSwitchDrawer` 展示 `accountMemberBindingId`。
+- 系统业务壳新增租户切换入口和 `tenantSwitchDrawer`，系统信息页展示 `TenantSwitchContext`。
+- `NoMemberAccessRequest` 补 requestId、status、identityProvider、externalUserId、targetSystemId、tenantId、requestRole、approverId、approveResult、roleIds、dataScope、rejectReason、traceId。
+- 系统 AI Agent 列表和发布检查补 `AgentPolicyScope`：moduleScope、fieldScope、actionScope、dataScopeExpression、外发限制、脱敏策略、策略版本。
+- 外部应用和密钥轮换补 `OpenApiSecretRef`、version、rotationStatus、expiresAt、lastUsedAt。
+- 平台/系统消息中心补筛选状态、全部已读、归档反馈；消息卡片继续保持整条点击跳转，不加重复小按钮。
+- 工作管理、项目任务、普通任务、日报和列表分页补 `data-page-action` / `data-page-result`；保存、提交、归档等动作补 `data-action-result`。
+- 系统初始化引导新增“发布业务首页”步骤，并补 `publishCheckDrawer` 系统上线发布检查。
+- `defaultDrawer` 文案改为设计缺口阻断态，落到该抽屉代表不能进入 coding。
+
+### 验证结论
+
+- 静态检查：脚本可解析；页面、screen、page、subpage、workSubpage、taskView、drawer、message jump 引用无断链；`data-toast=0`。
+- 关键术语可检索：TenantSwitchContext、accountMemberBindingId、AgentPolicyScope、DailyReportAutoSourceRule、OpenApiSecretRef、消息筛选、后台任务状态、设计缺口阻断态。
+- 消息卡片均有跳转目标；未发现卡片内重复“进入详情/打开任务/查看日志”小按钮。
+- 浏览器复验：系统管理员登录进入系统业务页；切换到合同系统后品牌、模块分组、左侧模块、统计入口和上下文均刷新；租户切换抽屉含 TenantSwitchContext；系统消息筛选有状态反馈，消息卡片按钮 0、整条跳转 4。
+- 当前仍不进入 coding：`approved=false`、`design_user_approved=false`、`api_frozen=false`。
+
+## 36. 开发前细节补齐：消息、密钥、无成员申请与按钮结果链路
+
+> 时间：2026-06-23
+> 版本：`1.7.23-pre-coding-detail-fixes`
+
+### 本轮发现
+
+- 消息中心已有系统/租户/模板筛选，但消息模板、通知渠道、去重、已读回执、失败重试和跳转目标还没有作为配置对象落到原型。
+- SSO 和外部应用中有“密钥/证书/轮换”描述，但开发仍可能把密钥当普通字段保存；缺少 SecretRef 和轮换任务对象。
+- 系统切换中的未授权系统容易复用平台授权详情，缺少“认证成功但没有 systemMemberId”的专属申请对象。
+- 部分主按钮虽然不再用 `data-toast`，但仍可能走泛化“操作已响应”，开发看不出该接同步保存、后台任务、发布检查还是日志追踪。
+
+### 已补齐
+
+- 平台配置管理和系统信息页新增“消息模板与通知渠道”入口；流程管理也提供消息模板入口。新增 `notificationTemplateDrawer`，覆盖 templateCode、模板类型、变量、渠道、跳转目标、去重键、已读回执、免打扰、失败重试和 `message_delivery_log`。
+- 平台 SSO 配置新增 `IdentityProviderSecretRef`；身份源列表新增“轮换密钥”；新增 `secretRotationDrawer`，覆盖 `SecretRotationJob` 的创建新版本、双写验证、切换生效、停用旧版本、失败回滚和审计字段。
+- 系统切换未映射系统改为 `noMemberRequestDrawer`，显式形成 `NoMemberAccessRequest`，没有 systemMemberId、角色和数据范围时不可进入系统业务页。
+- 高级筛选、列设置、转移、批量编辑、审批处理、AI 写入、字典发布、Agent 发布、体检、恢复演练、部署策略、API 契约草稿等关键按钮已补 `data-action-result` 或指向后台任务/日志/发布抽屉。
+- brief、design-package、user-approval、pre-coding-readiness、project rules 和 failure lessons 已同步本轮新增边界。
+
+### 验证结论
+
+- 静态检查：新增抽屉引用无断链；`IdentityProviderSecretRef`、`SecretRotationJob`、`NoMemberAccessRequest`、`notificationTemplateDrawer` 和 `message_delivery_log` 均在原型中显式出现。
+- 剩余未加数据动作的按钮主要是分页和消息分类筛选按钮，不是关键提交动作。
+- 当前仍不进入 coding：`approved=false`、`design_user_approved=false`、`api_frozen=false`。
+
+## 35. 六角色原型评审与上下文边界修正
+
+> 时间：2026-06-23 本轮按产品架构、UI/UX、身份/SSO、流程/工作、开发契约、QA 验收六个角色复审
+> 版本：`1.7.22-role-review-context-fixes`
+
+### 本轮发现
+
+- 平台工作台消息入口复用系统消息抽屉，系统业务消息可直接打开 `vehicleDetailDrawer`，绕过系统切换和 systemMemberId 上下文。
+- 系统切换列表按钮只是 `data-screen="systemBusiness"`，没有把 systemId、tenantId、systemMemberId、effectiveRoleIds、dataScope 和权限快照显式落成可验收对象。
+- 待办列表存在只能点操作列办理的风险，系统待办车辆行和平台待办行缺少稳定 row-level 主动作承接。
+- CSS 对所有 `tbody tr` 都显示可点击手势，说明表、配置矩阵和普通状态表会给开发错误信号。
+- 系统统一认证左树更像目录，点击后没有真正刷新右侧配置视图。
+- 流程画布没有可见条件分支标签，条件、字段更新、外部 API、超时提醒等节点仍容易被实现成同一套审批属性。
+
+### 已补齐
+
+- 平台顶部消息入口改为 `platformMessageCenterDrawer`，系统业务页继续使用 `messageCenterDrawer`。平台消息不得直接打开系统业务详情，只能进入系统切换、平台授权、平台任务或平台 Agent。
+- `systemSwitchDrawer` 的进入按钮改为 `data-switch-system`，携带 systemId、systemName、tenant、systemMemberId、roles、dataScope 和 targetPage；脚本在进入系统业务页前写入 `state.systemContext`，平台角色直接访问 `systemBusiness` 会被无权限拦截。
+- 系统业务顶部新增当前系统上下文标签；系统切换抽屉补 `SystemSwitchContext`、`EffectivePermissionSnapshot`、`MessageTodoScope` 三类冻结对象提示。
+- 平台待办和系统待办行补 `data-row-drawer`，整行点击成为主动作；操作列保留办理、处理等差异动作。
+- 全局 `tbody tr` 可点击手势移除，只对明确数据列表、业务核心列表、日志和配置对象表开启行点击样式。
+- `sysSso` 页面增加 `data-sso-panel`，左侧身份源/JIT/组织映射/员工绑定/审计节点会过滤右侧配置区。
+- 流程画布补条件分支线标签，条件、字段更新、外部 API、超时提醒分别进入 `flowConditionNodeDrawer`、`flowUpdateNodeDrawer`、`flowApiNodeDrawer`、`flowTimerNodeDrawer`。
+- 导入导出补下载模板、错误文件、批次回滚/不可回滚原因、导出格式和结果文件入口；工作看板补列字段、泳道字段、字典版本和停用历史提示。
+
+### 签字前剩余动作
+
+- 仍需用户在 `docs/design/user-approval.md` 签字后，才允许进入 API 契约冻结。
+- API 冻结时优先对象化 `SystemSwitchContext`、`EffectivePermissionSnapshot`、`IdentityProviderSecretRef`、`NoMemberAccessRequest`、`LoginAudit`、统一后台任务模型和流程节点快照。
+
+## 34. 系统后台 SSO 配置与组织架构联动补齐
+
+> 时间：2026-06-22 本轮针对用户指出“系统后台没有 SSO 配置页面，SSO 要和组织架构联携”的问题修正
+> 版本：`1.7.21-system-sso-org-link`
+
+### 本轮发现
+
+- 1.7.20 已有平台后台统一认证身份源配置，也在系统信息页展示了 SSO 继承摘要，但系统后台没有一级 SSO 配置页。
+- 系统级 SSO 的关键不是证书和协议密钥，而是把平台身份源映射到当前系统组织架构、系统员工、systemMember、角色初始策略和无权限反馈；只放系统信息页会让 API 阶段漏掉组织映射和员工绑定对象。
+
+### 已补齐
+
+- 系统后台左侧新增“统一认证”，放在“组织架构”之后、“角色管理”之前。
+- 新增 `sysSso` 页面：左侧认证配置树，右侧展示身份源继承策略、JIT 成员创建策略、组织架构联动映射、员工绑定与角色初始策略。
+- 新增 `systemSsoPolicyDrawer`：覆盖发布检查、组织同步预检、未匹配部门处理、未绑定员工处理、无权限反馈、登录日志 traceId 和 API 对象拆分。
+- 系统信息页和系统体检中的 SSO 入口改为跳转 `sysSso`，不再直接复用平台 `ssoConfigDrawer`。
+- 系统初始化引导新增“统一认证”步骤，放在组织架构之后、角色权限之前。
+- brief、design-package、user-approval、pre-coding-readiness、原始需求、项目规约和失败教训同步沉淀。
+
+### API 阶段优先冻结
+
+- `system_sso_policy`：systemId、identityProviderId、tenantDomainRules、loginMode、mfaPolicy、noMemberFeedback、requestAccessEnabled。
+- `org_external_mapping`：systemId、identityProviderId、externalDeptId、externalDeptCode、systemDeptId、mappingStatus、syncStrategy。
+- `account_member_binding`：identityProviderId、externalUserId、platformAccountId、systemMemberId、employeeId、bindingStatus。
+- `sso_jit_rule`：平台账号 JIT、系统成员待审核草稿、默认访客权限、角色分配审批。
+- `sso_sync_task`：组织同步预检、差异、失败原因、可重试状态、traceId、auditLogId。
+
+当前仍不进入 coding：`approved=false`、`design_user_approved=false`、`api_frozen=false`。
+
+## 33. 平台 Agent 任务确认与系统业务写入确认拆分
+
+> 时间：2026-06-22 本轮针对开发前复筛发现的平台 Agent 确认页复用风险修正
+> 版本：`1.7.20-platform-agent-confirm-boundary`
+
+### 本轮发现
+
+- 1.7.19 已把平台运行态 Agent 从系统业务 Agent 中拆出，但平台 Agent 的“生成平台任务草稿”按钮仍跳到 `agentWriteConfirmDrawer`。
+- `agentWriteConfirmDrawer` 是系统业务写入确认，内容关注字段差异、审批中字段、业务日志和业务对象写入。平台 Agent 如果复用它，API 阶段容易把平台任务草稿和系统业务写入做成同一套确认接口。
+
+### 已补齐
+
+- 平台 Agent 的主确认按钮改为 `platformAgentConfirmDrawer`。
+- 新增 `platformAgentConfirmDrawer` 专属模板，展示来源对话、确认范围、确认人、截止时间、风险级别、平台审计链路、拟生成的平台任务和禁止越界写入说明。
+- `agentWriteConfirmDrawer` 保留给系统业务 Agent、工作 Agent 等需要写入当前系统业务数据或工作数据的场景。
+- brief、design-package、user-approval、pre-coding-readiness、原型元数据和 session state 同步升级到 1.7.20。
+
+### API 阶段优先冻结
+
+- `platform_agent_task_confirm`：只生成平台 task/message/audit_log，不携带 system business module write payload。
+- `system_agent_write_confirm`：必须携带 systemId、tenantId、systemMemberId、moduleId、objectId、fieldDiff、permissionSnapshot 和 auditLogId。
+- 两类确认接口的权限校验、审计归属、失败补偿和消息通知必须分开，不能只靠一个 `agent_confirm` 泛接口兜底。
+
+当前仍不进入 coding：`approved=false`、`design_user_approved=false`、`api_frozen=false`。
+
+## 32. 平台 / 系统运行态 AI Agent 边界复扫
+
+> 时间：2026-06-22 本轮针对开发前复筛发现的平台 Agent 跨系统业务入口风险修正
+> 版本：`1.7.19-agent-runtime-boundary`
+
+### 本轮发现
+
+- 平台工作台顶部的 AI Agent 与系统业务页顶部的 AI Agent 共用 `runtimeAgentDrawer`，而该抽屉内容是车辆档案录入、待年检统计和“打开车辆列表”。
+- 平台消息流里“平台 / Agent 运行”消息也跳向 `runtimeAgentDrawer`，会让平台侧消息打开系统业务 Agent。
+- 这会绕过“系统切换 -> 系统成员映射 -> 系统角色 -> 字段权限/数据范围”的边界，容易让 API 阶段误把平台身份当成系统业务身份。
+
+### 已补齐
+
+- 平台工作台顶部 AI Agent 改为 `platformRuntimeAgentDrawer`，内容只展示平台授权、平台任务、登录风险、模型额度、系统健康和系统切换引导。
+- 系统业务页顶部仍使用 `runtimeAgentDrawer`，只有在 `systemBusiness` 上下文内才展示车辆档案录入、待年检统计和业务写入确认。
+- 平台消息流中的平台 Agent 结果改为跳 `platformRuntimeAgentDrawer`，不再跳系统业务 Agent。
+- brief、design-package、user-approval、pre-coding-readiness、原始需求、项目规约和失败教训同步沉淀平台/系统 Agent 运行边界。
+
+### API 阶段优先冻结
+
+- `agent_runtime_scope`：platform / system / work / detail。
+- `agent_context`：platformUserId、systemId、tenantId、systemMemberId、roleIds、dataScope、fieldPermissionSnapshot。
+- 平台 Agent 工具白名单：系统授权、平台日志、平台任务、模型额度、系统健康、系统切换引导。
+- 系统 Agent 工具白名单：仅当前系统成员有权访问的模块、字段、动作、数据范围和确认策略。
+
+当前仍不进入 coding：`approved=false`、`design_user_approved=false`、`api_frozen=false`。
+
+## 31. 统一认证 / 企业 SSO 身份源配置补齐
+
+> 时间：2026-06-22 本轮针对用户指出的企业 SSO 配置缺口复审
+> 版本：`1.7.18-sso-identity-config`
+
+### 本轮发现
+
+- 登录页已有“企业 SSO”按钮，`loginMethodDrawer` 也能展示 SSO 跳转、回调、账号绑定和登录审计，但这只是运行态登录入口。
+- 平台后台配置管理缺少“统一认证 / 企业 SSO”身份源配置，无法表达协议、证书、回调、域名白名单、属性映射、JIT、MFA、发布状态和测试结果。
+- 系统信息页只写了 SSO 连通性，没有表达系统如何继承平台身份源、如何限制租户域名、如何映射系统成员，以及无系统成员映射时怎么反馈。
+- 系统体检里“短信 / SSO”的修复入口指向登录方式抽屉，容易让开发把 SSO 当成普通登录按钮，而不是平台级身份源配置对象。
+
+### 已补齐
+
+- 平台后台配置管理新增“统一认证与企业 SSO”配置行，入口指向 `ssoConfigDrawer`。
+- 新增 `ssoConfigDrawer` 专属抽屉，覆盖 OIDC、SAML 2.0、OAuth2、LDAP / AD、企业微信 / 钉钉，字段包括 issuer/entityId、clientId/appId、回调地址、证书/JWKS、域名白名单、MFA、发布状态、系统继承范围、属性映射和 JIT 成员策略。
+- `ssoConfigDrawer` 增加身份源列表和测试发布检查，明确回调连通性、证书有效期、属性映射样本、系统成员映射、无权限反馈和登录日志 traceId。
+- 系统信息页补“认证方式继承”“成员映射策略”“JIT 与无权限处理”，把平台账号、系统成员、系统角色和数据范围链路表达清楚。
+- 系统上线保障新增“统一认证 / SSO 继承”行，系统体检中“短信 / SSO”修复入口改为认证配置。
+- `loginMethodDrawer` 明确登录页只消费平台后台已发布身份源，不承载配置发布。
+- brief、design-package、user-approval、pre-coding-readiness 和项目规约同步更新 1.7.18 口径。
+
+### API 阶段优先冻结
+
+- `identity_provider`：身份源协议、连接参数、证书/JWKS、启停和发布状态。
+- `system_sso_policy`：系统继承范围、租户域名限制、JIT 策略、无成员映射反馈。
+- `account_binding`：externalUserId、email、mobile、employeeNo 到平台账号和系统成员的映射。
+- `sso_test_result`：回调测试、证书有效期、属性样本、成员映射样本、失败原因和 traceId。
+- `login_audit`：identityProvider、externalUserId、认证方式、MFA、映射结果、IP、设备、requestId、traceId。
+
+当前仍不进入 coding：`approved=false`、`design_user_approved=false`、`api_frozen=false`。
+
+## 30. 平台/系统日志布局统一与多角色开发前评审
+
+> 时间：2026-06-22 本轮按用户要求拉起产品架构、UI/UX、权限流程、开发可实现性、测试运维五个视角复审
+> 版本：`1.7.17-platform-log-layout-review`
+
+### 本轮发现
+
+- 平台后台日志原先是两个并排卡片，虽然有登录日志和业务日志，但不像组织架构的左树右表，筛选和详情承接也偏泛。
+- 初改后出现“左侧日志类型树 + 右侧日志类型下拉 + 登录/业务页签”三套主分类，评审认为会让开发产生多套状态源。
+- 系统后台日志仍是单面板页签，和平台日志不一致；系统登录日志也缺少显式 traceId。
+- 后台任务反馈少于 brief 要求，缺 idempotencyKey、cancelable、resultFile、errorFile、createdBy、createdAt、auditLogId 等字段。
+- 原型脚本此前对所有 `tbody tr` 默认打开兜底详情，开发时容易让配置说明表、状态表误触发行详情。
+- 字段类型清单还缺建模级矩阵，API 冻结时可能反复补存储形态、筛选操作符、权限和导入导出规则。
+
+### 已补齐
+
+- 平台日志改为左侧日志类型/审计范围，右侧统一列表、统一筛选、列设置、导出和行点击详情；移除右侧日志类型下拉和日志页签主分类。
+- 系统日志同步改为同款左类型树/右统一列表；系统登录、业务、风险、导入导出/后台任务、AI Agent 均进入统一日志列表，并显式展示 traceId。
+- 日志详情补 requestId、traceId、auditLogId、IP/设备、字段差异、脱敏结果、权限快照、错误原因、处理人和下一步动作。
+- 日志导出提交后进入后台任务反馈；后台任务模型补 idempotencyKey、cancelable、resultFile、errorFile、createdBy、createdAt、auditLogId 等字段。
+- AI 写入确认补确认人、确认时间和确认范围，避免只在日志里隐含。
+- 通用状态样例补“禁用状态”，明确 disabledReason、disabledSource 和审计边界。
+- 字段类型区域补存储形态、筛选/排序操作符、默认值校验、权限和导入导出矩阵。
+- 行点击脚本收紧为仅明确标记的数据表或业务核心列表启用；无目标的数据行不再默认打开 genericBizDrawer。
+- brief、design-package、user-approval、pre-coding-readiness 同步更新 1.7.17 口径。
+
+### 剩余进入 API 阶段时优先冻结
+
+- 有效权限返回结构。
+- 审批实例/任务快照。
+- 日志审计字段统一模型。
+- 统一后台任务模型。
+- 字段类型注册表和筛选表达式。
+- 配置项版本/发布/回滚模型。
+
+当前仍不进入 coding：`approved=false`、`design_user_approved=false`、`api_frozen=false`。
+
+## 27. 开发前架构框架扫描：契约治理与移动效率补齐
+
+> 时间：2026-06-22 本轮继续扫描
+> 版本：`1.7.16-pre-coding-action-dedup`
+> 原型：`docs/design/prototypes/index.html`
+
+本轮在上一轮上线保障基础上继续按“coding 后不返工”的口径复查，重点找会影响接口契约、部署验收和普通用户高频路径的缺口。
+
+本轮发现并补齐：
+
+- 平台配置管理和系统信息页虽然已有体检、备份、归档、配额，但还缺少多环境、部署回滚、生产占位密钥检查和破坏性脚本确认的可见结构；已新增“多环境与部署回滚”配置行和 `deploymentPolicyDrawer` 专属模板。
+- API 规范、错误码、幂等和缓存策略只在需求文档中完整，原型没有专属承接，容易导致 API 契约阶段各模块临时定义；已新增“缓存策略与 API 规范”配置行和 `apiCachePolicyDrawer` 专属模板。
+- 日常效率入口已有全局搜索、快捷创建、最近访问、表单草稿和错误字段定位，但缺少收藏菜单和移动端扫码/拍照上传；已补到快捷创建和附件抽屉，明确扫码/拍照进入附件草稿、业务对象绑定、权限脱敏、失败重试和业务日志链路。
+- AI 写入确认中的 Agent 审计用词统一为“策略快照”，避免 API 阶段把策略版本、权限快照、提示词版本和模型授权快照拆散。
+- `docs/design/design-package.md` 的“下一步”旧口径已修正：当前已有开发前复审版原型，不默认重新生成；先走 `user-approval` 签字，签字后进入 API 契约冻结和任务拆分。
+
+复验结果：
+
+- 静态结构：脚本语法通过；data-page/data-screen/data-subpage/data-work-subpage/data-task-view/data-jump-page/data-jump-screen/data-drawer/data-jump-drawer 均无断链。
+- 静态结构：43 个专属 template、88 个抽屉承接 key；data-toast=0、genericFlowDrawer=0、直接 defaultDrawer 引用=0、message-actions=0、重复“详情”按钮=0。
+- 关键词覆盖：多环境、部署回滚、缓存策略、API 规范、错误码、收藏菜单、移动端扫码、拍照上传、策略快照等本轮新增关键字均已在原型可见。
+- 浏览器路径：登录页默认 loginScreen，注册/找回入口可见，720px 视口下无外层滚动条。
+- 浏览器路径：platform_admin_root 登录进入平台工作台后可进入平台后台配置管理；多环境与部署回滚、API 规范与缓存策略两类入口可见，抽屉能打开并展示生产环境、错误码等开发契约字段。
+- 浏览器路径：sys_admin_vehicle 进入系统后台系统信息页；多环境与部署回滚、API 规范与缓存策略入口可见，API 规范与缓存策略抽屉能打开并展示缓存策略。
+- 浏览器路径：che 进入系统业务页，快捷创建抽屉能打开并展示收藏菜单、移动端扫码或拍照上传；收窄到当前可见业务页和个人菜单后，无系统后台和平台后台可见入口。
+- 浏览器控制台：原型自身无 console error；外层 Statsig 网络超时来自宿主浏览器插件，不属于原型代码。
+
+当前结论：原型继续向“开发契约可抽取”收敛。仍不能直接 coding；`approved=false`、`design_user_approved=false`、`api_frozen=false` 仍是硬闸门。
+
+## 29. 开发前操作列去重加严复核
+
+> 版本：`1.7.16-pre-coding-action-dedup`
+
+### 本轮发现
+
+只检查“详情”按钮还不够，部分列表操作列仍用“查看 / 打开 / 进入”承接和整行点击相同的详情动作，开发时容易继续做成双入口。
+
+### 已补齐
+
+- 日报列表：已提交日报行不再放“查看”，改为“撤回 / 导出PDF / 复用为草稿”等差异动作；整行点击仍打开日报详情。
+- 待办提醒：提醒类行不再用“查看”，改为“处理”，整行点击仍进入关联对象详情。
+- 配置与审计：备份恢复、部署回滚、API 规范、有效权限、打印记录、搜索结果等入口文案改为“演练记录 / 契约版本 / 权限说明 / 权限预览 / 预览 / 日志定位”等更具体动作。
+- brief、design-package、签字清单同步增加“详情 / 查看 / 打开 / 进入”同义动作去重规则。
+
+### 验证结果
+
+- 静态复验通过：脚本语法通过；页面、screen、subpage、workSubpage、taskView、drawer、message jump 引用无断链；data-toast=0；消息卡片内按钮=0；精确重复“详情/查看/打开”按钮=0。
+- 浏览器复验通过：登录页无滚动条；che 无后台入口，待办隐藏业务侧栏，消息为右侧消息流；platform_member 无平台后台入口；platform_admin_root 和 sys_admin_vehicle 均从个人信息弹层进入对应后台；系统后台 AI Agent、字典、日志和系统信息关键能力可见。
+- `git diff --check` 仅有 Windows LF/CRLF warning，无空白错误。
+
+### 结论
+
+当前原型的详情主入口统一为整行点击；操作列只保留差异动作。仍保持设计闸门：`approved=false`、`design_user_approved=false`、`api_frozen=false`，用户签字前禁止 coding。
+
+## 28. 开发前覆盖锁定：需求词到原型证据补齐
+
+> 时间：2026-06-22 本轮继续扫描
+> 版本：`1.7.16-pre-coding-action-dedup`
+> 原型：`docs/design/prototypes/index.html`
+
+本轮在 1.7.14 的断链和浏览器复验基础上，继续按“需求词必须能在原型中找到可开发证据”的口径复扫。发现部分能力已经存在但命名不够直接，容易让 API/开发拆分时漏掉字段、筛选或状态，因此补为显式表达。
+
+已补齐：
+- 平台配置和系统信息页将“备份与恢复/数据归档/容量与配额”明确为“备份恢复、归档恢复、容量配额”，并补恢复演练、恢复申请、traceId、审计边界。
+- 系统生命周期在创建系统承接中明确包含启用系统、停用系统和删除系统，避免只用状态暗示。
+- 消息中心明确为消息流，筛选项写成系统筛选、租户筛选、模板筛选；消息整条点击跳转，卡片内不放重复小按钮。
+- 模块配置和列表配置补表头排序、整行点击打开详情；操作列继续只保留差异动作。
+- 数据字典补“字典类型”筛选文案，字段选项字典、状态字典、标签字典不再只靠左侧分类暗示。
+- AI Agent 补“平台级模型授权”和“系统级 Agent 策略”分层，系统级 Agent 不绕过角色、字段、数据范围、脱敏和人工确认。
+- 通用状态文案统一为错误状态、禁用状态，便于开发抽统一组件和接口错误模型。
+- 同步确认字段类型库、工作管理四标签、登录日志/业务日志、数据库直连、appKey/secret/scope、全部导出和批量操作均已在 brief、原型或签字清单中形成可开发证据。
+
+复验结果：
+- 脚本语法通过；页面、screen、subpage、workSubpage、taskView、drawer 引用无断链。
+- data-toast=0、genericFlowDrawer=0、直接 defaultDrawer 引用=0、message-actions=0、重复详情按钮=0、href="#"=0。
+- 本轮关键术语覆盖通过：消息流、整条点击、系统筛选、租户筛选、模板筛选、启用系统、停用系统、字典类型、表头排序、整行点击、平台级模型、系统级 Agent、容量配额、备份恢复、归档恢复、错误状态均已在原型中可见。
+
+当前仍不进入 coding：`approved=false`、`design_user_approved=false`、`api_frozen=false`。
+
+## 26. 开发前架构框架扫描：上线保障与关键模板补齐
+
+> 时间：2026-06-22 本轮继续扫描
+> 版本：`1.7.13-pre-coding-ready-polish`
+> 原型：`docs/design/prototypes/index.html`
+
+本轮不再只按页面断链扫描，而是按“完整系统上线后给正常企业用户长期使用”的架构框架复核：平台层、系统层、运行态业务层、配置态管理层、权限身份层、流程审批层、数据集成层、AI Agent 能力层、工作管理层以及上线保障能力。
+
+本轮发现并补齐：
+
+- 平台配置管理虽然有全局配置表，但原型里缺少平台体检、功能开关/灰度、容量配额、限流、备份恢复、归档和日志保留策略的可见结构；已在平台配置管理表格和 `platformOpsDrawer`、`featureFlagDrawer`、`backupRestoreDrawer`、`archivePolicyDrawer` 中补齐。
+- 系统信息页虽然有系统基础资料和租户信息，但上线前真正需要的系统体检、服务连通性、最近备份、容量预警、功能开关、归档恢复和扩容申请不够显性；已补“上线保障与运行策略”区和 `systemOpsDrawer`。
+- 运行态业务页缺少日常效率入口的可见承接；已补全局搜索、快捷创建/最近访问、表单草稿和错误字段定位，并说明仍受角色权限、字段脱敏和数据范围控制。
+- 流程节点属性、审批处理、AI 写入确认、字典发布检查、AI Agent 发布检查、通用状态样例不能只靠 `drawerDetails` 或 default/generic 兜底；已补专属 `<template>` 结构。
+- `docs/design/prototype-brief.md`、`docs/design/design-package.md`、`docs/design/user-approval.md`、`.cursor/session/state.json`、`.cursor/knowledge/project-operating-rules.md` 和 `.cursor/knowledge/failure-lessons.md` 同步沉淀本轮架构扫描规则。
+
+静态复验结果：
+
+- `<script>` 语法通过。
+- `data-page`、`data-screen`、`data-subpage`、`data-work-subpage`、`data-task-view` 均无断链。
+- 75 个抽屉引用均有承接；其中关键动作抽屉均有专属模板，普通说明型抽屉可走 `drawerDetails`，没有未解析抽屉。
+- `data-toast=` 数量为 0；`genericFlowDrawer` 残留为 0；`defaultDrawer` 直接引用为 0。
+- 上线保障关键词已在原型中可见：系统体检、平台体检、功能开关、灰度、备份恢复、归档、容量、配额、全局搜索、最近访问、快捷创建、表单草稿、错误字段定位。
+
+当前结论：原型已从“页面能点”推进到“开发前可以抽接口和任务”的层级，但闸门仍关闭。正式 coding 前仍必须由用户在 `docs/design/user-approval.md` 签字，然后进入 API 契约冻结和任务拆分。
 
 ## 25. 过早 ready 纠偏：补齐泛化入口
 

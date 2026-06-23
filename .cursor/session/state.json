@@ -2,8 +2,8 @@
   "sessionId": "unexamine-v2-init",
   "architecture": "cursor-v2",
   "phase": "design",
-  "mode": "prototype-pre-coding-ready-polish-corrected",
-  "updated_at": "2026-06-19T08:45:00+08:00",
+  "mode": "prototype-lock-recommended-awaiting-user-signature",
+  "updated_at": "2026-06-23T03:20:00+08:00",
   "gates": {
     "prd_frozen": true,
     "design_package_complete": true,
@@ -14,37 +14,33 @@
     "user_script_passed": false
   },
   "blockers": [
-    "docs/design/user-approval.md 尚未签字，design_user_approved=false，禁止进入 API、后端、前端、SQL 开发。",
-    "当前唯一设计输入为 docs/design/prototype-brief.md，当前版本 1.7.12-pre-coding-ready-polish。",
-    "本轮已落实：工作配置不再展示统计卡片，不直接维护状态/标签选项，改为配置项目任务字段列表、普通任务字段列表、日报字段列表、字段属性、字段权限和看板取数字段。",
-    "本轮已落实：数据字典增强为状态字典、标签字典、字段选项字典，字典项包含颜色、图标、语义、排序、默认项、启停、停用历史和引用影响。",
-    "本轮已落实：任务看板依据已配置字段构建，列字段和泳道/分组字段只能选择已发布的下拉单选或多选字段，颜色和图标来自字段绑定的数据字典。",
-    "本轮已落实：平台后台和系统后台都只保留一个日志管理入口，页面内区分登录日志和业务日志；两类日志仍分别关注安全审计和业务审计。",
-    "本轮已落实：个人信息菜单移除进入授权系统，多系统进入只保留顶部系统切换。",
-    "浏览器复验通过：工作配置无统计卡，包含项目任务字段列表、普通任务字段列表和看板构建规则；数据字典包含状态字典、标签字典、字段选项字典及颜色/图标/语义/排序属性。",
-    "开发前审查已补漏：删除废弃消息页，维保/驾驶员改为专属详情，新增系统 AI Agent 配置页，平台和系统日志页均为一个日志管理入口内区分登录日志和业务日志。",
-    "本轮继续修正：系统后台日志从两个左侧菜单合并为一个日志管理；系统 AI Agent 配置保留为一级页面；登录页外层滚动条通过高度和卡片滚动规则修正。",
-    "本轮再次开发前扫描已落实：模块场景、页面动作、发布到业务页、工作字段、工作看板、流程类型、流程模拟、流程版本、字典发布、AI Agent 发布检查都已有可开发抽屉承接，不再只是 toast。",
-    "本轮再次开发前扫描已落实：通用状态与异常态样例已写入原型和 brief，覆盖加载、空、无权限、错误、禁用、后台任务态。",
-    "本轮多角色评审已落实：1 小时硬上限和落盘上下文重建规则已写入通用规约、项目规约和 README。",
-    "本轮多角色评审已落实：账号示例统一为 sys_admin_vehicle/platform_admin_root，补平台账号到系统成员映射、有效权限计算、系统切换真实列表、平台授权角色边界、流程绑定与运行快照。",
-    "本轮多角色评审已落实：高级筛选构建器、列设置清单、转移/批量编辑/日志列设置/日志导出抽屉、普通任务快速创建、平台个人资料菜单已补。",
-    "本轮多角色评审收尾已落实：删除旧版 2026-06-17 复审和原型目录内旧 brief，docs/README 指向 2026-06-18 最新复审，知识库种子账号统一为 platform_admin_root，原型内部角色 key 统一为 sys_admin_vehicle/platform_admin_root。",
-    "本轮多角色评审收尾已落实：流程节点属性、审批处理、AI 写入确认从 toast 改为可开发抽屉；操作列重复详情按钮改为配置、处理、编辑、更新、查看日志等差异动作。",
-    "仍需用户签字确认：generic/default 抽屉只允许作为动态模块兜底；进入 API、后端、前端、SQL 开发前必须完成 docs/design/user-approval.md 签字。",
-    "第二轮 1 小时多角色评审已落实：平台到系统入口必须经过系统切换；平台账号进入系统前必须有系统成员映射、系统角色和有效数据范围。",
-    "第二轮 1 小时多角色评审已落实：模块组只做运行态导航和发布关系；业务数据归属 systemId/tenantId/moduleId；对外应用只做 OpenAPI 来源和审计，不再用 appId 表示业务数据父级。",
-    "第二轮 1 小时多角色评审已落实：组织树、角色树、模块树、字典分类和待办类型补充节点选择与右侧过滤语义；流程画布补最小宽度和不裁节点约束。",
-    "第二轮 1 小时多角色评审已落实：车辆列表和日志筛选补已应用条件、结果数、分页状态；消息中心补未读/已读状态；无权限访问补 403/无权限反馈样例。",
-    "第二轮 1 小时多角色评审已落实：统一后台任务契约补 taskId、bizType、idempotencyKey、status、progress、resultFile/errorFile、traceId、auditLogId、失败明细和重试/回滚边界。",
-    "过早 ready 纠偏已落实：平台 Flow 改为专属配置和运行结果抽屉；注册创建系统后进入系统初始化引导；登录方式补 SSO/短信/MFA/审计结构；有效权限补返回结构和解释链路；流程高级运行策略补状态机与高级动作。"
+    "docs/design/user-approval.md is not signed: approved=false and design_user_approved=false. Do not enter API/backend/frontend/SQL coding.",
+    "The only current design input is docs/design/prototype-brief.md, version 1.7.24-clean-pre-coding-review-fixes.",
+    "The current prototype is docs/design/prototypes/index.html. docs/design/pre-coding-readiness.md is only an evidence index and does not replace the brief or prototype.",
+    "The only current development baseline is at the top of docs/design/reviews/prototype-latest-2026-06-18.md. Older review sections are historical only.",
+    "After static/browser verification, user signature is still required. After signature, proceed to API contract freeze and task planning, not direct coding."
   ],
   "design_package": {
-    "version": "1.7.12-pre-coding-ready-polish",
+    "version": "1.7.24-clean-pre-coding-review-fixes",
     "p0_pages": 38,
     "reviews": "latest prototype review: docs/design/reviews/prototype-latest-2026-06-18.md",
     "brief": "docs/design/prototype-brief.md",
-    "latest_prototype": "docs/design/prototypes/index.html"
+    "latest_prototype": "docs/design/prototypes/index.html",
+    "readiness": "docs/design/pre-coding-readiness.md",
+    "postApprovalPlan": "docs/design/post-approval-development-plan.md"
   },
-  "notes": "2026-06-19 00:31：首次 1 小时多角色原型评审已补有效权限计算、系统切换真实列表、平台授权角色边界、流程绑定与运行快照、高级筛选构建器、列设置清单、转移/批量编辑/日志列设置/日志导出抽屉、普通任务快速创建、资产统计真实页面、字段类型注册表、状态流转、Agent 策略快照、配置依赖影响分析、异步任务反馈和详情更多动作抽屉。2026-06-19 08:01：按用户要求再次启动 1 小时开发前多角色评审，已补平台到系统必须经系统切换、系统成员映射、模块组/对外应用模型边界、业务数据 systemId/tenantId/moduleId 归属、无权限反馈、树节点选择、流程画布不裁切、筛选/分页/消息状态、统一后台任务契约。2026-06-19 08:45：纠正过早 ready 口径，继续补齐仍泛化的开发契约级入口：平台 Flow、注册初始化引导、登录方式、有效权限返回结构、流程高级运行策略。user-approval 仍 approved=false；design_user_approved=false、api_frozen=false 时禁止后端、前端、SQL coding。"
+  "notes": [
+    "2026-06-19: multi-role pre-coding prototype review covered platform-to-system switching, system member mapping, module groups, external apps, data ownership, no-permission feedback, flow canvas, filters, pagination, messages, and async task contracts.",
+    "2026-06-22: added launch/governance and daily productivity coverage: health checks, feature flags, quotas, rate limits, backup/restore, archive/restore, service connectivity, global search, recent access, quick create, form drafts, error field focus, and action-specific drawers.",
+    "2026-06-22: version 1.7.16 passed action-column deduplication and browser checks for login, system member, platform member, platform admin, and system admin paths.",
+    "2026-06-22: version 1.7.17 added platform/system log layout as left type tree plus right list, single log primary category, traceId fields, log detail audit fields, async task contracts, AI write confirmation metadata, disabled states, field type matrix, and row-click boundaries.",
+    "2026-06-22: version 1.7.18 added enterprise SSO/unified identity configuration: platform identity providers, system inheritance, member mapping, JIT, no-permission feedback, login traceId, plus static and browser verification.",
+    "2026-06-22: version 1.7.19 added platform/system runtime AI Agent boundary. platformRuntimeAgentDrawer handles only platform authorization, logs, tasks, model quota, system health, and system-switch guidance. runtimeAgentDrawer handles business data only in the current system member context.",
+    "2026-06-22: version 1.7.20 added platform Agent confirmation boundary. platformAgentConfirmDrawer generates only platform tasks/messages/logs, while agentWriteConfirmDrawer remains for system business write confirmation.",
+    "2026-06-22: version 1.7.21 added system backend SSO page linked to organization structure. sysSso and systemSsoPolicyDrawer cover identity inheritance, tenant domains, org mapping, employee binding, systemMemberId, JIT system member strategy, no-member feedback, sync tasks, and login audit traceId. Requirements, brief, design package, review, user approval, readiness, project rules, and lessons are updated. Still waiting for user signature; no API or coding yet.",
+    "2026-06-23: version 1.7.22 incorporated six-role prototype review fixes before coding. Platform message center is split from system message center and cannot directly open system business details; system switching now establishes SystemSwitchContext with tenant/system/member/roles/dataScope before opening business pages; table row click affordance is limited to explicit data lists; todo rows have row-level primary actions; SSO left tree filters right-side panels; flow canvas has branch labels and dedicated condition/update/API/timer node drawers; import/export and work kanban closure details are strengthened. Still waiting for user signature; no API or coding yet.",
+    "2026-06-23: version 1.7.23 added pre-coding detail fixes. Notification templates and delivery channels are now explicit platform/system configuration objects; SSO secrets are represented by IdentityProviderSecretRef and SecretRotationJob with rotation workflow; no-member system access uses NoMemberAccessRequest instead of generic authorization; critical buttons now carry explicit action results or open async/log/publish drawers. Still waiting for user signature; no API or coding yet.",
+    "2026-06-23: version 1.7.24 ran clean no-chat pre-coding review and fixed system shell redraw on system switch, TenantSwitchContext, accountMemberBindingId, NoMemberAccessRequest lifecycle fields, AgentPolicyScope, OpenApiSecretRef, DailyReportAutoSourceRule, message filter/read/archive state, pagination/action results, system publish check closure, and defaultDrawer blocker semantics. Still waiting for user signature; no API or coding yet.",
+    "2026-06-23: final eight-role lock review completed. PM, analyst, UI/UX, DBA, backend, frontend, and test roles all recommend LOCK_WITH_NOTES with no P0/P1 design blockers; planner BLOCK is gate-only because user signature, API freeze, and task planning are still closed. No PM change decision is required from the review result. Draft post-approval development plan created at docs/design/post-approval-development-plan.md. Still waiting for user signature; no API/task/coding yet."
+  ]
 }
