@@ -1,16 +1,18 @@
 # 开发前可交接验收矩阵
 
 > 版本：`1.7.24-clean-pre-coding-review-fixes`
-> 状态：原型与设计证据已完成开发前复验；等待用户签字。
+> 状态：原型与设计证据已完成开发前复验；用户已签字，API 已冻结，任务计划已生成。
 > 性质：本文是 coding 前的证据索引和交接矩阵，不是新的需求来源。设计输入仍以 `docs/design/prototype-brief.md` 和 `docs/design/prototypes/index.html` 为准。
 
 ## 1. 当前结论
 
-当前原型已经完成开发前覆盖锁定、操作列去重、多角色路径验证、六角色评审修正、消息/密钥/无成员申请/按钮结果链路补齐、干净上下文开发前复审修正和文档口径收敛，具备进入“用户签字确认”的条件。
+2026-06-23T15:10:00+08:00 用户已确认当前原型并同意开启后续阶段；`docs/design/user-approval.md` 已改为 `approved: true`，`.cursor/session/state.json` 已进入 Build 前置完成状态。
 
-仍不能直接 coding：`docs/design/user-approval.md` 仍为 `approved: false`，`.cursor/session/state.json` 中 `design_user_approved=false`、`api_frozen=false`。
+2026-06-23T16:05:00+08:00 API review 与 contract-sync 已通过，`docs/api/api.md` 冻结为 `0.1.0-frozen`。
 
-签字后下一步不是直接写代码，而是：API 契约冻结 -> 任务拆分 -> 分批实现 -> 验收。
+2026-06-23T16:20:00+08:00 正式任务计划已生成：`docs/tasks/plan.md` 与 `docs/tasks/TASK-*.md`。Build 可以按任务单输出路径开始，禁止脱离任务单修改 backend/frontend/sql。
+
+后续顺序是：按并行组实现任务 -> 每个任务 task-accept -> 批次 clean-build -> 车系统 che 主剧本验收。
 
 2026-06-23 已完成八角色最终锁版复审：PM、业务分析、UI/UX、DBA、后端、前端、测试均为 `LOCK_WITH_NOTES`，未发现新的 P0/P1 设计阻断点；计划角色的 `BLOCK` 仅来自签字/API/任务计划门禁未打开。签字后的开发计划草案见 `docs/design/post-approval-development-plan.md`，该文件只作为设计阶段交接草案，正式任务单必须在 API 契约冻结后生成。
 

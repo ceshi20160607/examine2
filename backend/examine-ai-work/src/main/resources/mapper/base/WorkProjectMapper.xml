@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.aiwork.base.mapper.WorkProjectMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.aiwork.base.entity.WorkProject">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="project_code" property="projectCode" />
+        <result column="project_name" property="projectName" />
+        <result column="owner_member_id" property="ownerMemberId" />
+        <result column="status" property="status" />
+        <result column="progress" property="progress" />
+        <result column="start_date" property="startDate" />
+        <result column="end_date" property="endDate" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, system_id, tenant_id, project_code, project_name, owner_member_id, status, progress, start_date, end_date, created_at, updated_at, deleted</sql>
+</mapper>

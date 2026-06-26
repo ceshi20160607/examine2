@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.messagelog.base.mapper.AuditLoginLogMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.messagelog.base.entity.AuditLoginLog">
+        <id column="id" property="id" />
+        <result column="account_id" property="accountId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="identity_provider" property="identityProvider" />
+        <result column="external_user_id" property="externalUserId" />
+        <result column="auth_method" property="authMethod" />
+        <result column="mfa_result" property="mfaResult" />
+        <result column="account_binding_result" property="accountBindingResult" />
+        <result column="member_mapping_result" property="memberMappingResult" />
+        <result column="login_result" property="loginResult" />
+        <result column="failure_reason" property="failureReason" />
+        <result column="ip" property="ip" />
+        <result column="device" property="device" />
+        <result column="request_id" property="requestId" />
+        <result column="trace_id" property="traceId" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, account_id, system_id, tenant_id, identity_provider, external_user_id, auth_method, mfa_result, account_binding_result, member_mapping_result, login_result, failure_reason, ip, device, request_id, trace_id, created_at</sql>
+</mapper>

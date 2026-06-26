@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.messagelog.base.mapper.MessageTodoMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.messagelog.base.entity.MessageTodo">
+        <id column="id" property="id" />
+        <result column="scope" property="scope" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="todo_type" property="todoType" />
+        <result column="title" property="title" />
+        <result column="source_name" property="sourceName" />
+        <result column="assignee_id" property="assigneeId" />
+        <result column="status" property="status" />
+        <result column="priority" property="priority" />
+        <result column="due_at" property="dueAt" />
+        <result column="target_payload" property="targetPayload" />
+        <result column="primary_action" property="primaryAction" />
+        <result column="trace_id" property="traceId" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, scope, system_id, tenant_id, todo_type, title, source_name, assignee_id, status, priority, due_at, target_payload, primary_action, trace_id, created_at</sql>
+</mapper>

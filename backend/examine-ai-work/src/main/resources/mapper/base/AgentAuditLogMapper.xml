@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.aiwork.base.mapper.AgentAuditLogMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.aiwork.base.entity.AgentAuditLog">
+        <id column="id" property="id" />
+        <result column="session_id" property="sessionId" />
+        <result column="confirmation_id" property="confirmationId" />
+        <result column="scope" property="scope" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="model_version" property="modelVersion" />
+        <result column="prompt_version" property="promptVersion" />
+        <result column="policy_version" property="policyVersion" />
+        <result column="permission_snapshot_id" property="permissionSnapshotId" />
+        <result column="conversation_snapshot" property="conversationSnapshot" />
+        <result column="tool_call_snapshot" property="toolCallSnapshot" />
+        <result column="desensitize_result" property="desensitizeResult" />
+        <result column="outbound_snapshot" property="outboundSnapshot" />
+        <result column="trace_id" property="traceId" />
+        <result column="audit_log_id" property="auditLogId" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, session_id, confirmation_id, scope, system_id, tenant_id, model_version, prompt_version, policy_version, permission_snapshot_id, conversation_snapshot, tool_call_snapshot, desensitize_result, outbound_snapshot, trace_id, audit_log_id, created_at</sql>
+</mapper>

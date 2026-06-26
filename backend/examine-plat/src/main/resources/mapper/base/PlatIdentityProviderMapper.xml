@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.plat.base.mapper.PlatIdentityProviderMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.PlatIdentityProvider">
+        <id column="id" property="id" />
+        <result column="provider_code" property="providerCode" />
+        <result column="provider_name" property="providerName" />
+        <result column="protocol" property="protocol" />
+        <result column="issuer" property="issuer" />
+        <result column="client_id" property="clientId" />
+        <result column="secret_ref_id" property="secretRefId" />
+        <result column="cert_ref_id" property="certRefId" />
+        <result column="domain_whitelist" property="domainWhitelist" />
+        <result column="jit_policy" property="jitPolicy" />
+        <result column="mfa_policy" property="mfaPolicy" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, provider_code, provider_name, protocol, issuer, client_id, secret_ref_id, cert_ref_id, domain_whitelist, jit_policy, mfa_policy, status, created_at, updated_at</sql>
+</mapper>

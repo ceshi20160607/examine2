@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.flow.base.mapper.FlowSimulationLogMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.flow.base.entity.FlowSimulationLog">
+        <id column="id" property="id" />
+        <result column="flow_id" property="flowId" />
+        <result column="version_no" property="versionNo" />
+        <result column="input_payload" property="inputPayload" />
+        <result column="output_payload" property="outputPayload" />
+        <result column="failure_items" property="failureItems" />
+        <result column="simulated_by" property="simulatedBy" />
+        <result column="trace_id" property="traceId" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, flow_id, version_no, input_payload, output_payload, failure_items, simulated_by, trace_id, created_at</sql>
+</mapper>

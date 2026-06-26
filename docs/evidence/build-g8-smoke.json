@@ -1,0 +1,1547 @@
+﻿{
+    "summary":  {
+                    "health":  "SUCCESS",
+                    "modelAuthCount":  2,
+                    "platformSessionScope":  "platform",
+                    "platformBoundaryDenied":  [
+                                                   "SYSTEM_BUSINESS_RECORD",
+                                                   "SYSTEM_MODULE_WRITE",
+                                                   "SYSTEM_APPROVAL_WRITE"
+                                               ],
+                    "platformConfirmAllowed":  true,
+                    "platformConfirmRejectedAllowed":  false,
+                    "platformRejectedReason":  "å¹³å° Agent ä¸è½æå¼æåå\u0085¥ç³»ç»ä¸å¡æ°æ®ï¼è¯·å\u0085å®æç³»ç»åæ¢ã",
+                    "systemPolicyVersion":  "agent_policy_v20260624_001",
+                    "publishCheckPassed":  true,
+                    "systemSessionScope":  "system",
+                    "systemMessageConfirmTypes":  [
+                                                      "SYSTEM_AGENT_WRITE_CONFIRM",
+                                                      "WORK_AGENT_DRAFT_CONFIRM"
+                                                  ],
+                    "systemWriteCreateType":  "SYSTEM_AGENT_WRITE_CONFIRM",
+                    "systemWriteCreateStatus":  "WAITING_HUMAN_CONFIRM",
+                    "systemWriteConfirmStatus":  "CONFIRMED",
+                    "systemWriteRejectStatus":  "REJECTED",
+                    "workDraftType":  "WORK_AGENT_DRAFT_CONFIRM",
+                    "workDraftManualConfirm":  true,
+                    "auditModelVersion":  "gpt-5-enterprise@2026-06",
+                    "auditPromptVersion":  "agent_prompt_v20260624_001",
+                    "auditPolicyVersion":  "agent_policy_v20260624_001",
+                    "auditPermissionSnapshot":  "perm_snapshot_agent_20260624_001",
+                    "auditDesensitizeMode":  "MASK_SENSITIVE_FIELDS",
+                    "auditTraceId":  "trc_abea09c2-0ca6-4cec-b4e8-a49c7ef882aa"
+                },
+    "results":  {
+                    "health":  {
+                                   "code":  "SUCCESS",
+                                   "message":  "æå",
+                                   "requestId":  "req_f0dc2f2e-2779-4bd9-bec7-53b74a9bcf64",
+                                   "traceId":  "trc_6acedd5a-1995-4eb7-9381-69b492e902fb",
+                                   "auditLogId":  null,
+                                   "data":  {
+                                                "status":  "UP"
+                                            },
+                                   "errorFields":  [
+
+                                                   ],
+                                   "disabledReason":  null
+                               },
+                    "modelAuthorizations":  {
+                                                "code":  "SUCCESS",
+                                                "message":  "æå",
+                                                "requestId":  "req_b489911a-da30-42ac-8782-c92e3c748441",
+                                                "traceId":  "trc_515342b3-bc0c-4908-84e5-4b210aafb38f",
+                                                "auditLogId":  null,
+                                                "data":  {
+                                                             "records":  [
+                                                                             {
+                                                                                 "authorizationId":  "auth_platform_local",
+                                                                                 "authorizationCode":  "auth_platform_local",
+                                                                                 "modelProvider":  "LOCAL",
+                                                                                 "modelName":  "Local-Qwen-72B",
+                                                                                 "modelCredentialRef":  {
+                                                                                                            "secretRefId":  "sec_model_authplatform",
+                                                                                                            "refType":  "ModelCredentialRef",
+                                                                                                            "version":  "v1",
+                                                                                                            "expiresAt":  "2026-09-22T10:11:14.594219",
+                                                                                                            "rotationStatus":  "ACTIVE",
+                                                                                                            "lastUsedAt":  "2026-06-24T08:11:14.594219",
+                                                                                                            "displayName":  "æ¨¡åå¯é¥å¼ç¨-authplatform"
+                                                                                                        },
+                                                                                 "quota":  {
+                                                                                               "tokenLimit":  1000000,
+                                                                                               "requestLimit":  20000,
+                                                                                               "costLimit":  500,
+                                                                                               "resetPolicy":  "DAILY"
+                                                                                           },
+                                                                                 "dataOutboundPolicy":  {
+                                                                                                            "allowExternalModel":  false,
+                                                                                                            "allowedRegions":  [
+                                                                                                                                   "CN"
+                                                                                                                               ],
+                                                                                                            "outboundFields":  [
+                                                                                                                                   "maskedBusinessData",
+                                                                                                                                   "statistics"
+                                                                                                                               ],
+                                                                                                            "retentionDays":  180
+                                                                                                        },
+                                                                                 "status":  1,
+                                                                                 "version":  "model_auth_v20260624_001",
+                                                                                 "operation":  null,
+                                                                                 "createdAt":  "2026-06-22T10:11:14.5952188"
+                                                                             },
+                                                                             {
+                                                                                 "authorizationId":  "auth_platform_external",
+                                                                                 "authorizationCode":  "auth_platform_external",
+                                                                                 "modelProvider":  "OPENAI",
+                                                                                 "modelName":  "gpt-5.5",
+                                                                                 "modelCredentialRef":  {
+                                                                                                            "secretRefId":  "sec_model_authplatform",
+                                                                                                            "refType":  "ModelCredentialRef",
+                                                                                                            "version":  "v1",
+                                                                                                            "expiresAt":  "2026-09-22T10:11:14.5952188",
+                                                                                                            "rotationStatus":  "ACTIVE",
+                                                                                                            "lastUsedAt":  "2026-06-24T08:11:14.5952188",
+                                                                                                            "displayName":  "æ¨¡åå¯é¥å¼ç¨-authplatform"
+                                                                                                        },
+                                                                                 "quota":  {
+                                                                                               "tokenLimit":  1000000,
+                                                                                               "requestLimit":  20000,
+                                                                                               "costLimit":  500,
+                                                                                               "resetPolicy":  "DAILY"
+                                                                                           },
+                                                                                 "dataOutboundPolicy":  {
+                                                                                                            "allowExternalModel":  false,
+                                                                                                            "allowedRegions":  [
+                                                                                                                                   "CN"
+                                                                                                                               ],
+                                                                                                            "outboundFields":  [
+                                                                                                                                   "maskedBusinessData",
+                                                                                                                                   "statistics"
+                                                                                                                               ],
+                                                                                                            "retentionDays":  180
+                                                                                                        },
+                                                                                 "status":  1,
+                                                                                 "version":  "model_auth_v20260624_001",
+                                                                                 "operation":  null,
+                                                                                 "createdAt":  "2026-06-22T10:11:14.5952188"
+                                                                             }
+                                                                         ],
+                                                             "pageNo":  1,
+                                                             "pageSize":  20,
+                                                             "total":  2,
+                                                             "hasNext":  false
+                                                         },
+                                                "errorFields":  [
+
+                                                                ],
+                                                "disabledReason":  null
+                                            },
+                    "createModelAuthorization":  {
+                                                     "code":  "SUCCESS",
+                                                     "message":  "æå",
+                                                     "requestId":  "req_edc96eb1-3e54-4e89-a1d2-88d4a9c7b511",
+                                                     "traceId":  "trc_504b765d-bfc5-40b7-b244-200eee06cfa2",
+                                                     "auditLogId":  "aud_trc_504b765d-bfc5-40b7-b244-200eee06cfa2",
+                                                     "data":  {
+                                                                  "authorizationId":  "model_auth_authenterpri",
+                                                                  "authorizationCode":  "auth_enterprise_local",
+                                                                  "modelProvider":  "LOCAL",
+                                                                  "modelName":  "Local-Qwen-72B",
+                                                                  "modelCredentialRef":  {
+                                                                                             "secretRefId":  "sec_model_authenterpri",
+                                                                                             "refType":  "ModelCredentialRef",
+                                                                                             "version":  "v1",
+                                                                                             "expiresAt":  "2026-09-22T10:11:14.7239448",
+                                                                                             "rotationStatus":  "ACTIVE",
+                                                                                             "lastUsedAt":  "2026-06-24T08:11:14.7239448",
+                                                                                             "displayName":  "æ¨¡åå¯é¥å¼ç¨-authenterpri"
+                                                                                         },
+                                                                  "quota":  {
+                                                                                "tokenLimit":  1000000,
+                                                                                "requestLimit":  20000,
+                                                                                "costLimit":  500,
+                                                                                "resetPolicy":  "DAILY"
+                                                                            },
+                                                                  "dataOutboundPolicy":  {
+                                                                                             "allowExternalModel":  false,
+                                                                                             "allowedRegions":  [
+                                                                                                                    "CN"
+                                                                                                                ],
+                                                                                             "outboundFields":  [
+                                                                                                                    "maskedBusinessData",
+                                                                                                                    "statistics"
+                                                                                                                ],
+                                                                                             "retentionDays":  180
+                                                                                         },
+                                                                  "status":  1,
+                                                                  "version":  "model_auth_v20260624_001",
+                                                                  "operation":  {
+                                                                                    "operation":  "CREATE_MODEL_AUTHORIZATION",
+                                                                                    "idempotencyKey":  "g8-model-create",
+                                                                                    "result":  "SAVED",
+                                                                                    "traceId":  "trc_504b765d-bfc5-40b7-b244-200eee06cfa2",
+                                                                                    "auditLogId":  "audit_agent_trc504b765db",
+                                                                                    "disabledReason":  null,
+                                                                                    "operatedAt":  "2026-06-24T10:11:14.7239448"
+                                                                                },
+                                                                  "createdAt":  "2026-06-24T10:11:14.7239448"
+                                                              },
+                                                     "errorFields":  [
+
+                                                                     ],
+                                                     "disabledReason":  null
+                                                 },
+                    "updateModelAuthorization":  {
+                                                     "code":  "SUCCESS",
+                                                     "message":  "æå",
+                                                     "requestId":  "req_1610aea3-d9c9-409a-9ffe-77f8a53f65c9",
+                                                     "traceId":  "trc_31c29b13-393d-48c3-bf62-7c8521774a16",
+                                                     "auditLogId":  "aud_trc_31c29b13-393d-48c3-bf62-7c8521774a16",
+                                                     "data":  {
+                                                                  "authorizationId":  "auth_enterprise_local",
+                                                                  "authorizationCode":  "auth_enterprise_local",
+                                                                  "modelProvider":  "LOCAL",
+                                                                  "modelName":  "Local-Qwen-72B",
+                                                                  "modelCredentialRef":  {
+                                                                                             "secretRefId":  "sec_model_authenterpri",
+                                                                                             "refType":  "ModelCredentialRef",
+                                                                                             "version":  "v1",
+                                                                                             "expiresAt":  "2026-09-22T10:11:14.7344661",
+                                                                                             "rotationStatus":  "ACTIVE",
+                                                                                             "lastUsedAt":  "2026-06-24T08:11:14.7344661",
+                                                                                             "displayName":  "æ¨¡åå¯é¥å¼ç¨-authenterpri"
+                                                                                         },
+                                                                  "quota":  {
+                                                                                "tokenLimit":  1000000,
+                                                                                "requestLimit":  20000,
+                                                                                "costLimit":  500,
+                                                                                "resetPolicy":  "DAILY"
+                                                                            },
+                                                                  "dataOutboundPolicy":  {
+                                                                                             "allowExternalModel":  false,
+                                                                                             "allowedRegions":  [
+                                                                                                                    "CN"
+                                                                                                                ],
+                                                                                             "outboundFields":  [
+                                                                                                                    "maskedBusinessData",
+                                                                                                                    "statistics"
+                                                                                                                ],
+                                                                                             "retentionDays":  180
+                                                                                         },
+                                                                  "status":  1,
+                                                                  "version":  "model_auth_v20260624_001",
+                                                                  "operation":  {
+                                                                                    "operation":  "UPDATE_MODEL_AUTHORIZATION",
+                                                                                    "idempotencyKey":  "g8-model-update",
+                                                                                    "result":  "SAVED",
+                                                                                    "traceId":  "trc_31c29b13-393d-48c3-bf62-7c8521774a16",
+                                                                                    "auditLogId":  "audit_agent_trc31c29b133",
+                                                                                    "disabledReason":  null,
+                                                                                    "operatedAt":  "2026-06-24T10:11:14.7344661"
+                                                                                },
+                                                                  "createdAt":  "2026-06-24T10:11:14.7344661"
+                                                              },
+                                                     "errorFields":  [
+
+                                                                     ],
+                                                     "disabledReason":  null
+                                                 },
+                    "platformSession":  {
+                                            "code":  "SUCCESS",
+                                            "message":  "æå",
+                                            "requestId":  "req_4b1a3456-a0d0-4d71-bc05-c27443069332",
+                                            "traceId":  "trc_567611fa-b3fb-4202-a4ef-563e75ec2026",
+                                            "auditLogId":  "aud_trc_567611fa-b3fb-4202-a4ef-563e75ec2026",
+                                            "data":  {
+                                                         "sessionId":  "agent_session_platform_platform",
+                                                         "scope":  "platform",
+                                                         "systemId":  null,
+                                                         "tenantId":  "tenant_default",
+                                                         "systemMemberId":  null,
+                                                         "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                         "promptVersion":  "agent_prompt_v20260624_001",
+                                                         "policyVersion":  "agent_policy_v20260624_001",
+                                                         "permissionSnapshotId":  "platform_permission_snapshot",
+                                                         "status":  "ACTIVE",
+                                                         "boundary":  {
+                                                                          "allowedTargetTypes":  [
+                                                                                                     "PLATFORM_AUTHORIZATION",
+                                                                                                     "PLATFORM_TASK",
+                                                                                                     "PLATFORM_LOG",
+                                                                                                     "MODEL_QUOTA",
+                                                                                                     "SYSTEM_HEALTH",
+                                                                                                     "SYSTEM_SWITCH_GUIDE"
+                                                                                                 ],
+                                                                          "deniedTargetTypes":  [
+                                                                                                    "SYSTEM_BUSINESS_RECORD",
+                                                                                                    "SYSTEM_MODULE_WRITE",
+                                                                                                    "SYSTEM_APPROVAL_WRITE"
+                                                                                                ],
+                                                                          "reason":  "å¹³å° Agent ä¸å¾æå¼æåå\u0085¥ç³»ç»ä¸å¡æ°æ®ã"
+                                                                      },
+                                                         "createdAt":  "2026-06-24T10:11:14.7487729"
+                                                     },
+                                            "errorFields":  [
+
+                                                            ],
+                                            "disabledReason":  null
+                                        },
+                    "platformMessage":  {
+                                            "code":  "SUCCESS",
+                                            "message":  "æå",
+                                            "requestId":  "req_5e3198a2-a3aa-47b3-bbf7-d8b1c4db1b1a",
+                                            "traceId":  "trc_7bcf05a5-50a5-49ef-9b80-e1e922fc0580",
+                                            "auditLogId":  "aud_trc_7bcf05a5-50a5-49ef-9b80-e1e922fc0580",
+                                            "data":  {
+                                                         "sessionId":  "agent_session_platform_platform",
+                                                         "role":  "assistant",
+                                                         "content":  "å·²æ£æ¥å¹³å°æ¨¡åææä¸é¢åº¦ï¼åªè½çæå¹³å°ä»»å¡ãå¹³å°æ¶æ¯æå¹³å°æ¥å¿ï¼æ¶åç³»ç»ä¸å¡æ°æ®æ¶è¯·å\u0085åæ¢ç³»ç»ã",
+                                                         "toolCalls":  [
+                                                                           {
+                                                                               "toolName":  "platform_model_quota_check",
+                                                                               "status":  "SUCCESS",
+                                                                               "inputSnapshot":  {
+                                                                                                     "scope":  "platform"
+                                                                                                 },
+                                                                               "outputSnapshot":  {
+                                                                                                      "remainingTokens":  120000
+                                                                                                  }
+                                                                           }
+                                                                       ],
+                                                         "proposedConfirmations":  [
+                                                                                       {
+                                                                                           "confirmationId":  "confirm_platform_agentsession",
+                                                                                           "confirmType":  "PLATFORM_AGENT_CONFIRM",
+                                                                                           "status":  "WAITING_HUMAN_CONFIRM",
+                                                                                           "manualConfirmRequired":  true
+                                                                                       }
+                                                                                   ],
+                                                         "audit":  {
+                                                                       "logId":  "agent_audit_agentsession",
+                                                                       "sessionId":  "agent_session_platform_platform",
+                                                                       "confirmationId":  null,
+                                                                       "scope":  "platform",
+                                                                       "systemId":  null,
+                                                                       "tenantId":  "tenant_default",
+                                                                       "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                       "promptVersion":  "agent_prompt_v20260624_001",
+                                                                       "policyVersion":  "agent_policy_v20260624_001",
+                                                                       "permissionSnapshotId":  "platform_permission_snapshot",
+                                                                       "conversationSnapshot":  {
+                                                                                                    "conversation":  "???????????????",
+                                                                                                    "retentionDays":  180
+                                                                                                },
+                                                                       "toolCallSnapshot":  {
+                                                                                                "tools":  [
+                                                                                                              "platform_authorization_check",
+                                                                                                              "platform_task_draft"
+                                                                                                          ],
+                                                                                                "toolCallCount":  2
+                                                                                            },
+                                                                       "desensitizeResult":  {
+                                                                                                 "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                 "maskedFields":  [
+                                                                                                                      "mobile",
+                                                                                                                      "idNo",
+                                                                                                                      "secret"
+                                                                                                                  ]
+                                                                                             },
+                                                                       "outboundSnapshot":  {
+                                                                                                "allowExternalModel":  false,
+                                                                                                "maxRows":  200,
+                                                                                                "outboundFields":  [
+                                                                                                                       "summary",
+                                                                                                                       "statistics",
+                                                                                                                       "maskedBusinessData"
+                                                                                                                   ]
+                                                                                            },
+                                                                       "traceId":  "trc_7bcf05a5-50a5-49ef-9b80-e1e922fc0580",
+                                                                       "auditLogId":  "audit_agent_trc7bcf05a55",
+                                                                       "createdAt":  "2026-06-24T10:11:14.7653093"
+                                                                   },
+                                                         "operation":  {
+                                                                           "operation":  "PLATFORM_AGENT_MESSAGE",
+                                                                           "idempotencyKey":  "g8-platform-msg",
+                                                                           "result":  "REPLIED",
+                                                                           "traceId":  "trc_7bcf05a5-50a5-49ef-9b80-e1e922fc0580",
+                                                                           "auditLogId":  "audit_agent_trc7bcf05a55",
+                                                                           "disabledReason":  null,
+                                                                           "operatedAt":  "2026-06-24T10:11:14.7663173"
+                                                                       }
+                                                     },
+                                            "errorFields":  [
+
+                                                            ],
+                                            "disabledReason":  null
+                                        },
+                    "platformConfirmAllowed":  {
+                                                   "code":  "SUCCESS",
+                                                   "message":  "æå",
+                                                   "requestId":  "req_75893954-d7c6-426a-a284-65df0e69f0c9",
+                                                   "traceId":  "trc_51cae281-9df1-4409-8aa4-3cd0b88e4559",
+                                                   "auditLogId":  "aud_trc_51cae281-9df1-4409-8aa4-3cd0b88e4559",
+                                                   "data":  {
+                                                                "confirmation":  {
+                                                                                     "confirmationId":  "confirm_platform_agentsession",
+                                                                                     "confirmType":  "PLATFORM_AGENT_CONFIRM",
+                                                                                     "status":  "CONFIRMED",
+                                                                                     "sourceConversation":  "??????",
+                                                                                     "permissionSnapshotId":  "platform_permission_snapshot",
+                                                                                     "confirmedBy":  "member_001",
+                                                                                     "confirmedAt":  "2026-06-24T10:11:14.7816049",
+                                                                                     "audit":  {
+                                                                                                   "logId":  "agent_audit_agentsession",
+                                                                                                   "sessionId":  "agent_session_platform",
+                                                                                                   "confirmationId":  "confirm_platform_agentsession",
+                                                                                                   "scope":  "platform",
+                                                                                                   "systemId":  null,
+                                                                                                   "tenantId":  "tenant_default",
+                                                                                                   "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                                                   "promptVersion":  "agent_prompt_v20260624_001",
+                                                                                                   "policyVersion":  "agent_policy_v20260624_001",
+                                                                                                   "permissionSnapshotId":  "platform_permission_snapshot",
+                                                                                                   "conversationSnapshot":  {
+                                                                                                                                "conversation":  "??????",
+                                                                                                                                "retentionDays":  180
+                                                                                                                            },
+                                                                                                   "toolCallSnapshot":  {
+                                                                                                                            "tools":  [
+                                                                                                                                          "confirmation_guard",
+                                                                                                                                          "audit_snapshot"
+                                                                                                                                      ],
+                                                                                                                            "toolCallCount":  2
+                                                                                                                        },
+                                                                                                   "desensitizeResult":  {
+                                                                                                                             "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                                             "maskedFields":  [
+                                                                                                                                                  "mobile",
+                                                                                                                                                  "idNo",
+                                                                                                                                                  "secret"
+                                                                                                                                              ]
+                                                                                                                         },
+                                                                                                   "outboundSnapshot":  {
+                                                                                                                            "allowExternalModel":  false,
+                                                                                                                            "maxRows":  200,
+                                                                                                                            "outboundFields":  [
+                                                                                                                                                   "summary",
+                                                                                                                                                   "statistics",
+                                                                                                                                                   "maskedBusinessData"
+                                                                                                                                               ]
+                                                                                                                        },
+                                                                                                   "traceId":  "trc_51cae281-9df1-4409-8aa4-3cd0b88e4559",
+                                                                                                   "auditLogId":  "audit_agent_trc51cae2819",
+                                                                                                   "createdAt":  "2026-06-24T10:11:14.7816049"
+                                                                                               },
+                                                                                     "operation":  {
+                                                                                                       "operation":  "PLATFORM_AGENT_CONFIRM",
+                                                                                                       "idempotencyKey":  "g8-platform-confirm-allowed",
+                                                                                                       "result":  "CONFIRMED",
+                                                                                                       "traceId":  "trc_51cae281-9df1-4409-8aa4-3cd0b88e4559",
+                                                                                                       "auditLogId":  "audit_agent_trc51cae2819",
+                                                                                                       "disabledReason":  null,
+                                                                                                       "operatedAt":  "2026-06-24T10:11:14.7816049"
+                                                                                                   }
+                                                                                 },
+                                                                "allowed":  true,
+                                                                "allowedTargetTypes":  [
+                                                                                           "PLATFORM_TASK",
+                                                                                           "PLATFORM_MESSAGE",
+                                                                                           "PLATFORM_LOG"
+                                                                                       ],
+                                                                "rejectedItems":  [
+
+                                                                                  ],
+                                                                "generatedObjects":  [
+                                                                                         {
+                                                                                             "objectType":  "PLATFORM_TASK",
+                                                                                             "objectId":  "generated_4294f80",
+                                                                                             "title":  "????????",
+                                                                                             "status":  "CREATED"
+                                                                                         }
+                                                                                     ]
+                                                            },
+                                                   "errorFields":  [
+
+                                                                   ],
+                                                   "disabledReason":  null
+                                               },
+                    "platformConfirmRejected":  {
+                                                    "code":  "SUCCESS",
+                                                    "message":  "æå",
+                                                    "requestId":  "req_9894551f-6353-41bb-8bdc-3de24612cfe0",
+                                                    "traceId":  "trc_e6cb5967-e31a-4468-8101-4b2275d01bf4",
+                                                    "auditLogId":  "aud_trc_e6cb5967-e31a-4468-8101-4b2275d01bf4",
+                                                    "data":  {
+                                                                 "confirmation":  {
+                                                                                      "confirmationId":  "confirm_platform_agentsession",
+                                                                                      "confirmType":  "PLATFORM_AGENT_CONFIRM",
+                                                                                      "status":  "REJECTED_BY_SCOPE",
+                                                                                      "sourceConversation":  "????????",
+                                                                                      "permissionSnapshotId":  "platform_permission_snapshot",
+                                                                                      "confirmedBy":  null,
+                                                                                      "confirmedAt":  null,
+                                                                                      "audit":  {
+                                                                                                    "logId":  "agent_audit_agentsession",
+                                                                                                    "sessionId":  "agent_session_platform",
+                                                                                                    "confirmationId":  "confirm_platform_agentsession",
+                                                                                                    "scope":  "platform",
+                                                                                                    "systemId":  null,
+                                                                                                    "tenantId":  "tenant_default",
+                                                                                                    "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                                                    "promptVersion":  "agent_prompt_v20260624_001",
+                                                                                                    "policyVersion":  "agent_policy_v20260624_001",
+                                                                                                    "permissionSnapshotId":  "platform_permission_snapshot",
+                                                                                                    "conversationSnapshot":  {
+                                                                                                                                 "conversation":  "????????",
+                                                                                                                                 "retentionDays":  180
+                                                                                                                             },
+                                                                                                    "toolCallSnapshot":  {
+                                                                                                                             "tools":  [
+                                                                                                                                           "confirmation_guard",
+                                                                                                                                           "audit_snapshot"
+                                                                                                                                       ],
+                                                                                                                             "toolCallCount":  2
+                                                                                                                         },
+                                                                                                    "desensitizeResult":  {
+                                                                                                                              "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                                              "maskedFields":  [
+                                                                                                                                                   "mobile",
+                                                                                                                                                   "idNo",
+                                                                                                                                                   "secret"
+                                                                                                                                               ]
+                                                                                                                          },
+                                                                                                    "outboundSnapshot":  {
+                                                                                                                             "allowExternalModel":  false,
+                                                                                                                             "maxRows":  200,
+                                                                                                                             "outboundFields":  [
+                                                                                                                                                    "summary",
+                                                                                                                                                    "statistics",
+                                                                                                                                                    "maskedBusinessData"
+                                                                                                                                                ]
+                                                                                                                         },
+                                                                                                    "traceId":  "trc_e6cb5967-e31a-4468-8101-4b2275d01bf4",
+                                                                                                    "auditLogId":  "audit_agent_trce6cb5967e",
+                                                                                                    "createdAt":  "2026-06-24T10:11:14.7941274"
+                                                                                                },
+                                                                                      "operation":  {
+                                                                                                        "operation":  "PLATFORM_AGENT_CONFIRM",
+                                                                                                        "idempotencyKey":  "g8-platform-confirm-rejected",
+                                                                                                        "result":  "REJECTED_BY_SCOPE",
+                                                                                                        "traceId":  "trc_e6cb5967-e31a-4468-8101-4b2275d01bf4",
+                                                                                                        "auditLogId":  "audit_agent_trce6cb5967e",
+                                                                                                        "disabledReason":  "å¹³å° Agent ä¸è½æå¼æåå\u0085¥ç³»ç»ä¸å¡æ°æ®ï¼è¯·å\u0085å®æç³»ç»åæ¢ã",
+                                                                                                        "operatedAt":  "2026-06-24T10:11:14.7941274"
+                                                                                                    }
+                                                                                  },
+                                                                 "allowed":  false,
+                                                                 "allowedTargetTypes":  [
+                                                                                            "PLATFORM_TASK",
+                                                                                            "PLATFORM_MESSAGE",
+                                                                                            "PLATFORM_LOG"
+                                                                                        ],
+                                                                 "rejectedItems":  [
+                                                                                       {
+                                                                                           "itemId":  "system_business_payload",
+                                                                                           "itemType":  "SYSTEM_BUSINESS_DATA",
+                                                                                           "reason":  "å¹³å° Agent ä¸è½æå¼æåå\u0085¥ç³»ç»ä¸å¡æ°æ®ï¼è¯·å\u0085å®æç³»ç»åæ¢ã"
+                                                                                       }
+                                                                                   ],
+                                                                 "generatedObjects":  [
+
+                                                                                      ]
+                                                             },
+                                                    "errorFields":  [
+
+                                                                    ],
+                                                    "disabledReason":  null
+                                                },
+                    "policies":  {
+                                     "code":  "SUCCESS",
+                                     "message":  "æå",
+                                     "requestId":  "req_6845486e-f8c7-4b34-9210-2ef768594f61",
+                                     "traceId":  "trc_18c6c2d1-78f4-446b-be9e-60bb6162e584",
+                                     "auditLogId":  null,
+                                     "data":  {
+                                                  "records":  [
+                                                                  {
+                                                                      "policyId":  "agent_policy_vehicle_agent",
+                                                                      "systemId":  "sys_vehicle",
+                                                                      "tenantId":  "tenant_default",
+                                                                      "policyCode":  "policy_vehicle_agent",
+                                                                      "scope":  {
+                                                                                    "moduleScope":  [
+                                                                                                        "mod_vehicle",
+                                                                                                        "mod_work"
+                                                                                                    ],
+                                                                                    "fieldScope":  {
+                                                                                                       "writable":  [
+                                                                                                                        "vehicleStatus",
+                                                                                                                        "annualInspectionDueDate"
+                                                                                                                    ],
+                                                                                                       "readable":  [
+                                                                                                                        "plateNo",
+                                                                                                                        "vehicleStatus",
+                                                                                                                        "driverName",
+                                                                                                                        "annualInspectionDueDate"
+                                                                                                                    ]
+                                                                                                   },
+                                                                                    "actionScope":  [
+                                                                                                        "query",
+                                                                                                        "createDraft",
+                                                                                                        "requestWriteConfirmation",
+                                                                                                        "statistics"
+                                                                                                    ],
+                                                                                    "dataScopeExpression":  "ownerDepartmentOrAssignedMember",
+                                                                                    "outboundLimit":  {
+                                                                                                          "maxRows":  200,
+                                                                                                          "allowFileExport":  false,
+                                                                                                          "allowThirdPartyWebhook":  false
+                                                                                                      },
+                                                                                    "desensitizePolicy":  {
+                                                                                                              "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                              "maskedFields":  [
+                                                                                                                                   "driverMobile",
+                                                                                                                                   "idNo",
+                                                                                                                                   "secret"
+                                                                                                                               ],
+                                                                                                              "sample":  {
+                                                                                                                             "driverMobile":  "138****0001"
+                                                                                                                         }
+                                                                                                          },
+                                                                                    "policyVersion":  "agent_policy_v20260624_001"
+                                                                                },
+                                                                      "status":  1,
+                                                                      "publishStatus":  {
+                                                                                            "status":  "PUBLISHED",
+                                                                                            "version":  "agent_policy_v20260624_001",
+                                                                                            "publishable":  true,
+                                                                                            "lastPublishedAt":  "2026-06-23T10:11:14.8021266"
+                                                                                        },
+                                                                      "operation":  null,
+                                                                      "createdAt":  "2026-06-21T10:11:14.8021266"
+                                                                  },
+                                                                  {
+                                                                      "policyId":  "agent_policy_work_agent",
+                                                                      "systemId":  "sys_vehicle",
+                                                                      "tenantId":  "tenant_default",
+                                                                      "policyCode":  "policy_work_agent",
+                                                                      "scope":  {
+                                                                                    "moduleScope":  [
+                                                                                                        "mod_vehicle",
+                                                                                                        "mod_work"
+                                                                                                    ],
+                                                                                    "fieldScope":  {
+                                                                                                       "writable":  [
+                                                                                                                        "vehicleStatus",
+                                                                                                                        "annualInspectionDueDate"
+                                                                                                                    ],
+                                                                                                       "readable":  [
+                                                                                                                        "plateNo",
+                                                                                                                        "vehicleStatus",
+                                                                                                                        "driverName",
+                                                                                                                        "annualInspectionDueDate"
+                                                                                                                    ]
+                                                                                                   },
+                                                                                    "actionScope":  [
+                                                                                                        "query",
+                                                                                                        "createDraft",
+                                                                                                        "requestWriteConfirmation",
+                                                                                                        "statistics"
+                                                                                                    ],
+                                                                                    "dataScopeExpression":  "ownerDepartmentOrAssignedMember",
+                                                                                    "outboundLimit":  {
+                                                                                                          "maxRows":  200,
+                                                                                                          "allowFileExport":  false,
+                                                                                                          "allowThirdPartyWebhook":  false
+                                                                                                      },
+                                                                                    "desensitizePolicy":  {
+                                                                                                              "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                              "maskedFields":  [
+                                                                                                                                   "driverMobile",
+                                                                                                                                   "idNo",
+                                                                                                                                   "secret"
+                                                                                                                               ],
+                                                                                                              "sample":  {
+                                                                                                                             "driverMobile":  "138****0001"
+                                                                                                                         }
+                                                                                                          },
+                                                                                    "policyVersion":  "agent_policy_v20260624_001"
+                                                                                },
+                                                                      "status":  1,
+                                                                      "publishStatus":  {
+                                                                                            "status":  "PUBLISHED",
+                                                                                            "version":  "agent_policy_v20260624_001",
+                                                                                            "publishable":  true,
+                                                                                            "lastPublishedAt":  "2026-06-23T10:11:14.8021266"
+                                                                                        },
+                                                                      "operation":  null,
+                                                                      "createdAt":  "2026-06-21T10:11:14.8021266"
+                                                                  }
+                                                              ],
+                                                  "pageNo":  1,
+                                                  "pageSize":  20,
+                                                  "total":  2,
+                                                  "hasNext":  false
+                                              },
+                                     "errorFields":  [
+
+                                                     ],
+                                     "disabledReason":  null
+                                 },
+                    "createPolicy":  {
+                                         "code":  "SUCCESS",
+                                         "message":  "æå",
+                                         "requestId":  "req_52e4c5fa-7c45-4d4c-8a1a-363594194e3a",
+                                         "traceId":  "trc_f5f6b372-9ba1-4c69-b85d-3b95cdc6a0ab",
+                                         "auditLogId":  "aud_trc_f5f6b372-9ba1-4c69-b85d-3b95cdc6a0ab",
+                                         "data":  {
+                                                      "policyId":  "agent_policy_policyvehicl",
+                                                      "systemId":  "sys_vehicle",
+                                                      "tenantId":  "tenant_default",
+                                                      "policyCode":  "policy_vehicle_runtime",
+                                                      "scope":  {
+                                                                    "moduleScope":  [
+                                                                                        "mod_vehicle",
+                                                                                        "mod_work"
+                                                                                    ],
+                                                                    "fieldScope":  {
+                                                                                       "writable":  [
+                                                                                                        "vehicleStatus",
+                                                                                                        "annualInspectionDueDate"
+                                                                                                    ],
+                                                                                       "readable":  [
+                                                                                                        "plateNo",
+                                                                                                        "vehicleStatus",
+                                                                                                        "driverName",
+                                                                                                        "annualInspectionDueDate"
+                                                                                                    ]
+                                                                                   },
+                                                                    "actionScope":  [
+                                                                                        "query",
+                                                                                        "createDraft",
+                                                                                        "requestWriteConfirmation",
+                                                                                        "statistics"
+                                                                                    ],
+                                                                    "dataScopeExpression":  "ownerDepartmentOrAssignedMember",
+                                                                    "outboundLimit":  {
+                                                                                          "maxRows":  200,
+                                                                                          "allowFileExport":  false,
+                                                                                          "allowThirdPartyWebhook":  false
+                                                                                      },
+                                                                    "desensitizePolicy":  {
+                                                                                              "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                              "maskedFields":  [
+                                                                                                                   "driverMobile",
+                                                                                                                   "idNo",
+                                                                                                                   "secret"
+                                                                                                               ],
+                                                                                              "sample":  {
+                                                                                                             "driverMobile":  "138****0001"
+                                                                                                         }
+                                                                                          },
+                                                                    "policyVersion":  "agent_policy_v20260624_001"
+                                                                },
+                                                      "status":  1,
+                                                      "publishStatus":  {
+                                                                            "status":  "DRAFT",
+                                                                            "version":  "agent_policy_v20260624_001",
+                                                                            "publishable":  true,
+                                                                            "lastPublishedAt":  "2026-06-23T10:11:14.8196466"
+                                                                        },
+                                                      "operation":  {
+                                                                        "operation":  "CREATE_AGENT_POLICY",
+                                                                        "idempotencyKey":  "g8-policy-create",
+                                                                        "result":  "SAVED",
+                                                                        "traceId":  "trc_f5f6b372-9ba1-4c69-b85d-3b95cdc6a0ab",
+                                                                        "auditLogId":  "audit_agent_trcf5f6b3729",
+                                                                        "disabledReason":  null,
+                                                                        "operatedAt":  "2026-06-24T10:11:14.8196466"
+                                                                    },
+                                                      "createdAt":  "2026-06-24T10:11:14.8196466"
+                                                  },
+                                         "errorFields":  [
+
+                                                         ],
+                                         "disabledReason":  null
+                                     },
+                    "updatePolicy":  {
+                                         "code":  "SUCCESS",
+                                         "message":  "æå",
+                                         "requestId":  "req_8d4156ab-8651-48bf-a405-28e6429bcee8",
+                                         "traceId":  "trc_5d4ac3f1-1567-4fe6-8f86-2fa8553e67a8",
+                                         "auditLogId":  "aud_trc_5d4ac3f1-1567-4fe6-8f86-2fa8553e67a8",
+                                         "data":  {
+                                                      "policyId":  "policy_vehicle_runtime",
+                                                      "systemId":  "sys_vehicle",
+                                                      "tenantId":  "tenant_default",
+                                                      "policyCode":  "policy_vehicle_runtime",
+                                                      "scope":  {
+                                                                    "moduleScope":  [
+                                                                                        "mod_vehicle",
+                                                                                        "mod_work"
+                                                                                    ],
+                                                                    "fieldScope":  {
+                                                                                       "writable":  [
+                                                                                                        "vehicleStatus",
+                                                                                                        "annualInspectionDueDate"
+                                                                                                    ],
+                                                                                       "readable":  [
+                                                                                                        "plateNo",
+                                                                                                        "vehicleStatus",
+                                                                                                        "driverName",
+                                                                                                        "annualInspectionDueDate"
+                                                                                                    ]
+                                                                                   },
+                                                                    "actionScope":  [
+                                                                                        "query",
+                                                                                        "createDraft",
+                                                                                        "requestWriteConfirmation",
+                                                                                        "statistics"
+                                                                                    ],
+                                                                    "dataScopeExpression":  "ownerDepartmentOrAssignedMember",
+                                                                    "outboundLimit":  {
+                                                                                          "maxRows":  200,
+                                                                                          "allowFileExport":  false,
+                                                                                          "allowThirdPartyWebhook":  false
+                                                                                      },
+                                                                    "desensitizePolicy":  {
+                                                                                              "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                              "maskedFields":  [
+                                                                                                                   "driverMobile",
+                                                                                                                   "idNo",
+                                                                                                                   "secret"
+                                                                                                               ],
+                                                                                              "sample":  {
+                                                                                                             "driverMobile":  "138****0001"
+                                                                                                         }
+                                                                                          },
+                                                                    "policyVersion":  "agent_policy_v20260624_001"
+                                                                },
+                                                      "status":  1,
+                                                      "publishStatus":  {
+                                                                            "status":  "DRAFT",
+                                                                            "version":  "agent_policy_v20260624_001",
+                                                                            "publishable":  true,
+                                                                            "lastPublishedAt":  "2026-06-23T10:11:14.8256452"
+                                                                        },
+                                                      "operation":  {
+                                                                        "operation":  "UPDATE_AGENT_POLICY",
+                                                                        "idempotencyKey":  "g8-policy-update",
+                                                                        "result":  "SAVED",
+                                                                        "traceId":  "trc_5d4ac3f1-1567-4fe6-8f86-2fa8553e67a8",
+                                                                        "auditLogId":  "audit_agent_trc5d4ac3f11",
+                                                                        "disabledReason":  null,
+                                                                        "operatedAt":  "2026-06-24T10:11:14.8256452"
+                                                                    },
+                                                      "createdAt":  "2026-06-24T10:11:14.8256452"
+                                                  },
+                                         "errorFields":  [
+
+                                                         ],
+                                         "disabledReason":  null
+                                     },
+                    "policyPublishCheck":  {
+                                               "code":  "SUCCESS",
+                                               "message":  "æå",
+                                               "requestId":  "req_a711aa4c-3b93-4825-b6ac-ab1e5e0905e1",
+                                               "traceId":  "trc_50f2aa3a-2581-46bb-bb71-81fb361be9b0",
+                                               "auditLogId":  "aud_trc_50f2aa3a-2581-46bb-bb71-81fb361be9b0",
+                                               "data":  {
+                                                            "policyId":  "policy_vehicle_runtime",
+                                                            "passed":  true,
+                                                            "targetVersion":  "agent_policy_v20260624_001",
+                                                            "items":  [
+                                                                          {
+                                                                              "itemCode":  "MODULE_SCOPE_READY",
+                                                                              "itemName":  "æ¨¡åèå´",
+                                                                              "level":  "PASS",
+                                                                              "passed":  true,
+                                                                              "message":  "ç­ç¥å\u0085å«å¯è®¿é®æ¨¡åï¼å¹³å° Agent ä¸ç»§æ¿ç³»ç»ä¸å¡æ¨¡åæéã"
+                                                                          },
+                                                                          {
+                                                                              "itemCode":  "FIELD_SCOPE_READY",
+                                                                              "itemName":  "å­æ®µæé",
+                                                                              "level":  "PASS",
+                                                                              "passed":  true,
+                                                                              "message":  "å­æ®µèå´åºåå¯è¯»åå¯åï¼å¹¶æºå¸¦è±æè§åã"
+                                                                          },
+                                                                          {
+                                                                              "itemCode":  "HUMAN_CONFIRM_READY",
+                                                                              "itemName":  "äººå·¥ç¡®è®¤",
+                                                                              "level":  "PASS",
+                                                                              "passed":  true,
+                                                                              "message":  "ç³»ç»åå\u0085¥åå·¥ä½èç¨¿åéè¦äººå·¥ç¡®è®¤ã"
+                                                                          }
+                                                                      ],
+                                                            "impactRefs":  [
+                                                                               {
+                                                                                   "refType":  "AGENT_POLICY",
+                                                                                   "refId":  "policy_vehicle_runtime",
+                                                                                   "refName":  "ç³»ç» Agent ç­ç¥"
+                                                                               },
+                                                                               {
+                                                                                   "refType":  "MODULE",
+                                                                                   "refId":  "mod_vehicle",
+                                                                                   "refName":  "è½¦è¾æ¡£æ¡"
+                                                                               },
+                                                                               {
+                                                                                   "refType":  "WORK",
+                                                                                   "refId":  "dailyReport",
+                                                                                   "refName":  "æ¥æ¥èªå¨èç¨¿"
+                                                                               }
+                                                                           ],
+                                                            "traceId":  "trc_50f2aa3a-2581-46bb-bb71-81fb361be9b0"
+                                                        },
+                                               "errorFields":  [
+
+                                                               ],
+                                               "disabledReason":  null
+                                           },
+                    "systemSession":  {
+                                          "code":  "SUCCESS",
+                                          "message":  "æå",
+                                          "requestId":  "req_2bd5520c-74b3-48aa-82a8-ea13c04de8cb",
+                                          "traceId":  "trc_9d4b9ad6-3eb7-4038-a4ff-ce05154610bc",
+                                          "auditLogId":  "aud_trc_9d4b9ad6-3eb7-4038-a4ff-ce05154610bc",
+                                          "data":  {
+                                                       "sessionId":  "agent_session_system_sysvehicle",
+                                                       "scope":  "system",
+                                                       "systemId":  "sys_vehicle",
+                                                       "tenantId":  "tenant_default",
+                                                       "systemMemberId":  "system_member_001",
+                                                       "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                       "promptVersion":  "agent_prompt_v20260624_001",
+                                                       "policyVersion":  "agent_policy_v20260624_001",
+                                                       "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                       "status":  "ACTIVE",
+                                                       "boundary":  {
+                                                                        "allowedTargetTypes":  [
+                                                                                                   "SYSTEM_RECORD_QUERY",
+                                                                                                   "SYSTEM_WRITE_CONFIRM",
+                                                                                                   "WORK_DRAFT_CONFIRM",
+                                                                                                   "STATISTICS_QUERY"
+                                                                                               ],
+                                                                        "deniedTargetTypes":  [
+                                                                                                  "PLATFORM_ADMIN_WRITE",
+                                                                                                  "OTHER_SYSTEM_DATA"
+                                                                                              ],
+                                                                        "reason":  "ç³»ç» Agent å¿\u0085é¡»å¨ SystemSwitchContextãTenantSwitchContext åæææéå¿«ç\u0085§ä¸è¿è¡ã"
+                                                                    },
+                                                       "createdAt":  "2026-06-24T10:11:14.8401687"
+                                                   },
+                                          "errorFields":  [
+
+                                                          ],
+                                          "disabledReason":  null
+                                      },
+                    "systemMessage":  {
+                                          "code":  "SUCCESS",
+                                          "message":  "æå",
+                                          "requestId":  "req_1a1f3070-466c-4de8-936a-177599550637",
+                                          "traceId":  "trc_701f135c-01c6-43e8-ac06-9fc03e7aa1d0",
+                                          "auditLogId":  "aud_trc_701f135c-01c6-43e8-ac06-9fc03e7aa1d0",
+                                          "data":  {
+                                                       "sessionId":  "agent_session_system_sysvehicle",
+                                                       "role":  "assistant",
+                                                       "content":  "å·²å¨å½å SystemSwitchContext ä¸åææéå\u0085æ°æ®ãåå\u0085¥ä¸å¡å­æ®µéè¦è¿å\u0085¥ç³»ç»åå\u0085¥ç¡®è®¤ï¼çæä»»å¡ææ¥æ¥èç¨¿éè¦è¿å\u0085¥å·¥ä½èç¨¿ç¡®è®¤ã",
+                                                       "toolCalls":  [
+                                                                         {
+                                                                             "toolName":  "effective_permission_snapshot",
+                                                                             "status":  "SUCCESS",
+                                                                             "inputSnapshot":  {
+                                                                                                   "systemId":  "sys_vehicle"
+                                                                                               },
+                                                                             "outputSnapshot":  {
+                                                                                                    "permissionSnapshotId":  "perm_snapshot_agent_20260624_001"
+                                                                                                }
+                                                                         },
+                                                                         {
+                                                                             "toolName":  "desensitize_preview",
+                                                                             "status":  "SUCCESS",
+                                                                             "inputSnapshot":  {
+                                                                                                   "fields":  [
+                                                                                                                  "driverMobile",
+                                                                                                                  "idNo"
+                                                                                                              ]
+                                                                                               },
+                                                                             "outputSnapshot":  {
+                                                                                                    "masked":  true
+                                                                                                }
+                                                                         }
+                                                                     ],
+                                                       "proposedConfirmations":  [
+                                                                                     {
+                                                                                         "confirmationId":  "confirm_system_write_agentsession",
+                                                                                         "confirmType":  "SYSTEM_AGENT_WRITE_CONFIRM",
+                                                                                         "status":  "WAITING_HUMAN_CONFIRM",
+                                                                                         "manualConfirmRequired":  true
+                                                                                     },
+                                                                                     {
+                                                                                         "confirmationId":  "confirm_work_draft_agentsession",
+                                                                                         "confirmType":  "WORK_AGENT_DRAFT_CONFIRM",
+                                                                                         "status":  "WAITING_HUMAN_CONFIRM",
+                                                                                         "manualConfirmRequired":  true
+                                                                                     }
+                                                                                 ],
+                                                       "audit":  {
+                                                                     "logId":  "agent_audit_agentsession",
+                                                                     "sessionId":  "agent_session_system_sysvehicle",
+                                                                     "confirmationId":  null,
+                                                                     "scope":  "system",
+                                                                     "systemId":  "sys_vehicle",
+                                                                     "tenantId":  "tenant_default",
+                                                                     "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                     "promptVersion":  "agent_prompt_v20260624_001",
+                                                                     "policyVersion":  "agent_policy_v20260624_001",
+                                                                     "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                     "conversationSnapshot":  {
+                                                                                                  "conversation":  "??????????? 2026-06-28",
+                                                                                                  "retentionDays":  180
+                                                                                              },
+                                                                     "toolCallSnapshot":  {
+                                                                                              "tools":  [
+                                                                                                            "runtime_record_query",
+                                                                                                            "field_permission_clip",
+                                                                                                            "work_draft_prepare"
+                                                                                                        ],
+                                                                                              "toolCallCount":  3
+                                                                                          },
+                                                                     "desensitizeResult":  {
+                                                                                               "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                               "maskedFields":  [
+                                                                                                                    "mobile",
+                                                                                                                    "idNo",
+                                                                                                                    "secret"
+                                                                                                                ]
+                                                                                           },
+                                                                     "outboundSnapshot":  {
+                                                                                              "allowExternalModel":  true,
+                                                                                              "maxRows":  200,
+                                                                                              "outboundFields":  [
+                                                                                                                     "summary",
+                                                                                                                     "statistics",
+                                                                                                                     "maskedBusinessData"
+                                                                                                                 ]
+                                                                                          },
+                                                                     "traceId":  "trc_701f135c-01c6-43e8-ac06-9fc03e7aa1d0",
+                                                                     "auditLogId":  "audit_agent_trc701f135c0",
+                                                                     "createdAt":  "2026-06-24T10:11:14.8484201"
+                                                                 },
+                                                       "operation":  {
+                                                                         "operation":  "SYSTEM_AGENT_MESSAGE",
+                                                                         "idempotencyKey":  "g8-system-msg",
+                                                                         "result":  "REPLIED",
+                                                                         "traceId":  "trc_701f135c-01c6-43e8-ac06-9fc03e7aa1d0",
+                                                                         "auditLogId":  "audit_agent_trc701f135c0",
+                                                                         "disabledReason":  null,
+                                                                         "operatedAt":  "2026-06-24T10:11:14.8484201"
+                                                                     }
+                                                   },
+                                          "errorFields":  [
+
+                                                          ],
+                                          "disabledReason":  null
+                                      },
+                    "systemWriteCreate":  {
+                                              "code":  "SUCCESS",
+                                              "message":  "æå",
+                                              "requestId":  "req_28c2b88c-c48e-479c-bfdb-e52effc0bb5f",
+                                              "traceId":  "trc_75370e4e-f82a-4575-8592-7bb752adabb0",
+                                              "auditLogId":  "aud_trc_75370e4e-f82a-4575-8592-7bb752adabb0",
+                                              "data":  {
+                                                           "confirmation":  {
+                                                                                "confirmationId":  "confirm_write_agentsession",
+                                                                                "confirmType":  "SYSTEM_AGENT_WRITE_CONFIRM",
+                                                                                "status":  "WAITING_HUMAN_CONFIRM",
+                                                                                "sourceConversation":  "???????",
+                                                                                "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                                "confirmedBy":  null,
+                                                                                "confirmedAt":  null,
+                                                                                "audit":  {
+                                                                                              "logId":  "agent_audit_agentsession",
+                                                                                              "sessionId":  "agent_session_system",
+                                                                                              "confirmationId":  "confirm_write_agentsession",
+                                                                                              "scope":  "system",
+                                                                                              "systemId":  "sys_vehicle",
+                                                                                              "tenantId":  "tenant_default",
+                                                                                              "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                                              "promptVersion":  "agent_prompt_v20260624_001",
+                                                                                              "policyVersion":  "agent_policy_v20260624_001",
+                                                                                              "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                                              "conversationSnapshot":  {
+                                                                                                                           "conversation":  "???????",
+                                                                                                                           "retentionDays":  180
+                                                                                                                       },
+                                                                                              "toolCallSnapshot":  {
+                                                                                                                       "tools":  [
+                                                                                                                                     "confirmation_guard",
+                                                                                                                                     "audit_snapshot"
+                                                                                                                                 ],
+                                                                                                                       "toolCallCount":  2
+                                                                                                                   },
+                                                                                              "desensitizeResult":  {
+                                                                                                                        "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                                        "maskedFields":  [
+                                                                                                                                             "mobile",
+                                                                                                                                             "idNo",
+                                                                                                                                             "secret"
+                                                                                                                                         ]
+                                                                                                                    },
+                                                                                              "outboundSnapshot":  {
+                                                                                                                       "allowExternalModel":  true,
+                                                                                                                       "maxRows":  200,
+                                                                                                                       "outboundFields":  [
+                                                                                                                                              "summary",
+                                                                                                                                              "statistics",
+                                                                                                                                              "maskedBusinessData"
+                                                                                                                                          ]
+                                                                                                                   },
+                                                                                              "traceId":  "trc_75370e4e-f82a-4575-8592-7bb752adabb0",
+                                                                                              "auditLogId":  "audit_agent_trc75370e4ef",
+                                                                                              "createdAt":  "2026-06-24T10:11:14.8584229"
+                                                                                          },
+                                                                                "operation":  {
+                                                                                                  "operation":  "SYSTEM_AGENT_WRITE_CONFIRM",
+                                                                                                  "idempotencyKey":  "g8-write-create",
+                                                                                                  "result":  "WAITING_HUMAN_CONFIRM",
+                                                                                                  "traceId":  "trc_75370e4e-f82a-4575-8592-7bb752adabb0",
+                                                                                                  "auditLogId":  "audit_agent_trc75370e4ef",
+                                                                                                  "disabledReason":  null,
+                                                                                                  "operatedAt":  "2026-06-24T10:11:14.8584229"
+                                                                                              }
+                                                                            },
+                                                           "fieldDiffs":  [
+                                                                              {
+                                                                                  "fieldCode":  "annualInspectionDueDate",
+                                                                                  "fieldName":  "å¹´æ£å°ææ¥",
+                                                                                  "beforeValue":  "2026-06-20",
+                                                                                  "afterValue":  "2026-06-28",
+                                                                                  "writable":  true,
+                                                                                  "disabledReason":  null
+                                                                              },
+                                                                              {
+                                                                                  "fieldCode":  "driverMobile",
+                                                                                  "fieldName":  "é©¾é©¶åææºå·",
+                                                                                  "beforeValue":  "138****0001",
+                                                                                  "afterValue":  "139****0002",
+                                                                                  "writable":  false,
+                                                                                  "disabledReason":  "ææºå·å­æ®µå½åè§è²åªè¯»ï¼å·²è¢«æéè£åªã"
+                                                                              }
+                                                                          ],
+                                                           "permissionClips":  [
+                                                                                   {
+                                                                                       "fieldCode":  "driverMobile",
+                                                                                       "clipType":  "WRITE_DENIED",
+                                                                                       "reason":  "ææºå·å­æ®µå½åè§è²åªè¯»ï¼å·²è¢«æéè£åªã"
+                                                                                   }
+                                                                               ],
+                                                           "approvalRequired":  true,
+                                                           "compensationPlan":  "???????????",
+                                                           "businessLogId":  "biz_log_agent_write_preview"
+                                                       },
+                                              "errorFields":  [
+
+                                                              ],
+                                              "disabledReason":  null
+                                          },
+                    "systemWriteConfirm":  {
+                                               "code":  "SUCCESS",
+                                               "message":  "æå",
+                                               "requestId":  "req_5333027d-510e-4ba5-b8ce-a3cd9f3e5a39",
+                                               "traceId":  "trc_21b55cf3-615a-4170-9ac9-52a6b70a2de5",
+                                               "auditLogId":  "aud_trc_21b55cf3-615a-4170-9ac9-52a6b70a2de5",
+                                               "data":  {
+                                                            "confirmation":  {
+                                                                                 "confirmationId":  "confirm_write_agentsession",
+                                                                                 "confirmType":  "SYSTEM_AGENT_WRITE_CONFIRM",
+                                                                                 "status":  "CONFIRMED",
+                                                                                 "sourceConversation":  "??????",
+                                                                                 "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                                 "confirmedBy":  "member_001",
+                                                                                 "confirmedAt":  "2026-06-24T10:11:14.8719475",
+                                                                                 "audit":  {
+                                                                                               "logId":  "agent_audit_agentsession",
+                                                                                               "sessionId":  "agent_session_system",
+                                                                                               "confirmationId":  "confirm_write_agentsession",
+                                                                                               "scope":  "system",
+                                                                                               "systemId":  "sys_vehicle",
+                                                                                               "tenantId":  "tenant_default",
+                                                                                               "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                                               "promptVersion":  "agent_prompt_v20260624_001",
+                                                                                               "policyVersion":  "agent_policy_v20260624_001",
+                                                                                               "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                                               "conversationSnapshot":  {
+                                                                                                                            "conversation":  "??????",
+                                                                                                                            "retentionDays":  180
+                                                                                                                        },
+                                                                                               "toolCallSnapshot":  {
+                                                                                                                        "tools":  [
+                                                                                                                                      "confirmation_guard",
+                                                                                                                                      "audit_snapshot"
+                                                                                                                                  ],
+                                                                                                                        "toolCallCount":  2
+                                                                                                                    },
+                                                                                               "desensitizeResult":  {
+                                                                                                                         "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                                         "maskedFields":  [
+                                                                                                                                              "mobile",
+                                                                                                                                              "idNo",
+                                                                                                                                              "secret"
+                                                                                                                                          ]
+                                                                                                                     },
+                                                                                               "outboundSnapshot":  {
+                                                                                                                        "allowExternalModel":  true,
+                                                                                                                        "maxRows":  200,
+                                                                                                                        "outboundFields":  [
+                                                                                                                                               "summary",
+                                                                                                                                               "statistics",
+                                                                                                                                               "maskedBusinessData"
+                                                                                                                                           ]
+                                                                                                                    },
+                                                                                               "traceId":  "trc_21b55cf3-615a-4170-9ac9-52a6b70a2de5",
+                                                                                               "auditLogId":  "audit_agent_trc21b55cf36",
+                                                                                               "createdAt":  "2026-06-24T10:11:14.8719475"
+                                                                                           },
+                                                                                 "operation":  {
+                                                                                                   "operation":  "SYSTEM_AGENT_WRITE_CONFIRM",
+                                                                                                   "idempotencyKey":  "g8-write-confirm-header",
+                                                                                                   "result":  "CONFIRMED",
+                                                                                                   "traceId":  "trc_21b55cf3-615a-4170-9ac9-52a6b70a2de5",
+                                                                                                   "auditLogId":  "audit_agent_trc21b55cf36",
+                                                                                                   "disabledReason":  null,
+                                                                                                   "operatedAt":  "2026-06-24T10:11:14.8719475"
+                                                                                               }
+                                                                             },
+                                                            "fieldDiffs":  [
+                                                                               {
+                                                                                   "fieldCode":  "annualInspectionDueDate",
+                                                                                   "fieldName":  "å¹´æ£å°ææ¥",
+                                                                                   "beforeValue":  "2026-06-20",
+                                                                                   "afterValue":  "2026-06-28",
+                                                                                   "writable":  true,
+                                                                                   "disabledReason":  null
+                                                                               },
+                                                                               {
+                                                                                   "fieldCode":  "driverMobile",
+                                                                                   "fieldName":  "é©¾é©¶åææºå·",
+                                                                                   "beforeValue":  "138****0001",
+                                                                                   "afterValue":  "139****0002",
+                                                                                   "writable":  false,
+                                                                                   "disabledReason":  "ææºå·å­æ®µå½åè§è²åªè¯»ï¼å·²è¢«æéè£åªã"
+                                                                               }
+                                                                           ],
+                                                            "permissionClips":  [
+                                                                                    {
+                                                                                        "fieldCode":  "driverMobile",
+                                                                                        "clipType":  "WRITE_DENIED",
+                                                                                        "reason":  "ææºå·å­æ®µå½åè§è²åªè¯»ï¼å·²è¢«æéè£åªã"
+                                                                                    }
+                                                                                ],
+                                                            "approvalRequired":  true,
+                                                            "compensationPlan":  "å®¡æ¹åç½®å¤±è´¥æ¶æ¤é Agent åå\u0085¥å¹¶è®°å½è¡¥å¿ä»»å¡ã",
+                                                            "businessLogId":  "biz_log_agent_write_confirmed"
+                                                        },
+                                               "errorFields":  [
+
+                                                               ],
+                                               "disabledReason":  null
+                                           },
+                    "systemWriteReject":  {
+                                              "code":  "SUCCESS",
+                                              "message":  "æå",
+                                              "requestId":  "req_f968da2b-7899-463e-b970-a91190708972",
+                                              "traceId":  "trc_c88236ba-775e-4866-b15c-f0e0378fb53a",
+                                              "auditLogId":  "aud_trc_c88236ba-775e-4866-b15c-f0e0378fb53a",
+                                              "data":  {
+                                                           "confirmation":  {
+                                                                                "confirmationId":  "confirm_write_agentsession",
+                                                                                "confirmType":  "SYSTEM_AGENT_WRITE_CONFIRM",
+                                                                                "status":  "REJECTED",
+                                                                                "sourceConversation":  "??????",
+                                                                                "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                                "confirmedBy":  "member_001",
+                                                                                "confirmedAt":  "2026-06-24T10:11:14.8784543",
+                                                                                "audit":  {
+                                                                                              "logId":  "agent_audit_agentsession",
+                                                                                              "sessionId":  "agent_session_system",
+                                                                                              "confirmationId":  "confirm_write_agentsession",
+                                                                                              "scope":  "system",
+                                                                                              "systemId":  "sys_vehicle",
+                                                                                              "tenantId":  "tenant_default",
+                                                                                              "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                                              "promptVersion":  "agent_prompt_v20260624_001",
+                                                                                              "policyVersion":  "agent_policy_v20260624_001",
+                                                                                              "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                                              "conversationSnapshot":  {
+                                                                                                                           "conversation":  "??????",
+                                                                                                                           "retentionDays":  180
+                                                                                                                       },
+                                                                                              "toolCallSnapshot":  {
+                                                                                                                       "tools":  [
+                                                                                                                                     "confirmation_guard",
+                                                                                                                                     "audit_snapshot"
+                                                                                                                                 ],
+                                                                                                                       "toolCallCount":  2
+                                                                                                                   },
+                                                                                              "desensitizeResult":  {
+                                                                                                                        "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                                        "maskedFields":  [
+                                                                                                                                             "mobile",
+                                                                                                                                             "idNo",
+                                                                                                                                             "secret"
+                                                                                                                                         ]
+                                                                                                                    },
+                                                                                              "outboundSnapshot":  {
+                                                                                                                       "allowExternalModel":  true,
+                                                                                                                       "maxRows":  200,
+                                                                                                                       "outboundFields":  [
+                                                                                                                                              "summary",
+                                                                                                                                              "statistics",
+                                                                                                                                              "maskedBusinessData"
+                                                                                                                                          ]
+                                                                                                                   },
+                                                                                              "traceId":  "trc_c88236ba-775e-4866-b15c-f0e0378fb53a",
+                                                                                              "auditLogId":  "audit_agent_trcc88236ba7",
+                                                                                              "createdAt":  "2026-06-24T10:11:14.8784543"
+                                                                                          },
+                                                                                "operation":  {
+                                                                                                  "operation":  "SYSTEM_AGENT_WRITE_CONFIRM",
+                                                                                                  "idempotencyKey":  "g8-write-reject-header",
+                                                                                                  "result":  "REJECTED",
+                                                                                                  "traceId":  "trc_c88236ba-775e-4866-b15c-f0e0378fb53a",
+                                                                                                  "auditLogId":  "audit_agent_trcc88236ba7",
+                                                                                                  "disabledReason":  null,
+                                                                                                  "operatedAt":  "2026-06-24T10:11:14.8784543"
+                                                                                              }
+                                                                            },
+                                                           "fieldDiffs":  [
+                                                                              {
+                                                                                  "fieldCode":  "annualInspectionDueDate",
+                                                                                  "fieldName":  "å¹´æ£å°ææ¥",
+                                                                                  "beforeValue":  "2026-06-20",
+                                                                                  "afterValue":  "2026-06-28",
+                                                                                  "writable":  true,
+                                                                                  "disabledReason":  null
+                                                                              },
+                                                                              {
+                                                                                  "fieldCode":  "driverMobile",
+                                                                                  "fieldName":  "é©¾é©¶åææºå·",
+                                                                                  "beforeValue":  "138****0001",
+                                                                                  "afterValue":  "139****0002",
+                                                                                  "writable":  false,
+                                                                                  "disabledReason":  "ææºå·å­æ®µå½åè§è²åªè¯»ï¼å·²è¢«æéè£åªã"
+                                                                              }
+                                                                          ],
+                                                           "permissionClips":  [
+                                                                                   {
+                                                                                       "fieldCode":  "driverMobile",
+                                                                                       "clipType":  "WRITE_DENIED",
+                                                                                       "reason":  "ææºå·å­æ®µå½åè§è²åªè¯»ï¼å·²è¢«æéè£åªã"
+                                                                                   }
+                                                                               ],
+                                                           "approvalRequired":  false,
+                                                           "compensationPlan":  "æç»åä¸åå\u0085¥ä¸å¡æ°æ®ï¼ä»\u0085ä¿çå®¡è®¡ã",
+                                                           "businessLogId":  "biz_log_agent_write_rejected"
+                                                       },
+                                              "errorFields":  [
+
+                                                              ],
+                                              "disabledReason":  null
+                                          },
+                    "workDraftConfirm":  {
+                                             "code":  "SUCCESS",
+                                             "message":  "æå",
+                                             "requestId":  "req_5d891538-8531-4543-8cd6-4f767a55a875",
+                                             "traceId":  "trc_b59b327d-c5ec-4b7f-a21d-8e41df2bb759",
+                                             "auditLogId":  "aud_trc_b59b327d-c5ec-4b7f-a21d-8e41df2bb759",
+                                             "data":  {
+                                                          "confirmation":  {
+                                                                               "confirmationId":  "confirm_work_agentsession",
+                                                                               "confirmType":  "WORK_AGENT_DRAFT_CONFIRM",
+                                                                               "status":  "WAITING_HUMAN_CONFIRM",
+                                                                               "sourceConversation":  "????????",
+                                                                               "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                               "confirmedBy":  null,
+                                                                               "confirmedAt":  null,
+                                                                               "audit":  {
+                                                                                             "logId":  "agent_audit_agentsession",
+                                                                                             "sessionId":  "agent_session_system",
+                                                                                             "confirmationId":  "confirm_work_agentsession",
+                                                                                             "scope":  "system",
+                                                                                             "systemId":  "sys_vehicle",
+                                                                                             "tenantId":  "tenant_default",
+                                                                                             "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                                             "promptVersion":  "agent_prompt_v20260624_001",
+                                                                                             "policyVersion":  "agent_policy_v20260624_001",
+                                                                                             "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                                             "conversationSnapshot":  {
+                                                                                                                          "conversation":  "????????",
+                                                                                                                          "retentionDays":  180
+                                                                                                                      },
+                                                                                             "toolCallSnapshot":  {
+                                                                                                                      "tools":  [
+                                                                                                                                    "confirmation_guard",
+                                                                                                                                    "audit_snapshot"
+                                                                                                                                ],
+                                                                                                                      "toolCallCount":  2
+                                                                                                                  },
+                                                                                             "desensitizeResult":  {
+                                                                                                                       "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                                       "maskedFields":  [
+                                                                                                                                            "mobile",
+                                                                                                                                            "idNo",
+                                                                                                                                            "secret"
+                                                                                                                                        ]
+                                                                                                                   },
+                                                                                             "outboundSnapshot":  {
+                                                                                                                      "allowExternalModel":  true,
+                                                                                                                      "maxRows":  200,
+                                                                                                                      "outboundFields":  [
+                                                                                                                                             "summary",
+                                                                                                                                             "statistics",
+                                                                                                                                             "maskedBusinessData"
+                                                                                                                                         ]
+                                                                                                                  },
+                                                                                             "traceId":  "trc_b59b327d-c5ec-4b7f-a21d-8e41df2bb759",
+                                                                                             "auditLogId":  "audit_agent_trcb59b327dc",
+                                                                                             "createdAt":  "2026-06-24T10:11:14.8904668"
+                                                                                         },
+                                                                               "operation":  {
+                                                                                                 "operation":  "WORK_AGENT_DRAFT_CONFIRM",
+                                                                                                 "idempotencyKey":  "g8-work-draft",
+                                                                                                 "result":  "WAITING_HUMAN_CONFIRM",
+                                                                                                 "traceId":  "trc_b59b327d-c5ec-4b7f-a21d-8e41df2bb759",
+                                                                                                 "auditLogId":  "audit_agent_trcb59b327dc",
+                                                                                                 "disabledReason":  null,
+                                                                                                 "operatedAt":  "2026-06-24T10:11:14.8904668"
+                                                                                             }
+                                                                           },
+                                                          "draftType":  "DAILY_REPORT_DRAFT",
+                                                          "draftPayload":  {
+                                                                               "content":  "?????????",
+                                                                               "title":  "????"
+                                                                           },
+                                                          "sourceSnapshot":  [
+                                                                                 {
+                                                                                     "sourceType":  "PROJECT_TASK",
+                                                                                     "sourceId":  "task_project_001",
+                                                                                     "title":  "????????",
+                                                                                     "permissionPolicy":  "CURRENT_MEMBER_AUTHORIZED_ONLY",
+                                                                                     "included":  true
+                                                                                 }
+                                                                             ],
+                                                          "manualConfirmRequired":  true
+                                                      },
+                                             "errorFields":  [
+
+                                                             ],
+                                             "disabledReason":  null
+                                         },
+                    "auditLogs":  {
+                                      "code":  "SUCCESS",
+                                      "message":  "æå",
+                                      "requestId":  "req_67e003bb-18ce-4c3b-8c03-ca1d31e24b7b",
+                                      "traceId":  "trc_abea09c2-0ca6-4cec-b4e8-a49c7ef882aa",
+                                      "auditLogId":  null,
+                                      "data":  {
+                                                   "records":  [
+                                                                   {
+                                                                       "logId":  "agent_audit_agentsession",
+                                                                       "sessionId":  "agent_session_system_001",
+                                                                       "confirmationId":  "confirm_system_write_001",
+                                                                       "scope":  "system",
+                                                                       "systemId":  "sys_vehicle",
+                                                                       "tenantId":  "tenant_default",
+                                                                       "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                       "promptVersion":  "agent_prompt_v20260624_001",
+                                                                       "policyVersion":  "agent_policy_v20260624_001",
+                                                                       "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                       "conversationSnapshot":  {
+                                                                                                    "conversation":  "ç³»ç» Agent åå\u0085¥ç¡®è®¤",
+                                                                                                    "retentionDays":  180
+                                                                                                },
+                                                                       "toolCallSnapshot":  {
+                                                                                                "tools":  [
+                                                                                                              "runtime_record_query",
+                                                                                                              "field_permission_clip"
+                                                                                                          ],
+                                                                                                "toolCallCount":  2
+                                                                                            },
+                                                                       "desensitizeResult":  {
+                                                                                                 "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                 "maskedFields":  [
+                                                                                                                      "mobile",
+                                                                                                                      "idNo",
+                                                                                                                      "secret"
+                                                                                                                  ]
+                                                                                             },
+                                                                       "outboundSnapshot":  {
+                                                                                                "allowExternalModel":  true,
+                                                                                                "maxRows":  200,
+                                                                                                "outboundFields":  [
+                                                                                                                       "summary",
+                                                                                                                       "statistics",
+                                                                                                                       "maskedBusinessData"
+                                                                                                                   ]
+                                                                                            },
+                                                                       "traceId":  "trc_abea09c2-0ca6-4cec-b4e8-a49c7ef882aa",
+                                                                       "auditLogId":  "audit_agent_trcabea09c20",
+                                                                       "createdAt":  "2026-06-24T10:11:14.9064545"
+                                                                   },
+                                                                   {
+                                                                       "logId":  "agent_audit_agentsession",
+                                                                       "sessionId":  "agent_session_work_001",
+                                                                       "confirmationId":  "confirm_work_draft_001",
+                                                                       "scope":  "system",
+                                                                       "systemId":  "sys_vehicle",
+                                                                       "tenantId":  "tenant_default",
+                                                                       "modelVersion":  "gpt-5-enterprise@2026-06",
+                                                                       "promptVersion":  "agent_prompt_v20260624_001",
+                                                                       "policyVersion":  "agent_policy_v20260624_001",
+                                                                       "permissionSnapshotId":  "perm_snapshot_agent_20260624_001",
+                                                                       "conversationSnapshot":  {
+                                                                                                    "conversation":  "å·¥ä½èç¨¿ç¡®è®¤",
+                                                                                                    "retentionDays":  180
+                                                                                                },
+                                                                       "toolCallSnapshot":  {
+                                                                                                "tools":  [
+                                                                                                              "daily_report_auto_source",
+                                                                                                              "permission_snapshot"
+                                                                                                          ],
+                                                                                                "toolCallCount":  2
+                                                                                            },
+                                                                       "desensitizeResult":  {
+                                                                                                 "mode":  "MASK_SENSITIVE_FIELDS",
+                                                                                                 "maskedFields":  [
+                                                                                                                      "mobile",
+                                                                                                                      "idNo",
+                                                                                                                      "secret"
+                                                                                                                  ]
+                                                                                             },
+                                                                       "outboundSnapshot":  {
+                                                                                                "allowExternalModel":  true,
+                                                                                                "maxRows":  200,
+                                                                                                "outboundFields":  [
+                                                                                                                       "summary",
+                                                                                                                       "statistics",
+                                                                                                                       "maskedBusinessData"
+                                                                                                                   ]
+                                                                                            },
+                                                                       "traceId":  "trc_abea09c2-0ca6-4cec-b4e8-a49c7ef882aa",
+                                                                       "auditLogId":  "audit_agent_trcabea09c20",
+                                                                       "createdAt":  "2026-06-24T10:11:14.9074531"
+                                                                   }
+                                                               ],
+                                                   "pageNo":  1,
+                                                   "pageSize":  20,
+                                                   "total":  2,
+                                                   "hasNext":  false
+                                               },
+                                      "errorFields":  [
+
+                                                      ],
+                                      "disabledReason":  null
+                                  }
+                }
+}

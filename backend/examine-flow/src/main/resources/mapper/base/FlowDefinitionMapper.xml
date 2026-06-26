@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.flow.base.mapper.FlowDefinitionMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.flow.base.entity.FlowDefinition">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="flow_code" property="flowCode" />
+        <result column="flow_name" property="flowName" />
+        <result column="bound_module_id" property="boundModuleId" />
+        <result column="trigger_rule" property="triggerRule" />
+        <result column="status" property="status" />
+        <result column="current_version" property="currentVersion" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, system_id, tenant_id, flow_code, flow_name, bound_module_id, trigger_rule, status, current_version, created_at, updated_at, deleted</sql>
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.app.base.mapper.OpenapiCallLogMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.app.base.entity.OpenapiCallLog">
+        <id column="id" property="id" />
+        <result column="external_app_id" property="externalAppId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="scope_code" property="scopeCode" />
+        <result column="request_method" property="requestMethod" />
+        <result column="request_path" property="requestPath" />
+        <result column="result" property="result" />
+        <result column="idempotency_key" property="idempotencyKey" />
+        <result column="trace_id" property="traceId" />
+        <result column="failure_reason" property="failureReason" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, external_app_id, system_id, tenant_id, scope_code, request_method, request_path, result, idempotency_key, trace_id, failure_reason, created_at</sql>
+</mapper>

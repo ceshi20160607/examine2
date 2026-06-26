@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.aiwork.base.mapper.WorkCalendarItemMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.aiwork.base.entity.WorkCalendarItem">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="member_id" property="memberId" />
+        <result column="item_date" property="itemDate" />
+        <result column="item_type" property="itemType" />
+        <result column="item_id" property="itemId" />
+        <result column="title" property="title" />
+        <result column="target_payload" property="targetPayload" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, system_id, tenant_id, member_id, item_date, item_type, item_id, title, target_payload, created_at</sql>
+</mapper>

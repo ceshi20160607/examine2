@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.core.base.mapper.SysIdempotencyKeyMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.core.base.entity.SysIdempotencyKey">
+        <id column="id" property="id" />
+        <result column="scope" property="scope" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="idempotency_key" property="idempotencyKey" />
+        <result column="request_hash" property="requestHash" />
+        <result column="response_snapshot" property="responseSnapshot" />
+        <result column="expires_at" property="expiresAt" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, scope, system_id, tenant_id, idempotency_key, request_hash, response_snapshot, expires_at, created_at</sql>
+</mapper>

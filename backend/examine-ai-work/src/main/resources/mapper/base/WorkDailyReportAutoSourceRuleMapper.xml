@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.aiwork.base.mapper.WorkDailyReportAutoSourceRuleMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.aiwork.base.entity.WorkDailyReportAutoSourceRule">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="source_types" property="sourceTypes" />
+        <result column="task_scope" property="taskScope" />
+        <result column="todo_scope" property="todoScope" />
+        <result column="message_scope" property="messageScope" />
+        <result column="log_scope" property="logScope" />
+        <result column="approval_scope" property="approvalScope" />
+        <result column="permission_policy" property="permissionPolicy" />
+        <result column="manual_confirm_required" property="manualConfirmRequired" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, system_id, tenant_id, source_types, task_scope, todo_scope, message_scope, log_scope, approval_scope, permission_policy, manual_confirm_required, updated_at</sql>
+</mapper>

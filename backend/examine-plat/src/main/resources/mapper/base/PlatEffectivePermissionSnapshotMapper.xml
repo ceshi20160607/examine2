@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.plat.base.mapper.PlatEffectivePermissionSnapshotMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.PlatEffectivePermissionSnapshot">
+        <id column="id" property="id" />
+        <result column="snapshot_id" property="snapshotId" />
+        <result column="permission_version" property="permissionVersion" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="system_member_id" property="systemMemberId" />
+        <result column="source_role_ids" property="sourceRoleIds" />
+        <result column="deny_policy_ids" property="denyPolicyIds" />
+        <result column="field_permissions" property="fieldPermissions" />
+        <result column="action_permissions" property="actionPermissions" />
+        <result column="data_scope" property="dataScope" />
+        <result column="disabled_reason" property="disabledReason" />
+        <result column="explain_payload" property="explainPayload" />
+        <result column="expires_at" property="expiresAt" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, snapshot_id, permission_version, system_id, tenant_id, system_member_id, source_role_ids, deny_policy_ids, field_permissions, action_permissions, data_scope, disabled_reason, explain_payload, expires_at, created_at</sql>
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.messagelog.base.mapper.MessageNotificationTemplateMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.messagelog.base.entity.MessageNotificationTemplate">
+        <id column="id" property="id" />
+        <result column="scope" property="scope" />
+        <result column="system_id" property="systemId" />
+        <result column="template_code" property="templateCode" />
+        <result column="template_type" property="templateType" />
+        <result column="variables" property="variables" />
+        <result column="channels" property="channels" />
+        <result column="target_rule" property="targetRule" />
+        <result column="dedupe_key" property="dedupeKey" />
+        <result column="read_receipt_required" property="readReceiptRequired" />
+        <result column="quiet_policy" property="quietPolicy" />
+        <result column="retry_policy" property="retryPolicy" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, scope, system_id, template_code, template_type, variables, channels, target_rule, dedupe_key, read_receipt_required, quiet_policy, retry_policy, status, created_at</sql>
+</mapper>

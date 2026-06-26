@@ -2,8 +2,8 @@
 
 > 设计满意后 `approved: true` 才可进入 API 和开发。
 
-- approved: false
-- approved_at:
+- approved: true
+- approved_at: 2026-06-23T15:10:00+08:00
 - approved_by: user
 - scope: unexamine 可配置业务系统平台 P0 原型（当前唯一 brief）
 - source_brief: docs/design/prototype-brief.md
@@ -13,6 +13,7 @@
   - docs/design/prototypes/index.html（多角色开发前复审后待用户最终确认）
   - docs/design/reviews/prototype-latest-2026-06-18.md 第 38 节（八角色最终锁版复审）
   - docs/design/post-approval-development-plan.md（签字后开发计划草案，非正式任务单）
+- approval_note: 用户确认“既然你觉得 ok，那我也同意，开启后续的，后续的你来管理”。设计 gate 打开，后续进入 API 契约冻结；不直接进入 coding。
 
 ## 审阅清单
 

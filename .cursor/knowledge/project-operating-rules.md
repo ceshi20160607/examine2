@@ -74,6 +74,8 @@
 ## 6. 交付前检查
 
 - 原型必须能走通：登录、注册/找回、系统业务、系统后台、平台工作台、平台后台、消息、待办、工作管理。
+- 本项目最终打包不能只交付 `examine-web-*.jar`。必须生成 `release/unexamine-<version>/` 和 zip，后端目录保持简单：`examine-web.jar`、`application.yml`、`server.sh` 同级，通过 `server.sh start|stop|restart|status|health` 承接启停状态，另包含 `logs/`、`data/uploads/` 和前端静态包；验收时必须用发布包脚本启动服务，并验证外置端口配置、健康检查、重启和停止端口释放。
+- `server.sh start` 不能只判断进程存在，必须等待 `/api/v1/health` 中 `status/database/schema/redis` 全部为 `UP`；Redis 是登录 token 会话存储，Redis DOWN 时发布启动必须失败并打印健康响应和日志。
 - 注册创建系统后必须有系统初始化引导，至少覆盖系统信息、组织架构、角色权限、模块字段、流程字典、邀请成员和发布前检查；不能只跳到后台首页。
 - 平台 Flow、有效权限计算、流程高级运行策略属于开发契约级入口，原型必须提供专属结构和字段样例，不能用通用详情或说明抽屉替代。
 - 每次给用户看之前检查：重复按钮、重复导航、列表行点击、页签目标、抽屉目标、权限入口、筛选和分页；操作列还要扫描“详情 / 查看 / 打开 / 进入”同义详情按钮，确认它们不是和整行点击重复。
@@ -81,3 +83,31 @@
 
 - 开发前覆盖锁定要求：brief 中的关键产品词必须能在原型中找到可见证据。对会影响 API、任务拆分、权限、筛选、状态、运维边界的能力，不接受只用近义词或泛描述暗示；必须显式写出系统生命周期、字典类型、消息筛选、平台级模型/系统级 Agent、容量配额、备份恢复、归档恢复、错误状态和禁用状态等开发可抽取名称。
 - 开发前若多次复审仍发现明显问题，必须采用干净上下文复审：审阅者只读本项目落盘文件和当前原型，至少覆盖产品架构、UX、权限数据、QA/开发验收四个视角，结论写回 review 和 readiness 后才允许继续给用户确认。
+
+## 7. Local Build Environment Correction
+
+- The earlier `D:\Tools\...` JDK/Maven paths are not valid on the current machine.
+- Current verified JDK 21 path is `D:\java\jdk\jdk21`.
+- Current verified Maven path is `D:\java\apache-maven-3.8.5\bin\mvn.cmd`.
+- Before Java compilation, always set `JAVA_HOME=D:\java\jdk\jdk21`; the global `JAVA_HOME` may point to JDK8 even when `java -version` on PATH prints Java 21.
+- Do not report backend verification until Maven itself reports Java 21 in `mvn -version`.
+
+## 8. Real Deployment Default Account
+
+- The real deployable platform root account is `admin` with initial password `123123aa`.
+- The real platform root role code returned to frontend is `PLATFORM_ROOT`.
+- Historical prototype fixture names such as `platform_admin_root` are not the deployable login account.
+- Backend startup must bootstrap this account and role idempotently through configurable `unexamine.bootstrap.platform-root.*` settings.
+- The platform root account only owns platform backend authority by default; it must still create or switch into a system to receive a system member context before accessing system business data.
+
+## 9. Flow Canvas Runtime Rule
+
+- Flow creation must not silently inject demo/sample nodes, edges, modules, fields, external apps, or message templates.
+- A new flow without `canvas` is a draft with an empty canvas; publish must fail with a business validation error until real nodes and edges are saved.
+- E2E tests that publish a flow must submit an explicit canvas in the request, so approval runtime evidence never depends on hidden sample data.
+
+## 10. Frontend Runtime Data Rule
+
+- Production frontend pages must not fall back to prototype-specific local records, module names, import/export files, or domain fixtures when an API call fails.
+- Runtime business lists must render backend schema columns and backend record fields dynamically; unavailable data must show loading, empty, no-permission, or error states.
+- Demo fixtures may only live in explicit test/fixture files and must not be imported by production route components.

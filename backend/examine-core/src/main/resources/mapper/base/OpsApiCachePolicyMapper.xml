@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.core.base.mapper.OpsApiCachePolicyMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.core.base.entity.OpsApiCachePolicy">
+        <id column="id" property="id" />
+        <result column="policy_code" property="policyCode" />
+        <result column="cache_domain" property="cacheDomain" />
+        <result column="key_rule" property="keyRule" />
+        <result column="invalidation_rule" property="invalidationRule" />
+        <result column="status" property="status" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, policy_code, cache_domain, key_rule, invalidation_rule, status, updated_at</sql>
+</mapper>

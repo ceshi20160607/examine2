@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.plat.base.mapper.PlatTenantMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.PlatTenant">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_code" property="tenantCode" />
+        <result column="tenant_name" property="tenantName" />
+        <result column="status" property="status" />
+        <result column="domain" property="domain" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, system_id, tenant_code, tenant_name, status, domain, created_at, updated_at, deleted</sql>
+</mapper>

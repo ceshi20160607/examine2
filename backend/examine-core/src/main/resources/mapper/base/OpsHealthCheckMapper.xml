@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.core.base.mapper.OpsHealthCheckMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.core.base.entity.OpsHealthCheck">
+        <id column="id" property="id" />
+        <result column="scope" property="scope" />
+        <result column="system_id" property="systemId" />
+        <result column="check_type" property="checkType" />
+        <result column="status" property="status" />
+        <result column="result_payload" property="resultPayload" />
+        <result column="trace_id" property="traceId" />
+        <result column="checked_by" property="checkedBy" />
+        <result column="checked_at" property="checkedAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, scope, system_id, check_type, status, result_payload, trace_id, checked_by, checked_at</sql>
+</mapper>

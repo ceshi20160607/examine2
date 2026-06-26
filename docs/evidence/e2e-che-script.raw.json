@@ -1,0 +1,540 @@
+﻿{
+    "status":  "PASS",
+    "checkedAt":  "2026-06-24T11:04:43+08:00",
+    "backendPort":  18092,
+    "frontendPort":  18093,
+    "totalChecks":  53,
+    "failedChecks":  0,
+    "results":  [
+                    {
+                        "step":  "1",
+                        "check":  "platform_admin_root login returns default landing and trace",
+                        "status":  "PASS",
+                        "requestId":  "req_457add29-075e-4b22-81c5-27376354d790",
+                        "traceId":  "trc_17897d82-9f49-41d0-a697-978ff31a128f",
+                        "auditLogId":  "aud_trc_17897d82-9f49-41d0-a697-978ff31a128f",
+                        "notes":  "landing=PLATFORM",
+                        "data":  "{\"accessToken\":\"access_trc_17897d82-9f49-41d0-a697-978ff31a128f\",\"refreshToken\":\"refresh_req_457add29-075e-4b22-81c5-27376354d790\",\"profile\":{\"accountId\":\"acc_001\",\"accountName\":\"platform_admin_root\",\"mobile\":\"13800000000\",\"email\":\"platform_admin_root@example.com\",\"platformRoles\":[\"PLATFORM_SUPER_ADMIN\"],\"systemRoles\":[\"SYSTEM_SUPER_ADMIN\"]},\"defaultLanding\":{\"landingType\":\"PLATFORM\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"route\":\"/platform/dashboard\"},\"ssoBindingSummary\":{\"bound\":false,\"providers\":[],\"lastProvider\":null},\"requestId\":\"req_457add29-075e-4b22-81c5-27376354d790\",\"tr..."
+                    },
+                    {
+                        "step":  "2",
+                        "check":  "create vehicle system bootstrap returns super admin/init guide/auditLogId",
+                        "status":  "PASS",
+                        "requestId":  "req_0022fa25-d125-40c8-beeb-97cbe049176f",
+                        "traceId":  "trc_42d0521a-a24e-4f46-a507-1fb236f8701e",
+                        "auditLogId":  "aud_trc_42d0521a-a24e-4f46-a507-1fb236f8701e",
+                        "notes":  "systemId=sys_vehicle; steps=CREATE_SYSTEM,CREATE_DEFAULT_TENANT,CREATE_SUPER_ADMIN_ROLE,BIND_ACCOUNT_MEMBER",
+                        "data":  "{\"accountId\":\"acc_new\",\"systemId\":\"sys_vehicle\",\"systemMemberId\":\"member_super_admin\",\"systemSuperAdminRoleId\":\"role_system_super_admin\",\"initGuideSteps\":[\"CREATE_SYSTEM\",\"CREATE_DEFAULT_TENANT\",\"CREATE_SUPER_ADMIN_ROLE\",\"BIND_ACCOUNT_MEMBER\"],\"auditLogId\":\"aud_register_trc_42d0521a-a24e-4f46-a507-1fb236f8701e\"}"
+                    },
+                    {
+                        "step":  "3",
+                        "check":  "system switch options expose vehicle system entry",
+                        "status":  "PASS",
+                        "requestId":  "req_73d92ea4-d268-4d6c-8364-3d7d6821fe49",
+                        "traceId":  "trc_a2605a76-f51d-4205-935d-8e069bb6ebc9",
+                        "auditLogId":  null,
+                        "notes":  "options=1",
+                        "data":  "{\"systemId\":\"sys_vehicle\",\"systemName\":\"è½¦è¾èµäº§ç®¡çç³»ç»\",\"tenantId\":\"tenant_default\",\"tenantName\":\"é»è®¤ç§æ·\",\"switchable\":true,\"disabledReason\":null}"
+                    },
+                    {
+                        "step":  "3",
+                        "check":  "system switch creates SystemSwitchContext with member/permission scope",
+                        "status":  "PASS",
+                        "requestId":  "req_97c512c8-4130-4d69-bbf4-275ca266c07a",
+                        "traceId":  "trc_1a3a5a11-6fb2-4706-a581-31e4b6d6b783",
+                        "auditLogId":  "aud_trc_1a3a5a11-6fb2-4706-a581-31e4b6d6b783",
+                        "notes":  "member=member_001; binding=amb_001",
+                        "data":  "{\"accountId\":\"acc_001\",\"accountMemberBindingId\":\"amb_001\",\"systemId\":\"sys_vehicle\",\"systemCode\":\"vehicle\",\"systemName\":\"è½¦è¾èµäº§ç®¡çç³»ç»\",\"tenantId\":\"tenant_default\",\"systemMemberId\":\"member_001\",\"effectiveRoleIds\":[\"role_system_super_admin\"],\"dataScope\":{\"type\":\"ALL\"},\"permissionSnapshotSummary\":{\"snapshotId\":\"eps_001\",\"permissionVersion\":\"perm_20260623_001\",\"disabledReason\":null},\"messageTodoScope\":{\"tenantId\":\"tenant_default\",\"systemId\":\"sys_vehicle\",\"scope\":\"system\"},\"expiresAt\":\"2026-06-24T19:04:42.9308957\"}"
+                    },
+                    {
+                        "step":  "3",
+                        "check":  "tenant switch creates TenantSwitchContext",
+                        "status":  "PASS",
+                        "requestId":  "req_1d623e83-909f-47ce-a3a3-eb958370a9c9",
+                        "traceId":  "trc_23872df5-ee19-4fc3-9f67-6bc9e5adb2f7",
+                        "auditLogId":  "aud_trc_23872df5-ee19-4fc3-9f67-6bc9e5adb2f7",
+                        "notes":  "tenant=tenant_branch; switchable=True",
+                        "data":  "{\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_branch\",\"tenantName\":\"é»è®¤ç§æ·\",\"tenantRoleIds\":[\"role_system_super_admin\"],\"tenantDataScope\":{\"type\":\"ALL\"},\"tenantSwitchable\":true,\"disabledReason\":null,\"permissionSnapshotSummary\":{\"snapshotId\":\"eps_tenant_001\",\"permissionVersion\":\"perm_20260623_001\",\"disabledReason\":null}}"
+                    },
+                    {
+                        "step":  "4",
+                        "check":  "system admin config check /api/v1/systems/sys_vehicle/module-groups",
+                        "status":  "PASS",
+                        "requestId":  "req_dcc5f505-5ad0-4ba8-935e-3e8ee0df572a",
+                        "traceId":  "trc_62bcd643-bb89-495d-a3ae-9288091ab8bf",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "[{\"groupId\":\"grp_asset\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"name\":\"èµäº§ç®¡ç\",\"sort\":10,\"visibleRoleIds\":[\"role_operator\",\"role_manager\"],\"publishStatus\":\"PUBLISHED\",\"publishedVersion\":\"grp_v20260623_001\",\"updatedAt\":\"2026-06-24T09:04:42.9579922\"},{\"groupId\":\"grp_work\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"name\":\"å·¥ä½åä½\",\"sort\":20,\"visibleRoleIds\":[\"role_operator\",\"role_manager\"],\"publishStatus\":\"PUBLISHED\",\"publishedVersion\":\"grp_v20260623_001\",\"updatedAt\":\"2026-06-24T09:04:42.9579922\"}]"
+                    },
+                    {
+                        "step":  "4",
+                        "check":  "system admin config check /api/v1/systems/sys_vehicle/modules",
+                        "status":  "PASS",
+                        "requestId":  "req_1a595ddc-e211-41f5-b208-ec3d3fc919d3",
+                        "traceId":  "trc_69ba7bf2-2424-467c-985b-ab95897d403c",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "{\"records\":[{\"moduleId\":\"mod_vehicle\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"groupId\":\"grp_asset\",\"moduleCode\":\"vehicle\",\"name\":\"è½¦è¾æ¡£æ¡\",\"status\":1,\"publishStatus\":\"PUBLISHED\",\"currentVersion\":\"mod_v20260623_001\",\"rowDetailTarget\":{\"targetType\":\"DRAWER\",\"route\":\"/runtime/modules/mod_vehicle/records/{recordId}\",\"drawerCode\":\"moduleRecordDetailDrawer\",\"preserveListContext\":true},\"navigation\":{\"topGroupName\":\"èµäº§ç®¡ç\",\"leftMenuName\":\"è½¦è¾æ¡£æ¡\",\"route\":\"/systems/sys_vehicle/modules/mod_vehicle\",\"visibleRoleIds\":[\"role_operator\",\"role_manager\"],\"runtimeVisible\":true},\"..."
+                    },
+                    {
+                        "step":  "4",
+                        "check":  "system admin config check /api/v1/systems/sys_vehicle/modules/mod_vehicle/fields",
+                        "status":  "PASS",
+                        "requestId":  "req_bf60e3f6-94a4-4819-b73e-3cce0c7db946",
+                        "traceId":  "trc_7343deaf-3581-4983-bbd6-d9be6dcb79a5",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "{\"records\":[{\"fieldId\":\"fld_license_no\",\"moduleId\":\"mod_vehicle\",\"fieldCode\":\"licenseNo\",\"name\":\"è½¦çå·\",\"fieldType\":\"TEXT\",\"storageType\":\"VARCHAR\",\"filterOperators\":[\"EQ\",\"LIKE\",\"IN\"],\"sortable\":true,\"required\":true,\"status\":1,\"dictTypeId\":null,\"permissionMetadata\":{\"readablePermissionCode\":\"field.vehicle.licenseNo.read\",\"writablePermissionCode\":\"field.vehicle.licenseNo.write\",\"readableRoleIds\":[\"role_operator\",\"role_manager\"],\"writableRoleIds\":[\"role_manager\"],\"runtimeReadable\":true,\"runtimeWritable\":true,\"maskedWhenDenied\":\"NONE\",\"permissionVersion\":\"perm_20260623_001\"},\"maskRule\":\"NONE\"..."
+                    },
+                    {
+                        "step":  "4",
+                        "check":  "system admin config check /api/v1/systems/sys_vehicle/modules/mod_vehicle/list-schema",
+                        "status":  "PASS",
+                        "requestId":  "req_dc6dc8bd-d99a-42d3-96d5-239736341cfe",
+                        "traceId":  "trc_f070add8-95c7-463d-97fa-ef1b0a5103f4",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "{\"moduleId\":\"mod_vehicle\",\"moduleCode\":\"vehicle\",\"sceneId\":\"scene_default\",\"sceneCode\":\"all_vehicle\",\"columns\":[{\"fieldId\":\"fld_license_no\",\"fieldCode\":\"licenseNo\",\"label\":\"è½¦çå·\",\"width\":160,\"visibleDefault\":true,\"configurable\":true,\"fixed\":false,\"align\":\"LEFT\",\"permissionMode\":\"READABLE\",\"maskRule\":\"NONE\"},{\"fieldId\":\"fld_status\",\"fieldCode\":\"status\",\"label\":\"ç¶æ\",\"width\":120,\"visibleDefault\":true,\"configurable\":true,\"fixed\":false,\"align\":\"CENTER\",\"permissionMode\":\"READABLE\",\"maskRule\":\"NONE\"},{\"fieldId\":\"fld_owner_dept\",\"fieldCode\":\"ownerDept\",\"label\":\"æå±é¨é¨\",\"width\":180,\"visi..."
+                    },
+                    {
+                        "step":  "4",
+                        "check":  "system admin config check /api/v1/systems/sys_vehicle/modules/mod_vehicle/actions",
+                        "status":  "PASS",
+                        "requestId":  "req_41c940be-1a93-4a22-903b-b71ee43f53b5",
+                        "traceId":  "trc_753a51dc-6a81-44cf-85cd-1867c57c9b37",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "[{\"actionCode\":\"record.create\",\"actionName\":\"æ°å¢è½¦è¾\",\"actionType\":\"CREATE\",\"position\":\"TOOLBAR\",\"selectionRule\":{\"selectionMode\":\"NONE\",\"minSelected\":0,\"maxSelected\":0,\"requiredStatuses\":[],\"sameTenantRequired\":true,\"forbiddenReason\":null},\"permissionCode\":\"module.vehicle.create\",\"resultContract\":{\"resultType\":\"SYNC_RESULT\",\"returnsAuditLog\":true,\"returnsAsyncTask\":false,\"resultDrawer\":\"vehicleEditDrawer\",\"traceField\":\"traceId\",\"userVisibleStates\":[\"SAVED\",\"SUBMITTED\",\"FAILED\"]},\"enabled\":true,\"disabledReason\":null,\"idempotencyRequired\":true},{\"actionCode\":\"record.export\",\"actionName\":\"å..."
+                    },
+                    {
+                        "step":  "4",
+                        "check":  "system admin config check /api/v1/systems/sys_vehicle/modules/mod_vehicle/import-export-config",
+                        "status":  "PASS",
+                        "requestId":  "req_877c76b8-0fc0-4f38-a7de-d46dd9b274a9",
+                        "traceId":  "trc_268fb096-ac39-4098-8ac9-adfc41d89545",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "{\"configId\":\"imp_exp_vehicle_001\",\"moduleId\":\"mod_vehicle\",\"importSupported\":true,\"exportSupported\":true,\"importTemplates\":[{\"templateCode\":\"vehicle_import_standard\",\"templateName\":\"è½¦è¾æ åå¯¼å\\u0085¥æ¨¡æ¿\",\"fileId\":\"file_tpl_vehicle_import\",\"version\":\"tpl_v20260623_001\",\"requiredFieldCodes\":[\"licenseNo\",\"assetNo\",\"status\"]}],\"exportTemplates\":[{\"templateCode\":\"vehicle_export_standard\",\"templateName\":\"è½¦è¾åè¡¨å¯¼åºæ¨¡æ¿\",\"fileFormat\":\"XLSX\",\"desensitizeMode\":\"MASK_DENIED_FIELDS\",\"defaultFieldCodes\":[\"licenseNo\",\"assetNo\",\"status\",\"ownerDept\"]}],\"fieldMappings\":[{\"sourceColumn\":\"è½¦..."
+                    },
+                    {
+                        "step":  "4",
+                        "check":  "module publish check returns impact/warnings",
+                        "status":  "PASS",
+                        "requestId":  "req_cc544fb9-85ba-4831-bf1e-78b5f1594826",
+                        "traceId":  "trc_53550a74-2672-4cf9-9f98-9cb1dbe9db05",
+                        "auditLogId":  "aud_trc_53550a74-2672-4cf9-9f98-9cb1dbe9db05",
+                        "notes":  "passed=True",
+                        "data":  "{\"passed\":true,\"failureItems\":[],\"warningItems\":[{\"itemCode\":\"W_IMPORT_EXECUTION_EXTERNAL\",\"itemName\":\"å¯¼å\\u0085¥æ§è¡ç±åç»­ä»»å¡æ¿æ¥\",\"severity\":\"WARNING\",\"objectType\":\"IMPORT_EXPORT_CONFIG\",\"objectId\":\"imp_exp_vehicle_001\",\"message\":\"å½åä»\\u0085åå¸å¯¼å\\u0085¥å¯¼åºé\\u0085ç½®å\\u0085æ°æ®ï¼å®é\\u0085æ§è¡ç± TASK-BE-022 æä¾ã\",\"fixAction\":\"ç¡®è®¤è¿è¡æå¯¼å\\u0085¥å¯¼åºä»»å¡å·²æ¥å\\u0085¥\"}],\"impactRefs\":[{\"objectType\":\"RUNTIME_LIST\",\"objectId\":\"mod_vehicle\",\"name\":\"è½¦è¾åè¡¨\",\"impactType\":\"REFRESH_SCHEMA\"},{\"objectType\":\"PERMISSION_SNAPSHOT\",\"objectId\":\"eps_modul..."
+                    },
+                    {
+                        "step":  "5",
+                        "check":  "flow config check /api/v1/systems/sys_vehicle/flows",
+                        "status":  "PASS",
+                        "requestId":  "req_8448e891-801b-43f3-8e5c-d433ec7eebd8",
+                        "traceId":  "trc_73ca4460-170b-4739-8197-3116d8f637b7",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "{\"records\":[{\"flowId\":\"flow_vehicle_approval\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"flowCode\":\"vehicle_approval\",\"flowName\":\"è½¦è¾æ¡£æ¡å®¡æ¹æµç¨\",\"boundModuleId\":\"mod_vehicle\",\"triggerRule\":{\"triggerType\":\"MODULE_ACTION\",\"actionCodes\":[\"record.submitApproval\"],\"conditionExpression\":\"approvalStatus == \\u0027DRAFT\\u0027\",\"manualStartAllowed\":true,\"idempotencyRequired\":true},\"status\":1,\"publishStatus\":\"PUBLISHED\",\"currentVersion\":\"flow_v20260623_001\",\"canvas\":{\"flowId\":\"flow_vehicle_approval\",\"nodes\":[{\"nodeKey\":\"node_approval_leader\",\"nodeType\":\"approval\",\"nodeName\":\"ç´å±è..."
+                    },
+                    {
+                        "step":  "5",
+                        "check":  "flow config check /api/v1/systems/sys_vehicle/flows/node-library",
+                        "status":  "PASS",
+                        "requestId":  "req_4436d66b-765e-4979-ab8d-03986e49fe40",
+                        "traceId":  "trc_4d31874c-9aa6-436f-99af-951f6aa3d631",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "[{\"nodeType\":\"approval\",\"nodeTypeName\":\"å®¡æ¹\",\"category\":\"äººå·¥å¤ç\",\"icon\":\"user-check\",\"description\":\"ææåãè§è²æé¨é¨æ´¾åå®¡æ¹ä»»å¡\",\"defaultPropertyPayload\":{\"approvalType\":\"OR_SIGN\",\"assigneeType\":\"ROLE\",\"assigneeIds\":[\"role_vehicle_manager\"],\"allowTransfer\":true,\"allowReject\":true,\"reasonRequired\":true,\"fieldPermissionPolicy\":{\"readableFieldCodes\":[\"licenseNo\",\"assetValue\",\"ownerDept\"],\"writableFieldCodes\":[\"approvalComment\"],\"deniedFieldMode\":\"MASK_DENIED_FIELDS\",\"permissionVersion\":\"perm_20260623_001\"},\"timeoutPolicy\":{\"dueMinutes\":1440,\"timeoutAction\":\"REMIND_ONLY\"..."
+                    },
+                    {
+                        "step":  "5",
+                        "check":  "flow config check /api/v1/systems/sys_vehicle/flows/flow_vehicle_approval/canvas",
+                        "status":  "PASS",
+                        "requestId":  "req_37b84bf9-52c9-4f03-af7b-dc2d6e027a2c",
+                        "traceId":  "trc_e4c2176b-3530-42ef-ad40-cde8af397b3e",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "{\"flowId\":\"flow_vehicle_approval\",\"nodes\":[{\"nodeKey\":\"node_approval_leader\",\"nodeType\":\"approval\",\"nodeName\":\"ç´å±è´è´£äººå®¡æ¹\",\"position\":{\"x\":120,\"y\":140,\"width\":180,\"height\":72},\"propertyPayload\":{\"approvalType\":\"OR_SIGN\",\"assigneeType\":\"ROLE\",\"assigneeIds\":[\"role_vehicle_manager\"],\"allowTransfer\":true,\"allowReject\":true,\"reasonRequired\":true,\"fieldPermissionPolicy\":{\"readableFieldCodes\":[\"licenseNo\",\"assetValue\",\"ownerDept\"],\"writableFieldCodes\":[\"approvalComment\"],\"deniedFieldMode\":\"MASK_DENIED_FIELDS\",\"permissionVersion\":\"perm_20260623_001\"},\"timeoutPolicy\":{\"dueMinutes\":1440,\"time..."
+                    },
+                    {
+                        "step":  "5",
+                        "check":  "flow config check /api/v1/systems/sys_vehicle/flows/flow_vehicle_approval/nodes/node_condition_amount/properties",
+                        "status":  "PASS",
+                        "requestId":  "req_2891ffcb-bf83-44ab-8c07-6deb84de9d54",
+                        "traceId":  "trc_8f5701da-ab27-42d0-ae46-982baca86433",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "{\"nodeType\":\"condition\",\"panelCode\":\"conditionPropertyPanel\",\"title\":\"æ¡ä»¶åæ¯å±æ§\",\"payloadType\":\"ConditionPropertyPayload\",\"fields\":[{\"fieldCode\":\"ruleMode\",\"fieldName\":\"è§åæ¨¡å¼\",\"fieldType\":\"SELECT\",\"required\":true,\"options\":[\"FIRST_MATCH\",\"ALL_MATCH\"],\"defaultValue\":\"FIRST_MATCH\",\"description\":\"æ¡ä»¶åæ¯å¹é\\u0085ç­ç¥\"},{\"fieldCode\":\"expressions\",\"fieldName\":\"æ¡ä»¶è¡¨è¾¾å¼\",\"fieldType\":\"EXPRESSION_LIST\",\"required\":true,\"options\":[],\"defaultValue\":null,\"description\":\"å­æ®µæ¡ä»¶è¡¨è¾¾å¼åè¡¨\"},{\"fieldCode\":\"defaultBranchLabel\",\"fieldName\":\"é»è®¤åæ¯æ ç­¾\",\"fieldTyp..."
+                    },
+                    {
+                        "step":  "5",
+                        "check":  "flow simulation returns branch decision and trace steps",
+                        "status":  "PASS",
+                        "requestId":  "req_e4145abe-9b5f-4513-a4f2-d767c91f63e3",
+                        "traceId":  "trc_65d3bd90-b0af-4443-b83a-bf24b524a8fc",
+                        "auditLogId":  "aud_trc_65d3bd90-b0af-4443-b83a-bf24b524a8fc",
+                        "notes":  "steps=0",
+                        "data":  "{\"simulationId\":\"sim_trc_65d3bd90-b0af-4443-b83a-bf24b524a8fc\",\"flowId\":\"flow_vehicle_approval\",\"versionNo\":\"DRAFT\",\"passed\":true,\"stepTraces\":[{\"sequence\":1,\"nodeKey\":\"node_approval_leader\",\"nodeName\":\"ç´å±è´è´£äººå®¡æ¹\",\"nodeType\":\"approval\",\"inputSummary\":\"recordId=rec_vehicle_001\",\"outputSummary\":\"å®¡æ¹ä»»å¡å°æ´¾åç»ç´å±è´è´£äºº\",\"nextNodeKeys\":[\"node_condition_amount\"],\"elapsedMs\":12},{\"sequence\":2,\"nodeKey\":\"node_condition_amount\",\"nodeName\":\"éé¢æ¡ä»¶åæ¯\",\"nodeType\":\"condition\",\"inputSummary\":\"assetValue=120000\",\"outputSummary\":\"å½ä¸­åæ¯ï¼éé¢å¤§äºç­äº 10 ä¸..."
+                    },
+                    {
+                        "step":  "6",
+                        "check":  "che login succeeds with trace and target system",
+                        "status":  "PASS",
+                        "requestId":  "req_d4910d10-7eab-48ee-938d-c8ffe0e97884",
+                        "traceId":  "trc_4aa87b40-e9c2-4700-ae33-2e237d43f7c2",
+                        "auditLogId":  "aud_trc_4aa87b40-e9c2-4700-ae33-2e237d43f7c2",
+                        "notes":  "account=che",
+                        "data":  "{\"accessToken\":\"access_trc_4aa87b40-e9c2-4700-ae33-2e237d43f7c2\",\"refreshToken\":\"refresh_req_d4910d10-7eab-48ee-938d-c8ffe0e97884\",\"profile\":{\"accountId\":\"acc_001\",\"accountName\":\"che\",\"mobile\":\"13800000000\",\"email\":\"che@example.com\",\"platformRoles\":[\"PLATFORM_SUPER_ADMIN\"],\"systemRoles\":[\"SYSTEM_SUPER_ADMIN\"]},\"defaultLanding\":{\"landingType\":\"PLATFORM\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"route\":\"/platform/dashboard\"},\"ssoBindingSummary\":{\"bound\":false,\"providers\":[],\"lastProvider\":null},\"requestId\":\"req_d4910d10-7eab-48ee-938d-c8ffe0e97884\",\"traceId\":\"trc_4aa87b40-e9c2-4700-a..."
+                    },
+                    {
+                        "step":  "6",
+                        "check":  "effective permissions include field mask and denied export action",
+                        "status":  "PASS",
+                        "requestId":  "req_15356e89-063e-4db7-bfa9-285fdba2bb39",
+                        "traceId":  "trc_73d7edbd-f178-46d1-bbb5-5493271375a6",
+                        "auditLogId":  null,
+                        "notes":  "member=member_001; export=False",
+                        "data":  "{\"snapshotId\":\"eps_001\",\"permissionVersion\":\"perm_20260623_001\",\"systemMemberId\":\"member_001\",\"tenantId\":\"tenant_default\",\"sourceRoleIds\":[\"role_system_admin\"],\"denyPolicyIds\":[\"deny_export_secret\"],\"field\":{\"vehicle.secretNote\":\"MASKED\",\"vehicle.licenseNo\":\"READABLE\"},\"action\":{\"record.create\":true,\"record.export\":false},\"dataScope\":{\"type\":\"DEPARTMENT\"},\"disabledReason\":null,\"explain\":[{\"roleId\":\"role_system_admin\",\"target\":\"record.create\",\"type\":\"ROLE_ALLOW\"}]}"
+                    },
+                    {
+                        "step":  "6",
+                        "check":  "che export-secret/admin-like denied action has disabledReason/audit",
+                        "status":  "PASS",
+                        "requestId":  "req_536d096e-48b3-4c5f-a177-3636454af900",
+                        "traceId":  "trc_c5cb42f4-7f60-49a8-a91b-07daeff7cc8f",
+                        "auditLogId":  "aud_trc_c5cb42f4-7f60-49a8-a91b-07daeff7cc8f",
+                        "notes":  "disabledReason=DENY_POLICY_EXPORT_SECRET",
+                        "data":  "{\"allowed\":false,\"disabledReason\":\"DENY_POLICY_EXPORT_SECRET\",\"missingPermissions\":[\"record.export.secret\"],\"dataScopeExpression\":{\"type\":\"DEPARTMENT\"},\"fieldMaskRules\":{\"vehicle.secretNote\":\"MASKED\"},\"explain\":[{\"roleId\":\"role_operator\",\"target\":\"record.export_secret\",\"type\":\"ROLE_ALLOW\"}],\"permissionVersion\":\"perm_20260623_001\",\"traceId\":\"trc_c5cb42f4-7f60-49a8-a91b-07daeff7cc8f\",\"auditLogId\":\"aud_trc_c5cb42f4-7f60-49a8-a91b-07daeff7cc8f\"}"
+                    },
+                    {
+                        "step":  "7",
+                        "check":  "vehicle list schema exposes columns/filters/sorts/row-click/batch actions",
+                        "status":  "PASS",
+                        "requestId":  "req_82ee4507-ece0-4136-9929-18a8bf1194db",
+                        "traceId":  "trc_505c1779-8b24-4bb4-8ece-167bad6a095f",
+                        "auditLogId":  null,
+                        "notes":  "columns=4; filters=4",
+                        "data":  "{\"moduleId\":\"mod_vehicle\",\"moduleCode\":\"vehicle\",\"sceneCode\":\"all_vehicle\",\"columns\":[{\"fieldId\":\"fld_license_no\",\"fieldCode\":\"licenseNo\",\"label\":\"License No\",\"width\":160,\"visibleDefault\":true,\"sortable\":true,\"writable\":true,\"permissionMode\":\"READABLE\",\"maskRule\":\"NONE\",\"disabledReason\":null},{\"fieldId\":\"fld_status\",\"fieldCode\":\"status\",\"label\":\"Status\",\"width\":120,\"visibleDefault\":true,\"sortable\":true,\"writable\":false,\"permissionMode\":\"READABLE\",\"maskRule\":\"NONE\",\"disabledReason\":\"Status is controlled by workflow actions.\"},{\"fieldId\":\"fld_owner_dept\",\"fieldCode\":\"ownerDept\",\"label\":\"Owner De..."
+                    },
+                    {
+                        "step":  "7",
+                        "check":  "vehicle list search/filter/sort/page returns server checks",
+                        "status":  "PASS",
+                        "requestId":  "req_93ee51f1-fe38-410d-9ab7-3ed477458ccb",
+                        "traceId":  "trc_69e1b887-a349-4c5e-81d5-b7e5f46c0b28",
+                        "auditLogId":  "aud_trc_69e1b887-a349-4c5e-81d5-b7e5f46c0b28",
+                        "notes":  "records=1; checks=FIELD_PERMISSION_APPLIED,DATA_SCOPE_ENFORCED,FILTER_INDEX_VALIDATED,SORT_INDEX_VALIDATED,SERVER_SIDE_PAGE",
+                        "data":  "{\"listSchema\":{\"moduleId\":\"mod_vehicle\",\"moduleCode\":\"vehicle\",\"sceneCode\":\"all_vehicle\",\"columns\":[{\"fieldId\":\"fld_license_no\",\"fieldCode\":\"licenseNo\",\"label\":\"License No\",\"width\":160,\"visibleDefault\":true,\"sortable\":true,\"writable\":true,\"permissionMode\":\"READABLE\",\"maskRule\":\"NONE\",\"disabledReason\":null},{\"fieldId\":\"fld_status\",\"fieldCode\":\"status\",\"label\":\"Status\",\"width\":120,\"visibleDefault\":true,\"sortable\":true,\"writable\":false,\"permissionMode\":\"READABLE\",\"maskRule\":\"NONE\",\"disabledReason\":\"Status is controlled by workflow actions.\"},{\"fieldId\":\"fld_owner_dept\",\"fieldCode\":\"ownerDept\",\"la..."
+                    },
+                    {
+                        "step":  "7",
+                        "check":  "row-click target detail returns tabs/approval/sidebar/masks",
+                        "status":  "PASS",
+                        "requestId":  "req_15779c25-9abc-4311-a7ef-946b37e2aeff",
+                        "traceId":  "trc_09e17933-58bd-4923-829c-45e11af0e949",
+                        "auditLogId":  null,
+                        "notes":  "tabs=5; approval=True",
+                        "data":  "{\"summary\":{\"recordId\":\"rec_vehicle_001\",\"title\":\"VH-2026-0001\",\"summary\":\"Vehicle archive waiting for approval\",\"status\":\"ACTIVE\",\"statusColor\":\"BLUE\",\"ownerMemberId\":\"sm_001\",\"createdAt\":\"2026-06-16T11:04:43.1830079\",\"updatedAt\":\"2026-06-24T10:49:43.1820003\"},\"baseFields\":[{\"fieldCode\":\"licenseNo\",\"label\":\"License No\",\"value\":\"VH-2026-0001\",\"displayValue\":\"VH-2026-0001\",\"permissionMode\":\"READABLE\",\"maskRule\":\"NONE\",\"writable\":true,\"disabledReason\":null},{\"fieldCode\":\"status\",\"label\":\"Status\",\"value\":\"ACTIVE\",\"displayValue\":\"ACTIVE\",\"permissionMode\":\"READABLE\",\"maskRule\":\"NONE\",\"writable\":fal..."
+                    },
+                    {
+                        "step":  "8",
+                        "check":  "create vehicle returns mutation audit/row detail target",
+                        "status":  "PASS",
+                        "requestId":  "req_65ddd14f-6a95-43ef-957f-217fc161d7cc",
+                        "traceId":  "trc_786cc115-56ab-4c7e-bf65-4968e8886e4b",
+                        "auditLogId":  "aud_trc_786cc115-56ab-4c7e-bf65-4968e8886e4b",
+                        "notes":  "recordId=rec_trc_786c; result=CREATED",
+                        "data":  "{\"recordId\":\"rec_trc_786c\",\"result\":\"CREATED\",\"changedFields\":[{\"fieldCode\":\"licenseNo\",\"beforeValue\":null,\"afterValue\":\"?A-G10\",\"permissionMode\":\"READABLE\",\"reason\":\"Runtime write permission checked.\"},{\"fieldCode\":\"ownerDept\",\"beforeValue\":null,\"afterValue\":\"????\",\"permissionMode\":\"READABLE\",\"reason\":\"Runtime write permission checked.\"},{\"fieldCode\":\"status\",\"beforeValue\":null,\"afterValue\":\"DRAFT\",\"permissionMode\":\"READABLE\",\"reason\":\"Runtime write permission checked.\"}],\"fieldMaskResults\":[{\"fieldCode\":\"ownerDept\",\"permissionMode\":\"MASKED_WHEN_DENIED\",\"maskRule\":\"MASK_DEPT_PATH\",\"originalVa..."
+                    },
+                    {
+                        "step":  "8",
+                        "check":  "edit vehicle returns changed fields/audit",
+                        "status":  "PASS",
+                        "requestId":  "req_8c0b61b7-ce92-45ae-92bc-46cef31f3a8d",
+                        "traceId":  "trc_79f6ec27-98e9-486f-8006-03748a178696",
+                        "auditLogId":  "aud_trc_79f6ec27-98e9-486f-8006-03748a178696",
+                        "notes":  "changes=2",
+                        "data":  "{\"recordId\":\"rec_trc_786c\",\"result\":\"UPDATED\",\"changedFields\":[{\"fieldCode\":\"status\",\"beforeValue\":\"previous:status\",\"afterValue\":\"ACTIVE\",\"permissionMode\":\"READABLE\",\"reason\":\"Runtime write permission checked.\"},{\"fieldCode\":\"ownerDept\",\"beforeValue\":\"previous:ownerDept\",\"afterValue\":\"????\",\"permissionMode\":\"READABLE\",\"reason\":\"Runtime write permission checked.\"}],\"fieldMaskResults\":[{\"fieldCode\":\"ownerDept\",\"permissionMode\":\"MASKED_WHEN_DENIED\",\"maskRule\":\"MASK_DEPT_PATH\",\"originalValueVisible\":false,\"desensitizedValue\":\"Operations / ***\",\"reason\":\"Only departments in current data scope show..."
+                    },
+                    {
+                        "step":  "8",
+                        "check":  "submit approval action returns approval result hook",
+                        "status":  "PASS",
+                        "requestId":  "req_68c10b52-948e-4347-a631-c0e39710980b",
+                        "traceId":  "trc_328a9c9d-ab15-445e-912f-634e098e4c12",
+                        "auditLogId":  "aud_trc_328a9c9d-ab15-445e-912f-634e098e4c12",
+                        "notes":  "accepted=True; hook=approvalSubmitResultDrawer",
+                        "data":  "{\"recordId\":\"rec_trc_786c\",\"actionCode\":\"record.submitApproval\",\"result\":\"ACTION_ACCEPTED\",\"accepted\":true,\"disabledReason\":null,\"resultHook\":{\"resultType\":\"SYNC_RESULT\",\"drawerCode\":\"approvalSubmitResultDrawer\",\"returnsAuditLog\":true,\"returnsAsyncTask\":false,\"traceField\":\"traceId\",\"states\":[\"SUCCESS\",\"FAILED\",\"BLOCKED\"]},\"asyncTask\":null,\"permissionSnapshotVersion\":\"perm_20260623_001\",\"idempotencyKey\":\"idem-g10-submit-approval\",\"traceId\":\"trc_328a9c9d-ab15-445e-912f-634e098e4c12\",\"auditLogId\":\"aud_trc_328a9c9d-ab15-445e-912f-634e098e4c12\",\"operatedAt\":\"2026-06-24T11:04:43.2217829\"}"
+                    },
+                    {
+                        "step":  "9",
+                        "check":  "workflow instance snapshot available from detail approval sidebar",
+                        "status":  "PASS",
+                        "requestId":  "req_945be690-11a4-43bc-b76e-60bd9bc4eb99",
+                        "traceId":  "trc_c42ea004-7b77-4d2e-b3de-b9908384b94c",
+                        "auditLogId":  null,
+                        "notes":  "status=",
+                        "data":  "{\"instance\":{\"instanceId\":\"flow_inst_rec_vehicle_001\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"flowId\":\"flow_vehicle_approval\",\"flowName\":\"è½¦è¾æ¡£æ¡å®¡æ¹æµç¨\",\"versionNo\":\"flow_v20260623_001\",\"status\":\"RUNNING\",\"startedBy\":{\"memberId\":\"system_member_operator\",\"memberName\":\"éæäº¤\",\"roleName\":\"è½¦è¾ç®¡çå\",\"departmentName\":\"è¿è¥é¨\"},\"startedAt\":\"2026-06-24T09:04:43.2442271\",\"updatedAt\":\"2026-06-24T10:52:43.2442271\"},\"nodes\":[{\"nodeKey\":\"node_approval_leader\",\"nodeName\":\"ç´å±è´è´£äººå®¡æ¹\",\"nodeType\":\"approval\",\"status\":\"ACTIVE\",\"enteredAt\":\"2026-06-24T09:04:43.2..."
+                    },
+                    {
+                        "step":  "9",
+                        "check":  "approval approve returns next task and audit",
+                        "status":  "PASS",
+                        "requestId":  "req_d6c8d478-2d5b-40be-834f-76eaee0227ce",
+                        "traceId":  "trc_641a7454-c2cf-4cf9-96b7-dff1fcefa5d9",
+                        "auditLogId":  "aud_trc_641a7454-c2cf-4cf9-96b7-dff1fcefa5d9",
+                        "notes":  "duplicate=False; next=1",
+                        "data":  "{\"actionResultId\":\"approval_result_trc_641a7454\",\"systemId\":\"sys_vehicle\",\"taskId\":\"approval_task_vehicle_001\",\"instanceId\":\"flow_instance_vehicle_001\",\"actionCode\":\"approve\",\"taskStatus\":\"APPROVED\",\"instanceStatus\":\"RUNNING\",\"workflowAdvanced\":true,\"duplicate\":false,\"idempotencyKey\":\"idem-g10-approval\",\"actionLogId\":\"flow_action_log_trc_641a7454\",\"auditLogId\":\"aud_trc_641a7454\",\"traceId\":\"trc_641a7454-c2cf-4cf9-96b7-dff1fcefa5d9\",\"message\":\"å®¡æ¹å·²éè¿ï¼å¹¶çæä¸ä¸èç¹ä»»å¡ã\",\"reason\":\"??\",\"transferTarget\":null,\"nextTasks\":[{\"taskId\":\"approval_task_finance_001\",\"taskNo\":\"AT-2026..."
+                    },
+                    {
+                        "step":  "9",
+                        "check":  "approval duplicate submit is idempotent and not advanced again",
+                        "status":  "PASS",
+                        "requestId":  "req_8c81e068-b323-4b3d-bd2b-d2b86ec2eea3",
+                        "traceId":  "trc_041e6e3d-8691-48df-8d87-7b0e755ce675",
+                        "auditLogId":  "aud_trc_041e6e3d-8691-48df-8d87-7b0e755ce675",
+                        "notes":  "duplicate=True",
+                        "data":  "{\"actionResultId\":\"approval_result_trc_641a7454\",\"systemId\":\"sys_vehicle\",\"taskId\":\"approval_task_vehicle_001\",\"instanceId\":\"flow_instance_vehicle_001\",\"actionCode\":\"approve\",\"taskStatus\":\"APPROVED\",\"instanceStatus\":\"RUNNING\",\"workflowAdvanced\":false,\"duplicate\":true,\"idempotencyKey\":\"idem-g10-approval\",\"actionLogId\":\"flow_action_log_trc_641a7454\",\"auditLogId\":\"aud_trc_641a7454\",\"traceId\":\"trc_641a7454-c2cf-4cf9-96b7-dff1fcefa5d9\",\"message\":\"å®¡æ¹å·²éè¿ï¼å¹¶çæä¸ä¸èç¹ä»»å¡ãï¼éå¤è¯·æ±å·²æå¹ç­é®è¿ååå¤çç»æï¼æµç¨æªåæ¬¡æ¨è¿ã\",\"reason\":\"??\",\"transferTar..."
+                    },
+                    {
+                        "step":  "10",
+                        "check":  "import precheck returns issues/result/error files/task",
+                        "status":  "PASS",
+                        "requestId":  "req_52a2ec8a-0b5d-4f15-92eb-91868fe287d1",
+                        "traceId":  "trc_9fad8f1d-9460-4313-807c-c27f20dc863a",
+                        "auditLogId":  "aud_trc_9fad8f1d-9460-4313-807c-c27f20dc863a",
+                        "notes":  "precheck=precheck_trc_9fad; passed=False",
+                        "data":  "{\"precheckId\":\"precheck_trc_9fad\",\"passed\":false,\"totalRows\":20,\"validRows\":18,\"invalidRows\":1,\"duplicateRows\":1,\"issues\":[{\"rowNo\":3,\"fieldCode\":\"licenseNo\",\"level\":\"ERROR\",\"message\":\"è½¦çå·ä¸ºç©ºï¼ä¸è½å¯¼å\\u0085¥ã\",\"suggestion\":\"è¡¥å\\u0085\\u0085è½¦çå·åéæ°ä¸ä¼ ã\"},{\"rowNo\":5,\"fieldCode\":\"ownerDept\",\"level\":\"WARN\",\"message\":\"é¨é¨æªå½ä¸­å½åæ°æ®èå´ã\",\"suggestion\":\"ç¡®è®¤é¨é¨ææ¹ä¸ºå½åæåå¯è§é¨é¨ã\"}],\"resultFile\":{\"fileId\":\"file_precheck_result_trc_9fad\",\"fileName\":\"import-precheck-result.xlsx\",\"fileType\":\"xlsx\",\"downloadUrl\":\"/api/v1/uploads/files..."
+                    },
+                    {
+                        "step":  "10",
+                        "check":  "import confirm returns async task with rollback boundary",
+                        "status":  "PASS",
+                        "requestId":  "req_03443591-7c9b-4278-9a9b-70f42948f4b7",
+                        "traceId":  "trc_035859d7-3dd3-4836-b62c-704ef73b5b70",
+                        "auditLogId":  "aud_trc_035859d7-3dd3-4836-b62c-704ef73b5b70",
+                        "notes":  "task=task_import_confirm_trc_0358; status=RUNNING",
+                        "data":  "{\"precheckId\":\"precheck_trc_9fad\",\"task\":{\"taskId\":\"task_import_confirm_trc_0358\",\"bizType\":\"IMPORT_CONFIRM\",\"idempotencyKey\":\"idem-g10-import-confirm\",\"status\":\"RUNNING\",\"progress\":45,\"retryable\":true,\"cancelable\":true,\"resultFile\":{\"fileId\":\"file_import_result_trc_0358\",\"fileName\":\"import-result.xlsx\",\"fileType\":\"xlsx\",\"downloadUrl\":\"/api/v1/uploads/files/file_import_result_trc_0358/download\",\"checksum\":\"sha256:sample-file_import_result_trc_0358\",\"createdAt\":\"2026-06-24T11:04:43.2839825\"},\"errorFile\":{\"fileId\":\"file_import_error_trc_0358\",\"fileName\":\"import-errors.xlsx\",\"fileType\":\"xlsx\",\"do..."
+                    },
+                    {
+                        "step":  "10",
+                        "check":  "export selected returns async task and desensitized fields",
+                        "status":  "PASS",
+                        "requestId":  "req_eb8a0240-53f9-480a-8088-1a25893f8510",
+                        "traceId":  "trc_02091283-6979-47d8-a9ad-89ca1526f4e4",
+                        "auditLogId":  "aud_trc_02091283-6979-47d8-a9ad-89ca1526f4e4",
+                        "notes":  "task=task_runtime_record_export_trc_0209; fields=licenseNo,status,ownerDept",
+                        "data":  "{\"task\":{\"taskId\":\"task_runtime_record_export_trc_0209\",\"bizType\":\"RUNTIME_RECORD_EXPORT\",\"idempotencyKey\":\"idem-g10-export\",\"status\":\"QUEUED\",\"progress\":0,\"retryable\":true,\"cancelable\":true,\"resultFile\":{\"fileId\":\"file_export_result_trc_0209\",\"fileName\":\"vehicle-export.xlsx\",\"fileType\":\"xlsx\",\"downloadUrl\":\"/api/v1/uploads/files/file_export_result_trc_0209/download\",\"checksum\":\"sha256:sample-file_export_result_trc_0209\",\"createdAt\":\"2026-06-24T11:04:43.2941254\"},\"errorFile\":{\"fileId\":\"file_export_error_trc_0209\",\"fileName\":\"vehicle-export-errors.xlsx\",\"fileType\":\"xlsx\",\"downloadUrl\":\"/api/v1/..."
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "system todos use type tree + paged list + primary target",
+                        "status":  "PASS",
+                        "requestId":  "req_01f63312-fe80-4a0c-94cb-e3cea092484b",
+                        "traceId":  "trc_842418aa-b6c1-4376-adbf-b59b43591fb1",
+                        "auditLogId":  "aud_trc_842418aa-b6c1-4376-adbf-b59b43591fb1",
+                        "notes":  "types=2; records=2",
+                        "data":  "{\"scope\":\"system\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"selectedTypeCode\":\"approval\",\"typeTree\":[{\"typeCode\":\"approval\",\"typeName\":\"å®¡æ¹å¾\\u0085å\",\"count\":3,\"icon\":\"user-check\",\"children\":[{\"typeCode\":\"flow_approval\",\"typeName\":\"æµç¨å®¡æ¹\",\"count\":2,\"icon\":\"git-pull-request\",\"children\":[]},{\"typeCode\":\"approval_timeout\",\"typeName\":\"è¶\\u0085æ¶æé\",\"count\":1,\"icon\":\"bell-ring\",\"children\":[]}]},{\"typeCode\":\"work\",\"typeName\":\"å·¥ä½å¾\\u0085å\",\"count\":2,\"icon\":\"briefcase\",\"children\":[{\"typeCode\":\"today\",\"typeName\":\"ä»æ¥éå¤ç\",\"count\":1,\"icon\":\"calendar-check\",\"chi..."
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "todo row action returns target and audit",
+                        "status":  "PASS",
+                        "requestId":  "req_df113d85-4718-4749-a02e-a5082e4f7bfd",
+                        "traceId":  "trc_ff06d498-bd01-4ed8-a350-caa26d9d9d23",
+                        "auditLogId":  "aud_trc_ff06d498-bd01-4ed8-a350-caa26d9d9d23",
+                        "notes":  "status=HANDLED",
+                        "data":  "{\"todoId\":\"todo_flow_approval_001\",\"actionCode\":\"approve\",\"status\":\"HANDLED\",\"message\":\"å¾\\u0085åå·²è¿å\\u0085¥å®¡æ¹éè¿å¤çï¼ç»æç±å®¡æ¹å¨ä½æ¥å£æ¿æ¥ã\",\"traceId\":\"trc_ff06d498-bd01-4ed8-a350-caa26d9d9d23\",\"auditLogId\":\"aud_trc_ff06d498\",\"target\":{\"targetType\":\"SYSTEM_RECORD_DETAIL\",\"routeName\":\"SystemModuleRecordDetail\",\"params\":{\"moduleId\":\"mod_vehicle\",\"recordId\":\"vehicle_001\",\"systemId\":\"sys_vehicle\"},\"requiresSystemSwitch\":false},\"operatedAt\":\"2026-06-24T11:04:43.3221351\"}"
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "system messages return phone-like cards with jump targets",
+                        "status":  "PASS",
+                        "requestId":  "req_c40fda3b-bc0e-4746-a8d7-1511fb126675",
+                        "traceId":  "trc_be5c8b8a-e70b-4db3-be18-36a0d38c1007",
+                        "auditLogId":  "aud_trc_be5c8b8a-e70b-4db3-be18-36a0d38c1007",
+                        "notes":  "records=2",
+                        "data":  "{\"records\":[{\"messageId\":\"msg_system_record_001\",\"scope\":\"system\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"templateCode\":\"tpl_record_changed\",\"type\":\"business\",\"title\":\"è½¦è¾æ¡£æ¡å·²æ´æ°\",\"content\":\"ä½ å\\u0085³æ³¨çè½¦è¾æ¡£æ¡åçåæ´ã\",\"readStatus\":\"unread\",\"archiveStatus\":\"active\",\"target\":{\"scope\":\"system\",\"targetType\":\"business_record\",\"targetId\":\"rec_vehicle_001\",\"targetSystemId\":\"sys_vehicle\",\"targetTenantId\":\"tenant_default\",\"requiresSystemSwitch\":false,\"fallbackAction\":\"SYSTEM_MEMBER_CONTEXT_REQUIRED\",\"disabledReason\":null},\"traceId\":\"trc_be5c8b8a-e70b-4db3-be1..."
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "message mark-read action returns visible status/audit",
+                        "status":  "PASS",
+                        "requestId":  "req_1e3f18ff-3a20-4a02-951e-581f7551d401",
+                        "traceId":  "trc_9c164d65-79f9-4913-919b-75e37faef4c8",
+                        "auditLogId":  "aud_trc_9c164d65-79f9-4913-919b-75e37faef4c8",
+                        "notes":  "affected=1",
+                        "data":  "{\"scope\":\"system\",\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"action\":\"mark-read\",\"affectedCount\":1,\"status\":\"read\",\"traceId\":\"trc_9c164d65-79f9-4913-919b-75e37faef4c8\",\"auditLogId\":\"aud_trc_9c164d65-79f9-4913-919b-75e37faef4c8\",\"operatedAt\":\"2026-06-24T11:04:43.3391546\"}"
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "work module check /api/v1/systems/sys_vehicle/work/dashboard",
+                        "status":  "PASS",
+                        "requestId":  "req_f1c3a05c-87a4-431d-8742-09c843c44b1d",
+                        "traceId":  "trc_6c328a7c-2842-4a10-9e8a-46f1f4e5ff95",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "{\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"tabs\":[{\"tabCode\":\"dashboard\",\"tabName\":\"ä»ªè¡¨ç\",\"routeName\":\"WorkDashboard\",\"count\":0,\"selected\":true},{\"tabCode\":\"projectTask\",\"tabName\":\"é¡¹ç®ä»»å¡\",\"routeName\":\"WorkProjectTasks\",\"count\":18,\"selected\":false},{\"tabCode\":\"plainTask\",\"tabName\":\"æ®éä»»å¡\",\"routeName\":\"WorkPlainTasks\",\"count\":7,\"selected\":false},{\"tabCode\":\"dailyReport\",\"tabName\":\"æ¥æ¥\",\"routeName\":\"WorkDailyReports\",\"count\":2,\"selected\":false}],\"overview\":{\"activeProjectCount\":3,\"projectTaskCount\":18,\"plainTaskCount\":7,\"overdueTaskCount\":4,\"dailyReportSubmitted\"..."
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "work module check /api/v1/systems/sys_vehicle/work/config",
+                        "status":  "PASS",
+                        "requestId":  "req_e25c6cb4-902c-4721-892e-be1f675e000d",
+                        "traceId":  "trc_832c5ca4-eda7-43dc-b60b-02417387b365",
+                        "auditLogId":  null,
+                        "notes":  "",
+                        "data":  "{\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"projectTaskFields\":[{\"fieldId\":\"field_project_status\",\"fieldCode\":\"status\",\"fieldName\":\"é¡¹ç®ä»»å¡ç¶æ\",\"fieldType\":\"select\",\"required\":true,\"listVisible\":true,\"filterable\":true,\"sortable\":true,\"dictTypeCode\":\"dict_project_task_status\",\"dictItems\":[{\"itemCode\":\"TODO\",\"itemName\":\"å¾\\u0085å¼å§\",\"color\":\"#8A8F98\",\"icon\":\"circle\",\"semantic\":\"draft_or_pending\",\"sort\":10,\"enabled\":true,\"defaultItem\":true},{\"itemCode\":\"DOING\",\"itemName\":\"è¿è¡ä¸­\",\"color\":\"#1769E0\",\"icon\":\"loader\",\"semantic\":\"active_or_current\",\"sort\":20,\"enabled\":true,\"de..."
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "project tasks list has pagination and row target",
+                        "status":  "PASS",
+                        "requestId":  "req_b1d24966-28b0-42e6-87b7-a692612fe9fe",
+                        "traceId":  "trc_773741ec-d1c3-4d9f-9aed-e474d7b14772",
+                        "auditLogId":  "aud_trc_773741ec-d1c3-4d9f-9aed-e474d7b14772",
+                        "notes":  "records=2",
+                        "data":  "{\"records\":[{\"taskId\":\"task_project_4fa30a1a\",\"taskType\":\"PROJECT\",\"title\":\"è½¦è¾æ¡£æ¡å­æ®µé\\u0085ç½®ç¡®è®¤\",\"projectId\":\"proj_vehicle_archive\",\"projectName\":\"è½¦è¾æ¡£æ¡ä¸æ\",\"assignee\":{\"memberId\":\"member_001\",\"memberName\":\"å¼ ä¼\",\"avatar\":\"/avatars/member_001.png\",\"departmentName\":\"è¿è¥é¨\"},\"collaborators\":[{\"memberId\":\"member_002\",\"memberName\":\"æå¨\",\"avatar\":\"/avatars/member_002.png\",\"departmentName\":\"è¿è¥é¨\"},{\"memberId\":\"member_003\",\"memberName\":\"çå¼º\",\"avatar\":\"/avatars/member_003.png\",\"departmentName\":\"è¿è¥é¨\"}],\"status\":{\"itemCode\":\"DOING\",\"itemName\":\"è¿è¡ä¸­\",..."
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "plain tasks list is separate from project tasks",
+                        "status":  "PASS",
+                        "requestId":  "req_7aae0c5d-8e5d-4a7b-8bc8-15d603accbb0",
+                        "traceId":  "trc_b802b90e-1f8d-4135-ad19-0249661fe30f",
+                        "auditLogId":  "aud_trc_b802b90e-1f8d-4135-ad19-0249661fe30f",
+                        "notes":  "records=2",
+                        "data":  "{\"records\":[{\"taskId\":\"task_plain_b762e1fd\",\"taskType\":\"PLAIN\",\"title\":\"æ´çä»æ¥æ¥æ¥ç´ æ\",\"projectId\":null,\"projectName\":null,\"assignee\":{\"memberId\":\"member_001\",\"memberName\":\"å¼ ä¼\",\"avatar\":\"/avatars/member_001.png\",\"departmentName\":\"è¿è¥é¨\"},\"collaborators\":[{\"memberId\":\"member_002\",\"memberName\":\"æå¨\",\"avatar\":\"/avatars/member_002.png\",\"departmentName\":\"è¿è¥é¨\"},{\"memberId\":\"member_003\",\"memberName\":\"çå¼º\",\"avatar\":\"/avatars/member_003.png\",\"departmentName\":\"è¿è¥é¨\"}],\"status\":{\"itemCode\":\"TODO\",\"itemName\":\"å¾\\u0085å¤ç\",\"color\":\"#8A8F98\",\"icon\":\"circle\",\"semantic\":..."
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "work kanban uses configured field/dictionary columns",
+                        "status":  "PASS",
+                        "requestId":  "req_65eeeba6-5448-4472-be03-718d06dc4952",
+                        "traceId":  "trc_53e997f0-3c20-4ad7-90af-bfe51c596ef6",
+                        "auditLogId":  "aud_trc_53e997f0-3c20-4ad7-90af-bfe51c596ef6",
+                        "notes":  "columns=3; hasMore=True",
+                        "data":  "{\"systemId\":\"sys_vehicle\",\"tenantId\":\"tenant_default\",\"taskType\":\"PROJECT\",\"config\":{\"taskType\":\"PROJECT\",\"columnField\":{\"fieldId\":\"fld_task_status\",\"fieldCode\":\"status\",\"fieldName\":\"é¡¹ç®ä»»å¡ç¶æ\",\"fieldType\":\"select\",\"dictTypeCode\":\"dict_project_task_status\",\"published\":true},\"swimlaneField\":{\"fieldId\":\"fld_assignee\",\"fieldCode\":\"priority\",\"fieldName\":\"ä¼å\\u0085çº§\",\"fieldType\":\"select\",\"dictTypeCode\":\"dict_work_priority\",\"published\":true},\"groupField\":{\"fieldId\":\"fld_project\",\"fieldCode\":\"tags\",\"fieldName\":\"ä»»å¡æ ç­¾\",\"fieldType\":\"multi_select\",\"dictTypeCode\":\"dict_work_tag\",\"publ..."
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "daily report list returns my reports with filters",
+                        "status":  "PASS",
+                        "requestId":  "req_696e0cff-5b35-4731-852d-7b6ff1d01a06",
+                        "traceId":  "trc_1c75bd45-2f12-4280-8471-d5c9e53f426c",
+                        "auditLogId":  "aud_trc_1c75bd45-2f12-4280-8471-d5c9e53f426c",
+                        "notes":  "records=2",
+                        "data":  "{\"records\":[{\"reportId\":\"report_today\",\"date\":\"2026-06-24\",\"status\":\"DRAFT\",\"content\":\"å®æé¡¹ç®ä»»å¡æ¨è¿ï¼å¤çå¾\\u0085åå¹¶è¡¥å\\u0085\\u0085ä¸å¡è®°å½ã\",\"sourceSummary\":\"ä»»å¡ 2 æ¡ãå¾\\u0085å 1 æ¡ãä¸å¡æ¥å¿ 1 æ¡ã\",\"submitter\":{\"memberId\":\"member_001\",\"memberName\":\"å¼ ä¼\",\"avatar\":\"/avatars/member_001.png\",\"departmentName\":\"è¿è¥é¨\"},\"submittedAt\":null,\"permissionSnapshotId\":\"perm_snapshot_report_2026-06-24\",\"rowDetailTarget\":{\"targetType\":\"SYSTEM_WORK_OBJECT\",\"routeName\":\"WorkDailyReportDetail\",\"params\":{\"objectId\":\"report_today\",\"systemId\":\"sys_vehicle\"}}},{\"rep..."
+                    },
+                    {
+                        "step":  "11",
+                        "check":  "daily report auto draft requires manual confirmation and permission policy",
+                        "status":  "PASS",
+                        "requestId":  "req_613b47e5-6930-4c25-9f6f-e60b0f24c134",
+                        "traceId":  "trc_9440c2c3-8b0a-4c13-86b9-92f60691f8d1",
+                        "auditLogId":  "aud_trc_9440c2c3-8b0a-4c13-86b9-92f60691f8d1",
+                        "notes":  "manualConfirmRequired=True",
+                        "data":  "{\"draftId\":\"draft_2026-06-24\",\"reportDate\":\"2026-06-24\",\"content\":\"1. å®æè½¦è¾æ¡£æ¡å­æ®µç¡®è®¤ã\\n2. å¤çå®¡æ¹å¾\\u0085åã\\n3. è·è¿å\\u0085¥é¢æ£ç»ææä»¶ã\",\"sources\":[{\"sourceId\":\"src_task_project_001\",\"sourceType\":\"PROJECT_TASK\",\"title\":\"è½¦è¾æ¡£æ¡å­æ®µç¡®è®¤\",\"summary\":\"å®æå­æ®µæéåçæ¿åé\\u0085ç½®ç¡®è®¤ã\",\"occurredAt\":\"2026-06-24T06:04:43.4123095\",\"permissionPolicy\":\"CURRENT_MEMBER_AUTHORIZED_ONLY\",\"target\":{\"targetType\":\"SYSTEM_WORK_OBJECT\",\"routeName\":\"WorkProjectTaskDetail\",\"params\":{\"objectId\":\"task_project_001\",\"systemId\":\"sys_vehicle\"}}},{\"sourceI..."
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/login returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/register-with-system returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/forgot-password returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/platform returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/platform/admin returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/systems/sys_vehicle/dashboard returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/systems/sys_vehicle/modules returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/systems/sys_vehicle/todos returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/systems/sys_vehicle/work returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    },
+                    {
+                        "step":  "frontend",
+                        "check":  "SPA route #/systems/sys_vehicle/admin returns app shell",
+                        "status":  "PASS",
+                        "requestId":  null,
+                        "traceId":  null,
+                        "auditLogId":  null,
+                        "notes":  "HTTP route check",
+                        "data":  null
+                    }
+                ]
+}

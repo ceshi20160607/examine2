@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.module.base.mapper.ModuleGroupMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.ModuleGroup">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="group_code" property="groupCode" />
+        <result column="group_name" property="groupName" />
+        <result column="icon" property="icon" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="visible_role_ids" property="visibleRoleIds" />
+        <result column="publish_status" property="publishStatus" />
+        <result column="published_version" property="publishedVersion" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, system_id, tenant_id, group_code, group_name, icon, sort_order, visible_role_ids, publish_status, published_version, created_at, updated_at, deleted</sql>
+</mapper>

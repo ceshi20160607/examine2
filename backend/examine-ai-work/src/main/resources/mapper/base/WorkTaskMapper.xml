@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.aiwork.base.mapper.WorkTaskMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.aiwork.base.entity.WorkTask">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="task_type" property="taskType" />
+        <result column="project_id" property="projectId" />
+        <result column="task_title" property="taskTitle" />
+        <result column="assignee_member_id" property="assigneeMemberId" />
+        <result column="collaborators" property="collaborators" />
+        <result column="status" property="status" />
+        <result column="tags" property="tags" />
+        <result column="progress" property="progress" />
+        <result column="due_at" property="dueAt" />
+        <result column="completed_at" property="completedAt" />
+        <result column="related_object" property="relatedObject" />
+        <result column="permission_snapshot_id" property="permissionSnapshotId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, system_id, tenant_id, task_type, project_id, task_title, assignee_member_id, collaborators, status, tags, progress, due_at, completed_at, related_object, permission_snapshot_id, created_at, updated_at, deleted</sql>
+</mapper>

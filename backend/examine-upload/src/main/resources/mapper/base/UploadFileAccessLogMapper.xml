@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.upload.base.mapper.UploadFileAccessLogMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.upload.base.entity.UploadFileAccessLog">
+        <id column="id" property="id" />
+        <result column="file_id" property="fileId" />
+        <result column="access_action" property="accessAction" />
+        <result column="actor_account_id" property="actorAccountId" />
+        <result column="actor_member_id" property="actorMemberId" />
+        <result column="result" property="result" />
+        <result column="failure_reason" property="failureReason" />
+        <result column="request_id" property="requestId" />
+        <result column="trace_id" property="traceId" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, file_id, access_action, actor_account_id, actor_member_id, result, failure_reason, request_id, trace_id, created_at</sql>
+</mapper>

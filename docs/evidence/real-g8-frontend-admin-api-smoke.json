@@ -1,0 +1,29 @@
+﻿{
+    "status":  "PASS",
+    "defaultAdmin":  "admin",
+    "platform":  {
+                     "systems":  48,
+                     "roles":  1,
+                     "identityProviders":  1,
+                     "modelAuthorizations":  2,
+                     "logs":  1,
+                     "todos":  0,
+                     "messages":  0,
+                     "health":  "UP"
+                 },
+    "system":  {
+                   "createdSystemId":  "48",
+                   "switchTenantId":  "49",
+                   "departments":  0,
+                   "members":  1,
+                   "roles":  1,
+                   "moduleGroups":  0,
+                   "modules":  0,
+                   "dictTypes":  0,
+                   "flows":  0,
+                   "ssoPolicyStatus":  "DRAFT",
+                   "workConfigTrace":  null,
+                   "agentPolicies":  0,
+                   "logs":  1
+               }
+}

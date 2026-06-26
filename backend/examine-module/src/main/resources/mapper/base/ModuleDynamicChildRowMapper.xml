@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.module.base.mapper.ModuleDynamicChildRowMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.ModuleDynamicChildRow">
+        <id column="id" property="id" />
+        <result column="record_id" property="recordId" />
+        <result column="child_module_id" property="childModuleId" />
+        <result column="row_no" property="rowNo" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, record_id, child_module_id, row_no, created_at, updated_at, deleted</sql>
+</mapper>

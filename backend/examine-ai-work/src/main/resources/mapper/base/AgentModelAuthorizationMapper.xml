@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.aiwork.base.mapper.AgentModelAuthorizationMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.aiwork.base.entity.AgentModelAuthorization">
+        <id column="id" property="id" />
+        <result column="authorization_code" property="authorizationCode" />
+        <result column="model_provider" property="modelProvider" />
+        <result column="model_name" property="modelName" />
+        <result column="model_credential_ref_id" property="modelCredentialRefId" />
+        <result column="quota_config" property="quotaConfig" />
+        <result column="data_outbound_policy" property="dataOutboundPolicy" />
+        <result column="status" property="status" />
+        <result column="version_no" property="versionNo" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, authorization_code, model_provider, model_name, model_credential_ref_id, quota_config, data_outbound_policy, status, version_no, created_at</sql>
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.aiwork.base.mapper.AgentSessionMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.aiwork.base.entity.AgentSession">
+        <id column="id" property="id" />
+        <result column="session_id" property="sessionId" />
+        <result column="scope" property="scope" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="system_member_id" property="systemMemberId" />
+        <result column="authorization_code" property="authorizationCode" />
+        <result column="model_version" property="modelVersion" />
+        <result column="prompt_version" property="promptVersion" />
+        <result column="permission_snapshot_id" property="permissionSnapshotId" />
+        <result column="status" property="status" />
+        <result column="created_by" property="createdBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, session_id, scope, system_id, tenant_id, system_member_id, authorization_code, model_version, prompt_version, permission_snapshot_id, status, created_by, created_at, updated_at</sql>
+</mapper>

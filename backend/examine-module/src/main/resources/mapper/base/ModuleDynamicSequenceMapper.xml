@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.module.base.mapper.ModuleDynamicSequenceMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.ModuleDynamicSequence">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="sequence_type" property="sequenceType" />
+        <result column="prefix_rule" property="prefixRule" />
+        <result column="current_no" property="currentNo" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, system_id, tenant_id, module_id, sequence_type, prefix_rule, current_no, updated_at</sql>
+</mapper>

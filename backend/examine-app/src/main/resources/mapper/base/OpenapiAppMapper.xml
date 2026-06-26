@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.app.base.mapper.OpenapiAppMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.app.base.entity.OpenapiApp">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="external_app_code" property="externalAppCode" />
+        <result column="app_name" property="appName" />
+        <result column="status" property="status" />
+        <result column="openapi_secret_ref_id" property="openapiSecretRefId" />
+        <result column="scopes" property="scopes" />
+        <result column="callback_url" property="callbackUrl" />
+        <result column="rate_limit" property="rateLimit" />
+        <result column="last_used_at" property="lastUsedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, system_id, tenant_id, external_app_code, app_name, status, openapi_secret_ref_id, scopes, callback_url, rate_limit, last_used_at, created_at, updated_at</sql>
+</mapper>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  Generated from sql/init.sql by examine-generator. Do not hand edit.
+-->
+<mapper namespace="com.unique.examine.flow.base.mapper.FlowEdgeMapper">
+    <resultMap id="BaseResultMap" type="com.unique.examine.flow.base.entity.FlowEdge">
+        <id column="id" property="id" />
+        <result column="flow_id" property="flowId" />
+        <result column="edge_key" property="edgeKey" />
+        <result column="source_node_key" property="sourceNodeKey" />
+        <result column="target_node_key" property="targetNodeKey" />
+        <result column="branch_label" property="branchLabel" />
+        <result column="condition_payload" property="conditionPayload" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <sql id="BaseColumnList">id, flow_id, edge_key, source_node_key, target_node_key, branch_label, condition_payload, created_at</sql>
+</mapper>
