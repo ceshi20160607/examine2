@@ -5,6 +5,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$EvidenceDir = Join-Path $RepoRoot 'docs\evidence\recovery'
+$ResultFile = Join-Path $EvidenceDir 'r12-module-builder-usability-result.json'
+
 function Invoke-Api {
     param(
         [Parameter(Mandatory = $true)][string]$Method,
@@ -254,9 +258,11 @@ $RegisterDefault = Assert-DefaultDepartment -SystemId $RegisterSystemId -Headers
 $PlatformCleanup = Remove-CreatedSystem -SystemId $PlatformSystemId -Headers $AdminHeaders -Reason 'recovery-r12 cleanup platform-created system'
 $RegisterCleanup = Remove-CreatedSystem -SystemId $RegisterSystemId -Headers $AdminHeaders -Reason 'recovery-r12 cleanup register-created system'
 
-[ordered]@{
+$result = [ordered]@{
     status = 'PASS'
     task = 'REC-P0-015'
+    generatedAt = (Get-Date).ToString('o')
+    baseUrl = $BaseUrl
     suffix = $Suffix
     platformCreate = @{
         systemId = $PlatformSystemId
@@ -276,4 +282,8 @@ $RegisterCleanup = Remove-CreatedSystem -SystemId $RegisterSystemId -Headers $Ad
         initGuideSteps = $register.initGuideSteps
         cleanup = $RegisterCleanup
     }
-} | ConvertTo-Json -Depth 20
+}
+
+$json = $result | ConvertTo-Json -Depth 20
+Set-Content -LiteralPath $ResultFile -Value $json -Encoding UTF8
+$json

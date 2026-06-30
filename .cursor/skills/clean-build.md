@@ -8,8 +8,8 @@ Build 批次末；或 frontend/backend 大改后。
 
 ```powershell
 # backend
-$env:JAVA_HOME='D:\java\jdk\jdk21'
-$env:Path="$env:JAVA_HOME\bin;D:\java\apache-maven-3.8.5\bin;$env:Path"
+$env:JAVA_HOME='D:\dev\jdk21-temurin'
+$env:Path="$env:JAVA_HOME\bin;D:\dev\maven\bin;$env:Path"
 mvn.cmd -pl examine-web -am clean compile test
 
 # frontend

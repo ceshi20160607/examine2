@@ -212,6 +212,87 @@ code,
   gap: 12px;
 }
 
+.home-overview-panel,
+.home-operations-panel {
+  background: #ffffff;
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+}
+
+.home-overview-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.summary-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.summary-chip {
+  display: grid;
+  gap: 4px;
+  min-height: 64px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e1e6eb;
+  border-radius: 8px;
+}
+
+.summary-chip span,
+.home-ops-block p,
+.home-ops-block small,
+.onboarding-check-item small,
+.warning-summary-panel p {
+  color: #657383;
+}
+
+.summary-chip strong {
+  font-size: 20px;
+}
+
+.home-operations-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 0;
+  overflow: hidden;
+}
+
+.home-ops-block {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.home-ops-block + .home-ops-block {
+  border-left: 1px solid #e1e6eb;
+}
+
+.home-ops-block h3,
+.home-ops-block p {
+  margin: 0;
+}
+
+.compact-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+
+.compact-calendar-day {
+  display: grid;
+  gap: 2px;
+  min-height: 54px;
+  padding: 8px;
+  background: #f8fafc;
+  border: 1px solid #e1e6eb;
+  border-radius: 6px;
+}
+
 .system-card {
   display: grid;
   gap: 8px;
@@ -252,6 +333,11 @@ code,
   gap: 10px;
 }
 
+.onboarding-checklist {
+  display: grid;
+  gap: 6px;
+}
+
 .onboarding-step {
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto auto;
@@ -261,6 +347,41 @@ code,
   background: #f8fafc;
   border: 1px solid #e1e6eb;
   border-radius: 8px;
+}
+
+.onboarding-check-item {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 42px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e1e6eb;
+  border-radius: 8px;
+}
+
+.onboarding-check-main {
+  min-width: 0;
+}
+
+.warning-summary-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.warning-summary-list {
+  display: grid;
+  gap: 6px;
+}
+
+.warning-summary-list p {
+  margin: 0;
+  padding: 8px 10px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
 }
 
 .step-index {
@@ -1474,6 +1595,20 @@ code,
     grid-template-columns: repeat(7, minmax(44px, 1fr));
   }
 
+  .home-operations-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .home-ops-block + .home-ops-block {
+    border-left: 0;
+    border-top: 1px solid #e1e6eb;
+  }
+
+  .summary-chip-grid,
+  .compact-calendar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .calendar-day {
     min-height: 64px;
     padding: 6px;
@@ -1551,8 +1686,14 @@ code,
     grid-template-columns: 32px minmax(0, 1fr);
   }
 
+  .onboarding-check-item {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
   .onboarding-step .status-pill,
-  .onboarding-step .button {
+  .onboarding-step .button,
+  .onboarding-check-item .status-pill,
+  .onboarding-check-item .button {
     grid-column: 2;
     justify-self: start;
   }

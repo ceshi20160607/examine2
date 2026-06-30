@@ -16,6 +16,7 @@
 | [architecture/agents-vs-skills.md](./architecture/agents-vs-skills.md) | Agent 与 Skill 划分、并行规则 |
 | [architecture/context-policy.md](./architecture/context-policy.md) | 无上下文传递，只读落盘产物 |
 | [architecture/work-graph.md](./architecture/work-graph.md) | 阶段 DAG 与用户流程 |
+| [architecture/final-goal-framework.md](./architecture/final-goal-framework.md) | **最终目标工程框架**：目标总账、角色旅程门、任务卡、证据和用户签字边界 |
 | [architecture/issue-protocol.md](./architecture/issue-protocol.md) | 问题提出→PM 裁决→复核→升级用户 |
 | [architecture/gates.md](./architecture/gates.md) | 冻结闸门（含 Open Design 用户签字） |
 | [architecture/backend-structure.md](./architecture/backend-structure.md) | Maven 模块、base/manage 分层、MyBatis-Plus 生成器 |
@@ -31,7 +32,7 @@
 | [session/issues/registry.jsonl](./session/issues/registry.jsonl) | 问题注册表 |
 | [architecture/acceptance.md](./architecture/acceptance.md) | 任务级验收，裁判与选手分离 |
 
-| [templates/](./templates/) | 任务、issue、验收、接口模板 |
+| [templates/](./templates/) | 任务、issue、最终目标总账、旅程门、验收、接口模板 |
 
 ## 旧工程备份
 
@@ -63,7 +64,7 @@
 ## 给 Cursor / 任何 Agent 的启动口令
 
 ```
-0. 先读 `.cursor/knowledge/agent-operating-rules.md`、`.cursor/knowledge/project-operating-rules.md`、`.cursor/knowledge/failure-lessons.md`、`.cursor/session/state.json`，以落盘文件压缩上下文；原型绘制/评审/开发前扫描不得直接依赖长聊天上下文
+0. 先读 `.cursor/architecture/final-goal-framework.md`、`.cursor/knowledge/agent-operating-rules.md`、`.cursor/knowledge/project-operating-rules.md`、`.cursor/knowledge/failure-lessons.md`、`.cursor/session/state.json`，以落盘文件压缩上下文；原型绘制/评审/开发前扫描不得直接依赖长聊天上下文
 1. 读 .cursor/agents/README.md 确认角色总册
 2. 读 .cursor/agents/{agentId}.md 全文 —— 你必须知道「我是谁」
 3. 读 .cursor/session/state.json 与本轮 inputs
@@ -72,3 +73,9 @@
 ```
 
 开发前原型评审如果采用团队轮询讨论，单轮最长 1 小时；超过时间必须保存结果和剩余风险并停止。
+
+## 最终目标硬规则
+
+- 大目标必须先写最终目标总账，再拆角色旅程门，再拆任务卡。
+- 任务、批次、构建、API 200、生成 CRUD、单个 smoke 都只能作为证据，不能单独宣称最终目标完成。
+- `gates.user_script_passed=true` 只能来自用户验证或签字，不能由工程脚本代替。

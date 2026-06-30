@@ -60,6 +60,12 @@ public record ApiResponse<T>(
     public static ApiResponse<Void> failure(String code, String message, List<ErrorField> errorFields,
                                             String disabledReason) {
         RequestContext context = RequestContext.current();
+        List<ErrorField> resolvedErrorFields;
+        if (errorFields == null) {
+            resolvedErrorFields = List.of();
+        } else {
+            resolvedErrorFields = List.copyOf(errorFields);
+        }
         return new ApiResponse<>(
                 code,
                 message,
@@ -67,7 +73,7 @@ public record ApiResponse<T>(
                 context.traceId(),
                 context.auditLogId(),
                 null,
-                errorFields == null ? List.of() : List.copyOf(errorFields),
+                resolvedErrorFields,
                 disabledReason
         );
     }

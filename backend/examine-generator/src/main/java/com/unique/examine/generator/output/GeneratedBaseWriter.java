@@ -194,7 +194,10 @@ public final class GeneratedBaseWriter {
                 + "    }\n\n"
                 + "    @Override\n"
                 + "    public boolean deleteByIds(Collection<Long> ids) {\n"
-                + "        return ids != null && !ids.isEmpty() && removeBatchByIds(ids);\n"
+                + "        if (ids == null || ids.isEmpty()) {\n"
+                + "            return false;\n"
+                + "        }\n"
+                + "        return removeBatchByIds(ids);\n"
                 + "    }\n"
                 + "}\n";
     }

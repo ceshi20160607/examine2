@@ -2,8 +2,8 @@
     "sessionId":  "unexamine-v2-init",
     "architecture":  "cursor-v2",
     "phase":  "build",
-    "mode":  "recovery-task-card",
-    "updated_at":  "2026-06-29T23:10:07+08:00",
+    "mode":  "final-goal-framework-recovery",
+    "updated_at":  "2026-06-30T11:33:21+08:00",
     "gates":  {
                   "prd_frozen":  true,
                   "design_package_complete":  true,
@@ -58,9 +58,9 @@
                        "plan":  "docs/tasks/plan.md",
                        "tasksDir":  "docs/tasks",
                        "taskCount":  46,
-                       "status":  "recovery_engineering_final_usable_system_gate_passed_user_signoff_pending",
+                       "status":  "framework_v3_applied_fresh_deployed_use_audit_pending",
                        "firstParallelGroup":  "G0",
-                       "currentBatch":  "RECOVERY-R22",
+                       "currentBatch":  "RECOVERY-R24",
                        "acceptedBatches":  [
                                                "G0",
                                                "G1",
@@ -84,7 +84,8 @@
                                                "RECOVERY-R19",
                                                "RECOVERY-R20",
                                                "RECOVERY-R21",
-                                               "RECOVERY-R22"
+                                               "RECOVERY-R22",
+                                               "RECOVERY-R23"
                                            ],
                        "currentBatchSelfCheckedTasks":  [
                                                             "REAL-G0-persistence-base",
@@ -127,6 +128,16 @@
                           "generatorBoundary":  "docs/recovery/generated-vs-coded-api.md",
                           "fixBatches":  "docs/recovery/fix-batches.md",
                           "status":  "R0 through R22 recovery engineering is accepted. R20 closes system flow canvas designer. R22 closes operations and maintenance governance. R5 final orchestration was rerun after R20/R22 were included and reports PASS with 0 failed steps. R21 final usable-system audit reports J0-J7 all PASS. Release remains running at http://127.0.0.1:18131/ against Redis 192.168.0.211:6379. gates.user_script_passed remains false until user verification/signoff."
+                      },
+    "framework_plan":  {
+                           "entry":  ".cursor/architecture/final-goal-framework.md",
+                           "ledgerTemplate":  ".cursor/templates/final-goal-ledger.md",
+                           "journeyGateTemplate":  ".cursor/templates/journey-gate.md",
+                           "taskTemplate":  ".cursor/templates/task.md",
+                           "workflow":  ".cursor/workflows/final-goal-recovery.md",
+                           "projectLedger":  "docs/framework/next-execution-ledger.md",
+                           "currentProductFramework":  "docs/framework/current-final-system-engineering.md",
+                           "status":  "Current-product final system framework applied. Future framework extraction is deferred. Fresh deployed-use audit started: health PASS, R21 PASS, R12 PASS after result-file persistence fix, R13 PASS, static usability audit PASS. Final requirement coverage audit is now the hard blocker: it covers 43 required groups and still has non-closed rows, so full completion cannot be claimed. R23 coverage gate is accepted as governance. R24/FRC-1 is in progress: the system home page configuration loop passes deployed API/browser evidence, the page designer API/runtime loop passes draft save/list/publish/runtime/permission closure, and the visual-density pass reduces dashboard/admin stacking in the deployed browser. REQ-6.1 and REQ-6.8 are PARTIAL; page designer browser/visual breadth and advanced capability rows remain incomplete. User-reported usability status remains open; engineering evidence and user signoff remain separate."
                       },
     "notes":  [
                   "2026-06-19: multi-role pre-coding prototype review covered platform-to-system switching, system member mapping, module groups, external apps, data ownership, no-permission feedback, flow canvas, filters, pagination, messages, and async task contracts.",
@@ -229,6 +240,14 @@
                   "2026-06-29T14:40:00+08:00: Recovery R18 accepted to close the runtime mobile action containment gap found by visual review after R17. Added REC-P0-021 and scripts/recovery-r18-runtime-mobile-action-containment-smoke.ps1. The deployed browser opens /login at 390x720, submits a normal member account through the real form, enters an authorized runtime module, verifies primary actions, filters, panels, create form, and saved list/detail stay inside the viewport with maxOverflowX=0, creates and reads back a record, confirms direct system-admin remains access denied, and verifies desktop runtime readback. Full R5 final release orchestration now includes R18 and passes with status PASS, stepsPassed=26, stepsFailed=0 after package, restart, verify, and all recovery smokes. Release remains running at http://127.0.0.1:18131/ with backendPid=23556, frontendPid=14120; verify-release PASS and cleanup dry-run matchedCount=0. gates.user_script_passed remains false until user verification/signoff. Evidence: docs/evidence/recovery/r18-runtime-mobile-action-containment-2026-06-29.md and docs/evidence/recovery/r5-final-release-result.json.",
                   "2026-06-29T15:26:22+08:00: Recovery R19 accepted to close admin aggregated pagination usability. Added REC-P0-022 and scripts/recovery-r19-admin-aggregated-pagination-smoke.ps1. Platform/system admin loaders now keep page-number state, and all admin PageResult pagination controls are wired to real reload callbacks, including platform systems/roles/model auth/logs and system members/roles/modules/flows/dictionaries/data-sources/OpenAPI apps/Agent policies/logs. The deployed browser logs in through /login, opens platform admin system lifecycle, clicks page 1 to page 2 with changed system rows, opens system admin role management, clicks page 1 to page 2 with changed role rows, and verifies no unsupported-pagination disabled reason. package-release now hash-verifies the copied backend jar, and R5 now treats child stdout JSON status=FAIL or startup/verification failure text as a failed step instead of trusting missing ExitCode. Full R5 final release orchestration includes R19 and passes with status PASS, stepsPassed=27, stepsFailed=0 after package, restart, verify, and all recovery smokes. Release remains running at http://127.0.0.1:18131/ with backendPid=32716, frontendPid=29980; verify-release PASS and cleanup dry-run matchedCount=0. gates.user_script_passed remains false until user verification/signoff. Evidence: docs/evidence/recovery/r19-admin-aggregated-pagination-2026-06-29.md and docs/evidence/recovery/r5-final-release-result.json.",
                   "2026-06-29T22:32:49+08:00: User correction reframed the target as a final usable system rather than R-batch completion. Added REC-P0-024, docs/recovery/final-usable-system-acceptance.md, and scripts/recovery-r21-final-usable-system-audit.ps1. R20 standalone evidence is accepted as a flow-canvas input, but R5 result is currently corrupted and R21 is expected to fail until J0-J7 are proven.",
-                  "2026-06-29T23:10:07+08:00: R22 operations/maintenance closure accepted and R21 final usable-system audit passed J0-J7 after rerunning R5 with R20/R22 included. Engineering final gate is pass; user_script_passed remains false pending user verification/signoff."
+                  "2026-06-29T23:10:07+08:00: R22 operations/maintenance closure accepted and R21 final usable-system audit passed J0-J7 after rerunning R5 with R20/R22 included. Engineering final gate is pass; user_script_passed remains false pending user verification/signoff.",
+                  "2026-06-30T11:33:21+08:00: Framework v3 baseline applied after user reported repeated final-goal failure. Added final-goal framework, ledger/journey/task templates, final-goal recovery workflow, rewritten acceptance/build/verify rules, and project execution ledger. Next work is a fresh deployed-use audit; do not claim final completion from R-batches or scripts alone.",
+                  "2026-06-30T11:39:19+08:00: Fresh deployed-use audit began against http://127.0.0.1:18131. Health PASS, R21 final journey evidence PASS, R12 module-builder PASS, R13 cross-shell browser layout PASS. Fixed R12 smoke so stdout and docs/evidence/recovery/r12-module-builder-usability-result.json are written from the same fresh result object. User signoff remains open.",
+                  "2026-06-30T11:45:24+08:00: Updated framework focus to current product completion only; future reusable framework extraction is deferred. Added scripts/final-usability-static-audit.ps1 and ran it against frontend/src: PASS with scannedFiles=24, blockerCount=0, warningCount=0.",
+                  "2026-06-30T11:49:37+08:00: Added docs/framework/final-requirement-coverage-ledger.md and scripts/final-requirement-coverage-audit.ps1. The audit covers the major sections of docs/user_requirement.md with requiredCount=43 and missingCount=0, but fails with notClosedCount=45 because rows are PARTIAL/OPEN. This is intentional and now blocks final-complete claims until requirements are PROVEN or USER_EXCLUDED.",
+                  "2026-06-30T11:52:50+08:00: Added docs/framework/final-requirement-closure-plan.md and scripts/final-requirement-gap-report.ps1. R23 Final Requirement Coverage Gate is accepted as a governance gate; it intentionally does not close final completion. Added REC-P0-027 and Batch R24/FRC-1 Missing Product Surfaces Closure as the next planned work for OPEN rows REQ-5.8, REQ-6.1, REQ-6.3, REQ-6.8, and REQ-9.",
+                  "2026-06-30T13:00:00+08:00: R24 home page configuration loop passed after switching build verification to Temurin JDK 21.0.11 at D:\\dev\\jdk21-temurin. scripts/recovery-r24-home-page-config-smoke.ps1 proves admin save/readback, runtime readback, normal-member read, normal-member write denial, publish-check, and deployed browser admin/desktop/mobile visibility. R24/FRC-1 remains in progress because REQ-6.1 visual style, REQ-6.8 page designer, and REQ-9 advanced capabilities are not closed.",
+                  "2026-06-30T13:25:00+08:00: R24 page designer API/runtime closure passed on the deployed release. scripts/recovery-r24-page-designer-smoke.ps1 proves admin draft save with structured components, admin list readback, publish-check, publish snapshot, runtime readback, normal-member runtime read, normal-member write denial, and cleanup. REQ-6.8 moves from OPEN to PARTIAL only; remaining FRC-1 work is REQ-6.1 visual style, REQ-9 advanced capabilities, and page designer browser/visual breadth.",
+                  "2026-06-30T13:45:00+08:00: R24 visual-density pass deployed. System dashboard merges home widgets/default metrics into one overview and keeps warning/calendar in one operations panel. System admin load warnings now show first 3 plus remaining count, and initialization checklist removes per-step explanatory paragraphs. Browser audit on deployed asset /assets/index-B12ZEbZq.js records desktop system dashboard totalPanelCount=4 and overflowX=0, desktop/mobile system admin overflowX=0. REQ-6.1 moves from OPEN to PARTIAL only; broader human/UI audit and user acceptance remain required."
               ]
 }

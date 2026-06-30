@@ -178,6 +178,7 @@ try {
     Invoke-RecoveryScript -Name 'r19-admin-aggregated-pagination' -ScriptPath (Join-Path $RepoRoot 'scripts\recovery-r19-admin-aggregated-pagination-smoke.ps1') -Arguments @('-BaseUrl', $BaseUrl) -TimeoutSeconds 180 | Out-Null
     Invoke-RecoveryScript -Name 'r20-flow-canvas-designer' -ScriptPath (Join-Path $RepoRoot 'scripts\recovery-r20-flow-canvas-designer-smoke.ps1') -Arguments @('-BaseUrl', $BaseUrl) -TimeoutSeconds 240 | Out-Null
     Invoke-RecoveryScript -Name 'r22-ops-maintenance' -ScriptPath (Join-Path $RepoRoot 'scripts\recovery-r22-ops-maintenance-smoke.ps1') -Arguments @('-BaseUrl', $BaseUrl) -TimeoutSeconds 240 | Out-Null
+    Invoke-RecoveryScript -Name 'r24-home-page-config' -ScriptPath (Join-Path $RepoRoot 'scripts\recovery-r24-home-page-config-smoke.ps1') -Arguments @('-BaseUrl', $BaseUrl) -TimeoutSeconds 240 | Out-Null
 
     Stop-ReleaseFromStartResult
     Invoke-RecoveryScript -Name 'local-restart-release' -ScriptPath (Join-Path $RepoRoot 'scripts\local-start-release.ps1') -TimeoutSeconds 120 | Out-Null

@@ -1592,3 +1592,153 @@ Evidence paths:
 
 - `docs/evidence/recovery/r22-ops-maintenance-2026-06-29.md`
 - `docs/evidence/recovery/r22-ops-maintenance-result.json`
+
+## REC-P0-026 Final Requirement Coverage Gate
+
+User role: product owner, system administrator, normal system member, external integrator, operator
+
+Business outcome: The project cannot claim final completion until every major requirement section in `docs/user_requirement.md` is mapped to a coverage row and each row is either proven by strong deployed evidence or explicitly excluded by the user.
+
+Prototype/reference:
+
+- `docs/user_requirement.md`
+- `docs/framework/final-requirement-coverage-ledger.md`
+- `docs/framework/final-requirement-closure-plan.md`
+- `docs/framework/current-final-system-engineering.md`
+
+Frontend scope:
+
+- All production frontend routes indirectly, because the coverage gate blocks final completion rather than implementing one screen.
+
+Backend scope:
+
+- All coded business APIs indirectly, because the coverage gate checks that evidence covers requirement areas rather than generated/controller existence.
+
+Generator scope:
+
+- Generated CRUD is never enough to mark a coverage row `PROVEN`.
+
+Data scope:
+
+- Coverage ledger and evidence result files:
+  - `docs/framework/final-requirement-coverage-ledger.md`
+  - `docs/evidence/final-requirement-coverage-audit-result.json`
+  - `docs/evidence/final-requirement-gap-report.md`
+
+Permission rule:
+
+- Only explicit user approval can mark a requirement `USER_EXCLUDED`.
+- Agents may mark a row `PROVEN` only with deployed browser/API/readback evidence that covers the full requirement area.
+
+States:
+
+- `PROVEN`, `PARTIAL`, `OPEN`, `USER_EXCLUDED`.
+
+Explicitly not complete if:
+
+- Any major `docs/user_requirement.md` section is missing from the ledger.
+- Any row is `PARTIAL` or `OPEN`.
+- A row is marked `PROVEN` from a narrow script that does not cover the full requirement area.
+- A row is marked `USER_EXCLUDED` without explicit user approval.
+- R-batch evidence is used to close the full requirement without matching the row scope.
+
+Acceptance script:
+
+1. Run `scripts/final-requirement-coverage-audit.ps1`.
+2. Run `scripts/final-requirement-gap-report.ps1`.
+3. The audit must fail until all requirement rows are `PROVEN` or `USER_EXCLUDED`.
+4. The gap report must list recommended closure batches in order.
+5. Final completion claims are blocked while the audit fails.
+
+Evidence paths:
+
+- `docs/framework/final-requirement-coverage-ledger.md`
+- `docs/framework/final-requirement-closure-plan.md`
+- `docs/evidence/final-requirement-coverage-audit-result.json`
+- `docs/evidence/final-requirement-gap-report.md`
+
+## REC-P0-027 FRC-1 Missing Product Surfaces Closure
+
+User role: system administrator, platform administrator, normal system member
+
+Business outcome: The currently `OPEN` requirement rows are turned into implemented and proven product surfaces: pages/page configuration, overall visual style, platform/system home pages, page designer, and advanced capabilities or their explicit implementable sub-task cards.
+
+Coverage rows:
+
+- `REQ-5.8` Pages
+- `REQ-6.1` Overall visual style
+- `REQ-6.3` Home page
+- `REQ-6.8` Page designer
+- `REQ-9` Advanced/new capabilities
+
+Prototype/reference:
+
+- `docs/user_requirement.md` sections 5.8, 6.1, 6.3, 6.8, 9
+- `docs/framework/final-requirement-coverage-ledger.md`
+- `docs/framework/final-requirement-closure-plan.md`
+- `docs/design/prototype-brief.md`
+- `docs/design/prototypes/index.html`
+
+Frontend scope:
+
+- Platform workspace home page.
+- System business home/dashboard page.
+- System admin page configuration/designer surface.
+- Runtime page rendering behavior that proves page configuration affects the usable system.
+- Visual/wording audit surfaces for the primary role journeys.
+
+Backend scope:
+
+- Page configuration APIs if already present; otherwise add coded manage APIs for page definitions, page layouts, publish/readback, and runtime resolution.
+- Advanced capability APIs must be split into sub-task cards when a single implementation would be too broad.
+
+Generator scope:
+
+- Generated page/config entities are persistence plumbing only.
+- Page designer and advanced capability closure requires coded business behavior, deployed frontend interaction, and readback.
+
+Data scope:
+
+- Page definition/configuration tables, module/page relation, published page snapshot, runtime page resolution.
+- Advanced capability tables according to the split sub-task cards: command center, assistant, schema-driven page, advanced table, flow simulation, print designer.
+
+Permission rule:
+
+- System administrators can configure pages for their system.
+- Normal members can only see published runtime pages they are authorized to use.
+- Platform administrators cannot bypass system-member context to configure system business pages.
+
+States:
+
+- Empty home page, configured home page, draft page, published page, invalid layout, permission denied, mobile layout, preview, rollback/readback, visual hierarchy pass/fail.
+
+Explicitly not complete if:
+
+- `REQ-5.8`, `REQ-6.1`, `REQ-6.3`, `REQ-6.8`, or `REQ-9` remain `OPEN`.
+- The page designer exists only as a static card or placeholder.
+- Home pages are just dashboards with unrelated stacked panels.
+- Visual style is accepted only by absence of overflow, without hierarchy/wording/aesthetic review.
+- Advanced capability rows are hidden under a broad "future" label without user exclusion.
+- The coverage ledger is not updated after implementation evidence.
+
+Acceptance script:
+
+1. Create or select a disposable system.
+2. Log in through the deployed frontend as system administrator.
+3. Configure a page/home surface through the UI and publish it.
+4. Log in or switch as a normal member and verify the published home/page is visible, clean, permission-filtered, and mobile-contained.
+5. Verify API readback for page definition and published snapshot.
+6. Run a visual/wording audit for primary home/page routes.
+7. Split advanced capabilities into explicit sub-task cards or prove implemented surfaces.
+8. Update `docs/framework/final-requirement-coverage-ledger.md` and rerun `scripts/final-requirement-coverage-audit.ps1`.
+
+Evidence paths:
+
+- Home page config loop: `docs/evidence/recovery/r24-home-page-config-2026-06-30.md`
+- Home page config result: `docs/evidence/recovery/r24-home-page-config-result.json`
+- Browser result: `docs/evidence/recovery/screenshots/r24-home-page-config/home-page-config-browser-audit.json`
+- Page designer API/runtime loop: `docs/evidence/recovery/r24-page-designer-2026-06-30.md`
+- Page designer result: `docs/evidence/recovery/r24-page-designer-result.json`
+- Visual-density browser audit: `docs/evidence/recovery/r24-visual-style-browser-audit-2026-06-30.md`
+- Visual-density browser audit result: `docs/evidence/recovery/r24-visual-style-browser-audit-result.json`
+- Remaining FRC-1 closure evidence still expected at `docs/evidence/recovery/r24-frc1-missing-product-surfaces.md` or follow-up split task evidence.

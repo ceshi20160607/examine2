@@ -37,6 +37,9 @@ public class ModuleActionConfigBaseServiceImpl extends ServiceImpl<ModuleActionC
 
     @Override
     public boolean deleteByIds(Collection<Long> ids) {
-        return ids != null && !ids.isEmpty() && removeBatchByIds(ids);
+        if (ids == null || ids.isEmpty()) {
+            return false;
+        }
+        return removeBatchByIds(ids);
     }
 }

@@ -1,26 +1,34 @@
 # Phase 4: Verify
 
-## 入口
+## Entry
 
-- Build 里程碑 TASK 全部 accepted
+- current build milestone tasks are accepted
+- affected journey gates have declared evidence scripts
+- release/package entry exists when the product must be deployable
 
-## 步骤
+## Steps
 
-| # | 执行 | 输出 |
-|---|------|------|
-| 1 | test 新会话 | 执行 skill e2e-user-script |
-| 2 | skill review-gate | `gate-verify.json` |
-| 3 | **你** 部署试用 | `docs/decisions/user-trial.md` |
+| # | Actor | Output |
+|---|---|---|
+| 1 | test | run role-level browser/API journey scripts |
+| 2 | test | run release/package verification when applicable |
+| 3 | review-gate | produce gate verification evidence |
+| 4 | conductor | update session state from evidence only |
+| 5 | user | verify or sign off subjective usability and final acceptance |
 
-## 退出
+## Exit
 
-- [ ] e2e-car-system pass
-- [ ] review-gate pass
-- [ ] 你试用无 P0 反馈
-- [ ] `gates.user_script_passed = true`
+- [ ] all required journey gates pass
+- [ ] release/package verification passes when applicable
+- [ ] review gate passes
+- [ ] user trial has no P0 feedback
+- [ ] `gates.user_script_passed = true` only after user verification/signoff
 
-## fail 时
+## Failure
 
-- 不得打包
-- 按 issue 回到 design / contract / build 对应 phase
-- PM 不得单方面宣布完成
+If any verification fails:
+
+- do not package or claim final completion
+- update the final goal ledger, journey gate, task card, or issue registry with the exact gap
+- route the fix back to design, contract, build, or verify
+- ask the user only when the next decision changes the final product goal, workflow, or subjective usability target

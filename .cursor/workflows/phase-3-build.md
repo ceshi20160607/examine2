@@ -1,38 +1,37 @@
 # Phase 3: Build
 
-## 入口
+## Entry
 
 - `design_user_approved = true`
 - `api_frozen = true`
 - `tasks_planned = true`
+- broad objectives have a final goal ledger and journey gates
 
-## 步骤
+## Steps
 
-1. planner 产出 `docs/tasks/TASK-*.md`
-2. Conductor 按 DAG 调度；无依赖任务 **并行** 新会话
-3. dba 如需 → `sql/init.sql`
-4. backend / frontend 按 TASK 实现
-5. 每 TASK 完成 → skill **task-accept**（实现者 ≠ 验收）
-6. 批次末 → skill **clean-build**
+1. Planner creates or updates `docs/tasks/TASK-*.md` from `.cursor/templates/task.md`.
+2. For recovery or broad objectives, planner links every task to a final goal ledger and a journey gate.
+3. Conductor schedules tasks by dependency graph; parallel tasks must not write overlapping outputs.
+4. DBA/backend/frontend implement only the declared task scope.
+5. Each implementer records self-check evidence.
+6. Independent acceptance verifies each task against `.cursor/architecture/acceptance.md`.
+7. Batch-level clean build is run only after all tasks in the batch pass.
 
-## 并行示例
+## Hard Rules
 
-```
-并行组 G1: TASK-DBA-001, TASK-BE-003（路径不重叠）
-串行: TASK-BE-004 depends_on BE-003
-并行组 G2: TASK-FE-005（depends 满足后）
-```
+- Do not start coding from vague feedback such as "make it usable" or "fix the page".
+- First update the final goal ledger, journey gate, or task card.
+- Generated CRUD is plumbing only; it does not close a business task.
+- A successful build does not close a journey gate.
+- A batch pass does not close the final goal.
 
-## 问题
+## Exit
 
-任何 Worker 可写 registry → pm triage → 继续
+- [ ] current milestone tasks are accepted
+- [ ] clean build or package evidence passes
+- [ ] no open P0 build issue remains
+- [ ] journey gates affected by this batch have updated status and evidence links
 
-## 退出
+## Next
 
-- [ ] 当前里程碑 TASK 全部 `accepted`
-- [ ] clean-build pass
-- [ ] 无 open P0 build issues
-
-## 下一步
-
-→ `phase-4-verify.md`
+Proceed to `phase-4-verify.md`.

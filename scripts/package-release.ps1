@@ -1,6 +1,6 @@
 param(
     [string]$Version = '0.0.1-SNAPSHOT',
-    [string]$JavaHome = 'D:\dev\jdk21',
+    [string]$JavaHome = 'D:\dev\jdk21-temurin',
     [string]$MavenPath = 'D:\dev\maven\bin\mvn.cmd',
     [string]$NpmPath = 'D:\dev\nodejs24\npm.cmd',
     [switch]$SkipBuild

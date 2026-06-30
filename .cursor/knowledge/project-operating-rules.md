@@ -87,10 +87,11 @@
 ## 7. Local Build Environment Correction
 
 - The earlier `D:\Tools\...` and `D:\java\...` JDK/Maven/npm paths are not valid on the current machine.
-- Current verified JDK 21 path is `D:\dev\jdk21`.
+- Current verified JDK 21 path is `D:\dev\jdk21-temurin`.
+- `D:\dev\jdk21` / Oracle 21.0.10 triggers javac internal `StackMapTableFrame.getInstance` failures in this project and must not be used for verification.
 - Current verified Maven path is `D:\dev\maven\bin\mvn.cmd`.
 - Current verified npm path is `D:\dev\nodejs24\npm.cmd`.
-- Before Java compilation, set `JAVA_HOME=D:\dev\jdk21`; do not rely on stale global environment variables.
+- Before Java compilation, set `JAVA_HOME=D:\dev\jdk21-temurin`; do not rely on stale global environment variables.
 - Do not report backend verification until Maven itself reports Java 21 in `mvn -version`.
 
 ## 8. Real Deployment Default Account
@@ -117,3 +118,19 @@
 
 - Final release orchestration must parse child machine-readable output and fatal text. A wrapper process status is not sufficient when a child script reports `status=FAIL`, backend startup failure, release verification failure, native command failure, Node audit failure, or API failure.
 - Release packaging must hash-verify copied artifacts, including `examine-web.jar`, and fail if the release artifact is not byte-identical to the build output.
+
+## 12. Final Usable System Framework Rule
+
+- 本项目的最终目标不是“原型页存在”或“R 批次通过”，而是一个真实用户可以使用的无代码定制系统。
+- 当前最终目标总账入口是 `docs/recovery/final-usable-system-acceptance.md`；框架级规则入口是 `.cursor/architecture/final-goal-framework.md`。
+- 后续任何修复都必须先判断影响哪个角色旅程：平台管理员、平台普通成员、系统管理员、系统普通成员、外部系统或运维人员。
+- P0 任务卡必须链接到最终旅程门，覆盖前端、后端、数据、权限、状态、读回、发布/运维证据。
+- 生成接口只算基础设施；无代码平台的真实能力必须落到编码业务服务、运行态页面、权限、审计、发布检查和可重复脚本。
+- 用户签字前只能说“工程证据支持”，不能说“最终目标已经完成”。
+
+## 13. Deferred Framework Extraction Rule
+
+- 未来可复用框架抽取不是当前执行主线；当前主线是把本项目做到真实可用并获得用户认可。
+- 当前不整理跨项目抽取包，不规划未来项目适配，不为复用而改动产品边界。
+- 只有当某个框架改进能直接推动当前系统可用时，才落到 `.cursor/architecture`、`.cursor/templates` 或 `.cursor/workflows`。
+- 本项目完成并验收后，才重新讨论可复用框架抽取。

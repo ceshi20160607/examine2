@@ -1,79 +1,89 @@
-# 任务级验收（裁判 ≠ 选手）
+# Acceptance Rules
 
-## 原则
+Acceptance is a judge role, not an implementation role. The implementer can provide self-check evidence, but cannot declare their own task complete.
 
-| 角色 | 能做 | 不能做 |
-|------|------|--------|
-| 实现者（backend/frontend/dba） | 写代码、写自检说明 | 判定自己任务 pass |
-| test Agent | 设计用例、执行验收 | 实现业务代码 |
-| skill `task-accept` | 对照任务标准机械检查 | 修改实现 |
-| pm | 阶段 Gate 建议 | 替代 test 执行 e2e |
+## Acceptance Levels
 
-**禁止：** backend 写完说「完成」→ backend 自己写 test_report pass。
+| Level | Meaning | Required evidence |
+|---|---|---|
+| Task | One business task card is complete. | Task outputs, self-checks, cross-layer evidence, independent verifier. |
+| Batch | A planned group of tasks is complete. | All task cards accepted plus clean build/release checks. |
+| Journey | One role can finish one real business outcome. | Deployed browser/API journey, readback, permissions, states, cleanup. |
+| Final Goal | The broad user objective is usable end to end. | Final goal ledger, all journey gates pass, release evidence, user signoff boundary. |
 
-## 单任务验收流程
+Batch acceptance never equals final-goal acceptance.
 
-```mermaid
-flowchart LR
-    I[实现者提交] --> S[skill task-accept]
-    S --> P{pass?}
-    P -->|是| T[test 抽检可选]
-    P -->|否| I
-    T --> D[state.json task=accepted]
-```
+## Role Separation
 
-## task-accept Skill 检查项
+| Role | Can do | Cannot do |
+|---|---|---|
+| implementer | write code and self-check evidence | declare final acceptance |
+| test agent | design and run verification | implement business code |
+| task-accept skill | compare evidence to task card | change implementation |
+| pm/conductor | update state and gates from evidence | replace user signoff |
+| user | sign off subjective usability and final acceptance | be replaced by scripts |
 
-每个 `docs/tasks/TASK-*.md` 必须包含 `acceptance` 段，skill 逐条核对：
+## Task Acceptance Checklist
 
-1. `outputs` 文件全部存在且非空
-2. `self_check_commands` 已执行且日志在 `docs/evidence/accept-{taskId}.log`
-3. 无新增 open P0 issue 指向该任务
-4. 若任务类型为 `frontend`：`npm run build` 通过
-5. 若任务类型为 `backend`：声明的 `mvn` 模块 test 通过
-6. 实现者 id ≠ 验收执行记录中的 actor
+Every task must satisfy the task template in `.cursor/templates/task.md`.
 
-## 验收证据格式
+The verifier must check:
 
-`docs/evidence/accept-TASK-XXX.md`：
+1. The task links to a final goal ledger or journey gate when the work is part of a broad objective.
+2. The role, entry point, and business outcome are explicit.
+3. Declared outputs exist and are non-empty.
+4. Self-check commands were run and evidence is stored under `docs/evidence`.
+5. Generated plumbing is separated from coded business behavior.
+6. Frontend, backend, data, permission, state, and readback evidence pass where applicable.
+7. Browser/API evidence starts from the realistic role entry point.
+8. No new open P0 issue points to the task.
+9. Implementer and verifier are not the same actor.
+
+## Final Goal Acceptance
+
+A broad objective must have a final goal ledger before final completion can be claimed.
+
+Final acceptance requires:
+
+- all linked journey gates are `PASS`
+- release/package/deployment evidence passes when the goal is deployable software
+- permission positive and negative cases are covered
+- key empty/loading/disabled/validation/error/async states are covered
+- disposable test data is cleaned or intentionally retained with a reason
+- user signoff is recorded separately
+
+Agents must not set `gates.user_script_passed=true` from engineering evidence alone.
+
+## Evidence Format
+
+Task evidence should be stored as:
 
 ```markdown
-# TASK-XXX 验收
+# TASK-XXX Acceptance
 
 - task_id: TASK-XXX
-- implementer: backend
-- acceptor: skill:task-accept
+- linked_goal_id:
+- linked_journey_gate:
+- implementer:
+- acceptor:
 - verdict: pass | fail
-- checked_at: ISO8601
-- checklist:
-  - [x] outputs 存在
-  - [x] mvn test 通过
-- commands:
-  - mvn -pl examine-plat -am test
-- logs: docs/evidence/accept-TASK-XXX.log
+- checked_at:
+- business_outcome:
+- evidence:
+  - browser:
+  - api:
+  - data_readback:
+  - permission:
+  - states:
+  - release:
 - issues: []
 ```
 
-## 阶段验收 vs 任务验收
+## Failure Handling
 
-| 级别 | 执行者 | 产物 |
-|------|--------|------|
-| 任务 | skill task-accept | `accept-TASK-*.md` |
-| 批次 | test Agent | `docs/evidence/batch-*.md` |
-| 阶段 | skill review-gate + 你 | `gate-{phase}.json` |
-| 项目 | e2e-user-script + 你试用 | `e2e-car-system.md` |
+If acceptance fails:
 
-## review-gate 输出 JSON
-
-```json
-{
-  "phase": "build",
-  "verdict": "pass",
-  "gates_checked": ["api_frozen", "tasks_planned"],
-  "open_p0": 0,
-  "tasks_without_accept": [],
-  "blockers": []
-}
-```
-
-`verdict=fail` 时不得进入下一阶段。
+- do not claim completion
+- update the task card, final goal ledger, or issue registry with the exact gap
+- route the work back to design, contract, build, or verify according to the gap
+- ask the user only when the decision changes the final product goal, user-facing workflow, or subjective usability target

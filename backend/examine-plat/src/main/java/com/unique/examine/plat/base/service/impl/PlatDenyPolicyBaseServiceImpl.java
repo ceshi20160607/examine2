@@ -37,6 +37,9 @@ public class PlatDenyPolicyBaseServiceImpl extends ServiceImpl<PlatDenyPolicyMap
 
     @Override
     public boolean deleteByIds(Collection<Long> ids) {
-        return ids != null && !ids.isEmpty() && removeBatchByIds(ids);
+        if (ids == null || ids.isEmpty()) {
+            return false;
+        }
+        return removeBatchByIds(ids);
     }
 }

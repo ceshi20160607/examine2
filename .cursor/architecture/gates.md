@@ -14,6 +14,16 @@
 | `build_batch_accepted` | skill task-accept | 当前批次任务均有 accept 证据 | Verify |
 | `user_script_passed` | test + 你 | e2e 车系统剧本证据；你试用无 P0 反馈 | 打包 |
 
+## 最终目标门
+
+当目标不是一个小任务，而是“做成一个可用系统 / 可交付平台 / 可复用框架”时，必须额外使用 [architecture/final-goal-framework.md](./final-goal-framework.md)：
+
+- 先创建最终目标总账。
+- 再拆角色旅程门。
+- 所有任务卡必须链接到目标总账或旅程门。
+- 批次通过只能更新工程证据，不能替代最终目标门。
+- `user_script_passed` 仍然只能由用户验证或签字关闭。
+
 ## 最关键：两道设计门
 
 ### 门 1：设计包内部完工（Open Design 之前，**团队**完成）

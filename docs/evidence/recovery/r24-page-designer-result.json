@@ -1,0 +1,22 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-027",
+    "subtask":  "page-designer-api-runtime-closure",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "674",
+    "tenantId":  "706",
+    "moduleId":  "219",
+    "pageCode":  "main_0630132024600_02f39b",
+    "pageName":  "R24 Designer Page 0630132024600_02f39b",
+    "savedStatus":  "DRAFT",
+    "publishCheckPassed":  true,
+    "publishResult":  "PUBLISHED_MODULE_PAGE",
+    "runtimeReadbackStatus":  "PUBLISHED",
+    "runtimeComponentCount":  4,
+    "normalRuntimeReadPageName":  "R24 Designer Page 0630132024600_02f39b",
+    "forbiddenWriteStatus":  403,
+    "cleanup":  [
+                    "674:DELETE",
+                    "675:DELETE"
+                ]
+}

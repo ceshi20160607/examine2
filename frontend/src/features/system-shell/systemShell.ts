@@ -10,6 +10,7 @@ import {
   loadPlainTasks,
   loadProjectTasks,
   loadSystemMessages,
+  loadSystemHomePageConfig,
   loadSystemModuleNavigation,
   loadSystemTodos,
   loadWorkDashboard,
@@ -26,6 +27,7 @@ import {
   type TodoSearchResult,
   type TodoTypeNode,
   type CalendarDay,
+  type HomePageConfigView,
   type WorkDashboard,
   type WorkProject,
   type WorkWarning,
@@ -204,8 +206,11 @@ function createSystemProfile(navigate: Navigate): HTMLElement {
 function createDashboard(navigate: Navigate): HTMLElement {
   const root = createElement('section', { className: 'content-panel' });
   root.replaceChildren(createLoadingPanel('正在读取工作仪表盘...'));
-  void loadWorkDashboard(activeSystemId())
-    .then((dashboard) => {
+  void Promise.all([
+    loadWorkDashboard(activeSystemId()),
+    loadSystemHomePageConfig(activeSystemId()),
+  ])
+    .then(([dashboard, homePage]) => {
       const hasRuntimeModules = (headerNavigation?.modules ?? []).length > 0;
       const openModuleButton = createButton(hasRuntimeModules ? '打开业务模块' : '配置业务模块', 'primary', false);
       openModuleButton.addEventListener('click', () => {
@@ -215,18 +220,10 @@ function createDashboard(navigate: Navigate): HTMLElement {
       });
       const initializationPrompt = !hasRuntimeModules && canEnterSystemAdmin() ? [createSystemInitializationPrompt(navigate)] : [];
       root.replaceChildren(
-        createElement('div', { className: 'page-heading' }, createElement('h1', {}, '系统仪表盘'), createElement('p', {}, '当前系统成员权限范围内的概览、预警、日历和待处理事项。')),
+        createElement('div', { className: 'page-heading' }, createElement('h1', {}, homePage.title || '系统工作台'), createElement('p', {}, homePage.subtitle || '当前系统成员权限范围内的业务入口、待办、消息和工作概览。')),
         ...initializationPrompt,
-        createElement(
-          'div',
-          { className: 'metric-grid' },
-          createMetric('项目任务', String(dashboard.overview?.projectTaskCount ?? 0)),
-          createMetric('普通任务', String(dashboard.overview?.plainTaskCount ?? 0)),
-          createMetric('逾期任务', String(dashboard.overview?.overdueTaskCount ?? 0)),
-          createMetric('今日日报', dashboard.overview?.dailyReportSubmitted ? '已提交' : '待提交'),
-        ),
-        createWarningPanel(dashboard.todayWarnings ?? []),
-        createCalendarPanel(dashboard.monthlyCalendar ?? []),
+        createHomeOverviewPanel(homePage, dashboard, hasRuntimeModules),
+        createHomeOperationsPanel(dashboard),
         openModuleButton,
         createTraceLine(dashboard.traceId ?? `trace_dashboard_${activeSystemId()}`),
       );
@@ -255,6 +252,80 @@ function createSystemInitializationPrompt(navigate: Navigate): HTMLElement {
     ),
     createElement('div', { className: 'inline-actions' }, adminButton),
   );
+}
+
+function createHomeOverviewPanel(homePage: HomePageConfigView, dashboard: WorkDashboard, hasRuntimeModules: boolean): HTMLElement {
+  const widgets = (homePage.widgets ?? [])
+    .filter((widget) => widget.visible !== false)
+    .sort((left, right) => (left.sort ?? 0) - (right.sort ?? 0));
+  const overviewItems = widgets.length > 0
+    ? widgets.map((widget) => [widget.widgetName, homePageWidgetValue(widget.sourceType, dashboard, hasRuntimeModules)] as const)
+    : [
+        ['项目任务', String(dashboard.overview?.projectTaskCount ?? 0)] as const,
+        ['普通任务', String(dashboard.overview?.plainTaskCount ?? 0)] as const,
+        ['逾期任务', String(dashboard.overview?.overdueTaskCount ?? 0)] as const,
+        ['今日日报', dashboard.overview?.dailyReportSubmitted ? '已提交' : '待提交'] as const,
+      ];
+  return createElement(
+    'section',
+    { className: 'home-overview-panel' },
+    createElement(
+      'div',
+      { className: 'runtime-card-head' },
+      createElement('div', {}, createElement('h2', {}, '今日概览'), createElement('p', {}, widgets.length > 0 ? '来自后台首页配置，运行态按当前成员权限读取。' : '首页组件未配置，先展示默认工作指标。')),
+      renderStatusPill(hasRuntimeModules ? '业务可用' : '待配置模块', hasRuntimeModules ? 'success' : 'warning'),
+    ),
+    createElement(
+      'div',
+      { className: 'summary-chip-grid' },
+      ...overviewItems.map(([label, value]) => createElement('div', { className: 'summary-chip' }, createElement('span', {}, label), createElement('strong', {}, value))),
+    ),
+  );
+}
+
+function createHomeOperationsPanel(dashboard: WorkDashboard): HTMLElement {
+  const warnings = dashboard.todayWarnings ?? [];
+  const days = (dashboard.monthlyCalendar ?? []).slice(0, 14);
+  return createElement(
+    'section',
+    { className: 'home-operations-panel' },
+    createElement(
+      'article',
+      { className: 'home-ops-block' },
+      createElement('h3', {}, '今日预警'),
+      warnings.length === 0
+        ? createElement('p', {}, '暂无今日预警')
+        : createElement('div', { className: 'simple-stack' }, ...warnings.slice(0, 4).map((warning) => createElement('div', { className: 'list-line' }, createElement('span', {}, warning.title), renderStatusPill(warning.level ?? '预警', warning.level === 'HIGH' ? 'danger' : 'warning')))),
+    ),
+    createElement(
+      'article',
+      { className: 'home-ops-block' },
+      createElement('h3', {}, '近期日历'),
+      days.length === 0
+        ? createElement('p', {}, '暂无日历事项')
+        : createElement(
+            'div',
+            { className: 'compact-calendar-grid' },
+            ...days.map((day) => createElement('div', { className: 'compact-calendar-day' }, createElement('strong', {}, day.date.slice(-2)), createElement('small', {}, day.items.map((item) => item.title).join(' / ') || '无'))),
+          ),
+    ),
+  );
+}
+
+function homePageWidgetValue(sourceType: string, dashboard: WorkDashboard, hasRuntimeModules: boolean): string {
+  if (sourceType === 'WORK_DASHBOARD') {
+    return `${dashboard.overview?.projectTaskCount ?? 0} 项目 / ${dashboard.overview?.plainTaskCount ?? 0} 普通`;
+  }
+  if (sourceType === 'WORK_WARNING') {
+    return `${dashboard.todayWarnings?.length ?? 0} 条`;
+  }
+  if (sourceType === 'WORK_CALENDAR') {
+    return `${dashboard.monthlyCalendar?.length ?? 0} 天`;
+  }
+  if (sourceType === 'RUNTIME_MODULES') {
+    return hasRuntimeModules ? '已发布' : '待配置';
+  }
+  return '已启用';
 }
 
 function createTodoWorkbench(navigate: Navigate): HTMLElement {

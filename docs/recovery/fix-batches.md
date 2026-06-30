@@ -760,6 +760,96 @@ Accepted evidence:
 - R5 final release orchestration includes R22 and passes after R22 was added.
 - Evidence: `docs/evidence/recovery/r22-ops-maintenance-2026-06-29.md`, `docs/evidence/recovery/r22-ops-maintenance-result.json`.
 
+## Batch R23: Final Requirement Coverage Gate
+
+Status: accepted
+
+Reason:
+
+- R21 proves a top-level journey set, but the original `docs/user_requirement.md` is broader than J0-J7.
+- The process needs a hard gate that prevents any agent from claiming final completion while requirement rows are still `PARTIAL` or `OPEN`.
+
+Tasks:
+
+- Add `REC-P0-026 Final Requirement Coverage Gate`.
+- Add `docs/framework/final-requirement-coverage-ledger.md`.
+- Add `docs/framework/final-requirement-closure-plan.md`.
+- Add `scripts/final-requirement-coverage-audit.ps1`.
+- Add `scripts/final-requirement-gap-report.ps1`.
+- Add J11 to `docs/framework/next-execution-ledger.md`.
+
+Exit criteria:
+
+- The coverage audit parses major sections of `docs/user_requirement.md`.
+- The ledger contains a row for every required major section.
+- The audit fails while any row is `PARTIAL` or `OPEN`.
+- The gap report orders the remaining work into FRC batches.
+
+Accepted evidence:
+
+- `scripts/final-requirement-coverage-audit.ps1 -NoFailExit` ran and reported `requiredCount=43`, `missingCount=0`, `notClosedCount=45`, `status=FAIL`.
+- `scripts/final-requirement-gap-report.ps1` generated `docs/evidence/final-requirement-gap-report.md`, with FRC-1 as the first recommended batch.
+- This batch is accepted as a governance gate only. It intentionally does not close final product completion.
+- Evidence: `docs/evidence/final-requirement-coverage-audit-result.json`, `docs/evidence/final-requirement-gap-report.md`.
+
+## Batch R24: FRC-1 Missing Product Surfaces Closure
+
+Status: in_progress
+
+Reason:
+
+- The final requirement coverage audit shows five `OPEN` rows: pages, overall visual style, home page, page designer, and advanced/new capabilities.
+- These surfaces must be implemented, proven, or split into explicit sub-task cards before broader PARTIAL rows can be honestly closed.
+
+Tasks:
+
+- Add `REC-P0-027 FRC-1 Missing Product Surfaces Closure`.
+- Audit existing frontend/backend for page designer, home page, command center, assistant, schema-driven page, advanced table, flow simulation, and print designer coverage.
+- Split any oversized advanced capability into its own task card before coding.
+- Implement the smallest complete page/home/designer loop first: system admin configures a page/home surface, publishes it, and normal member sees the result.
+- Add deployed browser/API/readback evidence.
+- Update `docs/framework/final-requirement-coverage-ledger.md` from `OPEN` to `PROVEN` or narrower `PARTIAL` sub-rows only when evidence scope matches.
+
+Exit criteria:
+
+- `REQ-5.8`, `REQ-6.1`, `REQ-6.3`, `REQ-6.8`, and `REQ-9` are no longer broad unworked `OPEN` rows.
+- The page/home/designer path has deployed browser evidence.
+- Visual style is evaluated beyond overflow checks.
+- Advanced capabilities are either proven or split into explicit implementation task cards without calling them complete.
+
+Accepted evidence:
+
+- The earlier JDK 21.0.10 javac blocker is superseded. Current build/release verification uses Temurin JDK 21.0.11 at `D:\dev\jdk21-temurin`.
+- The home page configuration loop now passes on the deployed release:
+  - system admin PATCH saves home page config,
+  - admin GET reads it back,
+  - runtime GET reads the same title,
+  - normal member runtime GET succeeds,
+  - normal member admin PATCH is rejected with HTTP 403,
+  - publish-check passes with three items,
+  - deployed browser shows the configured title in admin config, desktop dashboard, and mobile dashboard.
+- The module page designer API/runtime loop now passes on the deployed release:
+  - system admin saves a page designer draft with toolbar/list/detail/chart components,
+  - admin list readback returns the draft,
+  - publish-check passes,
+  - publish writes a published snapshot,
+  - runtime readback returns the published page and components,
+  - normal member runtime read succeeds,
+  - normal member designer write is rejected with HTTP 403.
+- The visual-density pass now reduces the most obvious deployed stacking issues:
+  - system dashboard no longer renders duplicated home widgets plus duplicate default metrics as separate blocks,
+  - system dashboard desktop browser audit reports four panels and no horizontal overflow,
+  - system admin load warnings are summarized to the first three rows plus a count instead of stacking every trace,
+  - system admin initialization checklist removes explanatory paragraphs from each step and keeps step/status/action visible.
+- Evidence: `docs/evidence/recovery/r24-home-page-config-2026-06-30.md`, `docs/evidence/recovery/r24-home-page-config-result.json`, `docs/evidence/recovery/screenshots/r24-home-page-config/home-page-config-browser-audit.json`, `docs/evidence/recovery/r24-page-designer-2026-06-30.md`, `docs/evidence/recovery/r24-page-designer-result.json`, `docs/evidence/recovery/r24-visual-style-browser-audit-2026-06-30.md`, and `docs/evidence/recovery/r24-visual-style-browser-audit-result.json`.
+
+Remaining work before R24/FRC-1 can be accepted:
+
+- `REQ-6.1` overall visual style is narrowed to `PARTIAL`; it still needs broader human/UI review across role journeys before `PROVEN`.
+- `REQ-6.8` page designer is narrowed to `PARTIAL`; it still needs deployed browser interaction, visual preview, broader component coverage, copy/drag-drop/mobile preview, and usability evidence before `PROVEN`.
+- `REQ-9` advanced/new capabilities still need split task cards and evidence.
+- `REQ-5.8` pages and `REQ-6.3` home page are narrowed to `PARTIAL`, not final completion.
+
 ## Status Language
 
 Use these status words only:

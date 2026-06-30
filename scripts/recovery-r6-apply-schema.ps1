@@ -2,7 +2,7 @@ param(
     [string]$DbUrl = 'jdbc:mysql://192.168.0.211:3306/examine2?characterEncoding=utf8&useSSL=false&zeroDateTimeBehavior=convertToNull&tinyInt1isBit=false&serverTimezone=Asia/Shanghai&useAffectedRows=true&allowPublicKeyRetrieval=true',
     [string]$DbUsername = 'examine',
     [string]$DbPassword = 'examine',
-    [string]$JavaHome = 'D:\dev\jdk21',
+    [string]$JavaHome = 'D:\dev\jdk21-temurin',
     [string]$MysqlConnectorJar = ''
 )
 

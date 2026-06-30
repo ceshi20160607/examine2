@@ -1004,6 +1004,58 @@ export interface WorkConfigPublishCheckResult {
   traceId: string;
 }
 
+export interface HomePageWidgetConfig {
+  widgetCode: string;
+  widgetName: string;
+  widgetType: string;
+  sourceType: string;
+  sort?: number;
+  visible?: boolean;
+}
+
+export interface HomePageConfigView {
+  systemId?: string;
+  tenantId?: string;
+  title: string;
+  subtitle: string;
+  visualTone: string;
+  widgets: HomePageWidgetConfig[];
+  publishState?: Record<string, unknown>;
+  updatedAt?: string;
+  traceId?: string;
+}
+
+export interface PageComponentConfig {
+  componentCode: string;
+  componentType: string;
+  title: string;
+  dataSource: string;
+  boundFieldCode?: string;
+  sort?: number;
+  visible?: boolean;
+  props?: Record<string, unknown>;
+}
+
+export interface ModulePageDesignView {
+  pageId: string;
+  systemId: string;
+  tenantId: string;
+  moduleId: string;
+  moduleCode: string;
+  pageCode: string;
+  pageName: string;
+  pageType: string;
+  route: string;
+  layoutMode: string;
+  components: PageComponentConfig[];
+  visibleRoleIds: string[];
+  publishStatus: string;
+  publishedVersion?: string;
+  permissionSnapshotId?: string;
+  traceId?: string;
+  updatedAt?: string;
+}
+
 export interface NotificationTemplateView {
   templateId: string;
   systemId: string;
@@ -1219,6 +1271,8 @@ export interface SystemAdminData {
   openApiApps: PageResult<OpenApiAppView>;
   ssoPolicy?: SystemSsoPolicyView;
   workConfig?: WorkConfigView;
+  homePageConfig?: HomePageConfigView;
+  pageDesigns: ModulePageDesignView[];
   agentPolicies: PageResult<AgentPolicyView>;
   logs: PageResult<AuditLogView>;
   warnings: string[];
@@ -2020,6 +2074,7 @@ export async function loadSystemAdminData(systemId: string, options: SystemAdmin
     openApiApps,
     ssoPolicy,
     workConfig,
+    homePageConfig,
     agentPolicies,
     logs,
   ] = await Promise.all([
@@ -2035,12 +2090,17 @@ export async function loadSystemAdminData(systemId: string, options: SystemAdmin
     safeLoad(async () => unwrap(await apiClient.get<PageResult<OpenApiAppView>>(`/api/v1/systems/${systemId}/openapi/apps?pageNo=${openApiAppsPageNo}&pageSize=20`)), 'OpenAPI 对外应用', warnings, emptyPage<OpenApiAppView>()),
     safeLoad(async () => unwrap(await apiClient.get<SystemSsoPolicyView>(`/api/v1/systems/${systemId}/sso/policies`)), '系统 SSO 策略', warnings, undefined),
     safeLoad(async () => unwrap(await apiClient.get<WorkConfigView>(`/api/v1/systems/${systemId}/work/config`)), '工作配置', warnings, undefined),
+    safeLoad(async () => unwrap(await apiClient.get<HomePageConfigView>(`/api/v1/systems/${systemId}/work/home-page-config`)), '首页设计配置', warnings, undefined),
     safeLoad(async () => unwrap(await apiClient.get<PageResult<AgentPolicyView>>(`/api/v1/systems/${systemId}/agent/policies?pageNo=${agentPoliciesPageNo}&pageSize=20`)), '系统 AI Agent 策略', warnings, emptyPage<AgentPolicyView>()),
     safeLoad(async () => unwrap(await apiClient.post<PageResult<AuditLogView>>(`/api/v1/systems/${systemId}/logs/search?pageNo=${logsPageNo}&pageSize=12`, {
       scope: 'system',
       systemId,
     })), '系统日志', warnings, emptyPage<AuditLogView>()),
   ]);
+  const pageDesignModuleId = modules.records[0]?.moduleId;
+  const pageDesigns = pageDesignModuleId
+    ? await safeLoad(async () => unwrap(await apiClient.get<ModulePageDesignView[]>(`/api/v1/systems/${systemId}/modules/${pageDesignModuleId}/pages`)), '页面设计器', warnings, [])
+    : [];
   return {
     departments,
     members,
@@ -2054,10 +2114,16 @@ export async function loadSystemAdminData(systemId: string, options: SystemAdmin
     openApiApps,
     ssoPolicy,
     workConfig,
+    homePageConfig,
+    pageDesigns,
     agentPolicies,
     logs,
     warnings,
   };
+}
+
+export async function loadSystemHomePageConfig(systemId: string): Promise<HomePageConfigView> {
+  return unwrap(await apiClient.get<HomePageConfigView>(`/api/v1/systems/${systemId}/work/home-page`));
 }
 
 export async function createSystemModule(systemId: string, input: {
@@ -2548,6 +2614,53 @@ export async function updateSystemWorkConfig(systemId: string, config: WorkConfi
 
 export async function runWorkConfigPublishCheck(systemId: string): Promise<WorkConfigPublishCheckResult> {
   return unwrap(await apiClient.post<WorkConfigPublishCheckResult>(`/api/v1/systems/${systemId}/work/config/publish-check`));
+}
+
+export async function updateSystemHomePageConfig(systemId: string, config: {
+  title: string;
+  subtitle: string;
+  visualTone: string;
+  widgets: HomePageWidgetConfig[];
+  changeReason: string;
+}): Promise<HomePageConfigView> {
+  return unwrap(await apiClient.patch<HomePageConfigView>(`/api/v1/systems/${systemId}/work/home-page-config`, config));
+}
+
+export async function runHomePagePublishCheck(systemId: string): Promise<WorkConfigPublishCheckResult> {
+  return unwrap(await apiClient.post<WorkConfigPublishCheckResult>(`/api/v1/systems/${systemId}/work/home-page-config/publish-check`));
+}
+
+export async function saveModulePageDesign(systemId: string, moduleId: string, input: {
+  pageCode: string;
+  pageName: string;
+  pageType: string;
+  route: string;
+  layoutMode: string;
+  components: PageComponentConfig[];
+  visibleRoleIds?: string[];
+  changeReason: string;
+}): Promise<ModulePageDesignView> {
+  return unwrap(await apiClient.post<ModulePageDesignView>(`/api/v1/systems/${systemId}/modules/${moduleId}/pages`, input));
+}
+
+export async function runModulePagePublishCheck(systemId: string, moduleId: string, pageCode: string): Promise<ModulePublishCheckResult> {
+  return unwrap(await apiClient.post<ModulePublishCheckResult>(`/api/v1/systems/${systemId}/modules/${moduleId}/pages/${pageCode}/publish-check`));
+}
+
+export async function publishModulePage(systemId: string, moduleId: string, pageCode: string, reason: string): Promise<ModulePublishResult> {
+  const idempotencyKey = createIdempotencyKey('module_page_publish');
+  return unwrap(await apiClient.post<ModulePublishResult>(
+    `/api/v1/systems/${systemId}/modules/${moduleId}/pages/${pageCode}/publish`,
+    {
+      reason,
+      idempotencyKey,
+    },
+    idempotencyKey,
+  ));
+}
+
+export async function loadRuntimeModulePage(systemId: string, moduleId: string, pageCode: string): Promise<ModulePageDesignView> {
+  return unwrap(await apiClient.get<ModulePageDesignView>(`/api/v1/systems/${systemId}/runtime/modules/${moduleId}/pages/${pageCode}`));
 }
 
 export async function runModulePublishCheck(systemId: string, moduleId: string, reason: string): Promise<ModulePublishCheckResult> {

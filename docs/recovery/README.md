@@ -15,18 +15,21 @@ The next work must convert the approved prototype and real implementation status
 Every new recovery/coding session must read:
 
 1. `.cursor/README.md`
-2. `.cursor/session/state.json`
-3. `.cursor/knowledge/agent-operating-rules.md`
-4. `.cursor/knowledge/project-operating-rules.md`
-5. `.cursor/knowledge/failure-lessons.md`
-6. `docs/design/prototype-brief.md`
-7. `docs/design/prototypes/index.html`
-8. `docs/api/api.md`
-9. `docs/recovery/current-product-audit.md`
-10. `docs/recovery/p0-task-cards.md`
-11. `docs/recovery/prototype-to-implementation-matrix.md`
-12. `docs/recovery/generated-vs-coded-api.md`
-13. `docs/recovery/fix-batches.md`
+2. `.cursor/architecture/final-goal-framework.md`
+3. `.cursor/session/state.json`
+4. `.cursor/knowledge/agent-operating-rules.md`
+5. `.cursor/knowledge/project-operating-rules.md`
+6. `.cursor/knowledge/failure-lessons.md`
+7. `docs/framework/next-execution-ledger.md`
+8. `docs/design/prototype-brief.md`
+9. `docs/design/prototypes/index.html`
+10. `docs/api/api.md`
+11. `docs/recovery/final-usable-system-acceptance.md`
+12. `docs/recovery/current-product-audit.md`
+13. `docs/recovery/p0-task-cards.md`
+14. `docs/recovery/prototype-to-implementation-matrix.md`
+15. `docs/recovery/generated-vs-coded-api.md`
+16. `docs/recovery/fix-batches.md`
 
 ## Hard Gate
 
@@ -35,6 +38,8 @@ Coding is allowed only for tasks listed in `docs/recovery/fix-batches.md`.
 Before touching source code, the worker must identify the exact task card id, prototype reference, affected frontend paths, affected backend paths, data tables, role/permission expectation, and acceptance script.
 
 If a requested fix is not covered by a task card, first update the recovery task card and matrix. Do not patch code from a vague instruction such as "fix the page", "connect the API", or "make it usable".
+
+For final-goal failures, first update `docs/framework/next-execution-ledger.md` and the affected journey in `docs/recovery/final-usable-system-acceptance.md`. Area-level OK rows and R-batch acceptance are evidence only; they do not replace a role-level journey gate.
 
 ## User Consultation Protocol
 

@@ -1,43 +1,19 @@
-2026-06-29T22:58:03.700+08:00  INFO 19092 --- [unexamine] [main] c.u.examine.web.ExamineWebApplication    : Starting ExamineWebApplication v0.0.1-SNAPSHOT using Java 21.0.10 with PID 19092 (D:\workspace\01_project\snow\cursor\examine2\release\unexamine-0.0.1-SNAPSHOT\backend\examine-web.jar started by ceshi in D:\workspace\01_project\snow\cursor\examine2\release\unexamine-0.0.1-SNAPSHOT\backend)
-2026-06-29T22:58:03.704+08:00  INFO 19092 --- [unexamine] [main] c.u.examine.web.ExamineWebApplication    : The following 1 profile is active: "prod"
-2026-06-29T22:58:05.566+08:00  INFO 19092 --- [unexamine] [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-06-29T22:58:05.571+08:00  INFO 19092 --- [unexamine] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-2026-06-29T22:58:05.617+08:00  INFO 19092 --- [unexamine] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 24 ms. Found 0 Redis repository interfaces.
-2026-06-29T22:58:06.683+08:00  INFO 19092 --- [unexamine] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9999 (http)
-2026-06-29T22:58:06.703+08:00  INFO 19092 --- [unexamine] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-06-29T22:58:06.703+08:00  INFO 19092 --- [unexamine] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
-2026-06-29T22:58:06.773+08:00  INFO 19092 --- [unexamine] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-06-29T22:58:06.773+08:00  INFO 19092 --- [unexamine] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2977 ms
-2026-06-29T22:58:15.424+08:00  INFO 19092 --- [unexamine] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9999 (http) with context path '/'
-2026-06-29T22:58:15.440+08:00  INFO 19092 --- [unexamine] [main] c.u.examine.web.ExamineWebApplication    : Started ExamineWebApplication in 12.501 seconds (process running for 13.22)
-2026-06-29T22:58:15.457+08:00  INFO 19092 --- [unexamine] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-06-29T22:58:15.935+08:00  INFO 19092 --- [unexamine] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@245b0bd7
-2026-06-29T22:58:15.940+08:00  INFO 19092 --- [unexamine] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-06-29T22:58:16.298+08:00  INFO 19092 --- [unexamine] [main] c.u.e.p.m.a.PlatformRootBootstrapService : Platform root bootstrap checked for account 'admin'.
-2026-06-29T22:58:17.380+08:00  INFO 19092 --- [unexamine] [http-nio-9999-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-06-29T22:58:17.381+08:00  INFO 19092 --- [unexamine] [http-nio-9999-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-06-29T22:58:17.383+08:00  INFO 19092 --- [unexamine] [http-nio-9999-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
-2026-06-29T22:59:26.165+08:00  WARN 19092 --- [unexamine] [http-nio-9999-exec-6] c.u.e.web.config.GlobalExceptionHandler  : Business exception: code=PERMISSION_DENIED, message=当前账号不是该审批任务处理人
-2026-06-29T23:00:23.903+08:00  WARN 19092 --- [unexamine] [http-nio-9999-exec-9] c.u.e.web.config.GlobalExceptionHandler  : Business exception: code=PERMISSION_DENIED, message=账号没有目标系统的成员映射
-2026-06-29T23:00:24.185+08:00  WARN 19092 --- [unexamine] [http-nio-9999-exec-8] c.u.e.web.config.GlobalExceptionHandler  : Business exception: code=PERMISSION_DENIED, message=账号没有目标系统的成员映射
-2026-06-29T23:04:10.713+08:00  WARN 19092 --- [unexamine] [http-nio-9999-exec-1] c.u.e.web.config.GlobalExceptionHandler  : Business exception: code=AUTH_BAD_CREDENTIALS, message=账号或密码不正确
-2026-06-29T23:04:10.927+08:00  WARN 19092 --- [unexamine] [http-nio-9999-exec-4] c.u.e.web.config.GlobalExceptionHandler  : Business exception: code=AUTH_BAD_CREDENTIALS, message=閲嶇疆绁ㄦ嵁鏃犳晥鎴栧凡杩囨湡
-2026-06-29T23:08:04.932+08:00  INFO 13228 --- [unexamine] [main] c.u.examine.web.ExamineWebApplication    : Starting ExamineWebApplication v0.0.1-SNAPSHOT using Java 21.0.10 with PID 13228 (D:\workspace\01_project\snow\cursor\examine2\release\unexamine-0.0.1-SNAPSHOT\backend\examine-web.jar started by ceshi in D:\workspace\01_project\snow\cursor\examine2\release\unexamine-0.0.1-SNAPSHOT\backend)
-2026-06-29T23:08:04.936+08:00  INFO 13228 --- [unexamine] [main] c.u.examine.web.ExamineWebApplication    : The following 1 profile is active: "prod"
-2026-06-29T23:08:06.402+08:00  INFO 13228 --- [unexamine] [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-06-29T23:08:06.405+08:00  INFO 13228 --- [unexamine] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-2026-06-29T23:08:06.441+08:00  INFO 13228 --- [unexamine] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 16 ms. Found 0 Redis repository interfaces.
-2026-06-29T23:08:07.233+08:00  INFO 13228 --- [unexamine] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9999 (http)
-2026-06-29T23:08:07.251+08:00  INFO 13228 --- [unexamine] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-06-29T23:08:07.251+08:00  INFO 13228 --- [unexamine] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
-2026-06-29T23:08:07.298+08:00  INFO 13228 --- [unexamine] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-06-29T23:08:07.298+08:00  INFO 13228 --- [unexamine] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2293 ms
-2026-06-29T23:08:14.589+08:00  INFO 13228 --- [unexamine] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9999 (http) with context path '/'
-2026-06-29T23:08:14.606+08:00  INFO 13228 --- [unexamine] [main] c.u.examine.web.ExamineWebApplication    : Started ExamineWebApplication in 10.367 seconds (process running for 11.025)
-2026-06-29T23:08:14.624+08:00  INFO 13228 --- [unexamine] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-06-29T23:08:15.022+08:00  INFO 13228 --- [unexamine] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@4930213b
-2026-06-29T23:08:15.025+08:00  INFO 13228 --- [unexamine] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-06-29T23:08:15.182+08:00  INFO 13228 --- [unexamine] [http-nio-9999-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-06-29T23:08:15.184+08:00  INFO 13228 --- [unexamine] [http-nio-9999-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-06-29T23:08:15.187+08:00  INFO 13228 --- [unexamine] [http-nio-9999-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
-2026-06-29T23:08:15.427+08:00  INFO 13228 --- [unexamine] [main] c.u.e.p.m.a.PlatformRootBootstrapService : Platform root bootstrap checked for account 'admin'.
+2026-06-30T13:40:47.666+08:00  INFO 27456 --- [unexamine] [main] c.u.examine.web.ExamineWebApplication    : Starting ExamineWebApplication v0.0.1-SNAPSHOT using Java 21.0.11 with PID 27456 (D:\workspace\01_project\snow\cursor\examine2\release\unexamine-0.0.1-SNAPSHOT\backend\examine-web.jar started by ceshi in D:\workspace\01_project\snow\cursor\examine2\release\unexamine-0.0.1-SNAPSHOT\backend)
+2026-06-30T13:40:47.670+08:00  INFO 27456 --- [unexamine] [main] c.u.examine.web.ExamineWebApplication    : The following 1 profile is active: "prod"
+2026-06-30T13:40:49.713+08:00  INFO 27456 --- [unexamine] [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-06-30T13:40:49.720+08:00  INFO 27456 --- [unexamine] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-06-30T13:40:49.787+08:00  INFO 27456 --- [unexamine] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 26 ms. Found 0 Redis repository interfaces.
+2026-06-30T13:40:51.308+08:00  INFO 27456 --- [unexamine] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9999 (http)
+2026-06-30T13:40:51.341+08:00  INFO 27456 --- [unexamine] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-30T13:40:51.342+08:00  INFO 27456 --- [unexamine] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-06-30T13:40:51.418+08:00  INFO 27456 --- [unexamine] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-30T13:40:51.420+08:00  INFO 27456 --- [unexamine] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3670 ms
+2026-06-30T13:40:59.293+08:00  INFO 27456 --- [unexamine] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9999 (http) with context path '/'
+2026-06-30T13:40:59.313+08:00  INFO 27456 --- [unexamine] [main] c.u.examine.web.ExamineWebApplication    : Started ExamineWebApplication in 12.5 seconds (process running for 13.224)
+2026-06-30T13:40:59.343+08:00  INFO 27456 --- [unexamine] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-30T13:40:59.679+08:00  INFO 27456 --- [unexamine] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@7e017f47
+2026-06-30T13:40:59.682+08:00  INFO 27456 --- [unexamine] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-30T13:40:59.969+08:00  INFO 27456 --- [unexamine] [main] c.u.e.p.m.a.PlatformRootBootstrapService : Platform root bootstrap checked for account 'admin'.
+2026-06-30T13:41:01.303+08:00  INFO 27456 --- [unexamine] [http-nio-9999-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-30T13:41:01.306+08:00  INFO 27456 --- [unexamine] [http-nio-9999-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-30T13:41:01.310+08:00  INFO 27456 --- [unexamine] [http-nio-9999-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms

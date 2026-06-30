@@ -13,21 +13,27 @@ import {
   createSystemRole,
   loadFlowCanvas,
   loadFlowNodeLibrary,
+  loadRuntimeModulePage,
   listSystemModuleFields,
   loadSystemAdminData,
   precheckSystemSsoOrgSync,
   publishSystemFlow,
   publishSystemModule,
   rollbackSystemModule,
+  publishModulePage,
   saveFlowCanvas,
+  saveModulePageDesign,
   checkSystemDataSourceConnection,
   rotateOpenApiSecret,
+  runHomePagePublishCheck,
+  runModulePagePublishCheck,
   runFlowPublishCheck,
   runModulePublishCheck,
   runSystemDataSourcePublishCheck,
   runSystemAgentPolicyPublishCheck,
   runWorkConfigPublishCheck,
   simulateSystemFlow,
+  updateSystemHomePageConfig,
   updateSystemWorkConfig,
   updateSystemSsoPolicy,
   type AgentPolicyView,
@@ -41,7 +47,11 @@ import {
   type FlowEdgeView,
   type FlowNodeConfigView,
   type FlowNodeLibraryItem,
+  type HomePageConfigView,
+  type HomePageWidgetConfig,
   type MemberView,
+  type ModulePageDesignView,
+  type PageComponentConfig,
   type ModulePublishCheckResult,
   type OpenApiAppView,
   type RoleView,
@@ -133,7 +143,7 @@ function createSystemAdminContent(
     'module-config': createModuleConfigPanel(data.moduleGroups, data.modules, systemId, reload, (pageNo) => onPageChange('modulesPageNo', pageNo)),
     'flow-management': createFlowAndDictPanel(data.flows, data.dictTypes, systemId, reload, 'flow-management', (pageNo) => onPageChange('flowsPageNo', pageNo), (pageNo) => onPageChange('dictTypesPageNo', pageNo)),
     'dict-management': createFlowAndDictPanel(data.flows, data.dictTypes, systemId, reload, 'dict-management', (pageNo) => onPageChange('flowsPageNo', pageNo), (pageNo) => onPageChange('dictTypesPageNo', pageNo)),
-    'dashboard-config': createDashboardConfigPanel(data),
+    'dashboard-config': createDashboardConfigPanel(data, systemId, reload),
     'data-source': createDataSourcePanel(data.dataSources, systemId, reload, (pageNo) => onPageChange('dataSourcesPageNo', pageNo)),
     'openapi-apps': createIntegrationPanel(data.openApiApps, systemId, reload, (pageNo) => onPageChange('openApiAppsPageNo', pageNo)),
     'work-config': createWorkAndAgentPanel(data, systemId, reload, 'work-config'),
@@ -227,15 +237,15 @@ function createInitializationGuide(data: SystemAdminData, onSelect: (targetId: s
     ),
     createElement(
       'div',
-      { className: 'onboarding-steps' },
+      { className: 'onboarding-checklist' },
       ...steps.map((step, index) => {
         const button = createButton(step.action, step.status === '待配置' ? 'primary' : 'secondary', false);
         button.addEventListener('click', () => onSelect(step.target));
         return createElement(
           'article',
-          { className: 'onboarding-step' },
+          { className: 'onboarding-check-item' },
           createElement('span', { className: 'step-index' }, String(index + 1)),
-          createElement('div', {}, createElement('strong', {}, step.title), createElement('p', {}, step.hint)),
+          createElement('div', { className: 'onboarding-check-main' }, createElement('strong', {}, step.title)),
           renderStatusPill(step.status, step.status === '待配置' ? 'warning' : 'info'),
           button,
         );
@@ -244,27 +254,198 @@ function createInitializationGuide(data: SystemAdminData, onSelect: (targetId: s
   );
 }
 
-function createDashboardConfigPanel(data: SystemAdminData): HTMLElement {
+function createDashboardConfigPanel(data: SystemAdminData, systemId: string, reload: () => void): HTMLElement {
+  const config = data.homePageConfig;
+  const pageDesignerPanel = createPageDesignerPanel(data.modules.records[0], data.pageDesigns, systemId, reload);
+  const visibleWidgets = (config?.widgets ?? []).filter((widget) => widget.visible !== false);
+  const result = createElement('p', { className: 'field-error' }, '首页设计会保存到后台配置，并被业务首页直接读取。');
+  const saveButton = createButton('保存首页配置', 'primary', false);
+  const checkButton = createButton('发布检查', 'secondary', false);
+  saveButton.addEventListener('click', async () => {
+    const values = await requestFormInput('首页设计配置', [
+      { name: 'title', label: '首页标题', defaultValue: config?.title ?? '系统工作台' },
+      { name: 'subtitle', label: '首页说明', defaultValue: config?.subtitle ?? '当前系统成员权限范围内的业务入口、待办、消息和工作概览。' },
+      { name: 'visualTone', label: '视觉语义', defaultValue: config?.visualTone ?? 'calm-workbench' },
+      { name: 'widgets', label: '显示组件编码（逗号分隔）', defaultValue: visibleWidgets.map((widget) => widget.widgetCode).join(',') || 'overview,warnings,calendar,modules' },
+      { name: 'changeReason', label: '变更原因', defaultValue: 'R24 home page design closure' },
+    ], '保存');
+    if (!values) {
+      return;
+    }
+    saveButton.disabled = true;
+    saveButton.textContent = '保存中...';
+    try {
+      const saved = await updateSystemHomePageConfig(systemId, {
+        title: values.title,
+        subtitle: values.subtitle,
+        visualTone: values.visualTone,
+        widgets: buildHomePageWidgets(csv(values.widgets), config),
+        changeReason: values.changeReason,
+      });
+      result.textContent = `首页配置已保存：${saved.title}，traceId=${saved.traceId ?? '-'}`;
+      reload();
+    } catch (error) {
+      saveButton.disabled = false;
+      saveButton.textContent = '保存首页配置';
+      result.textContent = error instanceof Error ? error.message : '保存首页配置失败。';
+    }
+  });
+  checkButton.addEventListener('click', async () => {
+    checkButton.disabled = true;
+    checkButton.textContent = '检查中...';
+    try {
+      const check = await runHomePagePublishCheck(systemId);
+      result.textContent = `首页发布检查${check.passed ? '通过' : '未通过'}：${check.targetVersion ?? '-'}，traceId=${check.traceId}`;
+    } catch (error) {
+      result.textContent = error instanceof Error ? error.message : '首页发布检查失败。';
+    } finally {
+      checkButton.disabled = false;
+      checkButton.textContent = '发布检查';
+    }
+  });
   return createElement(
     'section',
     { id: 'dashboard-config', className: 'panel' },
-    createElement('h2', {}, '仪表盘管理'),
+    createElement('h2', {}, '首页与页面设计'),
     createElement(
       'div',
       { className: 'metric-grid' },
-      createMetric('成员数量', String(data.members.total)),
-      createMetric('模块数量', String(data.modules.total)),
-      createMetric('流程数量', String(data.flows.total)),
-      createMetric('日志数量', String(data.logs.total)),
+      createMetric('首页标题', config?.title ?? '系统工作台'),
+      createMetric('视觉语义', config?.visualTone ?? 'calm-workbench'),
+      createMetric('显示组件', String(visibleWidgets.length || 4)),
+      createMetric('发布状态', String(config?.publishState?.status ?? 'DRAFT')),
     ),
     createElement(
       'div',
       { className: 'simple-stack' },
-      createElement('div', { className: 'list-line' }, createElement('span', {}, '项目任务看板'), createElement('strong', {}, objectKeys(data.workConfig?.projectTaskKanban))),
-      createElement('div', { className: 'list-line' }, createElement('span', {}, '普通任务看板'), createElement('strong', {}, objectKeys(data.workConfig?.plainTaskKanban))),
-      createElement('div', { className: 'list-line' }, createElement('span', {}, '工作配置状态'), createElement('strong', {}, data.workConfig ? '已配置' : '-')),
+      createElement('div', { className: 'list-line' }, createElement('span', {}, '首页说明'), createElement('strong', {}, config?.subtitle ?? '当前系统成员权限范围内的业务入口、待办、消息和工作概览。')),
+      createElement('div', { className: 'list-line' }, createElement('span', {}, '运行态读取'), createElement('strong', {}, '/work/home-page')),
+      createElement('div', { className: 'list-line' }, createElement('span', {}, '页面组件'), createElement('strong', {}, widgetSummary(visibleWidgets))),
+      createElement('div', { className: 'inline-actions' }, saveButton, checkButton),
+      result,
+      createElement(
+        'div',
+        { className: 'metric-grid' },
+        ...buildHomePageWidgets(visibleWidgets.map((widget) => widget.widgetCode), config).map((widget) => createMetric(widget.widgetName, widget.sourceType)),
+      ),
     ),
-    data.workConfig?.traceId ? createTraceLine(data.workConfig.traceId) : null,
+    pageDesignerPanel,
+    config?.traceId ? createTraceLine(config.traceId) : null,
+  );
+}
+
+function createPageDesignerPanel(module: BackendModule | undefined, pages: ModulePageDesignView[], systemId: string, reload: () => void): HTMLElement {
+  const result = createElement('p', { className: 'field-error' }, module
+    ? '页面设计器保存模块页面草稿，发布后运行态才能读取。'
+    : '请先创建业务模块，再配置模块页面。');
+  const saveButton = createButton('保存模块页面', 'primary', !module, module ? undefined : '没有可配置的业务模块。');
+  const checkButton = createButton('发布检查', 'secondary', !module, module ? undefined : '没有可检查的页面。');
+  const publishButton = createButton('发布页面', 'secondary', !module, module ? undefined : '没有可发布的页面。');
+  const runtimeButton = createButton('运行态读取', 'ghost', !module, module ? undefined : '没有可读取的页面。');
+  const currentPage = pages[0];
+  saveButton.addEventListener('click', async () => {
+    if (!module) {
+      return;
+    }
+    const values = await requestFormInput('模块页面设计', [
+      { name: 'pageCode', label: '页面编码', defaultValue: currentPage?.pageCode ?? 'main' },
+      { name: 'pageName', label: '页面名称', defaultValue: currentPage?.pageName ?? `${module.name}主页面` },
+      { name: 'pageType', label: '页面类型', defaultValue: currentPage?.pageType ?? 'MODULE_LIST' },
+      { name: 'layoutMode', label: '布局模式', defaultValue: currentPage?.layoutMode ?? 'left-list-right-detail' },
+      { name: 'components', label: '组件编码（逗号分隔）', defaultValue: componentSummaryCodes(currentPage?.components) || 'toolbar,list,detail' },
+      { name: 'changeReason', label: '变更原因', defaultValue: 'FRC-1 page designer closure' },
+    ], '保存');
+    if (!values) {
+      return;
+    }
+    saveButton.disabled = true;
+    saveButton.textContent = '保存中...';
+    try {
+      const saved = await saveModulePageDesign(systemId, module.moduleId, {
+        pageCode: values.pageCode,
+        pageName: values.pageName,
+        pageType: values.pageType,
+        route: `/systems/${systemId}/modules/${module.moduleId}`,
+        layoutMode: values.layoutMode,
+        components: buildPageComponents(csv(values.components)),
+        visibleRoleIds: currentPage?.visibleRoleIds ?? [],
+        changeReason: values.changeReason,
+      });
+      result.textContent = `页面草稿已保存：${saved.pageName}，traceId=${saved.traceId ?? '-'}`;
+      reload();
+    } catch (error) {
+      saveButton.disabled = false;
+      saveButton.textContent = '保存模块页面';
+      result.textContent = error instanceof Error ? error.message : '页面草稿保存失败。';
+    }
+  });
+  checkButton.addEventListener('click', async () => {
+    if (!module) {
+      return;
+    }
+    const pageCode = currentPage?.pageCode ?? 'main';
+    checkButton.disabled = true;
+    checkButton.textContent = '检查中...';
+    try {
+      const check = await runModulePagePublishCheck(systemId, module.moduleId, pageCode);
+      result.textContent = `页面发布检查${check.passed ? '通过' : '未通过'}，${check.failureItems?.[0]?.message ?? check.warningItems?.[0]?.message ?? '-'}，traceId=${check.traceId}`;
+    } catch (error) {
+      result.textContent = error instanceof Error ? error.message : '页面发布检查失败。';
+    } finally {
+      checkButton.disabled = false;
+      checkButton.textContent = '发布检查';
+    }
+  });
+  publishButton.addEventListener('click', async () => {
+    if (!module) {
+      return;
+    }
+    const pageCode = currentPage?.pageCode ?? 'main';
+    publishButton.disabled = true;
+    publishButton.textContent = '发布中...';
+    try {
+      const published = await publishModulePage(systemId, module.moduleId, pageCode, 'FRC-1 page designer publish');
+      result.textContent = `页面已发布：${published.version ?? '-'}，traceId=${published.traceId}`;
+      reload();
+    } catch (error) {
+      result.textContent = error instanceof Error ? error.message : '页面发布失败。';
+    } finally {
+      publishButton.disabled = false;
+      publishButton.textContent = '发布页面';
+    }
+  });
+  runtimeButton.addEventListener('click', async () => {
+    if (!module) {
+      return;
+    }
+    const pageCode = currentPage?.pageCode ?? 'main';
+    runtimeButton.disabled = true;
+    runtimeButton.textContent = '读取中...';
+    try {
+      const runtimePage = await loadRuntimeModulePage(systemId, module.moduleId, pageCode);
+      result.textContent = `运行态读取成功：${runtimePage.pageName}，组件 ${runtimePage.components.length} 个，版本 ${runtimePage.publishedVersion ?? '-'}`;
+    } catch (error) {
+      result.textContent = error instanceof Error ? error.message : '运行态页面读取失败。';
+    } finally {
+      runtimeButton.disabled = false;
+      runtimeButton.textContent = '运行态读取';
+    }
+  });
+  return createElement(
+    'div',
+    { className: 'result-panel page-designer-panel' },
+    createElement('h3', {}, '模块页面设计器'),
+    createElement('div', { className: 'inline-actions' }, saveButton, checkButton, publishButton, runtimeButton),
+    result,
+    module
+      ? createElement('div', { className: 'simple-stack' },
+          createElement('div', { className: 'list-line' }, createElement('span', {}, '当前模块'), createElement('strong', {}, `${module.name} (${module.moduleCode})`)),
+          createElement('div', { className: 'list-line' }, createElement('span', {}, '页面数量'), createElement('strong', {}, String(pages.length))),
+          createElement('div', { className: 'list-line' }, createElement('span', {}, '当前页面'), createElement('strong', {}, currentPage ? `${currentPage.pageName} / ${currentPage.publishStatus}` : '未配置')),
+          createElement('div', { className: 'list-line' }, createElement('span', {}, '组件预览'), createElement('strong', {}, componentSummary(currentPage?.components))),
+        )
+      : createElement('section', { className: 'runtime-card' }, '暂无业务模块，页面设计器等待模块配置。'),
+    currentPage?.traceId ? createTraceLine(currentPage.traceId) : null,
   );
 }
 
@@ -1946,11 +2127,16 @@ function createWarningPanel(warnings: string[]): HTMLElement | null {
   if (warnings.length === 0) {
     return null;
   }
+  const visibleWarnings = warnings.slice(0, 3);
+  const hiddenCount = Math.max(0, warnings.length - visibleWarnings.length);
   return createElement(
     'section',
-    { className: 'panel' },
-    createElement('h2', {}, '加载提醒'),
-    createElement('div', { className: 'simple-stack' }, ...warnings.map((warning) => createElement('p', {}, warning))),
+    { className: 'panel warning-summary-panel' },
+    createElement('div', { className: 'runtime-card-head' },
+      createElement('div', {}, createElement('h2', {}, '加载提醒'), createElement('p', {}, hiddenCount > 0 ? `显示前 ${visibleWarnings.length} 条，其余 ${hiddenCount} 条请进入对应栏目处理。` : '当前后台数据加载存在需要处理的提醒。')),
+      renderStatusPill(`${warnings.length} 条`, 'warning'),
+    ),
+    createElement('div', { className: 'warning-summary-list' }, ...visibleWarnings.map((warning) => createElement('p', {}, warning))),
   );
 }
 
@@ -2032,6 +2218,67 @@ function formatTime(value?: string): string {
 function objectKeys(value?: Record<string, unknown>): string {
   const keys = Object.keys(value ?? {});
   return keys.length ? keys.join(' / ') : '未配置';
+}
+
+function buildHomePageWidgets(codes: string[], current?: HomePageConfigView): HomePageWidgetConfig[] {
+  const existing = new Map((current?.widgets ?? []).map((widget) => [widget.widgetCode, widget]));
+  const catalog: Record<string, HomePageWidgetConfig> = {
+    overview: { widgetCode: 'overview', widgetName: '工作概览', widgetType: 'metric', sourceType: 'WORK_DASHBOARD', sort: 10, visible: true },
+    warnings: { widgetCode: 'warnings', widgetName: '今日预警', widgetType: 'list', sourceType: 'WORK_WARNING', sort: 20, visible: true },
+    calendar: { widgetCode: 'calendar', widgetName: '当月日历', widgetType: 'calendar', sourceType: 'WORK_CALENDAR', sort: 30, visible: true },
+    modules: { widgetCode: 'modules', widgetName: '业务模块入口', widgetType: 'shortcut', sourceType: 'RUNTIME_MODULES', sort: 40, visible: true },
+  };
+  const selected = codes.length ? codes : ['overview', 'warnings', 'calendar', 'modules'];
+  return selected.map((code, index) => ({
+    ...(existing.get(code) ?? catalog[code] ?? {
+      widgetCode: code,
+      widgetName: code,
+      widgetType: 'custom',
+      sourceType: 'CUSTOM',
+      visible: true,
+    }),
+    sort: (index + 1) * 10,
+    visible: true,
+  }));
+}
+
+function widgetSummary(widgets: HomePageWidgetConfig[]): string {
+  if (widgets.length === 0) {
+    return '未配置';
+  }
+  return widgets.map((widget) => widget.widgetName || widget.widgetCode).join(' / ');
+}
+
+function buildPageComponents(codes: string[]): PageComponentConfig[] {
+  const catalog: Record<string, PageComponentConfig> = {
+    toolbar: { componentCode: 'toolbar', componentType: 'SHORTCUT', title: '页面动作', dataSource: 'MODULE_ACTIONS', sort: 10, visible: true },
+    list: { componentCode: 'list', componentType: 'LIST', title: '数据列表', dataSource: 'RUNTIME_RECORDS', sort: 20, visible: true },
+    detail: { componentCode: 'detail', componentType: 'DETAIL', title: '右侧详情', dataSource: 'RECORD_DETAIL', sort: 30, visible: true },
+    form: { componentCode: 'form', componentType: 'FORM', title: '编辑表单', dataSource: 'MODULE_FIELDS', sort: 40, visible: true },
+    chart: { componentCode: 'chart', componentType: 'CHART', title: '统计图表', dataSource: 'RUNTIME_STATISTICS', boundFieldCode: 'status', sort: 50, visible: true },
+  };
+  const selected = codes.length ? codes : ['toolbar', 'list', 'detail'];
+  return selected.map((code, index) => ({
+    ...(catalog[code] ?? {
+      componentCode: code,
+      componentType: 'CUSTOM',
+      title: code,
+      dataSource: 'CUSTOM',
+      visible: true,
+    }),
+    sort: (index + 1) * 10,
+  }));
+}
+
+function componentSummary(components?: PageComponentConfig[]): string {
+  if (!components || components.length === 0) {
+    return '未配置';
+  }
+  return components.map((component) => component.title || component.componentCode).join(' / ');
+}
+
+function componentSummaryCodes(components?: PageComponentConfig[]): string {
+  return components?.map((component) => component.componentCode).join(',') ?? '';
 }
 
 function listSummary(values?: string[]): string {

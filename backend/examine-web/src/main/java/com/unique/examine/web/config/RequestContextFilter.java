@@ -145,6 +145,7 @@ public class RequestContextFilter extends OncePerRequestFilter {
                 || remainder.startsWith("notification-templates")
                 || remainder.startsWith("message-delivery-logs") || remainder.startsWith("logs/")
                 || remainder.startsWith("agent/policies") || remainder.startsWith("work/config")
+                || remainder.startsWith("work/home-page-config")
                 || remainder.startsWith("ops/")) {
             return true;
         }

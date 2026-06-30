@@ -8,7 +8,7 @@ param(
     [int]$RedisPort = 6379,
     [string]$RedisPassword = '123456',
     [int]$RedisDatabase = 10,
-    [string]$JavaExe = 'D:\dev\jdk21\bin\java.exe',
+    [string]$JavaExe = 'D:\dev\jdk21-temurin\bin\java.exe',
     [string]$NodeExe = 'D:\dev\nodejs24\node.exe'
 )
 

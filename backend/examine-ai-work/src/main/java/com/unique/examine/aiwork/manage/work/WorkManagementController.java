@@ -5,6 +5,8 @@ import com.unique.examine.aiwork.manage.work.WorkManagementModels.DailyReportAut
 import com.unique.examine.aiwork.manage.work.WorkManagementModels.DailyReportCreateRequest;
 import com.unique.examine.aiwork.manage.work.WorkManagementModels.DailyReportSearchRequest;
 import com.unique.examine.aiwork.manage.work.WorkManagementModels.DailyReportVO;
+import com.unique.examine.aiwork.manage.work.HomePageConfigModels.HomePageConfigUpdateRequest;
+import com.unique.examine.aiwork.manage.work.HomePageConfigModels.HomePageConfigVO;
 import com.unique.examine.aiwork.manage.work.WorkManagementModels.KanbanQueryRequest;
 import com.unique.examine.aiwork.manage.work.WorkManagementModels.KanbanResultVO;
 import com.unique.examine.aiwork.manage.work.WorkManagementModels.ProjectCreateRequest;
@@ -40,9 +42,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class WorkManagementController {
 
     private final WorkManagementService workManagementService;
+    private final HomePageConfigService homePageConfigService;
 
-    public WorkManagementController(WorkManagementService workManagementService) {
+    public WorkManagementController(WorkManagementService workManagementService,
+                                    HomePageConfigService homePageConfigService) {
         this.workManagementService = workManagementService;
+        this.homePageConfigService = homePageConfigService;
     }
 
     /**
@@ -272,6 +277,53 @@ public class WorkManagementController {
     @PostMapping("/api/v1/systems/{systemId}/work/config/publish-check")
     public ApiResponse<WorkConfigPublishCheckResult> publishCheck(@PathVariable String systemId) {
         return ApiResponse.success(workManagementService.publishCheck(systemId));
+    }
+
+    /**
+     * 查询运行态首页配置。
+     *
+     * @param systemId 系统 ID
+     * @return 首页配置
+     */
+    @GetMapping("/api/v1/systems/{systemId}/work/home-page")
+    public ApiResponse<HomePageConfigVO> homePageConfig(@PathVariable String systemId) {
+        return ApiResponse.success(homePageConfigService.config(systemId));
+    }
+
+    /**
+     * 查询后台首页设计配置。
+     *
+     * @param systemId 系统 ID
+     * @return 首页配置
+     */
+    @GetMapping("/api/v1/systems/{systemId}/work/home-page-config")
+    public ApiResponse<HomePageConfigVO> homePageAdminConfig(@PathVariable String systemId) {
+        return ApiResponse.success(homePageConfigService.config(systemId));
+    }
+
+    /**
+     * 保存后台首页设计配置。
+     *
+     * @param systemId 系统 ID
+     * @param request 保存请求
+     * @return 保存后的首页配置
+     */
+    @PatchMapping("/api/v1/systems/{systemId}/work/home-page-config")
+    public ApiResponse<HomePageConfigVO> updateHomePageConfig(@PathVariable String systemId,
+                                                              @RequestBody(required = false)
+                                                              HomePageConfigUpdateRequest request) {
+        return ApiResponse.success(homePageConfigService.updateConfig(systemId, request));
+    }
+
+    /**
+     * 执行后台首页发布检查。
+     *
+     * @param systemId 系统 ID
+     * @return 发布检查结果
+     */
+    @PostMapping("/api/v1/systems/{systemId}/work/home-page-config/publish-check")
+    public ApiResponse<WorkConfigPublishCheckResult> homePagePublishCheck(@PathVariable String systemId) {
+        return ApiResponse.success(homePageConfigService.publishCheck(systemId));
     }
 
     /**
