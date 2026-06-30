@@ -16,6 +16,7 @@ import type { Navigate } from '../../app/app';
 import { canEnterPlatformAdmin, shellState, switchToSystem } from '../../app/state';
 import { renderPlatformAdmin } from '../platform-admin/platformAdmin';
 import { createButton, createElement } from '../../shared/components';
+import { requestFormInput } from '../../shared/dialogs';
 import { createFilterBar } from '../../shared/filters';
 import { renderStatusPill } from '../../shared/status';
 
@@ -75,22 +76,11 @@ function createPlatformWorkbench(route: string, navigate: Navigate): HTMLElement
   const targetSystemId = platformTargetSystemId(route);
   const createSystemButton = createButton('创建系统', 'primary', false);
   const adminButton = canEnterPlatformAdmin() ? createButton('平台后台', 'secondary', false) : null;
-  const createSystemPanel = createCreateSystemPanel(navigate);
-  const todoPanel = createElement('section', { className: 'panel' }, createElement('strong', {}, '正在读取平台代办...'));
-  const messagePanel = createElement('section', { className: 'panel message-stream' }, createElement('strong', {}, '正在读取平台消息...'));
 
   createSystemButton.addEventListener('click', () => {
-    document.getElementById('create-system-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    createSystemPanel.querySelector<HTMLInputElement>('input[data-field-name="systemName"]')?.focus();
+    void createSystemFromDialog(navigate, createSystemButton);
   });
   adminButton?.addEventListener('click', () => navigate('/platform/admin'));
-
-  void loadPlatformTodos()
-    .then((todos) => todoPanel.replaceChildren(...createPlatformTodoPanel(todos, navigate)))
-    .catch((error) => todoPanel.replaceChildren(createErrorBlock(error)));
-  void loadPlatformMessages()
-    .then((messages) => messagePanel.replaceChildren(...createPlatformMessagePanel(messages, navigate)))
-    .catch((error) => messagePanel.replaceChildren(createErrorBlock(error)));
 
   return createElement(
     'section',
@@ -102,69 +92,41 @@ function createPlatformWorkbench(route: string, navigate: Navigate): HTMLElement
       createElement('p', {}, '平台成员从这里进入授权内系统；平台管理员额外拥有平台后台入口。'),
       createElement('div', { className: 'inline-actions' }, createSystemButton, adminButton),
     ),
-    createSystemPanel,
     createSystemSwitchPanel(navigate, targetSystemId),
-    todoPanel,
-    messagePanel,
   );
 }
 
-function createCreateSystemPanel(navigate: Navigate): HTMLElement {
-  const submitButton = createButton('创建并进入系统', 'primary', false);
-  const status = createElement('p', { className: 'field-error' }, '创建人会成为该系统超级管理员。');
-  const panel = createElement(
-    'section',
-    { id: 'create-system-panel', className: 'panel create-system-panel' },
-    createElement('h2', {}, '创建系统'),
-    createElement(
-      'div',
-      { className: 'form-grid' },
-      createField('系统名称', '例如：业务管理系统', 'systemName'),
-      createField('系统编码', 'business_system', 'systemCode'),
-      createElement('label', {}, createElement('span', {}, '租户模式'), createElement('select', { ariaLabel: '租户模式' }, createElement('option', {}, '多租户'), createElement('option', {}, '单租户'))),
-    ),
-    status,
-    createElement('div', { className: 'inline-actions' }, submitButton),
-  );
-  submitButton.addEventListener('click', async () => {
-    const systemName = valueOf(panel, 'systemName');
-    const systemCode = valueOf(panel, 'systemCode');
-    if (!systemName || !systemCode) {
-      status.textContent = '系统名称和系统编码不能为空。';
-      return;
-    }
-    submitButton.disabled = true;
-    submitButton.textContent = '创建中...';
-    status.textContent = '正在创建系统...';
-    try {
-      const system = await createPlatformSystem({ systemName, systemCode, tenantMode: 1 });
-      status.textContent = '创建成功，正在进入系统。';
-      await switchToSystem(system.systemId, undefined, 'platform create system enter');
-      navigate(`/systems/${system.systemId}/dashboard`);
-    } catch (error) {
-      status.textContent = error instanceof Error ? error.message : '创建系统失败。';
-      submitButton.disabled = false;
-      submitButton.textContent = '创建并进入系统';
-    }
-  });
-  return panel;
-}
-
-function createField(label: string, placeholder: string, fieldName: string): HTMLElement {
-  const input = createElement('input', { ariaLabel: label, dataset: { fieldName } });
-  input.placeholder = placeholder;
-  return createElement('label', {}, createElement('span', {}, label), input);
-}
-
-function valueOf(root: HTMLElement, fieldName: string): string {
-  return root.querySelector<HTMLInputElement>(`input[data-field-name="${fieldName}"]`)?.value.trim() ?? '';
+async function createSystemFromDialog(navigate: Navigate, trigger: HTMLButtonElement): Promise<void> {
+  const defaultSystemCode = `sys_${Date.now().toString(36)}`;
+  const values = await requestFormInput('创建系统', [
+    { name: 'systemName', label: '系统名称' },
+    { name: 'systemCode', label: '系统编码', defaultValue: defaultSystemCode },
+    { name: 'tenantMode', label: '租户模式：1 多租户，0 单租户', defaultValue: '1' },
+  ], '创建并进入系统');
+  if (!values) {
+    return;
+  }
+  trigger.disabled = true;
+  trigger.textContent = '创建中...';
+  try {
+    const system = await createPlatformSystem({
+      systemName: values.systemName,
+      systemCode: values.systemCode,
+      tenantMode: values.tenantMode === '0' ? 0 : 1,
+    });
+    await switchToSystem(system.systemId, undefined, 'platform create system enter');
+    navigate(`/systems/${system.systemId}/admin`);
+  } catch (error) {
+    trigger.title = error instanceof Error ? error.message : '创建系统失败。';
+  } finally {
+    trigger.disabled = false;
+    trigger.textContent = '创建系统';
+  }
 }
 
 function createPlatformTodoPage(navigate: Navigate): HTMLElement {
   const panel = createElement('section', { className: 'panel' }, createElement('strong', {}, '正在读取平台代办...'));
-  void loadPlatformTodos()
-    .then((todos) => panel.replaceChildren(...createPlatformTodoPanel(todos, navigate)))
-    .catch((error) => panel.replaceChildren(createErrorBlock(error)));
+  loadPlatformTodoPanel(panel, navigate, 1);
   return createElement(
     'section',
     { className: 'page-grid' },
@@ -175,9 +137,7 @@ function createPlatformTodoPage(navigate: Navigate): HTMLElement {
 
 function createPlatformMessagePage(navigate: Navigate): HTMLElement {
   const panel = createElement('section', { className: 'panel message-stream' }, createElement('strong', {}, '正在读取平台消息...'));
-  void loadPlatformMessages()
-    .then((messages) => panel.replaceChildren(...createPlatformMessagePanel(messages, navigate)))
-    .catch((error) => panel.replaceChildren(createErrorBlock(error)));
+  loadPlatformMessagePanel(panel, navigate, 1);
   return createElement(
     'section',
     { className: 'page-grid' },
@@ -246,18 +206,17 @@ function createProfilePage(navigate: Navigate): HTMLElement {
     navigate('/login');
   });
   passwordButton.addEventListener('click', async () => {
-    const oldPassword = window.prompt('请输入当前密码');
-    if (!oldPassword) {
-      return;
-    }
-    const newPassword = window.prompt('请输入新密码');
-    if (!newPassword) {
+    const values = await requestFormInput('修改密码', [
+      { name: 'oldPassword', label: '当前密码', type: 'password' },
+      { name: 'newPassword', label: '新密码', type: 'password' },
+    ], '修改');
+    if (!values) {
       return;
     }
     passwordButton.disabled = true;
     passwordButton.textContent = '修改中...';
     try {
-      const result = await updateCurrentPassword(oldPassword, newPassword);
+      const result = await updateCurrentPassword(values.oldPassword, values.newPassword);
       passwordButton.textContent = '密码已修改';
       passwordButton.title = `traceId=${result.traceId}`;
     } catch (error) {
@@ -298,10 +257,19 @@ function createSystemSwitchPanel(navigate: Navigate, targetSystemId?: string): H
     { className: 'panel' },
     createElement('h2', {}, '系统切换'),
     targetSystemId ? createElement('p', {}, '平台消息或待办指向某个系统，必须先完成系统切换后再处理业务数据。') : null,
-    createElement(
-      'div',
-      { className: 'system-list' },
-      ...systems.map((system) => {
+    systems.length === 0
+      ? createElement(
+          'section',
+          { className: 'empty-guidance' },
+          createElement('strong', {}, '暂无可进入系统'),
+          createElement('p', {}, canEnterPlatformAdmin()
+            ? '当前账号还没有系统成员上下文。创建系统后会自动进入业务首页。'
+            : '当前账号还没有可进入的系统，请联系系统管理员分配成员映射。'),
+        )
+      : createElement(
+          'div',
+          { className: 'system-list' },
+          ...systems.map((system) => {
         const isTarget = system.systemId === targetSystemId;
         const button = createButton(system.enabled ? (isTarget ? '进入目标系统' : '进入系统') : '申请映射', system.enabled ? 'secondary' : 'ghost', false);
         button.addEventListener('click', async () => {
@@ -328,7 +296,14 @@ function createSystemSwitchPanel(navigate: Navigate, targetSystemId?: string): H
   );
 }
 
-function createPlatformTodoPanel(todos: TodoSearchResult, navigate: Navigate): HTMLElement[] {
+function loadPlatformTodoPanel(panel: HTMLElement, navigate: Navigate, pageNo: number): void {
+  panel.replaceChildren(createElement('strong', {}, '正在读取平台代办...'));
+  void loadPlatformTodos({ pageNo })
+    .then((todos) => panel.replaceChildren(...createPlatformTodoPanel(todos, navigate, (nextPage) => loadPlatformTodoPanel(panel, navigate, nextPage))))
+    .catch((error) => panel.replaceChildren(createErrorBlock(error)));
+}
+
+function createPlatformTodoPanel(todos: TodoSearchResult, navigate: Navigate, onPageChange: (pageNo: number) => void): HTMLElement[] {
   return [
     createElement('h2', {}, '平台代办'),
     createFilterBar(['类型', '系统', '租户', '状态', '时间范围']),
@@ -344,7 +319,7 @@ function createPlatformTodoPanel(todos: TodoSearchResult, navigate: Navigate): H
             createElement('tbody', {}, ...todos.page.records.map((todo, index) => createPlatformTodoRow(todo, index, navigate))),
           ),
         ),
-    createPagination(todos.page),
+    createPagination(todos.page, onPageChange),
   ];
 }
 
@@ -362,14 +337,21 @@ function createPlatformTodoRow(todo: TodoRow, index: number, navigate: Navigate)
   return row;
 }
 
-function createPlatformMessagePanel(page: PageResult<MessageCard>, navigate: Navigate): HTMLElement[] {
+function loadPlatformMessagePanel(panel: HTMLElement, navigate: Navigate, pageNo: number): void {
+  panel.replaceChildren(createElement('strong', {}, '正在读取平台消息...'));
+  void loadPlatformMessages({ pageNo })
+    .then((messages) => panel.replaceChildren(...createPlatformMessagePanel(messages, navigate, (nextPage) => loadPlatformMessagePanel(panel, navigate, nextPage))))
+    .catch((error) => panel.replaceChildren(createErrorBlock(error)));
+}
+
+function createPlatformMessagePanel(page: PageResult<MessageCard>, navigate: Navigate, onPageChange: (pageNo: number) => void): HTMLElement[] {
   return [
     createElement('h2', {}, '平台消息'),
     createFilterBar(['系统', '租户', '模板', '类型', '时间']),
     page.records.length === 0
       ? createElement('section', { className: 'runtime-card' }, '暂无平台消息')
       : createElement('div', { className: 'message-stream' }, ...page.records.map((message) => createPlatformMessageItem(message, navigate))),
-    createPagination(page),
+    createPagination(page, onPageChange),
   ];
 }
 
@@ -388,13 +370,17 @@ function createPlatformMessageItem(message: MessageCard, navigate: Navigate): HT
   return item;
 }
 
-function createPagination<T>(page: PageResult<T>): HTMLElement {
+function createPagination<T>(page: PageResult<T>, onPageChange?: (nextPage: number) => void): HTMLElement {
+  const previousButton = createButton('上一页', 'ghost', page.pageNo <= 1 || !onPageChange, onPageChange ? '已经是第一页' : '当前列表不支持翻页。');
+  const nextButton = createButton('下一页', 'ghost', !page.hasNext || !onPageChange, onPageChange ? '没有更多数据' : '当前列表不支持翻页。');
+  previousButton.addEventListener('click', () => onPageChange?.(page.pageNo - 1));
+  nextButton.addEventListener('click', () => onPageChange?.(page.pageNo + 1));
   return createElement(
     'footer',
     { className: 'pagination' },
     createElement('span', {}, `第 ${page.pageNo} 页，每页 ${page.pageSize} 条，共 ${page.total} 条`),
-    createButton('上一页', 'ghost', page.pageNo <= 1, '已经是第一页'),
-    createButton('下一页', 'ghost', !page.hasNext, '没有更多数据'),
+    previousButton,
+    nextButton,
   );
 }
 

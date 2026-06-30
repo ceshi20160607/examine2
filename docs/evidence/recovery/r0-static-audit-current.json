@@ -1,0 +1,25 @@
+﻿{
+    "generatedAt":  "2026-06-27T21:02:59.8737102+08:00",
+    "status":  "PASS",
+    "checks":  {
+                   "promptOrConfirmCount":  0,
+                   "promptOrConfirm":  {
+
+                                       },
+                   "duplicateSidebarTargetCount":  0,
+                   "duplicateSidebarTargets":  [
+
+                                               ],
+                   "inertPaginationCount":  0,
+                   "inertPagination":  {
+
+                                       },
+                   "mockSampleStubCount":  3,
+                   "mockSampleStub":  {
+                                          "path":  "backend\\examine-upload\\src\\main\\java\\com\\unique\\examine\\upload\\manage\\UploadManageService.java",
+                                          "line":  244,
+                                          "text":  "boolean allowed = !\"DENIED_SAMPLE\".equals(Objects.isNull(request) ? null : request.permissionSnapshotVersion());"
+                                      },
+                   "releaseDirectoryExists":  true
+               }
+}

@@ -8,12 +8,14 @@ import com.unique.examine.core.error.BusinessException;
 import com.unique.examine.core.error.CommonErrorCode;
 import com.unique.examine.plat.base.entity.PlatAccount;
 import com.unique.examine.plat.base.entity.PlatAccountMemberBinding;
+import com.unique.examine.plat.base.entity.PlatDepartment;
 import com.unique.examine.plat.base.entity.PlatMember;
 import com.unique.examine.plat.base.entity.PlatRole;
 import com.unique.examine.plat.base.entity.PlatRoleMember;
 import com.unique.examine.plat.base.entity.PlatSystem;
 import com.unique.examine.plat.base.entity.PlatTenant;
 import com.unique.examine.plat.base.service.PlatAccountMemberBindingBaseService;
+import com.unique.examine.plat.base.service.PlatDepartmentBaseService;
 import com.unique.examine.plat.base.service.PlatMemberBaseService;
 import com.unique.examine.plat.base.service.PlatRoleBaseService;
 import com.unique.examine.plat.base.service.PlatRoleMemberBaseService;
@@ -46,12 +48,15 @@ public class PlatformSystemService {
     private static final int DELETED_YES = 1;
     private static final String DEFAULT_TENANT_CODE = "default";
     private static final String DEFAULT_TENANT_NAME = "默认租户";
+    private static final String DEFAULT_DEPARTMENT_CODE = "default_department";
+    private static final String DEFAULT_DEPARTMENT_NAME = "默认部门";
     private static final String SCOPE_SYSTEM = "SYSTEM";
     private static final String SYSTEM_SUPER_ADMIN = "SYSTEM_SUPER_ADMIN";
 
     private final CurrentAccountProvider currentAccountProvider;
     private final PlatSystemBaseService systemBaseService;
     private final PlatTenantBaseService tenantBaseService;
+    private final PlatDepartmentBaseService departmentBaseService;
     private final PlatMemberBaseService memberBaseService;
     private final PlatRoleBaseService roleBaseService;
     private final PlatRoleMemberBaseService roleMemberBaseService;
@@ -60,6 +65,7 @@ public class PlatformSystemService {
     public PlatformSystemService(CurrentAccountProvider currentAccountProvider,
                                  PlatSystemBaseService systemBaseService,
                                  PlatTenantBaseService tenantBaseService,
+                                 PlatDepartmentBaseService departmentBaseService,
                                  PlatMemberBaseService memberBaseService,
                                  PlatRoleBaseService roleBaseService,
                                  PlatRoleMemberBaseService roleMemberBaseService,
@@ -67,6 +73,7 @@ public class PlatformSystemService {
         this.currentAccountProvider = currentAccountProvider;
         this.systemBaseService = systemBaseService;
         this.tenantBaseService = tenantBaseService;
+        this.departmentBaseService = departmentBaseService;
         this.memberBaseService = memberBaseService;
         this.roleBaseService = roleBaseService;
         this.roleMemberBaseService = roleMemberBaseService;
@@ -124,7 +131,8 @@ public class PlatformSystemService {
         systemBaseService.saveEntity(system);
 
         PlatTenant tenant = createDefaultTenant(system.getId(), now);
-        PlatMember member = createOwnerMember(owner, system.getId(), tenant.getId(), now);
+        PlatDepartment department = createDefaultDepartment(system.getId(), tenant.getId(), now);
+        PlatMember member = createOwnerMember(owner, system.getId(), tenant.getId(), department.getId(), now);
         PlatRole role = createSystemSuperAdminRole(system.getId(), tenant.getId(), now);
         createRoleMember(role.getId(), owner.getId(), member.getId(), system.getId(), tenant.getId(), now);
         createBinding(owner.getId(), system.getId(), tenant.getId(), member.getId(), now);
@@ -274,10 +282,28 @@ public class PlatformSystemService {
         return tenant;
     }
 
-    private PlatMember createOwnerMember(PlatAccount owner, Long systemId, Long tenantId, LocalDateTime now) {
+    private PlatDepartment createDefaultDepartment(Long systemId, Long tenantId, LocalDateTime now) {
+        PlatDepartment department = new PlatDepartment();
+        department.setSystemId(systemId);
+        department.setTenantId(tenantId);
+        department.setParentId(null);
+        department.setDeptCode(DEFAULT_DEPARTMENT_CODE);
+        department.setDeptName(DEFAULT_DEPARTMENT_NAME);
+        department.setSortOrder(10);
+        department.setStatus(ENABLED);
+        department.setCreatedAt(now);
+        department.setUpdatedAt(now);
+        department.setDeleted(DELETED_NO);
+        departmentBaseService.saveEntity(department);
+        return department;
+    }
+
+    private PlatMember createOwnerMember(PlatAccount owner, Long systemId, Long tenantId, Long departmentId,
+                                         LocalDateTime now) {
         PlatMember member = new PlatMember();
         member.setSystemId(systemId);
         member.setTenantId(tenantId);
+        member.setDeptId(departmentId);
         member.setMemberName(owner.getAccountName());
         member.setEmployeeNo("SA" + owner.getId());
         member.setMobile(owner.getMobile());

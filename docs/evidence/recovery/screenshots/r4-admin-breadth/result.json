@@ -1,0 +1,170 @@
+{
+  "systemId": "134",
+  "suffix": "0627205335",
+  "assetScripts": [
+    "/config.js",
+    "/assets/index-q_Q_PWjk.js"
+  ],
+  "url": "http://127.0.0.1:18131/#/systems/134/admin",
+  "results": [
+    {
+      "label": "系统信息",
+      "id": "system-info",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "R4 Admin System 0627205335 Updated",
+          "present": true
+        }
+      ],
+      "panelText": "系统信息当前系统R4 Admin System 0627205335 Updated成员数量1模块数量0流程数量1当前租户143系统角色SYSTEM_SUPER_ADMIN权限快照perm_live_SYSTEM_SUPER_ADMINtraceId: eps_134_143_166系统初始化清单按这个顺序把空系统配置到可以交给普通成员使用。待初始化1组织与成员建立部门、员工和成员映射，普通成员才能进入系统业务页。已开始配置组织2角色权限把后台权限、业务模块权限和数据范围落到系统角色。已开始配置角色3业务模块创建模块、字段、列表场景、行操作和发布检查。待配置配置模块4流程与字典发布审批流程和业务字典后，运行态才能形成记录、审批、待办和消息闭环。已开始配置流程5工作与集成配置任务、日报、Agent、SSO、OpenAPI 等长期使用能力。已开始配置工作"
+    },
+    {
+      "label": "组织架构",
+      "id": "org-structure",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "R4 Department 0627205335",
+          "present": true
+        }
+      ],
+      "panelText": "组织架构新建部门新建员工组织、员工和角色会写入当前系统，并受当前系统/租户上下文约束。部门树R4 Department 0627205335员工状态绑定状态重置员工列表序号姓名工号部门绑定状态更新时间1adminSA25-BOUND启用2026-06-27 20:53:40第 1 页，每页 20 条，共 1 条上一页下一页"
+    },
+    {
+      "label": "角色管理",
+      "id": "role-management",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "R4 Role 0627205335",
+          "present": true
+        }
+      ],
+      "panelText": "角色管理新建角色组织、员工和角色会写入当前系统，并受当前系统/租户上下文约束。角色类型状态重置角色管理序号角色类型内置状态说明1系统超级管理员 SYSTEM_SUPER_ADMINSYSTEM_SUPER_ADMIN是启用创建系统时自动生成，拥有系统内全部权限2R4 Role 0627205335 r4_role_0627205335CUSTOM否启用R4 admin breadth smoke role第 1 页，每页 20 条，共 2 条上一页下一页"
+    },
+    {
+      "label": "字典管理",
+      "id": "dict-management",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "R4 Status 0627205335",
+          "present": true
+        }
+      ],
+      "panelText": "字典管理数据字典新建字典字典项负责颜色、图标、语义、排序和看板可用性，供字段和工作看板复用。字典名称类型状态重置序号字典类型状态预览项更新时间操作1R4 Status 0627205335 r4_status_0627205335STATUS启用12026-06-27 20:53:40新增选项第 1 页，每页 20 条，共 1 条上一页下一页"
+    },
+    {
+      "label": "流程管理",
+      "id": "flow-management",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "R4 Flow 0627205335",
+          "present": true
+        }
+      ],
+      "panelText": "流程管理流程管理新建流程流程创建后为草稿，必须保存真实节点和连线后才能发布。流程名称绑定模块发布状态重置序号流程绑定模块状态发布版本操作1R4 Flow 0627205335 r4_flow_0627205335-启用DRAFTDRAFT发布检查发布第 1 页，每页 20 条，共 1 条上一页下一页"
+    },
+    {
+      "label": "对外应用",
+      "id": "openapi-apps",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "R4 OpenAPI 0627205335",
+          "present": true
+        }
+      ],
+      "panelText": "对外应用新建对外应用对外应用使用 OpenApiSecretRef、scope、限流和调用日志，不在页面展示明文密钥。应用名称scope状态traceId重置序号应用scopeSecretRef状态更新时间操作1R4 OpenAPI 0627205335 r4_openapi_0627205335record:read / record:writeOpenAPI application credential启用2026-06-27 20:53:41轮换密钥第 1 页，每页 20 条，共 1 条上一页下一页"
+    },
+    {
+      "label": "工作配置",
+      "id": "work-config",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "R4 Priority",
+          "present": true
+        },
+        {
+          "item": "r4Priority0627205335",
+          "present": true
+        }
+      ],
+      "panelText": "工作配置工作配置保存工作配置发布检查工作配置保存项目任务、普通任务、日报字段和看板取数字段；状态/标签选项来自数据字典。项目任务字段R4 Priority (r4Priority0627205335)普通任务字段R4 Priority (r4Priority0627205335)日报字段R4 Report Note (r4ReportNote0627205335)项目任务看板taskType / columnField / swimlaneField / groupField / cardFields / publishedVersion普通任务看板taskType / columnField / swimlaneField / groupField / cardFields / publishedVersion"
+    },
+    {
+      "label": "统一认证",
+      "id": "sso-config",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "r4-0627205335.example.test",
+          "present": true
+        }
+      ],
+      "panelText": "统一认证系统 SSO保存 SSO 策略组织映射预检统一认证策略可保存身份源继承、租户域名、组织映射和无成员映射反馈。启用身份源未配置租户域名r4-0627205335.example.test组织映射externalDeptRoot员工绑定requiredFields策略状态DRAFTtraceId: trc_49d4103e-9ae8-4421-b3f8-963e078327f7"
+    },
+    {
+      "label": "AI Agent",
+      "id": "agent-config",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "r4_agent_0627205335",
+          "present": true
+        }
+      ],
+      "panelText": "AI AgentAI Agent 策略新建策略系统 Agent 策略控制模块、字段、动作、数据范围、外发限制和脱敏策略。序号策略状态发布状态版本操作1r4_agent_0627205335启用PUBLISHEDpolicy_0627205335发布检查第 1 页，每页 20 条，共 1 条上一页下一页"
+    },
+    {
+      "label": "数据源",
+      "id": "data-source",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "待接入",
+          "present": true
+        }
+      ],
+      "panelText": "数据源数据库直连待接入系统内数据源待接入外部 API 数据源待接入当前前端/后端尚未提供系统数据源管理 API，本入口不再混入对外应用或消息模板，避免把缺口伪装成已完成。"
+    },
+    {
+      "label": "日志管理",
+      "id": "log-management",
+      "panelCount": 1,
+      "activePanelCount": 1,
+      "visible": true,
+      "bodyHas": [
+        {
+          "item": "日志管理",
+          "present": true
+        }
+      ],
+      "panelText": "日志管理日志管理日志类型账号模块结果traceId时间范围重置序号类型操作人动作对象结果traceId时间1BUSINESSadminrecord.createbusiness / record_001SUCCESStrc_f07bc2f3-16b6-45f1-aba8-dee28b534e282026-06-27 21:01:03第 1 页，每页 12 条，共 1 条上一页下一页"
+    }
+  ],
+  "consoleErrors": []
+}

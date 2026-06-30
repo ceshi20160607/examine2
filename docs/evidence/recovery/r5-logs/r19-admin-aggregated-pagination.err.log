@@ -1,0 +1,108 @@
+ConvertFrom-Json : ����Ķ�����Ч��ӦΪ��:����}���� (290): {
+  "login": {
+    "ok": true,
+    "hash": "#/platform/dashboard",
+    "hasToken": true,
+    "localAccountId": "25"
+  },
+  "platform": {
+    "before": {
+      "ok": true,
+      "panelFound": true,
+      "footerFound": true,
+      "pageText": "�?1 页，每页 20 条，�?29 �?,
+      "previousDisabled": true,
+      "nextDisabled": false,
+      "buttonTitles": [
+        "已经是第一�?,
+        "没有更多数据"
+      ],
+      "unsupportedReason": false,
+      "rowCount": 20,
+      "firstRow": "1\tR19 Page System 0629230605_11098b 17 r19_page_0629230605_11098b_17\t多租户\t25\t运行中\t202
+6-06-29 23:06:13\t\n体检\n禁用",
+      "hash": "#/platform/admin",
+      "bodySnippet": "unexamine\n仪表盘\nFlow\n应用\n代办\n消息\nadmin\n平台后台\n返回平台首页\n平�
+��信息\n组织架构\n系统生命周期\n角色管理\n仪表盘管理\n配置管理\n日志管理\n平台后台\n\n
+平台后台只处理平台信息、平台组织、平台角色、系统生命周期、统一认证、AI Agent 授权�
+�平台日志。\n\n系统生命周期\n系统名称\n租户模式\n负责人\n状态\n时间范围\n重置\n序号\t�
+�统\t租户模式\t负责人\t状态\t更新时间\t操作\n1\tR19 Page System 0629230605_11098b 17 r19_page_062923060
+5_11098b_17\t多租户\t25\t运行中\t2026-06-29 23:06:13\t\n体检\n禁用\n\n2\tR19 Page System 0629230605_11098b 18
+ r19_page_0629230605_11098b_18\t多租户\t25\t运行中\t2026-06-29 23:06:13\t\n体检\n禁用\n\n3\tR19 Page System 0
+629230605_11098b 19 r19_page_0629230605_11098b_19\t多租户\t25\t运行中\t2026-06-29 23:06:13\t\n体检\n禁用\n\n4
+\tR19 Page System 0629230605_11098b 20 r19_page_0629230605_11098b_20\t多租户\t25\t运行中\t2026-06-29 23:06:13\t\n
+体检\n禁用\n\n5\tR19 Page System 0629230605_11098b 21 r19_page_0629230605_11098b_21\t多租户\t25\t运行中\t2026
+-06-29 23:06:13\t\n体检\n禁用\n\n6\tR19 Page System 0629230605_11098b 15 r19_page_0629230605_11098b_15\t多租户\t
+25\t运行中\t2026-06-29 23:06:12\t\n体检\n禁用\n\n7\tR19 Page System 0629230605_11098b 13 r19_page_0629230605_110
+98b_13\t多租户\t25\t运行中\t2026-06-29 23:06:12\t\n体检\n禁用\n\n8\tR19 Page System 0629230605_11098b 12 r19_
+page_0629230605_11098b_12\t多租户\t25\t运行中\t2026-06-29 23:06:12\t\n体检\n禁用\n\n9\tR19 Page System 062923
+0605_11098b 11 r19_page_0629230605_11098b_11\t多租户\t25\t运行中\t2026-06-29 23:06:12\t\n体检\n禁用\n\n10\tR1
+9 Page System 06292306"
+    },
+    "after": {
+      "ok": true,
+      "pageText": "�?2 页，每页 20 条，�?29 �?,
+      "firstRow": "1\tR19 Page System 0629230605_11098b 1 r19_page_0629230605_11098b_1\t多租户\t25\t运行中\t2026-
+06-29 23:06:11\t\n体检\n禁用",
+      "rowCount": 9,
+      "previousDisabled": false,
+      "nextDisabled": true
+    }
+  },
+  "systemRoles": {
+    "before": {
+      "ok": true,
+      "panelFound": true,
+      "footerFound": true,
+      "pageText": "�?1 页，每页 20 条，�?22 �?,
+      "previousDisabled": true,
+      "nextDisabled": false,
+      "buttonTitles": [
+        "已经是第一�?,
+        "没有更多数据"
+      ],
+      "unsupportedReason": false,
+      "rowCount": 20,
+      "firstRow": "1\t系统超级管理�?SYSTEM_SUPER_ADMIN\tSYSTEM_SUPER_ADMIN\t是\t启用\t创建系统时自动�
+��成，拥有系统内全部权�?,
+      "hash": "#/systems/622/admin",
+      "bodySnippet": "R19 Page System 0629230605_11098b 1\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后�
+��\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字�
+��管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\
+nR19 Page System 0629230605_11098b 1 的后台配置，只影响当前系统内的组织、角色、模块、流程、�
+��典、工作、SSO、Agent 和日志。\n\n角色管理\n新建角色\n\n组织、员工和角色会写入当前系�
+�，并受当前系统/租户上下文约束。\n\n角色\n类型\n状态\n重置\n角色管理\n序号\t角色\t类型
+\t内置\t状态\t说明\n1\t系统超级管理�?SYSTEM_SUPER_ADMIN\tSYSTEM_SUPER_ADMIN\t是\t启用\t创建系统时�
+��动生成，拥有系统内全部权限\n2\tR19 Page Role 0629230605_11098b 21 R19_PAGE_ROLE_0629230605_11098b_21\tCU
+STOM\t否\t启用\tR19 admin pagination smoke role\n3\tR19 Page Role 0629230605_11098b 17 R19_PAGE_ROLE_0629230605_1109
+8b_17\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n4\tR19 Page Role 0629230605_11098b 18 R19_PAGE_ROLE_062923
+0605_11098b_18\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n5\tR19 Page Role 0629230605_11098b 19 R19_PAGE_RO
+LE_0629230605_11098b_19\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n6\tR19 Page Role 0629230605_11098b 20 R1
+9_PAGE_ROLE_0629230605_11098b_20\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n7\tR19 Page Role 0629230605_110
+98b 10 R19_PAGE_ROLE_0629230605_11098b_10\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n8\tR19 Page Role 06292
+30605_11098b 9 R19_PAGE_ROLE_0629230605_11098b_9\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n9"
+    },
+    "after": {
+      "ok": true,
+      "pageText": "�?2 页，每页 20 条，�?22 �?,
+      "firstRow": "1\tR19 Page Role 0629230605_11098b 4 R19_PAGE_ROLE_0629230605_11098b_4\tCUSTOM\t否\t启用\tR19 adm
+in pagination smoke role",
+      "rowCount": 2,
+      "previousDisabled": false,
+      "nextDisabled": true
+    }
+  },
+  "screenshots": [
+    "platform-systems-page1.png",
+    "platform-systems-page2.png",
+    "system-roles-page1.png",
+    "system-roles-page2.png"
+  ]
+}
+����λ�� D:\workspace\01_project\snow\cursor\examine2\scripts\recovery-r19-admin-aggregated-pagination-smoke.ps1:489 ��
+��: 35
++ $BrowserEvidence = $browserJson | ConvertFrom-Json
++                                   ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [ConvertFrom-Json], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException,Microsoft.PowerShell.Commands.ConvertFromJsonCommand
+ 

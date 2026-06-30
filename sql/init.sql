@@ -1253,6 +1253,30 @@ CREATE TABLE IF NOT EXISTS un_plat_system_sso_policy (
   UNIQUE KEY uk_system_sso_policy (system_id, tenant_id)
 ) COMMENT='table';
 
+CREATE TABLE IF NOT EXISTS un_system_data_source (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'field',
+  system_id BIGINT NOT NULL COMMENT 'field',
+  tenant_id BIGINT NOT NULL COMMENT 'field',
+  source_code VARCHAR(80) NOT NULL COMMENT 'field',
+  source_name VARCHAR(120) NOT NULL COMMENT 'field',
+  source_type VARCHAR(40) NOT NULL COMMENT 'field',
+  connection_config JSON NOT NULL COMMENT 'field',
+  auth_config JSON NULL COMMENT 'field',
+  sync_config JSON NULL COMMENT 'field',
+  desensitize_config JSON NULL COMMENT 'field',
+  status TINYINT NOT NULL DEFAULT 1 COMMENT 'field',
+  publish_status VARCHAR(32) NOT NULL DEFAULT 'DRAFT' COMMENT 'field',
+  published_version VARCHAR(80) NULL COMMENT 'field',
+  last_check_status VARCHAR(40) NULL COMMENT 'field',
+  last_check_trace_id VARCHAR(80) NULL COMMENT 'field',
+  last_checked_at DATETIME NULL COMMENT 'field',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'field',
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'field',
+  deleted TINYINT NOT NULL DEFAULT 0 COMMENT 'field',
+  UNIQUE KEY uk_data_source_code (system_id, tenant_id, source_code),
+  KEY idx_data_source_system (system_id, tenant_id, source_type, status)
+) COMMENT='table';
+
 CREATE TABLE IF NOT EXISTS un_openapi_app (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'field',
   system_id BIGINT NOT NULL COMMENT 'field',

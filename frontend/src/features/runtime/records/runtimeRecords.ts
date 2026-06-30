@@ -9,6 +9,7 @@ import {
   saveRuntimeDraft,
   saveRuntimeRecord,
   saveRuntimeScene,
+  uploadRuntimeImportFile,
   type RuntimeExportResult,
   type RuntimeImportConfirmResult,
   type RuntimeImportPrecheckResult,
@@ -17,6 +18,7 @@ import {
 } from '../../../api/liveData';
 import { shellState } from '../../../app/state';
 import { createButton, createElement, createTraceLine } from '../../../shared/components';
+import { requestTextInput } from '../../../shared/dialogs';
 import { createExportPanel, createImportPanel } from '../import-export/importExportPanel';
 import {
   type RuntimeModuleItem,
@@ -125,6 +127,9 @@ async function refreshRuntimeData(render: () => void): Promise<void> {
 
 function createRuntimeShell(render: () => void, reload: () => void): HTMLElement {
   const selectedRows = currentRows().filter((row) => state.selectedIds.has(row.recordId));
+  if (state.realEmpty && !state.loading) {
+    return createRuntimeEmptyState();
+  }
   return createElement(
     'div',
     { className: 'runtime-shell' },
@@ -139,6 +144,26 @@ function createRuntimeShell(render: () => void, reload: () => void): HTMLElement
       createRecordTable(render),
     ),
     createRuntimePanel(selectedRows, render),
+  );
+}
+
+function createRuntimeEmptyState(): HTMLElement {
+  const adminLink = createElement('a', { className: 'button primary' }, '去系统后台配置模块');
+  adminLink.href = `#/systems/${activeSystemId()}/admin`;
+  return createElement(
+    'section',
+    { className: 'runtime-empty-state' },
+    createElement('div', { className: 'page-heading' },
+      createElement('h1', {}, '暂无可用业务模块'),
+      createElement('p', {}, state.loadError ?? '当前系统还没有可访问的已发布模块。先完成模块、字段、列表和发布检查，再回到业务页处理数据。'),
+    ),
+    createElement(
+      'section',
+      { className: 'runtime-card' },
+      createElement('strong', {}, '下一步'),
+      createElement('p', {}, '系统管理员进入后台配置并发布模块后，这里才显示搜索、导入导出、批量操作和右侧详情。'),
+      canOpenSystemAdmin() ? adminLink : createElement('p', {}, '当前账号没有系统后台入口，请联系系统管理员发布业务模块。'),
+    ),
   );
 }
 
@@ -176,7 +201,7 @@ function createModuleButton(module: RuntimeModuleItem, reload: () => void): HTML
 
 function createRuntimeHeader(render: () => void): HTMLElement {
   const moduleName = liveData?.activeModule.name ?? '业务模块';
-  const createButtonAction = createButton(`新建${moduleName}`, 'primary', state.realEmpty, state.realEmpty ? '请先配置并发布业务模块。' : undefined);
+  const createButtonAction = createButton('新建记录', 'primary', state.realEmpty, state.realEmpty ? '请先配置并发布业务模块。' : undefined);
   createButtonAction.addEventListener('click', () => {
     state.activePanel = 'create';
     render();
@@ -384,10 +409,40 @@ function createRecordRow(row: RuntimeRecordRow, columns: DynamicColumn[], render
 
 function createRowActionButton(action: ActionContract, row: RuntimeRecordRow, render: () => void): HTMLButtonElement {
   const button = createButton(action.name, 'ghost', !action.enabled, action.disabledReason);
-  button.addEventListener('click', (event) => {
+  button.addEventListener('click', async (event) => {
     event.stopPropagation();
     state.activeRecordId = row.recordId;
-    state.activePanel = action.actionCode === 'edit' ? 'edit' : 'detail';
+    if (action.actionCode === 'record.edit') {
+      state.activePanel = 'edit';
+      render();
+      return;
+    }
+    if (action.enabled && action.actionCode === 'record.delete') {
+      try {
+        await deleteRuntimeRecord(activeSystemId(), activeModuleId(), row.recordId);
+        state.actionMessage = `记录 ${row.title} 已删除。`;
+        state.activeRecordId = '';
+        state.activePanel = 'detail';
+        await refreshRuntimeData(render);
+        return;
+      } catch (error) {
+        state.actionMessage = error instanceof Error ? error.message : '删除记录失败。';
+      }
+    }
+    if (action.enabled && action.actionCode === 'record.submitApproval') {
+      try {
+        const result = await executeRuntimeRecordAction(activeSystemId(), activeModuleId(), row.recordId, action.actionCode, {
+          reason: '前端行操作提交审批',
+        });
+        state.actionMessage = result.accepted ? `审批已提交：${result.result}` : result.disabledReason || '审批提交未被接受。';
+        state.activePanel = 'detail';
+        await refreshRuntimeData(render);
+        return;
+      } catch (error) {
+        state.actionMessage = error instanceof Error ? error.message : '提交审批失败。';
+      }
+    }
+    state.activePanel = 'detail';
     render();
   });
   return button;
@@ -408,8 +463,8 @@ function createRuntimePanel(selectedRows: RuntimeRecordRow[], render: () => void
       },
       {
         onPrecheck: async (input) => {
-          if (!input.fileId) {
-            state.importMessage = '请先填写上传文件 fileId。';
+          if (!input.file && !input.fileId) {
+            state.importMessage = '请先选择导入文件，或填写已有上传文件 fileId。';
             render();
             return;
           }
@@ -417,8 +472,15 @@ function createRuntimePanel(selectedRows: RuntimeRecordRow[], render: () => void
           state.importMessage = undefined;
           render();
           try {
-            state.importPrecheck = await precheckRuntimeImport(activeSystemId(), activeModuleId(), input);
-            state.importMessage = state.importPrecheck.passed ? '预检通过，可以确认导入。' : '预检完成，请处理失败行后再确认导入。';
+            const uploadResult = input.file ? await uploadRuntimeImportFile(input.file) : undefined;
+            const fileId = uploadResult?.file.fileId ?? input.fileId ?? '';
+            state.importPrecheck = await precheckRuntimeImport(activeSystemId(), activeModuleId(), {
+              fileId,
+              templateCode: input.templateCode,
+              duplicateStrategy: input.duplicateStrategy,
+            });
+            const fileName = uploadResult?.file.fileName ? `文件 ${uploadResult.file.fileName} ` : '';
+            state.importMessage = state.importPrecheck.passed ? `${fileName}预检通过，可以确认导入。` : `${fileName}预检完成，请处理失败行后再确认导入。`;
           } catch (error) {
             state.importMessage = error instanceof Error ? error.message : '导入预检失败。';
           } finally {
@@ -524,6 +586,7 @@ function createEditPanel(panel: 'create' | 'edit', onClose: () => void, render: 
         recordId: panel === 'edit' ? active?.recordId : undefined,
         draftId: state.draftId,
         fieldValues,
+        attachmentIds: collectAttachmentIds(),
       });
       state.draftId = draft.draftId;
       state.actionMessage = `草稿已保存：${draft.draftId}`;
@@ -827,16 +890,25 @@ function collectFormValues(): Record<string, unknown> {
   return values;
 }
 
+function collectAttachmentIds(): string[] {
+  const input = document.querySelector<HTMLInputElement>('.edit-panel label:last-child input');
+  return (input?.value ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 async function saveCurrentRecord(panel: 'create' | 'edit', active: RuntimeRecordRow | undefined, submitApproval: boolean): Promise<void> {
   const mutation = await saveRuntimeRecord(activeSystemId(), activeModuleId(), {
     recordId: panel === 'edit' ? active?.recordId : undefined,
     draftId: state.draftId,
     fieldValues: collectFormValues(),
+    attachmentIds: collectAttachmentIds(),
   });
   state.draftId = undefined;
   state.actionMessage = `记录已保存：${mutation.recordId}`;
   if (submitApproval) {
-    const action = await executeRuntimeRecordAction(activeSystemId(), activeModuleId(), mutation.recordId, 'submit', {
+    const action = await executeRuntimeRecordAction(activeSystemId(), activeModuleId(), mutation.recordId, 'record.submitApproval', {
       reason: '前端提交审批',
     });
     state.actionMessage = action.accepted ? `审批已提交：${action.result}` : action.disabledReason || '审批提交未被接受。';
@@ -870,8 +942,8 @@ async function runExport(scope: 'ALL_MATCHED' | 'SELECTED' | 'TEMPLATE_ONLY', se
 }
 
 async function saveCurrentScene(render: () => void, button: HTMLButtonElement, columnFieldIds?: string[]): Promise<void> {
-  const sceneName = window.prompt('请输入场景名称', state.activePanel === 'columns' ? '自定义列设置' : '自定义筛选场景');
-  if (!sceneName?.trim()) {
+  const sceneName = await requestTextInput('保存场景', '场景名称', state.activePanel === 'columns' ? '自定义列设置' : '自定义筛选场景');
+  if (!sceneName) {
     return;
   }
   button.disabled = true;
@@ -886,7 +958,7 @@ async function saveCurrentScene(render: () => void, button: HTMLButtonElement, c
       .filter((fieldId): fieldId is string => Boolean(fieldId));
     const scene = await saveRuntimeScene(activeSystemId(), activeModuleId(), {
       sceneCode: `scene_${Date.now()}`,
-      sceneName: sceneName.trim(),
+      sceneName,
       defaultScene: false,
       columnFieldIds: columnFieldIds ?? schema.columns.map((column) => column.fieldId),
       filterFieldIds,
@@ -1029,6 +1101,10 @@ function currentModuleGroupTitle(): string {
 
 function activeSystemId(): string {
   return shellState.currentSystem?.systemId ?? shellState.availableSystems[0]?.systemId ?? '1';
+}
+
+function canOpenSystemAdmin(): boolean {
+  return shellState.account.systemRoles.includes('SYSTEM_ADMIN') || shellState.account.systemRoles.includes('SYSTEM_SUPER_ADMIN');
 }
 
 function activeRow(): RuntimeRecordRow | undefined {

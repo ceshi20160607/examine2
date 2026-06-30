@@ -1,0 +1,100 @@
+﻿{
+    "status":  "PASS",
+    "generatedAt":  "2026-06-29T15:02:17.2792538+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "targetSystemId":  "469",
+    "createdSystemCount":  21,
+    "platformTotal":  26,
+    "systemRoleTotal":  22,
+    "browser":  {
+                    "login":  {
+                                  "ok":  true,
+                                  "hash":  "#/platform/dashboard",
+                                  "hasToken":  true,
+                                  "localAccountId":  "25"
+                              },
+                    "platform":  {
+                                     "before":  {
+                                                    "ok":  true,
+                                                    "panelFound":  true,
+                                                    "footerFound":  true,
+                                                    "pageText":  "第 1 页，每页 20 条，共 26 条",
+                                                    "previousDisabled":  true,
+                                                    "nextDisabled":  false,
+                                                    "buttonTitles":  [
+                                                                         "已经是第一页",
+                                                                         "没有更多数据"
+                                                                     ],
+                                                    "unsupportedReason":  false,
+                                                    "rowCount":  20,
+                                                    "firstRow":  "1\tR19 Page System 0629150142_3c2c3e 18 r19_page_0629150142_3c2c3e_18\t多租户\t25\t运行中\t2026-06-29 15:01:49\t\n体检\n禁用",
+                                                    "hash":  "#/platform/admin",
+                                                    "bodySnippet":  "unexamine\n仪表盘\nFlow\n应用\n代办\n消息\nadmin\n平台后台\n返回平台首页\n平台信息\n组织架构\n系统生命周期\n角色管理\n仪表盘管理\n配置管理\n日志管理\n平台后台\n\n平台后台只处理平台信息、平台组织、平台角色、系统生命周期、统一认证、AI Agent 授权和平台日志。\n\n系统生命周期\n系统名称\n租户模式\n负责人\n状态\n时间范围\n重置\n序号\t系统\t租户模式\t负责人\t状态\t更新时间\t操作\n1\tR19 Page System 0629150142_3c2c3e 18 r19_page_0629150142_3c2c3e_18\t多租户\t25\t运行中\t2026-06-29 15:01:49\t\n体检\n禁用\n\n2\tR19 Page System 0629150142_3c2c3e 16 r19_page_0629150142_3c2c3e_16\t多租户\t25\t运行中\t2026-06-29 15:01:49\t\n体检\n禁用\n\n3\tR19 Page System 0629150142_3c2c3e 21 r19_page_0629150142_3c2c3e_21\t多租户\t25\t运行中\t2026-06-29 15:01:49\t\n体检\n禁用\n\n4\tR19 Page System 0629150142_3c2c3e 19 r19_page_0629150142_3c2c3e_19\t多租户\t25\t运行中\t2026-06-29 15:01:49\t\n体检\n禁用\n\n5\tR19 Page System 0629150142_3c2c3e 17 r19_page_0629150142_3c2c3e_17\t多租户\t25\t运行中\t2026-06-29 15:01:49\t\n体检\n禁用\n\n6\tR19 Page System 0629150142_3c2c3e 20 r19_page_0629150142_3c2c3e_20\t多租户\t25\t运行中\t2026-06-29 15:01:49\t\n体检\n禁用\n\n7\tR19 Page System 0629150142_3c2c3e 4 r19_page_0629150142_3c2c3e_4\t多租户\t25\t运行中\t2026-06-29 15:01:48\t\n体检\n禁用\n\n8\tR19 Page System 0629150142_3c2c3e 5 r19_page_0629150142_3c2c3e_5\t多租户\t25\t运行中\t2026-06-29 15:01:48\t\n体检\n禁用\n\n9\tR19 Page System 0629150142_3c2c3e 6 r19_page_0629150142_3c2c3e_6\t多租户\t25\t运行中\t2026-06-29 15:01:48\t\n体检\n禁用\n\n10\tR19 Page System 0629150142_3c2"
+                                                },
+                                     "after":  {
+                                                   "ok":  true,
+                                                   "pageText":  "第 2 页，每页 20 条，共 26 条",
+                                                   "firstRow":  "1\tR19 Page System 0629150142_3c2c3e 1 r19_page_0629150142_3c2c3e_1\t多租户\t25\t运行中\t2026-06-29 15:01:47\t\n体检\n禁用",
+                                                   "rowCount":  6,
+                                                   "previousDisabled":  false,
+                                                   "nextDisabled":  true
+                                               }
+                                 },
+                    "systemRoles":  {
+                                        "before":  {
+                                                       "ok":  true,
+                                                       "panelFound":  true,
+                                                       "footerFound":  true,
+                                                       "pageText":  "第 1 页，每页 20 条，共 22 条",
+                                                       "previousDisabled":  true,
+                                                       "nextDisabled":  false,
+                                                       "buttonTitles":  [
+                                                                            "已经是第一页",
+                                                                            "没有更多数据"
+                                                                        ],
+                                                       "unsupportedReason":  false,
+                                                       "rowCount":  20,
+                                                       "firstRow":  "1\t系统超级管理员 SYSTEM_SUPER_ADMIN\tSYSTEM_SUPER_ADMIN\t是\t启用\t创建系统时自动生成，拥有系统内全部权限",
+                                                       "hash":  "#/systems/469/admin",
+                                                       "bodySnippet":  "R19 Page System 0629150142_3c2c3e 1\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR19 Page System 0629150142_3c2c3e 1 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n角色管理\n新建角色\n\n组织、员工和角色会写入当前系统，并受当前系统/租户上下文约束。\n\n角色\n类型\n状态\n重置\n角色管理\n序号\t角色\t类型\t内置\t状态\t说明\n1\t系统超级管理员 SYSTEM_SUPER_ADMIN\tSYSTEM_SUPER_ADMIN\t是\t启用\t创建系统时自动生成，拥有系统内全部权限\n2\tR19 Page Role 0629150142_3c2c3e 21 R19_PAGE_ROLE_0629150142_3c2c3e_21\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n3\tR19 Page Role 0629150142_3c2c3e 20 R19_PAGE_ROLE_0629150142_3c2c3e_20\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n4\tR19 Page Role 0629150142_3c2c3e 19 R19_PAGE_ROLE_0629150142_3c2c3e_19\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n5\tR19 Page Role 0629150142_3c2c3e 18 R19_PAGE_ROLE_0629150142_3c2c3e_18\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n6\tR19 Page Role 0629150142_3c2c3e 10 R19_PAGE_ROLE_0629150142_3c2c3e_10\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n7\tR19 Page Role 0629150142_3c2c3e 9 R19_PAGE_ROLE_0629150142_3c2c3e_9\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n8\tR19 Page Role 0629150142_3c2c3e 8 R19_PAGE_ROLE_0629150142_3c2c3e_8\tCUSTOM\t否\t启用\tR19 admin pagination smoke role\n9\tR"
+                                                   },
+                                        "after":  {
+                                                      "ok":  true,
+                                                      "pageText":  "第 2 页，每页 20 条，共 22 条",
+                                                      "firstRow":  "1\tR19 Page Role 0629150142_3c2c3e 6 R19_PAGE_ROLE_0629150142_3c2c3e_6\tCUSTOM\t否\t启用\tR19 admin pagination smoke role",
+                                                      "rowCount":  2,
+                                                      "previousDisabled":  false,
+                                                      "nextDisabled":  true
+                                                  }
+                                    },
+                    "screenshots":  [
+                                        "platform-systems-page1.png",
+                                        "platform-systems-page2.png",
+                                        "system-roles-page1.png",
+                                        "system-roles-page2.png"
+                                    ]
+                },
+    "cleanup":  [
+                    "469:DELETE",
+                    "470:DELETE",
+                    "471:DELETE",
+                    "472:DELETE",
+                    "473:DELETE",
+                    "474:DELETE",
+                    "475:DELETE",
+                    "476:DELETE",
+                    "477:DELETE",
+                    "478:DELETE",
+                    "479:DELETE",
+                    "480:DELETE",
+                    "481:DELETE",
+                    "482:DELETE",
+                    "483:DELETE",
+                    "484:DELETE",
+                    "485:DELETE",
+                    "486:DELETE",
+                    "487:DELETE",
+                    "488:DELETE",
+                    "489:DELETE"
+                ]
+}

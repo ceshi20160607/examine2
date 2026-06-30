@@ -20,7 +20,12 @@ import com.unique.examine.messagelog.base.entity.MessageMessage;
 import com.unique.examine.messagelog.base.entity.MessageTodo;
 import com.unique.examine.messagelog.base.service.MessageMessageBaseService;
 import com.unique.examine.messagelog.base.service.MessageTodoBaseService;
+import com.unique.examine.plat.base.entity.PlatAccountMemberBinding;
+import com.unique.examine.plat.base.entity.PlatRoleMember;
+import com.unique.examine.plat.base.service.PlatAccountMemberBindingBaseService;
+import com.unique.examine.plat.base.service.PlatRoleMemberBaseService;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,21 +53,27 @@ public class WorkflowRuntimeMutationService {
     private final FlowApprovalTaskBaseService flowApprovalTaskBaseService;
     private final MessageTodoBaseService messageTodoBaseService;
     private final MessageMessageBaseService messageMessageBaseService;
+    private final PlatAccountMemberBindingBaseService accountMemberBindingBaseService;
+    private final PlatRoleMemberBaseService roleMemberBaseService;
     private final ObjectMapper objectMapper;
 
     public WorkflowRuntimeMutationService(FlowDefinitionBaseService flowDefinitionBaseService,
                                           FlowSnapshotBaseService flowSnapshotBaseService,
                                           FlowInstanceBaseService flowInstanceBaseService,
-                                          FlowApprovalTaskBaseService flowApprovalTaskBaseService,
-                                          MessageTodoBaseService messageTodoBaseService,
-                                          MessageMessageBaseService messageMessageBaseService,
-                                          ObjectMapper objectMapper) {
+                                           FlowApprovalTaskBaseService flowApprovalTaskBaseService,
+                                           MessageTodoBaseService messageTodoBaseService,
+                                           MessageMessageBaseService messageMessageBaseService,
+                                           PlatAccountMemberBindingBaseService accountMemberBindingBaseService,
+                                           PlatRoleMemberBaseService roleMemberBaseService,
+                                           ObjectMapper objectMapper) {
         this.flowDefinitionBaseService = flowDefinitionBaseService;
         this.flowSnapshotBaseService = flowSnapshotBaseService;
         this.flowInstanceBaseService = flowInstanceBaseService;
         this.flowApprovalTaskBaseService = flowApprovalTaskBaseService;
         this.messageTodoBaseService = messageTodoBaseService;
         this.messageMessageBaseService = messageMessageBaseService;
+        this.accountMemberBindingBaseService = accountMemberBindingBaseService;
+        this.roleMemberBaseService = roleMemberBaseService;
         this.objectMapper = objectMapper;
     }
 
@@ -80,7 +91,7 @@ public class WorkflowRuntimeMutationService {
     @Transactional(rollbackFor = Exception.class)
     public WorkflowStartResult startForRecord(Long systemId, Long tenantId, Long moduleId, Long recordId,
                                               Long starterMemberId, String idempotencyKey) {
-        WorkflowApprovalHook existing = approvalHook(systemId, tenantId, moduleId, recordId);
+        WorkflowApprovalHook existing = runningApprovalHook(systemId, tenantId, moduleId, recordId);
         if (existing.visible()) {
             return new WorkflowStartResult(existing.flowInstanceId(), existing.pendingTaskId(), false,
                     "已存在运行中的审批实例，未重复创建。");
@@ -88,6 +99,7 @@ public class WorkflowRuntimeMutationService {
         FlowDefinition flow = requirePublishedFlow(systemId, tenantId, moduleId);
         FlowSnapshot snapshot = requireSnapshot(flow);
         NodeRef firstNode = firstRuntimeNode(snapshot);
+        Long assigneeMemberId = resolveAssigneeMemberId(systemId, tenantId, starterMemberId, firstNode);
         FlowInstance instance = new FlowInstance();
         instance.setSystemId(systemId);
         instance.setTenantId(tenantId);
@@ -107,7 +119,7 @@ public class WorkflowRuntimeMutationService {
         task.setTaskNo("AT-" + System.currentTimeMillis() + "-" + shortId());
         task.setNodeId(firstNode.nodeKey());
         task.setNodeName(firstNode.nodeName());
-        task.setAssigneeMemberId(starterMemberId);
+        task.setAssigneeMemberId(assigneeMemberId);
         task.setStatus(TASK_PENDING);
         task.setFieldPermissionSnapshot(toJson(List.of("approve", "reject", "transfer")));
         task.setDueAt(LocalDateTime.now().plusHours(8));
@@ -115,16 +127,21 @@ public class WorkflowRuntimeMutationService {
         task.setTraceId(RequestContext.current().traceId());
         task.setCreatedAt(LocalDateTime.now());
         flowApprovalTaskBaseService.saveEntity(task);
-        createApprovalTodoAndMessage(systemId, tenantId, moduleId, recordId, starterMemberId, instance, task);
+        createApprovalTodoAndMessage(systemId, tenantId, moduleId, recordId, assigneeMemberId, instance, task);
         return new WorkflowStartResult(String.valueOf(instance.getId()), String.valueOf(task.getId()), true,
                 "审批实例已创建，当前任务已派发。");
     }
 
     private void createApprovalTodoAndMessage(Long systemId, Long tenantId, Long moduleId, Long recordId,
-                                              Long starterMemberId, FlowInstance instance,
-                                              FlowApprovalTask task) {
-        Long receiverAccountId = CurrentRequestHeaders.currentAccountIdOrNull();
-        Long assigneeId = Objects.nonNull(receiverAccountId) ? receiverAccountId : starterMemberId;
+                                               Long assigneeMemberId, FlowInstance instance,
+                                               FlowApprovalTask task) {
+        Long receiverAccountId = receiverAccountId(systemId, tenantId, assigneeMemberId);
+        Long assigneeId = Objects.nonNull(receiverAccountId)
+                ? receiverAccountId
+                : CurrentRequestHeaders.currentAccountIdOrNull();
+        if (Objects.isNull(assigneeId)) {
+            assigneeId = assigneeMemberId;
+        }
         LocalDateTime now = LocalDateTime.now();
         String traceId = RequestContext.current().traceId();
 
@@ -199,12 +216,31 @@ public class WorkflowRuntimeMutationService {
      * @return approval hook
      */
     public WorkflowApprovalHook approvalHook(Long systemId, Long tenantId, Long moduleId, Long recordId) {
+        return approvalHook(systemId, tenantId, moduleId, recordId,
+                List.of(INSTANCE_RUNNING, INSTANCE_APPROVED, INSTANCE_REJECTED));
+    }
+
+    /**
+     * Resolve the running approval hook for duplicate-start protection.
+     *
+     * @param systemId system id
+     * @param tenantId tenant id
+     * @param moduleId module id
+     * @param recordId record id
+     * @return running approval hook
+     */
+    public WorkflowApprovalHook runningApprovalHook(Long systemId, Long tenantId, Long moduleId, Long recordId) {
+        return approvalHook(systemId, tenantId, moduleId, recordId, List.of(INSTANCE_RUNNING));
+    }
+
+    private WorkflowApprovalHook approvalHook(Long systemId, Long tenantId, Long moduleId, Long recordId,
+                                              List<String> statuses) {
         FlowInstance instance = flowInstanceBaseService.getOne(new LambdaQueryWrapper<FlowInstance>()
                 .eq(FlowInstance::getSystemId, systemId)
                 .eq(FlowInstance::getTenantId, tenantId)
                 .eq(FlowInstance::getModuleId, moduleId)
                 .eq(FlowInstance::getRecordId, recordId)
-                .in(FlowInstance::getStatus, List.of(INSTANCE_RUNNING))
+                .in(FlowInstance::getStatus, statuses)
                 .orderByDesc(FlowInstance::getId)
                 .last("LIMIT 1"), false);
         if (Objects.isNull(instance)) {
@@ -216,9 +252,19 @@ public class WorkflowRuntimeMutationService {
                 .orderByAsc(FlowApprovalTask::getId)
                 .last("LIMIT 1"), false);
         return new WorkflowApprovalHook(true, String.valueOf(instance.getId()),
-                Objects.isNull(task) ? "流程处理中" : task.getNodeName(),
+                Objects.isNull(task) ? terminalNodeName(instance.getStatus()) : task.getNodeName(),
                 Objects.isNull(task) ? null : String.valueOf(task.getId()),
                 instance.getStatus(), "approvalTaskDrawer");
+    }
+
+    private String terminalNodeName(String status) {
+        if (INSTANCE_APPROVED.equals(status)) {
+            return "审批已通过";
+        }
+        if (INSTANCE_REJECTED.equals(status)) {
+            return "审批已拒绝";
+        }
+        return "流程处理中";
     }
 
     /**
@@ -267,7 +313,8 @@ public class WorkflowRuntimeMutationService {
                     String nodeKey = text(node, "nodeKey", "node_start");
                     String nodeType = text(node, "nodeType", "approval");
                     String nodeName = text(node, "nodeName", "审批");
-                    NodeRef current = new NodeRef(nodeKey, nodeName, nodeType);
+                    JsonNode propertyPayload = node.get("propertyPayload");
+                    NodeRef current = new NodeRef(nodeKey, nodeName, nodeType, propertyPayload);
                     if (fallback == null) {
                         fallback = current;
                     }
@@ -285,7 +332,131 @@ public class WorkflowRuntimeMutationService {
         throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "流程快照没有可执行节点");
     }
 
+    private Long resolveAssigneeMemberId(Long systemId, Long tenantId, Long starterMemberId, NodeRef node) {
+        JsonNode payload = node.propertyPayload();
+        String assigneeType = text(payload, "assigneeType", "").toUpperCase();
+        if ("MEMBER".equals(assigneeType)) {
+            Long memberId = firstBoundMember(systemId, tenantId, payload, "assigneeIds", "memberIds",
+                    "assigneeMemberIds", "systemMemberIds");
+            if (Objects.nonNull(memberId)) {
+                return memberId;
+            }
+        }
+        if ("ROLE".equals(assigneeType)) {
+            Long memberId = firstRoleAssignee(systemId, tenantId, starterMemberId, payload, "assigneeIds",
+                    "roleIds", "assigneeRoleIds", "assigneeTargets");
+            if (Objects.nonNull(memberId)) {
+                return memberId;
+            }
+        }
+        Long explicitMemberId = firstBoundMember(systemId, tenantId, payload, "assigneeMemberId",
+                "systemMemberId", "memberId");
+        return Objects.nonNull(explicitMemberId) ? explicitMemberId : starterMemberId;
+    }
+
+    private Long firstBoundMember(Long systemId, Long tenantId, JsonNode payload, String... fields) {
+        for (String field : fields) {
+            for (Long memberId : longValues(payload, field)) {
+                if (isBoundMember(systemId, tenantId, memberId)) {
+                    return memberId;
+                }
+            }
+        }
+        return null;
+    }
+
+    private Long firstRoleAssignee(Long systemId, Long tenantId, Long starterMemberId, JsonNode payload,
+                                   String... fields) {
+        Long fallback = null;
+        for (String field : fields) {
+            for (Long roleId : longValues(payload, field)) {
+                List<PlatRoleMember> roleMembers = roleMemberBaseService.list(new LambdaQueryWrapper<PlatRoleMember>()
+                        .eq(PlatRoleMember::getSystemId, systemId)
+                        .eq(PlatRoleMember::getTenantId, tenantId)
+                        .eq(PlatRoleMember::getRoleId, roleId)
+                        .isNotNull(PlatRoleMember::getSystemMemberId)
+                        .orderByAsc(PlatRoleMember::getId));
+                for (PlatRoleMember roleMember : roleMembers) {
+                    Long memberId = roleMember.getSystemMemberId();
+                    if (!isBoundMember(systemId, tenantId, memberId)) {
+                        continue;
+                    }
+                    if (!Objects.equals(memberId, starterMemberId)) {
+                        return memberId;
+                    }
+                    fallback = memberId;
+                }
+            }
+        }
+        return fallback;
+    }
+
+    private boolean isBoundMember(Long systemId, Long tenantId, Long memberId) {
+        if (Objects.isNull(memberId)) {
+            return false;
+        }
+        return accountMemberBindingBaseService.count(new LambdaQueryWrapper<PlatAccountMemberBinding>()
+                .eq(PlatAccountMemberBinding::getSystemId, systemId)
+                .eq(PlatAccountMemberBinding::getTenantId, tenantId)
+                .eq(PlatAccountMemberBinding::getSystemMemberId, memberId)
+                .eq(PlatAccountMemberBinding::getBindingStatus, ENABLED)) > 0;
+    }
+
+    private Long receiverAccountId(Long systemId, Long tenantId, Long memberId) {
+        if (Objects.isNull(memberId)) {
+            return null;
+        }
+        PlatAccountMemberBinding binding = accountMemberBindingBaseService.getOne(
+                new LambdaQueryWrapper<PlatAccountMemberBinding>()
+                        .eq(PlatAccountMemberBinding::getSystemId, systemId)
+                        .eq(PlatAccountMemberBinding::getTenantId, tenantId)
+                        .eq(PlatAccountMemberBinding::getSystemMemberId, memberId)
+                        .eq(PlatAccountMemberBinding::getBindingStatus, ENABLED)
+                        .orderByAsc(PlatAccountMemberBinding::getId)
+                        .last("LIMIT 1"), false);
+        return Objects.isNull(binding) ? null : binding.getAccountId();
+    }
+
+    private List<Long> longValues(JsonNode payload, String field) {
+        if (Objects.isNull(payload) || payload.isNull() || !payload.has(field)) {
+            return List.of();
+        }
+        JsonNode value = payload.get(field);
+        if (value.isArray()) {
+            List<Long> values = new ArrayList<>();
+            for (JsonNode item : value) {
+                Long parsed = asLong(item);
+                if (Objects.nonNull(parsed)) {
+                    values.add(parsed);
+                }
+            }
+            return values;
+        }
+        Long parsed = asLong(value);
+        return Objects.isNull(parsed) ? List.of() : List.of(parsed);
+    }
+
+    private Long asLong(JsonNode value) {
+        if (Objects.isNull(value) || value.isNull()) {
+            return null;
+        }
+        if (value.isIntegralNumber()) {
+            return value.asLong();
+        }
+        if (value.isTextual() && !value.asText().isBlank()) {
+            try {
+                return Long.parseLong(value.asText());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
     private String text(JsonNode node, String field, String fallback) {
+        if (Objects.isNull(node) || node.isNull()) {
+            return fallback;
+        }
         JsonNode value = node.get(field);
         return Objects.nonNull(value) && value.isTextual() && !value.asText().isBlank()
                 ? value.asText()
@@ -304,7 +475,7 @@ public class WorkflowRuntimeMutationService {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     }
 
-    private record NodeRef(String nodeKey, String nodeName, String nodeType) {
+    private record NodeRef(String nodeKey, String nodeName, String nodeType, JsonNode propertyPayload) {
     }
 
     /**

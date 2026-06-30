@@ -86,10 +86,11 @@
 
 ## 7. Local Build Environment Correction
 
-- The earlier `D:\Tools\...` JDK/Maven paths are not valid on the current machine.
-- Current verified JDK 21 path is `D:\java\jdk\jdk21`.
-- Current verified Maven path is `D:\java\apache-maven-3.8.5\bin\mvn.cmd`.
-- Before Java compilation, always set `JAVA_HOME=D:\java\jdk\jdk21`; the global `JAVA_HOME` may point to JDK8 even when `java -version` on PATH prints Java 21.
+- The earlier `D:\Tools\...` and `D:\java\...` JDK/Maven/npm paths are not valid on the current machine.
+- Current verified JDK 21 path is `D:\dev\jdk21`.
+- Current verified Maven path is `D:\dev\maven\bin\mvn.cmd`.
+- Current verified npm path is `D:\dev\nodejs24\npm.cmd`.
+- Before Java compilation, set `JAVA_HOME=D:\dev\jdk21`; do not rely on stale global environment variables.
 - Do not report backend verification until Maven itself reports Java 21 in `mvn -version`.
 
 ## 8. Real Deployment Default Account
@@ -111,3 +112,8 @@
 - Production frontend pages must not fall back to prototype-specific local records, module names, import/export files, or domain fixtures when an API call fails.
 - Runtime business lists must render backend schema columns and backend record fields dynamically; unavailable data must show loading, empty, no-permission, or error states.
 - Demo fixtures may only live in explicit test/fixture files and must not be imported by production route components.
+
+## 11. Final Orchestration Integrity Rule
+
+- Final release orchestration must parse child machine-readable output and fatal text. A wrapper process status is not sufficient when a child script reports `status=FAIL`, backend startup failure, release verification failure, native command failure, Node audit failure, or API failure.
+- Release packaging must hash-verify copied artifacts, including `examine-web.jar`, and fail if the release artifact is not byte-identical to the build output.

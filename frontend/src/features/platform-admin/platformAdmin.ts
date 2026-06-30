@@ -1,16 +1,30 @@
 import {
+  createPlatformArchiveRestoreRequest,
+  createPlatformBackupTask,
   createPlatformIdentityProvider,
   createPlatformModelAuthorization,
   createPlatformRole,
+  loadPlatformApiCachePolicy,
+  loadPlatformDeployments,
   loadPlatformAdminData,
   publishPlatformIdentityProvider,
+  rollbackPlatformDeployment,
+  runPlatformHealthCheck,
+  runPlatformRestoreDrill,
   runPlatformSystemLifecycle,
   runSystemHealthCheck,
   testPlatformIdentityProvider,
+  updatePlatformApiCachePolicy,
+  updatePlatformFeatureFlag,
+  updatePlatformQuota,
+  updatePlatformRateLimitPolicy,
   type AuditLogView,
   type IdentityProviderView,
   type ModelAuthorizationView,
+  type OpsApiCachePolicyView,
+  type OpsDeploymentView,
   type PlatformAdminData,
+  type PlatformAdminPageOptions,
   type PlatformSystem,
   type RoleView,
 } from '../../api/liveData';
@@ -18,25 +32,44 @@ import type { PageResult } from '../../api/types';
 import type { Navigate } from '../../app/app';
 import { shellState } from '../../app/state';
 import { createButton, createElement, createTraceLine, type ChildNodeValue } from '../../shared/components';
+import { requestConfirmation, requestFormInput, requestTextInput } from '../../shared/dialogs';
 import { createFilterBar } from '../../shared/filters';
 import { renderStatusPill, type StatusTone } from '../../shared/status';
 
 export function renderPlatformAdmin(navigate: Navigate): HTMLElement {
+  let activeSection = 'platform-info';
+  let latestData: PlatformAdminData | null = null;
+  const pageOptions: PlatformAdminPageOptions = {};
   const content = createElement('div', { className: 'admin-content' }, createLoadingPanel('正在读取平台后台数据...'));
-  const root = createElement('section', { className: 'admin-layout' }, createPlatformAdminSidebar(navigate), content);
+  const root = createElement('section', { className: 'admin-layout' }, content);
+  const changePage = (key: keyof PlatformAdminPageOptions, pageNo: number) => {
+    pageOptions[key] = Math.max(1, pageNo);
+    reload();
+  };
+  const showSection = (sectionId: string) => {
+    activeSection = sectionId;
+    root.replaceChildren(createPlatformAdminSidebar(navigate, activeSection, showSection), content);
+    if (latestData) {
+      content.replaceChildren(...createPlatformAdminContent(latestData, reload, activeSection, changePage));
+    }
+  };
   const reload = () => {
     content.replaceChildren(createLoadingPanel('正在读取平台后台数据...'));
-    void loadPlatformAdminData()
-      .then((data) => content.replaceChildren(...createPlatformAdminContent(data, reload)))
+    void loadPlatformAdminData(pageOptions)
+      .then((data) => {
+        latestData = data;
+        content.replaceChildren(...createPlatformAdminContent(data, reload, activeSection, changePage));
+      })
       .catch((error) => content.replaceChildren(createErrorPanel(error)));
   };
 
+  root.replaceChildren(createPlatformAdminSidebar(navigate, activeSection, showSection), content);
   reload();
 
   return root;
 }
 
-function createPlatformAdminSidebar(navigate: Navigate): HTMLElement {
+function createPlatformAdminSidebar(navigate: Navigate, activeSection: string, onSelect: (targetId: string) => void): HTMLElement {
   const backButton = createButton('返回平台首页', 'secondary', false);
   backButton.addEventListener('click', () => navigate('/platform'));
   return createElement(
@@ -44,17 +77,32 @@ function createPlatformAdminSidebar(navigate: Navigate): HTMLElement {
     { className: 'module-sidebar admin-sidebar' },
     createElement('strong', {}, '平台后台'),
     backButton,
-    createSidebarButton('平台信息', 'platform-info', true),
-    createSidebarButton('组织架构', 'platform-role'),
-    createSidebarButton('角色管理', 'platform-role'),
-    createSidebarButton('仪表盘管理', 'platform-info'),
-    createSidebarButton('配置管理', 'platform-config'),
-    createSidebarButton('日志管理', 'platform-logs'),
+    createSidebarButton('平台信息', 'platform-info', activeSection === 'platform-info', onSelect),
+    createSidebarButton('组织架构', 'platform-org', activeSection === 'platform-org', onSelect),
+    createSidebarButton('系统生命周期', 'platform-system', activeSection === 'platform-system', onSelect),
+    createSidebarButton('角色管理', 'platform-role', activeSection === 'platform-role', onSelect),
+    createSidebarButton('仪表盘管理', 'platform-dashboard', activeSection === 'platform-dashboard', onSelect),
+    createSidebarButton('配置管理', 'platform-config', activeSection === 'platform-config', onSelect),
+    createSidebarButton('日志管理', 'platform-logs', activeSection === 'platform-logs', onSelect),
   );
 }
 
-function createPlatformAdminContent(data: PlatformAdminData, reload: () => void): HTMLElement[] {
+function createPlatformAdminContent(
+  data: PlatformAdminData,
+  reload: () => void,
+  activeSection: string,
+  onPageChange: (key: keyof PlatformAdminPageOptions, pageNo: number) => void,
+): HTMLElement[] {
   const warningPanel = createWarningPanel(data.warnings);
+  const panels: Record<string, HTMLElement> = {
+    'platform-info': createPlatformInfoPanel(data),
+    'platform-org': createPlatformOrgPanel(data),
+    'platform-system': createSystemLifecyclePanel(data.systems, reload, (pageNo) => onPageChange('systemsPageNo', pageNo)),
+    'platform-role': createPlatformRolePanel(data.roles, reload, (pageNo) => onPageChange('rolesPageNo', pageNo)),
+    'platform-dashboard': createPlatformDashboardPanel(data),
+    'platform-config': createPlatformConfigPanel(data.identityProviders, data.modelAuthorizations, data.health?.traceId, reload, (pageNo) => onPageChange('modelAuthorizationsPageNo', pageNo)),
+    'platform-logs': createPlatformLogPanel(data.logs, (pageNo) => onPageChange('logsPageNo', pageNo)),
+  };
   return [
     createElement(
       'div',
@@ -63,11 +111,7 @@ function createPlatformAdminContent(data: PlatformAdminData, reload: () => void)
       createElement('p', {}, '平台后台只处理平台信息、平台组织、平台角色、系统生命周期、统一认证、AI Agent 授权和平台日志。'),
     ),
     ...(warningPanel ? [warningPanel] : []),
-    createPlatformInfoPanel(data),
-    createSystemLifecyclePanel(data.systems, reload),
-    createPlatformRolePanel(data.roles, reload),
-    createPlatformConfigPanel(data.identityProviders, data.modelAuthorizations, data.health?.traceId, reload),
-    createPlatformLogPanel(data.logs),
+    panels[activeSection] ?? panels['platform-info'],
   ];
 }
 
@@ -96,7 +140,39 @@ function createPlatformInfoPanel(data: PlatformAdminData): HTMLElement {
   );
 }
 
-function createSystemLifecyclePanel(page: PageResult<PlatformSystem>, reload: () => void): HTMLElement {
+function createPlatformOrgPanel(data: PlatformAdminData): HTMLElement {
+  return createElement(
+    'section',
+    { id: 'platform-org', className: 'panel' },
+    createElement('h2', {}, '平台组织架构'),
+    createElement(
+      'div',
+      { className: 'simple-stack' },
+      createElement('div', { className: 'list-line' }, createElement('span', {}, '当前账号'), createElement('strong', {}, shellState.account.displayName)),
+      createElement('div', { className: 'list-line' }, createElement('span', {}, '平台角色数'), createElement('strong', {}, String(data.roles.total))),
+      createElement('div', { className: 'list-line' }, createElement('span', {}, '企业 SSO'), createElement('strong', {}, String(data.identityProviders.length))),
+    ),
+  );
+}
+
+function createPlatformDashboardPanel(data: PlatformAdminData): HTMLElement {
+  return createElement(
+    'section',
+    { id: 'platform-dashboard', className: 'panel' },
+    createElement('h2', {}, '平台仪表盘'),
+    createElement(
+      'div',
+      { className: 'metric-grid' },
+      createMetric('系统数量', String(data.systems.total)),
+      createMetric('平台角色', String(data.roles.total)),
+      createMetric('企业 SSO', String(data.identityProviders.length)),
+      createMetric('模型授权', String(data.modelAuthorizations.total)),
+    ),
+    data.health ? createTraceLine(data.health.traceId) : null,
+  );
+}
+
+function createSystemLifecyclePanel(page: PageResult<PlatformSystem>, reload: () => void, onPageChange: (nextPage: number) => void): HTMLElement {
   return createElement(
     'section',
     { id: 'platform-system', className: 'panel' },
@@ -120,7 +196,7 @@ function createSystemLifecyclePanel(page: PageResult<PlatformSystem>, reload: ()
       ]),
       '暂无系统，请在平台工作台创建系统。',
     ),
-    createPagination(page),
+    createPagination(page, onPageChange),
   );
 }
 
@@ -129,7 +205,7 @@ function createSystemLifecycleButton(system: PlatformSystem, reload: () => void)
   const label = system.status === 1 ? '禁用' : '启用';
   const button = createButton(label, action === 'disable' ? 'ghost' : 'secondary', false);
   button.addEventListener('click', async () => {
-    const reason = lifecycleReason(label, system);
+    const reason = await lifecycleReason(label, system);
     if (!reason) {
       return;
     }
@@ -149,13 +225,8 @@ function createSystemLifecycleButton(system: PlatformSystem, reload: () => void)
   return button;
 }
 
-function lifecycleReason(label: string, system: PlatformSystem): string | undefined {
-  const reason = window.prompt(`请输入${label}「${system.systemName}」的原因`, label === '禁用' ? system.disabledReason ?? '' : '恢复系统使用');
-  const normalized = reason?.trim();
-  if (!normalized) {
-    return undefined;
-  }
-  return normalized;
+async function lifecycleReason(label: string, system: PlatformSystem): Promise<string | undefined> {
+  return requestTextInput(`系统${label}`, `${label}「${system.systemName}」的原因`, label === '禁用' ? system.disabledReason ?? '' : '恢复系统使用');
 }
 
 function createSystemHealthButton(system: PlatformSystem): HTMLButtonElement {
@@ -177,24 +248,23 @@ function createSystemHealthButton(system: PlatformSystem): HTMLButtonElement {
   return button;
 }
 
-function createPlatformRolePanel(page: PageResult<RoleView>, reload: () => void): HTMLElement {
+function createPlatformRolePanel(page: PageResult<RoleView>, reload: () => void, onPageChange: (nextPage: number) => void): HTMLElement {
   const result = createElement('p', { className: 'field-error' }, '平台角色只控制平台后台和平台工作台能力，不直接授权系统业务数据。');
   const createRoleButton = createButton('新建平台角色', 'primary', false);
   createRoleButton.addEventListener('click', async () => {
-    const roleName = window.prompt('平台角色名称');
-    if (!roleName?.trim()) {
-      return;
-    }
-    const roleCode = window.prompt('平台角色编码', `platform_role_${Date.now()}`)?.trim();
-    if (!roleCode) {
+    const values = await requestFormInput('新建平台角色', [
+      { name: 'roleName', label: '平台角色名称' },
+      { name: 'roleCode', label: '平台角色编码', defaultValue: `platform_role_${Date.now()}` },
+    ], '创建');
+    if (!values) {
       return;
     }
     createRoleButton.disabled = true;
     createRoleButton.textContent = '创建中...';
     try {
       const role = await createPlatformRole({
-        roleName: roleName.trim(),
-        roleCode,
+        roleName: values.roleName,
+        roleCode: values.roleCode,
         roleType: 'CUSTOM',
       });
       result.textContent = `平台角色已创建：${role.roleName}`;
@@ -224,7 +294,7 @@ function createPlatformRolePanel(page: PageResult<RoleView>, reload: () => void)
       ]),
       '暂无平台角色。',
     ),
-    createPagination(page),
+    createPagination(page, onPageChange),
   );
 }
 
@@ -233,28 +303,31 @@ function createPlatformConfigPanel(
   authorizations: PageResult<ModelAuthorizationView>,
   traceId?: string,
   reload?: () => void,
+  onAuthorizationPageChange?: (nextPage: number) => void,
 ): HTMLElement {
   const ssoResult = createElement('p', { className: 'field-error' }, 'SSO 身份源支持创建、测试和发布；密钥使用 SecretRef，不在页面展示明文。');
   const agentResult = createElement('p', { className: 'field-error' }, 'AI Agent 授权创建后可供系统策略选择，默认按不外发和脱敏策略保存。');
   const createProviderButton = createButton('新增身份源', 'primary', false);
   const createAuthorizationButton = createButton('新增模型授权', 'primary', false);
   createProviderButton.addEventListener('click', async () => {
-    const name = window.prompt('身份源名称，例如：企业 OIDC');
-    if (!name?.trim()) {
+    const values = await requestFormInput('新增身份源', [
+      { name: 'name', label: '身份源名称', defaultValue: '企业 OIDC' },
+      { name: 'issuer', label: 'Issuer 地址', type: 'url', required: false },
+      { name: 'clientId', label: 'Client ID', required: false },
+      { name: 'secretRefId', label: 'SecretRef ID', required: false },
+    ], '创建');
+    if (!values) {
       return;
     }
-    const issuer = window.prompt('Issuer 地址，例如：https://idp.example.com', '')?.trim();
-    const clientId = window.prompt('Client ID', '')?.trim();
-    const secretRefId = window.prompt('SecretRef ID，不填写则保存草稿但测试不会通过', '')?.trim();
     createProviderButton.disabled = true;
     createProviderButton.textContent = '创建中...';
     try {
       const provider = await createPlatformIdentityProvider({
-        name: name.trim(),
+        name: values.name,
         protocol: 'OIDC',
-        issuer,
-        clientId,
-        secretRefId,
+        issuer: values.issuer || undefined,
+        clientId: values.clientId || undefined,
+        secretRefId: values.secretRefId || undefined,
         domainWhitelist: [],
       });
       ssoResult.textContent = `身份源已创建：${provider.name} / ${provider.providerId}`;
@@ -266,16 +339,22 @@ function createPlatformConfigPanel(
     }
   });
   createAuthorizationButton.addEventListener('click', async () => {
-    const authorizationCode = window.prompt('授权编码', `model_auth_${Date.now()}`)?.trim();
-    if (!authorizationCode) {
+    const values = await requestFormInput('新增模型授权', [
+      { name: 'authorizationCode', label: '授权编码', defaultValue: `model_auth_${Date.now()}` },
+      { name: 'modelProvider', label: '模型供应商', defaultValue: 'LOCAL' },
+      { name: 'modelName', label: '模型名称', defaultValue: 'local-model' },
+    ], '创建');
+    if (!values) {
       return;
     }
-    const modelProvider = window.prompt('模型供应商', 'LOCAL')?.trim() || 'LOCAL';
-    const modelName = window.prompt('模型名称', 'local-model')?.trim() || 'local-model';
     createAuthorizationButton.disabled = true;
     createAuthorizationButton.textContent = '创建中...';
     try {
-      const authorization = await createPlatformModelAuthorization({ authorizationCode, modelProvider, modelName });
+      const authorization = await createPlatformModelAuthorization({
+        authorizationCode: values.authorizationCode,
+        modelProvider: values.modelProvider || 'LOCAL',
+        modelName: values.modelName || 'local-model',
+      });
       agentResult.textContent = `模型授权已创建：${authorization.authorizationCode} / ${authorization.modelProvider}`;
       reload?.();
     } catch (error) {
@@ -310,13 +389,136 @@ function createPlatformConfigPanel(
         authorizations.records.length === 0
           ? createElement('p', {}, '暂无模型授权，系统可在授权后使用平台模型或外部模型。')
           : createElement('div', { className: 'simple-stack' }, ...authorizations.records.map((authorization) => createAuthorizationLine(authorization))),
+        createPagination(authorizations, onAuthorizationPageChange),
       ),
     ),
+    createOpsGovernancePanel(),
     traceId ? createTraceLine(traceId) : null,
   );
 }
 
-function createPlatformLogPanel(page: PageResult<AuditLogView>): HTMLElement {
+function createOpsGovernancePanel(): HTMLElement {
+  const result = createElement('p', { className: 'field-error' }, '运维动作会返回体检、任务、traceId 或 dry-run 边界，危险操作不会直接破坏数据。');
+  const deploymentList = createElement('div', { className: 'simple-stack' }, createElement('p', {}, '点击读取部署记录。'));
+  const cacheList = createElement('div', { className: 'simple-stack' }, createElement('p', {}, '点击读取 API 缓存策略。'));
+
+  const healthButton = createOpsButton('平台体检', async () => {
+    const health = await runPlatformHealthCheck('FULL');
+    result.textContent = `平台体检：${health.status}，风险 ${health.risks.length} 项，traceId=${health.traceId}`;
+  });
+  const flagButton = createOpsButton('更新功能开关', async () => {
+    const flag = await updatePlatformFeatureFlag('flag_gray_publish');
+    result.textContent = `功能开关已保存：${flag.flagCode}，回滚版本=${flag.rollbackVersion}，traceId=${flag.traceId}`;
+  });
+  const quotaButton = createOpsButton('更新容量配额', async () => {
+    const quota = await updatePlatformQuota('quota_openapi');
+    result.textContent = `容量配额已保存：${quota.quotaType} ${quota.quotaUsed}/${quota.quotaLimit}，traceId=${quota.traceId}`;
+  });
+  const rateLimitButton = createOpsButton('更新限流策略', async () => {
+    const policy = await updatePlatformRateLimitPolicy('rl_openapi_app');
+    result.textContent = `限流策略已保存：${policy.policyCode}，traceId=${policy.traceId}`;
+  });
+  const backupButton = createOpsButton('创建备份任务', async () => {
+    const task = await createPlatformBackupTask();
+    result.textContent = `备份任务已创建：${task.taskId} / ${task.status}，traceId=${task.traceId}`;
+  });
+  const restoreButton = createOpsButton('恢复演练', async () => {
+    const task = await runPlatformRestoreDrill();
+    result.textContent = `恢复演练任务已创建：${task.taskId} / rollback=${task.rollbackSupported}，traceId=${task.traceId}`;
+  });
+  const archiveButton = createOpsButton('归档恢复申请', async () => {
+    const task = await createPlatformArchiveRestoreRequest();
+    result.textContent = `归档恢复任务已创建：${task.taskId} / rollback=${task.rollbackSupported}，traceId=${task.traceId}`;
+  });
+  const deploymentsButton = createOpsButton('读取部署记录', async () => {
+    const deployments = await loadPlatformDeployments();
+    deploymentList.replaceChildren(...deployments.records.map(createDeploymentLine));
+    result.textContent = `部署记录已读取：${deployments.total} 条`;
+  });
+  const rollbackButton = createOpsButton('部署回滚演练', async () => {
+    const deployments = await loadPlatformDeployments();
+    const deploymentId = deployments.records[0]?.deploymentId ?? 'deploy_20260623_001';
+    const task = await rollbackPlatformDeployment(deploymentId);
+    result.textContent = `部署回滚演练已创建：${task.taskId} / rollback=${task.rollbackSupported}，traceId=${task.traceId}`;
+  });
+  const cacheButton = createOpsButton('读取缓存策略', async () => {
+    const policies = await loadPlatformApiCachePolicy();
+    cacheList.replaceChildren(...policies.map(createCachePolicyLine));
+    result.textContent = `API 缓存策略已读取：${policies.length} 条`;
+  });
+  const cacheUpdateButton = createOpsButton('更新缓存策略', async () => {
+    const policies = await updatePlatformApiCachePolicy();
+    cacheList.replaceChildren(...policies.map(createCachePolicyLine));
+    result.textContent = `API 缓存策略已保存：${policies[0]?.policyCode ?? '-'}，traceId=${policies[0]?.traceId ?? '-'}`;
+  });
+
+  return createElement(
+    'div',
+    { id: 'platform-ops-governance', className: 'result-panel' },
+    createElement('strong', {}, '上线保障与运维治理'),
+    createElement('div', { className: 'inline-actions' },
+      healthButton,
+      flagButton,
+      quotaButton,
+      rateLimitButton,
+      backupButton,
+      restoreButton,
+      archiveButton,
+      deploymentsButton,
+      rollbackButton,
+      cacheButton,
+      cacheUpdateButton,
+    ),
+    result,
+    createElement('div', { className: 'split-grid' }, deploymentList, cacheList),
+  );
+}
+
+function createOpsButton(label: string, action: () => Promise<void>): HTMLButtonElement {
+  const button = createButton(label, 'secondary', false);
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    const original = button.textContent ?? label;
+    button.textContent = `${label}中...`;
+    try {
+      await action();
+      button.textContent = label;
+    } catch (error) {
+      button.textContent = `${label}失败`;
+      button.title = error instanceof Error ? error.message : '运维动作失败。';
+    } finally {
+      button.disabled = false;
+      if (button.textContent === `${label}失败`) {
+        window.setTimeout(() => {
+          button.textContent = original;
+        }, 1800);
+      }
+    }
+  });
+  return button;
+}
+
+function createDeploymentLine(deployment: OpsDeploymentView): HTMLElement {
+  return createElement(
+    'div',
+    { className: 'list-line' },
+    createElement('span', {}, `${deployment.deploymentNo} / ${deployment.envCode}`),
+    renderStatusPill(deployment.status, deployment.status === 'STABLE' ? 'success' : 'warning'),
+    createElement('small', {}, deployment.rollbackPlan),
+  );
+}
+
+function createCachePolicyLine(policy: OpsApiCachePolicyView): HTMLElement {
+  return createElement(
+    'div',
+    { className: 'list-line' },
+    createElement('span', {}, `${policy.policyCode} / ${policy.cacheDomain}`),
+    renderStatusPill(enableStatusText(policy.status), enableStatusTone(policy.status)),
+    createElement('small', {}, policy.keyRule),
+  );
+}
+
+function createPlatformLogPanel(page: PageResult<AuditLogView>, onPageChange: (nextPage: number) => void): HTMLElement {
   return createElement(
     'section',
     { id: 'platform-logs', className: 'panel' },
@@ -336,7 +538,7 @@ function createPlatformLogPanel(page: PageResult<AuditLogView>): HTMLElement {
       ]),
       '暂无平台日志。',
     ),
-    createPagination(page),
+    createPagination(page, onPageChange),
   );
 }
 
@@ -344,15 +546,17 @@ function createProviderLine(provider: IdentityProviderView, reload: (() => void)
   const testButton = createButton('测试', 'secondary', false);
   const publishButton = createButton('发布', 'primary', provider.status === 'ENABLED', provider.status === 'ENABLED' ? '身份源已发布。' : undefined);
   testButton.addEventListener('click', async () => {
-    const redirectUri = window.prompt('测试回调地址', `${window.location.origin}/sso/callback`)?.trim();
-    if (!redirectUri) {
+    const values = await requestFormInput('测试身份源', [
+      { name: 'redirectUri', label: '测试回调地址', defaultValue: `${window.location.origin}/sso/callback`, type: 'url' },
+      { name: 'testLoginName', label: '测试登录名', defaultValue: shellState.account.displayName },
+    ], '测试');
+    if (!values) {
       return;
     }
-    const testLoginName = window.prompt('测试登录名', shellState.account.displayName)?.trim() || shellState.account.displayName;
     testButton.disabled = true;
     testButton.textContent = '测试中...';
     try {
-      const tested = await testPlatformIdentityProvider(provider.providerId, redirectUri, testLoginName);
+      const tested = await testPlatformIdentityProvider(provider.providerId, values.redirectUri, values.testLoginName || shellState.account.displayName);
       testButton.disabled = false;
       testButton.textContent = tested.passed ? '测试通过' : '测试未过';
       testButton.title = `traceId=${tested.traceId}`;
@@ -364,7 +568,7 @@ function createProviderLine(provider: IdentityProviderView, reload: (() => void)
     }
   });
   publishButton.addEventListener('click', async () => {
-    if (publishButton.disabled || !window.confirm(`确认发布身份源「${provider.name}」吗？`)) {
+    if (publishButton.disabled || !(await requestConfirmation('发布身份源', `确认发布身份源「${provider.name}」吗？`, '发布'))) {
       return;
     }
     publishButton.disabled = true;
@@ -429,23 +633,25 @@ function createTable(headers: string[], rows: ChildNodeValue[][], emptyText: str
   );
 }
 
-function createSidebarButton(label: string, targetId: string, active = false): HTMLButtonElement {
+function createSidebarButton(label: string, targetId: string, active = false, onSelect?: (targetId: string) => void): HTMLButtonElement {
   const button = createElement('button', { className: active ? 'sidebar-item active' : 'sidebar-item' }, label);
   button.addEventListener('click', () => {
-    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    button.closest('.admin-sidebar')?.querySelectorAll('.sidebar-item').forEach((item) => item.classList.remove('active'));
-    button.classList.add('active');
+    onSelect?.(targetId);
   });
   return button;
 }
 
-function createPagination<T>(page: PageResult<T>): HTMLElement {
+function createPagination<T>(page: PageResult<T>, onPageChange?: (nextPage: number) => void): HTMLElement {
+  const previousButton = createButton('上一页', 'ghost', page.pageNo <= 1 || !onPageChange, onPageChange ? '已经是第一页' : '当前后台聚合列表不支持翻页。');
+  const nextButton = createButton('下一页', 'ghost', !page.hasNext || !onPageChange, onPageChange ? '没有更多数据' : '当前后台聚合列表不支持翻页。');
+  previousButton.addEventListener('click', () => onPageChange?.(page.pageNo - 1));
+  nextButton.addEventListener('click', () => onPageChange?.(page.pageNo + 1));
   return createElement(
     'footer',
     { className: 'pagination' },
     createElement('span', {}, `第 ${page.pageNo} 页，每页 ${page.pageSize} 条，共 ${page.total} 条`),
-    createButton('上一页', 'ghost', page.pageNo <= 1, '已经是第一页'),
-    createButton('下一页', 'ghost', !page.hasNext, '没有更多数据'),
+    previousButton,
+    nextButton,
   );
 }
 

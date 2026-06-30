@@ -1,5 +1,6 @@
 import {
   autoDraftDailyReport,
+  archiveSystemMessage,
   createDailyReport,
   createPlainTask,
   createProjectTask,
@@ -14,6 +15,7 @@ import {
   loadWorkDashboard,
   loadWorkProjects,
   markSystemMessageRead,
+  markAllSystemMessagesRead,
   messageTargetToPath,
   todoTargetToPath,
   type DailyReport,
@@ -31,8 +33,9 @@ import {
 } from '../../api/liveData';
 import type { PageResult } from '../../api/types';
 import type { Navigate } from '../../app/app';
-import { canEnterSystemAdmin, shellState, switchToSystem } from '../../app/state';
+import { canEnterSystemAdmin, loadSystemTenants, shellState, switchTenant as switchToTenant, switchToSystem, type TenantOption } from '../../app/state';
 import { createButton, createElement, createTraceLine } from '../../shared/components';
+import { requestFormInput, requestTextInput } from '../../shared/dialogs';
 import { createFilterBar, createKeywordFilterBar } from '../../shared/filters';
 import { renderStatusPill } from '../../shared/status';
 import { renderRuntimeRecordPage } from '../runtime/records/runtimeRecords';
@@ -49,18 +52,18 @@ let activeWorkTask: WorkTask | undefined;
 let activeWorkCreate: 'project' | 'project-task' | 'plain-task' | 'daily-report' | undefined;
 let workActionMessage: string | undefined;
 let headerNavigation: Pick<RuntimeLiveData, 'groups' | 'modules'> | undefined;
+let headerTenants: TenantOption[] = [];
 let todoPageNo = 1;
 let todoKeyword = '';
 let activeTodoAction: { todo: TodoRow; action: TodoAction } | undefined;
-let todoActionMessage: string | undefined;
-let systemMessagePageNo = 1;
-let systemMessageKeyword = '';
+let messagePageNo = 1;
+let messageKeyword = '';
+let messageReadStatus: 'all' | 'unread' | 'read' = 'all';
+let messageArchiveStatus: 'active' | 'archived' = 'active';
+let messageActionResult: string | undefined;
 let projectTaskPageNo = 1;
 let plainTaskPageNo = 1;
 let dailyReportPageNo = 1;
-let projectTaskKeyword = '';
-let plainTaskKeyword = '';
-let dailyReportKeyword = '';
 
 export function renderSystemShell(route: string, navigate: Navigate): HTMLElement {
   const root = createElement('div', { className: 'workspace-shell' });
@@ -85,20 +88,23 @@ export function renderSystemShell(route: string, navigate: Navigate): HTMLElemen
     void switchToSystem(requestedSystemId, option?.tenantId, 'system route guard')
       .then(() => {
         headerNavigation = undefined;
+        headerTenants = [];
         render();
-        return loadSystemModuleNavigation(activeSystemId());
+        return Promise.all([loadSystemModuleNavigation(activeSystemId()), loadSystemTenants(activeSystemId())]);
       })
-      .then((navigation) => {
+      .then(([navigation, tenants]) => {
         headerNavigation = navigation;
+        headerTenants = tenants;
         render();
       })
       .catch((error) => root.replaceChildren(createSystemContextError(error, navigate, requestedSystemId)));
     return root;
   }
   render();
-  void loadSystemModuleNavigation(activeSystemId())
-    .then((navigation) => {
+  void Promise.all([loadSystemModuleNavigation(activeSystemId()), loadSystemTenants(activeSystemId())])
+    .then(([navigation, tenants]) => {
       headerNavigation = navigation;
+      headerTenants = tenants;
       render();
     })
     .catch(() => undefined);
@@ -112,6 +118,7 @@ function createSystemHeader(navigate: Navigate): HTMLElement {
   };
   const adminButton = canEnterSystemAdmin() ? createButton('系统后台', 'secondary', false) : null;
   const messageButton = createButton('消息', 'ghost', false);
+  const tenantSwitcher = createTenantSwitcher(system.systemId, navigate);
   const switchButton = createButton('系统切换', 'ghost', false);
   const profileButton = createButton(shellState.account.displayName, 'ghost', false);
   messageButton.addEventListener('click', () => navigate(`/systems/${system.systemId}/messages`));
@@ -139,6 +146,7 @@ function createSystemHeader(navigate: Navigate): HTMLElement {
       'div',
       { className: 'header-actions' },
       messageButton,
+      tenantSwitcher,
       switchButton,
       adminButton,
       profileButton,
@@ -198,10 +206,17 @@ function createDashboard(navigate: Navigate): HTMLElement {
   root.replaceChildren(createLoadingPanel('正在读取工作仪表盘...'));
   void loadWorkDashboard(activeSystemId())
     .then((dashboard) => {
-      const openModuleButton = createButton('打开业务模块', 'primary', false);
-      openModuleButton.addEventListener('click', () => navigate(`/systems/${activeSystemId()}/modules`));
+      const hasRuntimeModules = (headerNavigation?.modules ?? []).length > 0;
+      const openModuleButton = createButton(hasRuntimeModules ? '打开业务模块' : '配置业务模块', 'primary', false);
+      openModuleButton.addEventListener('click', () => {
+        navigate(hasRuntimeModules || !canEnterSystemAdmin()
+          ? `/systems/${activeSystemId()}/modules`
+          : `/systems/${activeSystemId()}/admin`);
+      });
+      const initializationPrompt = !hasRuntimeModules && canEnterSystemAdmin() ? [createSystemInitializationPrompt(navigate)] : [];
       root.replaceChildren(
         createElement('div', { className: 'page-heading' }, createElement('h1', {}, '系统仪表盘'), createElement('p', {}, '当前系统成员权限范围内的概览、预警、日历和待处理事项。')),
+        ...initializationPrompt,
         createElement(
           'div',
           { className: 'metric-grid' },
@@ -220,14 +235,30 @@ function createDashboard(navigate: Navigate): HTMLElement {
   return root;
 }
 
+function createSystemInitializationPrompt(navigate: Navigate): HTMLElement {
+  const adminButton = createButton('进入系统初始化', 'primary', false);
+  adminButton.addEventListener('click', () => navigate(`/systems/${activeSystemId()}/admin`));
+  return createElement(
+    'section',
+    { className: 'onboarding-panel' },
+    createElement('div', { className: 'runtime-card-head' },
+      createElement('div', {}, createElement('h2', {}, '当前系统还没有可用业务模块'), createElement('p', {}, '先完成组织、角色、模块、流程和发布检查，再把系统交给普通成员使用。')),
+      renderStatusPill('待初始化', 'warning'),
+    ),
+    createElement(
+      'div',
+      { className: 'onboarding-mini-grid' },
+      createElement('span', {}, '1. 配置组织与成员'),
+      createElement('span', {}, '2. 配置角色权限'),
+      createElement('span', {}, '3. 创建并发布模块'),
+      createElement('span', {}, '4. 绑定流程、字典和运行态动作'),
+    ),
+    createElement('div', { className: 'inline-actions' }, adminButton),
+  );
+}
+
 function createTodoWorkbench(navigate: Navigate): HTMLElement {
   const root = createElement('section', { className: 'content-panel' });
-  let currentTodos: TodoSearchResult | undefined;
-  const renderCurrent = () => {
-    if (currentTodos) {
-      root.replaceChildren(createTodoContent(currentTodos, navigate, load, renderCurrent));
-    }
-  };
   const load = () => {
     root.replaceChildren(createLoadingPanel('正在读取待办...'));
     void loadSystemTodos(activeSystemId(), {
@@ -237,11 +268,10 @@ function createTodoWorkbench(navigate: Navigate): HTMLElement {
       keyword: todoKeyword,
     })
       .then((todos) => {
-        currentTodos = todos;
         activeTodoAction = activeTodoAction && todos.page.records.some((row) => row.todoId === activeTodoAction?.todo.todoId)
           ? activeTodoAction
           : undefined;
-        root.replaceChildren(createTodoContent(todos, navigate, load, renderCurrent));
+        root.replaceChildren(createTodoContent(todos, navigate, load));
       })
       .catch((error) => root.replaceChildren(createErrorPanel(error)));
   };
@@ -249,7 +279,7 @@ function createTodoWorkbench(navigate: Navigate): HTMLElement {
   return root;
 }
 
-function createTodoContent(todos: TodoSearchResult, navigate: Navigate, reload: () => void, renderCurrent: () => void): HTMLElement {
+function createTodoContent(todos: TodoSearchResult, navigate: Navigate, reload: () => void): HTMLElement {
   return createElement(
     'section',
     { className: 'content-panel' },
@@ -277,8 +307,7 @@ function createTodoContent(todos: TodoSearchResult, navigate: Navigate, reload: 
             reload();
           },
         }),
-        createTodoTable(todos.page.records, navigate, reload, renderCurrent),
-        createTodoActionPanel(activeTodoAction, reload, renderCurrent),
+        createTodoTable(todos.page.records, navigate, reload),
         createPagination(todos.page, (nextPage) => {
           todoPageNo = nextPage;
           activeTodoAction = undefined;
@@ -329,7 +358,7 @@ function createTodoRow(row: TodoRow, index: number, navigate: Navigate, reload: 
       const button = createButton(action.actionName, 'ghost', !action.enabled, action.disabledReason);
       button.addEventListener('click', async (event) => {
         event.stopPropagation();
-        const payload = todoActionPayload(action.actionCode);
+        const payload = await todoActionPayload(action.actionCode);
         if (payload === null) {
           return;
         }
@@ -350,30 +379,35 @@ function createTodoRow(row: TodoRow, index: number, navigate: Navigate, reload: 
   return tr;
 }
 
-function todoActionPayload(actionCode: string): {
+async function todoActionPayload(actionCode: string): Promise<{
   comment?: string;
   reason?: string;
   transferTargetId?: string;
   transferTargetName?: string;
-} | null {
+} | null> {
   if (actionCode === 'approve') {
+    const comment = await requestTextInput('审批通过', '审批意见', '同意', false);
     return {
-      comment: window.prompt('请输入审批意见', '同意')?.trim() || '同意',
+      comment: comment || '同意',
     };
   }
   if (actionCode === 'reject') {
-    const reason = window.prompt('请输入拒绝原因', '不符合审批要求')?.trim();
+    const reason = await requestTextInput('审批拒绝', '拒绝原因', '不符合审批要求');
     return reason ? { reason } : null;
   }
   if (actionCode === 'transfer') {
-    const transferTargetId = window.prompt('请输入转交目标系统成员 ID')?.trim();
-    if (!transferTargetId) {
+    const values = await requestFormInput('转交审批', [
+      { name: 'transferTargetId', label: '目标系统成员 ID' },
+      { name: 'transferTargetName', label: '目标姓名', required: false },
+      { name: 'reason', label: '转交原因', defaultValue: '转交给更合适的审批人' },
+    ], '转交');
+    if (!values) {
       return null;
     }
     return {
-      transferTargetId,
-      transferTargetName: window.prompt('请输入转交目标姓名，可为空', '')?.trim() || undefined,
-      reason: window.prompt('请输入转交原因', '转交给更合适的审批人')?.trim() || '转交给更合适的审批人',
+      transferTargetId: values.transferTargetId,
+      transferTargetName: values.transferTargetName || undefined,
+      reason: values.reason || '转交给更合适的审批人',
     };
   }
   return {};
@@ -381,29 +415,129 @@ function todoActionPayload(actionCode: string): {
 
 function createMessageCenter(navigate: Navigate): HTMLElement {
   const root = createElement('section', { className: 'content-panel message-center' });
-  root.replaceChildren(createLoadingPanel('正在读取消息...'));
-  void loadSystemMessages(activeSystemId())
-    .then((page) => root.replaceChildren(createMessageContent(page.records, navigate), createPagination(page)))
-    .catch((error) => root.replaceChildren(createErrorPanel(error)));
+  const reload = () => {
+    root.replaceChildren(createLoadingPanel('\u6b63\u5728\u8bfb\u53d6\u6d88\u606f...'));
+    void loadSystemMessages(activeSystemId(), {
+      pageNo: messagePageNo,
+      pageSize: 20,
+      keyword: messageKeyword,
+      readStatus: messageReadStatus,
+      archiveStatus: messageArchiveStatus,
+    })
+      .then((page) => root.replaceChildren(createMessageContent(page, navigate, reload)))
+      .catch((error) => root.replaceChildren(createErrorPanel(error)));
+  };
+  reload();
   return root;
 }
 
-function createMessageContent(messages: MessageCard[], navigate: Navigate): HTMLElement {
+function createMessageContent(page: PageResult<MessageCard>, navigate: Navigate, reload: () => void): HTMLElement {
   return createElement(
     'section',
     { className: 'content-panel message-center' },
-    createElement('div', { className: 'page-heading' }, createElement('h1', {}, '消息'), createElement('p', {}, '消息按时间流展示，整条消息点击跳转到审批、业务详情或工作对象，不再重复放查看按钮。')),
-    createFilterBar(['系统', '租户', '消息模板', '类型', '时间']),
-    createElement('div', { className: 'message-stream detail-message-stream' }, ...messages.map((message) => createMessageItem(message, navigate))),
+    createElement('div', { className: 'page-heading' }, createElement('h1', {}, '\u6d88\u606f'), createElement('p', {}, '\u6d88\u606f\u6309\u65f6\u95f4\u6d41\u5c55\u793a\uff0c\u6574\u6761\u6d88\u606f\u70b9\u51fb\u8df3\u8f6c\u5230\u5ba1\u6279\u3001\u4e1a\u52a1\u8be6\u60c5\u6216\u5de5\u4f5c\u5bf9\u8c61\uff0c\u8f85\u52a9\u64cd\u4f5c\u53ea\u5904\u7406\u9605\u8bfb\u548c\u5f52\u6863\u72b6\u6001\u3002')),
+    createMessageToolbar(page, reload),
+    messageActionResult ? createElement('section', { className: 'runtime-card' }, messageActionResult) : null,
+    page.records.length === 0
+      ? createElement('section', { className: 'runtime-card' }, messageArchiveStatus === 'archived' ? '\u6682\u65e0\u5f52\u6863\u6d88\u606f' : '\u6682\u65e0\u6d88\u606f')
+      : createElement('div', { className: 'message-stream detail-message-stream' }, ...page.records.map((message) => createMessageItem(message, navigate, reload))),
+    createPagination(page, (nextPage) => {
+      messagePageNo = nextPage;
+      reload();
+    }),
   );
 }
 
-function createMessageItem(message: MessageCard, navigate: Navigate): HTMLElement {
+function createMessageToolbar(page: PageResult<MessageCard>, reload: () => void): HTMLElement {
+  const markAllButton = createButton('\u5168\u90e8\u6807\u4e3a\u5df2\u8bfb', 'secondary', page.total === 0 || messageArchiveStatus === 'archived', page.total === 0 ? '\u5f53\u524d\u7b5b\u9009\u6ca1\u6709\u6d88\u606f\u3002' : '\u5f52\u6863\u6d88\u606f\u4e0d\u9700\u8981\u6279\u91cf\u6807\u8bb0\u3002');
+  markAllButton.addEventListener('click', async () => {
+    const result = await markAllSystemMessagesRead(activeSystemId(), {
+      keyword: messageKeyword,
+      readStatus: messageReadStatus,
+      archiveStatus: messageArchiveStatus,
+    });
+    messageActionResult = `\u5df2\u8bfb\u66f4\u65b0\uff1a${result.affectedCount} \u6761\uff0ctraceId=${result.traceId}`;
+    reload();
+  });
+
+  return createElement(
+    'div',
+    { className: 'simple-stack' },
+    createKeywordFilterBar({
+      label: '\u6d88\u606f\u5173\u952e\u5b57',
+      value: messageKeyword,
+      onApply: (keyword) => {
+        messageKeyword = keyword;
+        messagePageNo = 1;
+        messageActionResult = undefined;
+        reload();
+      },
+      onReset: () => {
+        messageKeyword = '';
+        messagePageNo = 1;
+        messageActionResult = undefined;
+        reload();
+      },
+    }),
+    createElement(
+      'div',
+      { className: 'inline-actions' },
+      createMessageStateButton('\u5168\u90e8', 'all', messageReadStatus, (value) => {
+        messageReadStatus = value;
+        messagePageNo = 1;
+        messageActionResult = undefined;
+        reload();
+      }),
+      createMessageStateButton('\u672a\u8bfb', 'unread', messageReadStatus, (value) => {
+        messageReadStatus = value;
+        messagePageNo = 1;
+        messageActionResult = undefined;
+        reload();
+      }),
+      createMessageStateButton('\u5df2\u8bfb', 'read', messageReadStatus, (value) => {
+        messageReadStatus = value;
+        messagePageNo = 1;
+        messageActionResult = undefined;
+        reload();
+      }),
+      createMessageArchiveButton('\u5f53\u524d\u6d88\u606f', 'active', reload),
+      createMessageArchiveButton('\u5df2\u5f52\u6863', 'archived', reload),
+      markAllButton,
+    ),
+  );
+}
+
+function createMessageStateButton<T extends string>(label: string, value: T, activeValue: T, onSelect: (value: T) => void): HTMLButtonElement {
+  const button = createButton(label, value === activeValue ? 'primary' : 'ghost', false);
+  button.addEventListener('click', () => onSelect(value));
+  return button;
+}
+
+function createMessageArchiveButton(label: string, value: 'active' | 'archived', reload: () => void): HTMLButtonElement {
+  const button = createButton(label, value === messageArchiveStatus ? 'primary' : 'ghost', false);
+  button.addEventListener('click', () => {
+    messageArchiveStatus = value;
+    messagePageNo = 1;
+    messageActionResult = undefined;
+    reload();
+  });
+  return button;
+}
+
+function createMessageItem(message: MessageCard, navigate: Navigate, reload: () => void): HTMLElement {
+  const archiveButton = createButton('\u5f52\u6863', 'ghost', message.archiveStatus === 'archived', message.archiveStatus === 'archived' ? '\u6d88\u606f\u5df2\u5f52\u6863\u3002' : undefined);
+  archiveButton.addEventListener('click', async (event) => {
+    event.stopPropagation();
+    const result = await archiveSystemMessage(activeSystemId(), message.messageId);
+    messageActionResult = `\u5df2\u5f52\u6863\uff1a${result.affectedCount} \u6761\uff0ctraceId=${result.traceId}`;
+    reload();
+  });
   const item = createElement(
     'article',
-    { className: `message-item message-jump-card${message.readStatus === 'READ' ? ' read' : ''}` },
+    { className: `message-item message-jump-card${message.readStatus === 'read' ? ' read' : ''}` },
     createElement('div', { className: 'message-title-row' }, createElement('strong', {}, message.title), createElement('time', {}, message.createdAt)),
     createElement('p', {}, message.content),
+    createElement('div', { className: 'inline-actions' }, renderStatusPill(message.readStatus, message.readStatus === 'read' ? 'success' : 'warning'), renderStatusPill(message.archiveStatus, message.archiveStatus === 'archived' ? 'info' : 'success'), archiveButton),
     createElement('small', {}, `${message.templateCode} / ${message.type} / traceId=${message.traceId}`),
   );
   item.addEventListener('click', async () => {
@@ -431,9 +565,9 @@ function createWorkPreview(): HTMLElement {
     void Promise.all([
       loadWorkDashboard(activeSystemId()),
       loadWorkProjects(activeSystemId()),
-      loadProjectTasks(activeSystemId()),
-      loadPlainTasks(activeSystemId()),
-      loadDailyReports(activeSystemId()),
+      loadProjectTasks(activeSystemId(), { pageNo: projectTaskPageNo, pageSize: 20 }),
+      loadPlainTasks(activeSystemId(), { pageNo: plainTaskPageNo, pageSize: 20 }),
+      loadDailyReports(activeSystemId(), { pageNo: dailyReportPageNo, pageSize: 20 }),
     ])
       .then(([dashboard, projects, projectTasks, plainTasks, reports]) => render({ dashboard, projects, projectTasks, plainTasks, reports }))
       .catch((error) => render(undefined, error));
@@ -465,6 +599,10 @@ function createWorkContent(data: WorkData, render: (data: WorkData) => void, rel
           }, (task) => {
             activeWorkTask = task;
             render(data);
+          }, (pageNo) => {
+            projectTaskPageNo = pageNo;
+            activeWorkTask = undefined;
+            reload();
           }, render, data, reload)
         : activeWorkTab === 'plain'
           ? createTaskSection('普通任务', data.plainTasks, plainTaskView, (view) => {
@@ -473,8 +611,15 @@ function createWorkContent(data: WorkData, render: (data: WorkData) => void, rel
             }, (task) => {
               activeWorkTask = task;
               render(data);
+            }, (pageNo) => {
+              plainTaskPageNo = pageNo;
+              activeWorkTask = undefined;
+              reload();
             }, render, data, reload)
-          : createDailyReportPanel(data.reports, render, data, reload),
+          : createDailyReportPanel(data.reports, render, data, reload, (pageNo) => {
+              dailyReportPageNo = pageNo;
+              reload();
+            }),
     createTraceLine(data.dashboard.traceId ?? `frontend_work_${activeSystemId()}`),
   );
 }
@@ -549,6 +694,7 @@ function createTaskSection(
   view: TaskView,
   setView: (view: TaskView) => void,
   selectTask: (task: WorkTask) => void,
+  onPageChange: (pageNo: number) => void,
   render: (data: WorkData) => void,
   data: WorkData,
   reload: () => void,
@@ -575,7 +721,7 @@ function createTaskSection(
     activeWorkCreate === 'project' && title === '项目任务' ? createWorkCreatePanel('project', reload, data.projects) : null,
     activeWorkCreate === taskCreateType ? createWorkCreatePanel(taskCreateType, reload, data.projects) : null,
     workActionMessage ? createElement('section', { className: 'runtime-card' }, workActionMessage) : null,
-    view === 'list' ? createTaskList(page, selectTask) : createTaskKanban(page.records, selectTask),
+    view === 'list' ? createTaskList(page, selectTask, onPageChange) : createTaskKanban(page.records, selectTask),
     activeWorkTask ? createTaskDetailCard(activeWorkTask) : null,
   );
 }
@@ -610,6 +756,7 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
       if (createType === 'project') {
         const project = await createWorkProject(activeSystemId(), { projectName: titleInput.value.trim() || `新项目 ${Date.now()}` });
         workActionMessage = `项目已创建：${project.projectName}`;
+        projectTaskPageNo = 1;
       } else if (createType === 'project-task') {
         const task = await createProjectTask(activeSystemId(), {
           title: titleInput.value.trim() || `项目任务 ${Date.now()}`,
@@ -618,6 +765,7 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
           fieldValues: contentInput.value.trim() ? { description: contentInput.value.trim() } : {},
         });
         workActionMessage = `项目任务已创建：${task.title}`;
+        projectTaskPageNo = 1;
       } else if (createType === 'plain-task') {
         const task = await createPlainTask(activeSystemId(), {
           title: titleInput.value.trim() || `普通任务 ${Date.now()}`,
@@ -625,6 +773,7 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
           fieldValues: contentInput.value.trim() ? { description: contentInput.value.trim() } : {},
         });
         workActionMessage = `普通任务已创建：${task.title}`;
+        plainTaskPageNo = 1;
       } else {
         const today = new Date().toISOString().slice(0, 10);
         const report = await createDailyReport(activeSystemId(), {
@@ -634,6 +783,7 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
           submitNow: false,
         });
         workActionMessage = `日报草稿已保存：${report.date}`;
+        dailyReportPageNo = 1;
       }
       activeWorkCreate = undefined;
       reload();
@@ -668,7 +818,7 @@ function createProjectSelect(projects: PageResult<WorkProject>): HTMLSelectEleme
   return select;
 }
 
-function createTaskList(page: PageResult<WorkTask>, selectTask: (task: WorkTask) => void): HTMLElement {
+function createTaskList(page: PageResult<WorkTask>, selectTask: (task: WorkTask) => void, onPageChange: (pageNo: number) => void): HTMLElement {
   if (page.records.length === 0) {
     return createElement('section', { className: 'runtime-card' }, '暂无任务');
   }
@@ -681,7 +831,7 @@ function createTaskList(page: PageResult<WorkTask>, selectTask: (task: WorkTask)
       createElement('thead', {}, createElement('tr', {}, createElement('th', {}, '序号'), createElement('th', {}, '标题'), createElement('th', {}, '项目'), createElement('th', {}, '负责人'), createElement('th', {}, '进度'), createElement('th', {}, '状态'), createElement('th', {}, '到期'))),
       createElement('tbody', {}, ...page.records.map((task, index) => createTaskRow(task, index, selectTask))),
     ),
-    createPagination(page),
+    createPagination(page, onPageChange),
   );
 }
 
@@ -746,7 +896,7 @@ function createTaskDetailCard(task: WorkTask): HTMLElement {
   );
 }
 
-function createDailyReportPanel(page: PageResult<DailyReport>, render: (data: WorkData) => void, data: WorkData, reload: () => void): HTMLElement {
+function createDailyReportPanel(page: PageResult<DailyReport>, render: (data: WorkData) => void, data: WorkData, reload: () => void, onPageChange: (pageNo: number) => void): HTMLElement {
   const manualButton = createWorkCreateButton('手动填写', 'daily-report', data, render);
   const autoDraftButton = createButton('自动生成今日日报', 'secondary', false);
   autoDraftButton.addEventListener('click', async () => {
@@ -776,18 +926,50 @@ function createDailyReportPanel(page: PageResult<DailyReport>, render: (data: Wo
     page.records.length === 0
       ? createElement('section', { className: 'runtime-card' }, '暂无日报')
       : createElement('div', { className: 'simple-stack' }, ...page.records.map((report) => createElement('div', { className: 'list-line clickable-row' }, createElement('span', {}, `${report.date}：${report.content}`), renderStatusPill(report.status, report.status === 'SUBMITTED' ? 'success' : 'warning')))),
-    createPagination(page),
+    createPagination(page, onPageChange),
   );
 }
 
-function createPagination<T>(page: PageResult<T>): HTMLElement {
+function createPagination<T>(page: PageResult<T>, onPageChange?: (pageNo: number) => void): HTMLElement {
+  const previousButton = createButton('上一页', 'ghost', page.pageNo <= 1 || !onPageChange, onPageChange ? '已经是第一页' : '当前列表不支持翻页。');
+  const nextButton = createButton('下一页', 'ghost', !page.hasNext || !onPageChange, onPageChange ? '没有更多数据' : '当前列表不支持翻页。');
+  previousButton.addEventListener('click', () => onPageChange?.(page.pageNo - 1));
+  nextButton.addEventListener('click', () => onPageChange?.(page.pageNo + 1));
   return createElement(
     'footer',
     { className: 'pagination' },
     createElement('span', {}, `第 ${page.pageNo} 页，每页 ${page.pageSize} 条，共 ${page.total} 条`),
-    createButton('上一页', 'ghost', page.pageNo <= 1, '已经是第一页'),
-    createButton('下一页', 'ghost', !page.hasNext, '没有更多数据'),
+    previousButton,
+    nextButton,
   );
+}
+
+function createTenantSwitcher(systemId: string, navigate: Navigate): HTMLElement | null {
+  if (headerTenants.length <= 1) {
+    return null;
+  }
+  const select = createElement('select', { className: 'tenant-switcher', ariaLabel: '租户切换' });
+  headerTenants.forEach((tenant) => {
+    const option = createElement('option', {}, tenant.tenantName);
+    option.value = tenant.tenantId;
+    option.disabled = tenant.status !== 1;
+    select.append(option);
+  });
+  select.value = shellState.currentSystem?.tenantId ?? shellState.currentTenant?.tenantId ?? headerTenants[0]?.tenantId ?? '';
+  select.addEventListener('change', async () => {
+    select.disabled = true;
+    try {
+      await switchToTenant(systemId, select.value, 'system header tenant switch');
+      headerNavigation = undefined;
+      headerTenants = [];
+      navigate(`/systems/${systemId}/dashboard`);
+    } catch (error) {
+      select.title = error instanceof Error ? error.message : '租户切换失败。';
+    } finally {
+      select.disabled = false;
+    }
+  });
+  return select;
 }
 
 function createMetric(label: string, value: string): HTMLElement {

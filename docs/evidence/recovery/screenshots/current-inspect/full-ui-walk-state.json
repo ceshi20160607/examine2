@@ -1,0 +1,661 @@
+{
+  "pages": [
+    {
+      "name": "logged-platform-dashboard",
+      "url": "http://127.0.0.1:18131/#/platform/dashboard",
+      "text": "unexamine\n仪表盘\nFlow\n应用\n代办\n消息\nadmin\n平台工作台\n\n平台成员从这里进入授权内系统；平台管理员额外拥有平台后台入口。\n\n创建系统\n平台后台\n系统切换\n暂无可进入系统\n\n当前账号还没有系统成员上下文。创建系统后会自动进入业务首页。",
+      "buttons": [
+        {
+          "i": 0,
+          "text": "仪表盘",
+          "cls": "button ghost"
+        },
+        {
+          "i": 1,
+          "text": "Flow",
+          "cls": "button ghost"
+        },
+        {
+          "i": 2,
+          "text": "应用",
+          "cls": "button ghost"
+        },
+        {
+          "i": 3,
+          "text": "代办",
+          "cls": "button ghost"
+        },
+        {
+          "i": 4,
+          "text": "消息",
+          "cls": "button ghost"
+        },
+        {
+          "i": 5,
+          "text": "admin",
+          "cls": "button ghost"
+        },
+        {
+          "i": 6,
+          "text": "创建系统",
+          "cls": "button primary"
+        },
+        {
+          "i": 7,
+          "text": "平台后台",
+          "cls": "button secondary"
+        }
+      ],
+      "links": [],
+      "adminContentCount": 0,
+      "panelCount": 1,
+      "cardCount": 0,
+      "h": [
+        "平台工作台",
+        "系统切换"
+      ]
+    },
+    {
+      "name": "clicked-platform-admin",
+      "url": "http://127.0.0.1:18131/#/platform/admin",
+      "text": "unexamine\n仪表盘\nFlow\n应用\n代办\n消息\nadmin\n平台后台\n返回平台首页\n平台信息\n组织架构\n系统生命周期\n角色管理\n仪表盘管理\n配置管理\n日志管理\n平台后台\n\n平台后台只处理平台信息、平台组织、平台角色、系统生命周期、统一认证、AI Agent 授权和平台日志。\n\n平台信息\n系统数量4\n平台角色1\n企业 SSO1\n模型授权2\n平台健康\nUP\n当前账号\nadmin\n平台角色\nPLATFORM_ROOT\n\ntraceId: trc_b0de810d-fa30-4edc-aca1-87318129e995",
+      "buttons": [
+        {
+          "i": 0,
+          "text": "仪表盘",
+          "cls": "button ghost"
+        },
+        {
+          "i": 1,
+          "text": "Flow",
+          "cls": "button ghost"
+        },
+        {
+          "i": 2,
+          "text": "应用",
+          "cls": "button ghost"
+        },
+        {
+          "i": 3,
+          "text": "代办",
+          "cls": "button ghost"
+        },
+        {
+          "i": 4,
+          "text": "消息",
+          "cls": "button ghost"
+        },
+        {
+          "i": 5,
+          "text": "admin",
+          "cls": "button ghost"
+        },
+        {
+          "i": 6,
+          "text": "返回平台首页",
+          "cls": "button secondary"
+        },
+        {
+          "i": 7,
+          "text": "平台信息",
+          "cls": "sidebar-item active"
+        },
+        {
+          "i": 8,
+          "text": "组织架构",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 9,
+          "text": "系统生命周期",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 10,
+          "text": "角色管理",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 11,
+          "text": "仪表盘管理",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 12,
+          "text": "配置管理",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 13,
+          "text": "日志管理",
+          "cls": "sidebar-item"
+        }
+      ],
+      "links": [],
+      "adminContentCount": 1,
+      "panelCount": 1,
+      "cardCount": 0,
+      "h": [
+        "平台后台",
+        "平台信息"
+      ]
+    },
+    {
+      "name": "create-system-dialog",
+      "url": "http://127.0.0.1:18131/#/platform/dashboard",
+      "text": "unexamine\n仪表盘\nFlow\n应用\n代办\n消息\nadmin\n平台工作台\n\n平台成员从这里进入授权内系统；平台管理员额外拥有平台后台入口。\n\n创建系统\n平台后台\n系统切换\n暂无可进入系统\n\n当前账号还没有系统成员上下文。创建系统后会自动进入业务首页。\n\n创建系统\n系统名称 *\n系统编码 *\n租户模式：1 多租户，0 单租户 *\n\n取消\n创建并进入系统",
+      "buttons": [
+        {
+          "i": 0,
+          "text": "仪表盘",
+          "cls": "button ghost"
+        },
+        {
+          "i": 1,
+          "text": "Flow",
+          "cls": "button ghost"
+        },
+        {
+          "i": 2,
+          "text": "应用",
+          "cls": "button ghost"
+        },
+        {
+          "i": 3,
+          "text": "代办",
+          "cls": "button ghost"
+        },
+        {
+          "i": 4,
+          "text": "消息",
+          "cls": "button ghost"
+        },
+        {
+          "i": 5,
+          "text": "admin",
+          "cls": "button ghost"
+        },
+        {
+          "i": 6,
+          "text": "创建系统",
+          "cls": "button primary"
+        },
+        {
+          "i": 7,
+          "text": "平台后台",
+          "cls": "button secondary"
+        },
+        {
+          "i": 8,
+          "text": "取消",
+          "cls": "button ghost"
+        },
+        {
+          "i": 9,
+          "text": "创建并进入系统",
+          "cls": "button primary"
+        }
+      ],
+      "links": [],
+      "adminContentCount": 0,
+      "panelCount": 1,
+      "cardCount": 0,
+      "h": [
+        "平台工作台",
+        "系统切换",
+        "创建系统"
+      ]
+    },
+    {
+      "name": "after-create-system",
+      "url": "http://127.0.0.1:18131/#/systems/111/dashboard",
+      "text": "Recovery UI Inspect 1782561066379\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统仪表盘\n\n当前系统成员权限范围内的概览、预警、日历和待处理事项。\n\n项目任务0当前\n普通任务0当前\n逾期任务0当前\n今日日报待提交当前\n今日预警\n\n暂无今日预警\n\n本月工作日历\n\n暂无日历事项\n\n打开业务模块\n\ntraceId: trc_c6fc69b6-7bb8-4477-82dd-602db20463d8",
+      "buttons": [
+        {
+          "i": 0,
+          "text": "仪表盘",
+          "cls": "button ghost"
+        },
+        {
+          "i": 1,
+          "text": "工作",
+          "cls": "button ghost"
+        },
+        {
+          "i": 2,
+          "text": "待办",
+          "cls": "button ghost"
+        },
+        {
+          "i": 3,
+          "text": "消息",
+          "cls": "button ghost"
+        },
+        {
+          "i": 4,
+          "text": "系统切换",
+          "cls": "button ghost"
+        },
+        {
+          "i": 5,
+          "text": "系统后台",
+          "cls": "button secondary"
+        },
+        {
+          "i": 6,
+          "text": "admin",
+          "cls": "button ghost"
+        },
+        {
+          "i": 7,
+          "text": "打开业务模块",
+          "cls": "button primary"
+        }
+      ],
+      "links": [],
+      "adminContentCount": 0,
+      "panelCount": 2,
+      "cardCount": 0,
+      "h": [
+        "系统仪表盘",
+        "今日预警",
+        "本月工作日历"
+      ]
+    },
+    {
+      "name": "systems-111-dashboard",
+      "url": "http://127.0.0.1:18131/#/systems/111/dashboard",
+      "text": "Recovery UI Inspect 1782561066379\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统仪表盘\n\n当前系统成员权限范围内的概览、预警、日历和待处理事项。\n\n项目任务0当前\n普通任务0当前\n逾期任务0当前\n今日日报待提交当前\n今日预警\n\n暂无今日预警\n\n本月工作日历\n\n暂无日历事项\n\n打开业务模块\n\ntraceId: trc_c6fc69b6-7bb8-4477-82dd-602db20463d8",
+      "buttons": [
+        {
+          "i": 0,
+          "text": "仪表盘",
+          "cls": "button ghost"
+        },
+        {
+          "i": 1,
+          "text": "工作",
+          "cls": "button ghost"
+        },
+        {
+          "i": 2,
+          "text": "待办",
+          "cls": "button ghost"
+        },
+        {
+          "i": 3,
+          "text": "消息",
+          "cls": "button ghost"
+        },
+        {
+          "i": 4,
+          "text": "系统切换",
+          "cls": "button ghost"
+        },
+        {
+          "i": 5,
+          "text": "系统后台",
+          "cls": "button secondary"
+        },
+        {
+          "i": 6,
+          "text": "admin",
+          "cls": "button ghost"
+        },
+        {
+          "i": 7,
+          "text": "打开业务模块",
+          "cls": "button primary"
+        }
+      ],
+      "links": [],
+      "adminContentCount": 0,
+      "panelCount": 2,
+      "cardCount": 0,
+      "h": [
+        "系统仪表盘",
+        "今日预警",
+        "本月工作日历"
+      ]
+    },
+    {
+      "name": "systems-111-admin",
+      "url": "http://127.0.0.1:18131/#/systems/111/admin",
+      "text": "Recovery UI Inspect 1782561066379\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nRecovery UI Inspect 1782561066379 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n系统信息\n当前系统Recovery UI Inspect 1782561066379\n成员数量1\n模块数量0\n流程数量0\n当前租户\n116\n系统角色\nSYSTEM_SUPER_ADMIN\n权限快照\nperm_live_SYSTEM_SUPER_ADMIN\n\ntraceId: eps_111_116_132",
+      "buttons": [
+        {
+          "i": 0,
+          "text": "仪表盘",
+          "cls": "button ghost"
+        },
+        {
+          "i": 1,
+          "text": "工作",
+          "cls": "button ghost"
+        },
+        {
+          "i": 2,
+          "text": "待办",
+          "cls": "button ghost"
+        },
+        {
+          "i": 3,
+          "text": "消息",
+          "cls": "button ghost"
+        },
+        {
+          "i": 4,
+          "text": "系统切换",
+          "cls": "button ghost"
+        },
+        {
+          "i": 5,
+          "text": "系统后台",
+          "cls": "button secondary"
+        },
+        {
+          "i": 6,
+          "text": "admin",
+          "cls": "button ghost"
+        },
+        {
+          "i": 7,
+          "text": "返回业务首页",
+          "cls": "button secondary"
+        },
+        {
+          "i": 8,
+          "text": "系统信息",
+          "cls": "sidebar-item active"
+        },
+        {
+          "i": 9,
+          "text": "组织架构",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 10,
+          "text": "角色管理",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 11,
+          "text": "模块管理",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 12,
+          "text": "流程管理",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 13,
+          "text": "字典管理",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 14,
+          "text": "仪表盘管理",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 15,
+          "text": "数据源",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 16,
+          "text": "对外应用",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 17,
+          "text": "工作配置",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 18,
+          "text": "统一认证",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 19,
+          "text": "AI Agent",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 20,
+          "text": "日志管理",
+          "cls": "sidebar-item"
+        }
+      ],
+      "links": [],
+      "adminContentCount": 1,
+      "panelCount": 1,
+      "cardCount": 0,
+      "h": [
+        "系统后台",
+        "系统信息"
+      ]
+    },
+    {
+      "name": "systems-111-modules",
+      "url": "http://127.0.0.1:18131/#/systems/111/modules",
+      "text": "Recovery UI Inspect 1782561066379\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n暂无可用业务模块\n\n当前系统没有可访问的业务模块。\n\n下一步\n\n系统管理员进入后台配置并发布模块后，这里才显示搜索、导入导出、批量操作和右侧详情。\n\n去系统后台配置模块",
+      "buttons": [
+        {
+          "i": 0,
+          "text": "仪表盘",
+          "cls": "button ghost"
+        },
+        {
+          "i": 1,
+          "text": "工作",
+          "cls": "button ghost"
+        },
+        {
+          "i": 2,
+          "text": "待办",
+          "cls": "button ghost"
+        },
+        {
+          "i": 3,
+          "text": "消息",
+          "cls": "button ghost"
+        },
+        {
+          "i": 4,
+          "text": "系统切换",
+          "cls": "button ghost"
+        },
+        {
+          "i": 5,
+          "text": "系统后台",
+          "cls": "button secondary"
+        },
+        {
+          "i": 6,
+          "text": "admin",
+          "cls": "button ghost"
+        }
+      ],
+      "links": [
+        {
+          "i": 0,
+          "text": "去系统后台配置模块",
+          "href": "http://127.0.0.1:18131/#/systems/111/admin"
+        }
+      ],
+      "adminContentCount": 0,
+      "panelCount": 0,
+      "cardCount": 0,
+      "h": [
+        "暂无可用业务模块"
+      ]
+    },
+    {
+      "name": "systems-111-todos",
+      "url": "http://127.0.0.1:18131/#/systems/111/todos",
+      "text": "Recovery UI Inspect 1782561066379\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n待办\n\n左侧仅展示待办类型，右侧是当前类型的待办列表、筛选和分页。\n\n审批待办 (0)\n流程审批 (0)\n超时提醒 (0)\n工作待办 (0)\n今日需处理 (0)\n提醒待办 (0)\n待办关键字\n应用筛选\n重置\n暂无待办\n第 1 页，每页 20 条，共 0 条\n上一页\n下一页\n\ntraceId: trc_c27598d9-e829-4493-9fb5-47e29e8c0c0d",
+      "buttons": [
+        {
+          "i": 0,
+          "text": "仪表盘",
+          "cls": "button ghost"
+        },
+        {
+          "i": 1,
+          "text": "工作",
+          "cls": "button ghost"
+        },
+        {
+          "i": 2,
+          "text": "待办",
+          "cls": "button ghost"
+        },
+        {
+          "i": 3,
+          "text": "消息",
+          "cls": "button ghost"
+        },
+        {
+          "i": 4,
+          "text": "系统切换",
+          "cls": "button ghost"
+        },
+        {
+          "i": 5,
+          "text": "系统后台",
+          "cls": "button secondary"
+        },
+        {
+          "i": 6,
+          "text": "admin",
+          "cls": "button ghost"
+        },
+        {
+          "i": 7,
+          "text": "审批待办 (0)",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 8,
+          "text": "流程审批 (0)",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 9,
+          "text": "超时提醒 (0)",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 10,
+          "text": "工作待办 (0)",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 11,
+          "text": "今日需处理 (0)",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 12,
+          "text": "提醒待办 (0)",
+          "cls": "sidebar-item"
+        },
+        {
+          "i": 13,
+          "text": "应用筛选",
+          "cls": "button primary"
+        },
+        {
+          "i": 14,
+          "text": "重置",
+          "cls": "button ghost"
+        },
+        {
+          "i": 15,
+          "text": "上一页",
+          "cls": "button ghost"
+        },
+        {
+          "i": 16,
+          "text": "下一页",
+          "cls": "button ghost"
+        }
+      ],
+      "links": [],
+      "adminContentCount": 0,
+      "panelCount": 1,
+      "cardCount": 0,
+      "h": [
+        "待办"
+      ]
+    },
+    {
+      "name": "systems-111-messages",
+      "url": "http://127.0.0.1:18131/#/systems/111/messages",
+      "text": "Recovery UI Inspect 1782561066379\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n消息\n\n消息按时间流展示，整条消息点击跳转到审批、业务详情或工作对象，不再重复放查看按钮。\n\n系统\n租户\n消息模板\n类型\n时间\n重置\n第 1 页，每页 20 条，共 0 条\n上一页\n下一页",
+      "buttons": [
+        {
+          "i": 0,
+          "text": "仪表盘",
+          "cls": "button ghost"
+        },
+        {
+          "i": 1,
+          "text": "工作",
+          "cls": "button ghost"
+        },
+        {
+          "i": 2,
+          "text": "待办",
+          "cls": "button ghost"
+        },
+        {
+          "i": 3,
+          "text": "消息",
+          "cls": "button ghost"
+        },
+        {
+          "i": 4,
+          "text": "系统切换",
+          "cls": "button ghost"
+        },
+        {
+          "i": 5,
+          "text": "系统后台",
+          "cls": "button secondary"
+        },
+        {
+          "i": 6,
+          "text": "admin",
+          "cls": "button ghost"
+        },
+        {
+          "i": 7,
+          "text": "重置",
+          "cls": "button ghost"
+        },
+        {
+          "i": 8,
+          "text": "上一页",
+          "cls": "button ghost"
+        },
+        {
+          "i": 9,
+          "text": "下一页",
+          "cls": "button ghost"
+        }
+      ],
+      "links": [],
+      "adminContentCount": 0,
+      "panelCount": 0,
+      "cardCount": 0,
+      "h": [
+        "消息"
+      ]
+    }
+  ],
+  "events": []
+}

@@ -21,12 +21,14 @@ import com.unique.examine.plat.manage.context.ContextModels.SystemSwitchContext;
 import com.unique.examine.plat.manage.context.ContextModels.SystemSwitchRequest;
 import com.unique.examine.plat.manage.context.ContextModels.TenantSwitchContext;
 import com.unique.examine.plat.manage.context.ContextModels.TenantSwitchRequest;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -39,6 +41,8 @@ public class SystemContextService {
     private static final int ENABLED = 1;
     private static final int DELETED_NO = 0;
     private static final String SCOPE_SYSTEM = "SYSTEM";
+    private static final String CURRENT_BINDING_PREFIX = "unexamine:context:current-binding:";
+    private static final Duration CURRENT_BINDING_TTL = Duration.ofHours(8);
 
     private final CurrentAccountProvider currentAccountProvider;
     private final PlatAccountMemberBindingBaseService bindingBaseService;
@@ -46,19 +50,22 @@ public class SystemContextService {
     private final PlatTenantBaseService tenantBaseService;
     private final PlatRoleMemberBaseService roleMemberBaseService;
     private final PlatRoleBaseService roleBaseService;
+    private final StringRedisTemplate redisTemplate;
 
     public SystemContextService(CurrentAccountProvider currentAccountProvider,
                                 PlatAccountMemberBindingBaseService bindingBaseService,
                                 PlatSystemBaseService systemBaseService,
                                 PlatTenantBaseService tenantBaseService,
                                 PlatRoleMemberBaseService roleMemberBaseService,
-                                PlatRoleBaseService roleBaseService) {
+                                PlatRoleBaseService roleBaseService,
+                                StringRedisTemplate redisTemplate) {
         this.currentAccountProvider = currentAccountProvider;
         this.bindingBaseService = bindingBaseService;
         this.systemBaseService = systemBaseService;
         this.tenantBaseService = tenantBaseService;
         this.roleMemberBaseService = roleMemberBaseService;
         this.roleBaseService = roleBaseService;
+        this.redisTemplate = redisTemplate;
     }
 
     /**
@@ -89,6 +96,7 @@ public class SystemContextService {
         if (Objects.isNull(binding)) {
             throw new BusinessException(CommonErrorCode.PERMISSION_DENIED, "账号没有目标系统的成员映射");
         }
+        storeCurrentBinding(account.getId(), binding.getId());
         return toSystemContext(account.getId(), binding);
     }
 
@@ -99,11 +107,7 @@ public class SystemContextService {
      */
     public SystemSwitchContext currentSystem() {
         PlatAccount account = currentAccountProvider.currentAccount();
-        PlatAccountMemberBinding binding = bindingBaseService.getOne(new LambdaQueryWrapper<PlatAccountMemberBinding>()
-                .eq(PlatAccountMemberBinding::getAccountId, account.getId())
-                .eq(PlatAccountMemberBinding::getBindingStatus, ENABLED)
-                .orderByAsc(PlatAccountMemberBinding::getId)
-                .last("LIMIT 1"), false);
+        PlatAccountMemberBinding binding = currentBinding(account.getId());
         if (Objects.isNull(binding)) {
             throw new BusinessException(CommonErrorCode.PERMISSION_DENIED, "账号没有可进入的系统");
         }
@@ -128,10 +132,43 @@ public class SystemContextService {
         if (Objects.isNull(tenant)) {
             throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "租户不存在");
         }
+        storeCurrentBinding(account.getId(), binding.getId());
         List<String> roleIds = roleCodes(binding);
         return new TenantSwitchContext(String.valueOf(binding.getSystemId()), String.valueOf(binding.getTenantId()),
                 tenant.getTenantName(), roleIds, Map.of("type", "ALL"), true, null,
                 permissionSummary(binding, roleIds));
+    }
+
+    private PlatAccountMemberBinding currentBinding(Long accountId) {
+        PlatAccountMemberBinding stored = storedCurrentBinding(accountId);
+        if (Objects.nonNull(stored)) {
+            return stored;
+        }
+        return bindingBaseService.getOne(new LambdaQueryWrapper<PlatAccountMemberBinding>()
+                .eq(PlatAccountMemberBinding::getAccountId, accountId)
+                .eq(PlatAccountMemberBinding::getBindingStatus, ENABLED)
+                .orderByAsc(PlatAccountMemberBinding::getId)
+                .last("LIMIT 1"), false);
+    }
+
+    private PlatAccountMemberBinding storedCurrentBinding(Long accountId) {
+        String value = redisTemplate.opsForValue().get(CURRENT_BINDING_PREFIX + accountId);
+        Long bindingId = parseLong(value);
+        if (Objects.isNull(bindingId)) {
+            return null;
+        }
+        PlatAccountMemberBinding binding = bindingBaseService.getById(bindingId);
+        if (Objects.isNull(binding) || !Objects.equals(binding.getAccountId(), accountId)
+                || !Objects.equals(binding.getBindingStatus(), ENABLED)) {
+            redisTemplate.delete(CURRENT_BINDING_PREFIX + accountId);
+            return null;
+        }
+        return binding;
+    }
+
+    private void storeCurrentBinding(Long accountId, Long bindingId) {
+        redisTemplate.opsForValue().set(CURRENT_BINDING_PREFIX + accountId, String.valueOf(bindingId),
+                CURRENT_BINDING_TTL);
     }
 
     private SwitchOption toSwitchOption(PlatAccountMemberBinding binding) {

@@ -47,7 +47,7 @@ public final class AuthModels {
     public record PasswordResetRequest(String loginName, String verifyChannel) {
     }
 
-    public record PasswordResetResponse(String resetTicket, String expiresAt, String traceId) {
+    public record PasswordResetResponse(String resetTicket, String verifyCode, String expiresAt, String traceId) {
     }
 
     public record PasswordResetConfirmRequest(String resetTicket, String verifyCode, String newPassword) {

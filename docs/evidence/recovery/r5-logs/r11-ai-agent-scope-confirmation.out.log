@@ -1,0 +1,28 @@
+{
+    "result":  "PASS",
+    "suffix":  "0629230040106_7571da",
+    "targetSystemId":  "610",
+    "tenantId":  "642",
+    "modelAuthorizationId":  "18",
+    "modelSecretRefId":  "sec_model_r11_0629230040106_7571da",
+    "platformSessionId":  "agent_session_platform_trce0ea6ca81",
+    "platformDeniedStatus":  "REJECTED_BY_SCOPE",
+    "platformAllowedStatus":  "CONFIRMED",
+    "agentPolicyId":  "41",
+    "policyPublishPassed":  true,
+    "systemSessionId":  "agent_session_system_trc2feb61060",
+    "proposedConfirmationTypes":  [
+                                      "SYSTEM_AGENT_WRITE_CONFIRM",
+                                      "WORK_AGENT_DRAFT_CONFIRM"
+                                  ],
+    "writeConfirmedStatus":  "CONFIRMED",
+    "writeRejectedStatus":  "REJECTED",
+    "workDraftStatus":  "CONFIRMED",
+    "agentAuditLogCount":  9,
+    "normalMemberPolicyCreateStatus":  403,
+    "requesterOwnedSystemId":  "611",
+    "cleanup":  [
+                    "610:DELETE",
+                    "611:DELETE"
+                ]
+}

@@ -1,0 +1,16 @@
+{
+  "state": {
+    "url": "http://127.0.0.1:18131/",
+    "title": "unexamine",
+    "text": "U\nunexamine\n统一入口\n账号登录\n登录\n注册\n找回密码\n账号\n密码\n\n请输入账号和密码。\n\n登录\n\ntraceId: trace_login_ready\nauditLogId: aud_login_ready\n\nAPI 0.1.0-frozen",
+    "inputCount": 2,
+    "buttonTexts": [
+      "登录",
+      "注册",
+      "找回密码",
+      "登录"
+    ],
+    "appHtmlLength": 1107
+  },
+  "events": []
+}

@@ -1,0 +1,8 @@
+﻿{
+    "backendPid":  13228,
+    "frontendPid":  20008,
+    "frontendUrl":  "http://127.0.0.1:18131/",
+    "health":  "{\"code\":\"SUCCESS\",\"message\":\"鎴愬姛\",\"requestId\":\"req_d264719c-2545-4e31-b4a3-c7b093fadb0e\",\"traceId\":\"trc_e18d91ed-60e1-47c9-a2ed-948f61c0a5e7\",\"auditLogId\":null,\"data\":{\"status\":\"UP\",\"redis\":\"UP\",\"database\":\"UP\",\"schema\":\"UP\"},\"errorFields\":[],\"disabledReason\":null}",
+    "backendDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\release\\unexamine-0.0.1-SNAPSHOT\\backend",
+    "resultFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\release\\unexamine-0.0.1-SNAPSHOT\\backend\\start-result.json"
+}

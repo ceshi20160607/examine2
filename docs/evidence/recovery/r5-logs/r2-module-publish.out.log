@@ -1,0 +1,44 @@
+{
+    "status":  "PASS",
+    "task":  "REC-P0-004",
+    "suffix":  "0629225850",
+    "systemId":  "596",
+    "tenantId":  "627",
+    "moduleGroupId":  "208",
+    "moduleId":  "207",
+    "moduleCode":  "asset_0629225850",
+    "dictTypeId":  "272",
+    "fieldTypes":  [
+                       "assetName:TEXT",
+                       "purchaseDate:DATE",
+                       "assetStatus:SELECT",
+                       "assetFiles:ATTACHMENT",
+                       "assetNo:AUTO_NUMBER"
+                   ],
+    "sceneId":  "395",
+    "actionCode":  "record.submitApproval",
+    "publishCheckPassed":  true,
+    "publishVersion":  "MODULE_v1782745133582",
+    "adminListColumns":  [
+                             "title",
+                             "status",
+                             "ownerDept",
+                             "assetName",
+                             "purchaseDate",
+                             "assetStatus",
+                             "assetFiles",
+                             "assetNo"
+                         ],
+    "runtimeListColumns":  [
+                               "title",
+                               "status",
+                               "ownerDept",
+                               "assetName",
+                               "purchaseDate",
+                               "assetStatus",
+                               "assetFiles",
+                               "assetNo"
+                           ],
+    "runtimeSearchTotal":  0,
+    "cleanup":  "DELETE"
+}

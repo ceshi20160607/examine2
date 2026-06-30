@@ -1,0 +1,30 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-021",
+    "generatedAt":  "2026-06-29T23:06:03.8110774+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "targetSystemId":  "620",
+    "targetTenantId":  "652",
+    "normalAccount":  "r18_member_0629230522556_d6086c",
+    "normalOwnedSystemId":  "621",
+    "normalMemberId":  "801",
+    "normalBindingId":  "801",
+    "runtimeRoleId":  "868",
+    "moduleId":  "215",
+    "sceneId":  "411",
+    "permissionVersion":  "perm_1782745532105_trc6b4ab",
+    "normalEffectiveRoles":  [
+                                 "R18_RUNTIME_MEMBER_0629230522556_d6086c"
+                             ],
+    "forbiddenMemberListStatus":  403,
+    "browserRecordValue":  "R18 Browser Ticket 0629230522556_d6086c",
+    "apiReadbackTotal":  1,
+    "evidenceDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r18-runtime-mobile-action-containment",
+    "browserResultPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r18-runtime-mobile-action-containment\\runtime-mobile-action-containment-browser.json",
+    "screenshotCount":  5,
+    "maxOverflowX":  0,
+    "cleanup":  [
+                    "620:DELETE",
+                    "621:DELETE"
+                ]
+}

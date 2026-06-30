@@ -19,6 +19,9 @@ import com.unique.examine.module.base.service.ModuleDynamicHistoryBaseService;
 import com.unique.examine.module.base.service.ModuleDynamicRecordBaseService;
 import com.unique.examine.module.base.service.ModuleDynamicValueBaseService;
 import com.unique.examine.module.base.service.ModuleFieldDefinitionBaseService;
+import com.unique.examine.module.manage.attachment.AttachmentModels.AttachmentBindRequest;
+import com.unique.examine.module.manage.attachment.AttachmentModels.AttachmentVO;
+import com.unique.examine.module.manage.attachment.AttachmentService;
 import com.unique.examine.module.manage.common.ModuleSystemContextResolver;
 import com.unique.examine.module.manage.common.ModuleSystemContextResolver.ModuleSystemContext;
 import com.unique.examine.module.manage.config.ModuleConfigModels.DynamicListSchema;
@@ -82,6 +85,9 @@ public class RuntimeRecordService {
     private static final String DEFAULT_SCENE_CODE = "all";
     private static final String STATUS_DRAFT = "DRAFT";
     private static final String STATUS_ACTIVE = "ACTIVE";
+    private static final String STATUS_PENDING_APPROVAL = "PENDING_APPROVAL";
+    private static final String STATUS_APPROVED = "APPROVED";
+    private static final String STATUS_REJECTED = "REJECTED";
     private static final String STATUS_ARCHIVED = "ARCHIVED";
     private static final TypeReference<List<FieldChangeView>> FIELD_CHANGE_LIST = new TypeReference<>() {
     };
@@ -97,6 +103,7 @@ public class RuntimeRecordService {
     private final ModuleDynamicHistoryBaseService historyBaseService;
     private final WorkflowRuntimeMutationService workflowRuntimeMutationService;
     private final PermissionService permissionService;
+    private final AttachmentService attachmentService;
     private final ObjectMapper objectMapper;
 
     public RuntimeRecordService(ModuleSystemContextResolver contextResolver,
@@ -108,6 +115,7 @@ public class RuntimeRecordService {
                                 ModuleDynamicHistoryBaseService historyBaseService,
                                 WorkflowRuntimeMutationService workflowRuntimeMutationService,
                                 PermissionService permissionService,
+                                AttachmentService attachmentService,
                                 ObjectMapper objectMapper) {
         this.contextResolver = contextResolver;
         this.moduleConfigService = moduleConfigService;
@@ -118,6 +126,7 @@ public class RuntimeRecordService {
         this.historyBaseService = historyBaseService;
         this.workflowRuntimeMutationService = workflowRuntimeMutationService;
         this.permissionService = permissionService;
+        this.attachmentService = attachmentService;
         this.objectMapper = objectMapper;
     }
 
@@ -222,13 +231,17 @@ public class RuntimeRecordService {
         ModuleDynamicRecord record = requireRecord(context, module, recordId);
         requireDataScope(permission, context, record);
         List<ModuleFieldDefinition> fields = fieldsForModule(module.getId());
-        BusinessRecordRow row = toRecordRow(context, permission, module, record, fields);
+        WorkflowApprovalHook approvalHook = workflowRuntimeMutationService.approvalHook(context.systemId(),
+                context.tenantId(), module.getId(), record.getId());
+        String effectiveStatus = effectiveStatus(record, approvalHook);
+        BusinessRecordRow row = toRecordRow(context, permission, module, record, fields, approvalHook);
         return new BusinessDetailView(new RecordSummary(String.valueOf(record.getId()), row.title(), row.summary(),
-                safeText(record.getStatus(), STATUS_DRAFT), statusColor(record.getStatus()),
+                effectiveStatus, statusColor(effectiveStatus),
                 Objects.isNull(record.getOwnerMemberId()) ? null : String.valueOf(record.getOwnerMemberId()),
-                record.getCreatedAt(), record.getUpdatedAt()), row.fields(), detailTabs(record, row),
-                approvalSidebar(context, module, record), fieldMaskResults(row.fields()), row.actions(), row.rowDetailTarget(),
-                dataScope(context), new HistoryHook("/api/v1/systems/" + systemId + "/runtime/modules/"
+                record.getCreatedAt(), record.getUpdatedAt()), row.fields(),
+                detailTabs(context, module, record, row, effectiveStatus), approvalSidebar(approvalHook),
+                fieldMaskResults(row.fields()), row.actions(), row.rowDetailTarget(), dataScope(context),
+                new HistoryHook("/api/v1/systems/" + systemId + "/runtime/modules/"
                 + moduleId + "/records/" + recordId + "/history", true, "module.history.read"),
                 context.permissionVersion());
     }
@@ -269,6 +282,7 @@ public class RuntimeRecordService {
         record.setDeleted(DELETED_NO);
         recordBaseService.saveEntity(record);
         saveValues(record, fields, values);
+        bindRequestedAttachments(systemId, moduleId, record, request);
         List<FieldChangeView> changes = fieldChanges(null, values);
         saveHistory(context, module, record, "record.create", changes, "WEB");
         return mutationResult(context, module, record, "CREATED", changes, idempotencyKey);
@@ -306,6 +320,7 @@ public class RuntimeRecordService {
         record.setUpdatedAt(LocalDateTime.now());
         recordBaseService.updateById(record);
         saveValues(record, fieldsForModule(module.getId()), values);
+        bindRequestedAttachments(systemId, moduleId, record, request);
         List<FieldChangeView> changes = fieldChanges(before, values);
         saveHistory(context, module, record, "record.update", changes, "WEB");
         return mutationResult(context, module, record, "UPDATED", changes, idempotencyKey);
@@ -358,7 +373,7 @@ public class RuntimeRecordService {
         ModuleDefinition module = requireModule(context, moduleId);
         ModuleDynamicRecord record = requireRecord(context, module, recordId);
         requireDataScope(permission, context, record);
-        String disabledReason = actionDisabledReason(record, actionCode, request);
+        String disabledReason = actionDisabledReason(context, module, record, actionCode, request);
         boolean accepted = Objects.isNull(disabledReason);
         if (accepted) {
             applyAction(context, module, record, actionCode, request, idempotencyKey);
@@ -448,10 +463,20 @@ public class RuntimeRecordService {
     private BusinessRecordRow toRecordRow(ModuleSystemContext context, EffectivePermissionSnapshot permission,
                                           ModuleDefinition module,
                                           ModuleDynamicRecord record, List<ModuleFieldDefinition> fields) {
+        WorkflowApprovalHook approvalHook = workflowRuntimeMutationService.approvalHook(context.systemId(),
+                context.tenantId(), module.getId(), record.getId());
+        return toRecordRow(context, permission, module, record, fields, approvalHook);
+    }
+
+    private BusinessRecordRow toRecordRow(ModuleSystemContext context, EffectivePermissionSnapshot permission,
+                                          ModuleDefinition module,
+                                          ModuleDynamicRecord record, List<ModuleFieldDefinition> fields,
+                                          WorkflowApprovalHook approvalHook) {
+        String effectiveStatus = effectiveStatus(record, approvalHook);
         List<FieldValueView> fieldValues = fieldValues(permission, module, record, fields);
-        Map<String, String> disabledReasons = disabledReasons(record);
+        Map<String, String> disabledReasons = disabledReasons(effectiveStatus);
         return new BusinessRecordRow(String.valueOf(record.getId()), record.getTitle(),
-                safeText(record.getRecordNo(), module.getModuleName()), fieldValues, rowActions(record, permission),
+                safeText(record.getRecordNo(), module.getModuleName()), fieldValues, rowActions(effectiveStatus, permission),
                 disabledReasons, rowDetailTarget(module), dataScope(context), context.permissionVersion(),
                 record.getUpdatedAt());
     }
@@ -590,11 +615,15 @@ public class RuntimeRecordService {
                 history.getOperatedAt());
     }
 
-    private List<DetailTabView> detailTabs(ModuleDynamicRecord record, BusinessRecordRow row) {
+    private List<DetailTabView> detailTabs(ModuleSystemContext context, ModuleDefinition module,
+                                           ModuleDynamicRecord record, BusinessRecordRow row,
+                                           String effectiveStatus) {
         Map<String, Object> basePayload = new LinkedHashMap<>();
         basePayload.put("fields", row.fields());
         basePayload.put("recordNo", record.getRecordNo());
-        basePayload.put("status", record.getStatus());
+        basePayload.put("status", effectiveStatus);
+        List<AttachmentVO> attachments = attachmentService.listForRecord(context, module.getId(), record.getId());
+        basePayload.put("attachments", attachments);
         Map<String, Object> logPayload = new LinkedHashMap<>();
         logPayload.put("historyEndpoint", "/records/" + record.getId() + "/history");
         logPayload.put("serverSidePage", true);
@@ -607,6 +636,10 @@ public class RuntimeRecordService {
                                                 ModuleDynamicRecord record) {
         WorkflowApprovalHook hook = workflowRuntimeMutationService.approvalHook(context.systemId(),
                 context.tenantId(), module.getId(), record.getId());
+        return approvalSidebar(hook);
+    }
+
+    private ApprovalSidebarHook approvalSidebar(WorkflowApprovalHook hook) {
         if (!hook.visible()) {
             return new ApprovalSidebarHook(false, null, null, null, "NONE", null, null);
         }
@@ -623,16 +656,22 @@ public class RuntimeRecordService {
     }
 
     private List<ActionView> rowActions(ModuleDynamicRecord record, EffectivePermissionSnapshot permission) {
-        boolean archived = STATUS_ARCHIVED.equals(record.getStatus());
-        boolean pendingApproval = "PENDING_APPROVAL".equals(record.getStatus());
-        boolean draft = STATUS_DRAFT.equals(record.getStatus());
+        return rowActions(safeText(record.getStatus(), STATUS_DRAFT), permission);
+    }
+
+    private List<ActionView> rowActions(String status, EffectivePermissionSnapshot permission) {
+        boolean archived = STATUS_ARCHIVED.equals(status);
+        boolean pendingApproval = STATUS_PENDING_APPROVAL.equals(status);
+        boolean approvalClosed = approvalClosed(status);
+        boolean draft = STATUS_DRAFT.equals(status);
         return List.of(action("record.edit", "编辑", "UPDATE", "ROW",
                         !archived && hasActionPermission(permission, "record.edit"),
                         firstReason(archived ? "已归档记录不可编辑" : null,
                                 actionDisabledReason(permission, "record.edit")), syncHook("recordEditDrawer")),
                 action("record.submitApproval", "提交审批", "WORKFLOW", "ROW",
-                        !archived && !pendingApproval && hasActionPermission(permission, "record.submitApproval"),
-                        firstReason(submitApprovalDisabledReason(archived, pendingApproval),
+                        !archived && !pendingApproval && !approvalClosed
+                                && hasActionPermission(permission, "record.submitApproval"),
+                        firstReason(submitApprovalDisabledReason(archived, pendingApproval, approvalClosed),
                                 actionDisabledReason(permission, "record.submitApproval")),
                         syncHook("approvalSubmitResultDrawer")),
                 action("record.delete", "删除", "DELETE", "ROW",
@@ -642,9 +681,7 @@ public class RuntimeRecordService {
     }
 
     private List<ActionView> rowActions(String status) {
-        ModuleDynamicRecord record = new ModuleDynamicRecord();
-        record.setStatus(status);
-        return rowActions(record, superAdminPermissionSnapshot());
+        return rowActions(status, superAdminPermissionSnapshot());
     }
 
     private ActionView action(String actionCode, String actionName, String actionType, String position,
@@ -791,13 +828,19 @@ public class RuntimeRecordService {
                 "点击数据行打开详情；复选框、按钮、链接、输入框不会误触详情。");
     }
 
-    private Map<String, String> disabledReasons(ModuleDynamicRecord record) {
+    private Map<String, String> disabledReasons(String status) {
         Map<String, String> disabledReasons = new LinkedHashMap<>();
-        if (STATUS_ARCHIVED.equals(record.getStatus())) {
+        if (STATUS_ARCHIVED.equals(status)) {
             disabledReasons.put("record.edit", "已归档记录不可编辑");
             disabledReasons.put("record.submitApproval", "已归档记录不可提交审批");
         }
-        if (!STATUS_DRAFT.equals(record.getStatus())) {
+        if (STATUS_PENDING_APPROVAL.equals(status)) {
+            disabledReasons.put("record.submitApproval", "记录已在审批中");
+        }
+        if (approvalClosed(status)) {
+            disabledReasons.put("record.submitApproval", "记录审批已结束");
+        }
+        if (!STATUS_DRAFT.equals(status)) {
             disabledReasons.put("record.delete", "仅草稿记录可删除");
         }
         return disabledReasons;
@@ -903,7 +946,7 @@ public class RuntimeRecordService {
     private void applyAction(ModuleSystemContext context, ModuleDefinition module, ModuleDynamicRecord record,
                              String actionCode, ActionExecutionRequest request, String idempotencyKey) {
         if ("record.submitApproval".equals(actionCode)) {
-            record.setStatus("PENDING_APPROVAL");
+            record.setStatus(STATUS_PENDING_APPROVAL);
             record.setUpdatedBy(context.systemMemberId());
             record.setUpdatedAt(LocalDateTime.now());
             recordBaseService.updateById(record);
@@ -922,15 +965,22 @@ public class RuntimeRecordService {
                         safeText(request == null ? null : request.reason(), "动作已执行"))), "WEB_ACTION");
     }
 
-    private String actionDisabledReason(ModuleDynamicRecord record, String actionCode, ActionExecutionRequest request) {
-        if ("record.delete".equals(actionCode) && !STATUS_DRAFT.equals(record.getStatus())) {
+    private String actionDisabledReason(ModuleSystemContext context, ModuleDefinition module, ModuleDynamicRecord record,
+                                        String actionCode, ActionExecutionRequest request) {
+        WorkflowApprovalHook approvalHook = workflowRuntimeMutationService.approvalHook(context.systemId(),
+                context.tenantId(), module.getId(), record.getId());
+        String effectiveStatus = effectiveStatus(record, approvalHook);
+        if ("record.delete".equals(actionCode) && !STATUS_DRAFT.equals(effectiveStatus)) {
             return "仅草稿记录可删除";
         }
-        if ("record.submitApproval".equals(actionCode) && STATUS_ARCHIVED.equals(record.getStatus())) {
+        if ("record.submitApproval".equals(actionCode) && STATUS_ARCHIVED.equals(effectiveStatus)) {
             return "已归档记录不可提交审批";
         }
-        if ("record.submitApproval".equals(actionCode) && "PENDING_APPROVAL".equals(record.getStatus())) {
+        if ("record.submitApproval".equals(actionCode) && STATUS_PENDING_APPROVAL.equals(effectiveStatus)) {
             return "记录已在审批中";
+        }
+        if ("record.submitApproval".equals(actionCode) && approvalClosed(effectiveStatus)) {
+            return "记录审批已结束";
         }
         if ("record.batchArchive".equals(actionCode) && selectedCount(request) > 200) {
             return "批量归档最多支持 200 条";
@@ -938,14 +988,31 @@ public class RuntimeRecordService {
         return null;
     }
 
-    private String submitApprovalDisabledReason(boolean archived, boolean pendingApproval) {
+    private String submitApprovalDisabledReason(boolean archived, boolean pendingApproval, boolean approvalClosed) {
         if (archived) {
             return "已归档记录不可提交审批";
         }
         if (pendingApproval) {
             return "记录已在审批中";
         }
+        if (approvalClosed) {
+            return "记录审批已结束";
+        }
         return null;
+    }
+
+    private String effectiveStatus(ModuleDynamicRecord record, WorkflowApprovalHook approvalHook) {
+        if (Objects.nonNull(approvalHook) && approvalHook.visible()) {
+            if (workflowRuntimeMutationService.terminalStatus(approvalHook.status())) {
+                return approvalHook.status();
+            }
+            return STATUS_PENDING_APPROVAL;
+        }
+        return safeText(record.getStatus(), STATUS_DRAFT);
+    }
+
+    private boolean approvalClosed(String status) {
+        return STATUS_APPROVED.equals(status) || STATUS_REJECTED.equals(status);
     }
 
     private ResultHook actionResultHook(String actionCode) {
@@ -972,6 +1039,16 @@ public class RuntimeRecordService {
     private Map<String, Object> requestValues(RecordSaveRequest request) {
         return Objects.isNull(request) || Objects.isNull(request.fieldValues())
                 ? Map.of() : request.fieldValues();
+    }
+
+    private void bindRequestedAttachments(String systemId, String moduleId, ModuleDynamicRecord record,
+                                          RecordSaveRequest request) {
+        if (Objects.isNull(request) || Objects.isNull(request.attachmentIds())) {
+            return;
+        }
+        attachmentService.bind(systemId, moduleId, String.valueOf(record.getId()),
+                new AttachmentBindRequest(request.attachmentIds(), "REPLACE",
+                        safeText(request.sourceType(), "WEB_FORM"), Map.of()));
     }
 
     private String resolveTitle(Map<String, Object> values) {
@@ -1033,9 +1110,10 @@ public class RuntimeRecordService {
 
     private String statusColor(String status) {
         return switch (safeText(status, STATUS_DRAFT)) {
-            case "PENDING_APPROVAL" -> "ORANGE";
+            case STATUS_PENDING_APPROVAL -> "ORANGE";
+            case STATUS_APPROVED -> "GREEN";
+            case STATUS_REJECTED, STATUS_ARCHIVED -> "RED";
             case STATUS_ACTIVE -> "BLUE";
-            case STATUS_ARCHIVED -> "RED";
             default -> "GRAY";
         };
     }

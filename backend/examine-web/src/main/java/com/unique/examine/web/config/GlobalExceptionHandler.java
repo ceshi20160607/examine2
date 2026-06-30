@@ -28,7 +28,17 @@ public class GlobalExceptionHandler {
                 exception.getErrorFields(),
                 exception.getDisabledReason()
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        return ResponseEntity.status(statusFor(exception)).body(body);
+    }
+
+    private HttpStatus statusFor(BusinessException exception) {
+        if (CommonErrorCode.AUTH_UNAUTHORIZED.code().equals(exception.getErrorCode().code())) {
+            return HttpStatus.UNAUTHORIZED;
+        }
+        if (CommonErrorCode.PERMISSION_DENIED.code().equals(exception.getErrorCode().code())) {
+            return HttpStatus.FORBIDDEN;
+        }
+        return HttpStatus.BAD_REQUEST;
     }
 
     @ExceptionHandler(Exception.class)

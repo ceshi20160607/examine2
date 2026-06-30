@@ -66,6 +66,26 @@ public class AttachmentService {
                 requestContext.traceId(), auditLogId(requestContext), LocalDateTime.now());
     }
 
+    /**
+     * List files already bound to one business record.
+     *
+     * @param context resolved system member context
+     * @param moduleId module primary key
+     * @param recordId record primary key
+     * @return attachment views
+     */
+    public List<AttachmentVO> listForRecord(ModuleSystemContext context, Long moduleId, Long recordId) {
+        return attachmentBaseService.list(new LambdaQueryWrapper<ModuleDynamicAttachment>()
+                        .eq(ModuleDynamicAttachment::getSystemId, context.systemId())
+                        .eq(ModuleDynamicAttachment::getTenantId, context.tenantId())
+                        .eq(ModuleDynamicAttachment::getModuleId, moduleId)
+                        .eq(ModuleDynamicAttachment::getRecordId, recordId)
+                        .orderByAsc(ModuleDynamicAttachment::getId))
+                .stream()
+                .map(attachment -> toVO(attachment, uploadManageService.getFile(attachment.getFileId())))
+                .toList();
+    }
+
     private AttachmentVO bindOne(ModuleSystemContext context, Long moduleId, Long recordId, String fileId) {
         UploadFileVO file = uploadManageService.getFile(fileId);
         ModuleDynamicAttachment existing = attachmentBaseService.getOne(

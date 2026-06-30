@@ -7,6 +7,7 @@ import com.unique.examine.messagelog.base.entity.AuditLoginLog;
 import com.unique.examine.messagelog.base.service.AuditLoginLogBaseService;
 import com.unique.examine.plat.base.entity.PlatAccount;
 import com.unique.examine.plat.base.entity.PlatAccountMemberBinding;
+import com.unique.examine.plat.base.entity.PlatDepartment;
 import com.unique.examine.plat.base.entity.PlatMember;
 import com.unique.examine.plat.base.entity.PlatRole;
 import com.unique.examine.plat.base.entity.PlatRoleMember;
@@ -15,6 +16,7 @@ import com.unique.examine.plat.base.entity.PlatSystem;
 import com.unique.examine.plat.base.entity.PlatTenant;
 import com.unique.examine.plat.base.service.PlatAccountBaseService;
 import com.unique.examine.plat.base.service.PlatAccountMemberBindingBaseService;
+import com.unique.examine.plat.base.service.PlatDepartmentBaseService;
 import com.unique.examine.plat.base.service.PlatMemberBaseService;
 import com.unique.examine.plat.base.service.PlatRoleBaseService;
 import com.unique.examine.plat.base.service.PlatRoleMemberBaseService;
@@ -34,6 +36,7 @@ import com.unique.examine.plat.manage.auth.AuthModels.RegisterWithSystemResponse
 import com.unique.examine.plat.manage.auth.AuthModels.SsoBindingSummary;
 import com.unique.examine.plat.manage.auth.AuthModels.TokenRefreshRequest;
 import com.unique.examine.plat.manage.auth.AuthTokenService.TokenPair;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -41,6 +44,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,10 +63,16 @@ public class AuthService {
     private static final String SYSTEM_SUPER_ADMIN = "SYSTEM_SUPER_ADMIN";
     private static final String DEFAULT_TENANT_CODE = "default";
     private static final String DEFAULT_TENANT_NAME = "默认租户";
+    private static final String DEFAULT_DEPARTMENT_CODE = "default_department";
+    private static final String DEFAULT_DEPARTMENT_NAME = "默认部门";
+
+    private static final String PASSWORD_RESET_PREFIX = "unexamine:auth:password-reset:";
+    private static final Duration PASSWORD_RESET_TTL = Duration.ofMinutes(15);
 
     private final PlatAccountBaseService accountBaseService;
     private final PlatSystemBaseService systemBaseService;
     private final PlatTenantBaseService tenantBaseService;
+    private final PlatDepartmentBaseService departmentBaseService;
     private final PlatMemberBaseService memberBaseService;
     private final PlatAccountMemberBindingBaseService bindingBaseService;
     private final PlatRoleBaseService roleBaseService;
@@ -71,10 +81,12 @@ public class AuthService {
     private final AuditLoginLogBaseService auditLoginLogBaseService;
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenService authTokenService;
+    private final StringRedisTemplate redisTemplate;
 
     public AuthService(PlatAccountBaseService accountBaseService,
                        PlatSystemBaseService systemBaseService,
                        PlatTenantBaseService tenantBaseService,
+                       PlatDepartmentBaseService departmentBaseService,
                        PlatMemberBaseService memberBaseService,
                        PlatAccountMemberBindingBaseService bindingBaseService,
                        PlatRoleBaseService roleBaseService,
@@ -82,10 +94,12 @@ public class AuthService {
                        PlatSsoBindingBaseService ssoBindingBaseService,
                        AuditLoginLogBaseService auditLoginLogBaseService,
                        PasswordEncoder passwordEncoder,
-                       AuthTokenService authTokenService) {
+                       AuthTokenService authTokenService,
+                       StringRedisTemplate redisTemplate) {
         this.accountBaseService = accountBaseService;
         this.systemBaseService = systemBaseService;
         this.tenantBaseService = tenantBaseService;
+        this.departmentBaseService = departmentBaseService;
         this.memberBaseService = memberBaseService;
         this.bindingBaseService = bindingBaseService;
         this.roleBaseService = roleBaseService;
@@ -94,6 +108,7 @@ public class AuthService {
         this.auditLoginLogBaseService = auditLoginLogBaseService;
         this.passwordEncoder = passwordEncoder;
         this.authTokenService = authTokenService;
+        this.redisTemplate = redisTemplate;
     }
 
     /**
@@ -202,7 +217,9 @@ public class AuthService {
 
         PlatSystem system = createSystem(request, systemCode, account.getId(), now);
         PlatTenant tenant = createDefaultTenant(system.getId(), now);
-        PlatMember member = createSuperAdminMember(request, system.getId(), tenant.getId(), account.getId(), now);
+        PlatDepartment department = createDefaultDepartment(system.getId(), tenant.getId(), now);
+        PlatMember member = createSuperAdminMember(request, system.getId(), tenant.getId(), department.getId(),
+                account.getId(), now);
         PlatRole role = createSystemSuperAdminRole(system.getId(), tenant.getId(), now);
         createRoleMember(role.getId(), account.getId(), member.getId(), system.getId(), tenant.getId(), now);
         createBinding(account.getId(), system.getId(), tenant.getId(), member.getId(), now);
@@ -215,7 +232,7 @@ public class AuthService {
                 String.valueOf(system.getId()),
                 String.valueOf(member.getId()),
                 String.valueOf(role.getId()),
-                List.of("CREATE_ACCOUNT", "CREATE_SYSTEM", "CREATE_DEFAULT_TENANT",
+                List.of("CREATE_ACCOUNT", "CREATE_SYSTEM", "CREATE_DEFAULT_TENANT", "CREATE_DEFAULT_DEPARTMENT",
                         "CREATE_SYSTEM_SUPER_ADMIN_ROLE", "BIND_ACCOUNT_MEMBER"),
                 "aud_register_" + RequestContext.current().traceId()
         );
@@ -229,8 +246,16 @@ public class AuthService {
      */
     public PasswordResetResponse requestPasswordReset(PasswordResetRequest request) {
         requireText(request.loginName(), AuthErrorCode.LOGIN_NAME_REQUIRED);
-        return new PasswordResetResponse("reset_" + token(),
-                LocalDateTime.now().plusMinutes(15).toString(), RequestContext.current().traceId());
+        PlatAccount account = findAccountByLoginName(request.loginName());
+        if (Objects.isNull(account) || !Objects.equals(account.getStatus(), ENABLED)) {
+            throw new BusinessException(AuthErrorCode.BAD_CREDENTIALS);
+        }
+        String resetTicket = "reset_" + token();
+        String verifyCode = verificationCode();
+        redisTemplate.opsForValue().set(PASSWORD_RESET_PREFIX + resetTicket,
+                account.getId() + ":" + verifyCode, PASSWORD_RESET_TTL);
+        return new PasswordResetResponse(resetTicket, verifyCode,
+                LocalDateTime.now().plus(PASSWORD_RESET_TTL).toString(), RequestContext.current().traceId());
     }
 
     /**
@@ -241,8 +266,27 @@ public class AuthService {
      */
     public AuthActionResult confirmPasswordReset(PasswordResetConfirmRequest request) {
         requireText(request.resetTicket(), AuthErrorCode.REGISTER_FIELD_REQUIRED);
+        requireText(request.verifyCode(), AuthErrorCode.REGISTER_FIELD_REQUIRED);
         requireText(request.newPassword(), AuthErrorCode.PASSWORD_REQUIRED);
-        return result("PASSWORD_RESET_REQUEST_ACCEPTED");
+        String key = PASSWORD_RESET_PREFIX + request.resetTicket();
+        String stored = redisTemplate.opsForValue().get(key);
+        if (!StringUtils.hasText(stored)) {
+            throw new BusinessException(AuthErrorCode.BAD_CREDENTIALS, "閲嶇疆绁ㄦ嵁鏃犳晥鎴栧凡杩囨湡");
+        }
+        String[] parts = stored.split(":", 2);
+        if (parts.length != 2 || !parts[1].equals(request.verifyCode())) {
+            throw new BusinessException(AuthErrorCode.BAD_CREDENTIALS, "楠岃瘉鐮佷笉姝ｇ‘");
+        }
+        PlatAccount account = accountBaseService.getById(Long.valueOf(parts[0]));
+        if (Objects.isNull(account) || !Objects.equals(account.getDeleted(), DELETED_NO)) {
+            redisTemplate.delete(key);
+            throw new BusinessException(AuthErrorCode.BAD_CREDENTIALS);
+        }
+        account.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        account.setUpdatedAt(LocalDateTime.now());
+        accountBaseService.updateById(account);
+        redisTemplate.delete(key);
+        return result("PASSWORD_RESET_SUCCESS");
     }
 
     private PlatAccount findAccountByLoginName(String loginName) {
@@ -439,11 +483,28 @@ public class AuthService {
         return tenant;
     }
 
+    private PlatDepartment createDefaultDepartment(Long systemId, Long tenantId, LocalDateTime now) {
+        PlatDepartment department = new PlatDepartment();
+        department.setSystemId(systemId);
+        department.setTenantId(tenantId);
+        department.setParentId(null);
+        department.setDeptCode(DEFAULT_DEPARTMENT_CODE);
+        department.setDeptName(DEFAULT_DEPARTMENT_NAME);
+        department.setSortOrder(10);
+        department.setStatus(ENABLED);
+        department.setCreatedAt(now);
+        department.setUpdatedAt(now);
+        department.setDeleted(DELETED_NO);
+        departmentBaseService.saveEntity(department);
+        return department;
+    }
+
     private PlatMember createSuperAdminMember(RegisterWithSystemRequest request, Long systemId, Long tenantId,
-                                             Long accountId, LocalDateTime now) {
+                                             Long departmentId, Long accountId, LocalDateTime now) {
         PlatMember member = new PlatMember();
         member.setSystemId(systemId);
         member.setTenantId(tenantId);
+        member.setDeptId(departmentId);
         member.setMemberName(request.accountName());
         member.setEmployeeNo("SA" + accountId);
         member.setMobile(blankToNull(request.mobile()));
@@ -551,6 +612,11 @@ public class AuthService {
 
     private String token() {
         return UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private String verificationCode() {
+        long value = Math.abs((long) token().hashCode()) % 1_000_000L;
+        return String.format("%06d", value);
     }
 
     private record BindingTarget(PlatAccountMemberBinding binding, Long systemId, Long tenantId) {

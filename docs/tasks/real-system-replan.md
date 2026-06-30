@@ -165,3 +165,22 @@ Do not report "coding complete" until all of the following are true:
   - frontend admin API smoke passed for all platform/system admin page dependencies.
   - draft save/read, continuous sequence allocation and blank-flow publish negative verification passed.
   - static scans found no old vehicle fixture keywords, mojibake markers, or production `sample/mock/stub` leakage.
+
+## 2026-06-27 User Runtime Feedback And Recovery Task Cards
+
+User runtime feedback reports that the started product still has crowded pages, confused functions, prototype mismatch, and incomplete frontend-backend integration. This overrides any broad "release-candidate" or "self-checked" completion language.
+
+Next work must not continue broad coding. It must enter recovery task-card mode:
+
+- Recovery entry: `docs/recovery/README.md`
+- Current product audit: `docs/recovery/current-product-audit.md`
+- P0 task cards: `docs/recovery/p0-task-cards.md`
+- Prototype implementation matrix: `docs/recovery/prototype-to-implementation-matrix.md`
+- Generated vs coded API boundary: `docs/recovery/generated-vs-coded-api.md`
+- Fix batches: `docs/recovery/fix-batches.md`
+
+Recovery rule:
+
+- A task is not complete because a page exists, an API returns 200, generated CRUD exists, or build passes.
+- A task is complete only when the assigned role can finish the business action in the running system and the result is visible, persisted, permission-checked, state-handled, and repeatable through a script.
+- Further coding is allowed only for tasks listed in `docs/recovery/fix-batches.md`.

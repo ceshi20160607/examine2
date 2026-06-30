@@ -177,6 +177,9 @@ function createPasswordResetPanel(navigate: Navigate): HTMLElement {
       }
       const result = await requestPasswordReset(loginName);
       setValue(form, 'resetTicket', result.resetTicket);
+      if (result.verifyCode) {
+        setValue(form, 'verifyCode', result.verifyCode);
+      }
       status.textContent = `验证码已发送，票据 ${result.resetTicket}，有效期至 ${result.expiresAt}`;
     });
   });

@@ -1,0 +1,41 @@
+{
+    "status":  "PASS",
+    "task":  "REC-P0-007",
+    "suffix":  "0629225928",
+    "platform":  {
+                     "healthStatus":  "UP",
+                     "platformHealthStatus":  "UP",
+                     "systemsBefore":  8,
+                     "rolesTotal":  1,
+                     "identityProviders":  28,
+                     "modelAuthorizations":  17,
+                     "platformLogs":  1,
+                     "createdSystemId":  "601",
+                     "updatedSystemName":  "R4 Admin System 0629225928 Updated"
+                 },
+    "system":  {
+                   "systemId":  "601",
+                   "tenantId":  "633",
+                   "tenants":  1,
+                   "departmentId":  "370",
+                   "roleId":  "842",
+                   "dictTypeId":  "276",
+                   "dictItemId":  "723",
+                   "flowId":  "117",
+                   "workConfigProjectFields":  1,
+                   "workConfigReadbackProjectFields":  1,
+                   "workConfigReadbackFieldCode":  "r4Priority0629225928",
+                   "workPublishCheckTraceId":  "trc_19fd1b92-9687-40bd-a1c0-a44a00fc52b5",
+                   "ssoPolicyStatus":  "DRAFT",
+                   "ssoTenantDomains":  [
+                                            "r4-0629225928.example.test"
+                                        ],
+                   "openApiAppId":  "48",
+                   "openApiRotationJobId":  "srj_openapi_48_d6790a58",
+                   "agentPolicyId":  "40",
+                   "agentPublishCheckTraceId":  "trc_bfa13052-8c38-4ed2-915f-9f968b839180",
+                   "systemLogsBefore":  1,
+                   "systemLogsAfter":  1
+               },
+    "cleanup":  "DELETE"
+}

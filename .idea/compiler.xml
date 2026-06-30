@@ -10,11 +10,13 @@
         <module name="examine-generator" />
         <module name="examine-module" />
         <module name="examine-web" />
+        <module name="examine-ai-work" />
         <module name="examine-core" />
         <module name="examine-flow" />
         <module name="examine-upload" />
         <module name="examine-plat" />
         <module name="examine-app" />
+        <module name="examine-message-log" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -24,11 +26,13 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="examine" options="" />
+      <module name="examine-ai-work" options="-parameters" />
       <module name="examine-app" options="-parameters" />
       <module name="examine-core" options="-parameters" />
       <module name="examine-flow" options="-parameters" />
       <module name="examine-generator" options="-parameters" />
       <module name="examine-manage" options="-parameters" />
+      <module name="examine-message-log" options="-parameters" />
       <module name="examine-module" options="-parameters" />
       <module name="examine-plat" options="-parameters" />
       <module name="examine-upload" options="-parameters" />

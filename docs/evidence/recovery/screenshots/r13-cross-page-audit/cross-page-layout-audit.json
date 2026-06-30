@@ -1,0 +1,537 @@
+{
+  "status": "FAIL",
+  "generatedAt": "2026-06-29T03:42:20.099Z",
+  "systemId": "258",
+  "results": [
+    {
+      "route": "platform-workbench",
+      "hash": "#/platform",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-platform-workbench.png"
+    },
+    {
+      "route": "platform-admin",
+      "hash": "#/platform/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-platform-admin.png"
+    },
+    {
+      "route": "system-dashboard",
+      "hash": "#/systems/258/dashboard",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-dashboard.png"
+    },
+    {
+      "route": "system-modules",
+      "hash": "#/systems/258/modules",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-modules.png"
+    },
+    {
+      "route": "system-work",
+      "hash": "#/systems/258/work",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-work.png"
+    },
+    {
+      "route": "system-todos",
+      "hash": "#/systems/258/todos",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-todos.png"
+    },
+    {
+      "route": "system-admin-info",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-info.png"
+    },
+    {
+      "route": "system-admin-org",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-org.png"
+    },
+    {
+      "route": "system-admin-module",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-module.png"
+    },
+    {
+      "route": "system-admin-flow",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-flow.png"
+    },
+    {
+      "route": "system-admin-work-config",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-work-config.png"
+    },
+    {
+      "route": "system-admin-logs",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-logs.png"
+    },
+    {
+      "route": "platform-workbench",
+      "hash": "#/platform",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-platform-workbench.png"
+    },
+    {
+      "route": "platform-admin",
+      "hash": "#/platform/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-platform-admin.png"
+    },
+    {
+      "route": "system-dashboard",
+      "hash": "#/systems/258/dashboard",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-dashboard.png"
+    },
+    {
+      "route": "system-modules",
+      "hash": "#/systems/258/modules",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-modules.png"
+    },
+    {
+      "route": "system-work",
+      "hash": "#/systems/258/work",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-work.png"
+    },
+    {
+      "route": "system-todos",
+      "hash": "#/systems/258/todos",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-todos.png"
+    },
+    {
+      "route": "system-admin-info",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-info.png"
+    },
+    {
+      "route": "system-admin-org",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-org.png"
+    },
+    {
+      "route": "system-admin-module",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-module.png"
+    },
+    {
+      "route": "system-admin-flow",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-flow.png"
+    },
+    {
+      "route": "system-admin-work-config",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-work-config.png"
+    },
+    {
+      "route": "system-admin-logs",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-logs.png"
+    }
+  ],
+  "failures": [
+    {
+      "route": "platform-workbench",
+      "hash": "#/platform",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-platform-workbench.png"
+    },
+    {
+      "route": "platform-admin",
+      "hash": "#/platform/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-platform-admin.png"
+    },
+    {
+      "route": "system-dashboard",
+      "hash": "#/systems/258/dashboard",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-dashboard.png"
+    },
+    {
+      "route": "system-modules",
+      "hash": "#/systems/258/modules",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-modules.png"
+    },
+    {
+      "route": "system-work",
+      "hash": "#/systems/258/work",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-work.png"
+    },
+    {
+      "route": "system-todos",
+      "hash": "#/systems/258/todos",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-todos.png"
+    },
+    {
+      "route": "system-admin-info",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-info.png"
+    },
+    {
+      "route": "system-admin-org",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-org.png"
+    },
+    {
+      "route": "system-admin-module",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-module.png"
+    },
+    {
+      "route": "system-admin-flow",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-flow.png"
+    },
+    {
+      "route": "system-admin-work-config",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-work-config.png"
+    },
+    {
+      "route": "system-admin-logs",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\desktop-system-admin-logs.png"
+    },
+    {
+      "route": "platform-workbench",
+      "hash": "#/platform",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-platform-workbench.png"
+    },
+    {
+      "route": "platform-admin",
+      "hash": "#/platform/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-platform-admin.png"
+    },
+    {
+      "route": "system-dashboard",
+      "hash": "#/systems/258/dashboard",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-dashboard.png"
+    },
+    {
+      "route": "system-modules",
+      "hash": "#/systems/258/modules",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-modules.png"
+    },
+    {
+      "route": "system-work",
+      "hash": "#/systems/258/work",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-work.png"
+    },
+    {
+      "route": "system-todos",
+      "hash": "#/systems/258/todos",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-todos.png"
+    },
+    {
+      "route": "system-admin-info",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-info.png"
+    },
+    {
+      "route": "system-admin-org",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-org.png"
+    },
+    {
+      "route": "system-admin-module",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-module.png"
+    },
+    {
+      "route": "system-admin-flow",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-flow.png"
+    },
+    {
+      "route": "system-admin-work-config",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-work-config.png"
+    },
+    {
+      "route": "system-admin-logs",
+      "hash": "#/systems/258/admin",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 720
+      },
+      "evaluationMissing": true,
+      "screenshotPath": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r13-cross-page-audit\\mobile-system-admin-logs.png"
+    }
+  ]
+}

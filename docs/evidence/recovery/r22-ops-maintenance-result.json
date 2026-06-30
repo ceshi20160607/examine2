@@ -1,0 +1,82 @@
+﻿{
+    "status":  "PASS",
+    "generatedAt":  "2026-06-29T22:56:27.4173446+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "releaseVerifyStatus":  "PASS",
+    "serverScriptCommands":  [
+                                 "start",
+                                 "stop",
+                                 "restart",
+                                 "status",
+                                 "health"
+                             ],
+    "platformHealthTraceId":  "trc_7f26d14e-f977-4c46-a0d8-e0a28beef814",
+    "featureFlagTraceId":  "trc_d8f7a0be-9e06-46cf-8ed4-1192b4a22cfe",
+    "quotaTraceId":  "trc_08553f1a-af06-4da5-a1cb-9f9e3d3af0fc",
+    "rateLimitTraceId":  "trc_5df54fe9-8825-4dca-a726-1d2c30ba9fc6",
+    "backupTaskId":  "TASK-20260629225608",
+    "restoreTaskId":  "TASK-20260629225609",
+    "archiveTaskId":  "TASK-20260629225609",
+    "rollbackTaskId":  "TASK-20260629225609",
+    "rollbackSupported":  {
+                              "restore":  true,
+                              "archive":  true,
+                              "deployment":  true
+                          },
+    "deploymentCount":  1,
+    "cachePolicyCount":  4,
+    "cacheUpdatedCount":  1,
+    "browser":  {
+                    "login":  {
+                                  "ok":  true,
+                                  "hash":  "#/platform/dashboard",
+                                  "hasToken":  true
+                              },
+                    "checks":  [
+                                   {
+                                       "ok":  true,
+                                       "body":  "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更新缓存策略\n\n平台体检：WARN，风险 1 项，traceId=trc_9c56b111-88ac-4090-aeeb-aa2811ecfbac\n\n点击读取部署记录。\n\n点击读取 API 缓存策略。",
+                                       "disabled":  false
+                                   },
+                                   {
+                                       "ok":  true,
+                                       "body":  "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更新缓存策略\n\n备份任务已创建：TASK-20260629225624 / QUEUED，traceId=trc_3aebc17c-7d22-4f5a-bfe4-ca0f3d13b2c4\n\n点击读取部署记录。\n\n点击读取 API 缓存策略。",
+                                       "disabled":  false
+                                   },
+                                   {
+                                       "ok":  true,
+                                       "body":  "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更新缓存策略\n\n恢复演练任务已创建：TASK-20260629225624 / rollback=true，traceId=trc_b3fa214c-dfd1-4f08-97b9-9c1faa98b81b\n\n点击读取部署记录。\n\n点击读取 API 缓存策略。",
+                                       "disabled":  false
+                                   },
+                                   {
+                                       "ok":  true,
+                                       "body":  "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更新缓存策略\n\n部署记录已读取：1 条\n\nDEP-20260623-001 / prod\nSTABLE\nrollback requires async dry-run validation and explicit no destructive script confirmation\n\n点击读取 API 缓存策略。",
+                                       "disabled":  false
+                                   },
+                                   {
+                                       "ok":  true,
+                                       "body":  "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更新缓存策略\n\n部署回滚演练已创建：TASK-20260629225625 / rollback=true，traceId=trc_e8a07674-6151-47b8-ad97-6115fc0baf02\n\nDEP-20260623-001 / prod\nSTABLE\nrollback requires async dry-run validation and explicit no destructive script confirmation\n\n点击读取 API 缓存策略。",
+                                       "disabled":  false
+                                   },
+                                   {
+                                       "ok":  true,
+                                       "body":  "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更新缓存策略\n\nAPI 缓存策略已读取：4 条\n\nDEP-20260623-001 / prod\nSTABLE\nrollback requires async dry-run validation and explicit no destructive script confirmation\ncache_permission / PERMISSION\n启用\nsystem:{systemId}:member:{memberId}:perm\ncache_dict / DICT\n启用\nsystem:{systemId}:dict:{dictType}\ncache_field / FIELD\n启用\nsystem:{systemId}:module:{moduleId}:field\ncache_print / PRINT_TEMPLATE\n启用\nsystem:{systemId}:print:{templateCode}",
+                                       "disabled":  false
+                                   },
+                                   {
+                                       "ok":  true,
+                                       "body":  "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更新缓存策略\n\nAPI 缓存策略已保存：permission_snapshot，traceId=trc_48d03668-9ed8-44d5-a810-47d1fdf6ab6f\n\nDEP-20260623-001 / prod\nSTABLE\nrollback requires async dry-run validation and explicit no destructive script confirmation\npermission_snapshot / PERMISSION\n启用\nsystem:{systemId}:member:{memberId}:perm",
+                                       "disabled":  false
+                                   }
+                               ],
+                    "mobile":  {
+                                   "ok":  true,
+                                   "overflowX":  0,
+                                   "width":  390
+                               },
+                    "screenshots":  [
+                                        "platform-ops-desktop.png",
+                                        "platform-ops-mobile.png"
+                                    ]
+                }
+}

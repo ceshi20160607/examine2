@@ -1,0 +1,105 @@
+{
+  "status": "PASS",
+  "task": "REC-P0-020",
+  "baseUrl": "http://127.0.0.1:18131",
+  "systemId": "618",
+  "accountName": "r17_member_0629230439120_6ac516",
+  "recordValue": "R17 Browser Ticket 0629230439120_6ac516",
+  "generatedAt": "2026-06-29T15:05:19.272Z",
+  "loginState": {
+    "ok": true,
+    "hash": "#/systems/618/dashboard",
+    "hasToken": true,
+    "localAccountId": "260",
+    "bodyIncludesAccount": true
+  },
+  "saveState": {
+    "ok": true,
+    "rowCount": 1,
+    "hasValue": true,
+    "text": "R17 Runtime Target 0629230439120_6ac516\n仪表盘\nR17 Business Group 0629230439120_6ac516\n工作\n待办\n消息\n系统切换\nr17_member_0629230439120_6ac516\nR17 Business Group 0629230439120_6ac516\nR17 Ticket Ledger 0629230439120_6ac516\n1 条 / MODULE_v1782745489678\n\nR17 BUSINESS GROUP 0629230439120_6AC516\n\nR17 Ticket Ledger 0629230439120_6ac516\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n新建记录\n导入\n全部导出\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n权限快照：eps_618_650_798\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n记录已保存：193\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tTicket Name ↕\tTicket Amount ↕\t操作\n\t001\t-\t-\t-\tR17 Browser Ticket 0629230439120_6ac516\t1700.000000\t\n编辑\n提交审批\n删除\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\n业务详情\nR17 Browser Ticket 0629230439120_6ac516\n编辑\n删除\n打印\n标题\nR17 Browser Ticket 0629230439120_6ac516\n摘要\nR1782745502003\n状态\nDRAFT\n权限版本\nperm_live_618_650_798\n详细资料\n关联数据\n附件\n打印记录\n操作记录\n基本信息\n标题\n状态\n所属部门\nTicket Name\nR17 Browser Ticket 0629230439120_6ac516\nTicket Amount\n1700.000000\n审批流程\n\n当前记录未发起审批。\n\ntraceId: TRACE-193\nauditLogId: AUD-193"
+  },
+  "results": [
+    {
+      "key": "desktop-runtime-created-record",
+      "screenshot": "desktop-runtime-created-record.png",
+      "hash": "#/systems/618/modules",
+      "hasToken": true,
+      "localAccountId": "260",
+      "headerButtons": [
+        "消息",
+        "系统切换",
+        "r17_member_0629230439120_6ac516"
+      ],
+      "headerButtonCount": 3,
+      "hasAdminEntry": false,
+      "bodyIncludesAccount": true,
+      "bodyIncludesRecord": true,
+      "denied": false,
+      "adminSidebarVisible": false,
+      "moduleToolbarVisible": false,
+      "runtimeVisible": true,
+      "runtimeTableVisible": true,
+      "scrollWidth": 1265,
+      "overflowX": 0,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "blockers": []
+    },
+    {
+      "key": "desktop-admin-denied",
+      "screenshot": "desktop-admin-denied.png",
+      "hash": "#/systems/618/admin",
+      "hasToken": true,
+      "localAccountId": "260",
+      "headerButtons": [],
+      "headerButtonCount": 0,
+      "hasAdminEntry": false,
+      "bodyIncludesAccount": false,
+      "bodyIncludesRecord": false,
+      "denied": true,
+      "adminSidebarVisible": false,
+      "moduleToolbarVisible": false,
+      "runtimeVisible": false,
+      "runtimeTableVisible": false,
+      "scrollWidth": 1280,
+      "overflowX": 0,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "blockers": []
+    },
+    {
+      "key": "mobile-runtime-created-record",
+      "screenshot": "mobile-runtime-created-record.png",
+      "hash": "#/systems/618/modules",
+      "hasToken": true,
+      "localAccountId": "260",
+      "headerButtons": [
+        "消息",
+        "系统切换",
+        "r17_member_0629230439120_6ac516"
+      ],
+      "headerButtonCount": 3,
+      "hasAdminEntry": false,
+      "bodyIncludesAccount": true,
+      "bodyIncludesRecord": true,
+      "denied": false,
+      "adminSidebarVisible": false,
+      "moduleToolbarVisible": false,
+      "runtimeVisible": true,
+      "runtimeTableVisible": true,
+      "scrollWidth": 390,
+      "overflowX": 0,
+      "viewport": {
+        "width": 390,
+        "height": 720
+      },
+      "blockers": []
+    }
+  ],
+  "failures": []
+}

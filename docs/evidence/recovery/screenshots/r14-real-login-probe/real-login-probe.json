@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "systemId": "305",
+  "afterLogin": {
+    "hash": "#/login",
+    "bodyText": "U\nunexamine\n统一入口\n账号登录\n登录\n注册\n找回密码\n账号\n密码\n\n请输入账号和密码。\n\n登录\n\ntraceId: trace_login_ready\nauditLogId: aud_login_ready",
+    "localAccountId": null,
+    "hasToken": false,
+    "buttons": [
+      "登录",
+      "注册",
+      "找回密码",
+      "登录"
+    ]
+  },
+  "admin": {
+    "hash": "#/systems/305/admin",
+    "bodyText": "unexamine\n无法进入系统\n\n请先登录\n\n返回平台工作台\n申请成员映射",
+    "buttons": [
+      "返回平台工作台",
+      "申请成员映射"
+    ],
+    "overflowX": 0,
+    "adminContentTop": null,
+    "sidebarHeight": null
+  },
+  "work": {
+    "hash": "#/systems/305/work",
+    "bodyText": "unexamine\n无法进入系统\n\n请先登录\n\n返回平台工作台\n申请成员映射",
+    "overflowX": 0,
+    "buttons": [
+      "返回平台工作台",
+      "申请成员映射"
+    ]
+  },
+  "outDir": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r14-real-login-probe"
+}

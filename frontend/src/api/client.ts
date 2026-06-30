@@ -29,9 +29,29 @@ export class ApiClient {
     });
   }
 
+  async postForm<T>(path: string, body: FormData, idempotencyKey?: string): Promise<ApiResponse<T>> {
+    return this.request<T>(
+      path,
+      {
+        method: 'POST',
+        body,
+        headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+      },
+      false,
+    );
+  }
+
   async patch<T>(path: string, body?: unknown, idempotencyKey?: string): Promise<ApiResponse<T>> {
     return this.request<T>(path, {
       method: 'PATCH',
+      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+    });
+  }
+
+  async put<T>(path: string, body?: unknown, idempotencyKey?: string): Promise<ApiResponse<T>> {
+    return this.request<T>(path, {
+      method: 'PUT',
       body: body === undefined ? undefined : JSON.stringify(body),
       headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
     });
@@ -49,9 +69,11 @@ export class ApiClient {
     return this.post<PageResult<T>>(path, page);
   }
 
-  private async request<T>(path: string, init: RequestInit): Promise<ApiResponse<T>> {
+  private async request<T>(path: string, init: RequestInit, jsonContentType = true): Promise<ApiResponse<T>> {
     const headers = new Headers(init.headers);
-    headers.set('Content-Type', 'application/json');
+    if (jsonContentType) {
+      headers.set('Content-Type', 'application/json');
+    }
     const token = this.getToken?.();
     const traceId = this.getTraceId?.();
     if (token) {

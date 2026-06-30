@@ -63,13 +63,14 @@ import com.unique.examine.aiwork.manage.work.WorkManagementModels.WorkTaskVO;
 import com.unique.examine.aiwork.manage.work.WorkManagementModels.WorkWarningVO;
 import com.unique.examine.core.api.PageRequest;
 import com.unique.examine.core.api.PageResult;
-import com.unique.examine.core.context.CurrentRequestHeaders;
 import com.unique.examine.core.context.RequestContext;
 import com.unique.examine.core.error.BusinessException;
 import com.unique.examine.core.error.CommonErrorCode;
-import com.unique.examine.plat.base.entity.PlatAccountMemberBinding;
+import com.unique.examine.module.base.entity.ModuleWorkConfig;
+import com.unique.examine.module.base.service.ModuleWorkConfigBaseService;
+import com.unique.examine.module.manage.common.ModuleSystemContextResolver;
+import com.unique.examine.module.manage.common.ModuleSystemContextResolver.ModuleSystemContext;
 import com.unique.examine.plat.base.entity.PlatMember;
-import com.unique.examine.plat.base.service.PlatAccountMemberBindingBaseService;
 import com.unique.examine.plat.base.service.PlatMemberBaseService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -93,6 +94,7 @@ public class WorkManagementService {
 
     private static final String PROJECT = "PROJECT";
     private static final String PLAIN = "PLAIN";
+    private static final String WORK_CONFIG = "WORK_CONFIG";
     private static final int DELETED_NO = 0;
 
     private final WorkProjectBaseService projectBaseService;
@@ -100,8 +102,9 @@ public class WorkManagementService {
     private final WorkDailyReportBaseService dailyReportBaseService;
     private final WorkTaskCommentBaseService taskCommentBaseService;
     private final WorkTaskEventBaseService taskEventBaseService;
-    private final PlatAccountMemberBindingBaseService bindingBaseService;
     private final PlatMemberBaseService memberBaseService;
+    private final ModuleWorkConfigBaseService workConfigBaseService;
+    private final ModuleSystemContextResolver moduleSystemContextResolver;
     private final ObjectMapper objectMapper;
 
     public WorkManagementService(WorkProjectBaseService projectBaseService,
@@ -109,16 +112,18 @@ public class WorkManagementService {
                                  WorkDailyReportBaseService dailyReportBaseService,
                                  WorkTaskCommentBaseService taskCommentBaseService,
                                  WorkTaskEventBaseService taskEventBaseService,
-                                 PlatAccountMemberBindingBaseService bindingBaseService,
                                  PlatMemberBaseService memberBaseService,
+                                 ModuleWorkConfigBaseService workConfigBaseService,
+                                 ModuleSystemContextResolver moduleSystemContextResolver,
                                  ObjectMapper objectMapper) {
         this.projectBaseService = projectBaseService;
         this.taskBaseService = taskBaseService;
         this.dailyReportBaseService = dailyReportBaseService;
         this.taskCommentBaseService = taskCommentBaseService;
         this.taskEventBaseService = taskEventBaseService;
-        this.bindingBaseService = bindingBaseService;
         this.memberBaseService = memberBaseService;
+        this.workConfigBaseService = workConfigBaseService;
+        this.moduleSystemContextResolver = moduleSystemContextResolver;
         this.objectMapper = objectMapper;
     }
 
@@ -403,18 +408,39 @@ public class WorkManagementService {
      * @return work config
      */
     public WorkConfigVO config(String systemId) {
-        return defaultConfig(systemId, null);
+        WorkContext context = workContext(systemId);
+        ModuleWorkConfig entity = workConfigEntity(context);
+        if (Objects.isNull(entity)) {
+            return configView(context, null, defaultPublishState(), LocalDateTime.now());
+        }
+        return configView(context, readWorkConfig(entity), publishState(entity), entity.getUpdatedAt());
     }
 
     /**
-     * Save work configuration. Persistence is kept for a later configuration-storage pass.
+     * Save work configuration.
      *
      * @param systemId system id
      * @param request update request
      * @return merged config view
      */
     public WorkConfigVO updateConfig(String systemId, WorkConfigUpdateRequest request) {
-        return defaultConfig(systemId, request);
+        WorkContext context = workContext(systemId);
+        ModuleWorkConfig entity = workConfigEntity(context);
+        WorkConfigUpdateRequest merged = mergeWorkConfig(Objects.isNull(entity) ? null : readWorkConfig(entity),
+                request);
+        LocalDateTime now = LocalDateTime.now();
+        if (Objects.isNull(entity)) {
+            entity = new ModuleWorkConfig();
+            entity.setSystemId(context.systemId());
+            entity.setTenantId(context.tenantId());
+            entity.setConfigType(WORK_CONFIG);
+            entity.setPublishStatus("DRAFT");
+            entity.setPublishedVersion("work_cfg_v1");
+        }
+        entity.setFieldList(writeJson(merged));
+        entity.setUpdatedAt(now);
+        workConfigBaseService.saveEntity(entity);
+        return configView(context, merged, publishState(entity), now);
     }
 
     /**
@@ -810,8 +836,8 @@ public class WorkManagementService {
                 new WorkTab("dailyReport", "日报", "WorkDailyReport", 0, "dailyReport".equals(selected)));
     }
 
-    private WorkConfigVO defaultConfig(String systemId, WorkConfigUpdateRequest request) {
-        WorkContext context = workContext(systemId);
+    private WorkConfigVO configView(WorkContext context, WorkConfigUpdateRequest request,
+                                    PublishStateVO publishState, LocalDateTime updatedAt) {
         List<WorkFieldConfigVO> projectFields = request != null && request.projectTaskFields() != null
                 ? request.projectTaskFields() : projectTaskFields();
         List<WorkFieldConfigVO> plainFields = request != null && request.plainTaskFields() != null
@@ -825,7 +851,58 @@ public class WorkManagementService {
                 request != null && request.dailyReportAutoSourceRule() != null
                         ? request.dailyReportAutoSourceRule() : autoSourceRule(),
                 dictionaryBindings(), statusColors(),
-                new PublishStateVO("DRAFT", "work_cfg_v1", true, null), LocalDateTime.now());
+                publishState, Objects.isNull(updatedAt) ? LocalDateTime.now() : updatedAt);
+    }
+
+    private ModuleWorkConfig workConfigEntity(WorkContext context) {
+        return workConfigBaseService.getOne(new LambdaQueryWrapper<ModuleWorkConfig>()
+                .eq(ModuleWorkConfig::getSystemId, context.systemId())
+                .eq(ModuleWorkConfig::getTenantId, context.tenantId())
+                .eq(ModuleWorkConfig::getConfigType, WORK_CONFIG)
+                .last("LIMIT 1"), false);
+    }
+
+    private WorkConfigUpdateRequest readWorkConfig(ModuleWorkConfig entity) {
+        if (Objects.isNull(entity) || !StringUtils.hasText(entity.getFieldList())) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(entity.getFieldList(), WorkConfigUpdateRequest.class);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private WorkConfigUpdateRequest mergeWorkConfig(WorkConfigUpdateRequest existing,
+                                                    WorkConfigUpdateRequest request) {
+        return new WorkConfigUpdateRequest(
+                request != null && request.projectTaskFields() != null
+                        ? request.projectTaskFields() : existing == null ? null : existing.projectTaskFields(),
+                request != null && request.plainTaskFields() != null
+                        ? request.plainTaskFields() : existing == null ? null : existing.plainTaskFields(),
+                request != null && request.dailyReportFields() != null
+                        ? request.dailyReportFields() : existing == null ? null : existing.dailyReportFields(),
+                request != null && request.projectTaskKanban() != null
+                        ? request.projectTaskKanban() : existing == null ? null : existing.projectTaskKanban(),
+                request != null && request.plainTaskKanban() != null
+                        ? request.plainTaskKanban() : existing == null ? null : existing.plainTaskKanban(),
+                request != null && request.dailyReportAutoSourceRule() != null
+                        ? request.dailyReportAutoSourceRule()
+                        : existing == null ? null : existing.dailyReportAutoSourceRule(),
+                request != null && StringUtils.hasText(request.changeReason())
+                        ? request.changeReason() : existing == null ? null : existing.changeReason());
+    }
+
+    private PublishStateVO publishState(ModuleWorkConfig entity) {
+        if (Objects.isNull(entity)) {
+            return defaultPublishState();
+        }
+        return new PublishStateVO(safeText(entity.getPublishStatus(), "DRAFT"),
+                safeText(entity.getPublishedVersion(), "work_cfg_v1"), true, null);
+    }
+
+    private PublishStateVO defaultPublishState() {
+        return new PublishStateVO("DRAFT", "work_cfg_v1", true, null);
     }
 
     private List<WorkFieldConfigVO> projectTaskFields() {
@@ -937,24 +1014,8 @@ public class WorkManagementService {
     }
 
     private WorkContext workContext(String systemId) {
-        Long parsedSystemId = parseLong(systemId, null);
-        if (Objects.isNull(parsedSystemId)) {
-            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "System id must be numeric.");
-        }
-        LambdaQueryWrapper<PlatAccountMemberBinding> wrapper =
-                new LambdaQueryWrapper<PlatAccountMemberBinding>()
-                        .eq(PlatAccountMemberBinding::getSystemId, parsedSystemId)
-                        .eq(PlatAccountMemberBinding::getBindingStatus, 1);
-        Long accountId = CurrentRequestHeaders.currentAccountIdOrNull();
-        if (Objects.nonNull(accountId)) {
-            wrapper.eq(PlatAccountMemberBinding::getAccountId, accountId);
-        }
-        PlatAccountMemberBinding binding = bindingBaseService.getOne(wrapper.orderByAsc(PlatAccountMemberBinding::getId)
-                .last("LIMIT 1"), false);
-        if (Objects.isNull(binding)) {
-            throw new BusinessException(CommonErrorCode.PERMISSION_DENIED, "No system member binding.");
-        }
-        return new WorkContext(parsedSystemId, binding.getTenantId(), binding.getSystemMemberId());
+        ModuleSystemContext context = moduleSystemContextResolver.resolve(systemId);
+        return new WorkContext(context.systemId(), context.tenantId(), context.systemMemberId());
     }
 
     private MemberVO member(Long memberId) {

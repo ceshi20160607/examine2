@@ -19,4 +19,16 @@
 
 ## 当前状态
 
-`design_user_approved = false` → 禁止开发；先完成需求理解与 Open Design 原型确认。
+当前以 [`.cursor/session/state.json`](./.cursor/session/state.json) 为唯一状态源。
+
+截至 2026-06-27：
+
+- `design_user_approved = true`
+- `api_frozen = true`
+- `tasks_planned = true`
+- `build_batch_accepted = true`
+- `user_script_passed = false`
+
+用户启动试用后反馈：页面堆叠、功能混乱、原型和真实业务整合不完整。项目进入 **recovery task-card** 整改口径，后续 coding 只能按 [`docs/recovery/fix-batches.md`](./docs/recovery/fix-batches.md) 中的明确任务卡推进。
+
+整改入口见 [`docs/recovery/README.md`](./docs/recovery/README.md)。任务不再按“页面存在 / 接口存在 / build 通过”关闭，只能按“角色在真实系统中完成可验收业务动作”关闭。

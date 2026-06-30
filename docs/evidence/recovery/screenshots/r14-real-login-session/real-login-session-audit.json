@@ -1,0 +1,84 @@
+{
+  "status": "PASS",
+  "task": "REC-P0-017",
+  "baseUrl": "http://127.0.0.1:18131",
+  "systemId": "615",
+  "generatedAt": "2026-06-29T15:03:59.688Z",
+  "loginState": {
+    "ok": true,
+    "hash": "#/platform/dashboard",
+    "hasToken": true,
+    "localAccountId": "25",
+    "headerButtons": [
+      "代办",
+      "消息",
+      "admin"
+    ],
+    "bodyIncludesAdmin": true
+  },
+  "results": [
+    {
+      "key": "mobile-after-real-login",
+      "screenshot": "mobile-after-real-login.png",
+      "hash": "#/platform/dashboard",
+      "hasToken": true,
+      "localAccountId": "25",
+      "headerButtons": [
+        "代办",
+        "消息",
+        "admin"
+      ],
+      "bodyIncludesAdmin": true,
+      "scrollWidth": 390,
+      "overflowX": 0,
+      "adminContentTop": null,
+      "adminSidebarHeight": null,
+      "moduleToolbarVisible": false,
+      "workVisible": false,
+      "blockers": []
+    },
+    {
+      "key": "mobile-system-admin-after-real-login",
+      "screenshot": "mobile-system-admin-after-real-login.png",
+      "hash": "#/systems/615/admin",
+      "hasToken": true,
+      "localAccountId": "25",
+      "headerButtons": [
+        "消息",
+        "系统切换",
+        "系统后台",
+        "admin"
+      ],
+      "bodyIncludesAdmin": true,
+      "scrollWidth": 390,
+      "overflowX": 0,
+      "adminContentTop": 237,
+      "adminSidebarHeight": 54,
+      "moduleToolbarVisible": true,
+      "workVisible": false,
+      "blockers": []
+    },
+    {
+      "key": "mobile-work-after-real-login",
+      "screenshot": "mobile-work-after-real-login.png",
+      "hash": "#/systems/615/work",
+      "hasToken": true,
+      "localAccountId": "25",
+      "headerButtons": [
+        "消息",
+        "系统切换",
+        "系统后台",
+        "admin"
+      ],
+      "bodyIncludesAdmin": true,
+      "scrollWidth": 390,
+      "overflowX": 0,
+      "adminContentTop": null,
+      "adminSidebarHeight": null,
+      "moduleToolbarVisible": false,
+      "workVisible": true,
+      "blockers": []
+    }
+  ],
+  "failures": []
+}

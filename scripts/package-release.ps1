@@ -1,8 +1,8 @@
 param(
     [string]$Version = '0.0.1-SNAPSHOT',
-    [string]$JavaHome = 'D:\java\jdk\jdk21',
-    [string]$MavenPath = 'D:\java\apache-maven-3.8.5\bin\mvn.cmd',
-    [string]$NpmPath = 'D:\java\nodejs\npm.cmd',
+    [string]$JavaHome = 'D:\dev\jdk21',
+    [string]$MavenPath = 'D:\dev\maven\bin\mvn.cmd',
+    [string]$NpmPath = 'D:\dev\nodejs24\npm.cmd',
     [switch]$SkipBuild
 )
 
@@ -92,7 +92,18 @@ $BackendReleaseDir = Join-Path $ReleaseDir 'backend'
 $FrontendReleaseDir = Join-Path $ReleaseDir 'frontend'
 
 New-Item -ItemType Directory -Force -Path $BackendReleaseDir, $FrontendReleaseDir | Out-Null
-Copy-Item -Path $BackendJar -Destination (Join-Path $BackendReleaseDir 'examine-web.jar') -Force
+$ReleaseBackendJar = Join-Path $BackendReleaseDir 'examine-web.jar'
+Copy-Item -Path $BackendJar -Destination $ReleaseBackendJar -Force
+$sourceJarHash = (Get-FileHash -LiteralPath $BackendJar -Algorithm SHA256).Hash
+$releaseJarHash = (Get-FileHash -LiteralPath $ReleaseBackendJar -Algorithm SHA256).Hash
+if ($sourceJarHash -ne $releaseJarHash) {
+    Remove-Item -LiteralPath $ReleaseBackendJar -Force
+    [System.IO.File]::Copy($BackendJar, $ReleaseBackendJar, $true)
+    $releaseJarHash = (Get-FileHash -LiteralPath $ReleaseBackendJar -Algorithm SHA256).Hash
+}
+if ($sourceJarHash -ne $releaseJarHash) {
+    throw "Release backend jar hash mismatch after copy. source=$sourceJarHash release=$releaseJarHash"
+}
 Copy-Item -Path (Join-Path $FrontendDist '*') -Destination $FrontendReleaseDir -Recurse -Force
 
 $FrontendRuntimeConfig = Join-Path $FrontendReleaseDir 'config.js'
@@ -127,7 +138,8 @@ $result = [ordered]@{
     version = $Version
     releaseDir = $ReleaseDir
     zipPath = $ZipPath
-    backendJar = Join-Path $BackendReleaseDir 'examine-web.jar'
+    backendJar = $ReleaseBackendJar
+    backendJarSha256 = $releaseJarHash
     backendConfig = Join-Path $BackendReleaseDir 'application.yml'
     frontendIndex = Join-Path $FrontendReleaseDir 'index.html'
     frontendApiMode = 'same-origin-nginx-proxy'

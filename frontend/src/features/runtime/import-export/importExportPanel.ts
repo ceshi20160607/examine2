@@ -11,7 +11,7 @@ export interface ImportPanelState {
 }
 
 export interface ImportPanelHandlers {
-  onPrecheck: (input: { fileId: string; templateCode: string; duplicateStrategy: string }) => Promise<void>;
+  onPrecheck: (input: { file?: File; fileId?: string; templateCode: string; duplicateStrategy: string }) => Promise<void>;
   onConfirm: (precheckId: string, duplicateStrategy: string) => Promise<void>;
   onClose: () => void;
 }
@@ -30,11 +30,17 @@ export interface ExportPanelHandlers {
 }
 
 export function createImportPanel(state: ImportPanelState, handlers: ImportPanelHandlers): HTMLElement {
-  const fileIdInput = createElement('input', { ariaLabel: '上传文件 fileId' });
-  fileIdInput.placeholder = '上传文件 fileId';
+  const fileInput = createElement('input', { ariaLabel: '选择导入文件' });
+  fileInput.type = 'file';
+  fileInput.accept = '.csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+  const fileIdInput = createElement('input', { ariaLabel: '已有上传文件 fileId' });
+  fileIdInput.placeholder = '可选：已有上传文件 fileId';
+
   const templateInput = createElement('input', { ariaLabel: '模板编码' });
   templateInput.placeholder = '默认 default';
   templateInput.value = 'default';
+
   const duplicateSelect = createElement('select', { ariaLabel: '重复策略' });
   duplicateSelect.append(
     createOption('SKIP', '跳过重复数据'),
@@ -42,9 +48,10 @@ export function createImportPanel(state: ImportPanelState, handlers: ImportPanel
     createOption('REJECT', '遇到重复即失败'),
   );
 
-  const precheckButton = createButton('开始预检', 'primary', Boolean(state.loading));
+  const precheckButton = createButton('上传并预检', 'primary', Boolean(state.loading));
   precheckButton.addEventListener('click', async () => {
     await handlers.onPrecheck({
+      file: fileInput.files?.[0],
       fileId: fileIdInput.value.trim(),
       templateCode: templateInput.value.trim() || 'default',
       duplicateStrategy: duplicateSelect.value,
@@ -71,7 +78,8 @@ export function createImportPanel(state: ImportPanelState, handlers: ImportPanel
     createElement(
       'section',
       { className: 'runtime-card form-grid' },
-      createElement('label', {}, createElement('span', {}, '上传文件 fileId'), fileIdInput),
+      createElement('label', {}, createElement('span', {}, '导入文件'), fileInput),
+      createElement('label', {}, createElement('span', {}, '已有 fileId'), fileIdInput),
       createElement('label', {}, createElement('span', {}, '模板编码'), templateInput),
       createElement('label', {}, createElement('span', {}, '重复策略'), duplicateSelect),
     ),
@@ -139,7 +147,7 @@ function createStepRail(steps: string[], activeIndex: number): HTMLElement {
 
 function createPrecheckCard(precheck: RuntimeImportPrecheckResult | undefined): HTMLElement {
   if (!precheck) {
-    return createElement('section', { className: 'runtime-card' }, createElement('h3', {}, '预检结果'), createElement('p', {}, '上传文件后显示字段映射、必填、字典、权限和重复数据预检结果。'));
+    return createElement('section', { className: 'runtime-card' }, createElement('h3', {}, '预检结果'), createElement('p', {}, '上传文件后展示字段映射、必填、字典、权限和重复数据预检结果。'));
   }
   return createElement(
     'section',

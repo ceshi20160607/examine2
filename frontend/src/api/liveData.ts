@@ -42,6 +42,7 @@ interface RegisterWithSystemResponse {
 
 interface PasswordResetResponse {
   resetTicket: string;
+  verifyCode?: string;
   expiresAt: string;
   traceId: string;
 }
@@ -273,6 +274,29 @@ export interface RuntimeImportPrecheckResult {
   auditLogId: string;
 }
 
+export interface UploadFileView {
+  fileId: string;
+  fileName: string;
+  fileType?: string;
+  sizeBytes?: number;
+  checksum?: string;
+  status?: string;
+  storagePolicyCode?: string;
+  storageMode?: string;
+  objectStorageConnected?: boolean;
+  previewUrl?: string;
+  downloadUrl?: string;
+  uploadedBy?: string;
+  uploadedAt?: string;
+}
+
+export interface UploadResultView {
+  file: UploadFileView;
+  retryable: boolean;
+  traceId: string;
+  auditLogId?: string;
+}
+
 export interface RuntimeImportConfirmResult {
   precheckId: string;
   task: AsyncTask;
@@ -323,6 +347,18 @@ export interface MessageCard {
   target?: MessageTarget;
   traceId: string;
   createdAt: string;
+}
+
+export interface MessageActionResult {
+  scope: string;
+  systemId?: string;
+  tenantId?: string;
+  action: string;
+  affectedCount: number;
+  status: string;
+  traceId: string;
+  auditLogId: string;
+  operatedAt: string;
 }
 
 export interface MessageTarget {
@@ -545,6 +581,75 @@ export interface OpsHealthCheck {
   checkedAt: string;
 }
 
+export interface OpsFeatureFlagView {
+  flagId: string;
+  flagCode: string;
+  scope: string;
+  systemId?: string;
+  tenantId?: string;
+  status: number;
+  rules: string;
+  rollbackVersion: string;
+  traceId: string;
+  auditLogId: string;
+  updatedAt: string;
+}
+
+export interface OpsQuotaView {
+  quotaId: string;
+  scope: string;
+  systemId?: string;
+  tenantId?: string;
+  quotaType: string;
+  quotaLimit: number;
+  quotaUsed: number;
+  warnThreshold: number;
+  status: string;
+  traceId: string;
+  auditLogId: string;
+  updatedAt: string;
+}
+
+export interface OpsRateLimitPolicyView {
+  policyId: string;
+  scope: string;
+  systemId?: string;
+  tenantId?: string;
+  policyCode: string;
+  limitRule: string;
+  status: number;
+  traceId: string;
+  auditLogId: string;
+  updatedAt: string;
+}
+
+export interface OpsDeploymentView {
+  deploymentId: string;
+  deploymentNo: string;
+  envCode: string;
+  backendVersion: string;
+  frontendVersion: string;
+  configVersion: string;
+  status: string;
+  rollbackPlan: string;
+  destructiveScriptConfirmed: boolean;
+  traceId: string;
+  auditLogId: string;
+  createdAt: string;
+}
+
+export interface OpsApiCachePolicyView {
+  policyId: string;
+  policyCode: string;
+  cacheDomain: string;
+  keyRule: string;
+  invalidationRule: string;
+  status: number;
+  traceId: string;
+  auditLogId: string;
+  updatedAt: string;
+}
+
 export interface RoleView {
   roleId: string;
   scope: string;
@@ -703,7 +808,112 @@ export interface FlowDefinitionView {
   status: number;
   publishStatus: string;
   currentVersion?: string;
+  canvas?: FlowCanvasView;
+  propertyPanels?: FlowNodePropertyPanel[];
   updatedAt?: string;
+}
+
+export interface FlowNodePosition {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface FlowNodeConfigView {
+  nodeKey: string;
+  nodeType: string;
+  nodeName: string;
+  position: FlowNodePosition;
+  propertyPayload?: Record<string, unknown>;
+  status: number;
+  propertyPanelCode?: string;
+  runtimeExecutable?: boolean;
+}
+
+export interface FlowConditionExpression {
+  expressionId?: string;
+  fieldCode?: string;
+  operator?: string;
+  expectedValue?: unknown;
+  expressionText?: string;
+}
+
+export interface FlowEdgeView {
+  edgeKey: string;
+  sourceNodeKey: string;
+  targetNodeKey: string;
+  branchLabel?: string;
+  conditionPayload?: FlowConditionExpression | null;
+}
+
+export interface FlowCanvasView {
+  flowId: string;
+  nodes: FlowNodeConfigView[];
+  edges: FlowEdgeView[];
+  branchLabels?: Array<{
+    edgeKey: string;
+    sourceNodeKey: string;
+    branchLabel: string;
+    defaultBranch?: boolean;
+    sort?: number;
+  }>;
+  validationSummary?: {
+    connected: boolean;
+    hasEndNode: boolean;
+    warnings: string[];
+  };
+}
+
+export interface FlowNodePropertyField {
+  fieldCode: string;
+  fieldName: string;
+  fieldType: string;
+  required: boolean;
+  options?: string[];
+  defaultValue?: unknown;
+  description?: string;
+}
+
+export interface FlowNodePropertyPanel {
+  nodeType: string;
+  panelCode: string;
+  title: string;
+  payloadType: string;
+  fields: FlowNodePropertyField[];
+  supportedActions: string[];
+}
+
+export interface FlowNodeLibraryItem {
+  nodeType: string;
+  nodeTypeName: string;
+  category: string;
+  icon?: string;
+  description?: string;
+  defaultPropertyPayload?: Record<string, unknown>;
+  propertySchema?: FlowNodePropertyField[];
+  requiredCapabilities?: string[];
+}
+
+export interface FlowSimulationResult {
+  simulationId: string;
+  flowId: string;
+  versionNo: string;
+  passed: boolean;
+  stepTraces: Array<{
+    sequence: number;
+    nodeKey: string;
+    nodeName: string;
+    nodeType: string;
+    inputSummary?: string;
+    outputSummary?: string;
+    nextNodeKeys?: string[];
+    elapsedMs?: number;
+  }>;
+  conditionDecisions: Array<Record<string, unknown>>;
+  failureItems: ModulePublishCheckItem[];
+  traceId: string;
+  createdAt?: string;
 }
 
 export interface DictItemView {
@@ -870,6 +1080,48 @@ export interface OpenApiSecretRotationJob {
   };
 }
 
+export interface SystemDataSourceView {
+  dataSourceId: string;
+  systemId: string;
+  tenantId?: string;
+  sourceCode: string;
+  sourceName: string;
+  sourceType: 'SYSTEM_INTERNAL' | 'EXTERNAL_API' | 'DATABASE_DIRECT' | string;
+  connectionConfig?: Record<string, unknown>;
+  authConfig?: Record<string, unknown>;
+  syncConfig?: Record<string, unknown>;
+  desensitizeConfig?: Record<string, unknown>;
+  status: number;
+  publishStatus?: string;
+  publishedVersion?: string;
+  lastCheckStatus?: string;
+  lastCheckTraceId?: string;
+  lastCheckedAt?: string;
+  operation?: {
+    traceId?: string;
+    auditLogId?: string;
+    result?: string;
+    disabledReason?: string;
+  };
+  updatedAt?: string;
+}
+
+export interface SystemDataSourceCheckResult {
+  dataSourceId: string;
+  passed: boolean;
+  items: Array<{
+    itemCode: string;
+    itemName: string;
+    level: string;
+    passed: boolean;
+    message: string;
+  }>;
+  traceId: string;
+  auditLogId?: string;
+  checkedAt?: string;
+  targetVersion?: string;
+}
+
 export interface NoMemberAccessRequestView {
   requestId: string;
   status: string;
@@ -888,6 +1140,7 @@ export interface NoMemberAccessRequestView {
   businessAccessAllowed: boolean;
   accountMemberBindingId?: string;
   systemMemberId?: string;
+  ssoBindingId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -946,6 +1199,13 @@ export interface PlatformAdminData {
   warnings: string[];
 }
 
+export interface PlatformAdminPageOptions {
+  systemsPageNo?: number;
+  rolesPageNo?: number;
+  modelAuthorizationsPageNo?: number;
+  logsPageNo?: number;
+}
+
 export interface SystemAdminData {
   departments: DepartmentNode[];
   members: PageResult<MemberView>;
@@ -955,12 +1215,26 @@ export interface SystemAdminData {
   dictTypes: PageResult<DictTypeView>;
   flows: PageResult<FlowDefinitionView>;
   notificationTemplates: PageResult<NotificationTemplateView>;
+  dataSources: PageResult<SystemDataSourceView>;
   openApiApps: PageResult<OpenApiAppView>;
   ssoPolicy?: SystemSsoPolicyView;
   workConfig?: WorkConfigView;
   agentPolicies: PageResult<AgentPolicyView>;
   logs: PageResult<AuditLogView>;
   warnings: string[];
+}
+
+export interface SystemAdminPageOptions {
+  membersPageNo?: number;
+  rolesPageNo?: number;
+  modulesPageNo?: number;
+  dictTypesPageNo?: number;
+  flowsPageNo?: number;
+  notificationTemplatesPageNo?: number;
+  dataSourcesPageNo?: number;
+  openApiAppsPageNo?: number;
+  agentPoliciesPageNo?: number;
+  logsPageNo?: number;
 }
 
 export async function loginWithPassword(loginName: string, password: string): Promise<LoginResponse> {
@@ -1182,6 +1456,16 @@ export async function precheckRuntimeImport(systemId: string, moduleId: string, 
   ));
 }
 
+export async function uploadRuntimeImportFile(file: File): Promise<UploadResultView> {
+  const body = new FormData();
+  body.append('file', file);
+  return unwrap(await apiClient.postForm<UploadResultView>(
+    '/api/v1/uploads/files?sourceType=IMPORT_EXPORT',
+    body,
+    createIdempotencyKey('runtime_import_upload'),
+  ));
+}
+
 export async function confirmRuntimeImport(systemId: string, moduleId: string, input: {
   precheckId: string;
   duplicateStrategy?: string;
@@ -1221,12 +1505,14 @@ export async function createRuntimeExport(systemId: string, moduleId: string, in
 export async function loadSystemMessages(systemId: string, options: MessageSearchOptions = {}): Promise<PageResult<MessageCard>> {
   const pageNo = options.pageNo ?? 1;
   const pageSize = options.pageSize ?? 20;
+  const readStatus = options.readStatus && options.readStatus !== 'all' ? options.readStatus : undefined;
+  const archiveStatus = options.archiveStatus ?? 'active';
   return unwrap(await apiClient.post<PageResult<MessageCard>>(
     `/api/v1/systems/${systemId}/messages/search?pageNo=${pageNo}&pageSize=${pageSize}`,
     {
       systemId,
-      readStatus: options.readStatus ?? 'ALL',
-      archiveStatus: options.archiveStatus ?? 'ACTIVE',
+      readStatus,
+      archiveStatus,
       templateCode: options.templateCode,
       type: options.type,
       timeRange: options.timeRange,
@@ -1242,14 +1528,31 @@ export async function markSystemMessageRead(systemId: string, messageId: string)
   }));
 }
 
+export async function archiveSystemMessage(systemId: string, messageId: string): Promise<MessageActionResult> {
+  return unwrap(await apiClient.post<MessageActionResult>(`/api/v1/systems/${systemId}/messages/archive`, {
+    messageIds: [messageId],
+    reason: 'message archived from center',
+  }));
+}
+
+export async function markAllSystemMessagesRead(systemId: string, options: MessageSearchOptions = {}): Promise<MessageActionResult> {
+  return unwrap(await apiClient.post<MessageActionResult>(`/api/v1/systems/${systemId}/messages/mark-all-read`, {
+    templateCode: options.templateCode,
+    type: options.type,
+    timeRange: options.timeRange,
+    keyword: options.keyword,
+  }));
+}
+
 export async function loadPlatformMessages(options: MessageSearchOptions = {}): Promise<PageResult<MessageCard>> {
   const pageNo = options.pageNo ?? 1;
   const pageSize = options.pageSize ?? 10;
+  const readStatus = options.readStatus && options.readStatus !== 'all' ? options.readStatus : undefined;
   return unwrap(await apiClient.post<PageResult<MessageCard>>(
     `/api/v1/platform/messages/search?pageNo=${pageNo}&pageSize=${pageSize}`,
     {
-      readStatus: options.readStatus ?? 'ALL',
-      archiveStatus: options.archiveStatus ?? 'ACTIVE',
+      readStatus,
+      archiveStatus: options.archiveStatus ?? 'active',
       templateCode: options.templateCode,
       type: options.type,
       timeRange: options.timeRange,
@@ -1452,14 +1755,18 @@ export async function autoDraftDailyReport(systemId: string): Promise<DailyRepor
   return unwrap(await apiClient.post<DailyReportAutoDraft>(`/api/v1/systems/${systemId}/work/daily-reports/auto-draft`));
 }
 
-export async function loadPlatformAdminData(): Promise<PlatformAdminData> {
+export async function loadPlatformAdminData(options: PlatformAdminPageOptions = {}): Promise<PlatformAdminData> {
   const warnings: string[] = [];
+  const systemsPageNo = options.systemsPageNo ?? 1;
+  const rolesPageNo = options.rolesPageNo ?? 1;
+  const modelAuthorizationsPageNo = options.modelAuthorizationsPageNo ?? 1;
+  const logsPageNo = options.logsPageNo ?? 1;
   const [systems, roles, identityProviders, modelAuthorizations, logs, health] = await Promise.all([
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<PlatformSystem>>('/api/v1/platform/systems?pageNo=1&pageSize=20')), '系统生命周期', warnings, emptyPage<PlatformSystem>()),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<RoleView>>('/api/v1/platform/roles?pageNo=1&pageSize=20')), '平台角色', warnings, emptyPage<RoleView>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<PlatformSystem>>(`/api/v1/platform/systems?pageNo=${systemsPageNo}&pageSize=20`)), '系统生命周期', warnings, emptyPage<PlatformSystem>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<RoleView>>(`/api/v1/platform/roles?pageNo=${rolesPageNo}&pageSize=20`)), '平台角色', warnings, emptyPage<RoleView>()),
     safeLoad(async () => unwrap(await apiClient.get<IdentityProviderView[]>('/api/v1/platform/identity-providers')), '企业 SSO 身份源', warnings, []),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<ModelAuthorizationView>>('/api/v1/platform/agent/model-authorizations?pageNo=1&pageSize=20')), '平台 AI Agent 授权', warnings, emptyPage<ModelAuthorizationView>()),
-    safeLoad(async () => unwrap(await apiClient.post<PageResult<AuditLogView>>('/api/v1/platform/logs/search?pageNo=1&pageSize=12', {
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<ModelAuthorizationView>>(`/api/v1/platform/agent/model-authorizations?pageNo=${modelAuthorizationsPageNo}&pageSize=20`)), '平台 AI Agent 授权', warnings, emptyPage<ModelAuthorizationView>()),
+    safeLoad(async () => unwrap(await apiClient.post<PageResult<AuditLogView>>(`/api/v1/platform/logs/search?pageNo=${logsPageNo}&pageSize=12`, {
       scope: 'platform',
     })), '平台日志', warnings, emptyPage<AuditLogView>()),
     safeLoad(async () => unwrap(await apiClient.get<PlatformHealth>('/api/v1/platform/health')), '平台健康', warnings, undefined),
@@ -1598,6 +1905,87 @@ export async function runPlatformHealthCheck(checkType = 'FLOW'): Promise<OpsHea
   }));
 }
 
+export async function updatePlatformFeatureFlag(flagId: string): Promise<OpsFeatureFlagView> {
+  return unwrap(await apiClient.patch<OpsFeatureFlagView>(`/api/v1/platform/ops/feature-flags/${flagId}`, {
+    status: 1,
+    rules: 'role=PLATFORM_ROOT; percent=20',
+    rollbackVersion: `flag_v${Date.now()}`,
+  }));
+}
+
+export async function updatePlatformQuota(quotaId: string): Promise<OpsQuotaView> {
+  return unwrap(await apiClient.patch<OpsQuotaView>(`/api/v1/platform/ops/quotas/${quotaId}`, {
+    limit: 800,
+    warnThreshold: 640,
+  }));
+}
+
+export async function updatePlatformRateLimitPolicy(policyId: string): Promise<OpsRateLimitPolicyView> {
+  return unwrap(await apiClient.patch<OpsRateLimitPolicyView>(`/api/v1/platform/ops/rate-limit-policies/${policyId}`, {
+    limitRule: 'dimension=appKey; window=1m; limit=800; overflow=REJECT_WITH_CODE',
+    status: 1,
+  }));
+}
+
+export async function createPlatformBackupTask(): Promise<AsyncTask> {
+  const idempotencyKey = createIdempotencyKey('ops_backup');
+  return unwrap(await apiClient.post<AsyncTask>('/api/v1/platform/ops/backups', {
+    backupType: 'FULL',
+    scope: 'PLATFORM',
+    boundaryPayload: {
+      includes: ['database', 'files', 'config', 'secret_refs'],
+      secretPolicy: 'secret_ref_only',
+    },
+    idempotencyKey,
+  }, idempotencyKey));
+}
+
+export async function runPlatformRestoreDrill(backupId = 'backup_20260623_001'): Promise<AsyncTask> {
+  const idempotencyKey = createIdempotencyKey('ops_restore_drill');
+  return unwrap(await apiClient.post<AsyncTask>(`/api/v1/platform/ops/backups/${backupId}/restore-drill`, {
+    drillScope: 'CONFIG_AND_FILES',
+    dryRun: true,
+    idempotencyKey,
+  }, idempotencyKey));
+}
+
+export async function createPlatformArchiveRestoreRequest(): Promise<AsyncTask> {
+  const idempotencyKey = createIdempotencyKey('ops_archive_restore');
+  return unwrap(await apiClient.post<AsyncTask>('/api/v1/platform/ops/archive-restore-requests', {
+    scope: 'PLATFORM',
+    objectType: 'BUSINESS_LOG',
+    archiveCondition: 'older_than_180_days',
+    reason: 'platform ops dry-run from admin page',
+    idempotencyKey,
+  }, idempotencyKey));
+}
+
+export async function loadPlatformDeployments(): Promise<PageResult<OpsDeploymentView>> {
+  return unwrap(await apiClient.get<PageResult<OpsDeploymentView>>('/api/v1/platform/ops/deployments?pageNo=1&pageSize=10'));
+}
+
+export async function rollbackPlatformDeployment(deploymentId: string): Promise<AsyncTask> {
+  const idempotencyKey = createIdempotencyKey('ops_deployment_rollback');
+  return unwrap(await apiClient.post<AsyncTask>(`/api/v1/platform/ops/deployments/${deploymentId}/rollback`, {
+    targetVersion: 'previous-stable',
+    dryRun: true,
+    confirmNoDestructiveScript: true,
+    idempotencyKey,
+  }, idempotencyKey));
+}
+
+export async function loadPlatformApiCachePolicy(): Promise<OpsApiCachePolicyView[]> {
+  return unwrap(await apiClient.get<OpsApiCachePolicyView[]>('/api/v1/platform/ops/api-cache-policy'));
+}
+
+export async function updatePlatformApiCachePolicy(): Promise<OpsApiCachePolicyView[]> {
+  return unwrap(await apiClient.patch<OpsApiCachePolicyView[]>('/api/v1/platform/ops/api-cache-policy', {
+    keyRule: 'system:{systemId}:member:{memberId}:perm',
+    invalidationRule: 'role_permission_changed OR member_binding_changed OR publish_version_changed',
+    status: 1,
+  }));
+}
+
 export async function runSystemHealthCheck(systemId: string, checkType = 'SYSTEM'): Promise<OpsHealthCheck> {
   return unwrap(await apiClient.post<OpsHealthCheck>(`/api/v1/systems/${systemId}/ops/health-check`, {
     checkType,
@@ -1607,8 +1995,18 @@ export async function runSystemHealthCheck(systemId: string, checkType = 'SYSTEM
   }));
 }
 
-export async function loadSystemAdminData(systemId: string): Promise<SystemAdminData> {
+export async function loadSystemAdminData(systemId: string, options: SystemAdminPageOptions = {}): Promise<SystemAdminData> {
   const warnings: string[] = [];
+  const membersPageNo = options.membersPageNo ?? 1;
+  const rolesPageNo = options.rolesPageNo ?? 1;
+  const modulesPageNo = options.modulesPageNo ?? 1;
+  const dictTypesPageNo = options.dictTypesPageNo ?? 1;
+  const flowsPageNo = options.flowsPageNo ?? 1;
+  const notificationTemplatesPageNo = options.notificationTemplatesPageNo ?? 1;
+  const dataSourcesPageNo = options.dataSourcesPageNo ?? 1;
+  const openApiAppsPageNo = options.openApiAppsPageNo ?? 1;
+  const agentPoliciesPageNo = options.agentPoliciesPageNo ?? 1;
+  const logsPageNo = options.logsPageNo ?? 1;
   const [
     departments,
     members,
@@ -1618,6 +2016,7 @@ export async function loadSystemAdminData(systemId: string): Promise<SystemAdmin
     dictTypes,
     flows,
     notificationTemplates,
+    dataSources,
     openApiApps,
     ssoPolicy,
     workConfig,
@@ -1625,18 +2024,19 @@ export async function loadSystemAdminData(systemId: string): Promise<SystemAdmin
     logs,
   ] = await Promise.all([
     safeLoad(async () => unwrap(await apiClient.get<DepartmentNode[]>(`/api/v1/systems/${systemId}/org/departments`)), '组织架构', warnings, []),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<MemberView>>(`/api/v1/systems/${systemId}/members?pageNo=1&pageSize=20`)), '系统成员', warnings, emptyPage<MemberView>()),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<RoleView>>(`/api/v1/systems/${systemId}/roles?pageNo=1&pageSize=20`)), '系统角色', warnings, emptyPage<RoleView>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<MemberView>>(`/api/v1/systems/${systemId}/members?pageNo=${membersPageNo}&pageSize=20`)), '系统成员', warnings, emptyPage<MemberView>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<RoleView>>(`/api/v1/systems/${systemId}/roles?pageNo=${rolesPageNo}&pageSize=20`)), '系统角色', warnings, emptyPage<RoleView>()),
     safeLoad(async () => unwrap(await apiClient.get<BackendModuleGroup[]>(`/api/v1/systems/${systemId}/module-groups`)), '模块分组', warnings, []),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<BackendModule>>(`/api/v1/systems/${systemId}/modules?pageNo=1&pageSize=50`)), '模块列表', warnings, emptyPage<BackendModule>()),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<DictTypeView>>(`/api/v1/systems/${systemId}/dict-types?pageNo=1&pageSize=20`)), '数据字典', warnings, emptyPage<DictTypeView>()),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<FlowDefinitionView>>(`/api/v1/systems/${systemId}/flows?pageNo=1&pageSize=20`)), '流程管理', warnings, emptyPage<FlowDefinitionView>()),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<NotificationTemplateView>>(`/api/v1/systems/${systemId}/notification-templates?pageNo=1&pageSize=20`)), '消息模板', warnings, emptyPage<NotificationTemplateView>()),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<OpenApiAppView>>(`/api/v1/systems/${systemId}/openapi/apps?pageNo=1&pageSize=20`)), 'OpenAPI 对外应用', warnings, emptyPage<OpenApiAppView>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<BackendModule>>(`/api/v1/systems/${systemId}/modules?pageNo=${modulesPageNo}&pageSize=50`)), '模块列表', warnings, emptyPage<BackendModule>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<DictTypeView>>(`/api/v1/systems/${systemId}/dict-types?pageNo=${dictTypesPageNo}&pageSize=20`)), '数据字典', warnings, emptyPage<DictTypeView>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<FlowDefinitionView>>(`/api/v1/systems/${systemId}/flows?pageNo=${flowsPageNo}&pageSize=20`)), '流程管理', warnings, emptyPage<FlowDefinitionView>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<NotificationTemplateView>>(`/api/v1/systems/${systemId}/notification-templates?pageNo=${notificationTemplatesPageNo}&pageSize=20`)), '消息模板', warnings, emptyPage<NotificationTemplateView>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<SystemDataSourceView>>(`/api/v1/systems/${systemId}/data-sources?pageNo=${dataSourcesPageNo}&pageSize=20`)), '数据源', warnings, emptyPage<SystemDataSourceView>()),
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<OpenApiAppView>>(`/api/v1/systems/${systemId}/openapi/apps?pageNo=${openApiAppsPageNo}&pageSize=20`)), 'OpenAPI 对外应用', warnings, emptyPage<OpenApiAppView>()),
     safeLoad(async () => unwrap(await apiClient.get<SystemSsoPolicyView>(`/api/v1/systems/${systemId}/sso/policies`)), '系统 SSO 策略', warnings, undefined),
     safeLoad(async () => unwrap(await apiClient.get<WorkConfigView>(`/api/v1/systems/${systemId}/work/config`)), '工作配置', warnings, undefined),
-    safeLoad(async () => unwrap(await apiClient.get<PageResult<AgentPolicyView>>(`/api/v1/systems/${systemId}/agent/policies?pageNo=1&pageSize=20`)), '系统 AI Agent 策略', warnings, emptyPage<AgentPolicyView>()),
-    safeLoad(async () => unwrap(await apiClient.post<PageResult<AuditLogView>>(`/api/v1/systems/${systemId}/logs/search?pageNo=1&pageSize=12`, {
+    safeLoad(async () => unwrap(await apiClient.get<PageResult<AgentPolicyView>>(`/api/v1/systems/${systemId}/agent/policies?pageNo=${agentPoliciesPageNo}&pageSize=20`)), '系统 AI Agent 策略', warnings, emptyPage<AgentPolicyView>()),
+    safeLoad(async () => unwrap(await apiClient.post<PageResult<AuditLogView>>(`/api/v1/systems/${systemId}/logs/search?pageNo=${logsPageNo}&pageSize=12`, {
       scope: 'system',
       systemId,
     })), '系统日志', warnings, emptyPage<AuditLogView>()),
@@ -1650,6 +2050,7 @@ export async function loadSystemAdminData(systemId: string): Promise<SystemAdmin
     dictTypes,
     flows,
     notificationTemplates,
+    dataSources,
     openApiApps,
     ssoPolicy,
     workConfig,
@@ -1714,6 +2115,12 @@ export async function createSystemModuleField(systemId: string, moduleId: string
       },
     },
     createIdempotencyKey('system_module_field_create'),
+  ));
+}
+
+export async function listSystemModuleFields(systemId: string, moduleId: string): Promise<PageResult<FieldDefinitionVO>> {
+  return unwrap(await apiClient.get<PageResult<FieldDefinitionVO>>(
+    `/api/v1/systems/${systemId}/modules/${moduleId}/fields?pageNo=1&pageSize=100`,
   ));
 }
 
@@ -1811,6 +2218,49 @@ export async function createSystemFlow(systemId: string, input: {
   }));
 }
 
+export async function loadFlowNodeLibrary(systemId: string): Promise<FlowNodeLibraryItem[]> {
+  return unwrap(await apiClient.get<FlowNodeLibraryItem[]>(`/api/v1/systems/${systemId}/flows/node-library`));
+}
+
+export async function loadFlowCanvas(systemId: string, flowId: string): Promise<FlowCanvasView> {
+  return unwrap(await apiClient.get<FlowCanvasView>(`/api/v1/systems/${systemId}/flows/${flowId}/canvas`));
+}
+
+export async function saveFlowCanvas(systemId: string, flowId: string, canvas: {
+  nodes: FlowNodeConfigView[];
+  edges: FlowEdgeView[];
+}): Promise<FlowDefinitionView> {
+  return unwrap(await apiClient.put<FlowDefinitionView>(
+    `/api/v1/systems/${systemId}/flows/${flowId}/canvas`,
+    {
+      nodes: canvas.nodes.map((node) => ({
+        nodeKey: node.nodeKey,
+        nodeType: node.nodeType,
+        nodeName: node.nodeName,
+        position: node.position,
+        propertyPayload: node.propertyPayload ?? {},
+        status: node.status ?? 1,
+      })),
+      edges: canvas.edges.map((edge) => ({
+        edgeKey: edge.edgeKey,
+        sourceNodeKey: edge.sourceNodeKey,
+        targetNodeKey: edge.targetNodeKey,
+        branchLabel: edge.branchLabel,
+        conditionPayload: edge.conditionPayload ?? null,
+      })),
+    },
+    createIdempotencyKey('flow_canvas_save'),
+  ));
+}
+
+export async function simulateSystemFlow(systemId: string, flowId: string, fieldValues: Record<string, unknown> = {}): Promise<FlowSimulationResult> {
+  return unwrap(await apiClient.post<FlowSimulationResult>(`/api/v1/systems/${systemId}/flows/${flowId}/simulate`, {
+    versionNo: 'DRAFT',
+    fieldValues,
+    idempotencyKey: createIdempotencyKey('flow_simulate'),
+  }));
+}
+
 export async function runFlowPublishCheck(systemId: string, flowId: string, reason: string): Promise<FlowPublishCheckResult> {
   const idempotencyKey = createIdempotencyKey('flow_publish_check');
   return unwrap(await apiClient.post<FlowPublishCheckResult>(`/api/v1/systems/${systemId}/flows/${flowId}/publish-check`, {
@@ -1888,6 +2338,39 @@ export async function createOpenApiApp(systemId: string, input: {
       idempotencyKey,
     },
     idempotencyKey,
+  ));
+}
+
+export async function createSystemDataSource(systemId: string, input: {
+  sourceCode: string;
+  sourceName: string;
+  sourceType: string;
+  connectionConfig?: Record<string, unknown>;
+  authConfig?: Record<string, unknown>;
+  syncConfig?: Record<string, unknown>;
+  desensitizeConfig?: Record<string, unknown>;
+}): Promise<SystemDataSourceView> {
+  const idempotencyKey = createIdempotencyKey('system_data_source_create');
+  return unwrap(await apiClient.post<SystemDataSourceView>(
+    `/api/v1/systems/${systemId}/data-sources`,
+    {
+      ...input,
+      status: 1,
+      idempotencyKey,
+    },
+    idempotencyKey,
+  ));
+}
+
+export async function checkSystemDataSourceConnection(systemId: string, dataSourceId: string): Promise<SystemDataSourceCheckResult> {
+  return unwrap(await apiClient.post<SystemDataSourceCheckResult>(
+    `/api/v1/systems/${systemId}/data-sources/${dataSourceId}/connection-check`,
+  ));
+}
+
+export async function runSystemDataSourcePublishCheck(systemId: string, dataSourceId: string): Promise<SystemDataSourceCheckResult> {
+  return unwrap(await apiClient.post<SystemDataSourceCheckResult>(
+    `/api/v1/systems/${systemId}/data-sources/${dataSourceId}/publish-check`,
   ));
 }
 
@@ -2397,7 +2880,11 @@ function tabFiles(tabs: BackendDetailTab[]): FileRef[] {
       if (Array.isArray(value)) {
         value.forEach((item) => {
           if (isRecord(item) && typeof item.fileId === 'string') {
-            files.push({ fileId: item.fileId, fileName: String(item.fileName ?? item.name ?? item.fileId) });
+            files.push({
+              fileId: item.fileId,
+              fileName: String(item.fileName ?? item.name ?? item.fileId),
+              downloadUrl: typeof item.downloadUrl === 'string' ? item.downloadUrl : undefined,
+            });
           }
         });
       }

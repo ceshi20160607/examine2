@@ -1,0 +1,42 @@
+{
+    "status":  "PASS",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "releaseDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\release\\unexamine-0.0.1-SNAPSHOT",
+    "checks":  [
+                   {
+                       "name":  "frontend config uses same-origin API",
+                       "passed":  true,
+                       "detail":  "window.__UNEXAMINE_API_BASE_URL__ = \u0027\u0027;"
+                   },
+                   {
+                       "name":  "nginx proxies /api to backend 9999",
+                       "passed":  true,
+                       "detail":  "nginx/unexamine.conf"
+                   },
+                   {
+                       "name":  "nginx proxies /openapi to backend 9999",
+                       "passed":  true,
+                       "detail":  "nginx/unexamine.conf"
+                   },
+                   {
+                       "name":  "redis tcp reachable",
+                       "passed":  true,
+                       "detail":  "192.168.0.211:6379"
+                   },
+                   {
+                       "name":  "deployed frontend matches release assets",
+                       "passed":  true,
+                       "detail":  "release=[/assets/index-RrYVUAWv.css, /assets/index-W3Pn4hxQ.js], deployed=[/assets/index-RrYVUAWv.css, /assets/index-W3Pn4hxQ.js]"
+                   },
+                   {
+                       "name":  "backend health all UP",
+                       "passed":  true,
+                       "detail":  "status=UP, database=UP, schema=UP, redis=UP, redisError="
+                   },
+                   {
+                       "name":  "admin login succeeds",
+                       "passed":  true,
+                       "detail":  "requestId=req_943cdcb9-0f5d-4bb0-9570-d684e13c3c8c, traceId=trc_407fd483-8a07-4fde-989f-6fd6a19325ee"
+                   }
+               ]
+}

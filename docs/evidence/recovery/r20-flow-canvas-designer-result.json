@@ -1,0 +1,54 @@
+﻿{
+    "status":  "PASS",
+    "generatedAt":  "2026-06-29T16:15:28.1392920+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "542",
+    "flowId":  "110",
+    "emptyPublishCheckPassed":  false,
+    "canvasNodeCount":  2,
+    "canvasEdgeCount":  1,
+    "publishCheckTraceId":  "trc_7b7f0cac-f59b-41e2-a9e7-c41431abf26a",
+    "publishedVersion":  "flow_v1782720928002",
+    "snapshotCount":  1,
+    "browser":  {
+                    "login":  {
+                                  "ok":  true,
+                                  "hash":  "#/platform/dashboard",
+                                  "hasToken":  true,
+                                  "localAccountId":  "25"
+                              },
+                    "flowPanel":  {
+                                      "ok":  true,
+                                      "text":  "流程管理\n流程管理\n新建流程\n\n流程创建后为草稿，必须保存真实节点和连线后才能发布。\n\n流程名称\n绑定模块\n发布状态\n重置\n序号\t流程\t绑定模块\t状态\t发布\t版本\t操作\n1\tR20 Flow 0629161504_79a60c flow_r20_0629161504_79a60c\t-\t启用\tDRAFT\tDRAFT\t\n配置画布\n发布检查\n发布\n第 1 页，每页 20 条，共 1 条\n上一页\n下一页"
+                                  },
+                    "designer":  {
+                                     "saved":  {
+                                                   "ok":  true,
+                                                   "nodes":  2,
+                                                   "disabled":  false
+                                               },
+                                     "simulation":  {
+                                                        "ok":  true,
+                                                        "text":  "流程画布：R20 Flow 0629161504_79a60c\n\nflow_r20_0629161504_79a60c / DRAFT\n\n保存画布\n模拟运行\n发布检查\n\n模拟通过：4 步，traceId=trc_aaa71d61-50fb-4a17-a52d-ba599ea095c6\n\n节点库\n插入审批-结束模板\n审批\n人工处理\n条件分支\n流转控制\n字段更新\n自动动作\n外部 API\n集成动作\n定时器\n时间控制\n超时提醒\n提醒动作\n结束\n终止节点\n画布连线\n提交审批\napproval\n审批通过结束\nend\n属性面板\n节点名称\n审批\n审批类型 *\n审批人来源 *\n超时策略\n属性 JSON\n更新节点属性\n删除节点\n\n连线配置\n添加连线\n来源节点\n提交审批 (node_submit_review)\n审批通过结束 (node_end_passed)\n目标节点\n提交审批 (node_submit_review)\n审批通过结束 (node_end_passed)\n分支标签\nnode_submit_review -\u003e node_end_passed / approved\n删除"
+                                                    },
+                                     "publishCheck":  {
+                                                          "ok":  true,
+                                                          "disabled":  false,
+                                                          "text":  "流程画布：R20 Flow 0629161504_79a60c\n\nflow_r20_0629161504_79a60c / DRAFT\n\n保存画布\n模拟运行\n发布检查\n\n流程发布检查通过，提醒：外部 API scope 需运行时校验：若流程包含外部 API 节点，运行时会继续校验外部应用授权。；超时提醒模板需可用：若流程包含超时提醒节点，运行时会检查通知模板和渠道。，traceId=trc_c926f659-5118-4ad0-ad81-fa8fd337665a\n\n节点库\n插入审批-结束模板\n审批\n人工处理\n条件分支\n流转控制\n字段更新\n自动动作\n外部 API\n集成动作\n定时器\n时间控制\n超时提醒\n提醒动作\n结束\n终止节点\n画布连线\n提交审批\napproval\n审批通过结束\nend\n属性面板\n节点名称\n审批\n审批类型 *\n审批人来源 *\n超时策略\n属性 JSON\n更新节点属性\n删除节点\n\n连线配置\n添加连线\n来源节点\n提交审批 (node_submit_review)\n审批通过结束 (node_end_passed)\n目标节点\n提交审批 (node_submit_review)\n审批通过结束 (node_end_passed)\n分支标签\nnode_submit_review -\u003e node_end_passed / approved\n删除"
+                                                      }
+                                 },
+                    "mobile":  {
+                                   "ok":  true,
+                                   "overflowX":  0,
+                                   "canvasInternalScroll":  730,
+                                   "width":  390
+                               },
+                    "screenshots":  [
+                                        "designer-empty.png",
+                                        "designer-configured.png",
+                                        "designer-publish-check.png",
+                                        "designer-mobile.png"
+                                    ]
+                },
+    "cleanup":  "542:DELETE"
+}

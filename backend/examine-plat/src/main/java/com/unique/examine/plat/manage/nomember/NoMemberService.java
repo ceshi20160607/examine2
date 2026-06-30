@@ -9,12 +9,21 @@ import com.unique.examine.core.api.PageResult;
 import com.unique.examine.core.context.RequestContext;
 import com.unique.examine.core.error.BusinessException;
 import com.unique.examine.core.error.CommonErrorCode;
+import com.unique.examine.plat.base.entity.PlatAccount;
 import com.unique.examine.plat.base.entity.PlatAccountMemberBinding;
 import com.unique.examine.plat.base.entity.PlatNoMemberAccessRequest;
+import com.unique.examine.plat.base.entity.PlatRoleMember;
 import com.unique.examine.plat.base.entity.PlatSsoBinding;
+import com.unique.examine.plat.base.entity.PlatSystem;
+import com.unique.examine.plat.base.entity.PlatTenant;
 import com.unique.examine.plat.base.service.PlatAccountMemberBindingBaseService;
 import com.unique.examine.plat.base.service.PlatNoMemberAccessRequestBaseService;
+import com.unique.examine.plat.base.service.PlatRoleMemberBaseService;
 import com.unique.examine.plat.base.service.PlatSsoBindingBaseService;
+import com.unique.examine.plat.base.service.PlatSystemBaseService;
+import com.unique.examine.plat.base.service.PlatTenantBaseService;
+import com.unique.examine.plat.manage.common.CurrentAccountProvider;
+import com.unique.examine.plat.manage.common.SystemAccessGuard;
 import com.unique.examine.plat.manage.common.SystemMemberContextResolver;
 import com.unique.examine.plat.manage.common.SystemMemberContextResolver.SystemMemberContext;
 import com.unique.examine.plat.manage.nomember.NoMemberModels.NoMemberAccessRequestCreateRequest;
@@ -37,6 +46,7 @@ import org.springframework.util.StringUtils;
 public class NoMemberService {
 
     private static final int ENABLED = 1;
+    private static final int DELETED_NO = 0;
     private static final String STATUS_SUBMITTED = "SUBMITTED";
     private static final String STATUS_REVIEWING = "REVIEWING";
     private static final String STATUS_APPROVED = "APPROVED";
@@ -46,26 +56,41 @@ public class NoMemberService {
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
     };
 
+    private final CurrentAccountProvider currentAccountProvider;
+    private final SystemAccessGuard systemAccessGuard;
     private final SystemMemberContextResolver contextResolver;
+    private final PlatSystemBaseService systemBaseService;
+    private final PlatTenantBaseService tenantBaseService;
     private final PlatNoMemberAccessRequestBaseService requestBaseService;
     private final PlatAccountMemberBindingBaseService accountMemberBindingBaseService;
+    private final PlatRoleMemberBaseService roleMemberBaseService;
     private final PlatSsoBindingBaseService ssoBindingBaseService;
     private final ObjectMapper objectMapper;
 
-    public NoMemberService(SystemMemberContextResolver contextResolver,
+    public NoMemberService(CurrentAccountProvider currentAccountProvider,
+                           SystemAccessGuard systemAccessGuard,
+                           SystemMemberContextResolver contextResolver,
+                           PlatSystemBaseService systemBaseService,
+                           PlatTenantBaseService tenantBaseService,
                            PlatNoMemberAccessRequestBaseService requestBaseService,
                            PlatAccountMemberBindingBaseService accountMemberBindingBaseService,
+                           PlatRoleMemberBaseService roleMemberBaseService,
                            PlatSsoBindingBaseService ssoBindingBaseService,
                            ObjectMapper objectMapper) {
+        this.currentAccountProvider = currentAccountProvider;
+        this.systemAccessGuard = systemAccessGuard;
         this.contextResolver = contextResolver;
+        this.systemBaseService = systemBaseService;
+        this.tenantBaseService = tenantBaseService;
         this.requestBaseService = requestBaseService;
         this.accountMemberBindingBaseService = accountMemberBindingBaseService;
+        this.roleMemberBaseService = roleMemberBaseService;
         this.ssoBindingBaseService = ssoBindingBaseService;
         this.objectMapper = objectMapper;
     }
 
     /**
-     * Create a request when SSO authentication has no system member mapping.
+     * Create a request when an authenticated account has no system member mapping.
      *
      * @param systemId target system id
      * @param request create request
@@ -73,22 +98,25 @@ public class NoMemberService {
      */
     @Transactional(rollbackFor = Exception.class)
     public NoMemberAccessRequestVO create(String systemId, NoMemberAccessRequestCreateRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
-        requireText(Objects.isNull(request) ? null : request.identityProvider(), "身份源不能为空");
-        requireText(request.externalUserId(), "外部用户ID不能为空");
+        PlatAccount account = currentAccountProvider.currentAccount();
+        TargetScope target = resolveTargetScope(systemId, Objects.isNull(request) ? null : request.tenantId());
+        requireText(Objects.isNull(request) ? null : request.identityProvider(), "Identity provider is required.");
+        String externalUserId = safeText(Objects.isNull(request) ? null : request.externalUserId(),
+                String.valueOf(account.getId()));
         PlatNoMemberAccessRequest existing = existingByIdempotency(request.idempotencyKey());
         if (Objects.nonNull(existing)) {
             return toVO(existing, null, null);
         }
+
         LocalDateTime now = LocalDateTime.now();
         PlatNoMemberAccessRequest entity = new PlatNoMemberAccessRequest();
         entity.setRequestNo(requestNo(request.idempotencyKey()));
         entity.setStatus(STATUS_SUBMITTED);
         entity.setIdentityProvider(request.identityProvider());
-        entity.setExternalUserId(request.externalUserId());
-        entity.setTargetSystemId(context.systemId());
-        entity.setTenantId(parseTenantId(request.tenantId(), context.tenantId()));
-        entity.setRequestRole(safeText(request.requestRole(), "system_member"));
+        entity.setExternalUserId(externalUserId);
+        entity.setTargetSystemId(target.systemId());
+        entity.setTenantId(target.tenantId());
+        entity.setRequestRole(safeText(request.requestRole(), "SYSTEM_MEMBER"));
         entity.setApproveResult("PENDING");
         entity.setRoleIds(toJson(List.of()));
         entity.setDataScope(toJson(Map.of()));
@@ -100,7 +128,8 @@ public class NoMemberService {
     }
 
     /**
-     * Search no-member requests.
+     * Search no-member requests. System admins see the target system queue; non-admin requesters see only their
+     * own request rows for the target system.
      *
      * @param systemId target system id
      * @param pageRequest page request
@@ -109,13 +138,15 @@ public class NoMemberService {
      */
     public PageResult<NoMemberAccessRequestVO> search(String systemId, PageRequest pageRequest,
                                                       NoMemberAccessRequestQuery query) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        PlatAccount account = currentAccountProvider.currentAccount();
+        TargetScope target = resolveTargetScope(systemId, Objects.isNull(query) ? null : query.tenantId());
+        boolean admin = systemAccessGuard.canManageSystem(account.getId(), systemId);
         int pageNo = pageNo(pageRequest);
         int pageSize = pageSize(pageRequest);
         int offset = (pageNo - 1) * pageSize;
-        LambdaQueryWrapper<PlatNoMemberAccessRequest> wrapper = queryWrapper(context, query);
+        LambdaQueryWrapper<PlatNoMemberAccessRequest> wrapper = queryWrapper(target, admin, account, query);
         long total = requestBaseService.count(wrapper);
-        List<NoMemberAccessRequestVO> records = requestBaseService.list(queryWrapper(context, query)
+        List<NoMemberAccessRequestVO> records = requestBaseService.list(queryWrapper(target, admin, account, query)
                         .orderByDesc(PlatNoMemberAccessRequest::getUpdatedAt)
                         .last("LIMIT " + offset + "," + pageSize))
                 .stream()
@@ -125,7 +156,7 @@ public class NoMemberService {
     }
 
     /**
-     * Approve a no-member request only when member, role, and data scope are assigned.
+     * Approve a no-member request only when account, member, role, and data scope are assigned.
      *
      * @param systemId target system id
      * @param requestId request id
@@ -134,6 +165,7 @@ public class NoMemberService {
      */
     @Transactional(rollbackFor = Exception.class)
     public NoMemberAccessRequestVO approve(String systemId, String requestId, NoMemberApproveRequest request) {
+        requireSystemAdmin(systemId);
         SystemMemberContext context = contextResolver.resolve(systemId);
         PlatNoMemberAccessRequest entity = requireRequest(context, requestId);
         List<String> roleIds = safeList(Objects.isNull(request) ? null : request.roleIds());
@@ -141,6 +173,7 @@ public class NoMemberService {
         boolean ready = StringUtils.hasText(Objects.isNull(request) ? null : request.accountId())
                 && StringUtils.hasText(Objects.isNull(request) ? null : request.systemMemberId())
                 && !roleIds.isEmpty() && !dataScope.isEmpty();
+
         entity.setApproverId(parseOptionalLong(Objects.isNull(request) ? null : request.approverId()));
         entity.setApproveResult(ready ? STATUS_APPROVED : "NEED_MORE_ASSIGNMENT");
         entity.setStatus(ready ? STATUS_APPROVED : STATUS_REVIEWING);
@@ -149,11 +182,15 @@ public class NoMemberService {
         entity.setRejectReason(null);
         entity.setUpdatedAt(LocalDateTime.now());
         requestBaseService.updateById(entity);
-        PlatAccountMemberBinding accountBinding = ready ? upsertAccountMemberBinding(context, request) : null;
+
+        PlatAccountMemberBinding accountBinding = null;
+        PlatSsoBinding ssoBinding = null;
         if (ready) {
-            upsertSsoBinding(entity, request, accountBinding);
+            accountBinding = upsertAccountMemberBinding(context, request);
+            upsertRoleMembers(context, request.systemMemberId(), roleIds);
+            ssoBinding = upsertSsoBinding(entity, accountBinding);
         }
-        return toVO(entity, accountBinding, Objects.isNull(request) ? null : request.systemMemberId());
+        return toVO(entity, accountBinding, Objects.isNull(request) ? null : request.systemMemberId(), ssoBinding);
     }
 
     /**
@@ -166,13 +203,14 @@ public class NoMemberService {
      */
     @Transactional(rollbackFor = Exception.class)
     public NoMemberAccessRequestVO reject(String systemId, String requestId, NoMemberRejectRequest request) {
+        requireSystemAdmin(systemId);
         SystemMemberContext context = contextResolver.resolve(systemId);
         PlatNoMemberAccessRequest entity = requireRequest(context, requestId);
         entity.setStatus(STATUS_REJECTED);
         entity.setApproverId(parseOptionalLong(Objects.isNull(request) ? null : request.approverId()));
         entity.setApproveResult(STATUS_REJECTED);
         entity.setRejectReason(safeText(Objects.isNull(request) ? null : request.rejectReason(),
-                "未匹配到可授权的系统成员"));
+                "No assignable system member or role."));
         entity.setUpdatedAt(LocalDateTime.now());
         requestBaseService.updateById(entity);
         return toVO(entity, null, null);
@@ -180,8 +218,8 @@ public class NoMemberService {
 
     private PlatAccountMemberBinding upsertAccountMemberBinding(SystemMemberContext context,
                                                                 NoMemberApproveRequest request) {
-        Long accountId = parseRequiredLong(request.accountId(), "账号ID格式不正确");
-        Long systemMemberId = parseRequiredLong(request.systemMemberId(), "系统成员ID格式不正确");
+        Long accountId = parseRequiredLong(request.accountId(), "Invalid account id.");
+        Long systemMemberId = parseRequiredLong(request.systemMemberId(), "Invalid system member id.");
         PlatAccountMemberBinding binding = accountMemberBindingBaseService.getOne(
                 new LambdaQueryWrapper<PlatAccountMemberBinding>()
                         .eq(PlatAccountMemberBinding::getAccountId, accountId)
@@ -203,8 +241,30 @@ public class NoMemberService {
         return binding;
     }
 
-    private void upsertSsoBinding(PlatNoMemberAccessRequest entity, NoMemberApproveRequest request,
-                                  PlatAccountMemberBinding accountBinding) {
+    private void upsertRoleMembers(SystemMemberContext context, String systemMemberId, List<String> roleIds) {
+        Long memberId = parseRequiredLong(systemMemberId, "Invalid system member id.");
+        for (String roleId : roleIds) {
+            Long parsedRoleId = parseRequiredLong(roleId, "Invalid role id.");
+            long existing = roleMemberBaseService.count(new LambdaQueryWrapper<PlatRoleMember>()
+                    .eq(PlatRoleMember::getSystemId, context.systemId())
+                    .eq(PlatRoleMember::getTenantId, context.tenantId())
+                    .eq(PlatRoleMember::getSystemMemberId, memberId)
+                    .eq(PlatRoleMember::getRoleId, parsedRoleId));
+            if (existing > 0) {
+                continue;
+            }
+            PlatRoleMember roleMember = new PlatRoleMember();
+            roleMember.setRoleId(parsedRoleId);
+            roleMember.setSystemMemberId(memberId);
+            roleMember.setSystemId(context.systemId());
+            roleMember.setTenantId(context.tenantId());
+            roleMember.setCreatedAt(LocalDateTime.now());
+            roleMemberBaseService.saveEntity(roleMember);
+        }
+    }
+
+    private PlatSsoBinding upsertSsoBinding(PlatNoMemberAccessRequest entity,
+                                            PlatAccountMemberBinding accountBinding) {
         PlatSsoBinding binding = ssoBindingBaseService.getOne(new LambdaQueryWrapper<PlatSsoBinding>()
                 .eq(PlatSsoBinding::getIdentityProvider, entity.getIdentityProvider())
                 .eq(PlatSsoBinding::getExternalUserId, entity.getExternalUserId())
@@ -221,6 +281,7 @@ public class NoMemberService {
         binding.setBindingStatus(ENABLED);
         binding.setUpdatedAt(LocalDateTime.now());
         ssoBindingBaseService.saveEntity(binding);
+        return binding;
     }
 
     private PlatNoMemberAccessRequest requireRequest(SystemMemberContext context, String requestId) {
@@ -230,7 +291,8 @@ public class NoMemberService {
                 .eq(PlatNoMemberAccessRequest::getRequestNo, requestId)
                 .last("LIMIT 1"), false);
         if (Objects.isNull(entity) || !Objects.equals(entity.getTargetSystemId(), context.systemId())) {
-            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "无成员映射申请不存在");
+            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED,
+                    "No-member access request does not exist.");
         }
         return entity;
     }
@@ -244,10 +306,14 @@ public class NoMemberService {
                 .last("LIMIT 1"), false);
     }
 
-    private LambdaQueryWrapper<PlatNoMemberAccessRequest> queryWrapper(SystemMemberContext context,
+    private LambdaQueryWrapper<PlatNoMemberAccessRequest> queryWrapper(TargetScope target, boolean admin,
+                                                                      PlatAccount account,
                                                                       NoMemberAccessRequestQuery query) {
         LambdaQueryWrapper<PlatNoMemberAccessRequest> wrapper = new LambdaQueryWrapper<PlatNoMemberAccessRequest>()
-                .eq(PlatNoMemberAccessRequest::getTargetSystemId, context.systemId());
+                .eq(PlatNoMemberAccessRequest::getTargetSystemId, target.systemId());
+        if (!admin) {
+            wrapper.eq(PlatNoMemberAccessRequest::getExternalUserId, String.valueOf(account.getId()));
+        }
         if (StringUtils.hasText(Objects.isNull(query) ? null : query.status())) {
             wrapper.eq(PlatNoMemberAccessRequest::getStatus, query.status());
         }
@@ -258,7 +324,8 @@ public class NoMemberService {
             wrapper.eq(PlatNoMemberAccessRequest::getExternalUserId, query.externalUserId());
         }
         if (StringUtils.hasText(Objects.isNull(query) ? null : query.tenantId())) {
-            wrapper.eq(PlatNoMemberAccessRequest::getTenantId, parseRequiredLong(query.tenantId(), "租户ID格式不正确"));
+            wrapper.eq(PlatNoMemberAccessRequest::getTenantId, parseRequiredLong(query.tenantId(),
+                    "Invalid tenant id."));
         }
         if (StringUtils.hasText(Objects.isNull(query) ? null : query.keyword())) {
             wrapper.and(value -> value.like(PlatNoMemberAccessRequest::getExternalUserId, query.keyword())
@@ -270,6 +337,20 @@ public class NoMemberService {
     private NoMemberAccessRequestVO toVO(PlatNoMemberAccessRequest entity,
                                          PlatAccountMemberBinding accountBinding,
                                          String systemMemberId) {
+        PlatSsoBinding ssoBinding = findSsoBinding(entity);
+        PlatAccountMemberBinding resolvedBinding = Objects.nonNull(accountBinding)
+                ? accountBinding
+                : findAccountBinding(ssoBinding);
+        String resolvedMemberId = StringUtils.hasText(systemMemberId)
+                ? systemMemberId
+                : Objects.isNull(resolvedBinding) ? null : String.valueOf(resolvedBinding.getSystemMemberId());
+        return toVO(entity, resolvedBinding, resolvedMemberId, ssoBinding);
+    }
+
+    private NoMemberAccessRequestVO toVO(PlatNoMemberAccessRequest entity,
+                                         PlatAccountMemberBinding accountBinding,
+                                         String systemMemberId,
+                                         PlatSsoBinding ssoBinding) {
         boolean approved = STATUS_APPROVED.equals(entity.getStatus());
         return new NoMemberAccessRequestVO(String.valueOf(entity.getId()), entity.getStatus(),
                 entity.getIdentityProvider(), entity.getExternalUserId(), String.valueOf(entity.getTargetSystemId()),
@@ -279,7 +360,33 @@ public class NoMemberService {
                 readMap(entity.getDataScope()), entity.getRejectReason(), entity.getTraceId(),
                 disabledReason(entity), approved,
                 Objects.isNull(accountBinding) ? null : String.valueOf(accountBinding.getId()),
-                systemMemberId, entity.getCreatedAt(), entity.getUpdatedAt());
+                systemMemberId, Objects.isNull(ssoBinding) ? null : String.valueOf(ssoBinding.getId()),
+                entity.getCreatedAt(), entity.getUpdatedAt());
+    }
+
+    private PlatSsoBinding findSsoBinding(PlatNoMemberAccessRequest entity) {
+        if (!STATUS_APPROVED.equals(entity.getStatus())) {
+            return null;
+        }
+        return ssoBindingBaseService.getOne(new LambdaQueryWrapper<PlatSsoBinding>()
+                .eq(PlatSsoBinding::getIdentityProvider, entity.getIdentityProvider())
+                .eq(PlatSsoBinding::getExternalUserId, entity.getExternalUserId())
+                .eq(PlatSsoBinding::getSystemId, entity.getTargetSystemId())
+                .eq(PlatSsoBinding::getTenantId, entity.getTenantId())
+                .eq(PlatSsoBinding::getBindingStatus, ENABLED)
+                .last("LIMIT 1"), false);
+    }
+
+    private PlatAccountMemberBinding findAccountBinding(PlatSsoBinding ssoBinding) {
+        if (Objects.isNull(ssoBinding) || Objects.isNull(ssoBinding.getAccountId())) {
+            return null;
+        }
+        return accountMemberBindingBaseService.getOne(new LambdaQueryWrapper<PlatAccountMemberBinding>()
+                .eq(PlatAccountMemberBinding::getAccountId, ssoBinding.getAccountId())
+                .eq(PlatAccountMemberBinding::getSystemId, ssoBinding.getSystemId())
+                .eq(PlatAccountMemberBinding::getTenantId, ssoBinding.getTenantId())
+                .eq(PlatAccountMemberBinding::getBindingStatus, ENABLED)
+                .last("LIMIT 1"), false);
     }
 
     private String disabledReason(PlatNoMemberAccessRequest entity) {
@@ -293,6 +400,46 @@ public class NoMemberService {
             return "NO_MEMBER_APPROVAL_REQUIRES_MEMBER_ROLE_AND_DATA_SCOPE";
         }
         return "NO_SYSTEM_MEMBER_MAPPING_PENDING_APPROVAL";
+    }
+
+    private TargetScope resolveTargetScope(String systemId, String tenantId) {
+        PlatSystem system = resolveSystem(systemId);
+        PlatTenant tenant = resolveTenant(system, tenantId);
+        return new TargetScope(system.getId(), tenant.getId());
+    }
+
+    private PlatSystem resolveSystem(String systemId) {
+        Long id = parseRequiredLong(systemId, "Invalid system id.");
+        PlatSystem system = systemBaseService.getOne(new LambdaQueryWrapper<PlatSystem>()
+                .eq(PlatSystem::getId, id)
+                .eq(PlatSystem::getDeleted, DELETED_NO)
+                .last("LIMIT 1"), false);
+        if (Objects.isNull(system)) {
+            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "System does not exist.");
+        }
+        return system;
+    }
+
+    private PlatTenant resolveTenant(PlatSystem system, String tenantId) {
+        LambdaQueryWrapper<PlatTenant> wrapper = new LambdaQueryWrapper<PlatTenant>()
+                .eq(PlatTenant::getSystemId, system.getId())
+                .eq(PlatTenant::getDeleted, DELETED_NO);
+        if (StringUtils.hasText(tenantId)) {
+            wrapper.eq(PlatTenant::getId, parseRequiredLong(tenantId, "Invalid tenant id."));
+        }
+        PlatTenant tenant = tenantBaseService.getOne(wrapper.orderByAsc(PlatTenant::getId)
+                .last("LIMIT 1"), false);
+        if (Objects.isNull(tenant)) {
+            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "Tenant does not exist.");
+        }
+        return tenant;
+    }
+
+    private void requireSystemAdmin(String systemId) {
+        PlatAccount account = currentAccountProvider.currentAccount();
+        if (!systemAccessGuard.canManageSystem(account.getId(), systemId)) {
+            throw new BusinessException(CommonErrorCode.PERMISSION_DENIED);
+        }
     }
 
     private List<String> readStringList(String json) {
@@ -321,7 +468,8 @@ public class NoMemberService {
         try {
             return objectMapper.writeValueAsString(value);
         } catch (JsonProcessingException ex) {
-            throw new BusinessException(CommonErrorCode.OPS_INTERNAL_ERROR, "无成员映射申请序列化失败");
+            throw new BusinessException(CommonErrorCode.OPS_INTERNAL_ERROR,
+                    "No-member access request serialization failed.");
         }
     }
 
@@ -331,10 +479,6 @@ public class NoMemberService {
 
     private int pageSize(PageRequest request) {
         return Objects.isNull(request) || request.pageSize() <= 0 ? 20 : request.pageSize();
-    }
-
-    private Long parseTenantId(String tenantId, Long fallback) {
-        return StringUtils.hasText(tenantId) ? parseRequiredLong(tenantId, "租户ID格式不正确") : fallback;
     }
 
     private Long parseRequiredLong(String value, String message) {
@@ -349,7 +493,7 @@ public class NoMemberService {
         if (!StringUtils.hasText(value)) {
             return null;
         }
-        return parseRequiredLong(value, "ID格式不正确");
+        return parseRequiredLong(value, "Invalid id.");
     }
 
     private List<String> safeList(List<String> values) {
@@ -379,5 +523,8 @@ public class NoMemberService {
 
     private String safeText(String value, String fallback) {
         return StringUtils.hasText(value) ? value : fallback;
+    }
+
+    private record TargetScope(Long systemId, Long tenantId) {
     }
 }

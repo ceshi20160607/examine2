@@ -25,6 +25,7 @@ export interface DataTableOptions<T> {
   rows: T[];
   rowClickTarget?: string;
   pagination: TablePagination;
+  onPageChange?: (nextPage: number) => void;
   selection?: TableSelection;
   actions?: ActionContract[];
 }
@@ -55,7 +56,7 @@ export function createDataTable<T extends object>(options: DataTableOptions<T>):
     { className: 'table-shell' },
     createToolbar(options),
     table,
-    createPagination(options.pagination),
+    createPagination(options.pagination, options.onPageChange),
   );
 }
 
@@ -94,12 +95,16 @@ function createToolbar<T extends object>(options: DataTableOptions<T>): HTMLElem
   );
 }
 
-function createPagination(pagination: TablePagination): HTMLElement {
+function createPagination(pagination: TablePagination, onPageChange?: (nextPage: number) => void): HTMLElement {
+  const previousButton = createButton('上一页', 'ghost', pagination.pageNo <= 1 || !onPageChange, onPageChange ? '已经是第一页' : '当前表格不支持翻页。');
+  const nextButton = createButton('下一页', 'ghost', !pagination.hasNext || !onPageChange, onPageChange ? '没有更多数据' : '当前表格不支持翻页。');
+  previousButton.addEventListener('click', () => onPageChange?.(pagination.pageNo - 1));
+  nextButton.addEventListener('click', () => onPageChange?.(pagination.pageNo + 1));
   return createElement(
     'footer',
     { className: 'pagination' },
     createElement('span', {}, `第 ${pagination.pageNo} 页，每页 ${pagination.pageSize} 条，共 ${pagination.total} 条`),
-    createButton('上一页', 'ghost', pagination.pageNo <= 1, '已经是第一页'),
-    createButton('下一页', 'ghost', !pagination.hasNext, '没有更多数据'),
+    previousButton,
+    nextButton,
   );
 }

@@ -46,6 +46,16 @@ interface SwitchOption {
   disabledReason?: string;
 }
 
+export interface TenantOption {
+  tenantId: string;
+  systemId: string;
+  tenantCode: string;
+  tenantName: string;
+  domain?: string;
+  status: number;
+  updatedAt?: string;
+}
+
 export interface ShellState {
   currentArea: string;
   account: AccountState;
@@ -125,6 +135,15 @@ export async function switchToSystem(systemId: string, tenantId?: string, reason
     throw new Error(switchResponse.message || '系统切换失败。');
   }
   shellState.currentSystem = switchResponse.data;
+  shellState.currentTenant = {
+    systemId: switchResponse.data.systemId,
+    tenantId: switchResponse.data.tenantId,
+    tenantName: '',
+    tenantRoleIds: switchResponse.data.effectiveRoleIds,
+    tenantDataScope: switchResponse.data.dataScope,
+    isTenantSwitchable: true,
+    permissionSnapshotSummary: switchResponse.data.permissionSnapshotSummary,
+  };
   const currentSystem = shellState.availableSystems.find((system) => system.systemId === switchResponse.data.systemId);
   if (currentSystem) {
     currentSystem.accountMemberBindingId = switchResponse.data.accountMemberBindingId;
@@ -133,6 +152,45 @@ export async function switchToSystem(systemId: string, tenantId?: string, reason
   }
   shellState.account.systemRoles = systemRoleCodes(switchResponse.data.effectiveRoleIds);
   return switchResponse.data;
+}
+
+export async function loadSystemTenants(systemId: string): Promise<TenantOption[]> {
+  const response = await apiClient.get<TenantOption[]>(`/api/v1/systems/${systemId}/tenants`);
+  if (response.code !== 'SUCCESS') {
+    throw new Error(response.message || '租户列表加载失败。');
+  }
+  return response.data ?? [];
+}
+
+export async function switchTenant(systemId: string, tenantId: string, reason = 'frontend tenant switch'): Promise<TenantSwitchContext> {
+  const response = await apiClient.post<TenantSwitchContext>(`/api/v1/systems/${systemId}/tenant-switch`, {
+    tenantId,
+    reason,
+  });
+  if (response.code !== 'SUCCESS') {
+    throw new Error(response.message || '租户切换失败。');
+  }
+  shellState.currentTenant = response.data;
+  if (shellState.currentSystem?.systemId === systemId) {
+    shellState.currentSystem = {
+      ...shellState.currentSystem,
+      tenantId: response.data.tenantId,
+      effectiveRoleIds: response.data.tenantRoleIds,
+      dataScope: response.data.tenantDataScope,
+      permissionSnapshotSummary: response.data.permissionSnapshotSummary,
+      messageTodoScope: {
+        ...shellState.currentSystem.messageTodoScope,
+        tenantId: response.data.tenantId,
+      },
+    };
+  }
+  const currentSystem = shellState.availableSystems.find((system) => system.systemId === systemId);
+  if (currentSystem) {
+    currentSystem.tenantId = response.data.tenantId;
+    currentSystem.tenantName = response.data.tenantName;
+  }
+  shellState.account.systemRoles = systemRoleCodes(response.data.tenantRoleIds);
+  return response.data;
 }
 
 export function canEnterPlatformAdmin(): boolean {

@@ -1,0 +1,16 @@
+{
+    "result":  "PASS",
+    "suffix":  "0629230026565_3daefc",
+    "systemId":  "609",
+    "tenantId":  "641",
+    "moduleId":  "212",
+    "openApiAppId":  "49",
+    "openApiRecordId":  "190",
+    "openApiSuccessfulLogCount":  5,
+    "uploadedImportFileId":  "file_f49c7435_1782745236765",
+    "precheckId":  "task_import_precheck_4f0bf409",
+    "importTaskId":  "task_import_confirm_ed6770e9",
+    "exportTaskId":  "task_runtime_record_export_ec4dcf98",
+    "runtimeTotal":  3,
+    "cleanup":  "DELETE"
+}

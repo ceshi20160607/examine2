@@ -47,6 +47,7 @@ public class ApprovalService {
     private static final String TASK_APPROVED = "APPROVED";
     private static final String TASK_REJECTED = "REJECTED";
     private static final String TASK_TRANSFERRED = "TRANSFERRED";
+    private static final String TODO_HANDLED = "HANDLED";
     private static final String INSTANCE_RUNNING = "RUNNING";
     private static final String INSTANCE_APPROVED = "APPROVED";
     private static final String INSTANCE_REJECTED = "REJECTED";
@@ -150,6 +151,7 @@ public class ApprovalService {
         String idempotencyKey = idempotencyKey(task, actionCode, request);
         FlowApprovalActionLog duplicate = duplicateLog(task, actionCode, idempotencyKey);
         if (Objects.nonNull(duplicate)) {
+            closeRelatedApprovalTodo(instance, task);
             return duplicateView(systemId, task, instance, duplicate, actionCode, idempotencyKey);
         }
         if (!TASK_PENDING.equals(task.getStatus())) {
@@ -162,6 +164,7 @@ public class ApprovalService {
                 idempotencyKey, context.traceId());
         FlowApprovalActionLog actionLog = saveActionLog(task, instance, nextTask, actionCode, request,
                 idempotencyKey, context, now);
+        closeRelatedApprovalTodo(instance, task);
         if ("transfer".equals(actionCode) && Objects.nonNull(nextTask)) {
             createTransferredApprovalTodoAndMessage(instance, nextTask, transferTarget, context.traceId(), now);
         }
@@ -208,6 +211,21 @@ public class ApprovalService {
         instance.setEndedAt(now);
         instanceBaseService.updateById(instance);
         return null;
+    }
+
+    private void closeRelatedApprovalTodo(FlowInstance instance, FlowApprovalTask task) {
+        List<MessageTodo> todos = messageTodoBaseService.list(new LambdaQueryWrapper<MessageTodo>()
+                .eq(MessageTodo::getScope, "system")
+                .eq(MessageTodo::getSystemId, instance.getSystemId())
+                .eq(MessageTodo::getTenantId, instance.getTenantId())
+                .eq(MessageTodo::getTodoType, "flow_approval")
+                .eq(MessageTodo::getStatus, TASK_PENDING)
+                .like(MessageTodo::getTargetPayload, "approvalTaskId")
+                .like(MessageTodo::getTargetPayload, String.valueOf(task.getId())));
+        for (MessageTodo todo : todos) {
+            todo.setStatus(TODO_HANDLED);
+            messageTodoBaseService.updateById(todo);
+        }
     }
 
     private FlowApprovalActionLog saveActionLog(FlowApprovalTask task, FlowInstance instance, FlowApprovalTask nextTask,

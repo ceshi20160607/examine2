@@ -1,0 +1,761 @@
+{
+  "status": "PASS",
+  "task": "REC-P0-021",
+  "baseUrl": "http://127.0.0.1:18131",
+  "systemId": "620",
+  "accountName": "r18_member_0629230522556_d6086c",
+  "recordValue": "R18 Browser Ticket 0629230522556_d6086c",
+  "generatedAt": "2026-06-29T15:06:02.414Z",
+  "loginState": {
+    "ok": true,
+    "hash": "#/systems/620/dashboard",
+    "hasToken": true,
+    "localAccountId": "261",
+    "bodyIncludesAccount": true
+  },
+  "saveState": {
+    "ok": true,
+    "rowCount": 1,
+    "hasValue": true,
+    "text": "R18 Runtime Target 0629230522556_d6086c\n仪表盘\nR18 Business Group 0629230522556_d6086c\n工作\n待办\n消息\n系统切换\nr18_member_0629230522556_d6086c\nR18 Business Group 0629230522556_d6086c\nR18 Ticket Ledger 0629230522556_d6086c\n1 条 / MODULE_v1782745532249\n\nR18 BUSINESS GROUP 0629230522556_D6086C\n\nR18 Ticket Ledger 0629230522556_d6086c\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n新建记录\n导入\n全部导出\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n权限快照：eps_620_652_801\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n记录已保存：194\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tTicket Name ↕\tTicket Amount ↕\t操作\n\t001\t-\t-\t-\tR18 Browser Ticket 0629230522556_d6086c\t1700.000000\t\n编辑\n提交审批\n删除\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\n业务详情\nR18 Browser Ticket 0629230522556_d6086c\n编辑\n删除\n打印\n标题\nR18 Browser Ticket 0629230522556_d6086c\n摘要\nR1782745544901\n状态\nDRAFT\n权限版本\nperm_live_620_652_801\n详细资料\n关联数据\n附件\n打印记录\n操作记录\n基本信息\n标题\n状态\n所属部门\nTicket Name\nR18 Browser Ticket 0629230522556_d6086c\nTicket Amount\n1700.000000\n审批流程\n\n当前记录未发起审批。\n\ntraceId: TRACE-194\nauditLogId: AUD-194"
+  },
+  "results": [
+    {
+      "key": "mobile-runtime-loaded",
+      "screenshot": "mobile-runtime-loaded.png",
+      "hash": "#/systems/620/modules",
+      "hasToken": true,
+      "localAccountId": "261",
+      "headerButtons": [
+        "消息",
+        "系统切换",
+        "r18_member_0629230522556_d6086c"
+      ],
+      "headerButtonCount": 3,
+      "hasAdminEntry": false,
+      "bodyIncludesAccount": true,
+      "bodyIncludesRecord": false,
+      "denied": false,
+      "adminSidebarVisible": false,
+      "moduleToolbarVisible": false,
+      "runtimeVisible": true,
+      "runtimeTableVisible": false,
+      "runtimeActionButtons": [
+        {
+          "text": "新建记录",
+          "left": 12,
+          "right": 191,
+          "top": 590,
+          "bottom": 626,
+          "width": 179,
+          "height": 36
+        },
+        {
+          "text": "导入",
+          "left": 199,
+          "right": 378,
+          "top": 590,
+          "bottom": 626,
+          "width": 179,
+          "height": 36
+        },
+        {
+          "text": "全部导出",
+          "left": 12,
+          "right": 191,
+          "top": 634,
+          "bottom": 670,
+          "width": 179,
+          "height": 36
+        },
+        {
+          "text": "列设置",
+          "left": 199,
+          "right": 378,
+          "top": 634,
+          "bottom": 670,
+          "width": 179,
+          "height": 36
+        }
+      ],
+      "filterControls": [
+        {
+          "text": "搜索当前模块数据",
+          "left": 27,
+          "right": 363,
+          "top": 720,
+          "bottom": 756,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "title",
+          "left": 27,
+          "right": 363,
+          "top": 789,
+          "bottom": 825,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "status",
+          "left": 27,
+          "right": 363,
+          "top": 858,
+          "bottom": 894,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "ownerDept",
+          "left": 27,
+          "right": 363,
+          "top": 927,
+          "bottom": 963,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "快速搜索",
+          "left": 27,
+          "right": 363,
+          "top": 973,
+          "bottom": 1005,
+          "width": 336,
+          "height": 32
+        },
+        {
+          "text": "高级筛选",
+          "left": 27,
+          "right": 363,
+          "top": 1015,
+          "bottom": 1047,
+          "width": 336,
+          "height": 32
+        }
+      ],
+      "runtimePanels": [
+        {
+          "text": "R18 Business Group 0629230522556_d6086cR18 Ticket Ledger 0629230522556_d6086c0 条 / MODULE_v1782745532249",
+          "left": 12,
+          "right": 378,
+          "top": 309,
+          "bottom": 421,
+          "width": 366,
+          "height": 112
+        },
+        {
+          "text": "R18 Business Group 0629230522556_d6086cR18 Ticket Ledger 0629230522556_d6086c列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。新建记录导入全部导出列设置搜索当前模块数据titlestatusownerDept快速搜索高级筛选权限快照：eps_620_652_801已选 0 条删除导出选中勾选后启用删除和导出选中。暂无业务数据当前筛选条件下暂无记录。",
+          "left": 12,
+          "right": 378,
+          "top": 437,
+          "bottom": 1367,
+          "width": 366,
+          "height": 930
+        },
+        {
+          "text": "搜索当前模块数据titlestatusownerDept快速搜索高级筛选权限快照：eps_620_652_801",
+          "left": 12,
+          "right": 378,
+          "top": 682,
+          "bottom": 1091,
+          "width": 366,
+          "height": 409
+        },
+        {
+          "text": "已选 0 条删除导出选中勾选后启用删除和导出选中。",
+          "left": 12,
+          "right": 378,
+          "top": 1103,
+          "bottom": 1259,
+          "width": 366,
+          "height": 156
+        },
+        {
+          "text": "Runtime暂无业务数据当前筛选条件下暂无记录。",
+          "left": 12,
+          "right": 378,
+          "top": 1383,
+          "bottom": 1523,
+          "width": 366,
+          "height": 140
+        }
+      ],
+      "actionOverflow": [],
+      "filterOverflow": [],
+      "panelOverflow": [],
+      "scrollWidth": 390,
+      "overflowX": 0,
+      "viewport": {
+        "width": 390,
+        "height": 720
+      },
+      "blockers": []
+    },
+    {
+      "key": "mobile-runtime-create-panel",
+      "screenshot": "mobile-runtime-create-panel.png",
+      "hash": "#/systems/620/modules",
+      "hasToken": true,
+      "localAccountId": "261",
+      "headerButtons": [
+        "消息",
+        "系统切换",
+        "r18_member_0629230522556_d6086c"
+      ],
+      "headerButtonCount": 3,
+      "hasAdminEntry": false,
+      "bodyIncludesAccount": true,
+      "bodyIncludesRecord": false,
+      "denied": false,
+      "adminSidebarVisible": false,
+      "moduleToolbarVisible": false,
+      "runtimeVisible": true,
+      "runtimeTableVisible": false,
+      "runtimeActionButtons": [
+        {
+          "text": "新建记录",
+          "left": 12,
+          "right": 191,
+          "top": 590,
+          "bottom": 626,
+          "width": 179,
+          "height": 36
+        },
+        {
+          "text": "导入",
+          "left": 199,
+          "right": 378,
+          "top": 590,
+          "bottom": 626,
+          "width": 179,
+          "height": 36
+        },
+        {
+          "text": "全部导出",
+          "left": 12,
+          "right": 191,
+          "top": 634,
+          "bottom": 670,
+          "width": 179,
+          "height": 36
+        },
+        {
+          "text": "列设置",
+          "left": 199,
+          "right": 378,
+          "top": 634,
+          "bottom": 670,
+          "width": 179,
+          "height": 36
+        }
+      ],
+      "filterControls": [
+        {
+          "text": "搜索当前模块数据",
+          "left": 27,
+          "right": 363,
+          "top": 720,
+          "bottom": 756,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "title",
+          "left": 27,
+          "right": 363,
+          "top": 789,
+          "bottom": 825,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "status",
+          "left": 27,
+          "right": 363,
+          "top": 858,
+          "bottom": 894,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "ownerDept",
+          "left": 27,
+          "right": 363,
+          "top": 927,
+          "bottom": 963,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "快速搜索",
+          "left": 27,
+          "right": 363,
+          "top": 973,
+          "bottom": 1005,
+          "width": 336,
+          "height": 32
+        },
+        {
+          "text": "高级筛选",
+          "left": 27,
+          "right": 363,
+          "top": 1015,
+          "bottom": 1047,
+          "width": 336,
+          "height": 32
+        }
+      ],
+      "runtimePanels": [
+        {
+          "text": "R18 Business Group 0629230522556_d6086cR18 Ticket Ledger 0629230522556_d6086c0 条 / MODULE_v1782745532249",
+          "left": 12,
+          "right": 378,
+          "top": 309,
+          "bottom": 421,
+          "width": 366,
+          "height": 112
+        },
+        {
+          "text": "R18 Business Group 0629230522556_d6086cR18 Ticket Ledger 0629230522556_d6086c列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。新建记录导入全部导出列设置搜索当前模块数据titlestatusownerDept快速搜索高级筛选权限快照：eps_620_652_801已选 0 条删除导出选中勾选后启用删除和导出选中。暂无业务数据当前筛选条件下暂无记录。",
+          "left": 12,
+          "right": 378,
+          "top": 437,
+          "bottom": 1367,
+          "width": 366,
+          "height": 930
+        },
+        {
+          "text": "搜索当前模块数据titlestatusownerDept快速搜索高级筛选权限快照：eps_620_652_801",
+          "left": 12,
+          "right": 378,
+          "top": 682,
+          "bottom": 1091,
+          "width": 366,
+          "height": 409
+        },
+        {
+          "text": "已选 0 条删除导出选中勾选后启用删除和导出选中。",
+          "left": 12,
+          "right": 378,
+          "top": 1103,
+          "bottom": 1259,
+          "width": 366,
+          "height": 156
+        },
+        {
+          "text": "Record Form新建R18 Ticket Ledger 0629230522556_d6086c收起标题状态所属部门Ticket NameTicket Amount附件提交结果承接保存后返回字段错误、traceId、auditLogId；需要审批时生成流程实例并在详情右侧审批栏展示。保存草稿保存记录提交审批取消",
+          "left": 12,
+          "right": 378,
+          "top": 1383,
+          "bottom": 2219,
+          "width": 366,
+          "height": 836
+        }
+      ],
+      "actionOverflow": [],
+      "filterOverflow": [],
+      "panelOverflow": [],
+      "scrollWidth": 390,
+      "overflowX": 0,
+      "viewport": {
+        "width": 390,
+        "height": 720
+      },
+      "blockers": []
+    },
+    {
+      "key": "mobile-runtime-created-record",
+      "screenshot": "mobile-runtime-created-record.png",
+      "hash": "#/systems/620/modules",
+      "hasToken": true,
+      "localAccountId": "261",
+      "headerButtons": [
+        "消息",
+        "系统切换",
+        "r18_member_0629230522556_d6086c"
+      ],
+      "headerButtonCount": 3,
+      "hasAdminEntry": false,
+      "bodyIncludesAccount": true,
+      "bodyIncludesRecord": true,
+      "denied": false,
+      "adminSidebarVisible": false,
+      "moduleToolbarVisible": false,
+      "runtimeVisible": true,
+      "runtimeTableVisible": true,
+      "runtimeActionButtons": [
+        {
+          "text": "新建记录",
+          "left": 12,
+          "right": 191,
+          "top": 590,
+          "bottom": 626,
+          "width": 179,
+          "height": 36
+        },
+        {
+          "text": "导入",
+          "left": 199,
+          "right": 378,
+          "top": 590,
+          "bottom": 626,
+          "width": 179,
+          "height": 36
+        },
+        {
+          "text": "全部导出",
+          "left": 12,
+          "right": 191,
+          "top": 634,
+          "bottom": 670,
+          "width": 179,
+          "height": 36
+        },
+        {
+          "text": "列设置",
+          "left": 199,
+          "right": 378,
+          "top": 634,
+          "bottom": 670,
+          "width": 179,
+          "height": 36
+        }
+      ],
+      "filterControls": [
+        {
+          "text": "搜索当前模块数据",
+          "left": 27,
+          "right": 363,
+          "top": 720,
+          "bottom": 756,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "title",
+          "left": 27,
+          "right": 363,
+          "top": 789,
+          "bottom": 825,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "status",
+          "left": 27,
+          "right": 363,
+          "top": 858,
+          "bottom": 894,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "ownerDept",
+          "left": 27,
+          "right": 363,
+          "top": 927,
+          "bottom": 963,
+          "width": 336,
+          "height": 36
+        },
+        {
+          "text": "快速搜索",
+          "left": 27,
+          "right": 363,
+          "top": 973,
+          "bottom": 1005,
+          "width": 336,
+          "height": 32
+        },
+        {
+          "text": "高级筛选",
+          "left": 27,
+          "right": 363,
+          "top": 1015,
+          "bottom": 1047,
+          "width": 336,
+          "height": 32
+        }
+      ],
+      "runtimePanels": [
+        {
+          "text": "R18 Business Group 0629230522556_d6086cR18 Ticket Ledger 0629230522556_d6086c1 条 / MODULE_v1782745532249",
+          "left": 12,
+          "right": 378,
+          "top": 309,
+          "bottom": 421,
+          "width": 366,
+          "height": 112
+        },
+        {
+          "text": "R18 Business Group 0629230522556_d6086cR18 Ticket Ledger 0629230522556_d6086c列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。新建记录导入全部导出列设置搜索当前模块数据titlestatusownerDept快速搜索高级筛选权限快照：eps_620_652_801已选 0 条删除导出选中勾选后启用删除和导出选中。记录已保存：194序号标题 ↕状态 ↕所属部门 ↕Ticket Name ↕Ticket Amount ↕操作001---R18 Browser Ticket 0629230522556_d6086c1700.000000编辑提交审批删除第 1 页，每页 10 条，共 1 条上一页下一页",
+          "left": 12,
+          "right": 378,
+          "top": 437,
+          "bottom": 1423,
+          "width": 366,
+          "height": 986
+        },
+        {
+          "text": "搜索当前模块数据titlestatusownerDept快速搜索高级筛选权限快照：eps_620_652_801",
+          "left": 12,
+          "right": 378,
+          "top": 682,
+          "bottom": 1091,
+          "width": 366,
+          "height": 409
+        },
+        {
+          "text": "已选 0 条删除导出选中勾选后启用删除和导出选中。记录已保存：194",
+          "left": 12,
+          "right": 378,
+          "top": 1103,
+          "bottom": 1259,
+          "width": 366,
+          "height": 156
+        },
+        {
+          "text": "序号标题 ↕状态 ↕所属部门 ↕Ticket Name ↕Ticket Amount ↕操作001---R18 Browser Ticket 0629230522556_d6086c1700.000000编辑提交审批删除第 1 页，每页 10 条，共 1 条上一页下一页",
+          "left": 12,
+          "right": 378,
+          "top": 1271,
+          "bottom": 1423,
+          "width": 366,
+          "height": 152
+        },
+        {
+          "text": "业务详情R18 Browser Ticket 0629230522556_d6086c编辑删除打印标题R18 Browser Ticket 0629230522556_d6086c摘要R1782745544901状态DRAFT权限版本perm_live_620_652_801详细资料关联数据附件打印记录操作记录基本信息标题状态所属部门Ticket NameR18 Browser Ticket 0629230522556_d6086cTicket Amount1700.000000审批流程当前记录未发起审批。traceId: TRACE-194auditLogId: AUD-194",
+          "left": 12,
+          "right": 378,
+          "top": 1438,
+          "bottom": 2269,
+          "width": 366,
+          "height": 830
+        }
+      ],
+      "actionOverflow": [],
+      "filterOverflow": [],
+      "panelOverflow": [],
+      "scrollWidth": 390,
+      "overflowX": 0,
+      "viewport": {
+        "width": 390,
+        "height": 720
+      },
+      "blockers": []
+    },
+    {
+      "key": "mobile-admin-denied",
+      "screenshot": "mobile-admin-denied.png",
+      "hash": "#/systems/620/admin",
+      "hasToken": true,
+      "localAccountId": "261",
+      "headerButtons": [],
+      "headerButtonCount": 0,
+      "hasAdminEntry": false,
+      "bodyIncludesAccount": false,
+      "bodyIncludesRecord": false,
+      "denied": true,
+      "adminSidebarVisible": false,
+      "moduleToolbarVisible": false,
+      "runtimeVisible": false,
+      "runtimeTableVisible": false,
+      "runtimeActionButtons": [],
+      "filterControls": [],
+      "runtimePanels": [],
+      "actionOverflow": [],
+      "filterOverflow": [],
+      "panelOverflow": [],
+      "scrollWidth": 390,
+      "overflowX": 0,
+      "viewport": {
+        "width": 390,
+        "height": 720
+      },
+      "blockers": []
+    },
+    {
+      "key": "desktop-runtime-created-record",
+      "screenshot": "desktop-runtime-created-record.png",
+      "hash": "#/systems/620/modules",
+      "hasToken": true,
+      "localAccountId": "261",
+      "headerButtons": [
+        "消息",
+        "系统切换",
+        "r18_member_0629230522556_d6086c"
+      ],
+      "headerButtonCount": 3,
+      "hasAdminEntry": false,
+      "bodyIncludesAccount": true,
+      "bodyIncludesRecord": true,
+      "denied": false,
+      "adminSidebarVisible": false,
+      "moduleToolbarVisible": false,
+      "runtimeVisible": true,
+      "runtimeTableVisible": true,
+      "runtimeActionButtons": [
+        {
+          "text": "新建记录",
+          "left": 621,
+          "right": 704,
+          "top": 80,
+          "bottom": 112,
+          "width": 82,
+          "height": 32
+        },
+        {
+          "text": "导入",
+          "left": 711,
+          "right": 766,
+          "top": 80,
+          "bottom": 112,
+          "width": 54,
+          "height": 32
+        },
+        {
+          "text": "全部导出",
+          "left": 621,
+          "right": 704,
+          "top": 120,
+          "bottom": 152,
+          "width": 82,
+          "height": 32
+        },
+        {
+          "text": "列设置",
+          "left": 711,
+          "right": 780,
+          "top": 120,
+          "bottom": 152,
+          "width": 68,
+          "height": 32
+        }
+      ],
+      "filterControls": [
+        {
+          "text": "搜索当前模块数据",
+          "left": 265,
+          "right": 442,
+          "top": 267,
+          "bottom": 303,
+          "width": 177,
+          "height": 36
+        },
+        {
+          "text": "title",
+          "left": 452,
+          "right": 629,
+          "top": 267,
+          "bottom": 303,
+          "width": 177,
+          "height": 36
+        },
+        {
+          "text": "status",
+          "left": 265,
+          "right": 442,
+          "top": 336,
+          "bottom": 372,
+          "width": 177,
+          "height": 36
+        },
+        {
+          "text": "ownerDept",
+          "left": 452,
+          "right": 629,
+          "top": 336,
+          "bottom": 372,
+          "width": 177,
+          "height": 36
+        },
+        {
+          "text": "快速搜索",
+          "left": 639,
+          "right": 721,
+          "top": 340,
+          "bottom": 372,
+          "width": 82,
+          "height": 32
+        },
+        {
+          "text": "高级筛选",
+          "left": 265,
+          "right": 347,
+          "top": 382,
+          "bottom": 414,
+          "width": 82,
+          "height": 32
+        }
+      ],
+      "runtimePanels": [
+        {
+          "text": "R18 Business Group 0629230522556_d6086cR18 Ticket Ledger 0629230522556_d6086c1 条 / MODULE_v1782745532249",
+          "left": 24,
+          "right": 234,
+          "top": 80,
+          "bottom": 265,
+          "width": 210,
+          "height": 185
+        },
+        {
+          "text": "R18 Business Group 0629230522556_d6086cR18 Ticket Ledger 0629230522556_d6086c列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。新建记录导入全部导出列设置搜索当前模块数据titlestatusownerDept快速搜索高级筛选权限快照：eps_620_652_801已选 0 条删除导出选中勾选后启用删除和导出选中。记录已保存：194序号标题 ↕状态 ↕所属部门 ↕Ticket Name ↕Ticket Amount ↕操作001---R18 Browser Ticket 0629230522556_d6086c1700.000000编辑提交审批删除第 1 页，每页 10 条，共 1 条上一页下一页",
+          "left": 250,
+          "right": 805,
+          "top": 80,
+          "bottom": 711,
+          "width": 555,
+          "height": 631
+        },
+        {
+          "text": "搜索当前模块数据titlestatusownerDept快速搜索高级筛选权限快照：eps_620_652_801",
+          "left": 250,
+          "right": 805,
+          "top": 229,
+          "bottom": 458,
+          "width": 555,
+          "height": 229
+        },
+        {
+          "text": "已选 0 条删除导出选中勾选后启用删除和导出选中。记录已保存：194",
+          "left": 250,
+          "right": 805,
+          "top": 470,
+          "bottom": 532,
+          "width": 555,
+          "height": 62
+        },
+        {
+          "text": "序号标题 ↕状态 ↕所属部门 ↕Ticket Name ↕Ticket Amount ↕操作001---R18 Browser Ticket 0629230522556_d6086c1700.000000编辑提交审批删除第 1 页，每页 10 条，共 1 条上一页下一页",
+          "left": 250,
+          "right": 805,
+          "top": 544,
+          "bottom": 711,
+          "width": 555,
+          "height": 167
+        },
+        {
+          "text": "业务详情R18 Browser Ticket 0629230522556_d6086c编辑删除打印标题R18 Browser Ticket 0629230522556_d6086c摘要R1782745544901状态DRAFT权限版本perm_live_620_652_801详细资料关联数据附件打印记录操作记录基本信息标题状态所属部门Ticket NameR18 Browser Ticket 0629230522556_d6086cTicket Amount1700.000000审批流程当前记录未发起审批。traceId: TRACE-194auditLogId: AUD-194",
+          "left": 821,
+          "right": 1241,
+          "top": 80,
+          "bottom": 696,
+          "width": 420,
+          "height": 616
+        }
+      ],
+      "actionOverflow": [],
+      "filterOverflow": [],
+      "panelOverflow": [],
+      "scrollWidth": 1265,
+      "overflowX": 0,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "blockers": []
+    }
+  ],
+  "failures": []
+}

@@ -9,6 +9,7 @@ import { createButton, createElement } from '../shared/components';
 export type Navigate = (path: string) => void;
 
 export function mountApp(root: HTMLElement): void {
+  normalizeBrowserLocation();
   const navigate: Navigate = (path) => {
     window.location.hash = path;
   };
@@ -31,6 +32,20 @@ export function mountApp(root: HTMLElement): void {
       localStorage.removeItem('unexamine.refreshToken');
     })
     .finally(render);
+}
+
+function normalizeBrowserLocation(): void {
+  if (window.location.hash) {
+    return;
+  }
+  const directPath = `${window.location.pathname}${window.location.search}`;
+  if (directPath !== '/' && directPath !== '/index.html') {
+    window.history.replaceState(null, '', `/#${directPath}`);
+    return;
+  }
+  if (localStorage.getItem('unexamine.accessToken')) {
+    window.location.hash = '/platform';
+  }
 }
 
 function renderRoute(route: string, navigate: Navigate): HTMLElement {

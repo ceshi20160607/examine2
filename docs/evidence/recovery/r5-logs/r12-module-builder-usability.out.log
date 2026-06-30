@@ -1,0 +1,39 @@
+{
+    "status":  "PASS",
+    "task":  "REC-P0-015",
+    "suffix":  "0629230056",
+    "platformCreate":  {
+                           "publishVersion":  "MODULE_v1782745258765",
+                           "defaultDepartmentId":  "381",
+                           "systemId":  "612",
+                           "fieldTypes":  [
+                                              "TEXT",
+                                              "SELECT",
+                                              "TEXT",
+                                              "TEXT",
+                                              "DATE",
+                                              "SELECT",
+                                              "ATTACHMENT",
+                                              "AUTO_NUMBER"
+                                          ],
+                           "tenantId":  "644",
+                           "cleanup":  "DELETE",
+                           "ownerMemberId":  "790",
+                           "moduleId":  "213"
+                       },
+    "registerWithSystem":  {
+                               "systemId":  "613",
+                               "cleanup":  "DELETE",
+                               "defaultDepartmentId":  "382",
+                               "initGuideSteps":  [
+                                                      "CREATE_ACCOUNT",
+                                                      "CREATE_SYSTEM",
+                                                      "CREATE_DEFAULT_TENANT",
+                                                      "CREATE_DEFAULT_DEPARTMENT",
+                                                      "CREATE_SYSTEM_SUPER_ADMIN_ROLE",
+                                                      "BIND_ACCOUNT_MEMBER"
+                                                  ],
+                               "tenantId":  "645",
+                               "ownerMemberId":  "791"
+                           }
+}

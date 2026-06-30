@@ -1,0 +1,131 @@
+﻿{
+    "status":  "PASS",
+    "generatedAt":  "2026-06-29T23:08:59.0394974+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "gateCount":  8,
+    "failedGateCount":  0,
+    "gates":  [
+                  {
+                      "id":  "J0",
+                      "name":  "Release health",
+                      "status":  "PASS",
+                      "outcome":  "Release package builds, starts, verifies, restarts, and leaves a valid deployed frontend.",
+                      "requiredFiles":  [
+                                            "scripts/recovery-r5-final-user-script.ps1",
+                                            "scripts/verify-release.ps1",
+                                            "docs/evidence/recovery/r5-final-release-result.json"
+                                        ],
+                      "missingFiles":  [
+
+                                       ],
+                      "detail":  "R5 status=PASS, stepsFailed=0"
+                  },
+                  {
+                      "id":  "J1",
+                      "name":  "Register first system",
+                      "status":  "PASS",
+                      "outcome":  "New user registers with a system and enters initialization/system-admin flow.",
+                      "requiredFiles":  [
+                                            "docs/evidence/recovery/r16-register-first-use-browser-closure-2026-06-29.md",
+                                            "docs/evidence/recovery/r16-register-first-use-result.json"
+                                        ],
+                      "missingFiles":  [
+
+                                       ],
+                      "detail":  "no extra check"
+                  },
+                  {
+                      "id":  "J2",
+                      "name":  "Admin builds business app",
+                      "status":  "PASS",
+                      "outcome":  "System admin configures and publishes a usable module plus flow canvas.",
+                      "requiredFiles":  [
+                                            "docs/evidence/recovery/r2-module-publish-smoke-2026-06-27.md",
+                                            "docs/evidence/recovery/r12-module-builder-usability-2026-06-29.md",
+                                            "docs/evidence/recovery/r19-admin-aggregated-pagination-2026-06-29.md",
+                                            "docs/evidence/recovery/r20-flow-canvas-designer-result.json"
+                                        ],
+                      "missingFiles":  [
+
+                                       ],
+                      "detail":  "R20 status=PASS, nodes=2, edges=1"
+                  },
+                  {
+                      "id":  "J3",
+                      "name":  "Normal user daily work",
+                      "status":  "PASS",
+                      "outcome":  "Normal member uses runtime module through real login and mobile-safe UI, with no admin access.",
+                      "requiredFiles":  [
+                                            "docs/evidence/recovery/r17-normal-member-real-login-runtime-2026-06-29.md",
+                                            "docs/evidence/recovery/r18-runtime-mobile-action-containment-2026-06-29.md"
+                                        ],
+                      "missingFiles":  [
+
+                                       ],
+                      "detail":  "no extra check"
+                  },
+                  {
+                      "id":  "J4",
+                      "name":  "Approval and notification",
+                      "status":  "PASS",
+                      "outcome":  "Approval produces todo/message and closes business/todo/message state.",
+                      "requiredFiles":  [
+                                            "docs/evidence/recovery/r3-runtime-approval-smoke-2026-06-27.md",
+                                            "docs/evidence/recovery/r8-todo-message-center-2026-06-27.md"
+                                        ],
+                      "missingFiles":  [
+
+                                       ],
+                      "detail":  "no extra check"
+                  },
+                  {
+                      "id":  "J5",
+                      "name":  "Admin configuration depth",
+                      "status":  "PASS",
+                      "outcome":  "System admin breadth is API-backed, paged, responsive, and includes flow canvas.",
+                      "requiredFiles":  [
+                                            "docs/evidence/recovery/r4-admin-breadth-2026-06-27.md",
+                                            "docs/evidence/recovery/r6-data-source-2026-06-27.md",
+                                            "docs/evidence/recovery/r9-sso-no-member-2026-06-27.md",
+                                            "docs/evidence/recovery/r11-ai-agent-scope-confirmation-2026-06-29.md",
+                                            "docs/evidence/recovery/r13-cross-shell-responsive-usability-2026-06-29.md",
+                                            "docs/evidence/recovery/r19-admin-aggregated-pagination-2026-06-29.md",
+                                            "docs/evidence/recovery/r20-flow-canvas-designer-2026-06-29.md"
+                                        ],
+                      "missingFiles":  [
+
+                                       ],
+                      "detail":  "no extra check"
+                  },
+                  {
+                      "id":  "J6",
+                      "name":  "External and import/export",
+                      "status":  "PASS",
+                      "outcome":  "External app, OpenAPI, upload, import, export, logs, and result files work.",
+                      "requiredFiles":  [
+                                            "docs/evidence/recovery/r10-openapi-upload-import-export-2026-06-29.md"
+                                        ],
+                      "missingFiles":  [
+
+                                       ],
+                      "detail":  "no extra check"
+                  },
+                  {
+                      "id":  "J7",
+                      "name":  "Operations and maintenance",
+                      "status":  "PASS",
+                      "outcome":  "Deploy/restart/health/logs are proven, while backup/rollback gaps are explicitly tracked.",
+                      "requiredFiles":  [
+                                            "docs/recovery/final-usable-system-acceptance.md",
+                                            "docs/recovery/current-product-audit.md",
+                                            "docs/recovery/fix-batches.md",
+                                            "docs/evidence/recovery/r22-ops-maintenance-result.json",
+                                            "docs/evidence/recovery/r22-ops-maintenance-2026-06-29.md"
+                                        ],
+                      "missingFiles":  [
+
+                                       ],
+                      "detail":  "R22 status=PASS, releaseVerify=PASS, backupTask=TASK-20260629225608, rollbackTask=TASK-20260629225609"
+                  }
+              ]
+}

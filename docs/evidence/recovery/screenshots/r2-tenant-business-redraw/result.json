@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "baseUrl": "http://127.0.0.1:18131",
+  "systemId": "121",
+  "tenantA": "128",
+  "tenantB": "129",
+  "tenantARecordVisible": true,
+  "tenantBRecordHiddenFromA": true,
+  "tenantBRecordVisible": true,
+  "tenantARecordHiddenFromB": true,
+  "currentTenantAfterSwitch": "129",
+  "screenshots": [
+    "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r2-tenant-business-redraw\\tenant-a-modules.png",
+    "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r2-tenant-business-redraw\\tenant-b-modules.png"
+  ],
+  "consoleErrorCount": 0,
+  "failedRequestCount": 0,
+  "errors": [],
+  "failed": [],
+  "cleanup": "DELETE"
+}

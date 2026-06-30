@@ -35,7 +35,7 @@ public final class NoMemberModels {
                                           List<String> roleIds, Map<String, Object> dataScope,
                                           String rejectReason, String traceId, String disabledReason,
                                           boolean businessAccessAllowed, String accountMemberBindingId,
-                                          String systemMemberId, LocalDateTime createdAt,
+                                          String systemMemberId, String ssoBindingId, LocalDateTime createdAt,
                                           LocalDateTime updatedAt) {
     }
 }

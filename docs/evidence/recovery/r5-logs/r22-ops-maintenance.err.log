@@ -1,0 +1,84 @@
+ConvertFrom-Json : ����Ķ�����Ч��ӦΪ��:����}���� (407): {
+  "login": {
+    "ok": true,
+    "hash": "#/platform/dashboard",
+    "hasToken": true
+  },
+  "checks": [
+    {
+      "ok": true,
+      "body": "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n
+创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更�
+��缓存策略\n\n平台体检：WARN，风�?1 项，traceId=trc_38df6c7b-3c21-445d-8ba2-83b4a941b454\n\n点击读取
+部署记录。\n\n点击读取 API 缓存策略�?,
+      "disabled": false
+    },
+    {
+      "ok": true,
+      "body": "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n
+创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更�
+��缓存策略\n\n备份任务已创建：TASK-20260629230751 / QUEUED，traceId=trc_36e76a2b-a961-4d9d-8c98-7c627233db
+1b\n\n点击读取部署记录。\n\n点击读取 API 缓存策略�?,
+      "disabled": false
+    },
+    {
+      "ok": true,
+      "body": "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n
+创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更�
+��缓存策略\n\n恢复演练任务已创建：TASK-20260629230751 / rollback=true，traceId=trc_afaeaa85-af22-449a-84
+2d-d5351d8e77d6\n\n点击读取部署记录。\n\n点击读取 API 缓存策略�?,
+      "disabled": false
+    },
+    {
+      "ok": true,
+      "body": "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n
+创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更�
+��缓存策略\n\n部署记录已读取：1 条\n\nDEP-20260623-001 / prod\nSTABLE\nrollback requires async dry-run val
+idation and explicit no destructive script confirmation\n\n点击读取 API 缓存策略�?,
+      "disabled": false
+    },
+    {
+      "ok": true,
+      "body": "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n
+创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更�
+��缓存策略\n\n部署回滚演练已创建：TASK-20260629230752 / rollback=true，traceId=trc_b59c8eca-6228-4c5a-a8
+2b-a06bf959169b\n\nDEP-20260623-001 / prod\nSTABLE\nrollback requires async dry-run validation and explicit no destruct
+ive script confirmation\n\n点击读取 API 缓存策略�?,
+      "disabled": false
+    },
+    {
+      "ok": true,
+      "body": "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n
+创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更�
+��缓存策略\n\nAPI 缓存策略已读取：4 条\n\nDEP-20260623-001 / prod\nSTABLE\nrollback requires async dry-run
+ validation and explicit no destructive script confirmation\ncache_permission / PERMISSION\n启用\nsystem:{systemId}:m
+ember:{memberId}:perm\ncache_dict / DICT\n启用\nsystem:{systemId}:dict:{dictType}\ncache_field / FIELD\n启用\nsyste
+m:{systemId}:module:{moduleId}:field\ncache_print / PRINT_TEMPLATE\n启用\nsystem:{systemId}:print:{templateCode}",
+      "disabled": false
+    },
+    {
+      "ok": true,
+      "body": "上线保障与运维治理\n平台体检\n更新功能开关\n更新容量配额\n更新限流策略\n
+创建备份任务\n恢复演练\n归档恢复申请\n读取部署记录\n部署回滚演练\n读取缓存策略\n更�
+��缓存策略\n\nAPI 缓存策略已保存：permission_snapshot，traceId=trc_4d749e00-80be-4e61-9d50-0d359fbe3ec2\n\
+nDEP-20260623-001 / prod\nSTABLE\nrollback requires async dry-run validation and explicit no destructive script confirm
+ation\npermission_snapshot / PERMISSION\n启用\nsystem:{systemId}:member:{memberId}:perm",
+      "disabled": false
+    }
+  ],
+  "mobile": {
+    "ok": true,
+    "overflowX": 0,
+    "width": 390
+  },
+  "screenshots": [
+    "platform-ops-desktop.png",
+    "platform-ops-mobile.png"
+  ]
+}
+����λ�� D:\workspace\01_project\snow\cursor\examine2\scripts\recovery-r22-ops-maintenance-smoke.ps1:456 �ַ�: 35
++ $BrowserEvidence = $browserJson | ConvertFrom-Json
++                                   ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [ConvertFrom-Json], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException,Microsoft.PowerShell.Commands.ConvertFromJsonCommand
+ 

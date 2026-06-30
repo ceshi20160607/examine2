@@ -1,0 +1,74 @@
+{
+  "status": "PASS",
+  "systemId": "306",
+  "afterLogin": {
+    "hash": "#/platform/dashboard",
+    "bodyText": "unexamine\n仪表盘\nFlow\n应用\n代办\n消息\nadmin\n平台工作台\n\n平台成员从这里进入授权内系统；平台管理员额外拥有平台后台入口。\n\n创建系统\n平台后台\n系统切换\n车\n默认租户 / 342\n进入系统\nR14 Real Login Probe 0629041213\n默认租户 /\n进入系统",
+    "localAccountId": "25",
+    "hasToken": true,
+    "buttons": [
+      "仪表盘",
+      "Flow",
+      "应用",
+      "代办",
+      "消息",
+      "admin",
+      "创建系统",
+      "平台后台",
+      "进入系统",
+      "进入系统"
+    ]
+  },
+  "admin": {
+    "hash": "#/systems/306/admin",
+    "bodyText": "R14 Real Login Probe 0629041213\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR14 Real Login Probe 0629041213 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n模块管理\n模块分组\n\n暂无模块分组\n\n模块配置\n\n先筛选/选择模块，再配置字段、动作和发布。\n\n新建模块\n\n模块创建、发布检查、发布和回滚会调用真实后台接口并返回 traceId。\n\n模块\n分组\n全部分组\n发布\n全部发布状态\n草稿\n已发布\n状态\n全部状态\n启用\n停用\n应用筛选\n重置\n暂无匹配模块\n\n调整筛选条件或新建模块后继续配置。\n\n未选择模块\n\n请选择或新建一个模块。",
+    "buttons": [
+      "仪表盘",
+      "工作",
+      "待办",
+      "消息",
+      "系统切换",
+      "系统后台",
+      "admin",
+      "返回业务首页",
+      "系统信息",
+      "组织架构",
+      "角色管理",
+      "模块管理",
+      "流程管理",
+      "字典管理",
+      "仪表盘管理",
+      "数据源",
+      "对外应用",
+      "工作配置",
+      "统一认证",
+      "AI Agent",
+      "日志管理",
+      "新建模块",
+      "应用筛选",
+      "重置"
+    ],
+    "overflowX": 0,
+    "adminContentTop": 237,
+    "sidebarHeight": 54
+  },
+  "work": {
+    "hash": "#/systems/306/work",
+    "bodyText": "R14 Real Login Probe 0629041213\n仪表盘\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n工作管理\n\n固定为仪表盘、项目任务、普通任务、日报四个标签；任务支持列表和看板互斥切换。\n\n仪表盘\n项目任务\n普通任务\n日报\n进行中项目0当前\n项目任务0当前\n普通任务0当前\n逾期任务0当前\n今日预警\n\n暂无今日预警\n\n本月工作日历\n\n暂无日历事项\n\ntraceId: trc_9bad2702-f3a0-4cd0-a0a0-a534e8bc9774",
+    "overflowX": 0,
+    "buttons": [
+      "仪表盘",
+      "工作",
+      "待办",
+      "消息",
+      "系统切换",
+      "系统后台",
+      "admin",
+      "仪表盘",
+      "项目任务",
+      "普通任务",
+      "日报"
+    ]
+  },
+  "outDir": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r14-real-login-probe"
+}
