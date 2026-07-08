@@ -1,6 +1,6 @@
 ﻿{
     "status":  "FAIL",
-    "generatedAt":  "2026-06-30T13:46:58.1203153+08:00",
+    "generatedAt":  "2026-07-07T22:53:05.8310911+08:00",
     "requirementPath":  "docs/user_requirement.md",
     "ledgerPath":  "docs/framework/final-requirement-coverage-ledger.md",
     "requiredCount":  43,
@@ -178,7 +178,7 @@
                       },
                       {
                           "id":  "REQ-9",
-                          "status":  "OPEN"
+                          "status":  "PARTIAL"
                       },
                       {
                           "id":  "REQ-10",

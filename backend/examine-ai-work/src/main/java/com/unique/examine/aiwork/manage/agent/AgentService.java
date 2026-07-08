@@ -630,6 +630,10 @@ public class AgentService {
         SystemMemberContext context = systemMemberContextResolver.resolve(systemId);
         AgentConfirmation confirmation = requireConfirmation(confirmationId, "SYSTEM_AGENT_WRITE_CONFIRM");
         ensureConfirmationSystem(confirmation, context.systemId());
+        if (!"WAITING_HUMAN_CONFIRM".equalsIgnoreCase(confirmation.getStatus())) {
+            throw new BusinessException(CommonErrorCode.TASK_STATE_CONFLICT,
+                    "Agent confirmation is already terminal.");
+        }
         AgentAuditLogVO audit = saveAuditLog(SYSTEM_SCOPE, context.systemId(), context.tenantId(), "system_write_action",
                 confirmationId, modelVersion(resolveFirstAuthorization(null)), DEFAULT_PROMPT_VERSION,
                 policyVersionForContext(context), confirmation.getPermissionSnapshotId(),

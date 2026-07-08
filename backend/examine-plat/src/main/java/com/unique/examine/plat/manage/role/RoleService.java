@@ -67,7 +67,7 @@ public class RoleService {
      * @return role page
      */
     public PageResult<RoleVO> systemRoles(String systemId, PageRequest pageRequest, RoleQueryRequest query) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         return search(SCOPE_SYSTEM, context.systemId(), context.tenantId(), pageRequest, query);
     }
 
@@ -103,7 +103,7 @@ public class RoleService {
      */
     @Transactional(rollbackFor = Exception.class)
     public RoleVO createSystemRole(String systemId, RoleSaveRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         return saveRole(SCOPE_SYSTEM, context.systemId(), context.tenantId(), null, request);
     }
 
@@ -117,7 +117,7 @@ public class RoleService {
      */
     @Transactional(rollbackFor = Exception.class)
     public RoleVO updateSystemRole(String systemId, String roleId, RoleSaveRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         return saveRole(SCOPE_SYSTEM, context.systemId(), context.tenantId(), roleId, request);
     }
 
@@ -131,7 +131,7 @@ public class RoleService {
      */
     @Transactional(rollbackFor = Exception.class)
     public RoleMemberAssignResult assignMembers(String systemId, String roleId, RoleMemberAssignRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         PlatRole role = requireRole(SCOPE_SYSTEM, context.systemId(), context.tenantId(), roleId);
         int assigned = 0;
         for (String systemMemberId : safeList(request == null ? null : request.systemMemberIds())) {

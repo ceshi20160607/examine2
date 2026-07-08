@@ -35,6 +35,8 @@ import com.unique.examine.module.manage.config.ModuleConfigModels.ActionSaveRequ
 import com.unique.examine.module.manage.config.ModuleConfigModels.ColumnMeta;
 import com.unique.examine.module.manage.config.ModuleConfigModels.ColumnSchema;
 import com.unique.examine.module.manage.config.ModuleConfigModels.DetailSectionMeta;
+import com.unique.examine.module.manage.config.ModuleConfigModels.DictImpactRef;
+import com.unique.examine.module.manage.config.ModuleConfigModels.DictImpactVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.DictItemSaveRequest;
 import com.unique.examine.module.manage.config.ModuleConfigModels.DictItemVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.DictTypeQueryRequest;
@@ -63,6 +65,10 @@ import com.unique.examine.module.manage.config.ModuleConfigModels.ModuleVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PageMeta;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PermissionBindingVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplateSaveRequest;
+import com.unique.examine.module.manage.config.ModuleConfigModels.PrintExportMeta;
+import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplatePreviewVO;
+import com.unique.examine.module.manage.config.ModuleConfigModels.PrintRenderRow;
+import com.unique.examine.module.manage.config.ModuleConfigModels.PrintRenderSection;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplateVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PublishCheckItem;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PublishCheckResultVO;
@@ -75,10 +81,13 @@ import com.unique.examine.module.manage.config.ModuleConfigModels.SceneSchemaVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.SelectionRule;
 import com.unique.examine.module.manage.config.ModuleConfigModels.SortSchema;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -209,7 +218,7 @@ public class ModuleConfigService {
                         .orderByDesc(ModuleDefinition::getUpdatedAt)
                         .last("LIMIT " + offset + "," + pageSize))
                 .stream()
-                .map(module -> toModuleVO(module, groupName(module.getGroupId())))
+                .map(this::toModuleVO)
                 .toList();
         return new PageResult<>(records, pageNo, pageSize, total, offset + records.size() < total);
     }
@@ -245,7 +254,7 @@ public class ModuleConfigService {
         module.setUpdatedAt(LocalDateTime.now());
         saveOrUpdateModule(module);
         ensureModuleDefaults(context, module);
-        return toModuleVO(module, groupName(module.getGroupId()));
+        return toModuleVO(module);
     }
 
     /**
@@ -258,7 +267,7 @@ public class ModuleConfigService {
     public ModuleVO moduleDetail(String systemId, String moduleId) {
         ModuleSystemContext context = contextResolver.resolve(systemId);
         ModuleDefinition module = requireModule(context, moduleId);
-        return toModuleVO(module, groupName(module.getGroupId()));
+        return toModuleVO(module);
     }
 
     /**
@@ -322,6 +331,8 @@ public class ModuleConfigService {
         field.setRequired(Boolean.TRUE.equals(request.required()) ? 1 : 0);
         field.setSortable(Boolean.TRUE.equals(request.sortable()) ? 1 : 0);
         field.setFilterOperators(toJson(defaultOperators(request.fieldType())));
+        field.setDefaultValue(StringUtils.hasText(request.defaultValue()) ? toJson(request.defaultValue()) : null);
+        field.setValidationRule(toJson(fieldConfigPayload(request.validationRules(), request.typeConfig())));
         field.setMaskRule(toJson(safeText(request.maskRule(), "NONE")));
         field.setImportExportRule(toJson(Objects.isNull(request.importExportRule())
                 ? defaultImportExportRule(request.fieldCode()) : request.importExportRule()));
@@ -389,6 +400,48 @@ public class ModuleConfigService {
         dictType.setUpdatedAt(LocalDateTime.now());
         saveOrUpdateDictType(dictType);
         return toDictTypeVO(dictType);
+    }
+
+    /**
+     * Return dictionary reference impact for field designer and publish decisions.
+     *
+     * @param systemId system id
+     * @param dictTypeId dictionary type id
+     * @return dictionary impact
+     */
+    public DictImpactVO dictImpact(String systemId, String dictTypeId) {
+        ModuleSystemContext context = contextResolver.resolve(systemId);
+        ModuleDictType dictType = requireDictType(context, dictTypeId);
+        List<DictImpactRef> refs = dictImpactRefs(context, dictType.getId());
+        int disabledCount = disabledDictItemCount(dictType.getId());
+        int moduleCount = (int) refs.stream().map(DictImpactRef::moduleId).distinct().count();
+        return new DictImpactVO(String.valueOf(dictType.getId()), refs.size(), moduleCount, disabledCount,
+                dictType.getPublishedVersion(), refs, RequestContext.current().traceId());
+    }
+
+    /**
+     * Publish a dictionary type version after recording its field references.
+     *
+     * @param systemId system id
+     * @param dictTypeId dictionary type id
+     * @param request publish request
+     * @return publish result
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public PublishResult publishDictType(String systemId, String dictTypeId, PublishRequest request) {
+        ModuleSystemContext context = contextResolver.resolve(systemId);
+        ModuleDictType dictType = requireDictType(context, dictTypeId);
+        String version = "DICT_TYPE_v" + System.currentTimeMillis();
+        dictType.setPublishedVersion(version);
+        dictType.setUpdatedAt(LocalDateTime.now());
+        saveOrUpdateDictType(dictType);
+        savePublishVersion(context, "DICT_TYPE", dictType.getId(), version, PUBLISHED,
+                dictImpactRefs(context, dictType.getId()).stream()
+                        .map(ref -> ref.moduleName() + "." + ref.fieldCode())
+                        .toList());
+        RequestContext requestContext = RequestContext.current();
+        return new PublishResult("PUBLISHED_DICT_TYPE", dictTypeId, version,
+                requestContext.traceId(), "aud_" + requestContext.traceId(), null, LocalDateTime.now());
     }
 
     /**
@@ -514,7 +567,7 @@ public class ModuleConfigService {
         return new DynamicListSchema(String.valueOf(module.getId()), module.getModuleCode(),
                 Objects.isNull(scene) ? null : String.valueOf(scene.getId()),
                 Objects.isNull(scene) ? "default" : scene.getSceneCode(),
-                columns(fields), filters(fields), sorters(fields),
+                columns(fields, scene), filters(fields, scene), sorters(fields, scene),
                 new PageMeta(20, List.of(10, 20, 50, 100), true, false),
                 rowDetailTarget(module.getId()),
                 allActions.stream().filter(action -> "BATCH_BAR".equals(action.position())).toList(),
@@ -696,11 +749,142 @@ public class ModuleConfigService {
         }
         template.setTemplateName(request.templateName());
         template.setTemplateFileId(safeText(request.previewFileId(), "file_print_" + request.templateCode()));
-        template.setFieldMapping(toJson(emptyListWhenNull(request.boundFieldCodes())));
+        Map<String, Object> previousPayload = Objects.isNull(template.getId()) ? Map.of() : printTemplatePayload(template);
+        template.setFieldMapping(toJson(printTemplatePayload(request, previousPayload)));
         template.setStatus(Objects.isNull(request.status()) ? ENABLED : request.status());
         template.setUpdatedAt(LocalDateTime.now());
         saveOrUpdatePrintTemplate(template);
         return toPrintTemplateVO(template);
+    }
+
+    public PublishCheckResultVO printTemplatePublishCheck(String systemId, String moduleId, String templateCode) {
+        ModuleSystemContext context = contextResolver.resolve(systemId);
+        ModuleDefinition module = requireModule(context, moduleId);
+        ModulePrintTemplate template = requirePrintTemplate(module, templateCode);
+        Map<String, Object> payload = printTemplatePayload(template);
+        List<String> boundFieldCodes = printTemplateCodes(payload, "boundFieldCodes");
+        List<String> existingCodes = fieldsForModule(module.getId()).stream()
+                .map(ModuleFieldDefinition::getFieldCode)
+                .toList();
+        List<PublishCheckItem> failures = new java.util.ArrayList<>();
+        if (boundFieldCodes.isEmpty()) {
+            failures.add(new PublishCheckItem("PRINT_FIELD_EMPTY", "Print field binding", "ERROR",
+                    "PRINT_TEMPLATE", String.valueOf(template.getId()),
+                    "At least one module field must be bound before publishing.", "Select fields in the designer."));
+        }
+        List<String> missing = boundFieldCodes.stream().filter(code -> !existingCodes.contains(code)).toList();
+        if (!missing.isEmpty()) {
+            failures.add(new PublishCheckItem("PRINT_FIELD_MISSING", "Missing bound field", "ERROR",
+                    "PRINT_TEMPLATE", String.valueOf(template.getId()),
+                    "Bound fields no longer exist: " + String.join(",", missing), "Remove missing fields."));
+        }
+        List<PublishCheckItem> warnings = new java.util.ArrayList<>();
+        Map<String, Object> pageSetup = printTemplatePageSetup(payload);
+        if (printTemplateCodes(payload, "detailTableFieldCodes").isEmpty()) {
+            warnings.add(new PublishCheckItem("PRINT_DETAIL_TABLE_EMPTY", "Print detail table", "WARNING",
+                    "PRINT_TEMPLATE", String.valueOf(template.getId()),
+                    "No detail table fields are configured.", "Select detail fields if the document needs line items."));
+        }
+        if (printTemplateCodes(payload, "signatureLabels").isEmpty()) {
+            warnings.add(new PublishCheckItem("PRINT_SIGNATURE_EMPTY", "Print signature area", "WARNING",
+                    "PRINT_TEMPLATE", String.valueOf(template.getId()),
+                    "No signature labels are configured.", "Add at least one signature label when approval is required."));
+        }
+        if (!StringUtils.hasText(asString(pageSetup.get("paper"))) || !StringUtils.hasText(asString(pageSetup.get("orientation")))) {
+            failures.add(new PublishCheckItem("PRINT_PAGE_SETUP_INVALID", "Print page setup", "ERROR",
+                    "PRINT_TEMPLATE", String.valueOf(template.getId()),
+                    "Paper size and orientation are required for print-ready export.", "Set page paper and orientation."));
+        }
+        return new PublishCheckResultVO(failures.isEmpty(), failures, warnings,
+                List.of(new ImpactRef("RUNTIME_PRINT", String.valueOf(module.getId()), template.getTemplateName(),
+                        "REFRESH_TEMPLATE"),
+                        new ImpactRef("PRINT_EXPORT", String.valueOf(template.getId()), template.getTemplateName(),
+                                "PRINT_READY_HTML"),
+                        new ImpactRef("PERMISSION_SNAPSHOT", context.permissionSnapshotId(), "Permission snapshot",
+                                "CHECK_RUNTIME_READ")),
+                RequestContext.current().traceId());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public PublishResult publishPrintTemplate(String systemId, String moduleId, String templateCode,
+                                              PublishRequest request) {
+        ModuleSystemContext context = contextResolver.resolve(systemId);
+        ModuleDefinition module = requireModule(context, moduleId);
+        ModulePrintTemplate template = requirePrintTemplate(module, templateCode);
+        PublishCheckResultVO check = printTemplatePublishCheck(systemId, moduleId, templateCode);
+        if (!check.passed()) {
+            String message = check.failureItems().stream().findFirst()
+                    .map(PublishCheckItem::message)
+                    .orElse("Print template publish check failed");
+            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, message);
+        }
+        String version = "PRINT_TEMPLATE_v" + System.currentTimeMillis();
+        Map<String, Object> payload = new LinkedHashMap<>(printTemplatePayload(template));
+        payload.put("publishStatus", PUBLISHED);
+        payload.put("publishedVersion", version);
+        payload.put("publishedSnapshot", new LinkedHashMap<>(payload));
+        template.setFieldMapping(toJson(payload));
+        template.setStatus(ENABLED);
+        template.setUpdatedAt(LocalDateTime.now());
+        saveOrUpdatePrintTemplate(template);
+        savePublishVersion(context, "PRINT_TEMPLATE", template.getId(), version, PUBLISHED);
+        RequestContext requestContext = RequestContext.current();
+        return new PublishResult("PUBLISHED_PRINT_TEMPLATE", String.valueOf(template.getId()), version,
+                requestContext.traceId(), "aud_" + requestContext.traceId(), null, LocalDateTime.now());
+    }
+
+    public PrintTemplatePreviewVO previewPrintTemplate(String systemId, String moduleId, String templateCode,
+                                                       Map<String, Object> previewValues, boolean publishedOnly,
+                                                       String recordId, boolean exportFile) {
+        ModuleSystemContext context = contextResolver.resolve(systemId);
+        ModuleDefinition module = requireModule(context, moduleId);
+        ModulePrintTemplate template = requirePrintTemplate(module, templateCode);
+        Map<String, Object> payload = printTemplatePayload(template);
+        String publishStatus = safeText(asString(payload.get("publishStatus")), DRAFT);
+        if (publishedOnly && !PUBLISHED.equals(publishStatus)) {
+            throw new BusinessException(CommonErrorCode.PERMISSION_DENIED, "Print template is not published.");
+        }
+        List<ModuleFieldDefinition> fields = fieldsForModule(module.getId());
+        Map<String, ModuleFieldDefinition> byCode = fields.stream()
+                .collect(Collectors.toMap(ModuleFieldDefinition::getFieldCode, field -> field, (left, right) -> left,
+                        LinkedHashMap::new));
+        Map<String, Object> values = Objects.isNull(previewValues) ? Map.of() : previewValues;
+        List<PrintRenderSection> sections = new java.util.ArrayList<>();
+        sections.add(new PrintRenderSection("header", safeText(asString(payload.get("headerText")),
+                template.getTemplateName()), List.of(new PrintRenderRow("templateCode", "模板编码",
+                template.getTemplateCode()))));
+        List<PrintRenderRow> baseRows = printTemplateCodes(payload, "boundFieldCodes").stream()
+                .filter(byCode::containsKey)
+                .map(code -> new PrintRenderRow(code, byCode.get(code).getFieldName(), printValue(values.get(code))))
+                .toList();
+        sections.add(new PrintRenderSection("base", "记录字段", baseRows));
+        List<PrintRenderRow> detailRows = printTemplateCodes(payload, "detailTableFieldCodes").stream()
+                .filter(byCode::containsKey)
+                .map(code -> new PrintRenderRow(code, byCode.get(code).getFieldName(), printValue(values.get(code))))
+                .toList();
+        if (!detailRows.isEmpty()) {
+            sections.add(new PrintRenderSection("detailTable", "明细表格", detailRows));
+        }
+        List<PrintRenderRow> signatureRows = printTemplateCodes(payload, "signatureLabels").stream()
+                .map(label -> new PrintRenderRow("signature", label, ""))
+                .toList();
+        if (!signatureRows.isEmpty()) {
+            sections.add(new PrintRenderSection("signature", "签名区", signatureRows));
+        }
+        sections.add(new PrintRenderSection("footer", safeText(asString(payload.get("footerText")),
+                "由 unexamine 生成"), List.of()));
+        String version = PUBLISHED.equals(publishStatus)
+                ? safeText(asString(payload.get("publishedVersion")), "print_v1")
+                : safeText(asString(payload.get("draftVersion")), "draft");
+        Map<String, Object> pageSetup = printTemplatePageSetup(payload);
+        PrintExportMeta exportMeta = exportFile
+                ? buildPrintExportMeta(template, version, recordId, sections, pageSetup) : null;
+        String exportFileId = exportMeta == null ? null : exportMeta.fileId();
+        return new PrintTemplatePreviewVO(template.getTemplateCode(), template.getTemplateName(), version,
+                publishStatus, recordId, sections,
+                List.of(new ImpactRef("PRINT_TEMPLATE", String.valueOf(template.getId()), template.getTemplateName(),
+                        exportFile ? "EXPORT_PRINT_READY_HTML" : "PREVIEW")),
+                exportFileId, exportMeta, pageSetup, RequestContext.current().traceId(), LocalDateTime.now());
     }
 
     /**
@@ -800,23 +984,34 @@ public class ModuleConfigService {
                 group.getUpdatedAt());
     }
 
-    private ModuleVO toModuleVO(ModuleDefinition module, String topGroupName) {
+    private ModuleVO toModuleVO(ModuleDefinition module) {
+        ModuleGroup group = groupById(module.getGroupId());
+        String topGroupName = Objects.isNull(group) ? "业务模块" : group.getGroupName();
+        List<String> visibleRoleIds = Objects.isNull(group) ? List.of() : readJsonList(group.getVisibleRoleIds());
+        boolean runtimeVisible = Objects.equals(module.getStatus(), ENABLED)
+                && PUBLISHED.equals(module.getPublishStatus())
+                && Objects.nonNull(group)
+                && PUBLISHED.equals(group.getPublishStatus());
         return new ModuleVO(String.valueOf(module.getId()), String.valueOf(module.getSystemId()),
                 String.valueOf(module.getTenantId()), String.valueOf(module.getGroupId()),
                 module.getModuleCode(), module.getModuleName(), module.getStatus(), module.getPublishStatus(),
                 module.getCurrentVersion(), rowDetailTarget(module.getId()),
                 new ModuleNavigationMeta(safeText(topGroupName, "业务模块"), module.getModuleName(),
-                        "/systems/" + module.getSystemId() + "/modules/" + module.getId(), List.of(), true),
+                        "/systems/" + module.getSystemId() + "/modules/" + module.getId(), visibleRoleIds,
+                        runtimeVisible),
                 module.getUpdatedAt());
     }
 
     private FieldDefinitionVO toFieldVO(ModuleFieldDefinition field) {
         String maskRule = readJsonString(field.getMaskRule(), "NONE");
+        Map<String, Object> config = readJsonMap(field.getValidationRule());
         return new FieldDefinitionVO(String.valueOf(field.getId()), String.valueOf(field.getModuleId()),
                 field.getFieldCode(), field.getFieldName(), field.getFieldType(), field.getStorageType(),
                 readJsonList(field.getFilterOperators()), Objects.equals(field.getSortable(), ENABLED),
                 Objects.equals(field.getRequired(), ENABLED), field.getStatus(),
                 Objects.isNull(field.getDictTypeId()) ? null : String.valueOf(field.getDictTypeId()),
+                readJsonString(field.getDefaultValue(), null),
+                objectMap(config.get("validationRules")), objectMap(config.get("typeConfig")),
                 fieldPermission(field), maskRule,
                 readJsonObject(field.getImportExportRule(), ImportExportRule.class,
                         defaultImportExportRule(field.getFieldCode())),
@@ -824,9 +1019,12 @@ public class ModuleConfigService {
     }
 
     private DictTypeVO toDictTypeVO(ModuleDictType dictType) {
+        ModuleSystemContext context = contextResolver.resolve(String.valueOf(dictType.getSystemId()));
+        List<DictImpactRef> impactRefs = dictImpactRefs(context, dictType.getId());
         return new DictTypeVO(String.valueOf(dictType.getId()), String.valueOf(dictType.getSystemId()),
                 String.valueOf(dictType.getTenantId()), dictType.getDictCode(), dictType.getDictName(),
                 dictType.getDictKind(), dictType.getStatus(), dictType.getPublishedVersion(),
+                impactRefs.size(), disabledDictItemCount(dictType.getId()), impactRefs,
                 dictItemsByType(dictType.getId()), dictType.getUpdatedAt());
     }
 
@@ -874,10 +1072,19 @@ public class ModuleConfigService {
     }
 
     private PrintTemplateVO toPrintTemplateVO(ModulePrintTemplate template) {
+        Map<String, Object> payload = printTemplatePayload(template);
         return new PrintTemplateVO(String.valueOf(template.getId()), String.valueOf(template.getModuleId()),
-                template.getTemplateCode(), template.getTemplateName(), "print_v1", template.getStatus(),
-                false, List.of(), readJsonList(template.getFieldMapping()), template.getTemplateFileId(),
-                Objects.equals(template.getStatus(), ENABLED) ? PUBLISHED : DRAFT);
+                template.getTemplateCode(), template.getTemplateName(),
+                safeText(asString(payload.get("draftVersion")), "print_v1"), template.getStatus(),
+                Boolean.TRUE.equals(payload.get("defaultTemplate")),
+                printTemplateCodes(payload, "visibleRoleIds"), printTemplateCodes(payload, "boundFieldCodes"),
+                template.getTemplateFileId(), safeText(asString(payload.get("publishStatus")),
+                Objects.equals(template.getStatus(), ENABLED) ? PUBLISHED : DRAFT),
+                safeText(asString(payload.get("headerText")), template.getTemplateName()),
+                safeText(asString(payload.get("footerText")), "由 unexamine 生成"),
+                printTemplateCodes(payload, "detailTableFieldCodes"),
+                printTemplateCodes(payload, "signatureLabels"),
+                printTemplatePageSetup(payload), asString(payload.get("publishedVersion")));
     }
 
     private LambdaQueryWrapper<ModuleDefinition> moduleQuery(ModuleSystemContext context, ModuleQueryRequest query) {
@@ -1201,13 +1408,50 @@ public class ModuleConfigService {
                 .toList();
     }
 
+    private List<ColumnSchema> columns(List<ModuleFieldDefinition> fields, ModuleListScene scene) {
+        List<ColumnSchema> defaults = columns(fields);
+        List<String> orderedFieldIds = Objects.isNull(scene) ? List.of() : readJsonList(scene.getColumnsConfig());
+        if (orderedFieldIds.isEmpty()) {
+            return defaults;
+        }
+        Map<String, ColumnSchema> byFieldId = defaults.stream()
+                .collect(Collectors.toMap(ColumnSchema::fieldId, column -> column, (left, right) -> left));
+        List<ColumnSchema> configured = orderedFieldIds.stream()
+                .map(byFieldId::get)
+                .filter(Objects::nonNull)
+                .toList();
+        if (configured.isEmpty()) {
+            return defaults;
+        }
+        return IntStream.range(0, configured.size())
+                .mapToObj(index -> withFixed(configured.get(index), index == 0))
+                .toList();
+    }
+
     private List<FilterSchema> filters(List<ModuleFieldDefinition> fields) {
         return fields.stream()
                 .map(field -> new FilterSchema(String.valueOf(field.getId()), field.getFieldCode(),
                         field.getFieldName(), field.getFieldType(), readJsonList(field.getFilterOperators()),
                         true, "title".equals(field.getFieldCode()) || "status".equals(field.getFieldCode()),
-                        Objects.isNull(field.getDictTypeId()) ? List.of() : dictItemsByType(field.getDictTypeId()),
+                        Objects.isNull(field.getDictTypeId()) ? List.of() : activeDictItemsByType(field.getDictTypeId()),
                         "READABLE"))
+                .toList();
+    }
+
+    private List<FilterSchema> filters(List<ModuleFieldDefinition> fields, ModuleListScene scene) {
+        List<FilterSchema> defaults = filters(fields);
+        List<String> quickFieldIds = Objects.isNull(scene) ? List.of() : readJsonList(scene.getFiltersConfig());
+        if (quickFieldIds.isEmpty()) {
+            return defaults;
+        }
+        Map<String, Integer> order = IntStream.range(0, quickFieldIds.size()).boxed()
+                .collect(Collectors.toMap(quickFieldIds::get, index -> index, (left, right) -> left));
+        return defaults.stream()
+                .sorted(Comparator.comparingInt(filter -> order.getOrDefault(filter.fieldId(), Integer.MAX_VALUE)))
+                .map(filter -> order.containsKey(filter.fieldId())
+                        ? new FilterSchema(filter.fieldId(), filter.fieldCode(), filter.label(), filter.fieldType(),
+                        filter.operators(), filter.advanced(), true, filter.options(), filter.permissionMode())
+                        : filter)
                 .toList();
     }
 
@@ -1222,11 +1466,212 @@ public class ModuleConfigService {
                 : fieldSorts;
     }
 
+    private List<SortSchema> sorters(List<ModuleFieldDefinition> fields, ModuleListScene scene) {
+        List<SortSchema> defaults = sorters(fields);
+        List<String> sortFieldIds = Objects.isNull(scene) ? List.of() : readJsonList(scene.getSortConfig());
+        if (sortFieldIds.isEmpty()) {
+            return defaults;
+        }
+        Map<String, Integer> order = IntStream.range(0, sortFieldIds.size()).boxed()
+                .collect(Collectors.toMap(sortFieldIds::get, index -> index, (left, right) -> left));
+        List<SortSchema> configured = defaults.stream()
+                .filter(sort -> order.containsKey(sort.fieldId()))
+                .sorted(Comparator.comparingInt(sort -> order.get(sort.fieldId())))
+                .map(sort -> new SortSchema(sort.fieldId(), sort.fieldCode(), sort.label(),
+                        sort.defaultDirection(), true, sort.supported()))
+                .toList();
+        return configured.isEmpty() ? defaults : configured;
+    }
+
+    private ColumnSchema withFixed(ColumnSchema column, boolean fixed) {
+        return new ColumnSchema(column.fieldId(), column.fieldCode(), column.label(), column.width(),
+                column.visibleDefault(), column.configurable(), fixed, column.align(), column.permissionMode(),
+                column.maskRule());
+    }
+
     private List<DetailSectionMeta> detailSections(List<ModuleFieldDefinition> fields) {
         return List.of(new DetailSectionMeta("base", "基础资料",
                 fields.stream().map(ModuleFieldDefinition::getFieldCode).toList(), "module.read", true),
                 new DetailSectionMeta("operationLogs", "操作记录", List.of("operator", "action", "operatedAt"),
                         "module.history.read", true));
+    }
+
+    private ModulePrintTemplate requirePrintTemplate(ModuleDefinition module, String templateCode) {
+        requireText(templateCode, "Print template code is required");
+        ModulePrintTemplate template = printTemplateBaseService.getOne(new LambdaQueryWrapper<ModulePrintTemplate>()
+                .eq(ModulePrintTemplate::getModuleId, module.getId())
+                .eq(ModulePrintTemplate::getTemplateCode, templateCode)
+                .last("LIMIT 1"), false);
+        if (Objects.isNull(template)) {
+            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "Print template not found.");
+        }
+        return template;
+    }
+
+    private Map<String, Object> printTemplatePayload(ModulePrintTemplate template) {
+        String json = template.getFieldMapping();
+        if (!StringUtils.hasText(json)) {
+            return defaultPrintTemplatePayload(List.of());
+        }
+        try {
+            if (json.trim().startsWith("[")) {
+                return defaultPrintTemplatePayload(objectMapper.readValue(json, STRING_LIST));
+            }
+            Map<String, Object> payload = objectMapper.readValue(json, MAP_TYPE);
+            return payload.isEmpty() ? defaultPrintTemplatePayload(List.of()) : payload;
+        } catch (Exception ex) {
+            return defaultPrintTemplatePayload(List.of());
+        }
+    }
+
+    private Map<String, Object> printTemplatePayload(PrintTemplateSaveRequest request,
+                                                     Map<String, Object> previousPayload) {
+        Map<String, Object> payload = new LinkedHashMap<>(defaultPrintTemplatePayload(List.of()));
+        payload.putAll(previousPayload);
+        payload.put("boundFieldCodes", emptyListWhenNull(request.boundFieldCodes()));
+        payload.put("visibleRoleIds", emptyListWhenNull(request.visibleRoleIds()));
+        payload.put("defaultTemplate", Boolean.TRUE.equals(request.defaultTemplate()));
+        payload.put("headerText", safeText(request.headerText(), request.templateName()));
+        payload.put("footerText", safeText(request.footerText(), "由 unexamine 生成"));
+        payload.put("detailTableFieldCodes", emptyListWhenNull(request.detailTableFieldCodes()));
+        payload.put("signatureLabels", emptyListWhenNull(request.signatureLabels()));
+        payload.put("pageSetup", normalizedPrintPageSetup(request.pageSetup()));
+        payload.put("draftVersion", safeText(request.version(), "draft_" + System.currentTimeMillis()));
+        payload.put("publishStatus", safeText(asString(previousPayload.get("publishStatus")), DRAFT));
+        return payload;
+    }
+
+    private Map<String, Object> defaultPrintTemplatePayload(List<String> boundFieldCodes) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("boundFieldCodes", emptyListWhenNull(boundFieldCodes));
+        payload.put("visibleRoleIds", List.of());
+        payload.put("defaultTemplate", false);
+        payload.put("headerText", "");
+        payload.put("footerText", "由 unexamine 生成");
+        payload.put("detailTableFieldCodes", List.of());
+        payload.put("signatureLabels", List.of("制单人", "审核人"));
+        payload.put("pageSetup", normalizedPrintPageSetup(Map.of()));
+        payload.put("draftVersion", "draft");
+        payload.put("publishStatus", DRAFT);
+        return payload;
+    }
+
+    private PrintExportMeta buildPrintExportMeta(ModulePrintTemplate template, String version, String recordId,
+                                                 List<PrintRenderSection> sections, Map<String, Object> pageSetup) {
+        String fileId = "print_" + template.getTemplateCode() + "_"
+                + safeText(recordId, "preview") + "_" + System.currentTimeMillis() + ".html";
+        String paper = safeText(asString(pageSetup.get("paper")), "A4");
+        String orientation = safeText(asString(pageSetup.get("orientation")), "PORTRAIT");
+        String margins = printMargins(pageSetup);
+        int rowCount = sections.stream().mapToInt(section -> section.rows().size()).sum();
+        int estimatedPageCount = Math.max(1, (rowCount + sections.size() + 18) / 24);
+        String html = buildPrintReadyHtml(template, version, sections, pageSetup, fileId);
+        return new PrintExportMeta(fileId, fileId, "HTML_PRINT", "text/html; charset=utf-8",
+                true, true, paper, orientation, margins, estimatedPageCount, html);
+    }
+
+    private String buildPrintReadyHtml(ModulePrintTemplate template, String version,
+                                       List<PrintRenderSection> sections, Map<String, Object> pageSetup,
+                                       String fileId) {
+        String paper = safeText(asString(pageSetup.get("paper")), "A4");
+        String orientation = safeText(asString(pageSetup.get("orientation")), "PORTRAIT").toLowerCase();
+        String margins = printMargins(pageSetup);
+        StringBuilder html = new StringBuilder();
+        html.append("<!doctype html><html><head><meta charset=\"UTF-8\"><title>")
+                .append(htmlEscape(template.getTemplateName()))
+                .append("</title><style>")
+                .append("@page{size:").append(htmlEscape(paper)).append(' ').append(htmlEscape(orientation))
+                .append(";margin:").append(htmlEscape(margins)).append(";}")
+                .append("body{font-family:Arial,'Microsoft YaHei',sans-serif;color:#111827;margin:0;}")
+                .append(".print-page{box-sizing:border-box;min-height:100vh;padding:0;page-break-after:always;}")
+                .append(".print-header{border-bottom:1px solid #d1d5db;margin-bottom:16px;padding-bottom:10px;}")
+                .append(".print-section{break-inside:avoid;page-break-inside:avoid;margin:14px 0;}")
+                .append("table{width:100%;border-collapse:collapse;table-layout:fixed;}")
+                .append("thead{display:table-header-group;}tr{break-inside:avoid;page-break-inside:avoid;}")
+                .append("th,td{border:1px solid #d1d5db;padding:7px 8px;text-align:left;word-break:break-word;}")
+                .append(".print-footer{border-top:1px solid #d1d5db;margin-top:18px;padding-top:10px;}")
+                .append("@media print{.print-page{box-shadow:none;border:0;}button{display:none!important;}}")
+                .append("</style></head><body><article class=\"print-page\" data-export-file-id=\"")
+                .append(htmlEscape(fileId)).append("\">")
+                .append("<header class=\"print-header\"><h1>").append(htmlEscape(template.getTemplateName()))
+                .append("</h1><p>").append(htmlEscape(template.getTemplateCode())).append(" / ")
+                .append(htmlEscape(version)).append("</p></header>");
+        for (PrintRenderSection section : sections) {
+            html.append("<section class=\"print-section\" data-section=\"")
+                    .append(htmlEscape(section.sectionCode())).append("\"><h2>")
+                    .append(htmlEscape(section.title())).append("</h2>");
+            if (section.rows().isEmpty()) {
+                html.append("<p>暂无字段</p>");
+            } else {
+                html.append("<table><thead><tr><th>字段</th><th>编码</th><th>值</th></tr></thead><tbody>");
+                for (PrintRenderRow row : section.rows()) {
+                    html.append("<tr><td>").append(htmlEscape(row.label())).append("</td><td>")
+                            .append(htmlEscape(row.fieldCode())).append("</td><td>")
+                            .append(htmlEscape(row.value())).append("</td></tr>");
+                }
+                html.append("</tbody></table>");
+            }
+            html.append("</section>");
+        }
+        html.append("<footer class=\"print-footer\">由 unexamine 生成</footer></article></body></html>");
+        return html.toString();
+    }
+
+    private Map<String, Object> normalizedPrintPageSetup(Map<String, Object> raw) {
+        Map<String, Object> source = Objects.isNull(raw) ? Map.of() : raw;
+        Map<String, Object> pageSetup = new LinkedHashMap<>();
+        pageSetup.put("paper", safeText(asString(source.get("paper")), "A4"));
+        pageSetup.put("orientation", safeText(asString(source.get("orientation")), "PORTRAIT"));
+        pageSetup.put("marginTop", safeText(asString(source.get("marginTop")), "16mm"));
+        pageSetup.put("marginRight", safeText(asString(source.get("marginRight")), "14mm"));
+        pageSetup.put("marginBottom", safeText(asString(source.get("marginBottom")), "16mm"));
+        pageSetup.put("marginLeft", safeText(asString(source.get("marginLeft")), "14mm"));
+        pageSetup.put("repeatHeader", !"false".equalsIgnoreCase(safeText(asString(source.get("repeatHeader")), "true")));
+        pageSetup.put("repeatFooter", !"false".equalsIgnoreCase(safeText(asString(source.get("repeatFooter")), "true")));
+        pageSetup.put("pageBreakPolicy", safeText(asString(source.get("pageBreakPolicy")), "AVOID_SECTION_BREAK"));
+        return pageSetup;
+    }
+
+    private String printMargins(Map<String, Object> pageSetup) {
+        return safeText(asString(pageSetup.get("marginTop")), "16mm") + " "
+                + safeText(asString(pageSetup.get("marginRight")), "14mm") + " "
+                + safeText(asString(pageSetup.get("marginBottom")), "16mm") + " "
+                + safeText(asString(pageSetup.get("marginLeft")), "14mm");
+    }
+
+    private String htmlEscape(String value) {
+        return safeText(value, "")
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
+    private List<String> printTemplateCodes(Map<String, Object> payload, String key) {
+        Object raw = payload.get(key);
+        if (raw instanceof List<?> list) {
+            return list.stream().filter(Objects::nonNull).map(String::valueOf).toList();
+        }
+        if (raw instanceof String text && StringUtils.hasText(text)) {
+            return List.of(text);
+        }
+        return List.of();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> printTemplatePageSetup(Map<String, Object> payload) {
+        Object raw = payload.get("pageSetup");
+        return raw instanceof Map<?, ?> map ? normalizedPrintPageSetup((Map<String, Object>) map)
+                : normalizedPrintPageSetup(Map.of());
+    }
+
+    private String printValue(Object value) {
+        return Objects.isNull(value) ? "" : String.valueOf(value);
+    }
+
+    private String asString(Object value) {
+        return Objects.isNull(value) ? null : String.valueOf(value);
     }
 
     private List<ActionConfigVO> defaultActions(String moduleCode) {
@@ -1322,6 +1767,14 @@ public class ModuleConfigService {
         return Objects.isNull(group) ? null : group.getGroupName();
     }
 
+    private ModuleGroup groupById(Long groupId) {
+        ModuleGroup group = groupBaseService.getById(groupId);
+        if (Objects.isNull(group) || !Objects.equals(group.getDeleted(), DELETED_NO)) {
+            return null;
+        }
+        return group;
+    }
+
     private List<DictItemVO> dictItemsByType(Long dictTypeId) {
         return dictItemBaseService.list(new LambdaQueryWrapper<ModuleDictItem>()
                         .eq(ModuleDictItem::getDictTypeId, dictTypeId)
@@ -1330,6 +1783,63 @@ public class ModuleConfigService {
                 .stream()
                 .map(this::toDictItemVO)
                 .toList();
+    }
+
+    private List<DictItemVO> activeDictItemsByType(Long dictTypeId) {
+        return dictItemBaseService.list(new LambdaQueryWrapper<ModuleDictItem>()
+                        .eq(ModuleDictItem::getDictTypeId, dictTypeId)
+                        .eq(ModuleDictItem::getStatus, ENABLED)
+                        .orderByAsc(ModuleDictItem::getSortOrder)
+                        .orderByAsc(ModuleDictItem::getId))
+                .stream()
+                .map(this::toDictItemVO)
+                .toList();
+    }
+
+    private ModuleDictType requireDictType(ModuleSystemContext context, String dictTypeId) {
+        Long id = contextResolver.parseRequiredId(dictTypeId, "字典类型ID格式不正确");
+        ModuleDictType dictType = dictTypeBaseService.getOne(new LambdaQueryWrapper<ModuleDictType>()
+                .eq(ModuleDictType::getId, id)
+                .eq(ModuleDictType::getSystemId, context.systemId())
+                .eq(ModuleDictType::getTenantId, context.tenantId())
+                .eq(ModuleDictType::getDeleted, DELETED_NO)
+                .last("LIMIT 1"), false);
+        if (Objects.isNull(dictType)) {
+            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "字典类型不存在");
+        }
+        return dictType;
+    }
+
+    private List<DictImpactRef> dictImpactRefs(ModuleSystemContext context, Long dictTypeId) {
+        List<ModuleFieldDefinition> fields = fieldBaseService.list(new LambdaQueryWrapper<ModuleFieldDefinition>()
+                .eq(ModuleFieldDefinition::getSystemId, context.systemId())
+                .eq(ModuleFieldDefinition::getTenantId, context.tenantId())
+                .eq(ModuleFieldDefinition::getDictTypeId, dictTypeId)
+                .eq(ModuleFieldDefinition::getDeleted, DELETED_NO)
+                .orderByAsc(ModuleFieldDefinition::getModuleId)
+                .orderByAsc(ModuleFieldDefinition::getSortOrder)
+                .orderByAsc(ModuleFieldDefinition::getId));
+        Map<Long, ModuleDefinition> modules = fields.stream()
+                .map(ModuleFieldDefinition::getModuleId)
+                .distinct()
+                .map(moduleBaseService::getById)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(ModuleDefinition::getId, module -> module, (left, right) -> left));
+        return fields.stream()
+                .map(field -> {
+                    ModuleDefinition module = modules.get(field.getModuleId());
+                    return new DictImpactRef(String.valueOf(field.getModuleId()),
+                            Objects.isNull(module) ? "-" : module.getModuleName(),
+                            String.valueOf(field.getId()), field.getFieldCode(), field.getFieldName(),
+                            field.getFieldType());
+                })
+                .toList();
+    }
+
+    private int disabledDictItemCount(Long dictTypeId) {
+        return (int) dictItemBaseService.count(new LambdaQueryWrapper<ModuleDictItem>()
+                .eq(ModuleDictItem::getDictTypeId, dictTypeId)
+                .eq(ModuleDictItem::getStatus, DISABLED));
     }
 
     private String uniqueGroupCode(ModuleSystemContext context, String baseCode) {
@@ -1366,6 +1876,12 @@ public class ModuleConfigService {
 
     private void savePublishVersion(ModuleSystemContext context, String objectType, Long objectId, String version,
                                     String status) {
+        savePublishVersion(context, objectType, objectId, version, status,
+                List.of("RUNTIME_SCHEMA", "PERMISSION_SNAPSHOT"));
+    }
+
+    private void savePublishVersion(ModuleSystemContext context, String objectType, Long objectId, String version,
+                                    String status, List<String> impactRefs) {
         ModulePublishVersion publishVersion = new ModulePublishVersion();
         publishVersion.setSystemId(context.systemId());
         publishVersion.setTenantId(context.tenantId());
@@ -1373,7 +1889,7 @@ public class ModuleConfigService {
         publishVersion.setObjectId(objectId);
         publishVersion.setVersionNo(version);
         publishVersion.setPublishStatus(status);
-        publishVersion.setImpactRefs(toJson(List.of("RUNTIME_SCHEMA", "PERMISSION_SNAPSHOT")));
+        publishVersion.setImpactRefs(toJson(impactRefs));
         publishVersion.setFailureItems(toJson(List.of()));
         publishVersion.setTraceId(RequestContext.current().traceId());
         publishVersion.setCreatedAt(LocalDateTime.now());
@@ -1468,8 +1984,12 @@ public class ModuleConfigService {
 
     private List<String> defaultOperators(String fieldType) {
         return switch (safeText(fieldType, "TEXT")) {
-            case "SELECT", "MULTI_SELECT", "DEPARTMENT", "USER" -> List.of("EQ", "IN", "IS_NULL", "IS_NOT_NULL");
-            case "NUMBER", "DATE", "DATETIME" -> List.of("EQ", "GT", "GTE", "LT", "LTE", "IS_NULL", "IS_NOT_NULL");
+            case "SELECT", "MULTI_SELECT", "DEPARTMENT", "USER", "RELATION" ->
+                    List.of("EQ", "IN", "IS_NULL", "IS_NOT_NULL");
+            case "NUMBER", "DATE", "DATETIME", "AUTO_NUMBER" ->
+                    List.of("EQ", "GT", "GTE", "LT", "LTE", "IS_NULL", "IS_NOT_NULL");
+            case "BOOLEAN" -> List.of("EQ", "IS_NULL", "IS_NOT_NULL");
+            case "ATTACHMENT", "FILE", "IMAGE", "SUBTABLE" -> List.of("IS_NULL", "IS_NOT_NULL");
             default -> List.of("EQ", "LIKE", "IN", "IS_NULL", "IS_NOT_NULL");
         };
     }
@@ -1478,7 +1998,9 @@ public class ModuleConfigService {
         return switch (safeText(fieldType, "TEXT")) {
             case "NUMBER" -> "DECIMAL";
             case "DATE", "DATETIME" -> "DATETIME";
-            case "MULTI_SELECT", "ATTACHMENT", "JSON" -> "JSON";
+            case "MULTI_SELECT", "ATTACHMENT", "FILE", "IMAGE", "JSON", "RELATION", "SUBTABLE" -> "JSON";
+            case "LONG_TEXT" -> "TEXT";
+            case "BOOLEAN" -> "TINYINT";
             default -> "VARCHAR";
         };
     }
@@ -1486,8 +2008,10 @@ public class ModuleConfigService {
     private int defaultWidth(String fieldType) {
         return switch (safeText(fieldType, "TEXT")) {
             case "NUMBER" -> 120;
-            case "SELECT", "STATUS" -> 110;
+            case "SELECT", "STATUS", "BOOLEAN" -> 110;
             case "DATE", "DATETIME" -> 150;
+            case "ATTACHMENT", "FILE", "IMAGE", "SUBTABLE" -> 220;
+            case "LONG_TEXT" -> 260;
             default -> 180;
         };
     }
@@ -1571,6 +2095,24 @@ public class ModuleConfigService {
         } catch (Exception ex) {
             return Map.of();
         }
+    }
+
+    private Map<String, Object> fieldConfigPayload(Map<String, Object> validationRules,
+                                                   Map<String, Object> typeConfig) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("validationRules", Objects.isNull(validationRules) ? Map.of() : validationRules);
+        payload.put("typeConfig", Objects.isNull(typeConfig) ? Map.of() : typeConfig);
+        return payload;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> objectMap(Object value) {
+        if (value instanceof Map<?, ?> map) {
+            Map<String, Object> result = new LinkedHashMap<>();
+            map.forEach((key, mapValue) -> result.put(String.valueOf(key), mapValue));
+            return result;
+        }
+        return Map.of();
     }
 
     private String readJsonString(String json, String fallback) {

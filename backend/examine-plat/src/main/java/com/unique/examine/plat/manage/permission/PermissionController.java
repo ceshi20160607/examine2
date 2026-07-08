@@ -2,6 +2,9 @@ package com.unique.examine.plat.manage.permission;
 
 import com.unique.examine.core.api.ApiResponse;
 import com.unique.examine.plat.manage.permission.PermissionModels.EffectivePermissionSnapshot;
+import com.unique.examine.plat.manage.permission.PermissionModels.PermissionBatchPreviewRequest;
+import com.unique.examine.plat.manage.permission.PermissionModels.PermissionBatchPreviewVO;
+import com.unique.examine.plat.manage.permission.PermissionModels.PermissionPreviewAuditVO;
 import com.unique.examine.plat.manage.permission.PermissionModels.PermissionDecisionVO;
 import com.unique.examine.plat.manage.permission.PermissionModels.PermissionPreviewRequest;
 import com.unique.examine.plat.manage.permission.PermissionModels.RolePermissionSaveRequest;
@@ -11,7 +14,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
 /**
  * Permission management API controller.
@@ -47,5 +52,19 @@ public class PermissionController {
     public ApiResponse<PermissionDecisionVO> preview(@PathVariable String systemId,
                                                      @RequestBody PermissionPreviewRequest request) {
         return ApiResponse.success(permissionService.preview(systemId, request));
+    }
+
+    @PostMapping("/api/v1/systems/{systemId}/permissions/effective/batch-preview")
+    public ApiResponse<PermissionBatchPreviewVO> batchPreview(@PathVariable String systemId,
+                                                              @RequestBody PermissionBatchPreviewRequest request) {
+        return ApiResponse.success(permissionService.batchPreview(systemId, request));
+    }
+
+    @GetMapping("/api/v1/systems/{systemId}/permissions/effective/preview-logs")
+    public ApiResponse<List<PermissionPreviewAuditVO>> previewLogs(@PathVariable String systemId,
+                                                                   @RequestParam(required = false) String roleId,
+                                                                   @RequestParam(required = false) String moduleId,
+                                                                   @RequestParam(defaultValue = "5") Integer pageSize) {
+        return ApiResponse.success(permissionService.previewLogs(systemId, roleId, moduleId, pageSize));
     }
 }

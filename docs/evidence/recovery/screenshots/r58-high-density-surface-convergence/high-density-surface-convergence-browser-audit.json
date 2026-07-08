@@ -1,0 +1,20 @@
+﻿{
+    "status":  "PASS",
+    "generatedAt":  "2026-07-02T09:20:08.9896183+08:00",
+    "source":  "R58 high-density convergence aggregation from fresh R57/R43 deployed browser audit",
+    "screenshotEvidenceBoundary":  "Visual evidence only. Density assertions use deployed browser route metrics; final user acceptance remains separate.",
+    "assets":  [
+                   "http://127.0.0.1:18131/assets/index-BnZhqLS7.js"
+               ],
+    "density":  {
+                    "runtimeModuleMaxButtonCount":  27,
+                    "workMaxButtonCount":  14,
+                    "workMaxPanelCount":  7
+                },
+    "r57":  {
+                "systemId":  "883",
+                "moduleId":  "338",
+                "browserAuditFile":  "docs/evidence/recovery/screenshots/r57-frc6-human-acceptance-pass/human-acceptance-browser-audit.json",
+                "resultFile":  "docs/evidence/recovery/r57-frc6-human-acceptance-pass-result.json"
+            }
+}

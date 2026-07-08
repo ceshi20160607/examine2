@@ -26,6 +26,9 @@ import com.unique.examine.module.manage.common.ModuleSystemContextResolver;
 import com.unique.examine.module.manage.common.ModuleSystemContextResolver.ModuleSystemContext;
 import com.unique.examine.module.manage.config.ModuleConfigModels.DynamicListSchema;
 import com.unique.examine.module.manage.config.ModuleConfigModels.FilterSchema;
+import com.unique.examine.module.manage.config.ModuleConfigModels.ModuleVO;
+import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplatePreviewVO;
+import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplateVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.SortSchema;
 import com.unique.examine.module.manage.config.ModuleConfigService;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.ActionExecutionRequest;
@@ -55,7 +58,9 @@ import com.unique.examine.module.manage.runtime.RuntimeRecordModels.ResultHook;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RowDetailTarget;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RuntimeListSchemaVO;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RuntimePageMeta;
+import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RuntimePrintRequest;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RuntimeRecordSearchVO;
+import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RuntimeSceneOptionVO;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.SelectionLimit;
 import com.unique.examine.plat.manage.permission.PermissionModels.EffectivePermissionSnapshot;
 import com.unique.examine.plat.manage.permission.PermissionService;
@@ -141,6 +146,7 @@ public class RuntimeRecordService {
     public RuntimeListSchemaVO listSchema(String systemId, String moduleId, String sceneCode) {
         ModuleSystemContext context = contextResolver.resolve(systemId);
         EffectivePermissionSnapshot permission = permissionService.effective(systemId);
+        requireRuntimeModule(context, moduleId, permission);
         DynamicListSchema schema = moduleConfigService.listSchema(systemId, moduleId, sceneCode);
         return new RuntimeListSchemaVO(schema.moduleId(), schema.moduleCode(), safeText(schema.sceneCode(),
                 DEFAULT_SCENE_CODE), schema.columns().stream()
@@ -148,7 +154,8 @@ public class RuntimeRecordService {
                         column.fieldId(), column.fieldCode())))
                 .map(column -> new ColumnPermissionVO(column.fieldId(), column.fieldCode(), column.label(),
                         column.width(), column.visibleDefault(), column.configurable(), true,
-                        fieldPermissionMode(permission, schema.moduleId(), column.fieldId(), column.fieldCode()),
+                        column.fixed(), fieldPermissionMode(permission, schema.moduleId(), column.fieldId(),
+                        column.fieldCode()),
                         fieldMaskRule(permission, schema.moduleId(), column.fieldId(), column.fieldCode(),
                                 column.maskRule()), null))
                 .toList(), schema.filters().stream()
@@ -171,6 +178,23 @@ public class RuntimeRecordService {
     }
 
     /**
+     * Return runtime-selectable saved table views without exposing admin-only scene configuration payloads.
+     *
+     * @param systemId system id
+     * @param moduleId module id
+     * @return saved table view options
+     */
+    public List<RuntimeSceneOptionVO> scenes(String systemId, String moduleId) {
+        ModuleSystemContext context = contextResolver.resolve(systemId);
+        EffectivePermissionSnapshot permission = permissionService.effective(systemId);
+        requireRuntimeModule(context, moduleId, permission);
+        return moduleConfigService.scenes(systemId, moduleId).stream()
+                .map(scene -> new RuntimeSceneOptionVO(scene.sceneId(), scene.sceneCode(), scene.sceneName(),
+                        scene.defaultScene()))
+                .toList();
+    }
+
+    /**
      * Search runtime records with server-side paging, filtering, sorting, permissions, and data scope metadata.
      *
      * @param systemId system id
@@ -181,12 +205,15 @@ public class RuntimeRecordService {
     public RuntimeRecordSearchVO search(String systemId, String moduleId, RecordSearchRequest request) {
         ModuleSystemContext context = contextResolver.resolve(systemId);
         EffectivePermissionSnapshot permission = permissionService.effective(systemId);
-        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleDefinition module = requireRuntimeModule(context, moduleId, permission);
         RuntimeListSchemaVO schema = listSchema(systemId, moduleId, requestSceneCode(request));
         List<ModuleFieldDefinition> fields = fieldsForModule(module.getId());
         List<FieldFilterCriterion> acceptedFilters = acceptedFilters(request, fields);
         List<FieldFilterCriterion> rejectedFilters = rejectedFilters(request, fields);
         List<RecordSortCriterion> acceptedSorts = acceptedSorts(request, fields);
+        if (acceptedSorts.isEmpty()) {
+            acceptedSorts = defaultSorts(schema);
+        }
         List<RecordSortCriterion> rejectedSorts = rejectedSorts(request, fields);
 
         List<BusinessRecordRow> matchedRows = recordBaseService.list(new LambdaQueryWrapper<ModuleDynamicRecord>()
@@ -201,7 +228,7 @@ public class RuntimeRecordService {
                 .filter(row -> matchesKeyword(row, requestKeyword(request)))
                 .filter(row -> matchesFilters(row, acceptedFilters))
                 .toList();
-        List<BusinessRecordRow> sortedRows = sortRows(matchedRows, acceptedSorts);
+        List<BusinessRecordRow> sortedRows = sortRows(matchedRows, acceptedSorts, fields);
         int pageNo = pageNo(request);
         int pageSize = pageSize(request);
         int start = Math.min((pageNo - 1) * pageSize, sortedRows.size());
@@ -227,7 +254,7 @@ public class RuntimeRecordService {
     public BusinessDetailView detail(String systemId, String moduleId, String recordId) {
         ModuleSystemContext context = contextResolver.resolve(systemId);
         EffectivePermissionSnapshot permission = permissionService.effective(systemId);
-        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleDefinition module = requireRuntimeModule(context, moduleId, permission);
         ModuleDynamicRecord record = requireRecord(context, module, recordId);
         requireDataScope(permission, context, record);
         List<ModuleFieldDefinition> fields = fieldsForModule(module.getId());
@@ -261,7 +288,7 @@ public class RuntimeRecordService {
         ModuleSystemContext context = contextResolver.resolve(systemId);
         EffectivePermissionSnapshot permission = permissionService.effective(systemId);
         requireActionPermission(permission, "record.create");
-        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleDefinition module = requireRuntimeModule(context, moduleId, permission);
         Map<String, Object> values = requestValues(request);
         List<ModuleFieldDefinition> fields = fieldsForModule(module.getId());
         requireWritableFields(permission, module, fields, values);
@@ -304,7 +331,7 @@ public class RuntimeRecordService {
         ModuleSystemContext context = contextResolver.resolve(systemId);
         EffectivePermissionSnapshot permission = permissionService.effective(systemId);
         requireActionPermission(permission, "record.edit");
-        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleDefinition module = requireRuntimeModule(context, moduleId, permission);
         ModuleDynamicRecord record = requireRecord(context, module, recordId);
         requireDataScope(permission, context, record);
         Map<String, Object> before = valueMap(record.getId());
@@ -340,7 +367,7 @@ public class RuntimeRecordService {
         ModuleSystemContext context = contextResolver.resolve(systemId);
         EffectivePermissionSnapshot permission = permissionService.effective(systemId);
         requireActionPermission(permission, "record.delete");
-        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleDefinition module = requireRuntimeModule(context, moduleId, permission);
         ModuleDynamicRecord record = requireRecord(context, module, recordId);
         requireDataScope(permission, context, record);
         record.setDeleted(DELETED_YES);
@@ -370,7 +397,7 @@ public class RuntimeRecordService {
         ModuleSystemContext context = contextResolver.resolve(systemId);
         EffectivePermissionSnapshot permission = permissionService.effective(systemId);
         requireActionPermission(permission, actionCode);
-        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleDefinition module = requireRuntimeModule(context, moduleId, permission);
         ModuleDynamicRecord record = requireRecord(context, module, recordId);
         requireDataScope(permission, context, record);
         String disabledReason = actionDisabledReason(context, module, record, actionCode, request);
@@ -389,6 +416,31 @@ public class RuntimeRecordService {
                 auditLogId(requestContext), LocalDateTime.now());
     }
 
+    public PrintTemplatePreviewVO printPreview(String systemId, String moduleId, String recordId,
+                                               RuntimePrintRequest request) {
+        return renderPrint(systemId, moduleId, recordId, request, false);
+    }
+
+    public PrintTemplatePreviewVO printExport(String systemId, String moduleId, String recordId,
+                                              RuntimePrintRequest request) {
+        return renderPrint(systemId, moduleId, recordId, request, true);
+    }
+
+    private PrintTemplatePreviewVO renderPrint(String systemId, String moduleId, String recordId,
+                                               RuntimePrintRequest request, boolean exportFile) {
+        ModuleSystemContext context = contextResolver.resolve(systemId);
+        EffectivePermissionSnapshot permission = permissionService.effective(systemId);
+        requireActionPermission(permission, "record.read");
+        ModuleDefinition module = requireRuntimeModule(context, moduleId, permission);
+        ModuleDynamicRecord record = requireRecord(context, module, recordId);
+        requireDataScope(permission, context, record);
+        String templateCode = request == null || !StringUtils.hasText(request.templateCode())
+                ? defaultPublishedPrintTemplate(systemId, moduleId)
+                : request.templateCode();
+        return moduleConfigService.previewPrintTemplate(systemId, moduleId, templateCode, valueMap(record.getId()),
+                true, String.valueOf(record.getId()), exportFile);
+    }
+
     /**
      * Return record history with field diffs, source, permission snapshot, and desensitize results.
      *
@@ -403,7 +455,7 @@ public class RuntimeRecordService {
                                                   int pageNo, int pageSize) {
         ModuleSystemContext context = contextResolver.resolve(systemId);
         EffectivePermissionSnapshot permission = permissionService.effective(systemId);
-        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleDefinition module = requireRuntimeModule(context, moduleId, permission);
         ModuleDynamicRecord record = requireRecord(context, module, recordId);
         requireDataScope(permission, context, record);
         int resolvedPageNo = pageNo <= 0 ? 1 : pageNo;
@@ -433,7 +485,33 @@ public class RuntimeRecordService {
         if (Objects.isNull(module)) {
             throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "模块不存在");
         }
+        ModuleVO moduleDetail = moduleConfigService.moduleDetail(String.valueOf(context.systemId()), moduleId);
+        if (!Objects.equals(module.getStatus(), ENABLED)) {
+            throw new BusinessException(CommonErrorCode.PERMISSION_DENIED, "模块已停用，运行态不可访问");
+        }
+        if (!"PUBLISHED".equals(module.getPublishStatus())) {
+            throw new BusinessException(CommonErrorCode.PERMISSION_DENIED, "模块未发布，运行态不可访问");
+        }
+        if (Objects.isNull(moduleDetail.navigation()) || !moduleDetail.navigation().runtimeVisible()) {
+            throw new BusinessException(CommonErrorCode.PERMISSION_DENIED, "模块组未发布或运行导航不可见");
+        }
         return module;
+    }
+
+    private ModuleDefinition requireRuntimeModule(ModuleSystemContext context, String moduleId,
+                                                  EffectivePermissionSnapshot permission) {
+        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleVO moduleDetail = moduleConfigService.moduleDetail(String.valueOf(context.systemId()), moduleId);
+        List<String> visibleRoleIds = Objects.isNull(moduleDetail.navigation())
+                ? List.of() : moduleDetail.navigation().visibleRoleIds();
+        if (!visibleRoleIds.isEmpty() && !hasAnyRole(permission.sourceRoleIds(), visibleRoleIds)) {
+            throw new BusinessException(CommonErrorCode.PERMISSION_DENIED, "当前角色不可见该模块");
+        }
+        return module;
+    }
+
+    private boolean hasAnyRole(List<String> sourceRoleIds, List<String> visibleRoleIds) {
+        return sourceRoleIds.stream().anyMatch(visibleRoleIds::contains);
     }
 
     private ModuleDynamicRecord requireRecord(ModuleSystemContext context, ModuleDefinition module, String recordId) {
@@ -523,6 +601,15 @@ public class RuntimeRecordService {
             }
         }
         return values;
+    }
+
+    private String defaultPublishedPrintTemplate(String systemId, String moduleId) {
+        return moduleConfigService.printTemplates(systemId, moduleId).stream()
+                .filter(template -> "PUBLISHED".equals(template.publishStatus()))
+                .findFirst()
+                .map(PrintTemplateVO::templateCode)
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED,
+                        "No published print template is available."));
     }
 
     private Object valueOf(ModuleDynamicValue value, ModuleFieldDefinition field) {
@@ -623,13 +710,52 @@ public class RuntimeRecordService {
         basePayload.put("recordNo", record.getRecordNo());
         basePayload.put("status", effectiveStatus);
         List<AttachmentVO> attachments = attachmentService.listForRecord(context, module.getId(), record.getId());
-        basePayload.put("attachments", attachments);
+        Map<String, Object> attachmentPayload = new LinkedHashMap<>();
+        attachmentPayload.put("attachments", attachments);
+        attachmentPayload.put("attachmentCount", attachments.size());
         Map<String, Object> logPayload = new LinkedHashMap<>();
-        logPayload.put("historyEndpoint", "/records/" + record.getId() + "/history");
+        logPayload.put("historyEndpoint", "/api/v1/systems/" + context.systemId()
+                + "/runtime/modules/" + module.getId() + "/records/" + record.getId() + "/history");
         logPayload.put("serverSidePage", true);
         logPayload.put("latestTraceId", RequestContext.current().traceId());
+        logPayload.put("records", latestHistoryRows(record));
+        Map<String, Object> printPayload = new LinkedHashMap<>();
+        printPayload.put("templates", moduleConfigService.printTemplates(String.valueOf(context.systemId()),
+                String.valueOf(module.getId())).stream()
+                .filter(template -> "PUBLISHED".equals(template.publishStatus()))
+                .map(template -> Map.of("templateCode", template.templateCode(),
+                        "templateName", template.templateName(),
+                        "version", safeText(template.publishedVersion(), template.version()),
+                        "traceId", RequestContext.current().traceId()))
+                .toList());
+        if (attachmentPayload.containsKey("attachments")) {
+            return List.of(new DetailTabView("base", "Base", true, "module.read", null, basePayload),
+                    new DetailTabView("attachments", "Attachments", true, "module.attachment.read", null,
+                            attachmentPayload),
+                    new DetailTabView("print", "Print", true, "module.print.read", null, printPayload),
+                    new DetailTabView("operationLogs", "History", true, "module.history.read", null, logPayload));
+        }
         return List.of(new DetailTabView("base", "基础资料", true, "module.read", null, basePayload),
                 new DetailTabView("operationLogs", "操作记录", true, "module.history.read", null, logPayload));
+    }
+
+    private List<Map<String, Object>> latestHistoryRows(ModuleDynamicRecord record) {
+        return historyBaseService.list(new LambdaQueryWrapper<ModuleDynamicHistory>()
+                        .eq(ModuleDynamicHistory::getRecordId, record.getId())
+                        .orderByDesc(ModuleDynamicHistory::getOperatedAt)
+                        .last("LIMIT 10"))
+                .stream()
+                .map(history -> {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("action", history.getActionCode());
+                    row.put("operator", String.valueOf(history.getOperatedBy()));
+                    row.put("operatedAt", history.getOperatedAt());
+                    row.put("traceId", history.getTraceId());
+                    row.put("auditLogId", history.getAuditLogId());
+                    row.put("fieldDiff", readFieldChanges(history.getFieldDiff()));
+                    return row;
+                })
+                .toList();
     }
 
     private ApprovalSidebarHook approvalSidebar(ModuleSystemContext context, ModuleDefinition module,
@@ -869,6 +995,14 @@ public class RuntimeRecordService {
                 .toList();
     }
 
+    private List<RecordSortCriterion> defaultSorts(RuntimeListSchemaVO schema) {
+        return schema.sorters().stream()
+                .filter(SortCapabilityVO::defaultSort)
+                .findFirst()
+                .map(sort -> List.of(new RecordSortCriterion(sort.fieldCode(), sort.defaultDirection())))
+                .orElse(List.of());
+    }
+
     private List<RecordSortCriterion> rejectedSorts(RecordSearchRequest request, List<ModuleFieldDefinition> fields) {
         return safeSorts(request).stream()
                 .filter(sort -> !sortAccepted(sort, fields))
@@ -930,17 +1064,51 @@ public class RuntimeRecordService {
                 .orElse(null);
     }
 
-    private List<BusinessRecordRow> sortRows(List<BusinessRecordRow> rows, List<RecordSortCriterion> sorts) {
+    private List<BusinessRecordRow> sortRows(List<BusinessRecordRow> rows, List<RecordSortCriterion> sorts,
+                                             List<ModuleFieldDefinition> fields) {
         List<BusinessRecordRow> sorted = new ArrayList<>(rows);
         RecordSortCriterion sort = sorts.isEmpty() ? new RecordSortCriterion("updatedAt", "DESC") : sorts.get(0);
         Comparator<BusinessRecordRow> comparator = "updatedAt".equals(sort.fieldCode())
                 ? Comparator.comparing(BusinessRecordRow::updatedAt)
-                : Comparator.comparing(row -> String.valueOf(fieldValue(row, sort.fieldCode())));
+                : (left, right) -> compareFieldValues(fieldValue(left, sort.fieldCode()),
+                fieldValue(right, sort.fieldCode()), fieldType(sort.fieldCode(), fields));
         if ("DESC".equalsIgnoreCase(sort.direction())) {
             comparator = comparator.reversed();
         }
         sorted.sort(comparator);
         return sorted;
+    }
+
+    private String fieldType(String fieldCode, List<ModuleFieldDefinition> fields) {
+        return fields.stream()
+                .filter(field -> field.getFieldCode().equals(fieldCode))
+                .map(ModuleFieldDefinition::getFieldType)
+                .findFirst()
+                .orElse("TEXT");
+    }
+
+    private int compareFieldValues(Object left, Object right, String fieldType) {
+        if (Objects.isNull(left) && Objects.isNull(right)) {
+            return 0;
+        }
+        if (Objects.isNull(left)) {
+            return 1;
+        }
+        if (Objects.isNull(right)) {
+            return -1;
+        }
+        if ("NUMBER".equals(fieldType)) {
+            return toDecimal(left).compareTo(toDecimal(right));
+        }
+        return String.valueOf(left).compareToIgnoreCase(String.valueOf(right));
+    }
+
+    private BigDecimal toDecimal(Object value) {
+        try {
+            return new BigDecimal(String.valueOf(value));
+        } catch (NumberFormatException ex) {
+            return BigDecimal.ZERO;
+        }
     }
 
     private void applyAction(ModuleSystemContext context, ModuleDefinition module, ModuleDynamicRecord record,

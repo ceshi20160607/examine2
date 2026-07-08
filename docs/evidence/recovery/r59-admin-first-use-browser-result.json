@@ -1,0 +1,23 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "R59_ADMIN_FIRST_USE_BROWSER_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-02T11:01:43.1147954+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "916",
+    "moduleId":  "365",
+    "moduleName":  "R59 Core Module 0702110118_9dd0b8",
+    "browserResultCount":  10,
+    "browserOverflowCount":  0,
+    "browserBlockerCount":  0,
+    "activeTabsCovered":  [
+                              "fields",
+                              "lifecycle",
+                              "page",
+                              "print",
+                              "scene"
+                          ],
+    "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r59-admin-first-use\\admin-first-use-browser-audit.json",
+    "cleanup":  "916:DELETE",
+    "accepted":  false,
+    "userSignoff":  false
+}

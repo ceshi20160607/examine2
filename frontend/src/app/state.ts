@@ -1,4 +1,4 @@
-import { apiClient } from '../api/client';
+﻿import { apiClient } from '../api/client';
 import type { SystemSwitchContext, TenantSwitchContext } from '../api/types';
 
 export type PlatformRole = 'PLATFORM_MEMBER' | 'PLATFORM_ADMIN' | 'PLATFORM_ROOT';
@@ -89,6 +89,8 @@ export async function initializeShellState(): Promise<void> {
     platformRoles: profile.platformPermissions ?? [],
     systemRoles: Array.from(new Set((profile.systems ?? []).flatMap((system) => system.roles ?? []))),
   };
+  shellState.currentSystem = undefined;
+  shellState.currentTenant = undefined;
   shellState.availableSystems = (profile.systems ?? []).map((system) => ({
     systemId: system.systemId,
     systemName: system.systemName,
@@ -114,15 +116,6 @@ export async function initializeShellState(): Promise<void> {
     enabled: option.switchable,
     disabledReason: option.disabledReason,
   }));
-
-  const firstSwitchable = optionsResponse.data.find((option) => option.switchable);
-  if (!firstSwitchable) {
-    shellState.currentSystem = undefined;
-    shellState.currentTenant = undefined;
-    shellState.account.systemRoles = [];
-    return;
-  }
-  await switchToSystem(firstSwitchable.systemId, firstSwitchable.tenantId, 'frontend bootstrap');
 }
 
 export async function switchToSystem(systemId: string, tenantId?: string, reason = 'frontend system switch'): Promise<SystemSwitchContext> {

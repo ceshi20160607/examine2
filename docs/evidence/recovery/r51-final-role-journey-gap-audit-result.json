@@ -1,0 +1,187 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "FAIL_EXPECTED",
+    "generatedAt":  "2026-07-01T14:51:30.2155077+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "coverageNotClosedCount":  45,
+    "finalJourneyPartialCount":  8,
+    "userSignoff":  false,
+    "firstRecommendedBatch":  {
+                                  "name":  "FRC-1 Missing Product Surfaces",
+                                  "rows":  [
+                                               "REQ-5.8",
+                                               "REQ-6.1",
+                                               "REQ-6.3",
+                                               "REQ-6.8",
+                                               "REQ-9"
+                                           ]
+                              },
+    "recommendedNextTask":  "REC-P0-052 fresh deployed role-journey closure from FRC-1 Missing Product Surfaces (REQ-5.8, REQ-6.1, REQ-6.3, REQ-6.8, REQ-9)",
+    "priorEvidence":  [
+                          {
+                              "id":  "R45",
+                              "path":  "docs/evidence/recovery/r45-field-dict-menu-result.json",
+                              "ok":  true,
+                              "status":  "PASS"
+                          },
+                          {
+                              "id":  "R46",
+                              "path":  "docs/evidence/recovery/r46-page-surface-result.json",
+                              "ok":  true,
+                              "status":  "PASS"
+                          },
+                          {
+                              "id":  "R47",
+                              "path":  "docs/evidence/recovery/r47-runtime-daily-use-result.json",
+                              "ok":  true,
+                              "status":  "PASS"
+                          },
+                          {
+                              "id":  "R48",
+                              "path":  "docs/evidence/recovery/r48-workflow-message-flow-result.json",
+                              "ok":  true,
+                              "status":  "PASS"
+                          },
+                          {
+                              "id":  "R49",
+                              "path":  "docs/evidence/recovery/r49-openapi-assistant-integration-result.json",
+                              "ok":  true,
+                              "status":  "PASS"
+                          },
+                          {
+                              "id":  "R50",
+                              "path":  "docs/evidence/recovery/r50-operations-release-log-result.json",
+                              "ok":  true,
+                              "status":  "PASS"
+                          }
+                      ],
+    "checks":  [
+                   {
+                       "category":  "framework",
+                       "name":  "framework audit executes",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "category":  "framework",
+                       "name":  "framework audit passes V6 locks",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS"
+                   },
+                   {
+                       "category":  "requirements",
+                       "name":  "requirement coverage audit executes",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "category":  "requirements",
+                       "name":  "requirement coverage remains honestly open",
+                       "passed":  true,
+                       "severity":  "INFO",
+                       "detail":  "status=FAIL, notClosed=45"
+                   },
+                   {
+                       "category":  "requirements",
+                       "name":  "requirement gap report generates recommended batches",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "firstBatch=FRC-1 Missing Product Surfaces, rows=REQ-5.8, REQ-6.1, REQ-6.3, REQ-6.8, REQ-9"
+                   },
+                   {
+                       "category":  "usability",
+                       "name":  "static usability audit executes",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "category":  "usability",
+                       "name":  "static usability audit has no blockers",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, blockers=0, warnings=4"
+                   },
+                   {
+                       "category":  "release",
+                       "name":  "release verification passes for deployed package",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "category":  "state",
+                       "name":  "session keeps user signoff open",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "user_script_passed=False"
+                   },
+                   {
+                       "category":  "state",
+                       "name":  "session points to V6 remediation or the R52 requirement-driven next task",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "nextTasks=REC-P0-052 FRC-1 Missing Product Surfaces Fresh Deployed Closure"
+                   },
+                   {
+                       "category":  "final-acceptance",
+                       "name":  "final usable-system acceptance is reopened",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status marker expected"
+                   },
+                   {
+                       "category":  "final-acceptance",
+                       "name":  "journey rows are engineering partials after user feedback",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "partialRows=8, finalPassRows=0"
+                   },
+                   {
+                       "category":  "prior-evidence",
+                       "name":  "R45 slice evidence is readable",
+                       "passed":  true,
+                       "severity":  "INFO",
+                       "detail":  "docs/evidence/recovery/r45-field-dict-menu-result.json status=PASS"
+                   },
+                   {
+                       "category":  "prior-evidence",
+                       "name":  "R46 slice evidence is readable",
+                       "passed":  true,
+                       "severity":  "INFO",
+                       "detail":  "docs/evidence/recovery/r46-page-surface-result.json status=PASS"
+                   },
+                   {
+                       "category":  "prior-evidence",
+                       "name":  "R47 slice evidence is readable",
+                       "passed":  true,
+                       "severity":  "INFO",
+                       "detail":  "docs/evidence/recovery/r47-runtime-daily-use-result.json status=PASS"
+                   },
+                   {
+                       "category":  "prior-evidence",
+                       "name":  "R48 slice evidence is readable",
+                       "passed":  true,
+                       "severity":  "INFO",
+                       "detail":  "docs/evidence/recovery/r48-workflow-message-flow-result.json status=PASS"
+                   },
+                   {
+                       "category":  "prior-evidence",
+                       "name":  "R49 slice evidence is readable",
+                       "passed":  true,
+                       "severity":  "INFO",
+                       "detail":  "docs/evidence/recovery/r49-openapi-assistant-integration-result.json status=PASS"
+                   },
+                   {
+                       "category":  "prior-evidence",
+                       "name":  "R50 slice evidence is readable",
+                       "passed":  true,
+                       "severity":  "INFO",
+                       "detail":  "docs/evidence/recovery/r50-operations-release-log-result.json status=PASS"
+                   }
+               ],
+    "errorCount":  0
+}

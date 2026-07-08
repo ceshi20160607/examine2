@@ -11,9 +11,11 @@ import type {
   FileRef,
   OperationRecord,
   PageResult,
+  PermissionDecisionVO,
   SortCriterion,
 } from './types';
 import type { RuntimeModuleGroup, RuntimeModuleItem, RuntimeRecordRow } from '../features/runtime/records/runtimeData';
+import { canEnterSystemAdmin, shellState } from '../app/state';
 import type { StatusTone } from '../shared/status';
 
 interface LoginResponse {
@@ -47,10 +49,30 @@ interface PasswordResetResponse {
   traceId: string;
 }
 
+export interface CommandCenterItem {
+  commandId: string;
+  label: string;
+  groupName: string;
+  description: string;
+  route: string;
+  commandType: string;
+  disabled: boolean;
+  disabledReason?: string;
+  traceId: string;
+}
+
+export interface CommandCenterResponse {
+  keyword?: string;
+  systemId?: string;
+  traceId: string;
+  items: CommandCenterItem[];
+}
+
 export interface BackendModuleGroup {
   groupId: string;
   name: string;
   sort?: number;
+  visibleRoleIds?: string[];
   publishStatus?: string;
   publishedVersion?: string;
 }
@@ -63,6 +85,101 @@ export interface BackendModule {
   status: number | string;
   publishStatus?: string;
   currentVersion?: string;
+  navigation?: {
+    visibleRoleIds?: string[];
+    runtimeVisible?: boolean;
+  };
+}
+
+export interface ModuleActionConfigView {
+  actionCode: string;
+  actionName: string;
+  actionType: string;
+  position: string;
+  enabled: boolean;
+  disabledReason?: string;
+  idempotencyRequired?: boolean;
+}
+
+export interface ModuleListSceneView {
+  sceneId: string;
+  moduleId: string;
+  sceneCode: string;
+  sceneName: string;
+  defaultScene: boolean;
+  visibleRoleIds?: string[];
+  listSchema?: AdminDynamicListSchema;
+  updatedAt?: string;
+}
+
+export interface AdminDynamicListSchema {
+  moduleId: string;
+  moduleCode: string;
+  sceneId?: string;
+  sceneCode?: string;
+  columns: Array<{
+    fieldId: string;
+    fieldCode: string;
+    label: string;
+    width?: number;
+    visibleDefault?: boolean;
+    configurable?: boolean;
+    fixed?: boolean;
+    align?: string;
+  }>;
+  filters: Array<{
+    fieldId: string;
+    fieldCode: string;
+    label: string;
+    fieldType: string;
+    operators: string[];
+    advanced?: boolean;
+    quickFilter?: boolean;
+  }>;
+  sorters: Array<{
+    fieldId: string;
+    fieldCode: string;
+    label: string;
+    defaultDirection?: string;
+    defaultSort?: boolean;
+    supported?: boolean;
+  }>;
+  batchActions?: ModuleActionConfigView[];
+  toolbarActions?: ModuleActionConfigView[];
+  importExportConfig?: ModuleImportExportConfigView;
+}
+
+export interface ModuleImportExportTemplate {
+  templateCode: string;
+  templateName: string;
+  fileId?: string;
+  version?: string;
+  fileFormat?: string;
+  desensitizeMode?: string;
+  requiredFieldCodes?: string[];
+  defaultFieldCodes?: string[];
+}
+
+export interface ModuleFieldMappingMeta {
+  sourceColumn: string;
+  fieldCode: string;
+  required?: boolean;
+  transformRule?: string;
+}
+
+export interface ModuleImportExportConfigView {
+  configId?: string;
+  moduleId: string;
+  importSupported: boolean;
+  exportSupported: boolean;
+  importTemplates: ModuleImportExportTemplate[];
+  exportTemplates: ModuleImportExportTemplate[];
+  fieldMappings: ModuleFieldMappingMeta[];
+  duplicateStrategies: string[];
+  supportedFormats: string[];
+  precheckRequired?: boolean;
+  executionOwnedByRuntime?: boolean;
+  executionTaskOwner?: string;
 }
 
 interface BackendActionView {
@@ -82,8 +199,10 @@ interface BackendColumnPermission {
   width?: number;
   sortable: boolean;
   writable: boolean;
+  fixed?: boolean;
   permissionMode?: string;
   maskRule?: string;
+  disabledReason?: string;
 }
 
 interface BackendFilterCapability {
@@ -183,6 +302,8 @@ export interface RuntimeLiveData {
   modules: RuntimeModuleItem[];
   activeModule: RuntimeModuleItem;
   schema: DynamicListSchema;
+  scenes: RuntimeSceneOption[];
+  pageSchema?: PageSchemaView;
   fields: FieldDefinitionVO[];
   rows: RuntimeRecordRow[];
   total: number;
@@ -689,6 +810,22 @@ export interface MemberView {
   updatedAt?: string;
 }
 
+export interface AccountBindingView {
+  bindingId: string;
+  accountId: string;
+  systemMemberId: string;
+  bindingStatus: string;
+  disabledReason?: string;
+  updatedAt?: string;
+}
+
+export interface RoleMemberAssignResult {
+  roleId: string;
+  assignedCount: number;
+  traceId: string;
+  auditLogId?: string;
+}
+
 export interface IdentityProviderView {
   providerId: string;
   name: string;
@@ -788,6 +925,129 @@ export interface AgentPolicyPublishCheckResult {
   }>;
   impactRefs: Array<Record<string, unknown>>;
   traceId: string;
+}
+
+export interface AgentToolCallView {
+  toolName: string;
+  status: string;
+  inputSnapshot?: Record<string, unknown>;
+  outputSnapshot?: Record<string, unknown>;
+}
+
+export interface AgentConfirmationSummaryView {
+  confirmationId: string;
+  confirmType: string;
+  status: string;
+  manualConfirmRequired: boolean;
+}
+
+export interface AgentOperationResultView {
+  operation: string;
+  idempotencyKey?: string;
+  result: string;
+  traceId: string;
+  auditLogId?: string;
+  disabledReason?: string;
+  operatedAt?: string;
+}
+
+export interface AgentAuditLogView {
+  logId: string;
+  sessionId?: string;
+  confirmationId?: string;
+  scope: string;
+  systemId?: string;
+  tenantId?: string;
+  modelVersion?: string;
+  promptVersion?: string;
+  policyVersion?: string;
+  permissionSnapshotId?: string;
+  conversationSnapshot?: Record<string, unknown>;
+  toolCallSnapshot?: Record<string, unknown>;
+  desensitizeResult?: Record<string, unknown>;
+  outboundSnapshot?: Record<string, unknown>;
+  traceId: string;
+  auditLogId?: string;
+  createdAt?: string;
+}
+
+export interface AgentSessionView {
+  sessionId: string;
+  scope: string;
+  systemId?: string;
+  tenantId?: string;
+  systemMemberId?: string;
+  modelVersion?: string;
+  promptVersion?: string;
+  policyVersion?: string;
+  permissionSnapshotId?: string;
+  status: string;
+  boundary?: {
+    allowedTargetTypes?: string[];
+    deniedTargetTypes?: string[];
+    reason?: string;
+  };
+  createdAt?: string;
+}
+
+export interface AgentMessageResultView {
+  sessionId: string;
+  role: string;
+  content: string;
+  toolCalls: AgentToolCallView[];
+  proposedConfirmations: AgentConfirmationSummaryView[];
+  audit: AgentAuditLogView;
+  operation: AgentOperationResultView;
+}
+
+export interface AgentConfirmationView {
+  confirmationId: string;
+  confirmType: string;
+  status: string;
+  sourceConversation?: string;
+  permissionSnapshotId?: string;
+  confirmedBy?: string;
+  confirmedAt?: string;
+  audit?: AgentAuditLogView;
+  operation?: AgentOperationResultView;
+}
+
+export interface AgentFieldDiffView {
+  fieldCode: string;
+  fieldName: string;
+  beforeValue?: unknown;
+  afterValue?: unknown;
+  writable: boolean;
+  disabledReason?: string;
+}
+
+export interface SystemWriteConfirmationView {
+  confirmation: AgentConfirmationView;
+  fieldDiffs: AgentFieldDiffView[];
+  permissionClips: Array<{
+    fieldCode: string;
+    clipType: string;
+    reason?: string;
+  }>;
+  approvalRequired: boolean;
+  compensationPlan?: string;
+  businessLogId?: string;
+}
+
+export interface WorkDraftSourceView {
+  sourceType: string;
+  sourceId: string;
+  title: string;
+  permissionPolicy: string;
+  included: boolean;
+}
+
+export interface WorkDraftConfirmResultView {
+  confirmation: AgentConfirmationView;
+  draftType: string;
+  draftPayload: Record<string, unknown>;
+  sourceSnapshot: WorkDraftSourceView[];
+  manualConfirmRequired: boolean;
 }
 
 export interface ModelAuthorizationView {
@@ -911,9 +1171,33 @@ export interface FlowSimulationResult {
     elapsedMs?: number;
   }>;
   conditionDecisions: Array<Record<string, unknown>>;
+  predictedApprovers?: Array<{
+    nodeKey: string;
+    nodeName: string;
+    assigneeType: string;
+    assigneeIds: string[];
+    displayName: string;
+  }>;
   failureItems: ModulePublishCheckItem[];
+  blockerItems?: ModulePublishCheckItem[];
+  impactRefs?: Array<{
+    objectType: string;
+    objectId: string;
+    name: string;
+    impactType: string;
+  }>;
+  runtimeInstanceCreated?: boolean;
   traceId: string;
   createdAt?: string;
+}
+
+export interface FlowSimulationRequestInput {
+  moduleId?: string;
+  recordId?: string;
+  versionNo?: string;
+  fieldValues?: Record<string, unknown>;
+  actorMemberId?: string;
+  startNodeKey?: string;
 }
 
 export interface DictItemView {
@@ -939,8 +1223,30 @@ export interface DictTypeView {
   dictKind?: string;
   status: number;
   publishedVersion?: string;
+  fieldReferenceCount?: number;
+  disabledItemCount?: number;
+  impactRefs?: DictImpactRefView[];
   previewItems?: DictItemView[];
   updatedAt?: string;
+}
+
+export interface DictImpactRefView {
+  moduleId: string;
+  moduleName: string;
+  fieldId: string;
+  fieldCode: string;
+  fieldName: string;
+  fieldType: string;
+}
+
+export interface DictImpactView {
+  dictTypeId: string;
+  fieldReferenceCount: number;
+  moduleReferenceCount: number;
+  disabledItemCount: number;
+  publishedVersion?: string;
+  references: DictImpactRefView[];
+  traceId: string;
 }
 
 export interface FlowPublishCheckResult {
@@ -1052,6 +1358,97 @@ export interface ModulePageDesignView {
   publishStatus: string;
   publishedVersion?: string;
   permissionSnapshotId?: string;
+  traceId?: string;
+  updatedAt?: string;
+}
+
+export interface PrintTemplateView {
+  templateId: string;
+  moduleId: string;
+  templateCode: string;
+  templateName: string;
+  version: string;
+  status: number;
+  defaultTemplate: boolean;
+  visibleRoleIds: string[];
+  boundFieldCodes: string[];
+  previewFileId?: string;
+  publishStatus: string;
+  headerText?: string;
+  footerText?: string;
+  detailTableFieldCodes?: string[];
+  signatureLabels?: string[];
+  pageSetup?: Record<string, unknown>;
+  publishedVersion?: string;
+}
+
+export interface PrintRenderRow {
+  fieldCode: string;
+  label: string;
+  value: string;
+}
+
+export interface PrintRenderSection {
+  sectionCode: string;
+  title: string;
+  rows: PrintRenderRow[];
+}
+
+export interface PrintTemplatePreview {
+  templateCode: string;
+  templateName: string;
+  version: string;
+  publishStatus: string;
+  recordId?: string;
+  sections: PrintRenderSection[];
+  impactRefs: Array<{ objectType: string; objectId: string; name: string; impactType: string }>;
+  exportFileId?: string;
+  exportMeta?: {
+    fileId: string;
+    fileName: string;
+    format: string;
+    contentType: string;
+    printCssReady: boolean;
+    paginationReady: boolean;
+    pageSize: string;
+    orientation: string;
+    margins: string;
+    estimatedPageCount: number;
+    html: string;
+  };
+  pageSetup?: Record<string, unknown>;
+  traceId: string;
+  generatedAt: string;
+}
+
+export interface PageSchemaFieldView extends FieldDefinitionVO {
+  permissionMode: string;
+  writable: boolean;
+  readonly: boolean;
+  visible: boolean;
+  validationRules?: Record<string, unknown>;
+  disabledReason?: string;
+  sortOrder?: number;
+}
+
+export interface PageSchemaView {
+  pageId: string;
+  systemId: string;
+  tenantId: string;
+  moduleId: string;
+  moduleCode: string;
+  pageCode: string;
+  pageName: string;
+  pageType: string;
+  route: string;
+  layoutMode: string;
+  publishStatus: string;
+  schemaSource: 'DRAFT' | 'PUBLISHED' | string;
+  schemaVersion: string;
+  components: PageComponentConfig[];
+  fields: PageSchemaFieldView[];
+  permissionSnapshotId?: string;
+  permissionSnapshotVersion?: string;
   traceId?: string;
   updatedAt?: string;
 }
@@ -1234,11 +1631,61 @@ export interface RuntimeSceneSaveResult {
   updatedAt?: string;
 }
 
+export interface RuntimeSceneOption {
+  sceneId: string;
+  sceneCode: string;
+  sceneName: string;
+  defaultScene: boolean;
+}
+
 export interface AccountActionResult {
   result: string;
   traceId: string;
   auditLogId: string;
   operatedAt?: string;
+}
+
+export interface RolePermissionView {
+  roleId: string;
+  permissionVersion: string;
+  actionPermissions: Record<string, boolean>;
+  fieldPermissions: Record<string, string>;
+  dataScopeRules: Array<Record<string, unknown>>;
+  denyPolicies: string[];
+  updatedAt?: string;
+}
+
+export interface PermissionActionDecisionView {
+  actionCode: string;
+  allowed: boolean;
+  disabledReason?: string;
+  missingPermissions: string[];
+  auditLogId?: string;
+}
+
+export interface PermissionPreviewAuditView {
+  previewLogId: string;
+  systemMemberId?: string;
+  roleIds: string[];
+  moduleId?: string;
+  actionCode: string;
+  allowed: boolean;
+  disabledReason?: string;
+  traceId?: string;
+  createdAt?: string;
+}
+
+export interface PermissionBatchPreviewView {
+  permissionVersion: string;
+  roleIds: string[];
+  moduleId?: string;
+  affectedMemberCount: number;
+  decisions: PermissionActionDecisionView[];
+  fieldMaskRules: Record<string, string>;
+  dataScopeExpression: Record<string, unknown>;
+  explain: Array<Record<string, unknown>>;
+  recentAudits: PermissionPreviewAuditView[];
+  traceId?: string;
 }
 
 export interface PlatformAdminData {
@@ -1346,6 +1793,21 @@ export async function updateCurrentPassword(oldPassword: string, newPassword: st
   }));
 }
 
+export async function loadCommandCenter(options: {
+  keyword?: string;
+  systemId?: string;
+} = {}): Promise<CommandCenterResponse> {
+  const params = new URLSearchParams();
+  if (options.keyword) {
+    params.set('keyword', options.keyword);
+  }
+  if (options.systemId) {
+    params.set('systemId', options.systemId);
+  }
+  const query = params.toString();
+  return unwrap(await apiClient.get<CommandCenterResponse>(`/api/v1/command-center${query ? `?${query}` : ''}`));
+}
+
 export async function loadSystemModuleNavigation(systemId: string): Promise<{
   groups: RuntimeModuleGroup[];
   modules: RuntimeModuleItem[];
@@ -1355,6 +1817,7 @@ export async function loadSystemModuleNavigation(systemId: string): Promise<{
     apiClient.get<PageResult<BackendModule>>(`/api/v1/systems/${systemId}/modules?pageNo=1&pageSize=100`),
   ]);
   const groups = unwrap(groupResponse)
+    .filter((group) => visibleToCurrentSystemRoles(group.visibleRoleIds))
     .slice()
     .sort((left, right) => (left.sort ?? 0) - (right.sort ?? 0))
     .map((group, index) => ({
@@ -1362,9 +1825,17 @@ export async function loadSystemModuleNavigation(systemId: string): Promise<{
       name: group.name,
       routePath: `/modules?group=${encodeURIComponent(group.groupId)}`,
       visible: group.publishStatus !== 'ARCHIVED',
+      publishStatus: group.publishStatus,
+      visibleRoleIds: group.visibleRoleIds ?? [],
+      hierarchySupported: false,
       disabledReason: group.publishStatus === 'DRAFT' && index > 0 ? '模块组尚未发布' : undefined,
     }));
-  const modules = unwrap(moduleResponse).records.map((module, index) => toRuntimeModuleItem(module, index === 0));
+  const visibleGroupIds = new Set(groups.map((group) => group.groupId));
+  const modules = unwrap(moduleResponse).records
+    .filter((module) => visibleGroupIds.has(module.groupId))
+    .filter((module) => module.navigation?.runtimeVisible !== false)
+    .filter((module) => visibleToCurrentSystemRoles(module.navigation?.visibleRoleIds))
+    .map((module, index) => toRuntimeModuleItem(module, index === 0));
   return { groups, modules };
 }
 
@@ -1389,8 +1860,15 @@ export async function loadRuntimeLiveData(systemId: string, moduleId?: string, q
     },
   );
   const search = unwrap(response);
+  const scenes = await loadRuntimeScenes(systemId, activeModule.moduleId);
   const pageOffset = ((query.pageNo ?? 1) - 1) * (query.pageSize ?? 10);
   const rows = await Promise.all(search.page.records.map((row, index) => toRuntimeRecordRow(systemId, activeModule.moduleId, row, search.listSchema, pageOffset + index)));
+  let pageSchema: PageSchemaView | undefined;
+  try {
+    pageSchema = await loadRuntimeModulePageSchema(systemId, activeModule.moduleId, 'main');
+  } catch {
+    pageSchema = undefined;
+  }
   return {
     ...navigation,
     activeModule: { ...activeModule, active: true, count: search.page.total },
@@ -1400,7 +1878,9 @@ export async function loadRuntimeLiveData(systemId: string, moduleId?: string, q
       count: module.moduleId === activeModule.moduleId ? search.page.total : module.count,
     })),
     schema: toDynamicListSchema(search.listSchema),
-    fields: toRuntimeFields(search.listSchema),
+    scenes,
+    pageSchema,
+    fields: pageSchema?.fields ?? toRuntimeFields(search.listSchema),
     rows,
     total: search.page.total,
     traceId: response.traceId,
@@ -1410,17 +1890,20 @@ export async function loadRuntimeLiveData(systemId: string, moduleId?: string, q
 export async function saveRuntimeDraft(systemId: string, moduleId: string, input: RuntimeRecordSaveInput & {
   recordId?: string;
 }): Promise<RuntimeDraft> {
+  const body: Record<string, unknown> = {
+    draftId: input.draftId,
+    recordId: input.recordId,
+    fieldValues: input.fieldValues,
+    childRows: input.childRows ?? {},
+    clientVersion: 'frontend-runtime-form@1',
+    sourceType: 'WEB_FORM',
+  };
+  if (input.attachmentIds) {
+    body.attachmentIds = input.attachmentIds;
+  }
   return unwrap(await apiClient.post<RuntimeDraft>(
     `/api/v1/systems/${systemId}/runtime/modules/${moduleId}/drafts`,
-    {
-      draftId: input.draftId,
-      recordId: input.recordId,
-      fieldValues: input.fieldValues,
-      childRows: input.childRows ?? {},
-      attachmentIds: input.attachmentIds ?? [],
-      clientVersion: 'frontend-runtime-form@1',
-      sourceType: 'WEB_FORM',
-    },
+    body,
     createIdempotencyKey('runtime_draft'),
   ));
 }
@@ -1428,13 +1911,15 @@ export async function saveRuntimeDraft(systemId: string, moduleId: string, input
 export async function saveRuntimeRecord(systemId: string, moduleId: string, input: RuntimeRecordSaveInput & {
   recordId?: string;
 }): Promise<RuntimeRecordMutationResult> {
-  const body = {
+  const body: Record<string, unknown> = {
     fieldValues: input.fieldValues,
     childRows: input.childRows ?? {},
-    attachmentIds: input.attachmentIds ?? [],
     draftId: input.draftId,
     sourceType: 'WEB_FORM',
   };
+  if (input.attachmentIds) {
+    body.attachmentIds = input.attachmentIds;
+  }
   if (input.recordId) {
     return unwrap(await apiClient.patch<RuntimeRecordMutationResult>(
       `/api/v1/systems/${systemId}/runtime/modules/${moduleId}/records/${input.recordId}`,
@@ -1446,6 +1931,16 @@ export async function saveRuntimeRecord(systemId: string, moduleId: string, inpu
     `/api/v1/systems/${systemId}/runtime/modules/${moduleId}/records`,
     body,
     createIdempotencyKey('runtime_create'),
+  ));
+}
+
+export async function uploadRuntimeRecordAttachmentFile(file: File): Promise<UploadResultView> {
+  const body = new FormData();
+  body.append('file', file);
+  return unwrap(await apiClient.postForm<UploadResultView>(
+    '/api/v1/uploads/files?sourceType=RUNTIME_RECORD',
+    body,
+    createIdempotencyKey('runtime_record_attachment_upload'),
   ));
 }
 
@@ -1508,6 +2003,16 @@ export async function precheckRuntimeImport(systemId: string, moduleId: string, 
     },
     createIdempotencyKey('runtime_import_precheck'),
   ));
+}
+
+export async function loadRuntimeScenes(systemId: string, moduleId: string): Promise<RuntimeSceneOption[]> {
+  const scenes = unwrap(await apiClient.get<RuntimeSceneOption[]>(`/api/v1/systems/${systemId}/runtime/modules/${moduleId}/scenes`));
+  return scenes.map((scene) => ({
+    sceneId: scene.sceneId,
+    sceneCode: scene.sceneCode,
+    sceneName: scene.sceneName,
+    defaultScene: scene.defaultScene,
+  }));
 }
 
 export async function uploadRuntimeImportFile(file: File): Promise<UploadResultView> {
@@ -2146,32 +2651,60 @@ export async function createSystemModule(systemId: string, input: {
   ));
 }
 
+export async function updateSystemModule(systemId: string, moduleId: string, input: {
+  groupId?: string;
+  moduleCode: string;
+  name: string;
+  status?: number;
+  description?: string;
+}): Promise<BackendModule> {
+  return unwrap(await apiClient.patch<BackendModule>(
+    `/api/v1/systems/${systemId}/modules/${moduleId}`,
+    {
+      groupId: input.groupId,
+      moduleCode: input.moduleCode,
+      name: input.name,
+      status: input.status ?? 1,
+      description: input.description,
+    },
+  ));
+}
+
 export async function createSystemModuleField(systemId: string, moduleId: string, input: {
   fieldCode: string;
   name: string;
   fieldType: string;
   dictTypeId?: string;
+  defaultValue?: string;
+  validationRules?: Record<string, unknown>;
+  typeConfig?: Record<string, unknown>;
   required?: boolean;
   sortable?: boolean;
+  permissionMode?: 'WRITABLE' | 'READABLE' | 'MASKED' | 'HIDDEN';
 }): Promise<FieldDefinitionVO> {
+  const permissionMode = input.permissionMode ?? 'WRITABLE';
   return unwrap(await apiClient.post<FieldDefinitionVO>(
     `/api/v1/systems/${systemId}/modules/${moduleId}/fields`,
     {
       fieldCode: input.fieldCode,
       name: input.name,
       fieldType: input.fieldType,
-      storageType: input.fieldType === 'NUMBER' ? 'DECIMAL' : 'VARCHAR',
+      storageType: fieldStorageType(input.fieldType),
       required: input.required ?? false,
       sortable: input.sortable ?? true,
       dictTypeId: input.dictTypeId,
+      defaultValue: input.defaultValue,
+      validationRules: input.validationRules ?? {},
+      typeConfig: input.typeConfig ?? {},
       permissionMetadata: {
         readableRoleIds: [],
         writableRoleIds: [],
-        runtimeReadable: true,
-        runtimeWritable: true,
-        maskedWhenDenied: 'HIDDEN',
+        runtimeReadable: permissionMode !== 'HIDDEN',
+        runtimeWritable: permissionMode === 'WRITABLE',
+        maskedWhenDenied: permissionMode === 'MASKED' ? 'MASKED' : 'HIDDEN',
         permissionVersion: `field_perm_${Date.now()}`,
       },
+      maskRule: permissionMode === 'MASKED' ? 'MASKED' : 'NONE',
       importExportRule: {
         importable: true,
         exportable: true,
@@ -2184,10 +2717,38 @@ export async function createSystemModuleField(systemId: string, moduleId: string
   ));
 }
 
+function fieldStorageType(fieldType: string): string {
+  switch (fieldType) {
+    case 'NUMBER':
+      return 'DECIMAL';
+    case 'DATE':
+    case 'DATETIME':
+      return 'DATETIME';
+    case 'MULTI_SELECT':
+    case 'ATTACHMENT':
+    case 'FILE':
+    case 'IMAGE':
+    case 'RELATION':
+    case 'SUBTABLE':
+    case 'JSON':
+      return 'JSON';
+    case 'LONG_TEXT':
+      return 'TEXT';
+    case 'BOOLEAN':
+      return 'TINYINT';
+    default:
+      return 'VARCHAR';
+  }
+}
+
 export async function listSystemModuleFields(systemId: string, moduleId: string): Promise<PageResult<FieldDefinitionVO>> {
   return unwrap(await apiClient.get<PageResult<FieldDefinitionVO>>(
     `/api/v1/systems/${systemId}/modules/${moduleId}/fields?pageNo=1&pageSize=100`,
   ));
+}
+
+export async function listSystemModuleActions(systemId: string, moduleId: string): Promise<ModuleActionConfigView[]> {
+  return unwrap(await apiClient.get<ModuleActionConfigView[]>(`/api/v1/systems/${systemId}/modules/${moduleId}/actions`));
 }
 
 export async function createSystemModuleAction(systemId: string, moduleId: string, input: {
@@ -2245,6 +2806,9 @@ export async function createSystemDictItem(systemId: string, dictTypeId: string,
   icon?: string;
   semantic?: string;
   kanbanEnabled?: boolean;
+  sort?: number;
+  defaultFlag?: boolean;
+  status?: number;
 }): Promise<DictItemView> {
   return unwrap(await apiClient.post<DictItemView>(`/api/v1/systems/${systemId}/dict-types/${dictTypeId}/items`, {
     itemCode: input.itemCode,
@@ -2252,10 +2816,21 @@ export async function createSystemDictItem(systemId: string, dictTypeId: string,
     color: input.color ?? '#2563EB',
     icon: input.icon ?? 'tag',
     semantic: input.semantic ?? input.itemCode,
-    sort: 99,
-    defaultFlag: false,
+    sort: input.sort ?? 99,
+    defaultFlag: input.defaultFlag ?? false,
     kanbanEnabled: input.kanbanEnabled ?? true,
-    status: 1,
+    status: input.status ?? 1,
+  }));
+}
+
+export async function loadSystemDictImpact(systemId: string, dictTypeId: string): Promise<DictImpactView> {
+  return unwrap(await apiClient.get<DictImpactView>(`/api/v1/systems/${systemId}/dict-types/${dictTypeId}/impact`));
+}
+
+export async function publishSystemDictType(systemId: string, dictTypeId: string, reason: string): Promise<ModulePublishResult> {
+  return unwrap(await apiClient.post<ModulePublishResult>(`/api/v1/systems/${systemId}/dict-types/${dictTypeId}/publish`, {
+    reason,
+    idempotencyKey: createIdempotencyKey('system_dict_type_publish'),
   }));
 }
 
@@ -2319,10 +2894,81 @@ export async function saveFlowCanvas(systemId: string, flowId: string, canvas: {
   ));
 }
 
-export async function simulateSystemFlow(systemId: string, flowId: string, fieldValues: Record<string, unknown> = {}): Promise<FlowSimulationResult> {
+export async function listSystemModuleScenes(systemId: string, moduleId: string): Promise<ModuleListSceneView[]> {
+  return unwrap(await apiClient.get<ModuleListSceneView[]>(`/api/v1/systems/${systemId}/modules/${moduleId}/scenes`));
+}
+
+export async function saveSystemModuleScene(systemId: string, moduleId: string, input: {
+  sceneCode: string;
+  sceneName: string;
+  defaultScene?: boolean;
+  visibleRoleIds?: string[];
+  columnFieldIds?: string[];
+  filterFieldIds?: string[];
+  sortFieldIds?: string[];
+}): Promise<ModuleListSceneView> {
+  return unwrap(await apiClient.post<ModuleListSceneView>(
+    `/api/v1/systems/${systemId}/modules/${moduleId}/scenes`,
+    {
+      sceneCode: input.sceneCode,
+      sceneName: input.sceneName,
+      defaultScene: input.defaultScene ?? false,
+      visibleRoleIds: input.visibleRoleIds ?? [],
+      columnFieldIds: input.columnFieldIds ?? [],
+      filterFieldIds: input.filterFieldIds ?? [],
+      sortFieldIds: input.sortFieldIds ?? [],
+    },
+    createIdempotencyKey('system_module_scene_save'),
+  ));
+}
+
+export async function loadSystemModuleListSchema(systemId: string, moduleId: string, sceneId?: string): Promise<AdminDynamicListSchema> {
+  const suffix = sceneId ? `?sceneId=${encodeURIComponent(sceneId)}` : '';
+  return unwrap(await apiClient.get<AdminDynamicListSchema>(`/api/v1/systems/${systemId}/modules/${moduleId}/list-schema${suffix}`));
+}
+
+export async function loadSystemModuleImportExportConfig(systemId: string, moduleId: string): Promise<ModuleImportExportConfigView> {
+  return unwrap(await apiClient.get<ModuleImportExportConfigView>(`/api/v1/systems/${systemId}/modules/${moduleId}/import-export-config`));
+}
+
+export async function saveSystemModuleImportExportConfig(systemId: string, moduleId: string, input: {
+  importSupported: boolean;
+  exportSupported: boolean;
+  importTemplates?: ModuleImportExportTemplate[];
+  exportTemplates?: ModuleImportExportTemplate[];
+  fieldMappings?: ModuleFieldMappingMeta[];
+  duplicateStrategies?: string[];
+  supportedFormats?: string[];
+}): Promise<ModuleImportExportConfigView> {
+  return unwrap(await apiClient.post<ModuleImportExportConfigView>(
+    `/api/v1/systems/${systemId}/modules/${moduleId}/import-export-config`,
+    {
+      importSupported: input.importSupported,
+      exportSupported: input.exportSupported,
+      importTemplates: input.importTemplates ?? [],
+      exportTemplates: input.exportTemplates ?? [],
+      fieldMappings: input.fieldMappings ?? [],
+      duplicateStrategies: input.duplicateStrategies ?? ['SKIP_DUPLICATE', 'UPDATE_EXISTING'],
+      supportedFormats: input.supportedFormats ?? ['XLSX', 'CSV'],
+    },
+    createIdempotencyKey('system_module_import_export_save'),
+  ));
+}
+
+export async function simulateSystemFlow(
+  systemId: string,
+  flowId: string,
+  input: Record<string, unknown> | FlowSimulationRequestInput = {},
+): Promise<FlowSimulationResult> {
+  const request: FlowSimulationRequestInput = ('fieldValues' in input || 'actorMemberId' in input || 'recordId' in input || 'startNodeKey' in input || 'versionNo' in input)
+    ? input as FlowSimulationRequestInput
+    : { fieldValues: input as Record<string, unknown> };
   return unwrap(await apiClient.post<FlowSimulationResult>(`/api/v1/systems/${systemId}/flows/${flowId}/simulate`, {
-    versionNo: 'DRAFT',
-    fieldValues,
+    versionNo: request.versionNo ?? 'DRAFT',
+    recordId: request.recordId,
+    actorMemberId: request.actorMemberId,
+    startNodeKey: request.startNodeKey,
+    fieldValues: request.fieldValues ?? {},
     idempotencyKey: createIdempotencyKey('flow_simulate'),
   }));
 }
@@ -2455,7 +3101,6 @@ export async function rotateOpenApiSecret(systemId: string, externalAppId: strin
     idempotencyKey,
   ));
 }
-
 export async function createSystemDepartment(systemId: string, input: {
   parentId?: string;
   deptCode: string;
@@ -2491,6 +3136,43 @@ export async function createSystemMember(systemId: string, input: {
   }));
 }
 
+export async function updateSystemMember(systemId: string, systemMemberId: string, input: {
+  deptId?: string;
+  memberName?: string;
+  employeeNo?: string;
+  mobile?: string;
+  email?: string;
+  status?: number;
+  roleIds?: string[];
+}): Promise<MemberView> {
+  return unwrap(await apiClient.patch<MemberView>(`/api/v1/systems/${systemId}/members/${systemMemberId}`, {
+    deptId: input.deptId,
+    memberName: input.memberName,
+    employeeNo: input.employeeNo,
+    mobile: input.mobile,
+    email: input.email,
+    status: input.status,
+    roleIds: input.roleIds,
+  }));
+}
+
+export async function bindSystemMemberAccount(systemId: string, systemMemberId: string, input: {
+  accountId?: string;
+  loginName?: string;
+}): Promise<AccountBindingView> {
+  return unwrap(await apiClient.post<AccountBindingView>(`/api/v1/systems/${systemId}/members/${systemMemberId}/bind-account`, {
+    accountId: input.accountId,
+    loginName: input.loginName,
+    bindMode: 'BIND',
+  }));
+}
+
+export async function assignSystemRoleMembers(systemId: string, roleId: string, systemMemberIds: string[]): Promise<RoleMemberAssignResult> {
+  return unwrap(await apiClient.post<RoleMemberAssignResult>(`/api/v1/systems/${systemId}/roles/${roleId}/assign-members`, {
+    systemMemberIds,
+    accountIds: [],
+  }));
+}
 export async function createSystemRole(systemId: string, input: {
   roleName: string;
   roleCode: string;
@@ -2504,6 +3186,77 @@ export async function createSystemRole(systemId: string, input: {
     status: 1,
     description: input.description,
   }));
+}
+
+export async function loadSystemRolePermissions(systemId: string, roleId: string): Promise<RolePermissionView> {
+  return unwrap(await apiClient.get<RolePermissionView>(`/api/v1/systems/${systemId}/roles/${roleId}/permissions`));
+}
+
+export async function saveSystemRolePermissions(systemId: string, roleId: string, input: {
+  actionPermissions?: Record<string, boolean>;
+  fieldPermissions?: Record<string, string>;
+  dataScopeRules?: Array<Record<string, unknown>>;
+  denyPolicies?: string[];
+  menuPermissions?: Record<string, boolean>;
+  modulePermissions?: Record<string, boolean>;
+}): Promise<RolePermissionView> {
+  return unwrap(await apiClient.put<RolePermissionView>(`/api/v1/systems/${systemId}/roles/${roleId}/permissions`, {
+    menuPermissions: input.menuPermissions ?? {},
+    modulePermissions: input.modulePermissions ?? {},
+    actionPermissions: input.actionPermissions ?? {},
+    fieldPermissions: input.fieldPermissions ?? {},
+    dataScopeRules: input.dataScopeRules ?? [],
+    denyPolicies: input.denyPolicies ?? [],
+  }));
+}
+
+export async function previewSystemEffectivePermission(systemId: string, input: {
+  systemMemberId?: string;
+  tenantId?: string;
+  roleIds?: string[];
+  moduleId?: string;
+  recordId?: string;
+  actionCode?: string;
+}): Promise<PermissionDecisionVO> {
+  return unwrap(await apiClient.post<PermissionDecisionVO>(`/api/v1/systems/${systemId}/permissions/effective/preview`, {
+    systemMemberId: input.systemMemberId,
+    tenantId: input.tenantId,
+    roleIds: input.roleIds ?? [],
+    moduleId: input.moduleId,
+    recordId: input.recordId,
+    actionCode: input.actionCode,
+  }));
+}
+
+export async function previewSystemEffectivePermissions(systemId: string, input: {
+  systemMemberId?: string;
+  tenantId?: string;
+  roleIds?: string[];
+  moduleId?: string;
+  recordId?: string;
+  actionCodes?: string[];
+}): Promise<PermissionBatchPreviewView> {
+  return unwrap(await apiClient.post<PermissionBatchPreviewView>(`/api/v1/systems/${systemId}/permissions/effective/batch-preview`, {
+    systemMemberId: input.systemMemberId,
+    tenantId: input.tenantId,
+    roleIds: input.roleIds ?? [],
+    moduleId: input.moduleId,
+    recordId: input.recordId,
+    actionCodes: input.actionCodes ?? [],
+  }));
+}
+
+export async function listSystemPermissionPreviewLogs(systemId: string, input: {
+  roleId?: string;
+  moduleId?: string;
+  pageSize?: number;
+} = {}): Promise<PermissionPreviewAuditView[]> {
+  const params = new URLSearchParams();
+  if (input.roleId) params.set('roleId', input.roleId);
+  if (input.moduleId) params.set('moduleId', input.moduleId);
+  params.set('pageSize', String(input.pageSize ?? 5));
+  const query = params.toString();
+  return unwrap(await apiClient.get<PermissionPreviewAuditView[]>(`/api/v1/systems/${systemId}/permissions/effective/preview-logs${query ? `?${query}` : ''}`));
 }
 
 export async function createPlatformRole(input: {
@@ -2591,6 +3344,122 @@ export async function runSystemAgentPolicyPublishCheck(systemId: string, policyI
   return unwrap(await apiClient.post<AgentPolicyPublishCheckResult>(`/api/v1/systems/${systemId}/agent/policies/${policyId}/publish-check`));
 }
 
+export async function createSystemAgentSession(systemId: string, openingQuestion: string): Promise<AgentSessionView> {
+  return unwrap(await apiClient.post<AgentSessionView>(`/api/v1/systems/${systemId}/agent/sessions`, {
+    promptVersion: `assistant_drawer_${Date.now()}`,
+    openingQuestion,
+    metadata: {
+      source: 'right-side-assistant',
+    },
+  }));
+}
+
+export async function sendSystemAgentMessage(systemId: string, sessionId: string, message: string, toolHints: string[]): Promise<AgentMessageResultView> {
+  const idempotencyKey = createIdempotencyKey('system_agent_message');
+  return unwrap(await apiClient.post<AgentMessageResultView>(`/api/v1/systems/${systemId}/agent/sessions/${sessionId}/messages`, {
+    message,
+    toolHints,
+    idempotencyKey,
+  }));
+}
+
+export async function createSystemAgentWritePreview(systemId: string, input: {
+  sessionId: string;
+  sourceConversation: string;
+  moduleId?: string;
+  recordId?: string;
+  permissionSnapshotId?: string;
+  fieldDiffs?: AgentFieldDiffView[];
+}): Promise<SystemWriteConfirmationView> {
+  const idempotencyKey = createIdempotencyKey('system_agent_write_preview');
+  return unwrap(await apiClient.post<SystemWriteConfirmationView>(
+    `/api/v1/systems/${systemId}/agent/system-agent-write-confirmations`,
+    {
+      sessionId: input.sessionId,
+      sourceConversation: input.sourceConversation,
+      moduleId: input.moduleId ?? 'assistant-context',
+      recordId: input.recordId ?? 'draft-record',
+      fieldDiffs: input.fieldDiffs ?? [],
+      permissionSnapshotId: input.permissionSnapshotId,
+      approvalRequired: true,
+      compensationPlan: '人工确认后执行；若后续校验失败，保留 Agent 审计并回滚业务写入。',
+      humanConfirmed: false,
+      idempotencyKey,
+    },
+    idempotencyKey,
+  ));
+}
+export async function confirmSystemAgentWrite(systemId: string, confirmationId: string, reason: string): Promise<SystemWriteConfirmationView> {
+  const idempotencyKey = createIdempotencyKey('system_agent_write_confirm');
+  return unwrap(await apiClient.post<SystemWriteConfirmationView>(
+    `/api/v1/systems/${systemId}/agent/system-agent-write-confirmations/${confirmationId}/confirm`,
+    { reason, idempotencyKey },
+    idempotencyKey,
+  ));
+}
+
+export async function rejectSystemAgentWrite(systemId: string, confirmationId: string, reason: string): Promise<SystemWriteConfirmationView> {
+  const idempotencyKey = createIdempotencyKey('system_agent_write_reject');
+  return unwrap(await apiClient.post<SystemWriteConfirmationView>(
+    `/api/v1/systems/${systemId}/agent/system-agent-write-confirmations/${confirmationId}/reject`,
+    { reason, idempotencyKey },
+    idempotencyKey,
+  ));
+}
+
+export async function confirmWorkAgentDraft(systemId: string, input: {
+  sessionId: string;
+  sourceConversation: string;
+  humanConfirmed: boolean;
+  draftType?: string;
+  draftPayload?: Record<string, unknown>;
+  sourceSnapshot?: WorkDraftSourceView[];
+}): Promise<WorkDraftConfirmResultView> {
+  const idempotencyKey = createIdempotencyKey('work_agent_draft_confirm');
+  return unwrap(await apiClient.post<WorkDraftConfirmResultView>(
+    `/api/v1/systems/${systemId}/work/agent/work-agent-draft-confirm`,
+    {
+      sessionId: input.sessionId,
+      sourceConversation: input.sourceConversation,
+      draftType: input.draftType ?? 'DAILY_REPORT_DRAFT',
+      draftPayload: input.draftPayload ?? {
+        title: `助手日报草稿 ${new Date().toISOString().slice(0, 10)}`,
+        summary: input.sourceConversation,
+      },
+      sourceSnapshot: input.sourceSnapshot ?? [
+        {
+          sourceType: 'ASSISTANT_CONTEXT',
+          sourceId: input.sessionId,
+          title: '右侧助手当前上下文',
+          permissionPolicy: 'CURRENT_MEMBER_PERMISSION',
+          included: true,
+        },
+      ],
+      humanConfirmed: input.humanConfirmed,
+      idempotencyKey,
+    },
+    idempotencyKey,
+  ));
+}
+export async function loadSystemAgentAuditLogs(systemId: string, options: {
+  sessionId?: string;
+  confirmationId?: string;
+  pageNo?: number;
+  pageSize?: number;
+} = {}): Promise<PageResult<AgentAuditLogView>> {
+  const params = new URLSearchParams();
+  params.set('pageNo', String(options.pageNo ?? 1));
+  params.set('pageSize', String(options.pageSize ?? 20));
+  params.set('scope', 'system');
+  if (options.sessionId) {
+    params.set('sessionId', options.sessionId);
+  }
+  if (options.confirmationId) {
+    params.set('confirmationId', options.confirmationId);
+  }
+  return unwrap(await apiClient.get<PageResult<AgentAuditLogView>>(`/api/v1/systems/${systemId}/agent/audit-logs?${params.toString()}`));
+}
+
 export async function updateSystemWorkConfig(systemId: string, config: WorkConfigView, changeReason: string): Promise<WorkConfigView> {
   return unwrap(await apiClient.patch<WorkConfigView>(`/api/v1/systems/${systemId}/work/config`, {
     projectTaskFields: config.projectTaskFields ?? [],
@@ -2643,6 +3512,66 @@ export async function saveModulePageDesign(systemId: string, moduleId: string, i
   return unwrap(await apiClient.post<ModulePageDesignView>(`/api/v1/systems/${systemId}/modules/${moduleId}/pages`, input));
 }
 
+export async function listModulePageDesigns(systemId: string, moduleId: string): Promise<ModulePageDesignView[]> {
+  return unwrap(await apiClient.get<ModulePageDesignView[]>(`/api/v1/systems/${systemId}/modules/${moduleId}/pages`));
+}
+
+export async function listPrintTemplates(systemId: string, moduleId: string): Promise<PrintTemplateView[]> {
+  return unwrap(await apiClient.get<PrintTemplateView[]>(`/api/v1/systems/${systemId}/modules/${moduleId}/print-templates`));
+}
+
+export async function savePrintTemplate(systemId: string, moduleId: string, input: {
+  templateCode: string;
+  templateName: string;
+  version?: string;
+  status?: number;
+  defaultTemplate?: boolean;
+  visibleRoleIds?: string[];
+  boundFieldCodes?: string[];
+  previewFileId?: string;
+  headerText?: string;
+  footerText?: string;
+  detailTableFieldCodes?: string[];
+  signatureLabels?: string[];
+  pageSetup?: Record<string, unknown>;
+}): Promise<PrintTemplateView> {
+  return unwrap(await apiClient.post<PrintTemplateView>(`/api/v1/systems/${systemId}/modules/${moduleId}/print-templates`, input));
+}
+
+export async function previewPrintTemplate(systemId: string, moduleId: string, templateCode: string, previewValues: Record<string, unknown>): Promise<PrintTemplatePreview> {
+  return unwrap(await apiClient.post<PrintTemplatePreview>(
+    `/api/v1/systems/${systemId}/modules/${moduleId}/print-templates/${templateCode}/preview`,
+    { templateCode, previewValues },
+  ));
+}
+
+export async function runPrintTemplatePublishCheck(systemId: string, moduleId: string, templateCode: string): Promise<ModulePublishCheckResult> {
+  return unwrap(await apiClient.post<ModulePublishCheckResult>(`/api/v1/systems/${systemId}/modules/${moduleId}/print-templates/${templateCode}/publish-check`));
+}
+
+export async function publishPrintTemplate(systemId: string, moduleId: string, templateCode: string, reason: string): Promise<ModulePublishResult> {
+  const idempotencyKey = createIdempotencyKey('print_template_publish');
+  return unwrap(await apiClient.post<ModulePublishResult>(
+    `/api/v1/systems/${systemId}/modules/${moduleId}/print-templates/${templateCode}/publish`,
+    { reason, idempotencyKey },
+    idempotencyKey,
+  ));
+}
+
+export async function previewRuntimePrintTemplate(systemId: string, moduleId: string, recordId: string, templateCode?: string): Promise<PrintTemplatePreview> {
+  return unwrap(await apiClient.post<PrintTemplatePreview>(
+    `/api/v1/systems/${systemId}/runtime/modules/${moduleId}/records/${recordId}/print-preview`,
+    { templateCode },
+  ));
+}
+
+export async function exportRuntimePrintTemplate(systemId: string, moduleId: string, recordId: string, templateCode?: string): Promise<PrintTemplatePreview> {
+  return unwrap(await apiClient.post<PrintTemplatePreview>(
+    `/api/v1/systems/${systemId}/runtime/modules/${moduleId}/records/${recordId}/print-export`,
+    { templateCode },
+  ));
+}
+
 export async function runModulePagePublishCheck(systemId: string, moduleId: string, pageCode: string): Promise<ModulePublishCheckResult> {
   return unwrap(await apiClient.post<ModulePublishCheckResult>(`/api/v1/systems/${systemId}/modules/${moduleId}/pages/${pageCode}/publish-check`));
 }
@@ -2661,6 +3590,14 @@ export async function publishModulePage(systemId: string, moduleId: string, page
 
 export async function loadRuntimeModulePage(systemId: string, moduleId: string, pageCode: string): Promise<ModulePageDesignView> {
   return unwrap(await apiClient.get<ModulePageDesignView>(`/api/v1/systems/${systemId}/runtime/modules/${moduleId}/pages/${pageCode}`));
+}
+
+export async function loadModulePageSchema(systemId: string, moduleId: string, pageCode: string, snapshot: 'draft' | 'published' = 'draft'): Promise<PageSchemaView> {
+  return unwrap(await apiClient.get<PageSchemaView>(`/api/v1/systems/${systemId}/modules/${moduleId}/pages/${pageCode}/schema?snapshot=${snapshot}`));
+}
+
+export async function loadRuntimeModulePageSchema(systemId: string, moduleId: string, pageCode: string): Promise<PageSchemaView> {
+  return unwrap(await apiClient.get<PageSchemaView>(`/api/v1/systems/${systemId}/runtime/modules/${moduleId}/pages/${pageCode}/schema`));
 }
 
 export async function runModulePublishCheck(systemId: string, moduleId: string, reason: string): Promise<ModulePublishCheckResult> {
@@ -2765,9 +3702,20 @@ function toRuntimeModuleItem(module: BackendModule, active: boolean): RuntimeMod
     name: module.name,
     count: 0,
     publishVersion: module.currentVersion ?? module.publishStatus ?? 'draft',
+    publishStatus: module.publishStatus,
+    visibleRoleIds: module.navigation?.visibleRoleIds ?? [],
+    runtimeVisible: module.navigation?.runtimeVisible !== false,
     active,
     disabledReason: enabled ? undefined : '当前模块已停用或未授权。',
   };
+}
+
+function visibleToCurrentSystemRoles(visibleRoleIds?: string[]): boolean {
+  if (!visibleRoleIds || visibleRoleIds.length === 0 || canEnterSystemAdmin()) {
+    return true;
+  }
+  const currentRoleIds = new Set(shellState.currentSystem?.effectiveRoleIds ?? []);
+  return visibleRoleIds.some((roleId) => currentRoleIds.has(roleId));
 }
 
 async function toRuntimeRecordRow(
@@ -2813,15 +3761,11 @@ async function loadRecordDetail(
   row: BackendRecordRow,
   schema: BackendRuntimeListSchema,
 ): Promise<BusinessDetailView> {
-  try {
-    const response = await apiClient.get<BackendBusinessDetail>(`/api/v1/systems/${systemId}/runtime/modules/${moduleId}/records/${row.recordId}`);
-    if (response.code === 'SUCCESS' && response.data) {
-      return toBusinessDetailView(response.data, row, schema);
-    }
-  } catch {
-    // Detail fallback keeps the list usable when a single detail call fails.
+  const response = await apiClient.get<BackendBusinessDetail>(`/api/v1/systems/${systemId}/runtime/modules/${moduleId}/records/${row.recordId}`);
+  if (response.code === 'SUCCESS' && response.data) {
+    return toBusinessDetailView(response.data, row, schema);
   }
-  return fallbackBusinessDetail(row, schema);
+  throw new Error(response.message || `业务详情读取失败：${row.title}`);
 }
 
 function toBusinessDetailView(detail: BackendBusinessDetail, row: BackendRecordRow, schema: BackendRuntimeListSchema): BusinessDetailView {
@@ -2842,7 +3786,7 @@ function toBusinessDetailView(detail: BackendBusinessDetail, row: BackendRecordR
     childRows,
     relations: [],
     attachments: tabFiles(detail.tabs),
-    printRecords: [],
+    printRecords: printRows(detail.tabs),
     operationLogs: operationRows(detail.tabs),
     approvalSidebar: detail.approvalSidebar?.visible
       ? {
@@ -2861,25 +3805,6 @@ function toBusinessDetailView(detail: BackendBusinessDetail, row: BackendRecordR
   };
 }
 
-function fallbackBusinessDetail(row: BackendRecordRow, schema: BackendRuntimeListSchema): BusinessDetailView {
-  const fields = Object.fromEntries(row.fields.map((field) => [field.label, field.displayValue ?? String(field.value ?? '')]));
-  return {
-    summary: {
-      标题: row.title,
-      摘要: row.summary ?? '',
-      权限版本: row.permissionSnapshotVersion,
-      列表版本: schema.schemaVersion ?? '',
-    },
-    baseFields: fields,
-    childRows: { 业务字段: [fields] },
-    relations: [],
-    attachments: [],
-    printRecords: [],
-    operationLogs: [],
-    fieldMaskResults: {},
-  };
-}
-
 function toDynamicListSchema(schema: BackendRuntimeListSchema): DynamicListSchema {
   const columns: DynamicColumn[] = schema.columns.map((column) => ({
     fieldId: column.fieldId,
@@ -2887,6 +3812,7 @@ function toDynamicListSchema(schema: BackendRuntimeListSchema): DynamicListSchem
     title: column.label,
     width: column.width,
     sortable: column.sortable,
+    fixed: column.fixed ?? false,
     masked: column.permissionMode === 'MASKED' || Boolean(column.maskRule),
   }));
   const filters: DynamicFilter[] = schema.filters.map((filter) => ({
@@ -2935,6 +3861,10 @@ function toRuntimeFields(schema: BackendRuntimeListSchema): FieldDefinitionVO[] 
     required: false,
     maskRule: column.maskRule,
     importExportRule: 'IMPORT_EXPORT',
+    permissionMode: column.permissionMode,
+    writable: column.writable,
+    readonly: !column.writable,
+    disabledReason: column.writable ? undefined : column.disabledReason ?? '当前角色可以查看该字段，但没有写入权限。',
   }));
 }
 
@@ -2996,7 +3926,12 @@ function tabFiles(tabs: BackendDetailTab[]): FileRef[] {
             files.push({
               fileId: item.fileId,
               fileName: String(item.fileName ?? item.name ?? item.fileId),
+              fileType: typeof item.fileType === 'string' ? item.fileType : undefined,
+              previewUrl: typeof item.previewUrl === 'string' ? item.previewUrl : undefined,
               downloadUrl: typeof item.downloadUrl === 'string' ? item.downloadUrl : undefined,
+              status: typeof item.status === 'string' ? item.status : undefined,
+              permissionMode: typeof item.permissionMode === 'string' ? item.permissionMode : undefined,
+              retryable: typeof item.retryable === 'boolean' ? item.retryable : undefined,
             });
           }
         });
@@ -3006,8 +3941,20 @@ function tabFiles(tabs: BackendDetailTab[]): FileRef[] {
   return files;
 }
 
+function printRows(tabs: BackendDetailTab[]): OperationRecord[] {
+  const printTab = tabs.find((tab) => tab.tabCode === 'print');
+  const templates = Array.isArray(printTab?.payload?.templates) ? printTab?.payload?.templates : [];
+  return templates.filter(isRecord).map((template) => ({
+    operator: 'system',
+    action: `${String(template.templateName ?? template.templateCode)} / ${String(template.version ?? 'published')}`,
+    operatedAt: '',
+    traceId: String(template.traceId ?? ''),
+  }));
+}
+
 function operationRows(tabs: BackendDetailTab[]): OperationRecord[] {
-  return tabs.flatMap((tab) => tabPayloadRows(tab.payload))
+  const historyTabs = tabs.filter((tab) => tab.tabCode === 'operationLogs' || tab.tabCode === 'history');
+  return historyTabs.flatMap((tab) => tabPayloadRows(tab.payload))
     .filter((row) => row.traceId || row.action)
     .map((row) => ({
       operator: String(row.operator ?? row.operatedBy ?? '-'),

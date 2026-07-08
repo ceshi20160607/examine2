@@ -65,7 +65,7 @@ public class MemberService {
      * @return member page
      */
     public PageResult<MemberVO> search(String systemId, PageRequest pageRequest, MemberQueryRequest query) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         int pageNo = pageRequest == null || pageRequest.pageNo() <= 0 ? 1 : pageRequest.pageNo();
         int pageSize = pageRequest == null || pageRequest.pageSize() <= 0 ? 20 : pageRequest.pageSize();
         List<MemberVO> matched = memberBaseService.list(memberQuery(context, query)
@@ -90,7 +90,7 @@ public class MemberService {
      */
     @Transactional(rollbackFor = Exception.class)
     public MemberVO create(String systemId, MemberSaveRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         requireText(request == null ? null : request.memberName(), "成员姓名不能为空");
         PlatMember member = new PlatMember();
         member.setSystemId(context.systemId());
@@ -119,7 +119,7 @@ public class MemberService {
      */
     @Transactional(rollbackFor = Exception.class)
     public MemberVO update(String systemId, String systemMemberId, MemberSaveRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         PlatMember member = requireMember(context, systemMemberId);
         if (StringUtils.hasText(request.memberName())) {
             member.setMemberName(request.memberName());
@@ -147,7 +147,7 @@ public class MemberService {
      */
     @Transactional(rollbackFor = Exception.class)
     public AccountBindingVO bindAccount(String systemId, String systemMemberId, AccountBindingRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         PlatMember member = requireMember(context, systemMemberId);
         PlatAccount account = resolveAccount(request);
         PlatAccountMemberBinding binding = bindingBaseService.getOne(
@@ -182,7 +182,7 @@ public class MemberService {
      * @return bindings
      */
     public List<AccountBindingVO> bindings(String systemId) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         return bindingBaseService.list(new LambdaQueryWrapper<PlatAccountMemberBinding>()
                         .eq(PlatAccountMemberBinding::getSystemId, context.systemId())
                         .eq(PlatAccountMemberBinding::getTenantId, context.tenantId())

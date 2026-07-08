@@ -1,0 +1,1342 @@
+﻿{
+    "results":  [
+                    {
+                        "key":  "desktop-admin-system-home",
+                        "hash":  "#/systems/1130/dashboard",
+                        "overflowX":  0,
+                        "textPreview":  "R86 Page Designer 0707184547_a78371\n仪表盘\nR86 Operations 0707184547_a78371\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统工作台\n\n当前系统成员权限范围内的业务入口、待办、消息和工作概览。\n\n今日概览\n\n来自后台首页配置，运行态按当前成员权限读取。\n\n业务可用\n工作概览\n0 项目 / 0 普通\n今日预警\n0 条\n当月日历\n0 天\n业务模块入口\n已发布\n今日行动\n\n首页只放当前成员马上要处理的工作、待办、消息和业务入口。\n\n日报待确认\n记录普通任务\n进入工作管理\n查看待办\n查看消息\n打开业务数据\n我的工作\n\n暂无需要处理的工作任务。\n\n待办 0\n\n当前没有待处理事项。\n\n未读消息 0\n\n当前没有未读消息。\n\n业务入口\nR86 Request 0707184547_a78371\n0 条\n今日预警\n\n暂无今日预警\n\n近期日历\n\n暂无日历事项\n\ntraceId: trc_0688db7a-33d1-4591-9ed0-212142729f5e",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-YU9KKh-k.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  false,
+                        "hasPageComponentWorkbench":  false,
+                        "hasPageComponentDragCanvas":  false,
+                        "hasSchemaComponentStrip":  false,
+                        "hasPageMobilePreview":  false,
+                        "componentRows":  [
+
+                                          ],
+                        "draggableComponentRowCount":  0,
+                        "componentWidthValues":  [
+
+                                                 ],
+                        "componentPlacementValues":  [
+
+                                                     ],
+                        "schemaComponents":  [
+
+                                             ],
+                        "schemaComponentCount":  0,
+                        "schemaComponentWidthValues":  [
+
+                                                       ],
+                        "schemaComponentPlacementValues":  [
+
+                                                           ],
+                        "mobilePreviewComponents":  [
+
+                                                    ],
+                        "mobilePreviewComponentCount":  0,
+                        "componentRowCount":  0,
+                        "componentActionButtonCount":  0,
+                        "focusableComponentControlCount":  0,
+                        "focusResults":  [
+
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  false,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  ""
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  false,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  true,
+                        "hasModuleName":  true,
+                        "hasPageName":  false,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  false,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+
+                                         ]
+                    },
+                    {
+                        "key":  "desktop-admin-schema-preview",
+                        "hash":  "#/systems/1130/admin",
+                        "overflowX":  0,
+                        "textPreview":  "R86 Page Designer 0707184547_a78371\n仪表盘\nR86 Operations 0707184547_a78371\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR86 Page Designer 0707184547_a78371 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n模块管理\n模块分组\nR86 Operations 0707184547_a78371\n模块配置\n\n先筛选/选择模块，再配置字段、动作和发布。\n\n新建模块\n\n模块创建、发布检查、发布和回滚会调用真实后台接口并返回 traceId。\n\n模块\n分组\n全部分组\nR86 Operations 0707184547_a78371\n发布\n全部发布状态\n草稿\n已发布\n状态\n全部状态\n启用\n停用\n应用筛选\n重置\n模块\t状态\t发布\t版本\t操作\n\nR86 Request 0707184547_a78371\nr86_request_0707184547_a78371\n启用\tPUBLISHED\tMODULE_v1783421160410\t当前模块\n模块列表\nR86 Request 0707184547_a78371r86_request_0707184547_a78371\n启用\nPUBLISHED\nR86 Request 0707184547_a78371\n\nr86_request_0707184547_a78371 / MODULE_v1783421160410\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：455\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\nSchema 读取成功：PAGE_v1783421161375，字段 6 个，组件 5 个。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / PUBLISHED\n组件预览\nPage Actions / Runtime Records / Amount Chart / Readonly Form / Hidden Secret\n组件工作台\n\n通过拖拽画布调整组件顺序，也可以用键盘方向键移动；宽度和位置会随页面设计一起保存并发布到运行态 schema。\n\n添加表",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-YU9KKh-k.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  true,
+                        "hasPageComponentWorkbench":  true,
+                        "hasPageComponentDragCanvas":  true,
+                        "hasSchemaComponentStrip":  true,
+                        "hasPageMobilePreview":  true,
+                        "componentRows":  [
+                                              {
+                                                  "code":  "toolbar",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "half",
+                                                  "placement":  "top",
+                                                  "text":  "1\nPage Actions\n\nSHORTCUT / MODULE_ACTIONS / toolbar\n\n可见\nsort 10\n宽度 half / 位置 top\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "list",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "full",
+                                                  "placement":  "main",
+                                                  "text":  "2\nRuntime Records\n\nLIST / RUNTIME_RECORDS / list\n\n可见\nsort 20\n宽度 full / 位置 main\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "chart",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "third",
+                                                  "placement":  "right",
+                                                  "text":  "3\nAmount Chart\n\nCHART / RUNTIME_RECORDS / chart\n\n可见\nsort 30\n宽度 third / 位置 right\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "form",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "half",
+                                                  "placement":  "main",
+                                                  "text":  "4\nReadonly Form\n\nFORM / MODULE_FIELDS / form\n\n可见\nsort 40\n宽度 half / 位置 main\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "secret",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "third",
+                                                  "placement":  "right",
+                                                  "text":  "5\nHidden Secret\n\nDETAIL / RECORD_DETAIL / secret\n\n可见\nsort 50\n宽度 third / 位置 right\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              }
+                                          ],
+                        "draggableComponentRowCount":  5,
+                        "componentWidthValues":  [
+                                                     "half",
+                                                     "full",
+                                                     "third",
+                                                     "half",
+                                                     "third"
+                                                 ],
+                        "componentPlacementValues":  [
+                                                         "top",
+                                                         "main",
+                                                         "right",
+                                                         "main",
+                                                         "right"
+                                                     ],
+                        "schemaComponents":  [
+                                                 {
+                                                     "code":  "toolbar",
+                                                     "type":  "SHORTCUT",
+                                                     "width":  "half",
+                                                     "placement":  "top",
+                                                     "text":  "SHORTCUT\nPage Actions\n宽度 half / 位置 top"
+                                                 },
+                                                 {
+                                                     "code":  "list",
+                                                     "type":  "LIST",
+                                                     "width":  "full",
+                                                     "placement":  "main",
+                                                     "text":  "LIST\nRuntime Records\n宽度 full / 位置 main"
+                                                 },
+                                                 {
+                                                     "code":  "chart",
+                                                     "type":  "CHART",
+                                                     "width":  "third",
+                                                     "placement":  "right",
+                                                     "text":  "CHART\nAmount Chart\n宽度 third / 位置 right"
+                                                 },
+                                                 {
+                                                     "code":  "form",
+                                                     "type":  "FORM",
+                                                     "width":  "half",
+                                                     "placement":  "main",
+                                                     "text":  "FORM\nReadonly Form\n宽度 half / 位置 main"
+                                                 },
+                                                 {
+                                                     "code":  "secret",
+                                                     "type":  "DETAIL",
+                                                     "width":  "third",
+                                                     "placement":  "right",
+                                                     "text":  "DETAIL\nHidden Secret\n宽度 third / 位置 right"
+                                                 }
+                                             ],
+                        "schemaComponentCount":  5,
+                        "schemaComponentWidthValues":  [
+                                                           "half",
+                                                           "full",
+                                                           "third",
+                                                           "half",
+                                                           "third"
+                                                       ],
+                        "schemaComponentPlacementValues":  [
+                                                               "top",
+                                                               "main",
+                                                               "right",
+                                                               "main",
+                                                               "right"
+                                                           ],
+                        "mobilePreviewComponents":  [
+                                                        {
+                                                            "code":  "toolbar",
+                                                            "width":  "half",
+                                                            "placement":  "top"
+                                                        },
+                                                        {
+                                                            "code":  "list",
+                                                            "width":  "full",
+                                                            "placement":  "main"
+                                                        },
+                                                        {
+                                                            "code":  "chart",
+                                                            "width":  "third",
+                                                            "placement":  "right"
+                                                        },
+                                                        {
+                                                            "code":  "form",
+                                                            "width":  "half",
+                                                            "placement":  "main"
+                                                        },
+                                                        {
+                                                            "code":  "secret",
+                                                            "width":  "third",
+                                                            "placement":  "right"
+                                                        }
+                                                    ],
+                        "mobilePreviewComponentCount":  5,
+                        "componentRowCount":  5,
+                        "componentActionButtonCount":  32,
+                        "focusableComponentControlCount":  30,
+                        "focusResults":  [
+                                             {
+                                                 "text":  "添加表单组件",
+                                                 "ariaLabel":  "添加一个表单组件",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "保存组件布局",
+                                                 "ariaLabel":  "保存页面组件布局",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Page Actions",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Hidden Secret",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             }
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  false,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  ""
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  true,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  false,
+                        "hasModuleName":  true,
+                        "hasPageName":  true,
+                        "hasSchemaReadSuccess":  true,
+                        "hasSchemaPreviewPanel":  true,
+                        "hasSecretText":  true,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+                                             "R86 Request 0707184547_a78371\n\nr86_request_0707184547_a78371 / MODULE_v1783421160410\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：455\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\nSchema 读取成功：PAGE_v1783421161375，字段 6 个，组件 5 个。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / PUBLISHED\n组件预览\nPage Ac",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\nSchema 读取成功：PAGE_v1783421161375，字段 6 个，组件 5 个。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / PUBLISHED\n组件预览\nPage Actions / Runtime Records / Amount Chart / Readonly Form / Hidden Secret\n组件工作台\n\n通过拖拽画布调整组件顺序，也可以用键盘方向键移动；宽度和位置会随页面设计一起保存并发布到运行态 schema。\n\n添加表单组件\n保存组件布局\n\n组件可拖动排序，也可用键盘方向键移动。\n\n1",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\nSchema 读取成功：PAGE_v1783421161375，字段 6 个，组件 5 个。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / PUBLISHED\n组件预览\nPage Actions / Runtime Records / Amount Chart / Readonly Form / Hidden Secret\n组件工作台\n\n通过拖拽画布调整组件顺序，也可以用键盘方向键移动；宽度和位置会随页面设计一起保存并发布到运行态 schema。\n\n添加表单组件\n保存组件布局\n\n组件可拖动排序，也可用键盘方向键移动。\n\n1"
+                                         ]
+                    },
+                    {
+                        "key":  "desktop-admin-module-page-designer",
+                        "hash":  "#/systems/1130/admin",
+                        "overflowX":  0,
+                        "textPreview":  "R86 Page Designer 0707184547_a78371\n仪表盘\nR86 Operations 0707184547_a78371\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR86 Page Designer 0707184547_a78371 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n模块管理\n模块分组\nR86 Operations 0707184547_a78371\n模块配置\n\n先筛选/选择模块，再配置字段、动作和发布。\n\n新建模块\n\n模块创建、发布检查、发布和回滚会调用真实后台接口并返回 traceId。\n\n模块\n分组\n全部分组\nR86 Operations 0707184547_a78371\n发布\n全部发布状态\n草稿\n已发布\n状态\n全部状态\n启用\n停用\n应用筛选\n重置\n模块\t状态\t发布\t版本\t操作\n\nR86 Request 0707184547_a78371\nr86_request_0707184547_a78371\n启用\tPUBLISHED\tMODULE_v1783421160410\t当前模块\n模块列表\nR86 Request 0707184547_a78371r86_request_0707184547_a78371\n启用\nPUBLISHED\nR86 Request 0707184547_a78371\n\nr86_request_0707184547_a78371 / MODULE_v1783421160410\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：455\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n组件布局已保存：6 个组件，5 个可见。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / PUBLISHED\n组件预览\nPage Actions / Runtime Records / Amount Chart / Readonly Form / Hidden Secret\n组件工作台\n\n通过拖拽画布调整组件顺序，也可以用键盘方向键移动；宽度和位置会随页面设计一起保存并发布到运行态 schema。\n\n添加表单组件\n保存组件布局\n\n已隐藏组件：Page Act",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-YU9KKh-k.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  true,
+                        "hasPageComponentWorkbench":  true,
+                        "hasPageComponentDragCanvas":  true,
+                        "hasSchemaComponentStrip":  true,
+                        "hasPageMobilePreview":  true,
+                        "componentRows":  [
+                                              {
+                                                  "code":  "toolbar_copy",
+                                                  "visible":  "false",
+                                                  "draggable":  "true",
+                                                  "width":  "half",
+                                                  "placement":  "top",
+                                                  "text":  "1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nsort 10\n宽度 half / 位置 top\n上移\n下移\n宽度\n位置\n复制组件\n显示"
+                                              },
+                                              {
+                                                  "code":  "toolbar",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "half",
+                                                  "placement":  "top",
+                                                  "text":  "2\nPage Actions\n\nSHORTCUT / MODULE_ACTIONS / toolbar\n\n可见\nsort 20\n宽度 half / 位置 top\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "list",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "full",
+                                                  "placement":  "main",
+                                                  "text":  "3\nRuntime Records\n\nLIST / RUNTIME_RECORDS / list\n\n可见\nsort 30\n宽度 full / 位置 main\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "chart",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "third",
+                                                  "placement":  "right",
+                                                  "text":  "4\nAmount Chart\n\nCHART / RUNTIME_RECORDS / chart\n\n可见\nsort 40\n宽度 third / 位置 right\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "form",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "half",
+                                                  "placement":  "main",
+                                                  "text":  "5\nReadonly Form\n\nFORM / MODULE_FIELDS / form\n\n可见\nsort 50\n宽度 half / 位置 main\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "secret",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "third",
+                                                  "placement":  "right",
+                                                  "text":  "6\nHidden Secret\n\nDETAIL / RECORD_DETAIL / secret\n\n可见\nsort 60\n宽度 third / 位置 right\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              }
+                                          ],
+                        "draggableComponentRowCount":  6,
+                        "componentWidthValues":  [
+                                                     "half",
+                                                     "half",
+                                                     "full",
+                                                     "third",
+                                                     "half",
+                                                     "third"
+                                                 ],
+                        "componentPlacementValues":  [
+                                                         "top",
+                                                         "top",
+                                                         "main",
+                                                         "right",
+                                                         "main",
+                                                         "right"
+                                                     ],
+                        "schemaComponents":  [
+                                                 {
+                                                     "code":  "toolbar",
+                                                     "type":  "SHORTCUT",
+                                                     "width":  "half",
+                                                     "placement":  "top",
+                                                     "text":  "SHORTCUT\nPage Actions\n宽度 half / 位置 top"
+                                                 },
+                                                 {
+                                                     "code":  "list",
+                                                     "type":  "LIST",
+                                                     "width":  "full",
+                                                     "placement":  "main",
+                                                     "text":  "LIST\nRuntime Records\n宽度 full / 位置 main"
+                                                 },
+                                                 {
+                                                     "code":  "chart",
+                                                     "type":  "CHART",
+                                                     "width":  "third",
+                                                     "placement":  "right",
+                                                     "text":  "CHART\nAmount Chart\n宽度 third / 位置 right"
+                                                 },
+                                                 {
+                                                     "code":  "form",
+                                                     "type":  "FORM",
+                                                     "width":  "half",
+                                                     "placement":  "main",
+                                                     "text":  "FORM\nReadonly Form\n宽度 half / 位置 main"
+                                                 },
+                                                 {
+                                                     "code":  "secret",
+                                                     "type":  "DETAIL",
+                                                     "width":  "third",
+                                                     "placement":  "right",
+                                                     "text":  "DETAIL\nHidden Secret\n宽度 third / 位置 right"
+                                                 }
+                                             ],
+                        "schemaComponentCount":  5,
+                        "schemaComponentWidthValues":  [
+                                                           "half",
+                                                           "full",
+                                                           "third",
+                                                           "half",
+                                                           "third"
+                                                       ],
+                        "schemaComponentPlacementValues":  [
+                                                               "top",
+                                                               "main",
+                                                               "right",
+                                                               "main",
+                                                               "right"
+                                                           ],
+                        "mobilePreviewComponents":  [
+                                                        {
+                                                            "code":  "toolbar",
+                                                            "width":  "half",
+                                                            "placement":  "top"
+                                                        },
+                                                        {
+                                                            "code":  "list",
+                                                            "width":  "full",
+                                                            "placement":  "main"
+                                                        },
+                                                        {
+                                                            "code":  "chart",
+                                                            "width":  "third",
+                                                            "placement":  "right"
+                                                        },
+                                                        {
+                                                            "code":  "form",
+                                                            "width":  "half",
+                                                            "placement":  "main"
+                                                        },
+                                                        {
+                                                            "code":  "secret",
+                                                            "width":  "third",
+                                                            "placement":  "right"
+                                                        }
+                                                    ],
+                        "mobilePreviewComponentCount":  5,
+                        "componentRowCount":  6,
+                        "componentActionButtonCount":  38,
+                        "focusableComponentControlCount":  36,
+                        "focusResults":  [
+                                             {
+                                                 "text":  "添加表单组件",
+                                                 "ariaLabel":  "添加一个表单组件",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "保存组件布局",
+                                                 "ariaLabel":  "保存页面组件布局",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Page Actions 副本",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "显示",
+                                                 "ariaLabel":  "显示组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Hidden Secret",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             }
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  false,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  ""
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  true,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  false,
+                        "hasModuleName":  true,
+                        "hasPageName":  true,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  true,
+                        "hasSecretText":  true,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+                                             "R86 Request 0707184547_a78371\n\nr86_request_0707184547_a78371 / MODULE_v1783421160410\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：455\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n组件布局已保存：6 个组件，5 个可见。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / PUBLISHED\n组件预览\nPage Actions / Runtime Records / ",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n组件布局已保存：6 个组件，5 个可见。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / PUBLISHED\n组件预览\nPage Actions / Runtime Records / Amount Chart / Readonly Form / Hidden Secret\n组件工作台\n\n通过拖拽画布调整组件顺序，也可以用键盘方向键移动；宽度和位置会随页面设计一起保存并发布到运行态 schema。\n\n添加表单组件\n保存组件布局\n\n已隐藏组件：Page Actions 副本\n\n1\nPage Actions 副本\n\nSHORTC",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n组件布局已保存：6 个组件，5 个可见。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / PUBLISHED\n组件预览\nPage Actions / Runtime Records / Amount Chart / Readonly Form / Hidden Secret\n组件工作台\n\n通过拖拽画布调整组件顺序，也可以用键盘方向键移动；宽度和位置会随页面设计一起保存并发布到运行态 schema。\n\n添加表单组件\n保存组件布局\n\n已隐藏组件：Page Actions 副本\n\n1\nPage Actions 副本\n\nSHORTC"
+                                         ]
+                    },
+                    {
+                        "key":  "desktop-admin-dashboard-config",
+                        "hash":  "#/systems/1130/admin",
+                        "overflowX":  0,
+                        "textPreview":  "R86 Page Designer 0707184547_a78371\n仪表盘\nR86 Operations 0707184547_a78371\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR86 Page Designer 0707184547_a78371 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n首页配置\n首页标题系统工作台\n视觉语义calm-workbench\n显示组件4\n发布状态DRAFT\n首页说明\n当前系统成员权限范围内的业务入口、待办、消息和工作概览。\n运行态读取\n/work/home-page\n页面组件\n工作概览 / 今日预警 / 当月日历 / 业务模块入口\n保存首页配置\n发布检查\n\n首页设计会保存到系统后台配置，发布检查通过后由业务首页读取。\n\n工作概览WORK_DASHBOARD\n今日预警WORK_WARNING\n当月日历WORK_CALENDAR\n业务模块入口RUNTIME_MODULES\n\ntraceId: trc_0d2e5824-55e2-41cf-a8d7-537d1392d75c",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-YU9KKh-k.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  true,
+                        "hasModulePageDesignerMarker":  false,
+                        "hasPageComponentWorkbench":  false,
+                        "hasPageComponentDragCanvas":  false,
+                        "hasSchemaComponentStrip":  false,
+                        "hasPageMobilePreview":  false,
+                        "componentRows":  [
+
+                                          ],
+                        "draggableComponentRowCount":  0,
+                        "componentWidthValues":  [
+
+                                                 ],
+                        "componentPlacementValues":  [
+
+                                                     ],
+                        "schemaComponents":  [
+
+                                             ],
+                        "schemaComponentCount":  0,
+                        "schemaComponentWidthValues":  [
+
+                                                       ],
+                        "schemaComponentPlacementValues":  [
+
+                                                           ],
+                        "mobilePreviewComponents":  [
+
+                                                    ],
+                        "mobilePreviewComponentCount":  0,
+                        "componentRowCount":  0,
+                        "componentActionButtonCount":  0,
+                        "focusableComponentControlCount":  0,
+                        "focusResults":  [
+
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  false,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  ""
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  false,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  true,
+                        "hasModuleName":  false,
+                        "hasPageName":  false,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  false,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+
+                                         ]
+                    },
+                    {
+                        "key":  "mobile-admin-module-page-designer",
+                        "hash":  "#/systems/1130/admin",
+                        "overflowX":  0,
+                        "textPreview":  "R86 Page Designer 0707184547_a78371\n仪表盘\nR86 Operations 0707184547_a78371\n工作\n待办\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR86 Page Designer 0707184547_a78371 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n模块管理\n模块分组\nR86 Operations 0707184547_a78371\n模块配置\n\n先筛选/选择模块，再配置字段、动作和发布。\n\n新建模块\n\n模块创建、发布检查、发布和回滚会调用真实后台接口并返回 traceId。\n\n模块\n分组\n全部分组\nR86 Operations 0707184547_a78371\n发布\n全部发布状态\n草稿\n已发布\n状态\n全部状态\n启用\n停用\n应用筛选\n重置\n模块\t状态\t发布\t版本\t操作\n\nR86 Request 0707184547_a78371\nr86_request_0707184547_a78371\n启用\tPUBLISHED\tMODULE_v1783421160410\t当前模块\n模块列表\nR86 Request 0707184547_a78371r86_request_0707184547_a78371\n启用\nPUBLISHED\nR86 Request 0707184547_a78371\n\nr86_request_0707184547_a78371 / MODULE_v1783421160410\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：455\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n页面设计器保存模块页面草稿，发布后运行态才能读取。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / DRAFT\n组件预览\nPage Actions 副本 / Page Actions / Runtime Records / Amount Chart / Readonly Form / Hidden Secret\n组件工作台\n\n通过拖拽画布调整组件顺序，也可以用键盘方向键移动；宽度和位置会随页面设计一起保存并发布到运行态 schema。\n\n添加表单组件\n保存组",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-YU9KKh-k.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  true,
+                        "hasPageComponentWorkbench":  true,
+                        "hasPageComponentDragCanvas":  true,
+                        "hasSchemaComponentStrip":  false,
+                        "hasPageMobilePreview":  true,
+                        "componentRows":  [
+                                              {
+                                                  "code":  "toolbar_copy",
+                                                  "visible":  "false",
+                                                  "draggable":  "true",
+                                                  "width":  "half",
+                                                  "placement":  "top",
+                                                  "text":  "1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nsort 10\n宽度 half / 位置 top\n上移\n下移\n宽度\n位置\n复制组件\n显示"
+                                              },
+                                              {
+                                                  "code":  "toolbar",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "half",
+                                                  "placement":  "top",
+                                                  "text":  "2\nPage Actions\n\nSHORTCUT / MODULE_ACTIONS / toolbar\n\n可见\nsort 20\n宽度 half / 位置 top\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "list",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "full",
+                                                  "placement":  "main",
+                                                  "text":  "3\nRuntime Records\n\nLIST / RUNTIME_RECORDS / list\n\n可见\nsort 30\n宽度 full / 位置 main\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "chart",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "third",
+                                                  "placement":  "right",
+                                                  "text":  "4\nAmount Chart\n\nCHART / RUNTIME_RECORDS / chart\n\n可见\nsort 40\n宽度 third / 位置 right\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "form",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "half",
+                                                  "placement":  "main",
+                                                  "text":  "5\nReadonly Form\n\nFORM / MODULE_FIELDS / form\n\n可见\nsort 50\n宽度 half / 位置 main\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "secret",
+                                                  "visible":  "true",
+                                                  "draggable":  "true",
+                                                  "width":  "third",
+                                                  "placement":  "right",
+                                                  "text":  "6\nHidden Secret\n\nDETAIL / RECORD_DETAIL / secret\n\n可见\nsort 60\n宽度 third / 位置 right\n上移\n下移\n宽度\n位置\n复制组件\n隐藏"
+                                              }
+                                          ],
+                        "draggableComponentRowCount":  6,
+                        "componentWidthValues":  [
+                                                     "half",
+                                                     "half",
+                                                     "full",
+                                                     "third",
+                                                     "half",
+                                                     "third"
+                                                 ],
+                        "componentPlacementValues":  [
+                                                         "top",
+                                                         "top",
+                                                         "main",
+                                                         "right",
+                                                         "main",
+                                                         "right"
+                                                     ],
+                        "schemaComponents":  [
+
+                                             ],
+                        "schemaComponentCount":  0,
+                        "schemaComponentWidthValues":  [
+
+                                                       ],
+                        "schemaComponentPlacementValues":  [
+
+                                                           ],
+                        "mobilePreviewComponents":  [
+                                                        {
+                                                            "code":  "toolbar",
+                                                            "width":  "half",
+                                                            "placement":  "top"
+                                                        },
+                                                        {
+                                                            "code":  "list",
+                                                            "width":  "full",
+                                                            "placement":  "main"
+                                                        },
+                                                        {
+                                                            "code":  "chart",
+                                                            "width":  "third",
+                                                            "placement":  "right"
+                                                        },
+                                                        {
+                                                            "code":  "form",
+                                                            "width":  "half",
+                                                            "placement":  "main"
+                                                        },
+                                                        {
+                                                            "code":  "secret",
+                                                            "width":  "third",
+                                                            "placement":  "right"
+                                                        }
+                                                    ],
+                        "mobilePreviewComponentCount":  5,
+                        "componentRowCount":  6,
+                        "componentActionButtonCount":  38,
+                        "focusableComponentControlCount":  36,
+                        "focusResults":  [
+                                             {
+                                                 "text":  "添加表单组件",
+                                                 "ariaLabel":  "添加一个表单组件",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "保存组件布局",
+                                                 "ariaLabel":  "保存页面组件布局",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Page Actions 副本",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "显示",
+                                                 "ariaLabel":  "显示组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Amount Chart",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Hidden Secret",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "宽度",
+                                                 "ariaLabel":  "切换组件宽度 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "位置",
+                                                 "ariaLabel":  "切换组件位置 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             }
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  false,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  ""
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  true,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  false,
+                        "hasModuleName":  true,
+                        "hasPageName":  true,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  true,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+                                             "R86 Request 0707184547_a78371\n\nr86_request_0707184547_a78371 / MODULE_v1783421160410\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：455\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n页面设计器保存模块页面草稿，发布后运行态才能读取。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / DRAFT\n组件预览\nPage Actions 副本 / Page Actions /",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n页面设计器保存模块页面草稿，发布后运行态才能读取。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / DRAFT\n组件预览\nPage Actions 副本 / Page Actions / Runtime Records / Amount Chart / Readonly Form / Hidden Secret\n组件工作台\n\n通过拖拽画布调整组件顺序，也可以用键盘方向键移动；宽度和位置会随页面设计一起保存并发布到运行态 schema。\n\n添加表单组件\n保存组件布局\n\n组件可拖动排序，也可用键盘方向键移动。\n\n1\nPage A",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n页面设计器保存模块页面草稿，发布后运行态才能读取。\n\n当前模块\nR86 Request 0707184547_a78371 (r86_request_0707184547_a78371)\n页面数量\n1\n当前页面\nR86 Runtime Main 0707184547_a78371 / DRAFT\n组件预览\nPage Actions 副本 / Page Actions / Runtime Records / Amount Chart / Readonly Form / Hidden Secret\n组件工作台\n\n通过拖拽画布调整组件顺序，也可以用键盘方向键移动；宽度和位置会随页面设计一起保存并发布到运行态 schema。\n\n添加表单组件\n保存组件布局\n\n组件可拖动排序，也可用键盘方向键移动。\n\n1\nPage A"
+                                         ]
+                    }
+                ]
+}

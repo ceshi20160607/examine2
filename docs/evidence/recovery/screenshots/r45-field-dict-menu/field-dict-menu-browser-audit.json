@@ -1,0 +1,137 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972661718#/systems/1005/admin/module-config",
+      "selectors": [
+        {
+          "selector": ".field-type-grid",
+          "visible": true
+        },
+        {
+          "selector": ".module-builder-workspace",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R45 Field Dict Menu 0702141043_1b75e0\n仪表盘\nR45 Visible Group 0702141043_1b75e0\nR45 Hidden Group 0702141043_1b75e0\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR45 Field Dict Menu 0702141043_1b75e0 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n模块管理\n模块分组\nR45 Visible Group 0702141043_1b75e0\nR45 Hidden Group 0702141043_1b75e0\n模块配置\n\n先筛选/选择模块，再配置字段、动作和发布。\n\n新建模块\n\n模块创建、发布检查、发布和回滚会调用真实后台接口并返回 traceId。\n\n模块\n分组\n全部分组\nR45 Visible Group 0702141043_1b75e0\nR45 Hidden Group 0702141043_1b75e0\n发布\n全部发布状态\n草稿\n已发布\n状态\n全部状态\n启用\n停用\n应用筛选\n重置\n模块\t状态\t发布\t版本\t操作\n\nR45 Visible Module 0702141043_1b75e0\nr45_visible_0702141043_1b75e0\n启用\tPUBLISHED\tMODULE_v1782972656111\t当前模块\n\nR45 Hidden Module 0702141043_1b75e0\nr45_hidden_0702141043_1b75e0\n启用\tPUBLISHED\tMODULE_v1782972656224\t选择\n模块列表\nR45 Visible Module 0702141043_1b75e0r45_visible_0702141043_1b75e0\n启用\nPUBLISHED\nR45 Hidden Module 0702141043_1b75e0r45_hidden_0702141043_1b75e0\n启用\nPUBLISHED\nR45 Visible Module ",
+      "role": "admin",
+      "key": "module-config",
+      "viewport": "desktop",
+      "blockers": []
+    },
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972667626#/systems/1005/admin/dict-management",
+      "selectors": [
+        {
+          "selector": "#dict-management",
+          "visible": true
+        },
+        {
+          "selector": ".row-actions",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R45 Field Dict Menu 0702141043_1b75e0\n仪表盘\nR45 Visible Group 0702141043_1b75e0\nR45 Hidden Group 0702141043_1b75e0\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR45 Field Dict Menu 0702141043_1b75e0 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n字典管理\n数据字典\n新建字典\n\n字典项负责颜色、图标、语义、排序和看板可用性，供字段和工作看板复用。\n\n字典名称\n类型\n状态\n重置\n序号\t字典\t类型\t状态\t预览项\t更新时间\t操作\n1\tR45 Status Dict 0702141043_1b75e0 r45_status_0702141043_1b75e0 refs:2 disabled:1 version:DICT_TYPE_v1782972655679\tSTATUS\t启用\t3\t2026-07-02 14:10:56\t\n新增选项\n影响分析\n发布\n\n2\tR45 Hidden Module 0702141043_1b75e0状态 r45_hidden_0702141043_1b75e0_status refs:1 disabled:0 version:dict_v1\tSTATUS\t启用\t3\t2026-07-02 14:10:54\t\n新增选项\n影响分析\n发布\n\n3\tR45 Visible Module 0702141043_1b75e0状态 r45_visible_0702141043_1b75e0_status refs:1 disabled:0 version:dict_v1\tSTATUS\t启用\t3\t2026-07-02 14:10:54\t\n新增选项\n影响分析\n发布\n第 1 页，每页 20 条，共 3 条\n上一页\n下一页",
+      "role": "admin",
+      "key": "dict-management",
+      "viewport": "desktop",
+      "blockers": []
+    },
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972673571#/systems/1005/admin/module-config",
+      "selectors": [
+        {
+          "selector": ".field-type-grid",
+          "visible": true
+        },
+        {
+          "selector": ".module-builder-workspace",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R45 Field Dict Menu 0702141043_1b75e0\n仪表盘\nR45 Visible Group 0702141043_1b75e0\nR45 Hidden Group 0702141043_1b75e0\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR45 Field Dict Menu 0702141043_1b75e0 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n模块管理\n模块分组\nR45 Visible Group 0702141043_1b75e0\nR45 Hidden Group 0702141043_1b75e0\n模块配置\n\n先筛选/选择模块，再配置字段、动作和发布。\n\n新建模块\n\n模块创建、发布检查、发布和回滚会调用真实后台接口并返回 traceId。\n\n模块\n分组\n全部分组\nR45 Visible Group 0702141043_1b75e0\nR45 Hidden Group 0702141043_1b75e0\n发布\n全部发布状态\n草稿\n已发布\n状态\n全部状态\n启用\n停用\n应用筛选\n重置\n模块\t状态\t发布\t版本\t操作\n\nR45 Visible Module 0702141043_1b75e0\nr45_visible_0702141043_1b75e0\n启用\tPUBLISHED\tMODULE_v1782972656111\t当前模块\n\nR45 Hidden Module 0702141043_1b75e0\nr45_hidden_0702141043_1b75e0\n启用\tPUBLISHED\tMODULE_v1782972656224\t选择\n模块列表\nR45 Visible Module 0702141043_1b75e0r45_visible_0702141043_1b75e0\n启用\nPUBLISHED\nR45 Hidden Module 0702141043_1b75e0r45_hidden_0702141043_1b75e0\n启用\nPUBLISHED\nR45 Visible Module ",
+      "role": "admin",
+      "key": "module-config",
+      "viewport": "mobile",
+      "blockers": []
+    },
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972679870#/systems/1005/admin/dict-management",
+      "selectors": [
+        {
+          "selector": "#dict-management",
+          "visible": true
+        },
+        {
+          "selector": ".row-actions",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R45 Field Dict Menu 0702141043_1b75e0\n仪表盘\nR45 Visible Group 0702141043_1b75e0\nR45 Hidden Group 0702141043_1b75e0\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR45 Field Dict Menu 0702141043_1b75e0 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n字典管理\n数据字典\n新建字典\n\n字典项负责颜色、图标、语义、排序和看板可用性，供字段和工作看板复用。\n\n字典名称\n类型\n状态\n重置\n序号\t字典\t类型\t状态\t预览项\t更新时间\t操作\n1\tR45 Status Dict 0702141043_1b75e0 r45_status_0702141043_1b75e0 refs:2 disabled:1 version:DICT_TYPE_v1782972655679\tSTATUS\t启用\t3\t2026-07-02 14:10:56\t\n新增选项\n影响分析\n发布\n\n2\tR45 Hidden Module 0702141043_1b75e0状态 r45_hidden_0702141043_1b75e0_status refs:1 disabled:0 version:dict_v1\tSTATUS\t启用\t3\t2026-07-02 14:10:54\t\n新增选项\n影响分析\n发布\n\n3\tR45 Visible Module 0702141043_1b75e0状态 r45_visible_0702141043_1b75e0_status refs:1 disabled:0 version:dict_v1\tSTATUS\t启用\t3\t2026-07-02 14:10:54\t\n新增选项\n影响分析\n发布\n第 1 页，每页 20 条，共 3 条\n上一页\n下一页",
+      "role": "admin",
+      "key": "dict-management",
+      "viewport": "mobile",
+      "blockers": []
+    },
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972690629#/systems/1005/modules",
+      "selectors": [
+        {
+          "selector": ".runtime-shell",
+          "visible": true
+        },
+        {
+          "selector": ".runtime-main",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R45 Field Dict Menu 0702141043_1b75e0\n仪表盘\nR45 Visible Group 0702141043_1b75e0\n工作\n待办\n命令\n助手\n消息\n系统切换\nr45_member_0702141043_1b75e0\nR45 Visible Group 0702141043_1b75e0\nR45 Visible Module 0702141043_1b75e0\n0 条 / MODULE_v1782972656111\n\nR45 VISIBLE GROUP 0702141043_1B75E0\n\nR45 Visible Module 0702141043_1b75e0\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R45 Visible Module 0702141043_1b75e0 / 默认\nR45 Runtime Scene 0702141043_1b75e0 / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1005_1037_1364\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n暂无业务数据\n\n当前筛选条件下暂无记录。\n\nRUNTIME\n暂无业务数据\n当前筛选条件下暂无记录。",
+      "role": "normal",
+      "key": "runtime-menu",
+      "viewport": "desktop",
+      "blockers": []
+    },
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972693793#/systems/1005/modules",
+      "selectors": [
+        {
+          "selector": ".runtime-shell",
+          "visible": true
+        },
+        {
+          "selector": ".runtime-main",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R45 Field Dict Menu 0702141043_1b75e0\n仪表盘\nR45 Visible Group 0702141043_1b75e0\n工作\n待办\n命令\n助手\n消息\n系统切换\nr45_member_0702141043_1b75e0\nR45 Visible Group 0702141043_1b75e0\nR45 Visible Module 0702141043_1b75e0\n0 条 / MODULE_v1782972656111\n\nR45 VISIBLE GROUP 0702141043_1B75E0\n\nR45 Visible Module 0702141043_1b75e0\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R45 Visible Module 0702141043_1b75e0 / 默认\nR45 Runtime Scene 0702141043_1b75e0 / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1005_1037_1364\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n暂无业务数据\n\n当前筛选条件下暂无记录。\n\nRUNTIME\n暂无业务数据\n当前筛选条件下暂无记录。",
+      "role": "normal",
+      "key": "runtime-menu",
+      "viewport": "mobile",
+      "blockers": []
+    }
+  ]
+}

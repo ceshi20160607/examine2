@@ -1,0 +1,5 @@
+2026/07/07-21:41:09.910 5d14 Creating DB D:\workspace\01_project\snow\cursor\examine2\docs\evidence\recovery\screenshots\r89-runtime-file-import-export-recovery-detail\chrome-profile-20260707214104\Default\EdgeCoupons/coupons_data.db since it was missing.
+2026/07/07-21:41:09.920 5d14 Reusing MANIFEST D:\workspace\01_project\snow\cursor\examine2\docs\evidence\recovery\screenshots\r89-runtime-file-import-export-recovery-detail\chrome-profile-20260707214104\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/07/07-21:41:14.214 7df8 Level-0 table #5: started
+2026/07/07-21:41:14.219 7df8 Level-0 table #5: 682901 bytes OK
+2026/07/07-21:41:14.221 7df8 Delete type=0 #3

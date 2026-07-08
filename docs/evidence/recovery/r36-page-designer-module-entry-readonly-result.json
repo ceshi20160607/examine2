@@ -1,0 +1,29 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-036",
+    "frc":  "FRC-1B Page designer module-entry and runtime readonly proof",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "722",
+    "moduleId":  "241",
+    "pageCode":  "main",
+    "savedPageStatus":  "DRAFT",
+    "publishCheckPassed":  true,
+    "publishedVersion":  "PAGE_v1782816529664",
+    "adminSchemaVersion":  "PAGE_v1782816529664",
+    "normalSchemaVersion":  "PAGE_v1782816529664",
+    "normalReadonlyCount":  5,
+    "hiddenFieldLeaked":  false,
+    "hiddenComponentLeaked":  false,
+    "forbiddenCreateStatus":  403,
+    "assetScripts":  [
+                         "http://127.0.0.1:18131/assets/index-D7YKdz44.js"
+                     ],
+    "browserResultCount":  5,
+    "browserOverflowCount":  0,
+    "evidenceDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r36-page-designer-module-entry-readonly",
+    "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r36-page-designer-module-entry-readonly\\page-designer-browser-audit.json",
+    "cleanup":  [
+                    "722:DELETE",
+                    "723:DELETE"
+                ]
+}

@@ -57,6 +57,8 @@ $targets = @($systems.data.records | Where-Object {
     $_.systemName -like 'R13 Responsive System*' -or
     $_.systemName -like 'R14 Real Login Session*' -or
     $_.systemName -like 'R16 Register First Use*' -or
+    $_.systemName -like 'R49 Integration*' -or
+    $_.systemName -like 'R49 Member Owned*' -or
     $_.systemName -like 'R3 *' -or
     $_.systemCode -like 'ctx_*' -or
     $_.systemCode -like 'r2mod_*' -or
@@ -72,6 +74,8 @@ $targets = @($systems.data.records | Where-Object {
     $_.systemCode -like 'r13_responsive_*' -or
     $_.systemCode -like 'r14_real_login_*' -or
     $_.systemCode -like 'r16_register_*' -or
+    $_.systemCode -like 'r49_integration_*' -or
+    $_.systemCode -like 'r49_owned_*' -or
     $_.systemCode -like 'r19_page_*' -or
     $_.systemCode -like 'r20_flow_*' -or
     $_.systemCode -like 'r9sso_*' -or

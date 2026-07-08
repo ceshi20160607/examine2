@@ -1,0 +1,96 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-090",
+    "generatedAt":  "2026-07-07T22:41:47.2219279+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "systemId":  "1134",
+    "deptId":  "906",
+    "memberId":  "1551",
+    "roleId":  "1651",
+    "roleCode":  "R90_RUNTIME_20260707224102",
+    "bindingId":  "1551",
+    "normalLoginName":  "r90_normal_20260707224102",
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "release health is reachable",
+                       "passed":  true,
+                       "detail":  "status=UP"
+                   },
+                   {
+                       "area":  "setup",
+                       "name":  "registered admin owns new system",
+                       "passed":  true,
+                       "detail":  "system=1134 roles=1649,SYSTEM_SUPER_ADMIN"
+                   },
+                   {
+                       "area":  "api",
+                       "name":  "member binding is readable",
+                       "passed":  true,
+                       "detail":  "member=1551 binding=1551 status=BOUND"
+                   },
+                   {
+                       "area":  "api",
+                       "name":  "member role assignment is readable",
+                       "passed":  true,
+                       "detail":  "role=1651 memberRoles=1651 assigned=1"
+                   },
+                   {
+                       "area":  "switch",
+                       "name":  "bound normal account can switch into target system",
+                       "passed":  true,
+                       "detail":  "switchMember=1551 binding=1551"
+                   },
+                   {
+                       "area":  "switch",
+                       "name":  "normal switch context includes assigned role",
+                       "passed":  true,
+                       "detail":  "effectiveRoles=1651,R90_RUNTIME_20260707224102"
+                   },
+                   {
+                       "area":  "permission",
+                       "name":  "normal member cannot read or mutate org role admin APIs",
+                       "passed":  true,
+                       "detail":  "member=DENIED, dept=DENIED, role=DENIED"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "source contains R90 org member markers",
+                       "passed":  true,
+                       "detail":  "source markers present"
+                   },
+                   {
+                       "area":  "deployed",
+                       "name":  "deployed asset contains R90 org member markers",
+                       "passed":  true,
+                       "detail":  "deployed markers present"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "admin browser exposes R90 org member delivery markers",
+                       "passed":  true,
+                       "detail":  "members=2 binding=BOUND roles=1651"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "normal browser is denied from system admin surface",
+                       "passed":  true,
+                       "detail":  "orgPanel=False deniedCopy=True"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "R90 browser audit has no overflow or blocker text",
+                       "passed":  true,
+                       "detail":  "overflow=0 blockers=0 results=5"
+                   },
+                   {
+                       "area":  "signoff-boundary",
+                       "name":  "R90 does not close user signoff",
+                       "passed":  true,
+                       "detail":  "user_script_passed=False"
+                   }
+               ],
+    "browserAudit":  "docs/evidence/recovery/screenshots/r90-org-member-role-binding-first-use/org-member-role-binding-browser-audit.json",
+    "error":  null
+}

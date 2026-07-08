@@ -2,6 +2,7 @@ package com.unique.examine.module.manage.config;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Module configuration API request and response models.
@@ -41,7 +42,8 @@ public final class ModuleConfigModels {
     }
 
     public record FieldSaveRequest(String fieldCode, String name, String fieldType, String storageType,
-                                   Boolean required, Boolean sortable, String dictTypeId,
+                                   Boolean required, Boolean sortable, String dictTypeId, String defaultValue,
+                                   Map<String, Object> validationRules, Map<String, Object> typeConfig,
                                    FieldPermissionMetadata permissionMetadata, String maskRule,
                                    ImportExportRule importExportRule) {
     }
@@ -49,7 +51,9 @@ public final class ModuleConfigModels {
     public record FieldDefinitionVO(String fieldId, String moduleId, String fieldCode, String name,
                                     String fieldType, String storageType, List<String> filterOperators,
                                     boolean sortable, boolean required, Integer status, String dictTypeId,
-                                    FieldPermissionMetadata permissionMetadata, String maskRule,
+                                    String defaultValue, Map<String, Object> validationRules,
+                                    Map<String, Object> typeConfig, FieldPermissionMetadata permissionMetadata,
+                                    String maskRule,
                                     ImportExportRule importExportRule, ColumnMeta columnMeta) {
     }
 
@@ -73,9 +77,20 @@ public final class ModuleConfigModels {
     public record DictTypeSaveRequest(String dictCode, String dictName, String dictKind, Integer status) {
     }
 
+    public record DictImpactRef(String moduleId, String moduleName, String fieldId, String fieldCode,
+                                String fieldName, String fieldType) {
+    }
+
+    public record DictImpactVO(String dictTypeId, int fieldReferenceCount, int moduleReferenceCount,
+                               int disabledItemCount, String publishedVersion,
+                               List<DictImpactRef> references, String traceId) {
+    }
+
     public record DictTypeVO(String dictTypeId, String systemId, String tenantId, String dictCode,
                              String dictName, String dictKind, Integer status, String publishedVersion,
-                             List<DictItemVO> previewItems, LocalDateTime updatedAt) {
+                             int fieldReferenceCount, int disabledItemCount,
+                             List<DictImpactRef> impactRefs, List<DictItemVO> previewItems,
+                             LocalDateTime updatedAt) {
     }
 
     public record DictItemSaveRequest(String parentId, String itemCode, String itemName, String color,
@@ -193,13 +208,45 @@ public final class ModuleConfigModels {
 
     public record PrintTemplateSaveRequest(String templateCode, String templateName, String version,
                                            Integer status, Boolean defaultTemplate, List<String> visibleRoleIds,
-                                           List<String> boundFieldCodes, String previewFileId) {
+                                           List<String> boundFieldCodes, String previewFileId,
+                                           String headerText, String footerText,
+                                           List<String> detailTableFieldCodes, List<String> signatureLabels,
+                                           Map<String, Object> pageSetup) {
     }
 
     public record PrintTemplateVO(String templateId, String moduleId, String templateCode, String templateName,
                                   String version, Integer status, boolean defaultTemplate,
                                   List<String> visibleRoleIds, List<String> boundFieldCodes,
-                                  String previewFileId, String publishStatus) {
+                                  String previewFileId, String publishStatus, String headerText, String footerText,
+                                  List<String> detailTableFieldCodes, List<String> signatureLabels,
+                                  Map<String, Object> pageSetup, String publishedVersion) {
+    }
+
+    public record PrintTemplatePreviewRequest(String templateCode, Map<String, Object> previewValues,
+                                              Map<String, Object> sampleValues) {
+        public Map<String, Object> effectiveValues() {
+            return previewValues == null ? sampleValues : previewValues;
+        }
+    }
+
+    public record PrintTemplatePreviewVO(String templateCode, String templateName, String version,
+                                         String publishStatus, String recordId,
+                                         List<PrintRenderSection> sections, List<ImpactRef> impactRefs,
+                                         String exportFileId, PrintExportMeta exportMeta,
+                                         Map<String, Object> pageSetup,
+                                         String traceId, LocalDateTime generatedAt) {
+    }
+
+    public record PrintExportMeta(String fileId, String fileName, String format, String contentType,
+                                  boolean printCssReady, boolean paginationReady, String pageSize,
+                                  String orientation, String margins, Integer estimatedPageCount,
+                                  String html) {
+    }
+
+    public record PrintRenderSection(String sectionCode, String title, List<PrintRenderRow> rows) {
+    }
+
+    public record PrintRenderRow(String fieldCode, String label, String value) {
     }
 
     public record PublishRequest(String reason, String idempotencyKey) {

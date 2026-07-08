@@ -1,0 +1,964 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-067",
+    "productStatus":  "R67_FINAL_CANDIDATE_REFRESH_PASS_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-02T13:06:23.1910296+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "gatesUserScriptPassedMustRemainFalse":  true,
+    "requirementTotal":  45,
+    "requirementFreshEvidenceRows":  42,
+    "requirementStillPartialRows":  45,
+    "requirementOpenRows":  0,
+    "requirementProvenRows":  0,
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "deployed release verification executed successfully",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "baseUrl=http://127.0.0.1:18131"
+                   },
+                   {
+                       "area":  "static-usability",
+                       "name":  "static usability audit has no blockers or warnings",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "framework",
+                       "name":  "final goal framework audit keeps unfinished work visible",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, notClosed=45, nextTasks=REC-P0-067 Final Role Journey And Requirement Acceptance Candidate Refresh"
+                   },
+                   {
+                       "area":  "requirements",
+                       "name":  "coverage audit remains honestly open with no missing rows",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=FAIL, missing=0, notClosed=45"
+                   },
+                   {
+                       "area":  "role-shell-browser",
+                       "name":  "fresh human role shell journey has desktop/mobile coverage and no findings",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "results=32, failures=0, warnings=0"
+                   },
+                   {
+                       "area":  "role-shell-permission",
+                       "name":  "fresh human journey keeps admin and normal-member permission boundary",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "forbiddenCreate=403, forbiddenAdmin=403"
+                   },
+                   {
+                       "area":  "accepted-evidence",
+                       "name":  "R61 auth-entry status is PASS and user signoff remains false",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, userSignoff=False"
+                   },
+                   {
+                       "area":  "accepted-evidence",
+                       "name":  "R62 platform-system-shell status is PASS and user signoff remains false",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, userSignoff=False"
+                   },
+                   {
+                       "area":  "accepted-evidence",
+                       "name":  "R59 admin-first-use status is PASS and user signoff remains false",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, userSignoff=False"
+                   },
+                   {
+                       "area":  "browser-evidence",
+                       "name":  "R59 admin-first-use browser evidence has no overflow or blockers",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "browser=10, overflow=0, blockers=0"
+                   },
+                   {
+                       "area":  "accepted-evidence",
+                       "name":  "R63 configured-runtime status is PASS and user signoff remains false",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, userSignoff=False"
+                   },
+                   {
+                       "area":  "browser-evidence",
+                       "name":  "R63 configured-runtime browser evidence has no overflow or blockers",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "browser=7, overflow=0, blockers=0"
+                   },
+                   {
+                       "area":  "accepted-evidence",
+                       "name":  "R64 workflow-todo-message status is PASS and user signoff remains false",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, userSignoff=False"
+                   },
+                   {
+                       "area":  "browser-evidence",
+                       "name":  "R64 workflow-todo-message browser evidence has no overflow or blockers",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "browser=8, overflow=0, blockers=0"
+                   },
+                   {
+                       "area":  "accepted-evidence",
+                       "name":  "R65 openapi-assistant status is PASS and user signoff remains false",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, userSignoff=False"
+                   },
+                   {
+                       "area":  "browser-evidence",
+                       "name":  "R65 openapi-assistant browser evidence has no overflow or blockers",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "browser=6, overflow=0, blockers=0"
+                   },
+                   {
+                       "area":  "accepted-evidence",
+                       "name":  "R66 operations-logs-release status is PASS and user signoff remains false",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, userSignoff=False"
+                   },
+                   {
+                       "area":  "browser-evidence",
+                       "name":  "R66 operations-logs-release browser evidence has no overflow or blockers",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "browser=6, overflow=0, blockers=0"
+                   },
+                   {
+                       "area":  "candidate-matrix",
+                       "name":  "all 45 requirement rows are present in R67 candidate matrix",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "rows=45"
+                   },
+                   {
+                       "area":  "candidate-matrix",
+                       "name":  "R67 maps fresh evidence but does not promote requirements without user signoff",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "freshRows=42, promoted=0"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r67-final-role-journey-requirement-acceptance-candidate\\verify-release.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r67-final-role-journey-requirement-acceptance-candidate\\final-usability-static-audit.log"
+                         },
+                         {
+                             "name":  "final-goal-framework-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r67-final-role-journey-requirement-acceptance-candidate\\final-goal-framework-audit.log"
+                         },
+                         {
+                             "name":  "final-requirement-coverage-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r67-final-role-journey-requirement-acceptance-candidate\\final-requirement-coverage-audit.log"
+                         },
+                         {
+                             "name":  "recovery-r57-human-role-shell-browser-refresh",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r67-final-role-journey-requirement-acceptance-candidate\\recovery-r57-human-role-shell-browser-refresh.log"
+                         }
+                     ],
+    "audits":  {
+                   "static":  {
+                                  "warningCount":  0,
+                                  "status":  "PASS",
+                                  "blockerCount":  0
+                              },
+                   "coverage":  {
+                                    "status":  "FAIL",
+                                    "closedCount":  0,
+                                    "missingCount":  0,
+                                    "notClosedCount":  45
+                                },
+                   "framework":  {
+                                     "nextTasks":  [
+                                                       "REC-P0-067 Final Role Journey And Requirement Acceptance Candidate Refresh"
+                                                   ],
+                                     "status":  "PASS",
+                                     "notClosed":  45
+                                 }
+               },
+    "primaryJourneyEvidence":  {
+                                   "authEntry":  {
+                                                     "status":  "PASS",
+                                                     "task":  "R61",
+                                                     "resultFile":  "docs/evidence/recovery/r61-auth-entry-guard-result.json"
+                                                 },
+                                   "workflowTodoMessage":  {
+                                                               "systemId":  "944",
+                                                               "messageId":  "83",
+                                                               "flowId":  "136",
+                                                               "todoId":  "81",
+                                                               "browserResultCount":  8,
+                                                               "status":  "PASS",
+                                                               "task":  "R64"
+                                                           },
+                                   "openApiAssistant":  {
+                                                            "browserResultCount":  6,
+                                                            "systemId":  "947",
+                                                            "recordId":  "475",
+                                                            "openApiAppId":  "56",
+                                                            "status":  "PASS",
+                                                            "task":  "R65"
+                                                        },
+                                   "configuredRuntime":  {
+                                                             "moduleId":  "373",
+                                                             "systemId":  "929",
+                                                             "recordId":  "469",
+                                                             "browserResultCount":  7,
+                                                             "status":  "PASS",
+                                                             "task":  "R63"
+                                                         },
+                                   "roleShellRefresh":  {
+                                                            "status":  "PASS",
+                                                            "task":  "R57",
+                                                            "resultCount":  32,
+                                                            "resultFile":  "docs/evidence/recovery/r57-frc6-human-acceptance-pass-result.json"
+                                                        },
+                                   "operationsLogsRelease":  {
+                                                                 "releaseVerifyStatus":  "PASS",
+                                                                 "status":  "PASS",
+                                                                 "browserResultCount":  6,
+                                                                 "task":  "R66",
+                                                                 "systemId":  "949"
+                                                             },
+                                   "adminFirstUse":  {
+                                                         "status":  "PASS",
+                                                         "browserResultCount":  10,
+                                                         "task":  "R59",
+                                                         "resultFile":  "docs/evidence/recovery/r59-frc2-frc6-admin-configuration-human-first-use-result.json"
+                                                     },
+                                   "shellLanding":  {
+                                                        "status":  "PASS",
+                                                        "task":  "R62",
+                                                        "resultFile":  "docs/evidence/recovery/r62-platform-system-shell-landing-result.json"
+                                                    }
+                               },
+    "browserAuditPath":  "docs/evidence/recovery/screenshots/r67-final-role-journey-requirement-acceptance-candidate/final-role-journey-browser-audit.json",
+    "requirementCandidateMatrix":  [
+                                       {
+                                           "reqId":  "REQ-2.1",
+                                           "area":  "Product goal: customizable no-code systems with workflow, OpenAPI, AI, tasks, messages, logs, and usable people-facing product.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R61 auth-entry",
+                                                                 "R62 platform-system-shell"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need all functional and usability rows below to be `PROVEN` or `USER_EXCLUDED`, plus explicit user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-4.1",
+                                           "area":  "Platform layer and custom system layer separation.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R62 platform-system-shell"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need deeper first-use and no-code-admin information-architecture acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-4.2",
+                                           "area":  "Platform center.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R62 platform-system-shell"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need platform workspace/admin daily-use breadth and user acceptance beyond engineering evidence."
+                                       },
+                                       {
+                                           "reqId":  "REQ-4.3",
+                                           "area":  "Application configuration center.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need richer first-use-to-launch workflow, nested/disabled/unpublished menu permutations, broader cross-surface admin usability, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-4.4",
+                                           "area":  "Application runtime.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need remaining runtime approval detail breadth, import/export rollback UX, file preview/version/storage failure states, batch actions, deeper empty/error/accessibility states, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-4.5",
+                                           "area":  "Workflow workbench.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R64 workflow-todo-message"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need broader workflow workbench scenarios such as reject/transfer/timer/escalation, richer failure states, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-4.6",
+                                           "area":  "System management and operations center.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R66 operations-logs-release"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need full operator usability and all maintenance controls verified from deployed UI plus human acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.1",
+                                           "area":  "Account and login.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R61 auth-entry",
+                                                                 "R62 platform-system-shell"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need full MFA/SSO variants and account security UX coverage if still in final scope."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.2",
+                                           "area":  "Systems and tenants.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R61 auth-entry",
+                                                                 "R62 platform-system-shell"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need full system lifecycle, tenant lifecycle, initialization, preview/publish and rollback UX."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.3",
+                                           "area":  "Applications.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need app lifecycle and platform-level app/system data interop coverage."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.3.1",
+                                           "area":  "Module groups as runtime navigation.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need nested group behavior, disabled/unpublished state permutations, broader menu editing UX, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.4",
+                                           "area":  "Modules.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need all module permissions/field-type permutations, binary PDF or user-approved HTML boundary, long-form usability, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.5",
+                                           "area":  "Fields.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need formula/summary if in scope, richer field-specific UI widgets, broader validation UX/accessibility, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.6",
+                                           "area":  "Dictionaries.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need dictionary hierarchy/import/history or other broader dictionary semantics if in scope, cross-surface dictionary reuse, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.7",
+                                           "area":  "Departments and members.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need full org tree, member lifecycle, binding, import/sync and permission impact."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.8",
+                                           "area":  "Pages.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "PARTIAL_WITH_PRIOR_EVIDENCE_OR_USER_SIGNOFF_REQUIRED",
+                                           "freshEvidence":  [
+
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need broader runtime daily-use pages, import/export/file/error states, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.9",
+                                           "area":  "Menus.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need explicit menu configuration page breadth, nested groups, disabled/unpublished permutations, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.10",
+                                           "area":  "Permissions.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need broader permission matrix usability, menu/module/action/field/data-scope permutations, audit/history of permission changes, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.11",
+                                           "area":  "Data records.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need approval-detail integration breadth, sequence permutations, rollback/batch actions, deeper empty/error/accessibility states, and broader data-record usability before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.12",
+                                           "area":  "Workflow.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R64 workflow-todo-message"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need full node library breadth, timers, external API nodes, field update nodes, richer publish impact, reject/transfer variants, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.13",
+                                           "area":  "Files.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need file preview/download permission breadth, versioning, relation management, storage policy, and upload/download failure coverage before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.14",
+                                           "area":  "Import and export.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need rollback/error-file failure cases, field mapping UX breadth, permissions matrix depth, and large-file UX before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.15",
+                                           "area":  "OpenAPI.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R65 openapi-assistant"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need broader callback/webhook/API documentation UX, rate-limit behavior under load, external API node/workflow integration breadth, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.16",
+                                           "area":  "Messages.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime",
+                                                                 "R64 workflow-todo-message"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need templates/channels, delivery log, failure retry, do-not-disturb, platform/system separation breadth, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.17",
+                                           "area":  "Logs and audit.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R66 operations-logs-release"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need full login/business/API/AI/import/export/approval audit query and detail UX plus human acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.18",
+                                           "area":  "System management settings.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R66 operations-logs-release"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need all setting pages and risk confirmations verified from deployed UI plus human acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.19",
+                                           "area":  "Intelligent capabilities.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R64 workflow-todo-message",
+                                                                 "R65 openapi-assistant"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need richer user assistant flows, field/process/export-specific drafts, browser/API failure-state handling, broader AI read/write permission permutations, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-5.20",
+                                           "area":  "Work management: projects, tasks, daily reports, calendar.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need full daily work usability, calendar, dashboard, task board, report draft and message/todo integration."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.1",
+                                           "area":  "Overall visual style.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "PARTIAL_WITH_PRIOR_EVIDENCE_OR_USER_SIGNOFF_REQUIRED",
+                                           "freshEvidence":  [
+
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need broader human aesthetic review across runtime daily work, file/import/export/error states, and user acceptance before `PROVEN`; R35/R41/R42/R43/R46/R52 are engineering evidence only."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.2",
+                                           "area":  "Web main layout.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R61 auth-entry",
+                                                                 "R62 platform-system-shell",
+                                                                 "R59 admin-first-use",
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need deeper first-use admin configuration, broader task-flow acceptance, and user signoff before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.3",
+                                           "area":  "Home page.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R62 platform-system-shell"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need richer live operational data, broader work/todo/message integration, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.4",
+                                           "area":  "List pages.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need admin list batch actions, richer error states, column width/fixed controls, keyboard/accessibility, and broader list usability review before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.5",
+                                           "area":  "Form pages.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need field-specific UI breadth, more validation permutations, read-only/forbidden form permutations in browser, and accessibility before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.6",
+                                           "area":  "Detail pages.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need approval sidebar terminal breadth, related child-row detail breadth, empty/error/accessibility states, and broader reload/re-login usability before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.7",
+                                           "area":  "Field designer.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need formula/summary specialized widgets if in scope, deeper validation UI, relation/person/subtable accessibility review, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.8",
+                                           "area":  "Page designer.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "PARTIAL_WITH_PRIOR_EVIDENCE_OR_USER_SIGNOFF_REQUIRED",
+                                           "freshEvidence":  [
+
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need drag/drop polish, full accessibility review, richer runtime widget behavior, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.9",
+                                           "area":  "Flow designer.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R64 workflow-todo-message"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need broader node/property/branch/zoom/usability coverage, direct designer editing breadth, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.10",
+                                           "area":  "Permission page.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R59 admin-first-use"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need richer permission matrix UX, batch role/member preview, conflict explanation, audit history, and user acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-6.11",
+                                           "area":  "Mobile.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R63 configured-runtime"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need mobile task usability across workflow/todo/message/ops primary journeys, binary PDF/user-approved print boundary decision, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-7",
+                                           "area":  "Technical architecture.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R66 operations-logs-release"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need requirement-by-requirement technical architecture conformance audit."
+                                       },
+                                       {
+                                           "reqId":  "REQ-8",
+                                           "area":  "Robustness.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R61 auth-entry",
+                                                                 "R66 operations-logs-release"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need full config/data/permission/workflow/deploy robustness audit plus human acceptance."
+                                       },
+                                       {
+                                           "reqId":  "REQ-9",
+                                           "area":  "Advanced/new capabilities.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R64 workflow-todo-message",
+                                                                 "R65 openapi-assistant"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need remaining command-center and assistant enhancements, binary PDF or user-approved HTML export boundary, operations breadth, broader workflow/OpenAPI/AI variants, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-10",
+                                           "area":  "Full delivery standard.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R61 auth-entry",
+                                                                 "R66 operations-logs-release"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need all delivery checklist rows mapped to evidence and user signoff."
+                                       },
+                                       {
+                                           "reqId":  "REQ-14.1-14.37",
+                                           "area":  "Launch capability rules: versioning, publish, lifecycle, business rules, uniqueness, rollback, print, KPI, health, permission preview, archive, confirmations, UX details, APIs, errors, idempotency, rate limit, cache, design system, performance, reports, audit, gray release, quotas, masking, accessibility, data design.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R65 openapi-assistant",
+                                                                 "R66 operations-logs-release"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need evidence for every remaining non-print/non-integration 14.x item, operator-facing operations/rollback/backup/cache/quota/gray-release UX, binary PDF or user-approved HTML export boundary, and user acceptance before `PROVEN`."
+                                       },
+                                       {
+                                           "reqId":  "REQ-A",
+                                           "area":  "Confirmed product clarifications.",
+                                           "ledgerStatus":  "PARTIAL",
+                                           "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                           "freshEvidence":  [
+                                                                 "R66 operations-logs-release"
+                                                             ],
+                                           "canPromoteToProven":  false,
+                                           "userSignoffRequired":  true,
+                                           "remainingGap":  "Need explicit appendix A coverage scan against implementation and UI plus user acceptance."
+                                       }
+                                   ],
+    "remainingBlockers":  [
+                              {
+                                  "reqId":  "REQ-2.1",
+                                  "area":  "Product goal: customizable no-code systems with workflow, OpenAPI, AI, tasks, messages, logs, and usable people-facing product.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R61 auth-entry",
+                                                        "R62 platform-system-shell"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need all functional and usability rows below to be `PROVEN` or `USER_EXCLUDED`, plus explicit user acceptance."
+                              },
+                              {
+                                  "reqId":  "REQ-4.1",
+                                  "area":  "Platform layer and custom system layer separation.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R62 platform-system-shell"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need deeper first-use and no-code-admin information-architecture acceptance before `PROVEN`."
+                              },
+                              {
+                                  "reqId":  "REQ-4.2",
+                                  "area":  "Platform center.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R62 platform-system-shell"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need platform workspace/admin daily-use breadth and user acceptance beyond engineering evidence."
+                              },
+                              {
+                                  "reqId":  "REQ-4.3",
+                                  "area":  "Application configuration center.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R59 admin-first-use"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need richer first-use-to-launch workflow, nested/disabled/unpublished menu permutations, broader cross-surface admin usability, and user acceptance."
+                              },
+                              {
+                                  "reqId":  "REQ-4.4",
+                                  "area":  "Application runtime.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R63 configured-runtime"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need remaining runtime approval detail breadth, import/export rollback UX, file preview/version/storage failure states, batch actions, deeper empty/error/accessibility states, and user acceptance before `PROVEN`."
+                              },
+                              {
+                                  "reqId":  "REQ-4.5",
+                                  "area":  "Workflow workbench.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R64 workflow-todo-message"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need broader workflow workbench scenarios such as reject/transfer/timer/escalation, richer failure states, and user acceptance."
+                              },
+                              {
+                                  "reqId":  "REQ-4.6",
+                                  "area":  "System management and operations center.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R66 operations-logs-release"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need full operator usability and all maintenance controls verified from deployed UI plus human acceptance."
+                              },
+                              {
+                                  "reqId":  "REQ-5.1",
+                                  "area":  "Account and login.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R61 auth-entry",
+                                                        "R62 platform-system-shell"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need full MFA/SSO variants and account security UX coverage if still in final scope."
+                              },
+                              {
+                                  "reqId":  "REQ-5.2",
+                                  "area":  "Systems and tenants.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R61 auth-entry",
+                                                        "R62 platform-system-shell"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need full system lifecycle, tenant lifecycle, initialization, preview/publish and rollback UX."
+                              },
+                              {
+                                  "reqId":  "REQ-5.3",
+                                  "area":  "Applications.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R59 admin-first-use"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need app lifecycle and platform-level app/system data interop coverage."
+                              },
+                              {
+                                  "reqId":  "REQ-5.3.1",
+                                  "area":  "Module groups as runtime navigation.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R59 admin-first-use"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need nested group behavior, disabled/unpublished state permutations, broader menu editing UX, and user acceptance."
+                              },
+                              {
+                                  "reqId":  "REQ-5.4",
+                                  "area":  "Modules.",
+                                  "ledgerStatus":  "PARTIAL",
+                                  "r67CandidateStatus":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                  "freshEvidence":  [
+                                                        "R59 admin-first-use"
+                                                    ],
+                                  "canPromoteToProven":  false,
+                                  "userSignoffRequired":  true,
+                                  "remainingGap":  "Need all module permissions/field-type permutations, binary PDF or user-approved HTML boundary, long-form usability, and user acceptance before `PROVEN`."
+                              }
+                          ],
+    "accepted":  true
+}

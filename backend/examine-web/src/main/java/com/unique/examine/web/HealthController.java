@@ -1,6 +1,7 @@
 package com.unique.examine.web;
 
 import com.unique.examine.core.api.ApiResponse;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedHashMap;
@@ -34,8 +35,12 @@ public class HealthController {
         status.put("status", "UP");
         checkRedis(status);
         try {
-            Integer databaseProbe = jdbcTemplate.queryForObject("SELECT 1", Integer.class);
-            status.put("database", Integer.valueOf(1).equals(databaseProbe) ? "UP" : "DOWN");
+            boolean databaseUp = isDatabaseConnectionValid();
+            status.put("database", databaseUp ? "UP" : "DOWN");
+            if (!databaseUp) {
+                status.put("status", "DEGRADED");
+                return ApiResponse.success(status);
+            }
             List<String> missingSchema = missingSchema();
             status.put("schema", missingSchema.isEmpty() ? "UP" : "MISMATCH");
             if (!missingSchema.isEmpty()) {
@@ -48,6 +53,17 @@ public class HealthController {
             status.put("databaseError", ex.getClass().getSimpleName());
         }
         return ApiResponse.success(status);
+    }
+
+    private boolean isDatabaseConnectionValid() {
+        if (jdbcTemplate.getDataSource() == null) {
+            return false;
+        }
+        try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
+            return connection.isValid(2);
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private void checkRedis(Map<String, Object> status) {

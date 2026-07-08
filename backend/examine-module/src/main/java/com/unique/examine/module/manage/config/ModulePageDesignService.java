@@ -24,13 +24,19 @@ import com.unique.examine.module.manage.config.ModuleConfigModels.PublishResult;
 import com.unique.examine.module.manage.config.ModulePageDesignModels.PageComponentConfig;
 import com.unique.examine.module.manage.config.ModulePageDesignModels.PageDesignerSaveRequest;
 import com.unique.examine.module.manage.config.ModulePageDesignModels.PageDesignerVO;
+import com.unique.examine.module.manage.config.ModulePageDesignModels.PageSchemaFieldVO;
+import com.unique.examine.module.manage.config.ModulePageDesignModels.PageSchemaVO;
+import com.unique.examine.plat.manage.permission.PermissionModels.EffectivePermissionSnapshot;
+import com.unique.examine.plat.manage.permission.PermissionService;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -57,6 +63,7 @@ public class ModulePageDesignService {
     private final ModuleFieldDefinitionBaseService fieldBaseService;
     private final ModuleWorkConfigBaseService workConfigBaseService;
     private final ModulePublishVersionBaseService publishVersionBaseService;
+    private final PermissionService permissionService;
     private final ObjectMapper objectMapper;
 
     public ModulePageDesignService(ModuleSystemContextResolver contextResolver,
@@ -64,12 +71,14 @@ public class ModulePageDesignService {
                                    ModuleFieldDefinitionBaseService fieldBaseService,
                                    ModuleWorkConfigBaseService workConfigBaseService,
                                    ModulePublishVersionBaseService publishVersionBaseService,
+                                   PermissionService permissionService,
                                    ObjectMapper objectMapper) {
         this.contextResolver = contextResolver;
         this.moduleBaseService = moduleBaseService;
         this.fieldBaseService = fieldBaseService;
         this.workConfigBaseService = workConfigBaseService;
         this.publishVersionBaseService = publishVersionBaseService;
+        this.permissionService = permissionService;
         this.objectMapper = objectMapper;
     }
 
@@ -160,6 +169,21 @@ public class ModulePageDesignService {
         return toVO(context, module, config, true);
     }
 
+    public PageSchemaVO pageSchema(String systemId, String moduleId, String pageCode, String snapshot) {
+        ModuleSystemContext context = contextResolver.resolve(systemId);
+        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleWorkConfig config = requirePageConfig(context, module.getId(), pageCode);
+        boolean publishedSnapshot = "published".equalsIgnoreCase(snapshot);
+        return toSchemaVO(context, module, config, publishedSnapshot);
+    }
+
+    public PageSchemaVO runtimePageSchema(String systemId, String moduleId, String pageCode) {
+        ModuleSystemContext context = contextResolver.resolve(systemId);
+        ModuleDefinition module = requireModule(context, moduleId);
+        ModuleWorkConfig config = requirePageConfig(context, module.getId(), pageCode);
+        return toSchemaVO(context, module, config, true);
+    }
+
     private List<PublishCheckItem> pageFailures(ModuleDefinition module, Map<String, Object> payload,
                                                 List<PageComponentConfig> components) {
         if (components.isEmpty()) {
@@ -224,6 +248,63 @@ public class ModulePageDesignService {
                 String.valueOf(payload.getOrDefault("layoutMode", "left-list-right-detail")), components(payload),
                 stringList(payload.get("visibleRoleIds")), config.getPublishStatus(), config.getPublishedVersion(),
                 context.permissionSnapshotId(), RequestContext.current().traceId(), config.getUpdatedAt());
+    }
+
+    private PageSchemaVO toSchemaVO(ModuleSystemContext context, ModuleDefinition module, ModuleWorkConfig config,
+                                    boolean publishedSnapshot) {
+        String payloadJson = publishedSnapshot ? config.getCardFields() : config.getFieldList();
+        if (publishedSnapshot && (!PUBLISHED.equals(config.getPublishStatus()) || !StringUtils.hasText(payloadJson))) {
+            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "Page is not published.");
+        }
+        Map<String, Object> payload = readPayload(payloadJson);
+        EffectivePermissionSnapshot permission = permissionService.effective(String.valueOf(context.systemId()));
+        List<PageSchemaFieldVO> fields = schemaFields(module, permission);
+        Set<String> visibleFieldCodes = fields.stream().map(PageSchemaFieldVO::fieldCode).collect(java.util.stream.Collectors.toSet());
+        List<PageComponentConfig> visibleComponents = components(payload).stream()
+                .filter(component -> !Boolean.FALSE.equals(component.visible()))
+                .filter(component -> !StringUtils.hasText(component.boundFieldCode())
+                        || visibleFieldCodes.contains(component.boundFieldCode()))
+                .sorted(Comparator.comparing(component -> component.sort() == null ? Integer.MAX_VALUE : component.sort()))
+                .toList();
+        String schemaVersion = publishedSnapshot
+                ? safeText(config.getPublishedVersion(), "PAGE_UNVERSIONED")
+                : "PAGE_DRAFT_" + shortHash(safeText(config.getFieldList(), ""));
+        return new PageSchemaVO(String.valueOf(config.getId()), String.valueOf(config.getSystemId()),
+                String.valueOf(config.getTenantId()), String.valueOf(module.getId()), module.getModuleCode(),
+                pageCode(payload, config), pageName(payload), String.valueOf(payload.getOrDefault("pageType", "MODULE_LIST")),
+                String.valueOf(payload.getOrDefault("route", "/modules/" + module.getId())),
+                String.valueOf(payload.getOrDefault("layoutMode", "left-list-right-detail")), config.getPublishStatus(),
+                publishedSnapshot ? "PUBLISHED" : "DRAFT", schemaVersion, visibleComponents, fields,
+                permission.snapshotId(), permission.permissionVersion(), RequestContext.current().traceId(),
+                config.getUpdatedAt());
+    }
+
+    private List<PageSchemaFieldVO> schemaFields(ModuleDefinition module, EffectivePermissionSnapshot permission) {
+        return fieldBaseService.list(new LambdaQueryWrapper<ModuleFieldDefinition>()
+                        .eq(ModuleFieldDefinition::getModuleId, module.getId())
+                        .eq(ModuleFieldDefinition::getDeleted, DELETED_NO)
+                        .eq(ModuleFieldDefinition::getStatus, ENABLED)
+                        .orderByAsc(ModuleFieldDefinition::getSortOrder)
+                        .orderByAsc(ModuleFieldDefinition::getId))
+                .stream()
+                .map(field -> schemaField(module, permission, field))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private PageSchemaFieldVO schemaField(ModuleDefinition module, EffectivePermissionSnapshot permission,
+                                          ModuleFieldDefinition field) {
+        String permissionMode = fieldPermissionMode(permission, module.getId(), field.getId(), field.getFieldCode());
+        if ("HIDDEN".equalsIgnoreCase(permissionMode)) {
+            return null;
+        }
+        boolean writable = "WRITABLE".equalsIgnoreCase(permissionMode);
+        return new PageSchemaFieldVO(String.valueOf(field.getId()), field.getFieldCode(), field.getFieldName(),
+                safeText(field.getFieldType(), "TEXT"), safeText(field.getStorageType(), "VARCHAR"),
+                Objects.equals(field.getRequired(), ENABLED), Objects.equals(field.getSortable(), ENABLED),
+                permissionMode, writable, !writable, true,
+                fieldMaskRule(permissionMode, field.getMaskRule()), readPayload(field.getValidationRule()),
+                writable ? null : "当前角色可以查看该字段，但没有写入权限。", field.getSortOrder());
     }
 
     private ModuleDefinition requireModule(ModuleSystemContext context, String moduleId) {
@@ -331,6 +412,44 @@ public class ModulePageDesignService {
                 .filter(Objects::nonNull)
                 .map(String::valueOf)
                 .toList();
+    }
+
+    private String fieldPermissionMode(EffectivePermissionSnapshot permission, Object moduleId,
+                                       Object fieldId, String fieldCode) {
+        Map<String, String> fields = permission.field();
+        return safeText(firstFieldPermission(fields, moduleId, fieldId, fieldCode), "READABLE")
+                .toUpperCase(Locale.ROOT);
+    }
+
+    private String firstFieldPermission(Map<String, String> fields, Object moduleId, Object fieldId,
+                                        String fieldCode) {
+        List<String> keys = List.of("*", String.valueOf(moduleId) + "." + fieldId,
+                String.valueOf(moduleId) + "." + fieldCode, String.valueOf(fieldId), fieldCode);
+        for (String key : keys) {
+            if (StringUtils.hasText(fields.get(key))) {
+                return fields.get(key);
+            }
+        }
+        return null;
+    }
+
+    private String fieldMaskRule(String permissionMode, String configuredMaskRule) {
+        if ("MASKED".equalsIgnoreCase(permissionMode)) {
+            return safeText(readJsonString(configuredMaskRule, "MASKED"), "MASKED");
+        }
+        return readJsonString(configuredMaskRule, "NONE");
+    }
+
+    private String readJsonString(String json, String fallback) {
+        if (!StringUtils.hasText(json)) {
+            return fallback;
+        }
+        try {
+            Object value = objectMapper.readValue(json, Object.class);
+            return value == null ? fallback : String.valueOf(value);
+        } catch (Exception ex) {
+            return fallback;
+        }
     }
 
     private Map<String, Object> readPayload(String json) {

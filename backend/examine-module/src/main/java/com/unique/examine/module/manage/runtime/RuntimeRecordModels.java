@@ -38,9 +38,12 @@ public final class RuntimeRecordModels {
                                       String permissionSnapshotVersion, String schemaVersion) {
     }
 
+    public record RuntimeSceneOptionVO(String sceneId, String sceneCode, String sceneName, boolean defaultScene) {
+    }
+
     public record ColumnPermissionVO(String fieldId, String fieldCode, String label, Integer width,
                                      boolean visibleDefault, boolean sortable, boolean writable,
-                                     String permissionMode, String maskRule, String disabledReason) {
+                                     boolean fixed, String permissionMode, String maskRule, String disabledReason) {
     }
 
     public record FilterCapabilityVO(String fieldId, String fieldCode, String label, String fieldType,
@@ -161,5 +164,8 @@ public final class RuntimeRecordModels {
                                      String permissionSnapshotId, String permissionSnapshotVersion,
                                      List<FieldMaskResult> desensitizeResult, String traceId,
                                      String auditLogId, String operatedBy, LocalDateTime operatedAt) {
+    }
+
+    public record RuntimePrintRequest(String templateCode) {
     }
 }

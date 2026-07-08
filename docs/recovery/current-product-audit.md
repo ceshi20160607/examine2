@@ -23,7 +23,7 @@ The top-level acceptance source is now `docs/recovery/final-usable-system-accept
 - J6 external and import/export
 - J7 operations and maintenance
 
-Current final engineering status: `PASS`.
+Current final engineering status: `REOPENED_PARTIAL`.
 
 Evidence:
 
@@ -31,6 +31,65 @@ Evidence:
 - `scripts/recovery-r21-final-usable-system-audit.ps1` reports J0-J7 all `PASS`.
 - R22 proves deployed platform-admin operations governance for health, feature flag, quota, rate-limit, backup task, restore drill, archive restore, deployment rollback dry-run, and API cache policy.
 - `gates.user_script_passed=false` until the user personally verifies or signs off.
+
+2026-07-01 V7 update:
+
+- The previous area-level `OK` rows and R21/R5 `PASS` are now historical engineering evidence only.
+- User feedback says the deployed product still does not meet the final "human-usable system" target.
+- Framework V7 is active and requires a fresh human role-journey gate before claiming progress toward final acceptance.
+- Active next task: `REC-P0-057 FRC-6 Human Acceptance Pass Fresh Closure`.
+- Required rows: `REQ-2.1`, `REQ-4.1`, `REQ-4.2`, `REQ-6.2`.
+
+2026-07-02 V8 update:
+
+- User feedback now says repeated local fixes can become unlimited and still fail to produce a coherent system.
+- The active correction is a flow-first rebuild contract: no token -> login/register/password recovery -> role routing -> four shells -> system switch -> first-use configuration -> runtime/workflow/OpenAPI/AI/operations.
+- Active flow source: `docs/framework/final-system-flow-blueprint.md`.
+- Latest accepted flow task: `REC-P0-062 Platform And System Shell Landing Flow Closure`.
+- Latest accepted admin first-use task: `REC-P0-059 FRC-2/FRC-6 Admin Configuration Human First-Use Closure`.
+- Latest accepted page/visual/page-designer task: `REC-P0-068 Page Visual Designer Fresh Evidence Closure`.
+- Latest accepted requirement evidence promotion task: `REC-P0-069 Requirement Evidence Promotion And Residual Gap Decision`.
+- Latest accepted no-code configuration residual depth task: `REC-P0-070 No-Code Configuration Residual Depth Closure`.
+- Latest accepted no-code frontend binding task: `REC-P0-071 No-Code Frontend Binding And Hierarchy Residual Closure`.
+- Latest accepted runtime file/import-export/error-state task: `REC-P0-072 Runtime Daily-Use File Import Export Error-State Residual Closure`.
+- Latest accepted workflow/todo/message residual task: `REC-P0-073 Workflow Todo Message Integration Error-State Residual Closure`.
+- Latest accepted OpenAPI/AI external-service residual task: `REC-P0-074 OpenAPI AI External-Service Error-State Residual Closure`.
+- Latest accepted auth/shell entry role-flow residual task: `REC-P0-076 Auth Shell Entry Role Flow Residual`.
+- Latest accepted operations/logs/release residual task: `REC-P0-075 Operations Logs Release Maintenance Error-State Residual Closure`.
+- Latest accepted final candidate refresh task: `REC-P0-077 Final Requirement Candidate Refresh After Residual Closure`.
+- Active next task: `REC-P0-078 FRC-1 Product Surface Human Acceptance Residual Closure`.
+- R62 specifically closed a browser-discovered stale-token/empty-account bug where the platform shell could render as "鏈櫥褰?; business shells now require initialized account state.
+- R76 specifically closed remaining entry/shell foundation drift: platform-role login no longer auto-switches into a system, stale `/platform/dashboard` landing is normalized to `/platform`, platform/system admin surfaces are standalone admin shells, registration still enters system admin, and password recovery exposes a return-to-login action.
+
+2026-07-06 R79 update:
+
+- R78 is accepted as product-surface engineering evidence only after release/static/framework checks and fresh R68/R75/R77 child evidence passed.
+- The active next task is `REC-P0-079 Final User Verification Readiness And Continuation Contract`.
+- R79 is accepted as handoff engineering evidence. It does not code new product surfaces. It makes the current project structure, final target, developed evidence, user verification path, and future change workflow durable on disk.
+- Future coding must continue through role journey -> requirement row -> task card -> fix batch -> implementation -> deterministic script evidence.
+- `gates.user_script_passed=false` remains the final user verification boundary.
+
+2026-07-06 R80 update:
+
+- The active next task is `REC-P0-080 Live User Trial Workspace Seed`.
+- R80 creates a retained live trial workspace with credentials, routes, runtime records, and workflow/todo/message data so human review can start from the running product instead of reports only.
+- R80 is engineering evidence only. It must not promote coverage rows or set `gates.user_script_passed=true`.
+- Future changes still use role journey -> requirement row -> task card -> fix batch -> implementation -> deterministic script evidence -> user verification.
+- R80 PASS is now accepted as live trial engineering evidence: runtime trial system `1118`, workflow trial system `1121`, release/framework/static checks passed, coverage remains notClosed `45`, and user signoff remains false.
+
+2026-07-06 R81 update:
+
+- The active next task is `REC-P0-081 Trial Login And Role Use Audit`.
+- R81 uses the retained R80 accounts from the deployed login page instead of seeding another workspace.
+- R81 must verify platform admin entry, normal runtime record visibility, readonly create denial, requester workflow terminal visibility, approver todo/message surfaces, browser containment, and API/readback permission evidence.
+- R81 remains engineering evidence only. It must not promote coverage rows or set `gates.user_script_passed=true`.
+
+
+2026-07-07 R81 acceptance and R82 activation update:
+
+- R81 is accepted as deployed login/role engineering evidence only: result `docs/evidence/recovery/r81-trial-login-role-use-audit-result.json` reports `status=PASS`, browser results `8`, overflow `0`, blockers `0`, coverage notClosed `45`, and `gates.user_script_passed=false`.
+- The active next task is `REC-P0-082 Visible Copy Encoding And Trial Usability Cleanup`.
+- R82 targets the next human-usability gap exposed by the trial paths: readable visible copy on login, shell, runtime, readonly, workflow, todo, and message routes without weakening role permissions or claiming user signoff.
 
 ## Audit Labels
 
@@ -74,12 +133,33 @@ Evidence:
 
 ## Current Boundary
 
-Engineering recovery has accepted R0 through R22 as area-level API/release/browser evidence. R5 final orchestration was rerun after R20 and R22 were included, and R21 final usable-system audit now reports J0-J7 all `PASS`.
+Engineering recovery has accepted many R-batches as area-level API/release/browser evidence. R5/R21/R56 and related scripts remain useful engineering evidence, but they no longer prove final acceptance after the user's deployed-use feedback reopened the human-usable system gate.
 
-The final product goal remains user-signoff pending:
+The final product goal remains open:
 
 - `gates.user_script_passed=false` until the user personally verifies or signs off.
-- Engineering gate: `REC-P0-024 Final Usable System Journey Gate` is accepted by `docs/evidence/recovery/r21-final-usable-system-audit-result.json`.
+- Engineering gate status: historical R21 final usable-system audit is downgraded to engineering evidence.
+- Latest accepted configured runtime task: `REC-P0-063 B1/B2 Configured Runtime First-Use And Daily Business Closure`.
+- Latest accepted workflow/todo/message task: `REC-P0-064 C4/B4/B5 Workflow Todo Message First-Use And Closure`.
+- Latest accepted OpenAPI/AI task: `REC-P0-065 E1/AI2 OpenAPI Assistant External-Service First-Use Closure`.
+- Latest accepted operations/logs/release task: `REC-P0-066 O1/O2/O3 Operations Logs Release Maintenance First-Use Closure`.
+- Latest accepted final candidate refresh task: `REC-P0-067 Final Role Journey And Requirement Acceptance Candidate Refresh`.
+- Latest accepted page/visual/page-designer task: `REC-P0-068 Page Visual Designer Fresh Evidence Closure`.
+- Latest accepted requirement evidence promotion task: `REC-P0-069 Requirement Evidence Promotion And Residual Gap Decision`.
+- Latest accepted no-code configuration residual depth task: `REC-P0-070 No-Code Configuration Residual Depth Closure`.
+- Latest accepted no-code frontend binding task: `REC-P0-071 No-Code Frontend Binding And Hierarchy Residual Closure`.
+- Latest accepted runtime file/import-export/error-state task: `REC-P0-072 Runtime Daily-Use File Import Export Error-State Residual Closure`.
+- Latest accepted workflow/todo/message residual task: `REC-P0-073 Workflow Todo Message Integration Error-State Residual Closure`.
+- Latest accepted OpenAPI/AI external-service residual task: `REC-P0-074 OpenAPI AI External-Service Error-State Residual Closure`.
+- Latest accepted auth/shell entry role-flow residual task: `REC-P0-076 Auth Shell Entry Role Flow Residual`.
+- Latest accepted operations/logs/release residual task: `REC-P0-075 Operations Logs Release Maintenance Error-State Residual Closure`.
+- Latest accepted final candidate refresh task: `REC-P0-077 Final Requirement Candidate Refresh After Residual Closure`.
+- Latest accepted product-surface task: `REC-P0-078 FRC-1 Product Surface Human Acceptance Residual Closure`.
+- Latest accepted live trial workspace task: `REC-P0-080 Live User Trial Workspace Seed`.
+- Active next task: `REC-P0-082 Visible Copy Encoding And Trial Usability Cleanup`.
+- Active gate: `REC-P0-082 Visible Copy Encoding And Trial Usability Cleanup`.
+- Active framework: `docs/framework/framework-v8-flow-blueprint-rebuild-contract.md`.
+- Active flow source: `docs/framework/final-system-flow-blueprint.md`.
 
 ## Audit Procedure
 
@@ -90,3 +170,9 @@ For every remaining non-OK row:
 3. Implement only the smallest business loop that closes the row.
 4. Prove backend persistence, frontend usability, permissions, state transitions, browser behavior, and cleanup.
 5. Add the script to R5 only after its standalone smoke passes.
+
+## 2026-07-08 R93 Product Audit Addendum
+
+User feedback identifies a live information-architecture blocker: platform Application currently behaves like system entry, while Flow and Application should be separate platform modules. This makes the product feel confusing even if individual engineering slices pass. R93 must correct platform navigation, copy, page structure, and DOM/source markers before more feature-slice acceptance.
+
+Audit rule added: platform Application may show application/authorization/configuration objects and actions, but it must not render the system-switch panel, system cards, or primary “enter system” actions. Platform Flow must read as its own module. System entry remains on `/platform` workbench/system switch only.

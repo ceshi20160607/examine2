@@ -1,0 +1,24 @@
+﻿{
+    "systemId":  "698",
+    "flowId":  "124",
+    "highTraceId":  "trc_25e10860-784a-40d6-9a72-ea9a5357196a",
+    "lowTraceId":  "trc_90592f18-f37a-49c5-a024-4f438e4020b3",
+    "highNodes":  [
+                      "node_submit_review",
+                      "node_amount_condition",
+                      "node_manager_review",
+                      "node_end_passed"
+                  ],
+    "lowNodes":  [
+                     "node_submit_review",
+                     "node_amount_condition",
+                     "node_end_passed"
+                 ],
+    "highApproverCount":  2,
+    "lowApproverCount":  1,
+    "highRuntimeInstanceCreated":  false,
+    "lowRuntimeInstanceCreated":  false,
+    "blockerItemCodes":  [
+                             "E_SIM_APPROVER_EMPTY"
+                         ]
+}

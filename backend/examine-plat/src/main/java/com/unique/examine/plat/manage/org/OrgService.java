@@ -42,7 +42,7 @@ public class OrgService {
      * @return department tree
      */
     public List<DepartmentVO> departmentTree(String systemId) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         List<PlatDepartment> departments = departmentBaseService.list(new LambdaQueryWrapper<PlatDepartment>()
                 .eq(PlatDepartment::getSystemId, context.systemId())
                 .eq(PlatDepartment::getTenantId, context.tenantId())
@@ -61,7 +61,7 @@ public class OrgService {
      */
     @Transactional(rollbackFor = Exception.class)
     public DepartmentVO createDepartment(String systemId, DepartmentSaveRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         requireText(request == null ? null : request.deptCode(), "部门编码不能为空");
         requireText(request.deptName(), "部门名称不能为空");
         Long parentId = parseParentId(request.parentId());

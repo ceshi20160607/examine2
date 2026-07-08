@@ -1,0 +1,35 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-037",
+    "generatedAt":  "2026-06-30T19:17:45.0010312+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "726",
+    "tenantId":  "758",
+    "moduleId":  "243",
+    "recordId":  "343",
+    "recordValue":  "R37 First Navigation Record 0630191726034_a6f571",
+    "normalAccount":  "r37_member_0630191726034_a6f571",
+    "normalMemberId":  "943",
+    "normalBindingId":  "943",
+    "runtimeRoleId":  "1018",
+    "permissionVersion":  "perm_1782818255149_trc03d90",
+    "sceneId":  "468",
+    "templateCode":  "print_r37_0630191726034_a6f571",
+    "publishedPrintVersion":  "PRINT_TEMPLATE_v1782818255502",
+    "forbiddenCreateStatus":  403,
+    "apiReadbackTotal":  1,
+    "browserStatus":  "PASS",
+    "browserResultCount":  2,
+    "browserOverflowCount":  0,
+    "browserBlockerCount":  0,
+    "assetScripts":  [
+                         "http://127.0.0.1:18131/config.js",
+                         "http://127.0.0.1:18131/assets/index-CDOOMXu_.js"
+                     ],
+    "evidenceDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r37-runtime-first-navigation",
+    "browserResultPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r37-runtime-first-navigation\\runtime-first-navigation-browser.json",
+    "cleanup":  [
+                    "726:DELETE",
+                    "727:DELETE"
+                ]
+}

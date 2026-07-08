@@ -1,0 +1,108 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-066",
+    "productStatus":  "R66_ACCEPTED_AS_DEPLOYED_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-06T15:35:54.0309474+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "requirementRows":  [
+                            "REQ-4.6",
+                            "REQ-5.17",
+                            "REQ-5.18",
+                            "REQ-7",
+                            "REQ-8",
+                            "REQ-10",
+                            "REQ-14.1-14.37",
+                            "REQ-A"
+                        ],
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "deployed release and packaged server commands passed",
+                       "passed":  true,
+                       "detail":  "release=PASS, commands=start,stop,restart,status,health"
+                   },
+                   {
+                       "area":  "static",
+                       "name":  "static usability audit has no blockers or warnings",
+                       "passed":  true,
+                       "detail":  "status=PASS, blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "operations",
+                       "name":  "operations tasks and settings read back persisted state",
+                       "passed":  true,
+                       "detail":  "backup=TASK-20260706153501, restore=TASK-20260706153501, archive=TASK-20260706153501, rollback=TASK-20260706153501, deployment=1, cache=4/1"
+                   },
+                   {
+                       "area":  "logs",
+                       "name":  "platform and system audit readback is tied to trace ids",
+                       "passed":  true,
+                       "detail":  "platformAudit=9, systemAudit=1, platformTrace=trc_r50_platform_health_0706153449837_40cdbc, systemTrace=trc_r50_system_health_0706153449837_40cdbc"
+                   },
+                   {
+                       "area":  "permission",
+                       "name":  "normal-member operation denials are logged as failures",
+                       "passed":  true,
+                       "detail":  "platformDenied=403/FAILURE, systemDenied=403/FAILURE"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "operator browser surfaces have no overflow or blockers",
+                       "passed":  true,
+                       "detail":  "browser=6, overflow=0, blockers=0"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r66-operations-logs-release-maintenance-first-use\\verify-release.log"
+                         },
+                         {
+                             "name":  "recovery-r56-operations-robustness-delivery",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r66-operations-logs-release-maintenance-first-use\\recovery-r56-operations-robustness-delivery.log"
+                         }
+                     ],
+    "systemId":  "1095",
+    "tenantId":  "1127",
+    "releaseVerifyStatus":  "PASS",
+    "serverScriptCommands":  [
+                                 "start",
+                                 "stop",
+                                 "restart",
+                                 "status",
+                                 "health"
+                             ],
+    "platformHealthTraceId":  "trc_r50_platform_health_0706153449837_40cdbc",
+    "systemHealthTraceId":  "trc_r50_system_health_0706153449837_40cdbc",
+    "featureFlagTraceId":  "trc_r50_feature_flag_0706153449837_40cdbc",
+    "quotaTraceId":  "trc_r50_quota_0706153449837_40cdbc",
+    "rateLimitTraceId":  "trc_r50_rate_0706153449837_40cdbc",
+    "backupTaskId":  "TASK-20260706153501",
+    "restoreTaskId":  "TASK-20260706153501",
+    "archiveTaskId":  "TASK-20260706153501",
+    "rollbackTaskId":  "TASK-20260706153501",
+    "deploymentCount":  1,
+    "cachePolicyCount":  4,
+    "cacheUpdatedCount":  1,
+    "platformAuditReadbackCount":  9,
+    "systemAuditReadbackCount":  1,
+    "deniedPlatformStatus":  403,
+    "deniedSystemStatus":  403,
+    "deniedPlatformAuditResult":  "FAILURE",
+    "deniedSystemAuditResult":  "FAILURE",
+    "staticAuditStatus":  "PASS",
+    "staticBlockerCount":  0,
+    "staticWarningCount":  0,
+    "browserResultCount":  6,
+    "browserOverflowCount":  0,
+    "browserBlockerCount":  0,
+    "browserAuditPath":  "docs/evidence/recovery/screenshots/r66-operations-logs-release-maintenance-first-use/operations-logs-release-browser-audit.json",
+    "cleanup":  [
+                    "1095:DELETE",
+                    "1096:DELETE"
+                ],
+    "accepted":  true
+}

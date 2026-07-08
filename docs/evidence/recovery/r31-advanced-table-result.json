@@ -1,0 +1,31 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-031",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "694",
+    "tenantId":  "726",
+    "moduleId":  "228",
+    "roleId":  "971",
+    "normalLoginName":  "r31_table_member_0630155841062_7dbd18",
+    "savedSceneCode":  "r31_compact_0630155841062_7dbd18",
+    "totalRecords":  25,
+    "firstPageCount":  10,
+    "columnOrder":  [
+                        "amountValue",
+                        "publicName"
+                    ],
+    "fixedFirstColumn":  true,
+    "hiddenColumnLeaked":  false,
+    "hiddenRowFieldLeaked":  false,
+    "sceneDefaultSortFirstAmount":  "1.000000",
+    "explicitDescSortFirstAmount":  "25.000000",
+    "filteredTotal":  6,
+    "permissionVersion":  "perm_1782806331313_trc7c857",
+    "evidenceDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r31-advanced-table",
+    "apiAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r31-advanced-table\\advanced-table-api-audit.json",
+    "cleanup":  "DEFERRED_FOR_BROWSER_EVIDENCE_THEN_CLEANED",
+    "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r31-advanced-table\\advanced-table-browser-audit.json",
+    "desktopScreenshot":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r31-advanced-table\\desktop-saved-view.png",
+    "mobileScreenshot":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r31-advanced-table\\mobile-saved-view.png",
+    "browserCleanup":  "694:DELETE, 695:DELETE, finalDryRunMatchedCount=0"
+}

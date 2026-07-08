@@ -1,0 +1,189 @@
+{
+  "status": "PASS",
+  "resultCount": 8,
+  "overflowCount": 0,
+  "mojibakeCount": 0,
+  "blockerCount": 0,
+  "results": [
+    {
+      "key": "auth-login-copy-desktop",
+      "hash": "#/login",
+      "textLength": 127,
+      "textSample": "U unexamine 统一入口 账号登录 登录 注册 找回密码 账号 密码 请输入账号和密码。 登录 traceId: trace_login_ready auditLogId: aud_login_ready API 0.1.0-frozen",
+      "overflowX": 0,
+      "blockerTexts": [],
+      "mojibakeMarkers": [],
+      "hasAuthForm": true,
+      "hasPlatformWorkbench": false,
+      "hasRuntimeShell": false,
+      "hasRuntimeRecord": false,
+      "hasWorkflowRecord": false,
+      "hasTodoWorkbench": false,
+      "hasMessageCenter": false,
+      "expectedTexts": [
+        "统一入口",
+        "账号登录",
+        "登录",
+        "注册",
+        "找回密码"
+      ],
+      "missingExpectedTexts": [],
+      "blockers": []
+    },
+    {
+      "key": "auth-register-copy-desktop",
+      "hash": "#/register-with-system",
+      "textLength": 203,
+      "textSample": "U unexamine 统一入口 注册账号并创建系统 登录 注册 找回密码 姓名 手机号 邮箱 密码 系统名称 系统编码 创建后进入初始化向导 创建成功后会进入系统后台，继续完成系统信息、组织架构、角色权限、模块字段和发布检查。 系统信息 组织架构 角色权限 模块字段 发布检查 注册会同时创建第一个业务系统，创建人自动成为该系统超级管理员。 创建账号并初始化系统 API 0.1.0-frozen",
+      "overflowX": 0,
+      "blockerTexts": [],
+      "mojibakeMarkers": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasRuntimeShell": false,
+      "hasRuntimeRecord": false,
+      "hasWorkflowRecord": false,
+      "hasTodoWorkbench": false,
+      "hasMessageCenter": false,
+      "expectedTexts": [
+        "注册账号并创建系统",
+        "初始化向导",
+        "组织架构",
+        "角色权限"
+      ],
+      "missingExpectedTexts": [],
+      "blockers": []
+    },
+    {
+      "key": "auth-forgot-password-copy-desktop",
+      "hash": "#/forgot-password",
+      "textLength": 114,
+      "textSample": "U unexamine 统一入口 找回密码 登录 注册 找回密码 申请重置 账号 发送验证码 确认新密码 重置凭证 验证码 新密码 确认重置 先申请重置凭证，再用验证码确认新密码。 返回登录 API 0.1.0-frozen",
+      "overflowX": 0,
+      "blockerTexts": [],
+      "mojibakeMarkers": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasRuntimeShell": false,
+      "hasRuntimeRecord": false,
+      "hasWorkflowRecord": false,
+      "hasTodoWorkbench": false,
+      "hasMessageCenter": false,
+      "expectedTexts": [
+        "找回密码",
+        "发送验证码",
+        "确认重置",
+        "返回登录"
+      ],
+      "missingExpectedTexts": [],
+      "blockers": []
+    },
+    {
+      "key": "admin-platform-copy-desktop",
+      "hash": "#/platform",
+      "textLength": 834,
+      "textSample": "unexamine 仪表盘 流程 应用 AI 命令 待办 消息 admin 平台工作台 平台管理员可以创建系统、进入平台后台，或切换到已有系统继续配置。 创建系统 平台后台 系统切换 车 默认租户 / 待切换 进入系统 R3 Runtime Target 0629161850220_5e768f 默认租户 / 待切换 进入系统 R45 Field Dict Menu 0701153054_fea05f 默认租户 / 待切换 进入系统 R45 Field Dict Menu 0701153507_19f62b 默认租户 / 待切换 进入系统 R3 Runtime Target 0702154219261_487de2 默认租户 / 待切换 进入系统 R63 Configured Runtime 0706161310_8c5a9c 默认租户 / 待切换 进入系统 R63 Configured Runtime 0706161437_cfa240 默认租户 / 待切换 进入系统 R63 Configured Runtime 0706161824_19a9a6 默认租户 / 待切换 进入系统 R63 Configured Runtime 0706162008_417ef6 默认租户 / 待切换 进入系统 R3 Runtime Target 0706162054249_50029c 默认租户 / 待切换 进入系统 R3 Runtime Target 0706162225498_2c59f0 默认租户 / 待切换 进入系统 R3 Runtime Target 0706162458020_c42e14 默认租户 / 待切换 进入系统 R63 Configured Runtime 0706162707_4a00b6 默认租户 / 待切换 进入系统 R3 Runtime Target 0706162803307_ca6efa 默认租户 / 待切换 进入系统",
+      "overflowX": 0,
+      "blockerTexts": [],
+      "mojibakeMarkers": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": true,
+      "hasRuntimeShell": false,
+      "hasRuntimeRecord": false,
+      "hasWorkflowRecord": false,
+      "hasTodoWorkbench": false,
+      "hasMessageCenter": false,
+      "expectedTexts": [
+        "平台",
+        "系统"
+      ],
+      "missingExpectedTexts": [],
+      "blockers": []
+    },
+    {
+      "key": "runtime-normal-copy-desktop",
+      "hash": "#/systems/1118/modules",
+      "textLength": 1109,
+      "textSample": "R63 Configured Runtime 0706162707_4a00b6 仪表盘 R63 Business Group 0706162707_4a00b6 工作 待办 消息 系统切换 r63_member_0706162707_4a00b6 R63 Business Group 0706162707_4a00b6 R63 Business Request 0706162707_4a00b6 1 条 / MODULE_v1783326451017 R63 BUSINESS GROUP 0706162707_4A00B6 R63 Business Request 0706162707_4a00b6 列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。 新建记录 导入 全部导出 列设置 搜索当前模块数据 title status ownerDept 快速搜索 高级筛选 权限快照：eps_1118_1150_1527 已选 0 条 删除 导出选中 勾选后启用删除和导出选中。 序号 标题 ↕ 状态 ↕ 所属部门 ↕ R63 Title ↕ R63 Amount ↕ R63 Owner ↕ 操作 001 R63 Browser Updated 0706162707_4a00b6 OPEN Runtime Team Updated R63 Browser Updated 0706162707_4a00b6 6399.000000 Browser edited member 编辑 提交审批 删除 第 1 页，每页 10 条，共 1 条 上一页 下一页 业务详情 R63 Browser Updated 0706162707_4a00b6 编辑 删除 打印 标题 R63 Browser Updated 0706162707_4a00b6 摘要 R1783326463378 状态 OPEN 权限版本 perm_live_1118_1150_1527 详细资料 关联数据 附件 打印记录 操作记录 基本信息 标题 R63 Browser Updated 0706162707_",
+      "overflowX": 0,
+      "blockerTexts": [],
+      "mojibakeMarkers": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasRuntimeShell": true,
+      "hasRuntimeRecord": true,
+      "hasWorkflowRecord": false,
+      "hasTodoWorkbench": false,
+      "hasMessageCenter": false,
+      "expectedTexts": [
+        "记录"
+      ],
+      "missingExpectedTexts": [],
+      "blockers": []
+    },
+    {
+      "key": "runtime-normal-copy-mobile",
+      "hash": "#/systems/1118/modules",
+      "textLength": 1109,
+      "textSample": "R63 Configured Runtime 0706162707_4a00b6 仪表盘 R63 Business Group 0706162707_4a00b6 工作 待办 消息 系统切换 r63_member_0706162707_4a00b6 R63 Business Group 0706162707_4a00b6 R63 Business Request 0706162707_4a00b6 1 条 / MODULE_v1783326451017 R63 BUSINESS GROUP 0706162707_4A00B6 R63 Business Request 0706162707_4a00b6 列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。 新建记录 导入 全部导出 列设置 搜索当前模块数据 title status ownerDept 快速搜索 高级筛选 权限快照：eps_1118_1150_1527 已选 0 条 删除 导出选中 勾选后启用删除和导出选中。 序号 标题 ↕ 状态 ↕ 所属部门 ↕ R63 Title ↕ R63 Amount ↕ R63 Owner ↕ 操作 001 R63 Browser Updated 0706162707_4a00b6 OPEN Runtime Team Updated R63 Browser Updated 0706162707_4a00b6 6399.000000 Browser edited member 编辑 提交审批 删除 第 1 页，每页 10 条，共 1 条 上一页 下一页 业务详情 R63 Browser Updated 0706162707_4a00b6 编辑 删除 打印 标题 R63 Browser Updated 0706162707_4a00b6 摘要 R1783326463378 状态 OPEN 权限版本 perm_live_1118_1150_1527 详细资料 关联数据 附件 打印记录 操作记录 基本信息 标题 R63 Browser Updated 0706162707_",
+      "overflowX": 0,
+      "blockerTexts": [],
+      "mojibakeMarkers": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasRuntimeShell": true,
+      "hasRuntimeRecord": true,
+      "hasWorkflowRecord": false,
+      "hasTodoWorkbench": false,
+      "hasMessageCenter": false,
+      "expectedTexts": [
+        "记录"
+      ],
+      "missingExpectedTexts": [],
+      "blockers": []
+    },
+    {
+      "key": "workflow-approver-todo-copy-desktop",
+      "hash": "#/systems/1121/todos",
+      "textLength": 316,
+      "textSample": "R3 Runtime Target 0706162803307_ca6efa 仪表盘 R3 Business Group 0706162803307_ca6efa 工作 待办 消息 系统切换 r3_approver_0706162803307_ca6efa 待办 左侧仅展示待办类型，右侧是当前类型的待办列表、筛选和分页。 审批待办 (1) 流程审批 (1) 超时提醒 (0) 工作待办 (0) 今日需处理 (0) 提醒待办 (0) 待办关键字 应用筛选 重置 暂无待办 第 1 页，每页 20 条，共 0 条 上一页 下一页 traceId: trc_3b0db4ad-449a-44f4-931c-dadd51a74fd8",
+      "overflowX": 0,
+      "blockerTexts": [],
+      "mojibakeMarkers": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasRuntimeShell": false,
+      "hasRuntimeRecord": false,
+      "hasWorkflowRecord": false,
+      "hasTodoWorkbench": true,
+      "hasMessageCenter": false,
+      "expectedTexts": [
+        "待办"
+      ],
+      "missingExpectedTexts": [],
+      "blockers": []
+    },
+    {
+      "key": "workflow-approver-message-copy-desktop",
+      "hash": "#/systems/1121/messages",
+      "textLength": 416,
+      "textSample": "R3 Runtime Target 0706162803307_ca6efa 仪表盘 R3 Business Group 0706162803307_ca6efa 工作 待办 消息 系统切换 r3_approver_0706162803307_ca6efa 消息 消息按时间流展示，整条消息点击跳转到审批、业务详情或工作对象，辅助操作只处理阅读和归档状态。 消息关键字 应用筛选 重置 全部 未读 已读 当前消息 已归档 全部标为已读 你有一条新的审批待办 2026-07-06T16:28:40 记录 626 已提交到 Submit review，请及时处理。 read active 归档 tpl_flow_approval_pending / approval / traceId=trc_384487a8-46e5-48d2-8ae4-cf467ebe74ad 第 1 页，每页 20 条，共 1 条 上一页 下一页",
+      "overflowX": 0,
+      "blockerTexts": [],
+      "mojibakeMarkers": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasRuntimeShell": false,
+      "hasRuntimeRecord": false,
+      "hasWorkflowRecord": false,
+      "hasTodoWorkbench": false,
+      "hasMessageCenter": true,
+      "expectedTexts": [
+        "消息"
+      ],
+      "missingExpectedTexts": [],
+      "blockers": []
+    }
+  ],
+  "screenshotEvidenceBoundary": "Screenshots and browser text samples prove visible copy readability, overflow absence, and rendered role state only. Functional completion still depends on API/readback, permission assertions, coverage ledger, and user signoff."
+}

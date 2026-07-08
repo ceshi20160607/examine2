@@ -1,0 +1,65 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-042",
+    "frc":  "FRC-1D Page designer component breadth and accessibility closure",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "1091",
+    "moduleId":  "444",
+    "pageCode":  "main",
+    "savedPageStatus":  "DRAFT",
+    "publishCheckPassed":  true,
+    "publishedVersion":  "PAGE_v1783323051399",
+    "adminSchemaVersion":  "PAGE_v1783323051399",
+    "normalSchemaVersion":  "PAGE_v1783323051399",
+    "normalReadonlyCount":  5,
+    "hiddenFieldLeaked":  false,
+    "hiddenComponentLeaked":  false,
+    "componentReadbackCount":  5,
+    "copiedComponentCodes":  [
+                                 "toolbar_copy"
+                             ],
+    "hiddenComponentCodes":  [
+                                 "toolbar_copy"
+                             ],
+    "componentWorkbench":  {
+                               "rendered":  true,
+                               "mobilePreview":  true,
+                               "rowCount":  5,
+                               "actionButtonCount":  22,
+                               "focusableControlCount":  20
+                           },
+    "normalRuntimeCreate":  {
+                                "desktopDisabled":  true,
+                                "mobileDisabled":  true,
+                                "desktopReadonlyForm":  false,
+                                "desktopReadonlyFieldCount":  0,
+                                "desktopReadonlyFieldsSafe":  false,
+                                "desktopDisabledReason":  "当前角色未配置动作权限：record.create"
+                            },
+    "groupPublishedVersion":  "MODULE_GROUP_v1783323050492",
+    "forbiddenCreateStatus":  403,
+    "adminValidation":  {
+                            "schemaForm":  true,
+                            "validationErrors":  true,
+                            "invalidFieldCodes":  [
+                                                      "title",
+                                                      "status",
+                                                      "publicName",
+                                                      "title",
+                                                      "status",
+                                                      "publicName"
+                                                  ],
+                            "savedValidationErrors":  false
+                        },
+    "assetScripts":  [
+                         "http://127.0.0.1:18131/assets/index-B1rdGYHk.js"
+                     ],
+    "browserResultCount":  8,
+    "browserOverflowCount":  0,
+    "evidenceDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r42-page-designer-component-accessibility",
+    "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r42-page-designer-component-accessibility\\page-designer-browser-audit.json",
+    "cleanup":  [
+                    "1091:DELETE",
+                    "1092:DELETE"
+                ]
+}

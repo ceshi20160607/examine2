@@ -1,0 +1,132 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "PARTIAL_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-06T15:35:53.7914034+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "requirementRows":  [
+                            "REQ-4.6",
+                            "REQ-5.17",
+                            "REQ-5.18",
+                            "REQ-7",
+                            "REQ-8",
+                            "REQ-10",
+                            "REQ-14.1-14.37",
+                            "REQ-A"
+                        ],
+    "journeyRows":  [
+                        "J7",
+                        "J8",
+                        "J9",
+                        "J11"
+                    ],
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "health reports database/schema/redis UP",
+                       "passed":  true,
+                       "detail":  "{\"status\":\"UP\",\"redis\":\"UP\",\"database\":\"UP\",\"schema\":\"UP\"}"
+                   },
+                   {
+                       "area":  "frontend-static",
+                       "name":  "no blocker or warning copy/placeholder findings",
+                       "passed":  true,
+                       "detail":  "blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "release-delivery",
+                       "name":  "R50 fresh release and server script command evidence passed",
+                       "passed":  true,
+                       "detail":  "release=PASS, commands=start,stop,restart,status,health"
+                   },
+                   {
+                       "area":  "operations-readback",
+                       "name":  "R50 fresh operations tasks and settings read back persisted state",
+                       "passed":  true,
+                       "detail":  "backup=TASK-20260706153501, restore=TASK-20260706153501, archive=TASK-20260706153501, rollback=TASK-20260706153501, deploymentCount=1, cache=4/1"
+                   },
+                   {
+                       "area":  "logs-audit",
+                       "name":  "R50 fresh platform/system audit search and detail readback passed",
+                       "passed":  true,
+                       "detail":  "platformAudit=9, systemAudit=1, platformTrace=trc_r50_platform_health_0706153449837_40cdbc, systemTrace=trc_r50_system_health_0706153449837_40cdbc"
+                   },
+                   {
+                       "area":  "permission-negative",
+                       "name":  "R50 fresh normal-member operation denials and failure audit rows passed",
+                       "passed":  true,
+                       "detail":  "platformDenied=403/FAILURE, systemDenied=403/FAILURE"
+                   },
+                   {
+                       "area":  "browser-ops",
+                       "name":  "R50 fresh operations and log browser containment passed",
+                       "passed":  true,
+                       "detail":  "browser=6, overflow=0, blockers=0"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r56-frc5-operations-robustness-delivery\\verify-release.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r56-frc5-operations-robustness-delivery\\final-usability-static-audit.log"
+                         },
+                         {
+                             "name":  "recovery-r50-operations-release-log",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r56-frc5-operations-robustness-delivery\\recovery-r50-operations-release-log.log"
+                         }
+                     ],
+    "staticAudit":  {
+                        "warningCount":  0,
+                        "status":  "PASS",
+                        "blockerCount":  0
+                    },
+    "browserAuditFile":  "docs/evidence/recovery/screenshots/r56-frc5-operations-robustness-delivery/operations-robustness-delivery-browser-audit.json",
+    "operationsRelease":  {
+                              "deniedSystemAuditResult":  "FAILURE",
+                              "serverScriptCommands":  [
+                                                           "start",
+                                                           "stop",
+                                                           "restart",
+                                                           "status",
+                                                           "health"
+                                                       ],
+                              "featureFlagTraceId":  "trc_r50_feature_flag_0706153449837_40cdbc",
+                              "rateLimitTraceId":  "trc_r50_rate_0706153449837_40cdbc",
+                              "rollbackSupported":  {
+                                                        "restore":  true,
+                                                        "archive":  true,
+                                                        "deployment":  true
+                                                    },
+                              "tenantId":  "1127",
+                              "quotaTraceId":  "trc_r50_quota_0706153449837_40cdbc",
+                              "deniedSystemStatus":  403,
+                              "browserBlockerCount":  0,
+                              "cleanup":  [
+                                              "1095:DELETE",
+                                              "1096:DELETE"
+                                          ],
+                              "browserOverflowCount":  0,
+                              "platformHealthTraceId":  "trc_r50_platform_health_0706153449837_40cdbc",
+                              "deploymentCount":  1,
+                              "restoreTaskId":  "TASK-20260706153501",
+                              "cachePolicyCount":  4,
+                              "browserResultCount":  6,
+                              "cacheUpdatedCount":  1,
+                              "systemAuditReadbackCount":  1,
+                              "backupTaskId":  "TASK-20260706153501",
+                              "deniedPlatformAuditResult":  "FAILURE",
+                              "systemId":  "1095",
+                              "releaseVerifyStatus":  "PASS",
+                              "systemHealthTraceId":  "trc_r50_system_health_0706153449837_40cdbc",
+                              "rollbackTaskId":  "TASK-20260706153501",
+                              "deniedPlatformStatus":  403,
+                              "platformAuditReadbackCount":  9,
+                              "archiveTaskId":  "TASK-20260706153501"
+                          }
+}

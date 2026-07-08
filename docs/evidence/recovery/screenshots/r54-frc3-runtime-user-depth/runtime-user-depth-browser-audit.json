@@ -1,0 +1,30 @@
+﻿{
+    "status":  "PASS",
+    "generatedAt":  "2026-07-01T16:06:05.5115979+08:00",
+    "source":  "R54 aggregation of fresh R47/R48/R43 deployed browser audits",
+    "r47":  {
+                "browserBlockerCount":  0,
+                "browserResultCount":  10,
+                "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r47-runtime-daily-use\\runtime-daily-use-browser-audit.json",
+                "browserOverflowCount":  0,
+                "resultFile":  "docs/evidence/recovery/r47-runtime-daily-use-result.json"
+            },
+    "r48":  {
+                "browserAfterResultCount":  6,
+                "browserBeforeResultCount":  8,
+                "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r48-workflow-message-flow\\workflow-message-flow-browser-audit.json",
+                "browserOverflowCount":  0,
+                "browserBlockerCount":  0,
+                "resultFile":  "docs/evidence/recovery/r48-workflow-message-flow-result.json"
+            },
+    "r43":  {
+                "resultFile":  "docs/evidence/recovery/r43-role-home-whole-path-usability-result.json",
+                "messageRoutes":  4,
+                "failureCount":  0,
+                "warningCount":  0,
+                "workRoutes":  4,
+                "routeCount":  16,
+                "resultCount":  32,
+                "todoRoutes":  4
+            }
+}

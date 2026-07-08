@@ -136,13 +136,21 @@ public final class FlowDefinitionModels {
     public record FlowSimulationResult(String simulationId, String flowId, String versionNo, boolean passed,
                                        List<SimulationStepTrace> stepTraces,
                                        List<ConditionDecisionVO> conditionDecisions,
-                                       List<PublishCheckItem> failureItems, String traceId,
-                                       LocalDateTime createdAt) {
+                                       List<SimulationApproverVO> predictedApprovers,
+                                       List<PublishCheckItem> failureItems,
+                                       List<PublishCheckItem> blockerItems,
+                                       List<ImpactRef> impactRefs,
+                                       boolean runtimeInstanceCreated,
+                                       String traceId, LocalDateTime createdAt) {
     }
 
     public record SimulationStepTrace(Integer sequence, String nodeKey, String nodeName, String nodeType,
                                       String inputSummary, String outputSummary, List<String> nextNodeKeys,
                                       Long elapsedMs) {
+    }
+
+    public record SimulationApproverVO(String nodeKey, String nodeName, String assigneeType,
+                                       List<String> assigneeIds, String displayName) {
     }
 
     public record ConditionDecisionVO(String nodeKey, String expressionId, String selectedEdgeKey,

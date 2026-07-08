@@ -1,0 +1,83 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "R87_TODO_MESSAGE_WORKBENCH_USABILITY_ENGINEERING_EVIDENCE_ONLY",
+    "task":  "REC-P0-087",
+    "generatedAt":  "2026-07-07T19:33:27.2180884+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "accepted":  true,
+    "checks":  [
+                   {
+                       "area":  "state",
+                       "name":  "R87 is active and R86 remains accepted engineering evidence",
+                       "passed":  true,
+                       "detail":  "currentBatch=RECOVERY-R87"
+                   },
+                   {
+                       "area":  "api-readback",
+                       "name":  "approver scoped todo and message APIs are readable",
+                       "passed":  true,
+                       "detail":  "pendingTodos=0, handledTodos=1, activeMessagesBefore=0, archivedBefore=1"
+                   },
+                   {
+                       "area":  "message-state",
+                       "name":  "message read/archive state is backed by API readback when active message exists, or retained archived state exists",
+                       "passed":  true,
+                       "detail":  "action=, archivedAfter=1"
+                   },
+                   {
+                       "area":  "permission",
+                       "name":  "anonymous todo and message APIs are denied",
+                       "passed":  true,
+                       "detail":  "/api/v1/systems/1121/todos/search?pageNo=1\u0026pageSize=1; /api/v1/systems/1121/messages/search?pageNo=1\u0026pageSize=1"
+                   },
+                   {
+                       "area":  "frontend-source",
+                       "name":  "R87 todo/message workbench source markers exist",
+                       "passed":  true,
+                       "detail":  "missing="
+                   },
+                   {
+                       "area":  "deployed-asset",
+                       "name":  "deployed frontend asset contains R87 markers",
+                       "passed":  true,
+                       "detail":  "assetLength=229607, missing="
+                   },
+                   {
+                       "area":  "browser-todo",
+                       "name":  "browser todo workbench exposes layout and detail/empty markers on desktop and mobile",
+                       "passed":  true,
+                       "detail":  "results=[{\"kind\":\"todo-desktop\",\"viewport\":\"1366x900\",\"hash\":\"#/systems/1121/todos\",\"overflowX\":0,\"blockerText\":false,\"todoWorkbench\":true,\"todoLayout\":true,\"todoDetailPanel\":true,\"todoEmptyState\":true,\"todoRows\":0,\"messageCenter\":false,\"messageToolbar\":false,\"messageItems\":0,\"messageMarkReadButtons\":0,\"messageArchiveButtons\":0,\"messageEmptyState\":false,\"textSampleLength\":352},{\"kind\":\"message-desktop\",\"viewport\":\"1366x900\",\"hash\":\"#/systems/1121/messages\",\"overflowX\":0,\"blockerText\":false,\"todoWorkbench\":false,\"todoLayout\":false,\"todoDetailPanel\":false,\"todoEmptyState\":false,\"todoRows\":0,\"messageCenter\":true,\"messageToolbar\":true,\"messageItems\":0,\"messageMarkReadButtons\":0,\"messageArchiveButtons\":0,\"messageEmptyState\":true,\"textSampleLength\":251},{\"kind\":\"todo-mobile\",\"viewport\":\"390x720\",\"hash\":\"#/systems/1121/todos\",\"overflowX\":0,\"blockerText\":false,\"todoWorkbench\":true,\"todoLayout\":true,\"todoDetailPanel\":true,\"todoEmptyState\":true,\"todoRows\":0,\"messageCenter\":false,\"messageToolbar\":false,\"messageItems\":0,\"messageMarkReadButtons\":0,\"messageArchiveButtons\":0,\"messageEmptyState\":false,\"textSampleLength\":352},{\"kind\":\"message-mobile\",\"viewport\":\"390x720\",\"hash\":\"#/systems/1121/messages\",\"overflowX\":0,\"blockerText\":false,\"todoWorkbench\":false,\"todoLayout\":false,\"todoDetailPanel\":false,\"todoEmptyState\":false,\"todoRows\":0,\"messageCenter\":true,\"messageToolbar\":true,\"messageItems\":0,\"messageMarkReadButtons\":0,\"messageArchiveButtons\":0,\"messageEmptyState\":true,\"textSampleLength\":251}]"
+                   },
+                   {
+                       "area":  "browser-message",
+                       "name":  "browser message workbench exposes toolbar and message action markers",
+                       "passed":  true,
+                       "detail":  "messageItemEvidence=False, archivedAfter=1"
+                   },
+                   {
+                       "area":  "browser-containment",
+                       "name":  "browser todo/message pages have no horizontal overflow or blocker text",
+                       "passed":  true,
+                       "detail":  "overflow=0, blockers=0"
+                   },
+                   {
+                       "area":  "signoff-boundary",
+                       "name":  "user signoff remains false",
+                       "passed":  true,
+                       "detail":  "user_script_passed=False"
+                   }
+               ],
+    "data":  {
+                 "systemId":  "1121",
+                 "tenantId":  "1153",
+                 "pendingTodoTotal":  0,
+                 "handledTodoTotal":  1,
+                 "activeMessageBeforeTotal":  0,
+                 "archivedMessageAfterTotal":  1,
+                 "messageAction":  null,
+                 "browserAudit":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r87-todo-message-workbench-usability\\todo-message-workbench-browser-audit.json",
+                 "browserOverflowCount":  0,
+                 "browserBlockerCount":  0
+             }
+}

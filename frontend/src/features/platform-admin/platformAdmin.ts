@@ -23,12 +23,16 @@ import {
   type ModelAuthorizationView,
   type OpsApiCachePolicyView,
   type OpsDeploymentView,
+  type OpsFeatureFlagView,
+  type OpsHealthCheck,
+  type OpsQuotaView,
+  type OpsRateLimitPolicyView,
   type PlatformAdminData,
   type PlatformAdminPageOptions,
   type PlatformSystem,
   type RoleView,
 } from '../../api/liveData';
-import type { PageResult } from '../../api/types';
+import type { AsyncTask, PageResult } from '../../api/types';
 import type { Navigate } from '../../app/app';
 import { shellState } from '../../app/state';
 import { createButton, createElement, createTraceLine, type ChildNodeValue } from '../../shared/components';
@@ -41,7 +45,7 @@ export function renderPlatformAdmin(navigate: Navigate): HTMLElement {
   let latestData: PlatformAdminData | null = null;
   const pageOptions: PlatformAdminPageOptions = {};
   const content = createElement('div', { className: 'admin-content' }, createLoadingPanel('正在读取平台后台数据...'));
-  const root = createElement('section', { className: 'admin-layout' }, content);
+  const root = createElement('section', { className: 'admin-layout', dataset: { platformAdminShell: 'true' } }, content);
   const changePage = (key: keyof PlatformAdminPageOptions, pageNo: number) => {
     pageOptions[key] = Math.max(1, pageNo);
     reload();
@@ -365,30 +369,57 @@ function createPlatformConfigPanel(
   });
   return createElement(
     'section',
-    { id: 'platform-config', className: 'panel' },
+    {
+      id: 'platform-config',
+      className: 'panel',
+      dataset: {
+        productSurface: 'platform-config',
+        platformConfigProviderCount: String(providers.length),
+        platformConfigAuthorizationCount: String(authorizations.total),
+      },
+    },
     createElement('h2', {}, '配置管理'),
+    createPlatformConfigSummary(providers, authorizations),
     createElement(
       'div',
-      { className: 'split-grid' },
+      { className: 'split-grid platform-config-grid' },
       createElement(
         'div',
-        { className: 'result-panel' },
-        createElement('strong', {}, '企业 SSO'),
+        { className: 'result-panel compact-product-panel', dataset: { platformConfigSsoPanel: 'true' } },
+        createElement('div', { className: 'runtime-card-head' },
+          createElement('div', {}, createElement('strong', {}, '企业 SSO'), createElement('p', {}, '维护身份源、测试回调和发布状态；密钥只显示 SecretRef 边界。')),
+          renderStatusPill(providers.some((provider) => provider.status === 'ENABLED') ? '已有可用身份源' : '待发布', providers.some((provider) => provider.status === 'ENABLED') ? 'success' : 'warning'),
+        ),
         createElement('div', { className: 'inline-actions' }, createProviderButton),
         ssoResult,
         providers.length === 0
           ? createElement('p', {}, '暂无身份源，请配置 OIDC、SAML 或企业自建身份源后发布。')
-          : createElement('div', { className: 'simple-stack' }, ...providers.map((provider) => createProviderLine(provider, reload, ssoResult))),
+          : createElement(
+              'div',
+              { className: 'simple-stack compact-stack' },
+              ...providers.slice(0, 5).map((provider) => createProviderLine(provider, reload, ssoResult)),
+              providers.length > 5 ? createElement('small', {}, `已收起 ${providers.length - 5} 个身份源，翻页和完整维护仍由后台数据接口承接。`) : null,
+            ),
       ),
       createElement(
         'div',
-        { className: 'result-panel' },
-        createElement('strong', {}, 'AI Agent 授权'),
+        { className: 'result-panel compact-product-panel', dataset: { platformConfigAgentPanel: 'true' } },
+        createElement('div', { className: 'runtime-card-head' },
+          createElement('div', {}, createElement('strong', {}, 'AI Agent 授权'), createElement('p', {}, '平台只管理模型授权；系统级 Agent 读写仍受系统策略、字段和数据范围控制。')),
+          renderStatusPill(authorizations.total > 0 ? '可供系统选择' : '待授权', authorizations.total > 0 ? 'success' : 'warning'),
+        ),
         createElement('div', { className: 'inline-actions' }, createAuthorizationButton),
         agentResult,
         authorizations.records.length === 0
           ? createElement('p', {}, '暂无模型授权，系统可在授权后使用平台模型或外部模型。')
-          : createElement('div', { className: 'simple-stack' }, ...authorizations.records.map((authorization) => createAuthorizationLine(authorization))),
+          : createElement(
+              'div',
+              { className: 'simple-stack compact-stack' },
+              ...authorizations.records.slice(0, 5).map((authorization) => createAuthorizationLine(authorization)),
+              authorizations.total > authorizations.records.length
+                ? createElement('small', {}, `第 ${authorizations.pageNo} 页 / 共 ${authorizations.total} 条授权，使用分页查看其余记录。`)
+                : null,
+            ),
         createPagination(authorizations, onAuthorizationPageChange),
       ),
     ),
@@ -397,64 +428,110 @@ function createPlatformConfigPanel(
   );
 }
 
+function createPlatformConfigSummary(providers: IdentityProviderView[], authorizations: PageResult<ModelAuthorizationView>): HTMLElement {
+  const enabledProviders = providers.filter((provider) => provider.status === 'ENABLED').length;
+  const activeAuthorizations = authorizations.records.filter((authorization) => authorization.status === 1).length;
+  return createElement(
+    'div',
+    { className: 'config-surface-summary', dataset: { platformConfigSummary: 'true' } },
+    createMetric('身份源', `${enabledProviders}/${providers.length} 已发布`),
+    createMetric('模型授权', `${activeAuthorizations}/${authorizations.total} 启用`),
+    createMetric('安全边界', 'SecretRef / 脱敏'),
+    createMetric('系统使用', '由系统策略二次授权'),
+  );
+}
+
 function createOpsGovernancePanel(): HTMLElement {
-  const result = createElement('p', { className: 'field-error' }, '运维动作会返回体检、任务、traceId 或 dry-run 边界，危险操作不会直接破坏数据。');
-  const deploymentList = createElement('div', { className: 'simple-stack' }, createElement('p', {}, '点击读取部署记录。'));
-  const cacheList = createElement('div', { className: 'simple-stack' }, createElement('p', {}, '点击读取 API 缓存策略。'));
+  const result = createElement(
+    'p',
+    {
+      className: 'field-error',
+      dataset: {
+        opsResult: 'idle',
+        opsDryRunBoundary: 'dangerous actions require dry-run or explicit task evidence',
+      },
+    },
+    '运维动作会返回体检、任务、traceId 或 dry-run 边界，危险操作不会直接破坏数据。',
+  );
+  const deploymentList = createElement('div', { className: 'simple-stack', dataset: { opsDeploymentList: 'empty' } }, createElement('p', {}, '点击读取部署记录。'));
+  const cacheList = createElement('div', { className: 'simple-stack', dataset: { opsCachePolicyList: 'empty' } }, createElement('p', {}, '点击读取 API 缓存策略。'));
 
   const healthButton = createOpsButton('平台体检', async () => {
     const health = await runPlatformHealthCheck('FULL');
+    setHealthOpsResult(result, 'platform-health', health);
     result.textContent = `平台体检：${health.status}，风险 ${health.risks.length} 项，traceId=${health.traceId}`;
-  });
+  }, 'platform-health');
   const flagButton = createOpsButton('更新功能开关', async () => {
     const flag = await updatePlatformFeatureFlag('flag_gray_publish');
+    setFeatureFlagOpsResult(result, 'feature-flag', flag);
     result.textContent = `功能开关已保存：${flag.flagCode}，回滚版本=${flag.rollbackVersion}，traceId=${flag.traceId}`;
-  });
+  }, 'feature-flag');
   const quotaButton = createOpsButton('更新容量配额', async () => {
     const quota = await updatePlatformQuota('quota_openapi');
+    setQuotaOpsResult(result, 'quota', quota);
     result.textContent = `容量配额已保存：${quota.quotaType} ${quota.quotaUsed}/${quota.quotaLimit}，traceId=${quota.traceId}`;
-  });
+  }, 'quota');
   const rateLimitButton = createOpsButton('更新限流策略', async () => {
     const policy = await updatePlatformRateLimitPolicy('rl_openapi_app');
+    setRateLimitOpsResult(result, 'rate-limit', policy);
     result.textContent = `限流策略已保存：${policy.policyCode}，traceId=${policy.traceId}`;
-  });
+  }, 'rate-limit');
   const backupButton = createOpsButton('创建备份任务', async () => {
     const task = await createPlatformBackupTask();
+    setTaskOpsResult(result, 'backup', task, 'false');
     result.textContent = `备份任务已创建：${task.taskId} / ${task.status}，traceId=${task.traceId}`;
-  });
+  }, 'backup');
   const restoreButton = createOpsButton('恢复演练', async () => {
     const task = await runPlatformRestoreDrill();
+    setTaskOpsResult(result, 'restore-drill', task, 'true');
     result.textContent = `恢复演练任务已创建：${task.taskId} / rollback=${task.rollbackSupported}，traceId=${task.traceId}`;
-  });
+  }, 'restore-drill');
   const archiveButton = createOpsButton('归档恢复申请', async () => {
     const task = await createPlatformArchiveRestoreRequest();
+    setTaskOpsResult(result, 'archive-restore', task, 'true');
     result.textContent = `归档恢复任务已创建：${task.taskId} / rollback=${task.rollbackSupported}，traceId=${task.traceId}`;
-  });
+  }, 'archive-restore');
   const deploymentsButton = createOpsButton('读取部署记录', async () => {
     const deployments = await loadPlatformDeployments();
     deploymentList.replaceChildren(...deployments.records.map(createDeploymentLine));
+    deploymentList.dataset.opsDeploymentList = 'loaded';
+    deploymentList.dataset.opsDeploymentCount = String(deployments.records.length);
+    result.dataset.opsResult = 'deployments';
+    result.dataset.opsDeploymentCount = String(deployments.total);
     result.textContent = `部署记录已读取：${deployments.total} 条`;
-  });
+  }, 'deployments');
   const rollbackButton = createOpsButton('部署回滚演练', async () => {
     const deployments = await loadPlatformDeployments();
     const deploymentId = deployments.records[0]?.deploymentId ?? 'deploy_20260623_001';
     const task = await rollbackPlatformDeployment(deploymentId);
+    setTaskOpsResult(result, 'deployment-rollback', task, 'true');
+    result.dataset.opsDeploymentId = deploymentId;
     result.textContent = `部署回滚演练已创建：${task.taskId} / rollback=${task.rollbackSupported}，traceId=${task.traceId}`;
-  });
+  }, 'deployment-rollback');
   const cacheButton = createOpsButton('读取缓存策略', async () => {
     const policies = await loadPlatformApiCachePolicy();
     cacheList.replaceChildren(...policies.map(createCachePolicyLine));
+    cacheList.dataset.opsCachePolicyList = 'loaded';
+    cacheList.dataset.opsCachePolicyCount = String(policies.length);
+    result.dataset.opsResult = 'cache-read';
+    result.dataset.opsCachePolicyCount = String(policies.length);
     result.textContent = `API 缓存策略已读取：${policies.length} 条`;
-  });
+  }, 'cache-read');
   const cacheUpdateButton = createOpsButton('更新缓存策略', async () => {
     const policies = await updatePlatformApiCachePolicy();
     cacheList.replaceChildren(...policies.map(createCachePolicyLine));
+    cacheList.dataset.opsCachePolicyList = 'updated';
+    cacheList.dataset.opsCachePolicyCount = String(policies.length);
+    result.dataset.opsResult = 'cache-update';
+    result.dataset.opsTraceId = policies[0]?.traceId ?? '';
+    result.dataset.opsAuditLogId = policies[0]?.auditLogId ?? '';
+    result.dataset.opsCachePolicyCount = String(policies.length);
     result.textContent = `API 缓存策略已保存：${policies[0]?.policyCode ?? '-'}，traceId=${policies[0]?.traceId ?? '-'}`;
-  });
+  }, 'cache-update');
 
   return createElement(
     'div',
-    { id: 'platform-ops-governance', className: 'result-panel' },
+    { id: 'platform-ops-governance', className: 'result-panel', dataset: { platformOpsGovernance: 'true' } },
     createElement('strong', {}, '上线保障与运维治理'),
     createElement('div', { className: 'inline-actions' },
       healthButton,
@@ -474,16 +551,21 @@ function createOpsGovernancePanel(): HTMLElement {
   );
 }
 
-function createOpsButton(label: string, action: () => Promise<void>): HTMLButtonElement {
+function createOpsButton(label: string, action: () => Promise<void>, actionCode: string): HTMLButtonElement {
   const button = createButton(label, 'secondary', false);
+  button.dataset.opsAction = actionCode;
   button.addEventListener('click', async () => {
     button.disabled = true;
     const original = button.textContent ?? label;
     button.textContent = `${label}中...`;
+    button.dataset.opsState = 'running';
     try {
       await action();
+      button.dataset.opsState = 'succeeded';
       button.textContent = label;
     } catch (error) {
+      button.dataset.opsState = 'failed';
+      button.dataset.opsError = error instanceof Error ? error.message : '运维动作失败。';
       button.textContent = `${label}失败`;
       button.title = error instanceof Error ? error.message : '运维动作失败。';
     } finally {
@@ -498,10 +580,50 @@ function createOpsButton(label: string, action: () => Promise<void>): HTMLButton
   return button;
 }
 
+function setHealthOpsResult(result: HTMLElement, resultCode: string, health: OpsHealthCheck): void {
+  result.dataset.opsResult = resultCode;
+  result.dataset.opsStatus = health.status;
+  result.dataset.opsTraceId = health.traceId;
+  result.dataset.opsAuditLogId = health.auditLogId ?? '';
+  result.dataset.opsRiskCount = String(health.risks.length);
+}
+
+function setFeatureFlagOpsResult(result: HTMLElement, resultCode: string, flag: OpsFeatureFlagView): void {
+  result.dataset.opsResult = resultCode;
+  result.dataset.opsTraceId = flag.traceId;
+  result.dataset.opsAuditLogId = flag.auditLogId;
+  result.dataset.opsRollbackVersion = flag.rollbackVersion;
+}
+
+function setQuotaOpsResult(result: HTMLElement, resultCode: string, quota: OpsQuotaView): void {
+  result.dataset.opsResult = resultCode;
+  result.dataset.opsTraceId = quota.traceId;
+  result.dataset.opsAuditLogId = quota.auditLogId;
+  result.dataset.opsQuotaLimit = String(quota.quotaLimit);
+  result.dataset.opsQuotaUsed = String(quota.quotaUsed);
+}
+
+function setRateLimitOpsResult(result: HTMLElement, resultCode: string, policy: OpsRateLimitPolicyView): void {
+  result.dataset.opsResult = resultCode;
+  result.dataset.opsTraceId = policy.traceId;
+  result.dataset.opsAuditLogId = policy.auditLogId;
+  result.dataset.opsPolicyCode = policy.policyCode;
+}
+
+function setTaskOpsResult(result: HTMLElement, resultCode: string, task: AsyncTask, dryRun: string): void {
+  result.dataset.opsResult = resultCode;
+  result.dataset.opsTaskId = task.taskId;
+  result.dataset.opsTaskStatus = task.status;
+  result.dataset.opsTraceId = task.traceId;
+  result.dataset.opsAuditLogId = task.auditLogId ?? '';
+  result.dataset.opsRollbackSupported = String(task.rollbackSupported);
+  result.dataset.opsDryRun = dryRun;
+}
+
 function createDeploymentLine(deployment: OpsDeploymentView): HTMLElement {
   return createElement(
     'div',
-    { className: 'list-line' },
+    { className: 'list-line', dataset: { opsDeploymentId: deployment.deploymentId, opsDeploymentStatus: deployment.status } },
     createElement('span', {}, `${deployment.deploymentNo} / ${deployment.envCode}`),
     renderStatusPill(deployment.status, deployment.status === 'STABLE' ? 'success' : 'warning'),
     createElement('small', {}, deployment.rollbackPlan),
@@ -511,7 +633,7 @@ function createDeploymentLine(deployment: OpsDeploymentView): HTMLElement {
 function createCachePolicyLine(policy: OpsApiCachePolicyView): HTMLElement {
   return createElement(
     'div',
-    { className: 'list-line' },
+    { className: 'list-line', dataset: { opsCachePolicyCode: policy.policyCode, opsCachePolicyStatus: String(policy.status), opsTraceId: policy.traceId ?? '' } },
     createElement('span', {}, `${policy.policyCode} / ${policy.cacheDomain}`),
     renderStatusPill(enableStatusText(policy.status), enableStatusTone(policy.status)),
     createElement('small', {}, policy.keyRule),
@@ -521,19 +643,37 @@ function createCachePolicyLine(policy: OpsApiCachePolicyView): HTMLElement {
 function createPlatformLogPanel(page: PageResult<AuditLogView>, onPageChange: (nextPage: number) => void): HTMLElement {
   return createElement(
     'section',
-    { id: 'platform-logs', className: 'panel' },
+    {
+      id: 'platform-logs',
+      className: 'panel',
+      dataset: {
+        platformLogsPanel: 'true',
+        productSurface: 'platform-logs',
+        logCount: String(page.records.length),
+        platformLogSuccessCount: String(page.records.filter((log) => log.result === 'SUCCESS').length),
+        platformLogFailureCount: String(page.records.filter((log) => log.result !== 'SUCCESS').length),
+      },
+    },
     createElement('h2', {}, '日志管理'),
+    createElement(
+      'div',
+      { className: 'config-surface-summary', dataset: { platformLogSummary: 'true' } },
+      createMetric('本页日志', String(page.records.length)),
+      createMetric('成功', String(page.records.filter((log) => log.result === 'SUCCESS').length)),
+      createMetric('需要关注', String(page.records.filter((log) => log.result !== 'SUCCESS').length)),
+      createMetric('总数', String(page.total)),
+    ),
     createFilterBar(['日志类型', '账号', '系统', '结果', 'traceId', '时间范围']),
     createTable(
-      ['序号', '类型', '操作人', '动作', '对象', '结果', 'traceId', '时间'],
+      ['序号', '类型', '操作人', '业务动作', '对象', '结果', '追踪', '时间'],
       page.records.map((log, index) => [
         index + 1,
         log.logType,
         log.operator || '-',
-        log.action,
-        `${log.objectType || '-'} / ${log.objectId || '-'}`,
+        createElement('span', {}, createElement('strong', {}, auditActionLabel(log.action)), createElement('small', {}, log.action)),
+        createElement('span', {}, objectLabel(log.objectType, log.objectId)),
         renderStatusPill(log.result, log.result === 'SUCCESS' ? 'success' : 'warning'),
-        log.traceId,
+        createTraceChip(log.traceId),
         formatTime(log.createdAt),
       ]),
       '暂无平台日志。',
@@ -585,8 +725,8 @@ function createProviderLine(provider: IdentityProviderView, reload: (() => void)
   });
   return createElement(
     'div',
-    { className: 'list-line' },
-    createElement('span', {}, `${provider.name} / ${provider.protocol}`),
+    { className: 'list-line config-compact-line', dataset: { identityProviderId: provider.providerId, identityProviderStatus: provider.status } },
+    createElement('span', {}, createElement('strong', {}, provider.name), createElement('small', {}, `${provider.protocol} / ${shortToken(provider.providerId)}`)),
     renderStatusPill(provider.status || 'UNKNOWN', provider.status === 'ENABLED' ? 'success' : 'warning'),
     createElement('div', { className: 'row-actions' }, testButton, publishButton),
   );
@@ -595,10 +735,59 @@ function createProviderLine(provider: IdentityProviderView, reload: (() => void)
 function createAuthorizationLine(authorization: ModelAuthorizationView): HTMLElement {
   return createElement(
     'div',
-    { className: 'list-line' },
-    createElement('span', {}, `${authorization.authorizationCode} / ${authorization.modelProvider} / ${authorization.modelName}`),
+    { className: 'list-line config-compact-line', dataset: { modelAuthorizationId: authorization.authorizationId, modelAuthorizationStatus: String(authorization.status) } },
+    createElement('span', {}, createElement('strong', {}, authorization.modelName), createElement('small', {}, `${authorization.modelProvider} / ${shortToken(authorization.authorizationCode)}`)),
     renderStatusPill(enableStatusText(authorization.status), enableStatusTone(authorization.status)),
   );
+}
+
+function auditActionLabel(action: string): string {
+  if (action.includes('health-check')) {
+    return '运行体检';
+  }
+  if (action.includes('logs.search')) {
+    return '查询日志';
+  }
+  if (action.includes('ops.backup')) {
+    return '创建备份任务';
+  }
+  if (action.includes('ops.restore')) {
+    return '恢复演练';
+  }
+  if (action.includes('ops.rollback')) {
+    return '部署回滚演练';
+  }
+  if (action.includes('systems') && action.startsWith('DELETE')) {
+    return '清理测试系统';
+  }
+  if (action.startsWith('POST.')) {
+    return '提交配置';
+  }
+  if (action.startsWith('PATCH.')) {
+    return '更新配置';
+  }
+  if (action.startsWith('GET.')) {
+    return '读取数据';
+  }
+  return action;
+}
+
+function objectLabel(objectType?: string, objectId?: string): string {
+  if (!objectType && !objectId) {
+    return '-';
+  }
+  return `${objectType || '-'} / ${shortToken(objectId || '-')}`;
+}
+
+function createTraceChip(traceId: string): HTMLElement {
+  return createElement('code', { className: 'trace-chip', title: traceId }, shortToken(traceId));
+}
+
+function shortToken(value: string): string {
+  if (value.length <= 24) {
+    return value;
+  }
+  return `${value.slice(0, 10)}...${value.slice(-8)}`;
 }
 
 function createWarningPanel(warnings: string[]): HTMLElement | null {
@@ -634,7 +823,7 @@ function createTable(headers: string[], rows: ChildNodeValue[][], emptyText: str
 }
 
 function createSidebarButton(label: string, targetId: string, active = false, onSelect?: (targetId: string) => void): HTMLButtonElement {
-  const button = createElement('button', { className: active ? 'sidebar-item active' : 'sidebar-item' }, label);
+  const button = createElement('button', { className: active ? 'sidebar-item active' : 'sidebar-item', dataset: { adminSection: targetId } }, label);
   button.addEventListener('click', () => {
     onSelect?.(targetId);
   });

@@ -343,8 +343,15 @@ public class OpenApiService {
                 Objects.isNull(request) ? null : request.idempotencyKey(), "openapi_secret_rotation");
         String newVersion = safeText(Objects.isNull(request) ? null : request.requestedVersion(),
                 "v" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
-        SysSecretRef secretRef = saveSecretRef(app.getOpenapiSecretRefId(), newVersion, "ROTATING",
+        String previousSecretRefId = app.getOpenapiSecretRefId();
+        String newSecretRefId = "sec_openapi_" + app.getExternalAppCode() + "_rot_"
+                + shortTrace(RequestContext.current().traceId());
+        SysSecretRef secretRef = saveSecretRef(newSecretRefId, newVersion, "ACTIVE",
                 Objects.isNull(request) ? null : request.newMaterialRef(), now);
+        disableSecretRef(previousSecretRefId, now);
+        app.setOpenapiSecretRefId(secretRef.getSecretRefId());
+        app.setUpdatedAt(now);
+        appBaseService.updateById(app);
         String jobId = "srj_openapi_" + app.getId() + "_" + shortTrace(RequestContext.current().traceId());
         String rollbackPlanText = safeText(Objects.isNull(request) ? null : request.rollbackPlan(),
                 "restore previous active OpenAPI secret version");
@@ -811,6 +818,21 @@ public class OpenApiService {
             secretRefBaseService.updateById(secretRef);
         }
         return secretRef;
+    }
+
+    private void disableSecretRef(String secretRefId, LocalDateTime now) {
+        if (!StringUtils.hasText(secretRefId)) {
+            return;
+        }
+        SysSecretRef secretRef = secretRefBaseService.getOne(new LambdaQueryWrapper<SysSecretRef>()
+                .eq(SysSecretRef::getSecretRefId, secretRefId)
+                .last("LIMIT 1"), false);
+        if (Objects.isNull(secretRef)) {
+            return;
+        }
+        secretRef.setRotationStatus("DISABLED");
+        secretRef.setUpdatedAt(now);
+        secretRefBaseService.updateById(secretRef);
     }
 
     private OpenApiSecretRefVO secretRef(String secretRefId) {

@@ -1,0 +1,107 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-091",
+    "generatedAt":  "2026-07-08T10:18:17.1436493+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "systemId":  "1138",
+    "moduleId":  "460",
+    "roleId":  "1657",
+    "memberId":  "1557",
+    "recordId":  "659",
+    "normalLoginName":  "r91_normal_20260708101726",
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "release health is reachable",
+                       "passed":  true,
+                       "detail":  "status=UP"
+                   },
+                   {
+                       "area":  "setup",
+                       "name":  "registered admin owns new system",
+                       "passed":  true,
+                       "detail":  "system=1138"
+                   },
+                   {
+                       "area":  "setup",
+                       "name":  "normal account is bound and assigned to R91 role",
+                       "passed":  true,
+                       "detail":  "member=1557 role=1657 binding=1557"
+                   },
+                   {
+                       "area":  "api-save",
+                       "name":  "role permission save/readback preserves action field and data-scope rules",
+                       "passed":  true,
+                       "detail":  "version=perm_1783477054870_trcd3238"
+                   },
+                   {
+                       "area":  "api-preview",
+                       "name":  "batch preview returns mixed allow and deny decisions",
+                       "passed":  true,
+                       "detail":  "[{\"actionCode\":\"record.create\",\"allowed\":false,\"disabledReason\":\"å½åè§è²æªé\\u0085ç½®è¯¥å¨ä½æéæè¢«æç»ç­ç¥éå¶\",\"missingPermissions\":[\"record.create\"],\"auditLogId\":\"aud_25\"},{\"actionCode\":\"record.edit\",\"allowed\":true,\"disabledReason\":null,\"missingPermissions\":[],\"auditLogId\":\"aud_26\"},{\"actionCode\":\"record.delete\",\"allowed\":false,\"disabledReason\":\"å½åè§è²æªé\\u0085ç½®è¯¥å¨ä½æéæè¢«æç»ç­ç¥éå¶\",\"missingPermissions\":[\"record.delete\"],\"auditLogId\":\"aud_27\"},{\"actionCode\":\"record.submitApproval\",\"allowed\":true,\"disabledReason\":null,\"missingPermissions\":[],\"auditLogId\":\"aud_28\"}]"
+                   },
+                   {
+                       "area":  "api-preview",
+                       "name":  "batch preview includes affected member count field mask and SELF data scope",
+                       "passed":  true,
+                       "detail":  "affected=1 masks={\"460.secretNote\":\"HIDDEN\"} scope={\"type\":\"SELF\",\"moduleId\":\"460\",\"expression\":\"ownerMemberId == currentMember\"}"
+                   },
+                   {
+                       "area":  "audit",
+                       "name":  "preview audit rows are persisted and readable",
+                       "passed":  true,
+                       "detail":  "rows=4"
+                   },
+                   {
+                       "area":  "permission",
+                       "name":  "normal member cannot use system-admin preview APIs and cannot create runtime record",
+                       "passed":  true,
+                       "detail":  "batch=DENIED logs=DENIED create=DENIED"
+                   },
+                   {
+                       "area":  "frontend-source",
+                       "name":  "R91 frontend source markers exist",
+                       "passed":  true,
+                       "detail":  "missing="
+                   },
+                   {
+                       "area":  "deployed",
+                       "name":  "deployed asset contains R91 permission impact markers",
+                       "passed":  true,
+                       "detail":  "assetLength=250803 missing="
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "admin browser exposes R91 permission impact preview decisions and audit rows",
+                       "passed":  true,
+                       "detail":  "{\"kind\":\"admin-role-desktop\",\"hash\":\"#/systems/1138/admin\",\"overflowX\":0,\"blockerText\":false,\"workbench\":true,\"roleValue\":\"1657\",\"moduleValue\":\"460\",\"batchButton\":true,\"impactPanel\":true,\"decisionCount\":4,\"deniedCreate\":true,\"deniedDelete\":true,\"allowedEdit\":true,\"allowedSubmit\":true,\"affectedMembers\":\"1\",\"fieldMaskSummary\":\"460.secretNote:HIDDEN\",\"dataScopeSummary\":\"{\\\"type\\\":\\\"SELF\\\",\\\"moduleId\\\":\\\"460\\\",\\\"expression\\\":\\\"ownerMemberId == currentMember\\\"}\",\"auditCount\":5,\"audits\":[{\"actionCode\":\"record.submitApproval\",\"allowed\":\"true\",\"id\":\"aud_32\"},{\"actionCode\":\"record.delete\",\"allowed\":\"false\",\"id\":\"aud_31\"},{\"actionCode\":\"record.edit\",\"allowed\":\"true\",\"id\":\"aud_30\"},{\"actionCode\":\"record.create\",\"allowed\":\"false\",\"id\":\"aud_29\"},{\"actionCode\":\"record.submitApproval\",\"allowed\":\"true\",\"id\":\"aud_28\"}],\"deniedCopy\":true,\"textLength\":1962}"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "mobile admin browser keeps R91 workbench contained",
+                       "passed":  true,
+                       "detail":  "{\"kind\":\"admin-role-mobile\",\"hash\":\"#/systems/1138/admin\",\"overflowX\":0,\"blockerText\":false,\"workbench\":true,\"roleValue\":\"1657\",\"moduleValue\":\"460\",\"batchButton\":true,\"impactPanel\":true,\"decisionCount\":0,\"deniedCreate\":false,\"deniedDelete\":false,\"allowedEdit\":false,\"allowedSubmit\":false,\"affectedMembers\":\"\",\"fieldMaskSummary\":\"\",\"dataScopeSummary\":\"\",\"auditCount\":5,\"audits\":[{\"actionCode\":\"record.submitApproval\",\"allowed\":\"true\",\"id\":\"aud_32\"},{\"actionCode\":\"record.delete\",\"allowed\":\"false\",\"id\":\"aud_31\"},{\"actionCode\":\"record.edit\",\"allowed\":\"true\",\"id\":\"aud_30\"},{\"actionCode\":\"record.create\",\"allowed\":\"false\",\"id\":\"aud_29\"},{\"actionCode\":\"record.submitApproval\",\"allowed\":\"true\",\"id\":\"aud_28\"}],\"deniedCopy\":true,\"textLength\":1594}"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "normal browser is denied from system admin permission workbench",
+                       "passed":  true,
+                       "detail":  "{\"kind\":\"normal-admin-denied\",\"hash\":\"#/systems/1138/admin\",\"overflowX\":0,\"blockerText\":false,\"workbench\":false,\"roleValue\":\"\",\"moduleValue\":\"\",\"batchButton\":false,\"impactPanel\":false,\"decisionCount\":0,\"deniedCreate\":false,\"deniedDelete\":false,\"allowedEdit\":false,\"allowedSubmit\":false,\"affectedMembers\":\"\",\"fieldMaskSummary\":\"\",\"dataScopeSummary\":\"\",\"auditCount\":0,\"audits\":[],\"deniedCopy\":true,\"textLength\":87}"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "R91 browser audit has no overflow or blocker text",
+                       "passed":  true,
+                       "detail":  "overflow=0 blockers=0 results=3"
+                   },
+                   {
+                       "area":  "signoff-boundary",
+                       "name":  "R91 does not close user signoff",
+                       "passed":  true,
+                       "detail":  "user_script_passed=False"
+                   }
+               ],
+    "browserAudit":  "docs/evidence/recovery/screenshots/r91-permission-impact-preview-audit/permission-impact-preview-browser-audit.json",
+    "error":  null
+}

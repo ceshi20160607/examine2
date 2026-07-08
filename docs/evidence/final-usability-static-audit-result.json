@@ -1,8 +1,8 @@
 ﻿{
     "status":  "PASS",
-    "generatedAt":  "2026-06-30T13:46:59.7293078+08:00",
+    "generatedAt":  "2026-07-07T22:53:10.2963569+08:00",
     "source":  "frontend/src",
-    "scannedFiles":  24,
+    "scannedFiles":  27,
     "blockerCount":  0,
     "warningCount":  0,
     "findings":  [

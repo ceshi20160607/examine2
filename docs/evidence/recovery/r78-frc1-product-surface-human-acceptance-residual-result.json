@@ -1,0 +1,148 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "R78_ACCEPTED_AS_PRODUCT_SURFACE_ENGINEERING_EVIDENCE_ONLY",
+    "task":  "REC-P0-078",
+    "generatedAt":  "2026-07-06T15:37:32.5269255+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "requirementRows":  [
+                            "REQ-5.8",
+                            "REQ-6.1",
+                            "REQ-6.3",
+                            "REQ-6.8",
+                            "REQ-9"
+                        ],
+    "flowIds":  [
+                    "A1-A4",
+                    "P1-P2",
+                    "S1-S2",
+                    "C1-C3",
+                    "B1-B2",
+                    "AI1-AI3",
+                    "O1-O4"
+                ],
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "deployed release verification executed before product-surface audit",
+                       "passed":  true,
+                       "detail":  "baseUrl=http://127.0.0.1:18131"
+                   },
+                   {
+                       "area":  "static-usability",
+                       "name":  "production source has no static usability blockers or warnings",
+                       "passed":  true,
+                       "detail":  "status=PASS, blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "framework",
+                       "name":  "framework audit recognizes R78 as the active next task",
+                       "passed":  true,
+                       "detail":  "status=PASS, nextTasks=REC-P0-078 FRC-1 Product Surface Human Acceptance Residual Closure"
+                   },
+                   {
+                       "area":  "session",
+                       "name":  "user signoff remains separate from engineering evidence",
+                       "passed":  true,
+                       "detail":  "state=False, r68=False, r75=False, r77=False"
+                   },
+                   {
+                       "area":  "page-home-runtime",
+                       "name":  "R68 proves page designer and runtime surface readback without overflow",
+                       "passed":  true,
+                       "detail":  "status=PASS, designerOverflow=0, runtimeOverflow=0, runtimeBlockers=0"
+                   },
+                   {
+                       "area":  "page-home-runtime-permission",
+                       "name":  "R68 keeps hidden component/field pruning and admin write denials",
+                       "passed":  true,
+                       "detail":  "designerHidden=False/False, runtimeHidden=False/False, forbiddenHome=403, forbiddenPage=403"
+                   },
+                   {
+                       "area":  "advanced-boundary",
+                       "name":  "R75 proves advanced operations and logs surfaces have browser containment",
+                       "passed":  true,
+                       "detail":  "status=PASS, browser=6, overflow=0, blockers=0"
+                   },
+                   {
+                       "area":  "product-surface-source",
+                       "name":  "platform config surface exposes human summary markers and compact records",
+                       "passed":  true,
+                       "detail":  "platform config/log source markers present"
+                   },
+                   {
+                       "area":  "runtime-source",
+                       "name":  "runtime published version marker uses real module publishVersion",
+                       "passed":  true,
+                       "detail":  "runtime module version marker uses publishVersion"
+                   },
+                   {
+                       "area":  "coverage-boundary",
+                       "name":  "R77 keeps final coverage honest instead of promoting rows without user signoff",
+                       "passed":  true,
+                       "detail":  "notClosed=45, promoted=0"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r78-frc1-product-surface-human-acceptance-residual\\verify-release.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r78-frc1-product-surface-human-acceptance-residual\\final-usability-static-audit.log"
+                         },
+                         {
+                             "name":  "final-goal-framework-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r78-frc1-product-surface-human-acceptance-residual\\final-goal-framework-audit.log"
+                         },
+                         {
+                             "name":  "recovery-r68-page-visual-designer-fresh-evidence",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r78-frc1-product-surface-human-acceptance-residual\\recovery-r68-page-visual-designer-fresh-evidence.log"
+                         },
+                         {
+                             "name":  "recovery-r75-operations-logs-release-error-state-residual",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r78-frc1-product-surface-human-acceptance-residual\\recovery-r75-operations-logs-release-error-state-residual.log"
+                         },
+                         {
+                             "name":  "recovery-r77-final-requirement-candidate-refresh-after-residual",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r78-frc1-product-surface-human-acceptance-residual\\recovery-r77-final-requirement-candidate-refresh-after-residual.log"
+                         }
+                     ],
+    "staticAudit":  {
+                        "warningCount":  0,
+                        "status":  "PASS",
+                        "blockerCount":  0
+                    },
+    "pageVisualDesignerEvidence":  {
+                                       "forbiddenHomeWriteStatus":  403,
+                                       "pagePublishedVersion":  "PAGE_v1783323128568",
+                                       "forbiddenPageWriteStatus":  403,
+                                       "hiddenFieldLeaked":  false,
+                                       "hiddenComponentLeaked":  false,
+                                       "status":  "PASS",
+                                       "pageRuntimeBrowserResults":  10,
+                                       "pageDesignerBrowserResults":  8
+                                   },
+    "advancedBoundaryEvidence":  {
+                                     "platformAuditReadbackCount":  9,
+                                     "systemAuditReadbackCount":  1,
+                                     "browserOverflowCount":  0,
+                                     "browserResultCount":  6,
+                                     "status":  "PASS",
+                                     "browserBlockerCount":  0
+                                 },
+    "coverageBoundary":  {
+                             "promotedToProven":  0,
+                             "source":  "R77",
+                             "notClosedCount":  45
+                         },
+    "browserAuditPath":  "docs/evidence/recovery/screenshots/r78-frc1-product-surface-human-acceptance-residual/product-surface-human-acceptance-browser-audit.json",
+    "accepted":  true
+}

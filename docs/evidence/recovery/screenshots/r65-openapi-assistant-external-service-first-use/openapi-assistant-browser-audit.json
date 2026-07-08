@@ -1,0 +1,77 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "key": "admin-openapi",
+      "role": "admin",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:18131/?r49=1782965279134#/systems/947/admin/openapi-apps",
+      "overflowX": 0,
+      "expectedMissing": [],
+      "forbiddenVisible": [],
+      "hasSuffix": true,
+      "textSample": "R49 Integration 0702120745045_74d61e\n仪表盘\nR49 Business Group 0702120745045_74d61e\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR49 Integration 0702120745045_74d61e 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n对外应用\n新建对外应用\n\n对外应用使用 OpenApiSecretRef、scope、限流和调用日志，不在页面展示明文密钥。\n\n应用名称\nscope\n状态\ntraceId\n重置\n序号\t应用\tscope\tSecretRef\t状态\t更新时间\t操作\n1\tR49 OpenAPI App 0702120745045_74d61e r49_app_0702120745045_74d61e\trecord.data.read / record.data.write\tOpenAPI application credential\t启用\t2026-07-02 12:07:55\t\n轮换密钥\n\n2\tR49 Readonly OpenAPI App 0702120745045_74d61e r49_readonly_0702120745045_74d61e\trecord.data.read\tOpenAPI application credential\t启用\t2026-07-02 12:07:55\t\n轮换密钥\n第 1 页，每页 20 条，共 2 条\n上一页\n下一页",
+      "blockers": []
+    },
+    {
+      "key": "admin-agent",
+      "role": "admin",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:18131/?r49=1782965283995#/systems/947/admin/agent-config",
+      "overflowX": 0,
+      "expectedMissing": [],
+      "forbiddenVisible": [],
+      "hasSuffix": true,
+      "textSample": "R49 Integration 0702120745045_74d61e\n仪表盘\nR49 Business Group 0702120745045_74d61e\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR49 Integration 0702120745045_74d61e 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\nAI Agent\nAI Agent 策略\n新建策略\n\n系统 Agent 策略控制模块、字段、动作、数据范围、外发限制和脱敏策略。\n\n序号\t策略\t状态\t发布状态\t版本\t操作\n1\tr49_policy_0702120745045_74d61e\t启用\tPUBLISHED\tr49_policy_v_0702120745045_74d61e\t\n发布检查\n第 1 页，每页 20 条，共 1 条\n上一页\n下一页",
+      "blockers": []
+    },
+    {
+      "key": "normal-assistant",
+      "role": "normal",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:18131/?r49=1782965297158#/systems/947/dashboard",
+      "overflowX": 0,
+      "expectedMissing": [],
+      "forbiddenVisible": [],
+      "hasSuffix": true,
+      "textSample": "R49 Integration 0702120745045_74d61e\n仪表盘\nR49 Business Group 0702120745045_74d61e\n工作\n待办\n命令\n助手\n消息\n系统切换\nr49_member_0702120745045_74d61e\n正在读取工作仪表盘...\n智能助手\nR49 Integration 0702120745045_74d61e\n关闭\n系统\nR49 Integration 0702120745045_74d61e\n租户\n979\n角色\nSYSTEM_MEMBER\n权限快照\n生成后显示\n需求\n生成建议\n后台变更草稿",
+      "blockers": []
+    },
+    {
+      "key": "admin-openapi",
+      "role": "admin",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:18131/?r49=1782965297654#/systems/947/admin/openapi-apps",
+      "overflowX": 0,
+      "expectedMissing": [],
+      "forbiddenVisible": [],
+      "hasSuffix": true,
+      "textSample": "R49 Integration 0702120745045_74d61e\n仪表盘\nR49 Business Group 0702120745045_74d61e\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR49 Integration 0702120745045_74d61e 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n对外应用\n新建对外应用\n\n对外应用使用 OpenApiSecretRef、scope、限流和调用日志，不在页面展示明文密钥。\n\n应用名称\nscope\n状态\ntraceId\n重置\n序号\t应用\tscope\tSecretRef\t状态\t更新时间\t操作\n1\tR49 OpenAPI App 0702120745045_74d61e r49_app_0702120745045_74d61e\trecord.data.read / record.data.write\tOpenAPI application credential\t启用\t2026-07-02 12:07:55\t\n轮换密钥\n\n2\tR49 Readonly OpenAPI App 0702120745045_74d61e r49_readonly_0702120745045_74d61e\trecord.data.read\tOpenAPI application credential\t启用\t2026-07-02 12:07:55\t\n轮换密钥\n第 1 页，每页 20 条，共 2 条\n上一页\n下一页",
+      "blockers": []
+    },
+    {
+      "key": "admin-agent",
+      "role": "admin",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:18131/?r49=1782965302018#/systems/947/admin/agent-config",
+      "overflowX": 0,
+      "expectedMissing": [],
+      "forbiddenVisible": [],
+      "hasSuffix": true,
+      "textSample": "R49 Integration 0702120745045_74d61e\n仪表盘\nR49 Business Group 0702120745045_74d61e\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR49 Integration 0702120745045_74d61e 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\nAI Agent\nAI Agent 策略\n新建策略\n\n系统 Agent 策略控制模块、字段、动作、数据范围、外发限制和脱敏策略。\n\n序号\t策略\t状态\t发布状态\t版本\t操作\n1\tr49_policy_0702120745045_74d61e\t启用\tPUBLISHED\tr49_policy_v_0702120745045_74d61e\t\n发布检查\n第 1 页，每页 20 条，共 1 条\n上一页\n下一页",
+      "blockers": []
+    },
+    {
+      "key": "normal-assistant",
+      "role": "normal",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:18131/?r49=1782965310490#/systems/947/dashboard",
+      "overflowX": 0,
+      "expectedMissing": [],
+      "forbiddenVisible": [],
+      "hasSuffix": true,
+      "textSample": "R49 Integration 0702120745045_74d61e\n仪表盘\nR49 Business Group 0702120745045_74d61e\n工作\n待办\n命令\n助手\n消息\n系统切换\nr49_member_0702120745045_74d61e\n正在读取工作仪表盘...\n智能助手\nR49 Integration 0702120745045_74d61e\n关闭\n系统\nR49 Integration 0702120745045_74d61e\n租户\n979\n角色\nSYSTEM_MEMBER\n权限快照\n生成后显示\n需求\n生成建议\n后台变更草稿",
+      "blockers": []
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "R81_TRIAL_LOGIN_ROLE_USE_ENGINEERING_EVIDENCE_ONLY",
+    "task":  "REC-P0-081",
+    "generatedAt":  "2026-07-07T15:29:44.7150465+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "releaseStart":  {
+                         "startedByR81":  false,
+                         "detail":  "release already reachable"
+                     },
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "release is verified before login role audit",
+                       "passed":  true,
+                       "detail":  "http://127.0.0.1:18131"
+                   },
+                   {
+                       "area":  "r80-prerequisite",
+                       "name":  "R80 trial pack is accepted and readable",
+                       "passed":  true,
+                       "detail":  "runtimeSystem=1118, workflowSystem=1121"
+                   },
+                   {
+                       "area":  "browser-login",
+                       "name":  "all trial roles enter through deployed login form",
+                       "passed":  true,
+                       "detail":  "status=PASS, results=8, blockers=0"
+                   },
+                   {
+                       "area":  "runtime-readback",
+                       "name":  "normal member can read retained runtime record",
+                       "passed":  true,
+                       "detail":  "record=625"
+                   },
+                   {
+                       "area":  "permission-negative",
+                       "name":  "readonly member cannot create runtime record",
+                       "passed":  true,
+                       "detail":  "/api/v1/systems/1118/runtime/modules/453/records"
+                   },
+                   {
+                       "area":  "workflow-terminal",
+                       "name":  "workflow retained record remains terminal approved",
+                       "passed":  true,
+                       "detail":  "summary=APPROVED, sidebar=APPROVED"
+                   },
+                   {
+                       "area":  "todo-message",
+                       "name":  "approver todo/message surfaces have persisted workflow evidence",
+                       "passed":  true,
+                       "detail":  "handledTodos=1, messages=1"
+                   },
+                   {
+                       "area":  "framework-boundary",
+                       "name":  "framework/static/coverage keep R81 and user signoff boundary honest",
+                       "passed":  true,
+                       "detail":  "framework=PASS, static=PASS, notClosed=45, userScriptPassed=False"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r81-trial-login-role-use-audit\\verify-release.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r81-trial-login-role-use-audit\\verify-release.err.log"
+                         },
+                         {
+                             "name":  "final-goal-framework-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r81-trial-login-role-use-audit\\final-goal-framework-audit.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r81-trial-login-role-use-audit\\final-goal-framework-audit.err.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r81-trial-login-role-use-audit\\final-usability-static-audit.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r81-trial-login-role-use-audit\\final-usability-static-audit.err.log"
+                         },
+                         {
+                             "name":  "final-requirement-coverage-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r81-trial-login-role-use-audit\\final-requirement-coverage-audit.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r81-trial-login-role-use-audit\\final-requirement-coverage-audit.err.log"
+                         }
+                     ],
+    "browserAudit":  {
+                         "status":  "PASS",
+                         "resultCount":  8,
+                         "overflowCount":  0,
+                         "blockerCount":  0,
+                         "path":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r81-trial-login-role-use-audit\\trial-login-role-use-browser-audit.json"
+                     },
+    "trialPack":  {
+                      "baseUrl":  "http://127.0.0.1:18131",
+                      "admin":  {
+                                    "loginName":  "admin",
+                                    "password":  "123123aa",
+                                    "entry":  "http://127.0.0.1:18131/#/platform"
+                                },
+                      "runtimeDailyUse":  {
+                                              "systemId":  "1118",
+                                              "tenantId":  "1150",
+                                              "moduleId":  "453",
+                                              "normalLoginName":  "r63_member_0706162707_4a00b6",
+                                              "readonlyLoginName":  "r63_readonly_0706162707_4a00b6",
+                                              "password":  "Aa123456!",
+                                              "entry":  "http://127.0.0.1:18131/#/systems/1118/modules",
+                                              "existingRecordId":  "625"
+                                          },
+                      "workflowTodoMessage":  {
+                                                  "systemId":  "1121",
+                                                  "tenantId":  "1153",
+                                                  "moduleId":  "454",
+                                                  "flowId":  "144",
+                                                  "requesterLoginName":  "r3_requester_0706162803307_ca6efa",
+                                                  "approverLoginName":  "r3_approver_0706162803307_ca6efa",
+                                                  "password":  "Aa123456!",
+                                                  "entry":  "http://127.0.0.1:18131/#/systems/1121/modules",
+                                                  "todoEntry":  "http://127.0.0.1:18131/#/systems/1121/todos",
+                                                  "messageEntry":  "http://127.0.0.1:18131/#/systems/1121/messages",
+                                                  "terminalRecordId":  "626"
+                                              }
+                  },
+    "permissionEvidence":  {
+                               "readonlyCreateStatus":  403,
+                               "workflowStatus":  "APPROVED",
+                               "handledTodoTotal":  1,
+                               "approverMessageTotal":  1
+                           },
+    "accepted":  true
+}

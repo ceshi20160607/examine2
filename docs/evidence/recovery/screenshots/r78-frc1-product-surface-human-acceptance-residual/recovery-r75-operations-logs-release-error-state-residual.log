@@ -1,0 +1,178 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "R75_ACCEPTED_AS_DEPLOYED_ENGINEERING_EVIDENCE_ONLY",
+    "task":  "REC-P0-075",
+    "generatedAt":  "2026-07-06T15:36:52.8643752+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "requirementRows":  [
+                            "REQ-4.6",
+                            "REQ-5.17",
+                            "REQ-5.18",
+                            "REQ-7",
+                            "REQ-8",
+                            "REQ-10",
+                            "REQ-14.1-14.37",
+                            "REQ-A"
+                        ],
+    "flowIds":  [
+                    "O1",
+                    "O2",
+                    "O3",
+                    "O4"
+                ],
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "area":  "source",
+                       "name":  "platform ops marker opsAction exists",
+                       "passed":  true,
+                       "detail":  "opsAction"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "platform ops marker opsResult exists",
+                       "passed":  true,
+                       "detail":  "opsResult"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "platform ops marker opsTaskId exists",
+                       "passed":  true,
+                       "detail":  "opsTaskId"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "platform ops marker opsDryRun exists",
+                       "passed":  true,
+                       "detail":  "opsDryRun"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "platform ops marker opsRollbackSupported exists",
+                       "passed":  true,
+                       "detail":  "opsRollbackSupported"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "platform ops marker opsDeploymentList exists",
+                       "passed":  true,
+                       "detail":  "opsDeploymentList"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "platform ops marker opsCachePolicyList exists",
+                       "passed":  true,
+                       "detail":  "opsCachePolicyList"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "platform ops marker platformLogsPanel exists",
+                       "passed":  true,
+                       "detail":  "platformLogsPanel"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "platform ops marker platformOpsGovernance exists",
+                       "passed":  true,
+                       "detail":  "platformOpsGovernance"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "system log marker systemLogsPanel exists",
+                       "passed":  true,
+                       "detail":  "systemLogsPanel"
+                   },
+                   {
+                       "area":  "source",
+                       "name":  "system log marker systemLogTable exists",
+                       "passed":  true,
+                       "detail":  "systemLogTable"
+                   },
+                   {
+                       "area":  "release",
+                       "name":  "deployed frontend assets match release package",
+                       "passed":  true,
+                       "detail":  "releaseVerify=PASS"
+                   },
+                   {
+                       "area":  "operations",
+                       "name":  "R66 operation tasks have traceable task ids",
+                       "passed":  true,
+                       "detail":  "backup=TASK-20260706153501, restore=TASK-20260706153501, rollback=TASK-20260706153501"
+                   },
+                   {
+                       "area":  "logs",
+                       "name":  "R66 platform and system logs read back by trace",
+                       "passed":  true,
+                       "detail":  "platform=9, system=1"
+                   },
+                   {
+                       "area":  "permission",
+                       "name":  "R66 forbidden operation denials are failure logs",
+                       "passed":  true,
+                       "detail":  "platform=403/FAILURE, system=403/FAILURE"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "headless browser devtools ready",
+                       "passed":  true,
+                       "detail":  "port=50233"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "deployed operations/log pages expose residual-state markers",
+                       "passed":  true,
+                       "detail":  "status=PASS, results=6"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "deployed browser has no overflow or unfinished copy blockers",
+                       "passed":  true,
+                       "detail":  "results=6"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "operations browser result includes task and dry-run evidence",
+                       "passed":  true,
+                       "detail":  "platformOpsResults=2"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r75-operations-logs-release-error-state-residual\\verify-release.log"
+                         },
+                         {
+                             "name":  "recovery-r66-operations-logs-release-maintenance-first-use",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r75-operations-logs-release-error-state-residual\\recovery-r66-operations-logs-release-maintenance-first-use.log"
+                         }
+                     ],
+    "releaseVerifyStatus":  "PASS",
+    "serverScriptCommands":  [
+                                 "start",
+                                 "stop",
+                                 "restart",
+                                 "status",
+                                 "health"
+                             ],
+    "systemId":  "1095",
+    "platformHealthTraceId":  "trc_r50_platform_health_0706153449837_40cdbc",
+    "systemHealthTraceId":  "trc_r50_system_health_0706153449837_40cdbc",
+    "backupTaskId":  "TASK-20260706153501",
+    "restoreTaskId":  "TASK-20260706153501",
+    "archiveTaskId":  "TASK-20260706153501",
+    "rollbackTaskId":  "TASK-20260706153501",
+    "platformAuditReadbackCount":  9,
+    "systemAuditReadbackCount":  1,
+    "deniedPlatformStatus":  403,
+    "deniedSystemStatus":  403,
+    "deniedPlatformAuditResult":  "FAILURE",
+    "deniedSystemAuditResult":  "FAILURE",
+    "browserResultCount":  6,
+    "browserOverflowCount":  0,
+    "browserBlockerCount":  0,
+    "browserAuditPath":  "docs/evidence/recovery/screenshots/r75-operations-logs-release-error-state-residual/operations-logs-release-error-browser-audit.json",
+    "accepted":  true
+}

@@ -1,0 +1,98 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "PARTIAL_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-02T14:39:33.9127757+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "requirementRows":  [
+                            "REQ-4.3",
+                            "REQ-5.3",
+                            "REQ-5.3.1",
+                            "REQ-5.4",
+                            "REQ-5.5",
+                            "REQ-5.6",
+                            "REQ-5.7",
+                            "REQ-5.9",
+                            "REQ-5.10",
+                            "REQ-6.7",
+                            "REQ-6.10"
+                        ],
+    "flowIds":  [
+                    "C1",
+                    "C2",
+                    "C3",
+                    "B1",
+                    "B2"
+                ],
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "health database schema redis UP",
+                       "passed":  true,
+                       "detail":  "{\"status\":\"UP\",\"redis\":\"UP\",\"database\":\"UP\",\"schema\":\"UP\"}"
+                   },
+                   {
+                       "area":  "api-metadata",
+                       "name":  "module navigation metadata exposes role visibility and runtime visibility",
+                       "passed":  true,
+                       "detail":  "visible={\"topGroupName\":\"R71 Visible Group 0702143829654\",\"leftMenuName\":\"R71 Visible Module 0702143829654\",\"route\":\"/systems/1007/modules/414\",\"visibleRoleIds\":[\"1470\"],\"runtimeVisible\":true}, hidden={\"topGroupName\":\"R71 Hidden Group 0702143829654\",\"leftMenuName\":\"R71 Hidden Module 0702143829654\",\"route\":\"/systems/1007/modules/415\",\"visibleRoleIds\":[\"1471\"],\"runtimeVisible\":true}, disabled={\"topGroupName\":\"R71 Visible Group 0702143829654\",\"leftMenuName\":\"R71 Disabled Module 0702143829654\",\"route\":\"/systems/1007/modules/416\",\"visibleRoleIds\":[\"1470\"],\"runtimeVisible\":false}"
+                   },
+                   {
+                       "area":  "member-binding",
+                       "name":  "member list readback carries runtime role id",
+                       "passed":  true,
+                       "detail":  "memberRoleIds=1470, switchRoleIds=1470,R71_RUNTIME_MEMBER_0702143829654"
+                   },
+                   {
+                       "area":  "runtime-permission",
+                       "name":  "normal member sees visible schema and cannot access hidden or disabled modules",
+                       "passed":  true,
+                       "detail":  "columns=title,status,ownerDept,publicName, hidden=403, disabled=403, create=403"
+                   },
+                   {
+                       "area":  "browser-binding",
+                       "name":  "deployed browser exposes stable configuration and runtime markers without hidden DOM leakage",
+                       "passed":  true,
+                       "detail":  "results=5, blockers=0, overflow=0"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r71-no-code-frontend-binding-and-hierarchy-residual\\verify-release.log"
+                         }
+                     ],
+    "systemId":  "1007",
+    "tenantId":  "1039",
+    "roleId":  "1470",
+    "hiddenRoleId":  "1471",
+    "memberId":  "1367",
+    "accountMemberBindingId":  "1367",
+    "visibleGroupId":  "412",
+    "hiddenGroupId":  "413",
+    "visibleGroupVersion":  "MODULE_GROUP_v1782974343403",
+    "hiddenGroupVersion":  "MODULE_GROUP_v1782974343484",
+    "visibleModuleId":  "414",
+    "hiddenModuleId":  "415",
+    "disabledModuleId":  "416",
+    "visibleSchemaColumnCodes":  [
+                                     "title",
+                                     "status",
+                                     "ownerDept",
+                                     "publicName"
+                                 ],
+    "visibleFieldCount":  5,
+    "hiddenDirectStatus":  403,
+    "disabledDirectStatus":  403,
+    "forbiddenCreateStatus":  403,
+    "browserResultCount":  5,
+    "browserOverflowCount":  0,
+    "browserBlockerCount":  0,
+    "browserAuditFile":  "docs/evidence/recovery/screenshots/r71-no-code-frontend-binding-and-hierarchy-residual/no-code-frontend-binding-browser-audit.json",
+    "unsupportedNestedModuleGroups":  "ModuleGroup has no parentId in current schema; browser-visible hierarchy boundary is marked with data-module-group-hierarchy-supported=false and data-system-nav-group-hierarchy-supported=false.",
+    "cleanup":  [
+                    "1007:DELETE",
+                    "1008:DELETE"
+                ]
+}

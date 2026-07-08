@@ -1,0 +1,125 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "PARTIAL_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-01T16:06:05.5275937+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "requirementRows":  [
+                            "REQ-4.4",
+                            "REQ-5.11",
+                            "REQ-5.13",
+                            "REQ-5.14",
+                            "REQ-5.16",
+                            "REQ-5.20",
+                            "REQ-6.4",
+                            "REQ-6.5",
+                            "REQ-6.6",
+                            "REQ-6.11"
+                        ],
+    "journeyRows":  [
+                        "J3",
+                        "J4",
+                        "J8",
+                        "J9",
+                        "J11"
+                    ],
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "health reports database/schema/redis UP",
+                       "passed":  true,
+                       "detail":  "{\"status\":\"UP\",\"redis\":\"UP\",\"database\":\"UP\",\"schema\":\"UP\"}"
+                   },
+                   {
+                       "area":  "frontend-static",
+                       "name":  "no blocker or warning copy/placeholder findings",
+                       "passed":  true,
+                       "detail":  "blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "runtime-record-file-import-export",
+                       "name":  "R47 fresh runtime daily-use record file import export passed",
+                       "passed":  true,
+                       "detail":  "record=422, file=file_fdb4f2ac_1782892960903, import=SUCCESS/2, export=SUCCESS, browser=10"
+                   },
+                   {
+                       "area":  "message-todo-approval",
+                       "name":  "R48 fresh message todo approval runtime closure passed",
+                       "passed":  true,
+                       "detail":  "todo=76, message=78, action=HANDLED, terminal=APPROVED, browserBefore=8, browserAfter=6"
+                   },
+                   {
+                       "area":  "role-work-message-mobile-surface",
+                       "name":  "R43 fresh role work todo message mobile surfaces passed",
+                       "passed":  true,
+                       "detail":  "routes=16, results=32, workRoutes=4, todoRoutes=4, messageRoutes=4"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r54-frc3-runtime-user-depth\\verify-release.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r54-frc3-runtime-user-depth\\final-usability-static-audit.log"
+                         },
+                         {
+                             "name":  "recovery-r47-runtime-daily-use",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r54-frc3-runtime-user-depth\\recovery-r47-runtime-daily-use.log"
+                         },
+                         {
+                             "name":  "recovery-r48-workflow-message-flow",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r54-frc3-runtime-user-depth\\recovery-r48-workflow-message-flow.log"
+                         },
+                         {
+                             "name":  "recovery-r43-role-home-whole-path-usability",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r54-frc3-runtime-user-depth\\recovery-r43-role-home-whole-path-usability.log"
+                         }
+                     ],
+    "staticAudit":  {
+                        "warningCount":  0,
+                        "status":  "PASS",
+                        "blockerCount":  0
+                    },
+    "browserAuditFile":  "docs/evidence/recovery/screenshots/r54-frc3-runtime-user-depth/runtime-user-depth-browser-audit.json",
+    "runtimeDailyUse":  {
+                            "recordId":  "422",
+                            "moduleId":  "330",
+                            "detailHistoryCount":  2,
+                            "uploadedFileId":  "file_fdb4f2ac_1782892960903",
+                            "importInsertedCount":  2,
+                            "hiddenFieldLeaked":  false,
+                            "runtimeSearchTotal":  3,
+                            "exportResultFileId":  "file_export_result_c46bf0ea",
+                            "detailAttachmentCount":  4,
+                            "systemId":  "862",
+                            "importTaskStatus":  "SUCCESS",
+                            "exportTaskStatus":  "SUCCESS"
+                        },
+    "messageTodoApproval":  {
+                                "recordId":  "425",
+                                "moduleId":  "331",
+                                "todoActionStatus":  "HANDLED",
+                                "approvalSidebarStatus":  "APPROVED",
+                                "pendingAfterApproveTotal":  0,
+                                "handledAfterApproveTotal":  1,
+                                "pendingTodoId":  "76",
+                                "detailTerminalStatus":  "APPROVED",
+                                "systemId":  "865",
+                                "pendingMessageId":  "78"
+                            },
+    "workMessageSurface":  {
+                               "messageRoutes":  4,
+                               "systemId":  "868",
+                               "routeCount":  16,
+                               "todoRoutes":  4,
+                               "workRoutes":  4,
+                               "resultCount":  32
+                           }
+}

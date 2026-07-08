@@ -25,6 +25,30 @@ import {
   type RuntimeRecordRow,
 } from './runtimeData';
 
+
+export interface RuntimeRecentEntry {
+  systemId: string;
+  moduleId: string;
+  moduleName: string;
+  recordId?: string;
+  title: string;
+  updatedAt: string;
+}
+
+export interface RuntimeDraftEntry {
+  systemId: string;
+  moduleId: string;
+  moduleName: string;
+  draftId: string;
+  recordId?: string;
+  title: string;
+  fieldValues: Record<string, unknown>;
+  updatedAt: string;
+}
+
+const RUNTIME_RECENT_STORAGE_KEY = 'unexamine.runtime.recent.v1';
+const RUNTIME_DRAFT_STORAGE_KEY = 'unexamine.runtime.drafts.v1';
+const R88_RUNTIME_EFFICIENCY_MARKER = 'runtimeEfficiencyR88';
 type RuntimePanel = 'detail' | 'create' | 'edit' | 'import' | 'export' | 'columns';
 type DetailTab = 'base' | 'children' | 'attachments' | 'print' | 'logs';
 
@@ -43,6 +67,8 @@ interface RuntimePageState {
   fieldFilters: Record<string, string>;
   sorts: RuntimeSort[];
   draftId?: string;
+  restoredDraftValues?: Record<string, unknown>;
+  validationFieldCode?: string;
   actionMessage?: string;
   importPrecheck?: RuntimeImportPrecheckResult;
   importConfirm?: RuntimeImportConfirmResult;
@@ -73,8 +99,10 @@ const state: RuntimePageState = {
 
 let liveData: RuntimeLiveData | undefined;
 let loadVersion = 0;
+let appliedRuntimeRouteIntent = '';
 
 export function renderRuntimeRecordPage(): HTMLElement {
+  applyRuntimeRouteIntent();
   const root = createElement('section', { className: 'runtime-page' });
   const render = () => {
     root.replaceChildren(createRuntimeShell(render, () => refreshRuntimeData(render)));
@@ -138,6 +166,7 @@ function createRuntimeShell(render: () => void, reload: () => void): HTMLElement
       'section',
       { className: 'runtime-main' },
       createRuntimeHeader(render),
+      createRuntimeEfficiencyStrip(render),
       createLoadStatePanel(),
       createFilterArea(render),
       createBatchBar(selectedRows, render),
@@ -207,11 +236,13 @@ function createRuntimeHeader(render: () => void): HTMLElement {
     render();
   });
   const importButton = createButton('导入', 'secondary', state.realEmpty);
+  importButton.dataset.runtimeImportOpenR89 = 'true';
   importButton.addEventListener('click', () => {
     state.activePanel = 'import';
     render();
   });
   const exportButton = createButton('全部导出', 'secondary', state.realEmpty);
+  exportButton.dataset.runtimeExportOpenR89 = 'true';
   exportButton.addEventListener('click', () => {
     state.activePanel = 'export';
     render();
@@ -301,6 +332,7 @@ function createBatchBar(selectedRows: RuntimeRecordRow[], render: () => void): H
     await refreshRuntimeData(render);
   });
   const exportSelected = createButton('导出选中', 'secondary', selectedRows.length <= 0, '请先勾选记录。');
+  exportSelected.dataset.runtimeExportSelectedOpenR89 = 'true';
   exportSelected.addEventListener('click', () => {
     state.activePanel = 'export';
     render();
@@ -368,10 +400,11 @@ function createRecordTable(render: () => void): HTMLElement {
 function createRecordRow(row: RuntimeRecordRow, columns: DynamicColumn[], render: () => void): HTMLElement {
   const tr = createElement('tr', {
     className: `clickable-row${state.activeRecordId === row.recordId ? ' selected-row' : ''}`,
-    dataset: { rowClickTarget: currentSchema().rowClickTarget },
+    dataset: { rowClickTarget: currentSchema().rowClickTarget, runtimeRecordRow: row.recordId },
   });
   tr.addEventListener('click', () => {
     state.activeRecordId = row.recordId;
+    saveRuntimeRecentEntry(runtimeRecentFromRow(row));
     state.activePanel = 'detail';
     render();
   });
@@ -579,6 +612,9 @@ function createEditPanel(panel: 'create' | 'edit', onClose: () => void, render: 
   const saveDraftButton = createButton('保存草稿', 'secondary', false);
   const saveButton = createButton(panel === 'create' ? '保存记录' : '保存修改', 'primary', false);
   const submitApprovalButton = createButton('提交审批', 'secondary', false);
+  saveDraftButton.dataset.runtimeSaveDraftR88 = 'true';
+  saveButton.dataset.runtimeSaveRecordR88 = 'true';
+  submitApprovalButton.dataset.runtimeSubmitApprovalR88 = 'true';
   saveDraftButton.addEventListener('click', async () => {
     const fieldValues = collectFormValues();
     try {
@@ -589,6 +625,16 @@ function createEditPanel(panel: 'create' | 'edit', onClose: () => void, render: 
         attachmentIds: collectAttachmentIds(),
       });
       state.draftId = draft.draftId;
+      state.restoredDraftValues = fieldValues;      saveRuntimeDraftEntry({
+        systemId: activeSystemId(),
+        moduleId: activeModuleId(),
+        moduleName: liveData?.activeModule.name ?? activeModuleId(),
+        draftId: draft.draftId,
+        recordId: panel === 'edit' ? active?.recordId : undefined,
+        title: active?.title ?? `${liveData?.activeModule.name ?? 'record'} draft`,
+        fieldValues,
+        updatedAt: new Date().toISOString(),
+      });
       state.actionMessage = `草稿已保存：${draft.draftId}`;
       render();
     } catch (error) {
@@ -628,13 +674,13 @@ function createEditPanel(panel: 'create' | 'edit', onClose: () => void, render: 
     createElement(
       'section',
       { className: 'runtime-card form-grid' },
-      ...currentFields().map((field) => createFormField(field, panel === 'edit' ? active?.fields[field.fieldCode] : undefined)),
+      ...currentFields().map((field) => createFormField(field, panel === 'edit' ? active?.fields[field.fieldCode] : state.restoredDraftValues?.[field.fieldCode])),
       createElement('label', {}, createElement('span', {}, '附件'), createElement('input', { ariaLabel: '附件' })),
     ),
     createElement(
       'section',
-      { className: 'runtime-card' },
-      createElement('h3', {}, '提交结果承接'),
+      { className: 'runtime-card', dataset: { runtimeFormResultR88: 'true', runtimeDraftId: state.draftId ?? '', runtimeValidationField: state.validationFieldCode ?? '' } },
+      createElement('h3', {}, '提交结果'),
       createElement('p', {}, state.actionMessage ?? '保存后返回字段错误、traceId、auditLogId；需要审批时生成流程实例并在详情右侧审批栏展示。'),
       state.draftId ? createElement('p', {}, `当前草稿：${state.draftId}`) : null,
     ),
@@ -834,10 +880,103 @@ function createFilterInput(label: string, fieldCode: string): HTMLElement {
   return createElement('label', {}, createElement('span', {}, label), input);
 }
 
+function createRuntimeEfficiencyStrip(render: () => void): HTMLElement {
+  const systemId = activeSystemId();
+  const moduleId = activeModuleId();
+  const recent = readRuntimeRecentEntries(systemId).filter((entry) => entry.moduleId === moduleId).slice(0, 3);
+  const drafts = readRuntimeDraftEntries(systemId).filter((entry) => entry.moduleId === moduleId).slice(0, 3);
+  const searchInput = createElement('input', { ariaLabel: '搜索当前模块', dataset: { runtimeEfficiencySearchInput: 'true' } });
+  searchInput.placeholder = '搜索当前模块数据';
+  searchInput.value = state.keyword;
+  const searchButton = createButton('搜索', 'primary', state.realEmpty);
+  searchButton.dataset.runtimeEfficiencySearchAction = 'true';
+  searchButton.addEventListener('click', () => {
+    state.keyword = searchInput.value.trim();
+    state.pageNo = 1;
+    state.validationFieldCode = undefined;
+    void refreshRuntimeData(render);
+  });
+  const createButtonAction = createButton('快捷新建', 'secondary', state.realEmpty);
+  createButtonAction.dataset.runtimeEfficiencyQuickCreate = moduleId;
+  createButtonAction.addEventListener('click', () => {
+    state.activePanel = 'create';
+    state.restoredDraftValues = undefined;
+    state.validationFieldCode = undefined;
+    render();
+  });
+
+  return createElement(
+    'section',
+    {
+      className: 'runtime-efficiency-strip',
+      dataset: {
+        runtimeEfficiencyR88: 'true',
+        runtimeEfficiencyModuleId: moduleId,
+        runtimeEfficiencyRecentCount: String(recent.length),
+        runtimeEfficiencyDraftCount: String(drafts.length),
+        runtimeEfficiencyMarker: R88_RUNTIME_EFFICIENCY_MARKER,
+      },
+    },
+    createElement('div', { className: 'runtime-efficiency-search' }, searchInput, searchButton, createButtonAction),
+    createElement(
+      'div',
+      { className: 'runtime-efficiency-list', dataset: { runtimeEfficiencyRecentList: recent.length ? 'populated' : 'empty' } },
+      createElement('strong', {}, '最近打开'),
+      recent.length === 0
+        ? createElement('span', {}, '当前模块暂无最近记录')
+        : createElement('div', { className: 'simple-stack' }, ...recent.map((entry) => createEfficiencyEntryButton(entry.title, entry.updatedAt, () => {
+            state.activeModuleId = entry.moduleId;
+            state.activeRecordId = entry.recordId ?? '';
+            state.activePanel = entry.recordId ? 'detail' : 'create';
+            render();
+          }, { runtimeEfficiencyRecentItem: entry.recordId ?? entry.moduleId }))),
+    ),
+    createElement(
+      'div',
+      { className: 'runtime-efficiency-list', dataset: { runtimeEfficiencyDraftList: drafts.length ? 'populated' : 'empty' } },
+      createElement('strong', {}, '草稿'),
+      drafts.length === 0
+        ? createElement('span', {}, '保存草稿后可从这里继续')
+        : createElement('div', { className: 'simple-stack' }, ...drafts.map((draft) => createEfficiencyEntryButton(draft.title, draft.draftId, () => {
+            state.activeModuleId = draft.moduleId;
+            state.draftId = draft.draftId;
+            state.restoredDraftValues = draft.fieldValues;
+            state.activeRecordId = draft.recordId ?? '';
+            state.activePanel = 'create';
+            state.actionMessage = `已恢复草稿：${draft.draftId}`;
+            state.validationFieldCode = undefined;
+            render();
+          }, { runtimeEfficiencyDraftItem: draft.draftId }))),
+    ),
+  );
+}
+
+function createEfficiencyEntryButton(title: string, meta: string, onClick: () => void, dataset: Record<string, string>): HTMLButtonElement {
+  const button = createElement('button', { className: 'list-line clickable-row', dataset }, createElement('span', {}, title), createElement('small', {}, meta));
+  button.addEventListener('click', onClick);
+  return button;
+}
+
 function createFormField(field: FieldDefinitionVO, value: unknown): HTMLElement {
-  const input = createElement('input', { ariaLabel: field.name, dataset: { fieldCode: field.fieldCode } });
+  const isErrorField = state.validationFieldCode === field.fieldCode;
+  const input = createElement('input', {
+    ariaLabel: field.name,
+    dataset: {
+      fieldCode: field.fieldCode,
+      runtimeFormFieldR88: field.fieldCode,
+      runtimeFieldErrorR88: String(isErrorField),
+    },
+  });
   input.value = value === null || value === undefined ? '' : String(value);
-  return createElement('label', {}, createElement('span', {}, `${field.name}${field.required ? ' *' : ''}`), input);
+  if (isErrorField) {
+    input.classList.add('field-error');
+  }
+  return createElement(
+    'label',
+    { className: isErrorField ? 'field-error-label' : undefined, dataset: { runtimeValidationFieldR88: isErrorField ? field.fieldCode : '' } },
+    createElement('span', {}, `${field.name}${field.required ? ' *' : ''}`),
+    input,
+  );
 }
 
 function createColumnToggle(column: DynamicColumn): HTMLElement {
@@ -899,14 +1038,33 @@ function collectAttachmentIds(): string[] {
 }
 
 async function saveCurrentRecord(panel: 'create' | 'edit', active: RuntimeRecordRow | undefined, submitApproval: boolean): Promise<void> {
+  const fieldValues = collectFormValues();
+  const fields = currentFields();
+  const missingField = fields.find((field) => field.required && !String(fieldValues[field.fieldCode] ?? '').trim())
+    ?? (fields.length > 0 && fields.every((field) => !String(fieldValues[field.fieldCode] ?? '').trim()) ? fields[0] : undefined);
+  if (missingField) {
+    state.validationFieldCode = missingField.fieldCode;
+    state.actionMessage = `请补充必填字段：${missingField.name}`;
+    throw new Error(state.actionMessage);
+  }
+  state.validationFieldCode = undefined;
   const mutation = await saveRuntimeRecord(activeSystemId(), activeModuleId(), {
     recordId: panel === 'edit' ? active?.recordId : undefined,
     draftId: state.draftId,
-    fieldValues: collectFormValues(),
+    fieldValues,
     attachmentIds: collectAttachmentIds(),
   });
   state.draftId = undefined;
+  state.restoredDraftValues = undefined;
   state.actionMessage = `记录已保存：${mutation.recordId}`;
+  saveRuntimeRecentEntry({
+    systemId: activeSystemId(),
+    moduleId: activeModuleId(),
+    moduleName: liveData?.activeModule.name ?? activeModuleId(),
+    recordId: mutation.recordId,
+    title: active?.title ?? `${liveData?.activeModule.name ?? 'record'} ${mutation.recordId}`,
+    updatedAt: new Date().toISOString(),
+  });
   if (submitApproval) {
     const action = await executeRuntimeRecordAction(activeSystemId(), activeModuleId(), mutation.recordId, 'record.submitApproval', {
       reason: '前端提交审批',
@@ -916,6 +1074,11 @@ async function saveCurrentRecord(panel: 'create' | 'edit', active: RuntimeRecord
 }
 
 async function runExport(scope: 'ALL_MATCHED' | 'SELECTED' | 'TEMPLATE_ONLY', selectedRows: RuntimeRecordRow[], render: () => void): Promise<void> {
+  if (scope === 'SELECTED' && selectedRows.length <= 0) {
+    state.exportMessage = '请先勾选要导出的记录，或改用导出当前筛选。';
+    render();
+    return;
+  }
   state.exportLoading = true;
   state.exportMessage = undefined;
   render();
@@ -1099,6 +1262,108 @@ function currentModuleGroupTitle(): string {
   return activeGroup?.name ?? '业务模块';
 }
 
+export function runtimeModulePath(systemId: string, moduleId?: string, options: { mode?: 'create' | 'draft'; draftId?: string; recordId?: string; keyword?: string } = {}): string {
+  const params = new URLSearchParams();
+  if (moduleId) params.set('moduleId', moduleId);
+  if (options.mode) params.set('mode', options.mode);
+  if (options.draftId) params.set('draftId', options.draftId);
+  if (options.recordId) params.set('recordId', options.recordId);
+  if (options.keyword) params.set('keyword', options.keyword);
+  const query = params.toString();
+  return `/systems/${systemId}/modules${query ? `?${query}` : ''}`;
+}
+
+export function readRuntimeRecentEntries(systemId?: string): RuntimeRecentEntry[] {
+  return readRuntimeStorage<RuntimeRecentEntry>(RUNTIME_RECENT_STORAGE_KEY)
+    .filter((entry) => !systemId || entry.systemId === systemId)
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+}
+
+export function readRuntimeDraftEntries(systemId?: string): RuntimeDraftEntry[] {
+  return readRuntimeStorage<RuntimeDraftEntry>(RUNTIME_DRAFT_STORAGE_KEY)
+    .filter((entry) => !systemId || entry.systemId === systemId)
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+}
+
+function saveRuntimeRecentEntry(entry: RuntimeRecentEntry): void {
+  const scoped = readRuntimeStorage<RuntimeRecentEntry>(RUNTIME_RECENT_STORAGE_KEY)
+    .filter((item) => !(item.systemId === entry.systemId && item.moduleId === entry.moduleId && (item.recordId ?? '') === (entry.recordId ?? '')));
+  writeRuntimeStorage(RUNTIME_RECENT_STORAGE_KEY, [entry, ...scoped].slice(0, 12));
+}
+
+function saveRuntimeDraftEntry(entry: RuntimeDraftEntry): void {
+  const scoped = readRuntimeStorage<RuntimeDraftEntry>(RUNTIME_DRAFT_STORAGE_KEY)
+    .filter((item) => !(item.systemId === entry.systemId && item.moduleId === entry.moduleId && item.draftId === entry.draftId));
+  writeRuntimeStorage(RUNTIME_DRAFT_STORAGE_KEY, [entry, ...scoped].slice(0, 12));
+}
+
+function readRuntimeStorage<T>(key: string): T[] {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item === 'object') as T[] : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRuntimeStorage<T>(key: string, entries: T[]): void {
+  localStorage.setItem(key, JSON.stringify(entries));
+}
+
+function runtimeRecentFromRow(row: RuntimeRecordRow): RuntimeRecentEntry {
+  return {
+    systemId: activeSystemId(),
+    moduleId: activeModuleId(),
+    moduleName: liveData?.activeModule.name ?? activeModuleId(),
+    recordId: row.recordId,
+    title: row.title,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function applyRuntimeRouteIntent(): void {
+  const hash = window.location.hash;
+  if (appliedRuntimeRouteIntent === hash) {
+    return;
+  }
+  appliedRuntimeRouteIntent = hash;
+  const queryIndex = hash.indexOf('?');
+  if (queryIndex < 0) {
+    return;
+  }
+  const params = new URLSearchParams(hash.slice(queryIndex + 1));
+  const moduleId = params.get('moduleId') ?? undefined;
+  const mode = params.get('mode') ?? undefined;
+  const draftId = params.get('draftId') ?? undefined;
+  const recordId = params.get('recordId') ?? undefined;
+  const keyword = params.get('keyword') ?? undefined;
+  if (moduleId) {
+    state.activeModuleId = moduleId;
+  }
+  if (keyword) {
+    state.keyword = keyword;
+    state.pageNo = 1;
+  }
+  if (recordId) {
+    state.activeRecordId = recordId;
+    state.activePanel = 'detail';
+  }
+  if (mode === 'create') {
+    state.activePanel = 'create';
+    state.restoredDraftValues = undefined;
+    state.validationFieldCode = undefined;
+  }
+  if (mode === 'draft' && draftId) {
+    const draft = readRuntimeDraftEntries(activeSystemId()).find((item) => item.draftId === draftId && (!moduleId || item.moduleId === moduleId));
+    state.activePanel = 'create';
+    state.draftId = draftId;
+    state.activeRecordId = draft?.recordId ?? recordId ?? '';
+    state.restoredDraftValues = draft?.fieldValues ?? {};
+    state.validationFieldCode = undefined;
+    state.actionMessage = draft ? `已恢复草稿：${draft.draftId}` : `草稿入口已打开：${draftId}`;
+  }
+}
 function activeSystemId(): string {
   return shellState.currentSystem?.systemId ?? shellState.availableSystems[0]?.systemId ?? '1';
 }

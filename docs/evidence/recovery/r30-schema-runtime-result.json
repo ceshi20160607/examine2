@@ -1,0 +1,30 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-030",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "686",
+    "tenantId":  "718",
+    "moduleId":  "224",
+    "roleId":  "959",
+    "pageCode":  "main",
+    "savedPageStatus":  "DRAFT",
+    "publishCheckPassed":  true,
+    "publishedVersion":  "PAGE_v1782803744486",
+    "draftSchemaVersion":  "PAGE_DRAFT_aac6c290ccc4",
+    "adminPublishedSchemaVersion":  "PAGE_v1782803744486",
+    "normalRuntimeSchemaVersion":  "PAGE_v1782803744486",
+    "adminFieldCount":  6,
+    "normalFieldCount":  5,
+    "normalReadonlyCount":  5,
+    "hiddenFieldLeaked":  false,
+    "hiddenComponentLeaked":  false,
+    "runtimeListHiddenFieldLeaked":  false,
+    "forbiddenCreateStatus":  403,
+    "permissionVersion":  "perm_1782803743833_trc9a443",
+    "evidenceDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r30-schema-runtime",
+    "apiAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r30-schema-runtime\\schema-runtime-api-audit.json",
+    "cleanup":  [
+                    "686:DELETE",
+                    "687:DELETE"
+                ]
+}

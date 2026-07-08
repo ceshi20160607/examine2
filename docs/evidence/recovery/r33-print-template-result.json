@@ -1,0 +1,21 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-033",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "704",
+    "moduleId":  "232",
+    "recordId":  "297",
+    "templateCode":  "print_r33_0630174305_98e42d",
+    "draftStatus":  "DRAFT",
+    "publishCheckPassed":  true,
+    "publishedVersion":  "PRINT_TEMPLATE_v1782812606735",
+    "runtimePreviewVersion":  "PRINT_TEMPLATE_v1782812606735",
+    "runtimeExportFileId":  "print_print_r33_0630174305_98e42d_297_1782812608785.html",
+    "draftRuntimeDeniedStatus":  403,
+    "normalAdminDeniedStatus":  403,
+    "cleanup":  [
+                    "704:DELETE",
+                    "705:DELETE"
+                ],
+    "apiAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r33-print-template\\print-template-api-audit.json"
+}

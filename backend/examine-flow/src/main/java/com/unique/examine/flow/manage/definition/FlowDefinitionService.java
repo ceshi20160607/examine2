@@ -11,11 +11,13 @@ import com.unique.examine.core.error.BusinessException;
 import com.unique.examine.core.error.CommonErrorCode;
 import com.unique.examine.flow.base.entity.FlowDefinition;
 import com.unique.examine.flow.base.entity.FlowEdge;
+import com.unique.examine.flow.base.entity.FlowInstance;
 import com.unique.examine.flow.base.entity.FlowNode;
 import com.unique.examine.flow.base.entity.FlowSimulationLog;
 import com.unique.examine.flow.base.entity.FlowSnapshot;
 import com.unique.examine.flow.base.service.FlowDefinitionBaseService;
 import com.unique.examine.flow.base.service.FlowEdgeBaseService;
+import com.unique.examine.flow.base.service.FlowInstanceBaseService;
 import com.unique.examine.flow.base.service.FlowNodeBaseService;
 import com.unique.examine.flow.base.service.FlowSimulationLogBaseService;
 import com.unique.examine.flow.base.service.FlowSnapshotBaseService;
@@ -53,18 +55,22 @@ import com.unique.examine.flow.manage.definition.FlowDefinitionModels.PublishChe
 import com.unique.examine.flow.manage.definition.FlowDefinitionModels.PublishRequest;
 import com.unique.examine.flow.manage.definition.FlowDefinitionModels.PublishResult;
 import com.unique.examine.flow.manage.definition.FlowDefinitionModels.RetryPolicy;
+import com.unique.examine.flow.manage.definition.FlowDefinitionModels.SimulationApproverVO;
 import com.unique.examine.flow.manage.definition.FlowDefinitionModels.SimulationStepTrace;
 import com.unique.examine.flow.manage.definition.FlowDefinitionModels.TimeoutPolicy;
 import com.unique.examine.flow.manage.definition.FlowDefinitionModels.TimeoutReminderPropertyPayload;
 import com.unique.examine.flow.manage.definition.FlowDefinitionModels.TimerPropertyPayload;
 import com.unique.examine.flow.manage.definition.FlowDefinitionModels.TriggerRule;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import com.unique.examine.plat.manage.common.SystemMemberContextResolver;
 import com.unique.examine.plat.manage.common.SystemMemberContextResolver.SystemMemberContext;
@@ -95,6 +101,7 @@ public class FlowDefinitionService {
     private final FlowDefinitionBaseService flowDefinitionBaseService;
     private final FlowNodeBaseService flowNodeBaseService;
     private final FlowEdgeBaseService flowEdgeBaseService;
+    private final FlowInstanceBaseService flowInstanceBaseService;
     private final FlowSnapshotBaseService flowSnapshotBaseService;
     private final FlowSimulationLogBaseService flowSimulationLogBaseService;
     private final ObjectMapper objectMapper;
@@ -103,6 +110,7 @@ public class FlowDefinitionService {
                                  FlowDefinitionBaseService flowDefinitionBaseService,
                                  FlowNodeBaseService flowNodeBaseService,
                                  FlowEdgeBaseService flowEdgeBaseService,
+                                 FlowInstanceBaseService flowInstanceBaseService,
                                  FlowSnapshotBaseService flowSnapshotBaseService,
                                  FlowSimulationLogBaseService flowSimulationLogBaseService,
                                  ObjectMapper objectMapper) {
@@ -110,6 +118,7 @@ public class FlowDefinitionService {
         this.flowDefinitionBaseService = flowDefinitionBaseService;
         this.flowNodeBaseService = flowNodeBaseService;
         this.flowEdgeBaseService = flowEdgeBaseService;
+        this.flowInstanceBaseService = flowInstanceBaseService;
         this.flowSnapshotBaseService = flowSnapshotBaseService;
         this.flowSimulationLogBaseService = flowSimulationLogBaseService;
         this.objectMapper = objectMapper;
@@ -263,7 +272,7 @@ public class FlowDefinitionService {
     }
 
     /**
-     * Simulate the draft or selected snapshot and return deterministic trace steps.
+     * Simulate the draft or selected snapshot and return a non-mutating path prediction.
      *
      * @param systemId system id
      * @param flowId flow id
@@ -274,33 +283,89 @@ public class FlowDefinitionService {
         SystemMemberContext systemContext = contextResolver.resolve(systemId);
         FlowDefinition flow = requireFlow(systemContext, flowId);
         RequestContext context = RequestContext.current();
-        boolean managerBranch = simulationAmount(request) >= 100000;
-        String selectedEdgeKey = managerBranch ? "edge_condition_manager" : "edge_condition_auto";
-        String selectedLabel = managerBranch ? "金额大于等于 10 万" : "金额小于 10 万";
-        List<SimulationStepTrace> traces = List.of(
-                new SimulationStepTrace(1, "node_approval_leader", "直属负责人审批", "approval",
-                        "recordId=" + safeText(request == null ? null : request.recordId(), "preview_record"),
-                        "审批任务将派发给直属负责人", List.of("node_condition_amount"), 12L),
-                new SimulationStepTrace(2, "node_condition_amount", "金额条件分支", "condition",
-                        "amount=" + simulationAmount(request), "命中分支：" + selectedLabel,
-                        List.of(managerBranch ? "node_external_api_sync" : "node_field_update_status"), 5L),
-                new SimulationStepTrace(3, managerBranch ? "node_external_api_sync" : "node_field_update_status",
-                        managerBranch ? "同步外部业务系统" : "更新业务状态",
-                        managerBranch ? "external_api" : "field_update",
-                        "沿用发布前模拟快照", "仅返回配置模拟结果，不执行运行时写入",
-                        List.of("node_end_passed"), 18L),
-                new SimulationStepTrace(4, "node_end_passed", "审批通过结束", "end",
-                        "上一步完成", "流程路径结束", List.of(), 2L)
-        );
-        ConditionDecisionVO decision = new ConditionDecisionVO("node_condition_amount", "expr_amount_threshold",
-                selectedEdgeKey, selectedLabel, true, Map.of("amount", simulationAmount(request)));
+        long instanceCountBefore = flowInstanceCount(flow);
+        FlowSimulationRequest safeRequest = request == null
+                ? new FlowSimulationRequest(null, null, "DRAFT", Map.of(), null, null, null)
+                : request;
+        CanvasVO canvas = simulationCanvas(flow, safeRequest);
+        List<PublishCheckItem> blockers = new ArrayList<>();
+        if (canvas.nodes().isEmpty()) {
+            blockers.add(simulationBlocker(flow, "E_SIM_NO_NODE", "模拟缺少节点", "流程画布没有可模拟节点。", "添加审批、条件或结束节点"));
+        }
+        if (!canvas.validationSummary().hasEndNode()) {
+            blockers.add(simulationBlocker(flow, "E_SIM_NO_END", "模拟缺少结束节点", "流程模拟必须存在结束节点。", "添加结束节点"));
+        }
+        if (!canvas.validationSummary().connected()) {
+            blockers.add(simulationBlocker(flow, "E_SIM_NOT_CONNECTED", "模拟连线不完整", "流程模拟需要至少一条可执行连线。", "补齐节点连线"));
+        }
+
+        Map<String, FlowNodeConfigVO> nodeMap = new LinkedHashMap<>();
+        canvas.nodes().forEach(node -> nodeMap.put(node.nodeKey(), node));
+        Map<String, List<FlowEdgeVO>> outgoing = outgoingEdges(canvas.edges());
+        List<SimulationStepTrace> traces = new ArrayList<>();
+        List<ConditionDecisionVO> decisions = new ArrayList<>();
+        List<SimulationApproverVO> approvers = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+        String currentNodeKey = blockers.isEmpty() ? startNodeKey(canvas, safeRequest) : null;
+        int sequence = 1;
+        boolean reachedEnd = false;
+
+        while (hasText(currentNodeKey) && sequence <= canvas.nodes().size() + 5) {
+            FlowNodeConfigVO node = nodeMap.get(currentNodeKey);
+            if (node == null) {
+                blockers.add(simulationBlocker(flow, "E_SIM_NODE_MISSING", "模拟节点不存在",
+                        "节点 " + currentNodeKey + " 不存在，无法继续预测。", "检查连线目标节点"));
+                break;
+            }
+            if (!visited.add(currentNodeKey)) {
+                blockers.add(simulationBlocker(flow, "E_SIM_LOOP", "模拟检测到循环",
+                        "节点 " + node.nodeName() + " 被重复访问，当前 first-loop 模拟停止。", "检查循环条件或添加终止条件"));
+                break;
+            }
+            if ("approval".equals(node.nodeType())) {
+                SimulationApproverVO predicted = predictedApprover(node);
+                approvers.add(predicted);
+                if (predicted.assigneeIds().isEmpty()) {
+                    blockers.add(simulationBlocker(flow, "E_SIM_APPROVER_EMPTY", "审批人缺失",
+                            "审批节点「" + node.nodeName() + "」没有配置审批人。", "在节点属性中配置 assigneeIds"));
+                }
+            }
+            List<FlowEdgeVO> nextEdges = outgoing.getOrDefault(node.nodeKey(), List.of());
+            FlowEdgeVO selected = selectSimulationEdge(node, nextEdges, safeRequest, decisions);
+            List<String> nextNodeKeys = selected == null ? List.of() : List.of(selected.targetNodeKey());
+            traces.add(new SimulationStepTrace(sequence, node.nodeKey(), node.nodeName(), node.nodeType(),
+                    simulationInputSummary(node, safeRequest), simulationOutputSummary(node, selected, safeRequest),
+                    nextNodeKeys, elapsedMs(node.nodeType())));
+            if ("end".equals(node.nodeType())) {
+                reachedEnd = true;
+                break;
+            }
+            if (selected == null) {
+                blockers.add(simulationBlocker(flow, "E_SIM_NO_BRANCH", "没有可用分支",
+                        "节点「" + node.nodeName() + "」没有匹配的下一步。", "补充默认分支或调整条件表达式"));
+                break;
+            }
+            currentNodeKey = selected.targetNodeKey();
+            sequence++;
+        }
+        if (sequence > canvas.nodes().size() + 5) {
+            blockers.add(simulationBlocker(flow, "E_SIM_STEP_LIMIT", "模拟步数超限",
+                    "流程路径超过当前画布节点数量，可能存在循环。", "检查循环路径"));
+        }
+        if (!blockers.isEmpty() || (!traces.isEmpty() && !reachedEnd)) {
+            blockers.addAll(reachedEnd ? List.of() : List.of(simulationBlocker(flow, "E_SIM_NOT_REACHED_END",
+                    "未到达结束节点", "当前样例数据未能预测到结束节点。", "检查分支或结束节点连线")));
+        }
+
+        String versionNo = safeText(safeRequest.versionNo(), "DRAFT");
+        long instanceCountAfter = flowInstanceCount(flow);
         FlowSimulationResult result = new FlowSimulationResult("sim_" + context.traceId(), String.valueOf(flow.getId()),
-                safeText(request == null ? null : request.versionNo(), "DRAFT"), true, traces,
-                List.of(decision), List.of(), context.traceId(), LocalDateTime.now());
+                versionNo, blockers.isEmpty(), traces, decisions, approvers, blockers, blockers,
+                impactRefs(flow), instanceCountAfter > instanceCountBefore, context.traceId(), LocalDateTime.now());
         FlowSimulationLog log = new FlowSimulationLog();
         log.setFlowId(flow.getId());
         log.setVersionNo(result.versionNo());
-        log.setInputPayload(toJson(request == null ? Map.of() : request));
+        log.setInputPayload(toJson(safeRequest));
         log.setOutputPayload(toJson(result));
         log.setFailureItems(toJson(result.failureItems()));
         log.setSimulatedBy(systemContext.accountId());
@@ -336,14 +401,7 @@ public class FlowDefinitionService {
             failures.add(new PublishCheckItem("E_FLOW_NOT_CONNECTED", "流程连线不完整", "ERROR",
                     "FLOW_DEFINITION", String.valueOf(flow.getId()), "发布流程必须存在可执行连线。", "补齐节点间连线"));
         }
-        List<PublishCheckItem> warnings = List.of(
-                new PublishCheckItem("W_EXTERNAL_API_SCOPE", "外部 API scope 需运行时校验", "WARNING",
-                        "FLOW_DEFINITION", String.valueOf(flow.getId()),
-                        "若流程包含外部 API 节点，运行时会继续校验外部应用授权。", "确认 OpenAPI 应用已发布"),
-                new PublishCheckItem("W_TIMEOUT_TEMPLATE", "超时提醒模板需可用", "WARNING",
-                        "FLOW_DEFINITION", String.valueOf(flow.getId()),
-                        "若流程包含超时提醒节点，运行时会检查通知模板和渠道。", "确认消息模板已启用")
-        );
+        List<PublishCheckItem> warnings = publishWarnings(flow, canvas);
         return new PublishCheckResultVO(failures.isEmpty(), failures, warnings,
                 impactRefs(flow), requestContext.traceId(), "aud_" + requestContext.traceId());
     }
@@ -832,6 +890,33 @@ public class FlowDefinitionService {
                 check, "system_member_admin", LocalDateTime.now(), RequestContext.current().traceId(), true);
     }
 
+    private List<PublishCheckItem> publishWarnings(FlowDefinition flow, CanvasVO canvas) {
+        List<PublishCheckItem> warnings = new ArrayList<>();
+        Set<String> nodeTypes = new HashSet<>();
+        canvas.nodes().forEach(node -> nodeTypes.add(safeText(node.nodeType(), "")));
+        if (nodeTypes.contains("external_api")) {
+            warnings.add(new PublishCheckItem("W_EXTERNAL_API_SCOPE", "外部 API scope 需运行时校验", "WARNING",
+                    "FLOW_NODE", String.valueOf(flow.getId()),
+                    "流程包含外部 API 节点，运行时会继续校验外部应用授权、SecretRef 和限流策略。", "确认 OpenAPI 应用已发布"));
+        }
+        if (nodeTypes.contains("timeout_reminder")) {
+            warnings.add(new PublishCheckItem("W_TIMEOUT_TEMPLATE", "超时提醒模板需可用", "WARNING",
+                    "FLOW_NODE", String.valueOf(flow.getId()),
+                    "流程包含超时提醒节点，运行时会检查通知模板、渠道和免打扰策略。", "确认消息模板已启用"));
+        }
+        if (nodeTypes.contains("timer")) {
+            warnings.add(new PublishCheckItem("W_TIMER_SCHEDULE", "定时器调度需发布后校验", "WARNING",
+                    "FLOW_NODE", String.valueOf(flow.getId()),
+                    "流程包含定时器节点，发布后需要按业务日历和触发次数校验调度边界。", "确认业务日历和触发限制"));
+        }
+        if (nodeTypes.contains("field_update")) {
+            warnings.add(new PublishCheckItem("W_FIELD_UPDATE_PERMISSION", "字段更新需校验字段权限", "WARNING",
+                    "FLOW_NODE", String.valueOf(flow.getId()),
+                    "流程包含字段更新节点，运行时会校验字段写权限并记录审计原因。", "确认字段权限和回写字段"));
+        }
+        return warnings;
+    }
+
     private List<ImpactRef> impactRefs(FlowDefinition flow) {
         List<ImpactRef> refs = new ArrayList<>();
         if (Objects.nonNull(flow.getBoundModuleId())) {
@@ -840,9 +925,24 @@ public class FlowDefinitionService {
         }
         refs.add(new ImpactRef("FLOW_DEFINITION", String.valueOf(flow.getId()), flow.getFlowName(),
                 "PUBLISH_SNAPSHOT"));
+        for (FlowNodeConfigVO node : canvasFromDb(flow).nodes()) {
+            switch (safeText(node.nodeType(), "")) {
+                case "field_update" -> refs.add(new ImpactRef("MODULE_FIELD", node.nodeKey(),
+                        node.nodeName(), "WRITE_BACK_FIELD"));
+                case "external_api" -> refs.add(new ImpactRef("OPENAPI_APP", node.nodeKey(),
+                        node.nodeName(), "VERIFY_SCOPE"));
+                case "timer" -> refs.add(new ImpactRef("FLOW_TIMER", node.nodeKey(),
+                        node.nodeName(), "SCHEDULE_WAKE"));
+                case "timeout_reminder" -> refs.add(new ImpactRef("MESSAGE_TEMPLATE", node.nodeKey(),
+                        node.nodeName(), "VERIFY_CHANNEL"));
+                case "approval" -> refs.add(new ImpactRef("TODO_MESSAGE", node.nodeKey(),
+                        node.nodeName(), "CREATE_APPROVAL_TODO"));
+                default -> {
+                }
+            }
+        }
         return refs;
     }
-
     private List<ImpactRef> legacyPreviewImpactRefs(String flowId) {
         return List.of(
                 new ImpactRef("MODULE", DEFAULT_MODULE_ID, "业务数据", "BIND_FLOW_VERSION"),
@@ -907,6 +1007,204 @@ public class FlowDefinitionService {
 
     private boolean hasEndNode(List<FlowNodeConfigVO> nodes) {
         return nodes.stream().anyMatch(node -> "end".equals(node.nodeType()));
+    }
+
+    private CanvasVO simulationCanvas(FlowDefinition flow, FlowSimulationRequest request) {
+        String versionNo = request == null ? null : request.versionNo();
+        if (hasText(versionNo) && !"DRAFT".equalsIgnoreCase(versionNo)) {
+            FlowSnapshot snapshot = flowSnapshotBaseService.getOne(new LambdaQueryWrapper<FlowSnapshot>()
+                    .eq(FlowSnapshot::getFlowId, flow.getId())
+                    .eq(FlowSnapshot::getVersionNo, versionNo)
+                    .last("LIMIT 1"), false);
+            if (snapshot != null) {
+                List<FlowNodeConfigVO> nodes = readJson(snapshot.getNodePayload(), NODE_LIST_TYPE, List.of());
+                List<FlowEdgeVO> edges = readJson(snapshot.getEdgePayload(), EDGE_LIST_TYPE, List.of());
+                return new CanvasVO(String.valueOf(flow.getId()), nodes, edges, branchLabels(edges),
+                        new CanvasValidationSummary(!nodes.isEmpty() && !edges.isEmpty(), hasEndNode(nodes), List.of()));
+            }
+        }
+        return canvasFromDb(flow);
+    }
+
+    private Map<String, List<FlowEdgeVO>> outgoingEdges(List<FlowEdgeVO> edges) {
+        Map<String, List<FlowEdgeVO>> grouped = new LinkedHashMap<>();
+        for (FlowEdgeVO edge : edges) {
+            grouped.computeIfAbsent(edge.sourceNodeKey(), ignored -> new ArrayList<>()).add(edge);
+        }
+        return grouped;
+    }
+
+    private long flowInstanceCount(FlowDefinition flow) {
+        return flowInstanceBaseService.count(new LambdaQueryWrapper<FlowInstance>()
+                .eq(FlowInstance::getFlowId, flow.getId()));
+    }
+
+    private String startNodeKey(CanvasVO canvas, FlowSimulationRequest request) {
+        if (request != null && hasText(request.startNodeKey())
+                && canvas.nodes().stream().anyMatch(node -> Objects.equals(node.nodeKey(), request.startNodeKey()))) {
+            return request.startNodeKey();
+        }
+        Set<String> targets = new HashSet<>();
+        canvas.edges().forEach(edge -> targets.add(edge.targetNodeKey()));
+        return canvas.nodes().stream()
+                .filter(node -> !targets.contains(node.nodeKey()))
+                .filter(FlowNodeConfigVO::runtimeExecutable)
+                .findFirst()
+                .or(() -> canvas.nodes().stream().findFirst())
+                .map(FlowNodeConfigVO::nodeKey)
+                .orElse(null);
+    }
+
+    private FlowEdgeVO selectSimulationEdge(FlowNodeConfigVO node, List<FlowEdgeVO> edges,
+                                            FlowSimulationRequest request, List<ConditionDecisionVO> decisions) {
+        if (edges.isEmpty()) {
+            return null;
+        }
+        if (!"condition".equals(node.nodeType())) {
+            return edges.get(0);
+        }
+        FlowEdgeVO defaultEdge = null;
+        for (FlowEdgeVO edge : edges) {
+            ConditionExpression expression = edge.conditionPayload();
+            if (expression == null) {
+                defaultEdge = defaultEdge == null ? edge : defaultEdge;
+                continue;
+            }
+            boolean matched = conditionMatches(expression, request == null ? Map.of() : request.fieldValues());
+            decisions.add(new ConditionDecisionVO(node.nodeKey(), expression.expressionId(), edge.edgeKey(),
+                    safeText(edge.branchLabel(), expression.expressionText()), matched,
+                    Map.of(safeText(expression.fieldCode(), "field"), fieldValue(request, expression.fieldCode()))));
+            if (matched) {
+                return edge;
+            }
+        }
+        if (defaultEdge != null) {
+            decisions.add(new ConditionDecisionVO(node.nodeKey(), null, defaultEdge.edgeKey(),
+                    safeText(defaultEdge.branchLabel(), "默认分支"), true, Map.of()));
+        }
+        return defaultEdge;
+    }
+
+    private boolean conditionMatches(ConditionExpression expression, Map<String, Object> fieldValues) {
+        Object actual = fieldValues == null ? null : fieldValues.get(expression.fieldCode());
+        Object expected = expression.expectedValue();
+        String operator = safeText(expression.operator(), "EQ").toUpperCase();
+        BigDecimal actualDecimal = decimalValue(actual);
+        BigDecimal expectedDecimal = decimalValue(expected);
+        if (actualDecimal != null && expectedDecimal != null) {
+            int compared = actualDecimal.compareTo(expectedDecimal);
+            return switch (operator) {
+                case "GT" -> compared > 0;
+                case "GTE", ">=" -> compared >= 0;
+                case "LT" -> compared < 0;
+                case "LTE", "<=" -> compared <= 0;
+                case "NE", "!=" -> compared != 0;
+                default -> compared == 0;
+            };
+        }
+        String actualText = Objects.toString(actual, "");
+        String expectedText = Objects.toString(expected, "");
+        return switch (operator) {
+            case "NE", "!=" -> !Objects.equals(actualText, expectedText);
+            case "CONTAINS" -> actualText.contains(expectedText);
+            default -> Objects.equals(actualText, expectedText);
+        };
+    }
+
+    private Object fieldValue(FlowSimulationRequest request, String fieldCode) {
+        if (request == null || request.fieldValues() == null || !hasText(fieldCode)) {
+            return "";
+        }
+        Object value = request.fieldValues().get(fieldCode);
+        return value == null ? "" : value;
+    }
+
+    private SimulationApproverVO predictedApprover(FlowNodeConfigVO node) {
+        Map<String, Object> payload = objectMap(node.propertyPayload());
+        String assigneeType = Objects.toString(payload.getOrDefault("assigneeType", "MEMBER"), "MEMBER");
+        List<String> assigneeIds = stringList(payload.get("assigneeIds"));
+        String displayName = assigneeIds.isEmpty()
+                ? "未配置审批人"
+                : assigneeType + ":" + String.join(",", assigneeIds);
+        return new SimulationApproverVO(node.nodeKey(), node.nodeName(), assigneeType, assigneeIds, displayName);
+    }
+
+    private String simulationInputSummary(FlowNodeConfigVO node, FlowSimulationRequest request) {
+        return switch (node.nodeType()) {
+            case "condition" -> "fields=" + toJson(request == null ? Map.of() : request.fieldValues());
+            case "approval" -> "actor=" + safeText(request == null ? null : request.actorMemberId(), "current_member")
+                    + ", recordId=" + safeText(request == null ? null : request.recordId(), "preview_record");
+            default -> "version=" + safeText(request == null ? null : request.versionNo(), "DRAFT");
+        };
+    }
+
+    private String simulationOutputSummary(FlowNodeConfigVO node, FlowEdgeVO selected, FlowSimulationRequest request) {
+        if ("end".equals(node.nodeType())) {
+            return "模拟路径到达结束节点，不创建运行实例";
+        }
+        if ("approval".equals(node.nodeType())) {
+            return "预计生成审批任务：" + predictedApprover(node).displayName();
+        }
+        if ("condition".equals(node.nodeType())) {
+            return selected == null ? "没有命中分支" : "命中分支：" + safeText(selected.branchLabel(), selected.edgeKey());
+        }
+        if ("external_api".equals(node.nodeType())) {
+            return "仅预测外部 API 调用，不发送请求";
+        }
+        if ("field_update".equals(node.nodeType())) {
+            return "仅预测字段更新，不写入业务数据";
+        }
+        return selected == null ? "无下一步" : "下一步：" + selected.targetNodeKey();
+    }
+
+    private long elapsedMs(String nodeType) {
+        return switch (safeText(nodeType, "")) {
+            case "approval" -> 12L;
+            case "condition" -> 5L;
+            case "external_api" -> 18L;
+            case "field_update" -> 9L;
+            default -> 2L;
+        };
+    }
+
+    private PublishCheckItem simulationBlocker(FlowDefinition flow, String code, String name, String message,
+                                               String fixAction) {
+        return new PublishCheckItem(code, name, "ERROR", "FLOW_DEFINITION", String.valueOf(flow.getId()),
+                message, fixAction);
+    }
+
+    private Map<String, Object> objectMap(Object value) {
+        if (value instanceof Map<?, ?> raw) {
+            Map<String, Object> result = new LinkedHashMap<>();
+            raw.forEach((key, mapValue) -> result.put(Objects.toString(key, ""), mapValue));
+            return result;
+        }
+        return objectMapper.convertValue(value == null ? Map.of() : value, new TypeReference<Map<String, Object>>() {
+        });
+    }
+
+    private List<String> stringList(Object value) {
+        if (value instanceof List<?> list) {
+            return list.stream().map(item -> Objects.toString(item, "")).filter(this::hasText).toList();
+        }
+        if (value instanceof String text && hasText(text)) {
+            return List.of(text);
+        }
+        return List.of();
+    }
+
+    private BigDecimal decimalValue(Object value) {
+        if (value instanceof Number number) {
+            return BigDecimal.valueOf(number.doubleValue());
+        }
+        if (value instanceof String text && hasText(text)) {
+            try {
+                return new BigDecimal(text);
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 
     private long simulationAmount(FlowSimulationRequest request) {

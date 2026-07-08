@@ -20,6 +20,7 @@ import {
   messageTargetToPath,
   todoTargetToPath,
   type DailyReport,
+  type DailyReportAutoDraft,
   type MessageCard,
   type RuntimeLiveData,
   type TodoRow,
@@ -40,7 +41,12 @@ import { createButton, createElement, createTraceLine } from '../../shared/compo
 import { requestFormInput, requestTextInput } from '../../shared/dialogs';
 import { createFilterBar, createKeywordFilterBar } from '../../shared/filters';
 import { renderStatusPill } from '../../shared/status';
-import { renderRuntimeRecordPage } from '../runtime/records/runtimeRecords';
+import {
+  readRuntimeDraftEntries,
+  readRuntimeRecentEntries,
+  renderRuntimeRecordPage,
+  runtimeModulePath,
+} from '../runtime/records/runtimeRecords';
 import { renderSystemAdmin } from '../system-admin/systemAdmin';
 
 type WorkTab = 'dashboard' | 'project' | 'plain' | 'reports';
@@ -53,11 +59,13 @@ let plainTaskView: TaskView = 'list';
 let activeWorkTask: WorkTask | undefined;
 let activeWorkCreate: 'project' | 'project-task' | 'plain-task' | 'daily-report' | undefined;
 let workActionMessage: string | undefined;
+let activeDailyReportDraft: DailyReportAutoDraft | undefined;
 let headerNavigation: Pick<RuntimeLiveData, 'groups' | 'modules'> | undefined;
 let headerTenants: TenantOption[] = [];
 let todoPageNo = 1;
 let todoKeyword = '';
-let activeTodoAction: { todo: TodoRow; action: TodoAction } | undefined;
+let activeTodoDetail: TodoRow | undefined;
+let todoActionResult: string | undefined;
 let messagePageNo = 1;
 let messageKeyword = '';
 let messageReadStatus: 'all' | 'unread' | 'read' = 'all';
@@ -203,35 +211,43 @@ function createSystemProfile(navigate: Navigate): HTMLElement {
   );
 }
 
+interface SystemDashboardData {
+  dashboard: WorkDashboard;
+  homePage: HomePageConfigView;
+  todos: TodoSearchResult;
+  messages: PageResult<MessageCard>;
+  projectTasks: PageResult<WorkTask>;
+  plainTasks: PageResult<WorkTask>;
+}
+
 function createDashboard(navigate: Navigate): HTMLElement {
-  const root = createElement('section', { className: 'content-panel' });
-  root.replaceChildren(createLoadingPanel('正在读取工作仪表盘...'));
+  const root = createElement('section', { className: 'content-panel', dataset: { systemDashboard: 'true' } });
+  root.replaceChildren(createLoadingPanel('正在读取系统首页行动数据...'));
   void Promise.all([
     loadWorkDashboard(activeSystemId()),
     loadSystemHomePageConfig(activeSystemId()),
+    loadSystemTodos(activeSystemId(), { pageNo: 1, pageSize: 5, status: 'PENDING' }),
+    loadSystemMessages(activeSystemId(), { pageNo: 1, pageSize: 5, readStatus: 'unread', archiveStatus: 'active' }),
+    loadProjectTasks(activeSystemId(), { pageNo: 1, pageSize: 5 }),
+    loadPlainTasks(activeSystemId(), { pageNo: 1, pageSize: 5 }),
   ])
-    .then(([dashboard, homePage]) => {
+    .then(([dashboard, homePage, todos, messages, projectTasks, plainTasks]) => {
       const hasRuntimeModules = (headerNavigation?.modules ?? []).length > 0;
-      const openModuleButton = createButton(hasRuntimeModules ? '打开业务模块' : '配置业务模块', 'primary', false);
-      openModuleButton.addEventListener('click', () => {
-        navigate(hasRuntimeModules || !canEnterSystemAdmin()
-          ? `/systems/${activeSystemId()}/modules`
-          : `/systems/${activeSystemId()}/admin`);
-      });
+      const data: SystemDashboardData = { dashboard, homePage, todos, messages, projectTasks, plainTasks };
       const initializationPrompt = !hasRuntimeModules && canEnterSystemAdmin() ? [createSystemInitializationPrompt(navigate)] : [];
       root.replaceChildren(
-        createElement('div', { className: 'page-heading' }, createElement('h1', {}, homePage.title || '系统工作台'), createElement('p', {}, homePage.subtitle || '当前系统成员权限范围内的业务入口、待办、消息和工作概览。')),
+        createElement('div', { className: 'page-heading', dataset: { systemDashboardHeading: 'true' } }, createElement('h1', {}, homePage.title || '系统工作台'), createElement('p', {}, homePage.subtitle || '从这里处理今天的工作、待办、消息和业务数据。')),
         ...initializationPrompt,
         createHomeOverviewPanel(homePage, dashboard, hasRuntimeModules),
+        createDashboardDailyActionHub(data, navigate, hasRuntimeModules),
+        createDashboardRuntimeEfficiencyPanel(navigate),
         createHomeOperationsPanel(dashboard),
-        openModuleButton,
         createTraceLine(dashboard.traceId ?? `trace_dashboard_${activeSystemId()}`),
       );
     })
     .catch((error) => root.replaceChildren(createErrorPanel(error)));
   return root;
 }
-
 function createSystemInitializationPrompt(navigate: Navigate): HTMLElement {
   const adminButton = createButton('进入系统初始化', 'primary', false);
   adminButton.addEventListener('click', () => navigate(`/systems/${activeSystemId()}/admin`));
@@ -312,6 +328,209 @@ function createHomeOperationsPanel(dashboard: WorkDashboard): HTMLElement {
   );
 }
 
+function createDashboardDailyActionHub(data: SystemDashboardData, navigate: Navigate, hasRuntimeModules: boolean): HTMLElement {
+  const workButton = createButton('进入工作管理', 'secondary', false);
+  workButton.dataset.dashboardQuickAction = 'work';
+  workButton.addEventListener('click', () => navigate(`/systems/${activeSystemId()}/work`));
+
+  const quickTaskButton = createButton('记录普通任务', 'primary', false);
+  quickTaskButton.dataset.dashboardQuickAction = 'plain-task';
+  quickTaskButton.dataset.systemDashboardQuickCreate = 'plain-task';
+  quickTaskButton.addEventListener('click', () => {
+    activeWorkTab = 'plain';
+    activeWorkCreate = 'plain-task';
+    navigate(`/systems/${activeSystemId()}/work`);
+  });
+
+  const todoButton = createButton('查看待办', 'secondary', false);
+  todoButton.dataset.dashboardQuickAction = 'todos';
+  todoButton.addEventListener('click', () => navigate(`/systems/${activeSystemId()}/todos`));
+
+  const messageButton = createButton('查看消息', 'secondary', false);
+  messageButton.dataset.dashboardQuickAction = 'messages';
+  messageButton.addEventListener('click', () => navigate(`/systems/${activeSystemId()}/messages`));
+
+  const moduleButton = createButton(hasRuntimeModules ? '打开业务数据' : '配置业务模块', 'ghost', false);
+  moduleButton.dataset.dashboardQuickAction = hasRuntimeModules ? 'modules' : 'admin-modules';
+  moduleButton.addEventListener('click', () => {
+    navigate(hasRuntimeModules || !canEnterSystemAdmin()
+      ? `/systems/${activeSystemId()}/modules`
+      : `/systems/${activeSystemId()}/admin`);
+  });
+
+  return createElement(
+    'section',
+    { className: 'dashboard-action-hub', dataset: { systemDashboardDailyHub: 'true', dashboardHasRuntimeModules: String(hasRuntimeModules) } },
+    createElement(
+      'div',
+      { className: 'runtime-card-head' },
+      createElement('div', {}, createElement('h2', {}, '今日行动'), createElement('p', {}, '首页只放当前成员马上要处理的工作、待办、消息和业务入口。')),
+      renderStatusPill(data.dashboard.overview?.dailyReportSubmitted ? '日报已处理' : '日报待确认', data.dashboard.overview?.dailyReportSubmitted ? 'success' : 'warning'),
+    ),
+    createElement('div', { className: 'inline-actions', dataset: { systemDashboardQuickActions: 'true' } }, quickTaskButton, workButton, todoButton, messageButton, moduleButton),
+    createElement(
+      'div',
+      { className: 'dashboard-action-grid' },
+      createDashboardWorkPreview(data.projectTasks, data.plainTasks, data.dashboard, navigate),
+      createDashboardTodoPreview(data.todos, navigate),
+      createDashboardMessagePreview(data.messages, navigate),
+      createDashboardModulePreview(navigate),
+    ),
+  );
+}
+
+function createDashboardRuntimeEfficiencyPanel(navigate: Navigate): HTMLElement {
+  const systemId = activeSystemId();
+  const modules = (headerNavigation?.modules ?? []).filter((module) => !module.disabledReason).slice(0, 4);
+  const recent = readRuntimeRecentEntries(systemId).slice(0, 4);
+  const drafts = readRuntimeDraftEntries(systemId).slice(0, 4);
+  const firstModule = modules[0];
+  const searchInput = createElement('input', { ariaLabel: '搜索业务数据', dataset: { dashboardRuntimeSearchInputR88: 'true' } });
+  searchInput.placeholder = firstModule ? `搜索 ${firstModule.name}` : '暂无可搜索业务模块';
+  const searchButton = createButton('搜索业务数据', 'primary', !firstModule, firstModule ? undefined : '当前没有可访问业务模块。');
+  searchButton.dataset.dashboardRuntimeSearchR88 = 'true';
+  searchButton.addEventListener('click', () => {
+    if (firstModule) {
+      navigate(runtimeModulePath(systemId, firstModule.moduleId, { keyword: searchInput.value.trim() }));
+    }
+  });
+  const quickCreateButton = createButton('快捷新建业务记录', 'secondary', !firstModule, firstModule ? undefined : '当前没有可访问业务模块。');
+  quickCreateButton.dataset.dashboardRuntimeQuickCreateR88 = firstModule?.moduleId ?? '';
+  quickCreateButton.addEventListener('click', () => {
+    if (firstModule) {
+      navigate(runtimeModulePath(systemId, firstModule.moduleId, { mode: 'create' }));
+    }
+  });
+
+  return createElement(
+    'section',
+    {
+      className: 'dashboard-runtime-efficiency',
+      dataset: {
+        systemDashboardRuntimeEfficiencyR88: 'true',
+        dashboardRuntimeModuleCount: String(modules.length),
+        dashboardRuntimeRecentCount: String(recent.length),
+        dashboardRuntimeDraftCount: String(drafts.length),
+      },
+    },
+    createElement(
+      'div',
+      { className: 'runtime-card-head' },
+      createElement('div', {}, createElement('h2', {}, '业务效率入口'), createElement('p', {}, '搜索、最近打开、草稿和快捷新建都回到真实运行态模块。')),
+      renderStatusPill(firstModule ? '运行态可用' : '暂无模块', firstModule ? 'success' : 'warning'),
+    ),
+    createElement('div', { className: 'dashboard-runtime-search' }, searchInput, searchButton, quickCreateButton),
+    createElement(
+      'div',
+      { className: 'dashboard-runtime-grid' },
+      createElement(
+        'article',
+        { className: 'home-ops-block', dataset: { dashboardRuntimeRecentListR88: recent.length ? 'populated' : 'empty' } },
+        createElement('h3', {}, '最近打开'),
+        recent.length === 0
+          ? createElement('p', {}, '打开业务记录后会显示在这里。')
+          : createElement('div', { className: 'simple-stack' }, ...recent.map((entry) => {
+              const row = createElement('button', { className: 'list-line clickable-row', dataset: { dashboardRuntimeRecentItemR88: entry.recordId ?? entry.moduleId } }, createElement('span', {}, entry.title), createElement('small', {}, entry.moduleName));
+              row.addEventListener('click', () => navigate(runtimeModulePath(systemId, entry.moduleId, { recordId: entry.recordId })));
+              return row;
+            })),
+      ),
+      createElement(
+        'article',
+        { className: 'home-ops-block', dataset: { dashboardRuntimeDraftListR88: drafts.length ? 'populated' : 'empty' } },
+        createElement('h3', {}, '继续草稿'),
+        drafts.length === 0
+          ? createElement('p', {}, '保存运行态草稿后可从这里继续。')
+          : createElement('div', { className: 'simple-stack' }, ...drafts.map((draft) => {
+              const row = createElement('button', { className: 'list-line clickable-row', dataset: { dashboardRuntimeDraftItemR88: draft.draftId } }, createElement('span', {}, draft.title), createElement('small', {}, draft.moduleName));
+              row.addEventListener('click', () => navigate(runtimeModulePath(systemId, draft.moduleId, { mode: 'draft', draftId: draft.draftId, recordId: draft.recordId })));
+              return row;
+            })),
+      ),
+      createElement(
+        'article',
+        { className: 'home-ops-block', dataset: { dashboardRuntimeModuleQuickListR88: modules.length ? 'populated' : 'empty' } },
+        createElement('h3', {}, '业务模块'),
+        modules.length === 0
+          ? createElement('p', {}, '暂无可访问业务模块。')
+          : createElement('div', { className: 'simple-stack' }, ...modules.map((module) => {
+              const row = createElement('button', { className: 'list-line clickable-row', dataset: { dashboardRuntimeModuleItemR88: module.moduleId } }, createElement('span', {}, module.name), createElement('small', {}, `${module.count ?? 0} 条`));
+              row.addEventListener('click', () => navigate(runtimeModulePath(systemId, module.moduleId)));
+              return row;
+            })),
+      ),
+    ),
+  );
+}
+function createDashboardWorkPreview(projectTasks: PageResult<WorkTask>, plainTasks: PageResult<WorkTask>, dashboard: WorkDashboard, navigate: Navigate): HTMLElement {
+  const merged = new Map<string, WorkTask>();
+  [...(dashboard.myTasks ?? []), ...projectTasks.records, ...plainTasks.records].forEach((task) => merged.set(task.taskId, task));
+  const tasks = [...merged.values()].slice(0, 5);
+  const openWork = () => navigate(`/systems/${activeSystemId()}/work`);
+  return createElement(
+    'article',
+    { className: 'home-ops-block', dataset: { systemDashboardWorkPreview: 'true', previewCount: String(tasks.length) } },
+    createElement('h3', {}, '我的工作'),
+    tasks.length === 0
+      ? createElement('p', {}, '暂无需要处理的工作任务。')
+      : createElement('div', { className: 'simple-stack' }, ...tasks.map((task) => {
+          const row = createElement('button', { className: 'list-line clickable-row', dataset: { dashboardWorkTask: task.taskId, taskType: task.taskType } }, createElement('span', {}, task.title), renderStatusPill(task.status?.itemName ?? '待处理', task.warningLevel === 'HIGH' ? 'danger' : 'info'));
+          row.addEventListener('click', openWork);
+          return row;
+        })),
+  );
+}
+
+function createDashboardTodoPreview(todos: TodoSearchResult, navigate: Navigate): HTMLElement {
+  const rows = todos.page.records.slice(0, 5);
+  return createElement(
+    'article',
+    { className: 'home-ops-block', dataset: { systemDashboardTodoPreview: 'true', previewCount: String(rows.length), totalCount: String(todos.page.total) } },
+    createElement('h3', {}, `待办 ${todos.page.total}`),
+    rows.length === 0
+      ? createElement('p', {}, '当前没有待处理事项。')
+      : createElement('div', { className: 'simple-stack' }, ...rows.map((todo) => {
+          const row = createElement('button', { className: 'list-line clickable-row', dataset: { dashboardTodo: todo.todoId } }, createElement('span', {}, todo.title), renderStatusPill(todo.priority ?? '普通', todo.priority === 'HIGH' ? 'danger' : 'warning'));
+          row.addEventListener('click', () => navigate(todoTargetToPath(todo.target, activeSystemId())));
+          return row;
+        })),
+  );
+}
+
+function createDashboardMessagePreview(messages: PageResult<MessageCard>, navigate: Navigate): HTMLElement {
+  const rows = messages.records.slice(0, 5);
+  return createElement(
+    'article',
+    { className: 'home-ops-block', dataset: { systemDashboardMessagePreview: 'true', previewCount: String(rows.length), totalCount: String(messages.total) } },
+    createElement('h3', {}, `未读消息 ${messages.total}`),
+    rows.length === 0
+      ? createElement('p', {}, '当前没有未读消息。')
+      : createElement('div', { className: 'simple-stack' }, ...rows.map((message) => {
+          const row = createElement('button', { className: 'list-line clickable-row', dataset: { dashboardMessage: message.messageId } }, createElement('span', {}, message.title), renderStatusPill(message.type, message.readStatus === 'read' ? 'success' : 'info'));
+          row.addEventListener('click', async () => {
+            await markSystemMessageRead(activeSystemId(), message.messageId).catch(() => undefined);
+            navigate(messageTargetToPath(message.target, activeSystemId()));
+          });
+          return row;
+        })),
+  );
+}
+
+function createDashboardModulePreview(navigate: Navigate): HTMLElement {
+  const modules = (headerNavigation?.modules ?? []).filter((module) => !module.disabledReason).slice(0, 5);
+  return createElement(
+    'article',
+    { className: 'home-ops-block', dataset: { systemDashboardModulePreview: 'true', previewCount: String(modules.length) } },
+    createElement('h3', {}, '业务入口'),
+    modules.length === 0
+      ? createElement('p', {}, '还没有可访问的业务模块。')
+      : createElement('div', { className: 'simple-stack' }, ...modules.map((module) => {
+          const row = createElement('button', { className: 'list-line clickable-row', dataset: { dashboardModule: module.moduleId } }, createElement('span', {}, module.name), createElement('small', {}, `${module.count ?? 0} 条`));
+          row.addEventListener('click', () => navigate(`/systems/${activeSystemId()}/modules?moduleId=${encodeURIComponent(module.moduleId)}`));
+          return row;
+        })),
+  );
+}
 function homePageWidgetValue(sourceType: string, dashboard: WorkDashboard, hasRuntimeModules: boolean): string {
   if (sourceType === 'WORK_DASHBOARD') {
     return `${dashboard.overview?.projectTaskCount ?? 0} 项目 / ${dashboard.overview?.plainTaskCount ?? 0} 普通`;
@@ -329,7 +548,7 @@ function homePageWidgetValue(sourceType: string, dashboard: WorkDashboard, hasRu
 }
 
 function createTodoWorkbench(navigate: Navigate): HTMLElement {
-  const root = createElement('section', { className: 'content-panel' });
+  const root = createElement('section', { className: 'content-panel', dataset: { systemTodoWorkbench: 'true', systemTodoWorkbenchR87: 'true' } });
   const load = () => {
     root.replaceChildren(createLoadingPanel('正在读取待办...'));
     void loadSystemTodos(activeSystemId(), {
@@ -339,9 +558,8 @@ function createTodoWorkbench(navigate: Navigate): HTMLElement {
       keyword: todoKeyword,
     })
       .then((todos) => {
-        activeTodoAction = activeTodoAction && todos.page.records.some((row) => row.todoId === activeTodoAction?.todo.todoId)
-          ? activeTodoAction
-          : undefined;
+        const selected = activeTodoDetail ? todos.page.records.find((row) => row.todoId === activeTodoDetail?.todoId) : undefined;
+        activeTodoDetail = selected ?? todos.page.records[0];
         root.replaceChildren(createTodoContent(todos, navigate, load));
       })
       .catch((error) => root.replaceChildren(createErrorPanel(error)));
@@ -353,38 +571,50 @@ function createTodoWorkbench(navigate: Navigate): HTMLElement {
 function createTodoContent(todos: TodoSearchResult, navigate: Navigate, reload: () => void): HTMLElement {
   return createElement(
     'section',
-    { className: 'content-panel' },
-    createElement('div', { className: 'page-heading' }, createElement('h1', {}, '待办'), createElement('p', {}, '左侧仅展示待办类型，右侧是当前类型的待办列表、筛选和分页。')),
+    { className: 'content-panel', dataset: { systemTodoWorkbench: 'true', systemTodoWorkbenchR87: 'true' } },
+    createElement('div', { className: 'page-heading' }, createElement('h1', {}, '待办'), createElement('p', {}, '先查看待办上下文和可用动作，再进入关联业务或审批对象。')),
     createElement(
       'div',
-      { className: 'todo-layout' },
+      {
+        className: 'todo-layout todo-workbench-layout',
+        dataset: {
+          systemTodoLayout: 'true',
+          todoWorkbenchSelected: activeTodoDetail?.todoId ?? '',
+          todoWorkbenchTotal: String(todos.page.total),
+        },
+      },
       createTodoTypeTree(todos.typeTree, reload),
       createElement(
         'section',
-        { className: 'panel' },
+        { className: 'panel todo-list-panel', dataset: { systemTodoListPanel: 'true' } },
         createKeywordFilterBar({
           label: '待办关键字',
           value: todoKeyword,
           onApply: (keyword) => {
             todoKeyword = keyword;
             todoPageNo = 1;
-            activeTodoAction = undefined;
+            activeTodoDetail = undefined;
+            todoActionResult = undefined;
             reload();
           },
           onReset: () => {
             todoKeyword = '';
             todoPageNo = 1;
-            activeTodoAction = undefined;
+            activeTodoDetail = undefined;
+            todoActionResult = undefined;
             reload();
           },
         }),
-        createTodoTable(todos.page.records, navigate, reload),
+        todoActionResult ? createElement('section', { className: 'runtime-card workbench-result-card', dataset: { systemTodoActionResult: 'true' } }, todoActionResult) : null,
+        createTodoTable(todos.page.records, reload),
         createPagination(todos.page, (nextPage) => {
           todoPageNo = nextPage;
-          activeTodoAction = undefined;
+          activeTodoDetail = undefined;
+          todoActionResult = undefined;
           reload();
         }),
       ),
+      createTodoDetailPanel(activeTodoDetail, navigate, reload),
     ),
     createTraceLine(todos.traceId),
   );
@@ -392,52 +622,52 @@ function createTodoContent(todos: TodoSearchResult, navigate: Navigate, reload: 
 
 function createTodoTypeTree(nodes: TodoTypeNode[], reload: () => void): HTMLElement {
   const buttons = flattenTodoTypes(nodes).map((node) => {
-    const button = createElement('button', { className: `sidebar-item${activeTodoType === node.typeCode ? ' active' : ''}` }, `${node.typeName} (${node.count})`);
+    const button = createElement('button', { className: `sidebar-item${activeTodoType === node.typeCode ? ' active' : ''}`, dataset: { systemTodoType: node.typeCode } }, `${node.typeName} (${node.count})`);
     button.addEventListener('click', () => {
       activeTodoType = node.typeCode;
       todoPageNo = 1;
-      activeTodoAction = undefined;
+      activeTodoDetail = undefined;
+      todoActionResult = undefined;
       reload();
     });
     return button;
   });
-  return createElement('aside', { className: 'module-sidebar compact' }, ...buttons);
+  return createElement('aside', { className: 'module-sidebar compact', dataset: { systemTodoTypeTree: 'true' } }, ...buttons);
 }
 
-function createTodoTable(rows: TodoRow[], navigate: Navigate, reload: () => void): HTMLElement {
+function createTodoTable(rows: TodoRow[], reload: () => void): HTMLElement {
   if (rows.length === 0) {
-    return createElement('section', { className: 'runtime-card' }, '暂无待办');
+    return createElement('section', { className: 'runtime-card', dataset: { systemTodoEmptyState: 'true' } }, '当前筛选下没有待办。');
   }
   return createElement(
     'div',
-    { className: 'table-shell' },
+    { className: 'table-shell', dataset: { systemTodoTable: 'true' } },
     createElement(
       'table',
       { className: 'data-table' },
       createElement('thead', {}, createElement('tr', {}, createElement('th', {}, '序号'), createElement('th', {}, '标题'), createElement('th', {}, '来源'), createElement('th', {}, '优先级'), createElement('th', {}, '到期'), createElement('th', {}, '状态'), createElement('th', {}, '操作'))),
-      createElement('tbody', {}, ...rows.map((row, index) => createTodoRow(row, index, navigate, reload))),
+      createElement('tbody', {}, ...rows.map((row, index) => createTodoRow(row, index, reload))),
     ),
   );
 }
 
-function createTodoRow(row: TodoRow, index: number, navigate: Navigate, reload: () => void): HTMLElement {
-  const tr = createElement('tr', { className: 'clickable-row' });
-  tr.addEventListener('click', () => navigate(todoTargetToPath(row.target, activeSystemId())));
-  const actionButtons = row.actionPermissions
-    .filter((action) => action.actionCode !== 'open')
-    .map((action) => {
-      const button = createButton(action.actionName, 'ghost', !action.enabled, action.disabledReason);
-      button.addEventListener('click', async (event) => {
-        event.stopPropagation();
-        const payload = await todoActionPayload(action.actionCode);
-        if (payload === null) {
-          return;
-        }
-        await executeSystemTodoAction(activeSystemId(), row.todoId, action.actionCode, payload);
-        reload();
-      });
-      return button;
-    });
+function createTodoRow(row: TodoRow, index: number, reload: () => void): HTMLElement {
+  const selected = activeTodoDetail?.todoId === row.todoId;
+  const tr = createElement('tr', {
+    className: `clickable-row${selected ? ' selected-row' : ''}`,
+    dataset: {
+      systemTodoRow: row.todoId,
+      todoSelected: String(selected),
+      todoStatus: row.status,
+      todoPriority: row.priority ?? '',
+      todoTargetType: row.target?.targetType ?? '',
+    },
+  });
+  tr.addEventListener('click', () => {
+    activeTodoDetail = row;
+    todoActionResult = undefined;
+    reload();
+  });
   tr.append(
     createElement('td', {}, index + 1),
     createElement('td', {}, createElement('strong', {}, row.title), createElement('small', {}, row.objectTitle ?? row.moduleCode ?? '')),
@@ -445,9 +675,83 @@ function createTodoRow(row: TodoRow, index: number, navigate: Navigate, reload: 
     createElement('td', {}, row.priority ?? '-'),
     createElement('td', {}, row.dueAt ?? '-'),
     createElement('td', {}, renderStatusPill(row.status, row.status === 'DONE' ? 'success' : 'warning')),
-    createElement('td', { className: 'row-actions' }, ...actionButtons),
+    createElement('td', { className: 'row-actions' }, ...createTodoActionButtons(row, reload)),
   );
   return tr;
+}
+
+function createTodoDetailPanel(row: TodoRow | undefined, navigate: Navigate, reload: () => void): HTMLElement {
+  if (!row) {
+    return createElement(
+      'aside',
+      { className: 'panel todo-detail-panel', dataset: { systemTodoDetailPanel: 'empty' } },
+      createElement('h2', {}, '待办明细'),
+      createElement('p', {}, '选择左侧待办后查看目标、状态、可用动作和处理回执。'),
+    );
+  }
+  const openButton = createButton('打开关联', 'secondary', false);
+  openButton.dataset.systemTodoOpenTarget = row.todoId;
+  openButton.addEventListener('click', () => navigate(todoTargetToPath(row.target, activeSystemId())));
+  const disabledActions = row.actionPermissions.filter((action) => !action.enabled);
+  return createElement(
+    'aside',
+    {
+      className: 'panel todo-detail-panel',
+      dataset: {
+        systemTodoDetailPanel: row.todoId,
+        todoStatus: row.status,
+        todoTargetType: row.target?.targetType ?? '',
+      },
+    },
+    createElement('div', { className: 'detail-title-row' }, createElement('h2', {}, '待办明细'), renderStatusPill(row.status, row.status === 'DONE' ? 'success' : 'warning')),
+    createElement('h3', {}, row.title),
+    createElement('div', { className: 'todo-detail-grid' },
+      createDetailMetric('来源', row.sourceName),
+      createDetailMetric('业务对象', row.objectTitle ?? row.moduleCode ?? '-'),
+      createDetailMetric('优先级', row.priority ?? '普通'),
+      createDetailMetric('到期时间', row.dueAt ?? '未设置'),
+      createDetailMetric('目标类型', row.target?.targetType ?? '无目标'),
+      createDetailMetric('traceId', row.traceId),
+    ),
+    createElement('div', { className: 'inline-actions', dataset: { systemTodoDetailActions: row.todoId } }, openButton, ...createTodoActionButtons(row, reload)),
+    disabledActions.length > 0
+      ? createElement('section', { className: 'runtime-card disabled-card', dataset: { systemTodoDisabledReasons: row.todoId } }, createElement('strong', {}, '不可用动作'), ...disabledActions.map((action) => createElement('p', {}, `${action.actionName}: ${action.disabledReason ?? '当前状态不可执行。'}`)))
+      : null,
+  );
+}
+
+function createTodoActionButtons(row: TodoRow, reload: () => void): HTMLButtonElement[] {
+  return row.actionPermissions
+    .filter((action) => action.actionCode !== 'open')
+    .map((action) => {
+      const button = createButton(action.actionName, action.enabled ? 'ghost' : 'secondary', !action.enabled, action.disabledReason);
+      button.dataset.systemTodoAction = action.actionCode;
+      button.dataset.todoId = row.todoId;
+      button.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        await runTodoAction(row, action, reload);
+      });
+      return button;
+    });
+}
+
+async function runTodoAction(row: TodoRow, action: TodoAction, reload: () => void): Promise<void> {
+  const payload = await todoActionPayload(action.actionCode);
+  if (payload === null) {
+    return;
+  }
+  try {
+    const result = await executeSystemTodoAction(activeSystemId(), row.todoId, action.actionCode, payload);
+    todoActionResult = `${action.actionName}：${result.status}${result.message ? `，${result.message}` : ''}${result.traceId ? `，traceId=${result.traceId}` : ''}`;
+    activeTodoDetail = { ...row, status: result.status || row.status, traceId: result.traceId ?? row.traceId };
+  } catch (error) {
+    todoActionResult = `${action.actionName}失败：${error instanceof Error ? error.message : '请稍后重试。'}`;
+  }
+  reload();
+}
+
+function createDetailMetric(label: string, value: string): HTMLElement {
+  return createElement('div', {}, createElement('span', {}, label), createElement('strong', {}, value));
 }
 
 async function todoActionPayload(actionCode: string): Promise<{
@@ -483,11 +787,10 @@ async function todoActionPayload(actionCode: string): Promise<{
   }
   return {};
 }
-
 function createMessageCenter(navigate: Navigate): HTMLElement {
-  const root = createElement('section', { className: 'content-panel message-center' });
+  const root = createElement('section', { className: 'content-panel message-center', dataset: { systemMessageCenter: 'true', systemMessageWorkbenchR87: 'true' } });
   const reload = () => {
-    root.replaceChildren(createLoadingPanel('\u6b63\u5728\u8bfb\u53d6\u6d88\u606f...'));
+    root.replaceChildren(createLoadingPanel('正在读取消息...'));
     void loadSystemMessages(activeSystemId(), {
       pageNo: messagePageNo,
       pageSize: 20,
@@ -505,13 +808,22 @@ function createMessageCenter(navigate: Navigate): HTMLElement {
 function createMessageContent(page: PageResult<MessageCard>, navigate: Navigate, reload: () => void): HTMLElement {
   return createElement(
     'section',
-    { className: 'content-panel message-center' },
-    createElement('div', { className: 'page-heading' }, createElement('h1', {}, '\u6d88\u606f'), createElement('p', {}, '\u6d88\u606f\u6309\u65f6\u95f4\u6d41\u5c55\u793a\uff0c\u6574\u6761\u6d88\u606f\u70b9\u51fb\u8df3\u8f6c\u5230\u5ba1\u6279\u3001\u4e1a\u52a1\u8be6\u60c5\u6216\u5de5\u4f5c\u5bf9\u8c61\uff0c\u8f85\u52a9\u64cd\u4f5c\u53ea\u5904\u7406\u9605\u8bfb\u548c\u5f52\u6863\u72b6\u6001\u3002')),
+    {
+      className: 'content-panel message-center',
+      dataset: {
+        systemMessageCenter: 'true',
+        systemMessageWorkbenchR87: 'true',
+        messageReadFilter: messageReadStatus,
+        messageArchiveFilter: messageArchiveStatus,
+        messageTotal: String(page.total),
+      },
+    },
+    createElement('div', { className: 'page-heading' }, createElement('h1', {}, '消息'), createElement('p', {}, '消息按时间流展示，可先标为已读、归档或打开关联目标；状态变化必须来自后台回读。')),
     createMessageToolbar(page, reload),
-    messageActionResult ? createElement('section', { className: 'runtime-card' }, messageActionResult) : null,
+    messageActionResult ? createElement('section', { className: 'runtime-card workbench-result-card', dataset: { systemMessageActionResult: 'true' } }, messageActionResult) : null,
     page.records.length === 0
-      ? createElement('section', { className: 'runtime-card' }, messageArchiveStatus === 'archived' ? '\u6682\u65e0\u5f52\u6863\u6d88\u606f' : '\u6682\u65e0\u6d88\u606f')
-      : createElement('div', { className: 'message-stream detail-message-stream' }, ...page.records.map((message) => createMessageItem(message, navigate, reload))),
+      ? createElement('section', { className: 'runtime-card', dataset: { systemMessageEmptyState: messageArchiveStatus } }, messageArchiveStatus === 'archived' ? '暂无归档消息。' : '当前筛选下没有消息。')
+      : createElement('div', { className: 'message-stream detail-message-stream', dataset: { systemMessageStream: 'true' } }, ...page.records.map((message) => createMessageItem(message, navigate, reload))),
     createPagination(page, (nextPage) => {
       messagePageNo = nextPage;
       reload();
@@ -520,22 +832,23 @@ function createMessageContent(page: PageResult<MessageCard>, navigate: Navigate,
 }
 
 function createMessageToolbar(page: PageResult<MessageCard>, reload: () => void): HTMLElement {
-  const markAllButton = createButton('\u5168\u90e8\u6807\u4e3a\u5df2\u8bfb', 'secondary', page.total === 0 || messageArchiveStatus === 'archived', page.total === 0 ? '\u5f53\u524d\u7b5b\u9009\u6ca1\u6709\u6d88\u606f\u3002' : '\u5f52\u6863\u6d88\u606f\u4e0d\u9700\u8981\u6279\u91cf\u6807\u8bb0\u3002');
+  const markAllButton = createButton('全部标为已读', 'secondary', page.total === 0 || messageArchiveStatus === 'archived', page.total === 0 ? '当前筛选没有消息。' : '归档消息不需要批量标记。');
+  markAllButton.dataset.systemMessageMarkAll = 'true';
   markAllButton.addEventListener('click', async () => {
     const result = await markAllSystemMessagesRead(activeSystemId(), {
       keyword: messageKeyword,
       readStatus: messageReadStatus,
       archiveStatus: messageArchiveStatus,
     });
-    messageActionResult = `\u5df2\u8bfb\u66f4\u65b0\uff1a${result.affectedCount} \u6761\uff0ctraceId=${result.traceId}`;
+    messageActionResult = `已读更新：${result.affectedCount} 条，traceId=${result.traceId}`;
     reload();
   });
 
   return createElement(
     'div',
-    { className: 'simple-stack' },
+    { className: 'simple-stack message-toolbar', dataset: { systemMessageToolbar: 'true' } },
     createKeywordFilterBar({
-      label: '\u6d88\u606f\u5173\u952e\u5b57',
+      label: '消息关键字',
       value: messageKeyword,
       onApply: (keyword) => {
         messageKeyword = keyword;
@@ -553,26 +866,26 @@ function createMessageToolbar(page: PageResult<MessageCard>, reload: () => void)
     createElement(
       'div',
       { className: 'inline-actions' },
-      createMessageStateButton('\u5168\u90e8', 'all', messageReadStatus, (value) => {
+      createMessageStateButton('全部', 'all', messageReadStatus, (value) => {
         messageReadStatus = value;
         messagePageNo = 1;
         messageActionResult = undefined;
         reload();
       }),
-      createMessageStateButton('\u672a\u8bfb', 'unread', messageReadStatus, (value) => {
+      createMessageStateButton('未读', 'unread', messageReadStatus, (value) => {
         messageReadStatus = value;
         messagePageNo = 1;
         messageActionResult = undefined;
         reload();
       }),
-      createMessageStateButton('\u5df2\u8bfb', 'read', messageReadStatus, (value) => {
+      createMessageStateButton('已读', 'read', messageReadStatus, (value) => {
         messageReadStatus = value;
         messagePageNo = 1;
         messageActionResult = undefined;
         reload();
       }),
-      createMessageArchiveButton('\u5f53\u524d\u6d88\u606f', 'active', reload),
-      createMessageArchiveButton('\u5df2\u5f52\u6863', 'archived', reload),
+      createMessageArchiveButton('当前消息', 'active', reload),
+      createMessageArchiveButton('已归档', 'archived', reload),
       markAllButton,
     ),
   );
@@ -580,12 +893,14 @@ function createMessageToolbar(page: PageResult<MessageCard>, reload: () => void)
 
 function createMessageStateButton<T extends string>(label: string, value: T, activeValue: T, onSelect: (value: T) => void): HTMLButtonElement {
   const button = createButton(label, value === activeValue ? 'primary' : 'ghost', false);
+  button.dataset.systemMessageReadFilterButton = String(value);
   button.addEventListener('click', () => onSelect(value));
   return button;
 }
 
 function createMessageArchiveButton(label: string, value: 'active' | 'archived', reload: () => void): HTMLButtonElement {
   const button = createButton(label, value === messageArchiveStatus ? 'primary' : 'ghost', false);
+  button.dataset.systemMessageArchiveFilterButton = value;
   button.addEventListener('click', () => {
     messageArchiveStatus = value;
     messagePageNo = 1;
@@ -596,20 +911,52 @@ function createMessageArchiveButton(label: string, value: 'active' | 'archived',
 }
 
 function createMessageItem(message: MessageCard, navigate: Navigate, reload: () => void): HTMLElement {
-  const archiveButton = createButton('\u5f52\u6863', 'ghost', message.archiveStatus === 'archived', message.archiveStatus === 'archived' ? '\u6d88\u606f\u5df2\u5f52\u6863\u3002' : undefined);
+  const readButton = createButton('标为已读', 'ghost', message.readStatus === 'read', message.readStatus === 'read' ? '消息已经是已读状态。' : undefined);
+  readButton.dataset.systemMessageMarkRead = message.messageId;
+  readButton.addEventListener('click', async (event) => {
+    event.stopPropagation();
+    await markSystemMessageRead(activeSystemId(), message.messageId);
+    messageActionResult = `已读更新：1 条，messageId=${message.messageId}`;
+    reload();
+  });
+
+  const archiveButton = createButton('归档', 'ghost', message.archiveStatus === 'archived', message.archiveStatus === 'archived' ? '消息已归档。' : undefined);
+  archiveButton.dataset.systemMessageArchive = message.messageId;
   archiveButton.addEventListener('click', async (event) => {
     event.stopPropagation();
     const result = await archiveSystemMessage(activeSystemId(), message.messageId);
-    messageActionResult = `\u5df2\u5f52\u6863\uff1a${result.affectedCount} \u6761\uff0ctraceId=${result.traceId}`;
+    messageActionResult = `已归档：${result.affectedCount} 条，traceId=${result.traceId}`;
     reload();
   });
+
+  const openButton = createButton('打开关联', 'secondary', false);
+  openButton.dataset.systemMessageOpenTarget = message.messageId;
+  openButton.addEventListener('click', async (event) => {
+    event.stopPropagation();
+    await markSystemMessageRead(activeSystemId(), message.messageId).catch(() => undefined);
+    navigate(messageTargetToPath(message.target, activeSystemId()));
+  });
+
   const item = createElement(
     'article',
-    { className: `message-item message-jump-card${message.readStatus === 'read' ? ' read' : ''}` },
+    {
+      className: `message-item message-jump-card${message.readStatus === 'read' ? ' read' : ''}`,
+      dataset: {
+        systemMessageItem: message.messageId,
+        messageReadStatus: message.readStatus,
+        messageArchiveStatus: message.archiveStatus,
+        messageTargetType: message.target?.targetType ?? '',
+      },
+    },
     createElement('div', { className: 'message-title-row' }, createElement('strong', {}, message.title), createElement('time', {}, message.createdAt)),
     createElement('p', {}, message.content),
-    createElement('div', { className: 'inline-actions' }, renderStatusPill(message.readStatus, message.readStatus === 'read' ? 'success' : 'warning'), renderStatusPill(message.archiveStatus, message.archiveStatus === 'archived' ? 'info' : 'success'), archiveButton),
-    createElement('small', {}, `${message.templateCode} / ${message.type} / traceId=${message.traceId}`),
+    createElement('div', { className: 'message-meta-grid' },
+      createDetailMetric('模板', message.templateCode),
+      createDetailMetric('类型', message.type),
+      createDetailMetric('目标', message.target?.targetType ?? '无目标'),
+      createDetailMetric('traceId', message.traceId),
+    ),
+    createElement('div', { className: 'inline-actions' }, renderStatusPill(message.readStatus, message.readStatus === 'read' ? 'success' : 'warning'), renderStatusPill(message.archiveStatus, message.archiveStatus === 'archived' ? 'info' : 'success'), readButton, archiveButton, openButton),
   );
   item.addEventListener('click', async () => {
     await markSystemMessageRead(activeSystemId(), message.messageId).catch(() => undefined);
@@ -617,9 +964,8 @@ function createMessageItem(message: MessageCard, navigate: Navigate, reload: () 
   });
   return item;
 }
-
 function createWorkPreview(): HTMLElement {
-  const root = createElement('section', { className: 'content-panel workbench-page' });
+  const root = createElement('section', { className: 'content-panel workbench-page', dataset: { systemWorkbench: 'true' } });
   const render = (data?: WorkData, error?: unknown) => {
     if (error) {
       root.replaceChildren(createErrorPanel(error));
@@ -658,7 +1004,7 @@ interface WorkData {
 function createWorkContent(data: WorkData, render: (data: WorkData) => void, reload: () => void): HTMLElement {
   return createElement(
     'section',
-    { className: 'content-panel workbench-page' },
+    { className: 'content-panel workbench-page', dataset: { systemWorkbench: 'true', workActiveTab: activeWorkTab, workProjectTaskView: projectTaskView, workPlainTaskView: plainTaskView } },
     createElement('div', { className: 'page-heading' }, createElement('h1', {}, '工作管理'), createElement('p', {}, '固定为仪表盘、项目任务、普通任务、日报四个标签；任务支持列表和看板互斥切换。')),
     createWorkTabs(data, render),
     activeWorkTab === 'dashboard'
@@ -704,9 +1050,9 @@ function createWorkTabs(data: WorkData, render: (data: WorkData) => void): HTMLE
   ];
   return createElement(
     'nav',
-    { className: 'detail-tabs work-tabs' },
+    { className: 'detail-tabs work-tabs', dataset: { workTabs: 'true' } },
     ...tabs.map(([tab, label]) => {
-      const button = createElement('button', { className: activeWorkTab === tab ? 'active' : '' }, label);
+      const button = createElement('button', { className: activeWorkTab === tab ? 'active' : '', dataset: { workTab: tab, active: String(activeWorkTab === tab) } }, label);
       button.addEventListener('click', () => {
         activeWorkTab = tab;
         activeWorkTask = undefined;
@@ -720,7 +1066,7 @@ function createWorkTabs(data: WorkData, render: (data: WorkData) => void): HTMLE
 function createWorkDashboard(dashboard: WorkDashboard): HTMLElement {
   return createElement(
     'section',
-    { className: 'work-section' },
+    { className: 'work-section', dataset: { workDashboard: 'true' } },
     createElement(
       'div',
       { className: 'metric-grid' },
@@ -737,7 +1083,7 @@ function createWorkDashboard(dashboard: WorkDashboard): HTMLElement {
 function createWarningPanel(warnings: WorkWarning[]): HTMLElement {
   return createElement(
     'article',
-    { className: 'panel' },
+    { className: 'panel', dataset: { workWarnings: 'true' } },
     createElement('h3', {}, '今日预警'),
     warnings.length === 0 ? createElement('p', {}, '暂无今日预警') : createElement('div', { className: 'simple-stack' }, ...warnings.map((warning) => createElement('div', { className: 'list-line' }, createElement('span', {}, warning.title), renderStatusPill(warning.level ?? '预警', warning.level === 'HIGH' ? 'danger' : 'warning')))),
   );
@@ -747,7 +1093,7 @@ function createCalendarPanel(days: CalendarDay[]): HTMLElement {
   const visibleDays = days.slice(0, 31);
   return createElement(
     'article',
-    { className: 'panel' },
+    { className: 'panel', dataset: { workCalendar: 'true' } },
     createElement('h3', {}, '本月工作日历'),
     visibleDays.length === 0
       ? createElement('p', {}, '暂无日历事项')
@@ -770,11 +1116,12 @@ function createTaskSection(
   data: WorkData,
   reload: () => void,
 ): HTMLElement {
-  const projectCreateButton = title === '项目任务' ? createWorkCreateButton('新建项目', 'project', data, render) : null;
   const taskCreateType = title === '项目任务' ? 'project-task' : 'plain-task';
+  const taskKind = taskCreateType === 'project-task' ? 'project' : 'plain';
+  const projectCreateButton = title === '项目任务' ? createWorkCreateButton('新建项目', 'project', data, render) : null;
   return createElement(
     'section',
-    { className: 'work-section' },
+    { className: 'work-section', dataset: { workTaskSection: taskKind, workTaskView: view } },
     createElement(
       'div',
       { className: 'runtime-card-head' },
@@ -791,22 +1138,26 @@ function createTaskSection(
     createFilterBar(['项目', '负责人', '状态', '标签', '完成时间']),
     activeWorkCreate === 'project' && title === '项目任务' ? createWorkCreatePanel('project', reload, data.projects) : null,
     activeWorkCreate === taskCreateType ? createWorkCreatePanel(taskCreateType, reload, data.projects) : null,
-    workActionMessage ? createElement('section', { className: 'runtime-card' }, workActionMessage) : null,
-    view === 'list' ? createTaskList(page, selectTask, onPageChange) : createTaskKanban(page.records, selectTask),
+    workActionMessage ? createElement('section', { className: 'runtime-card', dataset: { workActionResult: 'true', workTaskActionResult: 'true' } }, workActionMessage) : null,
+    view === 'list' ? createTaskList(page, selectTask, onPageChange, taskKind) : createTaskKanban(page.records, selectTask, taskKind),
     activeWorkTask ? createTaskDetailCard(activeWorkTask) : null,
   );
 }
 
 function createViewButton(label: string, active: boolean, onClick: () => void): HTMLButtonElement {
   const button = createButton(label, active ? 'primary' : 'secondary', false);
+  button.dataset.workView = label;
+  button.dataset.workViewActive = String(active);
   button.addEventListener('click', onClick);
   return button;
 }
 
 function createWorkCreateButton(label: string, createType: 'project' | 'project-task' | 'plain-task' | 'daily-report', data: WorkData, render: (data: WorkData) => void): HTMLButtonElement {
   const button = createButton(label, 'primary', false);
+  button.dataset.workCreate = createType;
   button.addEventListener('click', () => {
     activeWorkCreate = activeWorkCreate === createType ? undefined : createType;
+    activeDailyReportDraft = undefined;
     workActionMessage = undefined;
     render(data);
   });
@@ -822,6 +1173,7 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
   const contentInput = createElement('textarea', { ariaLabel: '内容' });
   contentInput.placeholder = createType === 'daily-report' ? '填写今日完成、问题、明日计划' : '补充说明，可为空';
   const submitButton = createButton('保存', 'primary', false);
+  submitButton.dataset.workCreateSubmit = createType;
   submitButton.addEventListener('click', async () => {
     try {
       if (createType === 'project') {
@@ -832,7 +1184,7 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
         const task = await createProjectTask(activeSystemId(), {
           title: titleInput.value.trim() || `项目任务 ${Date.now()}`,
           projectId: projectSelect.value || undefined,
-          dueAt: dueAtInput.value ? new Date(dueAtInput.value).toISOString() : undefined,
+          dueAt: dueAtInput.value ? normalizeLocalDateTimeForApi(dueAtInput.value) : undefined,
           fieldValues: contentInput.value.trim() ? { description: contentInput.value.trim() } : {},
         });
         workActionMessage = `项目任务已创建：${task.title}`;
@@ -840,7 +1192,7 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
       } else if (createType === 'plain-task') {
         const task = await createPlainTask(activeSystemId(), {
           title: titleInput.value.trim() || `普通任务 ${Date.now()}`,
-          dueAt: dueAtInput.value ? new Date(dueAtInput.value).toISOString() : undefined,
+          dueAt: dueAtInput.value ? normalizeLocalDateTimeForApi(dueAtInput.value) : undefined,
           fieldValues: contentInput.value.trim() ? { description: contentInput.value.trim() } : {},
         });
         workActionMessage = `普通任务已创建：${task.title}`;
@@ -857,6 +1209,7 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
         dailyReportPageNo = 1;
       }
       activeWorkCreate = undefined;
+      activeDailyReportDraft = undefined;
       reload();
     } catch (error) {
       workActionMessage = error instanceof Error ? error.message : '保存失败。';
@@ -865,7 +1218,7 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
   });
   return createElement(
     'section',
-    { className: 'runtime-card form-grid' },
+    { className: 'runtime-card form-grid', dataset: { workCreatePanel: createType } },
     createElement('label', {}, createElement('span', {}, createType === 'project' ? '项目名称' : '标题'), titleInput),
     createType === 'project-task'
       ? createElement('label', {}, createElement('span', {}, '关联项目'), projectSelect, projects.records.length === 0 ? createElement('small', {}, '暂无项目，可先点击“新建项目”。') : null)
@@ -876,6 +1229,9 @@ function createWorkCreatePanel(createType: 'project' | 'project-task' | 'plain-t
   );
 }
 
+function normalizeLocalDateTimeForApi(value: string): string {
+  return value.length === 16 ? `${value}:00` : value;
+}
 function createProjectSelect(projects: PageResult<WorkProject>): HTMLSelectElement {
   const select = createElement('select', { ariaLabel: '关联项目' });
   const emptyOption = createElement('option', {}, '不关联项目');
@@ -889,13 +1245,13 @@ function createProjectSelect(projects: PageResult<WorkProject>): HTMLSelectEleme
   return select;
 }
 
-function createTaskList(page: PageResult<WorkTask>, selectTask: (task: WorkTask) => void, onPageChange: (pageNo: number) => void): HTMLElement {
+function createTaskList(page: PageResult<WorkTask>, selectTask: (task: WorkTask) => void, onPageChange: (pageNo: number) => void, taskKind: string): HTMLElement {
   if (page.records.length === 0) {
-    return createElement('section', { className: 'runtime-card' }, '暂无任务');
+    return createElement('section', { className: 'runtime-card', dataset: { workTaskEmpty: taskKind } }, '暂无任务');
   }
   return createElement(
     'div',
-    { className: 'table-shell' },
+    { className: 'table-shell', dataset: { workTaskList: taskKind } },
     createElement(
       'table',
       { className: 'data-table' },
@@ -907,7 +1263,7 @@ function createTaskList(page: PageResult<WorkTask>, selectTask: (task: WorkTask)
 }
 
 function createTaskRow(task: WorkTask, index: number, selectTask: (task: WorkTask) => void): HTMLElement {
-  const row = createElement('tr', { className: 'clickable-row' });
+  const row = createElement('tr', { className: 'clickable-row', dataset: { workTaskRow: task.taskId, workTaskType: task.taskType } });
   row.addEventListener('click', () => selectTask(task));
   row.append(
     createElement('td', {}, index + 1),
@@ -921,7 +1277,7 @@ function createTaskRow(task: WorkTask, index: number, selectTask: (task: WorkTas
   return row;
 }
 
-function createTaskKanban(tasks: WorkTask[], selectTask: (task: WorkTask) => void): HTMLElement {
+function createTaskKanban(tasks: WorkTask[], selectTask: (task: WorkTask) => void, taskKind: string): HTMLElement {
   const groups = new Map<string, WorkTask[]>();
   tasks.forEach((task) => {
     const key = task.status?.itemName ?? task.status?.itemCode ?? '未设置';
@@ -929,14 +1285,14 @@ function createTaskKanban(tasks: WorkTask[], selectTask: (task: WorkTask) => voi
   });
   return createElement(
     'div',
-    { className: 'kanban-preview' },
+    { className: 'kanban-preview', dataset: { workTaskKanban: taskKind } },
     ...Array.from(groups.entries()).map(([status, groupTasks]) =>
       createElement(
         'article',
-        { className: 'kanban-column' },
+        { className: 'kanban-column', dataset: { workKanbanColumn: status } },
         createElement('strong', {}, status),
         ...groupTasks.map((task) => {
-          const card = createElement('button', { className: 'kanban-card' }, task.title, createElement('small', {}, `${task.assignee?.memberName ?? '-'} / ${task.progress ?? 0}% / ${task.commentCount ?? 0} 评论`));
+          const card = createElement('button', { className: 'kanban-card', dataset: { workKanbanCard: task.taskId, workTaskType: task.taskType } }, task.title, createElement('small', {}, `${task.assignee?.memberName ?? '-'} / ${task.progress ?? 0}% / ${task.commentCount ?? 0} 评论`));
           card.addEventListener('click', () => selectTask(task));
           return card;
         }),
@@ -948,7 +1304,7 @@ function createTaskKanban(tasks: WorkTask[], selectTask: (task: WorkTask) => voi
 function createTaskDetailCard(task: WorkTask): HTMLElement {
   return createElement(
     'section',
-    { className: 'panel task-detail-card' },
+    { className: 'panel task-detail-card', dataset: { workTaskDetail: task.taskId, workTaskType: task.taskType } },
     createElement('div', { className: 'runtime-card-head' }, createElement('h3', {}, task.title), renderStatusPill(task.status?.itemName ?? task.status?.itemCode ?? '未设置', task.warningLevel === 'HIGH' ? 'danger' : 'info')),
     createElement(
       'div',
@@ -970,10 +1326,12 @@ function createTaskDetailCard(task: WorkTask): HTMLElement {
 function createDailyReportPanel(page: PageResult<DailyReport>, render: (data: WorkData) => void, data: WorkData, reload: () => void, onPageChange: (pageNo: number) => void): HTMLElement {
   const manualButton = createWorkCreateButton('手动填写', 'daily-report', data, render);
   const autoDraftButton = createButton('自动生成今日日报', 'secondary', false);
+  autoDraftButton.dataset.workDailyAutoDraft = 'true';
   autoDraftButton.addEventListener('click', async () => {
     try {
       const draft = await autoDraftDailyReport(activeSystemId());
-      workActionMessage = `自动草稿已生成：${draft.content}`;
+      activeDailyReportDraft = draft;
+      workActionMessage = `自动草稿已生成，请确认后保存：${draft.content}`;
     } catch (error) {
       workActionMessage = error instanceof Error ? error.message : '自动生成日报草稿失败。';
     }
@@ -981,7 +1339,7 @@ function createDailyReportPanel(page: PageResult<DailyReport>, render: (data: Wo
   });
   return createElement(
     'section',
-    { className: 'work-section' },
+    { className: 'work-section', dataset: { workDailyReports: 'true' } },
     createElement(
       'div',
       { className: 'runtime-card-head' },
@@ -993,14 +1351,45 @@ function createDailyReportPanel(page: PageResult<DailyReport>, render: (data: Wo
     ),
     createFilterBar(['日期', '状态', '项目', '关键字']),
     activeWorkCreate === 'daily-report' ? createWorkCreatePanel('daily-report', reload, data.projects) : null,
-    workActionMessage ? createElement('section', { className: 'runtime-card' }, workActionMessage) : null,
+    workActionMessage ? createElement('section', { className: 'runtime-card', dataset: { workActionResult: 'true', workDailyActionResult: 'true' } }, workActionMessage) : null,
+    activeDailyReportDraft ? createDailyReportDraftPanel(activeDailyReportDraft, reload) : null,
     page.records.length === 0
-      ? createElement('section', { className: 'runtime-card' }, '暂无日报')
+      ? createElement('section', { className: 'runtime-card', dataset: { workDailyEmpty: 'true' } }, '暂无日报')
       : createElement('div', { className: 'simple-stack' }, ...page.records.map((report) => createElement('div', { className: 'list-line clickable-row' }, createElement('span', {}, `${report.date}：${report.content}`), renderStatusPill(report.status, report.status === 'SUBMITTED' ? 'success' : 'warning')))),
     createPagination(page, onPageChange),
   );
 }
 
+function createDailyReportDraftPanel(draft: DailyReportAutoDraft, reload: () => void): HTMLElement {
+  const confirmButton = createButton('确认保存为草稿', 'primary', false);
+  confirmButton.dataset.workDailyDraftConfirm = 'true';
+  confirmButton.addEventListener('click', async () => {
+    try {
+      const report = await createDailyReport(activeSystemId(), {
+        reportDate: draft.reportDate,
+        content: draft.content,
+        status: 'DRAFT',
+        sourceIds: [draft.draftId],
+        submitNow: false,
+      });
+      activeDailyReportDraft = undefined;
+      dailyReportPageNo = 1;
+      workActionMessage = `日报草稿已保存：${report.date}`;
+      reload();
+    } catch (error) {
+      workActionMessage = error instanceof Error ? error.message : '保存日报草稿失败。';
+      reload();
+    }
+  });
+  return createElement(
+    'section',
+    { className: 'runtime-card', dataset: { workDailyDraft: draft.draftId, manualConfirmRequired: String(draft.manualConfirmRequired) } },
+    createElement('strong', {}, '待确认日报草稿'),
+    createElement('p', {}, draft.content),
+    createElement('small', {}, `reportDate=${draft.reportDate} / traceId=${draft.traceId}`),
+    createElement('div', { className: 'inline-actions' }, confirmButton),
+  );
+}
 function createPagination<T>(page: PageResult<T>, onPageChange?: (pageNo: number) => void): HTMLElement {
   const previousButton = createButton('上一页', 'ghost', page.pageNo <= 1 || !onPageChange, onPageChange ? '已经是第一页' : '当前列表不支持翻页。');
   const nextButton = createButton('下一页', 'ghost', !page.hasNext || !onPageChange, onPageChange ? '没有更多数据' : '当前列表不支持翻页。');

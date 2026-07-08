@@ -1,0 +1,48 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-050",
+    "frc":  "FRC-5B Operations, logs, release, and launch-rule closure",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "releaseVerifyStatus":  "PASS",
+    "serverScriptCommands":  [
+                                 "start",
+                                 "stop",
+                                 "restart",
+                                 "status",
+                                 "health"
+                             ],
+    "systemId":  "1095",
+    "tenantId":  "1127",
+    "platformHealthTraceId":  "trc_r50_platform_health_0706153449837_40cdbc",
+    "systemHealthTraceId":  "trc_r50_system_health_0706153449837_40cdbc",
+    "featureFlagTraceId":  "trc_r50_feature_flag_0706153449837_40cdbc",
+    "quotaTraceId":  "trc_r50_quota_0706153449837_40cdbc",
+    "rateLimitTraceId":  "trc_r50_rate_0706153449837_40cdbc",
+    "backupTaskId":  "TASK-20260706153501",
+    "restoreTaskId":  "TASK-20260706153501",
+    "archiveTaskId":  "TASK-20260706153501",
+    "rollbackTaskId":  "TASK-20260706153501",
+    "rollbackSupported":  {
+                              "restore":  true,
+                              "archive":  true,
+                              "deployment":  true
+                          },
+    "deploymentCount":  1,
+    "cachePolicyCount":  4,
+    "cacheUpdatedCount":  1,
+    "platformAuditReadbackCount":  9,
+    "systemAuditReadbackCount":  1,
+    "deniedPlatformStatus":  403,
+    "deniedSystemStatus":  403,
+    "deniedPlatformAuditResult":  "FAILURE",
+    "deniedSystemAuditResult":  "FAILURE",
+    "browserResultCount":  6,
+    "browserOverflowCount":  0,
+    "browserBlockerCount":  0,
+    "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r50-operations-release-log\\operations-release-log-browser-audit.json",
+    "evidenceDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r50-operations-release-log",
+    "cleanup":  [
+                    "1095:DELETE",
+                    "1096:DELETE"
+                ]
+}

@@ -155,6 +155,10 @@ public class ImportExportService {
             throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, "预检ID不能为空");
         }
         PrecheckPayload precheckPayload = precheckPayload(precheckId);
+        if (precheckPayload.issues().stream().anyMatch(issue -> "ERROR".equals(issue.level()))) {
+            throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED,
+                    "导入预检未通过，不能确认导入；请先下载错误文件并修正失败行");
+        }
         List<ImportIssue> precheckWarnings = precheckPayload.issues().stream()
                 .filter(issue -> "WARN".equals(issue.level()))
                 .toList();

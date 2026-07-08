@@ -120,7 +120,12 @@ export interface AsyncTask {
 export interface FileRef {
   fileId: string;
   fileName: string;
+  fileType?: string;
+  previewUrl?: string;
   downloadUrl?: string;
+  status?: string;
+  permissionMode?: string;
+  retryable?: boolean;
 }
 
 export interface SystemSwitchContext {
@@ -191,9 +196,12 @@ export interface PermissionDecisionVO {
   allowed: boolean;
   disabledReason?: string;
   missingPermissions?: string[];
-  dataScopeExpression?: string;
+  dataScopeExpression?: DataScopeRule | Record<string, unknown>;
   fieldMaskRules?: Record<string, string>;
   explain?: PermissionExplainItem[];
+  permissionVersion?: string;
+  traceId?: string;
+  auditLogId?: string;
 }
 
 export interface ModuleGroupVO {
@@ -220,6 +228,7 @@ export type PublishStatus = 'DRAFT' | 'PUBLISHED' | 'CHANGED' | 'ARCHIVED';
 
 export interface FieldDefinitionVO {
   fieldId: string;
+  moduleId?: string;
   fieldCode: string;
   name: string;
   fieldType: FieldType;
@@ -227,8 +236,27 @@ export interface FieldDefinitionVO {
   filterOperators: FilterOperator[];
   sortable: boolean;
   required: boolean;
+  status?: number;
+  dictTypeId?: string;
+  defaultValue?: string;
+  typeConfig?: Record<string, unknown>;
+  permissionMetadata?: {
+    readablePermissionCode?: string;
+    writablePermissionCode?: string;
+    readableRoleIds?: string[];
+    writableRoleIds?: string[];
+    runtimeReadable?: boolean;
+    runtimeWritable?: boolean;
+    maskedWhenDenied?: string;
+    permissionVersion?: string;
+  };
   maskRule?: string;
-  importExportRule?: string;
+  importExportRule?: string | Record<string, unknown>;
+  permissionMode?: string;
+  writable?: boolean;
+  readonly?: boolean;
+  disabledReason?: string;
+  validationRules?: Record<string, unknown>;
 }
 
 export type FieldType =
@@ -274,6 +302,7 @@ export interface DynamicColumn {
   title: string;
   width?: number;
   sortable: boolean;
+  fixed?: boolean;
   masked?: boolean;
 }
 

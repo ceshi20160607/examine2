@@ -1,0 +1,87 @@
+{
+  "status": "PASS",
+  "ids": {
+    "systemId": "1007",
+    "visibleGroupId": "412",
+    "hiddenGroupId": "413",
+    "visibleModuleId": "414",
+    "hiddenModuleId": "415",
+    "disabledModuleId": "416",
+    "runtimeRoleId": "1470",
+    "memberId": "1367"
+  },
+  "results": [
+    {
+      "key": "admin-module-config",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:18131/?r71=1782974348337#/systems/1007/admin/module-config",
+      "overflowX": 0,
+      "textSample": "R71 Frontend Binding 0702143829654\n仪表盘\nR71 Visible Group 0702143829654\nR71 Hidden Group 0702143829654\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR71 Frontend Binding 0702143829654 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n加载提醒\n\n当前后台数据加载存在需要处理的提醒。\n\n1 条\n\n页面设计器加载失败：Module is disabled. traceId=trc_6c01dd01-2151-4a59-a6a6-a81cb364ae00\n\n模块管理\n模块分组\nR71 Visible Group 0702143829654\nR71 Hidden Group 0702143829654\n模块配置\n\n先筛选/选择模块，再配置字段、动作和发布。\n\n新建模块\n\n模块创建、发布检查、发布和回滚会调用真实后台接口并返回 traceId。\n\n模块\n分组\n全部分组\nR71 Visible Group 0702143829654\nR71 Hidden Group 0702143829654\n发布\n全部发布状态\n草稿\n已发布\n状态\n全部状态\n启用\n停用\n应用筛选\n重置\n模块\t状态\t发布\t版本\t操作\n\nR71 Disabled Module 0702143829654\nr71_disabled_0702143829654\n停用\tPUBLISHED\tMODULE_v1782974343278\t当前模块\n\nR71 Visible Module 0702143829654\nr71_visible_0702143829654\n启用\tPUBLISHED\tMODULE_v1782974343044\t选择\n\nR71 Hidden Module 0702143829654\nr71_hidden_0702143829654\n启用\tPUBLISHED\tMODULE_v1782974343160\t选择\n模块列表\nR71 Disabl",
+      "checks": {
+        "visibleGroupMarked": true,
+        "visibleModuleMarked": true,
+        "hiddenModuleMarked": true,
+        "fieldMarked": true,
+        "hiddenFieldMarked": true,
+        "hierarchyBoundaryVisible": true
+      },
+      "blockers": []
+    },
+    {
+      "key": "admin-member-binding",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:18131/?r71=1782974355381#/systems/1007/admin/org-structure",
+      "overflowX": 0,
+      "textSample": "R71 Frontend Binding 0702143829654\n仪表盘\nR71 Visible Group 0702143829654\nR71 Hidden Group 0702143829654\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR71 Frontend Binding 0702143829654 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n加载提醒\n\n当前后台数据加载存在需要处理的提醒。\n\n1 条\n\n页面设计器加载失败：Module is disabled. traceId=trc_fbe66e74-c934-4691-8429-7bb8d7dcad34\n\n组织架构\n新建部门\n新建员工\n\n组织、员工和角色会写入当前系统，并受当前系统/租户上下文约束。\n\n部门树\n默认部门\n员工\n状态\n绑定状态\n重置\n员工列表\n序号\t姓名\t工号\t部门\t绑定\t状态\t更新时间\n1\tR71 Runtime Member 0702143829654\tR71M143904022\t-\tBOUND\t启用\t2026-07-02 14:39:04\n2\tadmin\tSA25\t776\tBOUND\t启用\t2026-07-02 14:38:55\n第 1 页，每页 20 条，共 2 条\n上一页\n下一页",
+      "checks": {
+        "memberMarked": true,
+        "memberBindingStatusMarked": true
+      },
+      "blockers": []
+    },
+    {
+      "key": "admin-role-workbench",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:18131/?r71=1782974360856#/systems/1007/admin/role-management",
+      "overflowX": 0,
+      "textSample": "R71 Frontend Binding 0702143829654\n仪表盘\nR71 Visible Group 0702143829654\nR71 Hidden Group 0702143829654\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR71 Frontend Binding 0702143829654 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n加载提醒\n\n当前后台数据加载存在需要处理的提醒。\n\n1 条\n\n页面设计器加载失败：Module is disabled. traceId=trc_46c3f33e-095a-4921-8b2b-fe25123643c8\n\n角色管理\n新建角色\n\n组织、员工和角色会写入当前系统，并受当前系统/租户上下文约束。\n\n角色\n类型\n状态\n重置\n角色管理\n序号\t角色\t类型\t内置\t状态\t说明\n1\t系统超级管理员 SYSTEM_SUPER_ADMIN\tSYSTEM_SUPER_ADMIN\t是\t启用\t创建系统时自动生成，拥有系统内全部权限\n2\tR71 Hidden Role 0702143829654 R71_HIDDEN_ROLE_0702143829654\tCUSTOM\t否\t启用\t-\n3\tR71 Runtime Member 0702143829654 R71_RUNTIME_MEMBER_0702143829654\tCUSTOM\t否\t启用\t-\n第 1 页，每页 20 条，共 3 条\n上一页\n下一页\n角色权限配置\n动作、字段、数据范围写入真实权限接口\n角色\n系统超级管理员 / SYSTEM_SUPER_ADMIN\nR71 Hidden Role 0702143829654 / R71_HIDDEN_ROLE_0702143829654\nR71 Runtime Member 0702143829654 / R71_RUNTIME_MEMBER_0702143829654\n模块\nR71 Disabled Module 0702143829654 / r71_disabled_0702143",
+      "checks": {
+        "roleMarked": true,
+        "roleOptionMarked": true,
+        "moduleOptionMarked": true,
+        "workbenchMarked": true
+      },
+      "blockers": []
+    },
+    {
+      "key": "runtime-desktop",
+      "viewport": "desktop",
+      "url": "http://127.0.0.1:18131/?r71=1782974369332#/systems/1007/modules",
+      "overflowX": 0,
+      "textSample": "R71 Frontend Binding 0702143829654\n仪表盘\nR71 Visible Group 0702143829654\n工作\n待办\n命令\n助手\n消息\n系统切换\nr71_member_0702143829654\nR71 Visible Group 0702143829654\nR71 Visible Module 0702143829654\n0 条 / MODULE_v1782974343044\n\nR71 VISIBLE GROUP 0702143829654\n\nR71 Visible Module 0702143829654\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R71 Visible Module 0702143829654 / 默认\nR71 Runtime Scene 0702143829654 / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1007_1039_1367\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n暂无业务数据\n\n当前筛选条件下暂无记录。\n\nRUNTIME\n暂无业务数据\n当前筛选条件下暂无记录。",
+      "checks": {
+        "visibleRuntimeModuleMarked": true,
+        "hiddenRuntimeModuleAbsent": true,
+        "disabledRuntimeModuleAbsent": true,
+        "hiddenFieldAbsent": true,
+        "systemHeaderGroupMarked": true
+      },
+      "blockers": []
+    },
+    {
+      "key": "runtime-mobile",
+      "viewport": "mobile",
+      "url": "http://127.0.0.1:18131/?r71=1782974371388#/systems/1007/modules",
+      "overflowX": 0,
+      "textSample": "R71 Frontend Binding 0702143829654\n仪表盘\nR71 Visible Group 0702143829654\n工作\n待办\n命令\n助手\n消息\n系统切换\nr71_member_0702143829654\nR71 Visible Group 0702143829654\nR71 Visible Module 0702143829654\n0 条 / MODULE_v1782974343044\n\nR71 VISIBLE GROUP 0702143829654\n\nR71 Visible Module 0702143829654\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R71 Visible Module 0702143829654 / 默认\nR71 Runtime Scene 0702143829654 / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1007_1039_1367\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n暂无业务数据\n\n当前筛选条件下暂无记录。\n\nRUNTIME\n暂无业务数据\n当前筛选条件下暂无记录。",
+      "checks": {
+        "visibleRuntimeModuleMarked": true,
+        "hiddenRuntimeModuleAbsent": true,
+        "disabledRuntimeModuleAbsent": true,
+        "hiddenFieldAbsent": true,
+        "systemHeaderGroupMarked": true
+      },
+      "blockers": []
+    }
+  ]
+}

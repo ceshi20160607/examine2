@@ -1,0 +1,68 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "PARTIAL_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-02T09:20:09.0452961+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "requirementRows":  [
+                            "REQ-2.1",
+                            "REQ-4.1",
+                            "REQ-4.2",
+                            "REQ-4.4",
+                            "REQ-6.2",
+                            "REQ-6.4"
+                        ],
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "latest deployed frontend uses the high-density convergence asset",
+                       "passed":  true,
+                       "detail":  "status=PASS, assets=http://127.0.0.1:18131/assets/index-BnZhqLS7.js"
+                   },
+                   {
+                       "area":  "static-usability",
+                       "name":  "static usability audit still has no blockers or warnings",
+                       "passed":  true,
+                       "detail":  "status=PASS, blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "runtime-density",
+                       "name":  "runtime module list actions are converged into menus",
+                       "passed":  true,
+                       "detail":  "maxRuntimeButtons=27, routeCount=4"
+                   },
+                   {
+                       "area":  "work-density",
+                       "name":  "work management panels and actions are reduced without losing route coverage",
+                       "passed":  true,
+                       "detail":  "maxWorkPanels=7, maxWorkButtons=14, routeCount=4"
+                   },
+                   {
+                       "area":  "role-safety",
+                       "name":  "R57 role journey still passes after density convergence",
+                       "passed":  true,
+                       "detail":  "failures=0, warnings=0, forbiddenCreate=403, forbiddenAdmin=403"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r58-high-density-surface-convergence\\verify-release.log"
+                         },
+                         {
+                             "name":  "recovery-r57-human-acceptance",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r58-high-density-surface-convergence\\recovery-r57-human-acceptance.log"
+                         }
+                     ],
+    "browserAuditFile":  "docs/evidence/recovery/screenshots/r58-high-density-surface-convergence/high-density-surface-convergence-browser-audit.json",
+    "density":  {
+                    "runtimeModuleMaxButtonCount":  27,
+                    "workMaxButtonCount":  14,
+                    "workMaxPanelCount":  7
+                },
+    "assetScripts":  [
+                         "http://127.0.0.1:18131/assets/index-BnZhqLS7.js"
+                     ]
+}

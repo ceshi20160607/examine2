@@ -1,0 +1,819 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-069",
+    "productStatus":  "R69_REQUIREMENT_EVIDENCE_PROMOTION_DECISION_PASS_ENGINEERING_ONLY",
+    "generatedAt":  "2026-07-02T13:45:38.0064346+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "requirementTotal":  45,
+    "freshEvidenceRows":  45,
+    "noFreshEvidenceRows":  0,
+    "promotedToProvenRows":  0,
+    "stillPartialRows":  45,
+    "nextResidualBatch":  {
+                              "taskId":  "REC-P0-070",
+                              "name":  "No-Code Configuration Residual Depth Closure",
+                              "source":  "R69 residual decision",
+                              "requirementRows":  [
+                                                      "REQ-4.3",
+                                                      "REQ-5.3",
+                                                      "REQ-5.3.1",
+                                                      "REQ-5.4",
+                                                      "REQ-5.5",
+                                                      "REQ-5.6",
+                                                      "REQ-5.7",
+                                                      "REQ-5.9",
+                                                      "REQ-5.10",
+                                                      "REQ-6.7",
+                                                      "REQ-6.10"
+                                                  ],
+                              "reason":  "FRC-2 has the largest coherent residual block after R69: no-code configuration depth, app/module lifecycle, menu/group permutations, permission matrix UX, org/member lifecycle, field/dictionary designer depth, and user-facing admin clarity.",
+                              "mustNotAskUser":  true
+                          },
+    "checks":  [
+                   {
+                       "area":  "child-step",
+                       "name":  "verify-release exit code is allowed",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0, log=D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r69-requirement-evidence-promotion-and-gap-decision\\verify-release.log"
+                   },
+                   {
+                       "area":  "child-step",
+                       "name":  "final-usability-static-audit exit code is allowed",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0, log=D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r69-requirement-evidence-promotion-and-gap-decision\\final-usability-static-audit.log"
+                   },
+                   {
+                       "area":  "child-step",
+                       "name":  "final-goal-framework-audit exit code is allowed",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0, log=D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r69-requirement-evidence-promotion-and-gap-decision\\final-goal-framework-audit.log"
+                   },
+                   {
+                       "area":  "child-step",
+                       "name":  "final-requirement-coverage-audit exit code is allowed",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=1, log=D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r69-requirement-evidence-promotion-and-gap-decision\\final-requirement-coverage-audit.log"
+                   },
+                   {
+                       "area":  "release",
+                       "name":  "deployed release verification executed successfully",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "baseUrl=http://127.0.0.1:18131"
+                   },
+                   {
+                       "area":  "static-usability",
+                       "name":  "static usability audit has no blockers or warnings",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "framework",
+                       "name":  "framework audit recognizes R69 as active executable task",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, nextTasks=REC-P0-069 Requirement Evidence Promotion And Residual Gap Decision"
+                   },
+                   {
+                       "area":  "coverage",
+                       "name":  "coverage audit remains honestly open while promotion decision is pending",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=FAIL, missing=0, notClosed=45"
+                   },
+                   {
+                       "area":  "accepted-evidence",
+                       "name":  "R67 candidate matrix is readable and complete",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, rows=45"
+                   },
+                   {
+                       "area":  "accepted-evidence",
+                       "name":  "R68 page visual designer fresh evidence is readable and accepted",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, rows=REQ-5.8, REQ-6.1, REQ-6.8"
+                   },
+                   {
+                       "area":  "signoff",
+                       "name":  "user script remains false before explicit user signoff",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "state=False, r67=False, r68=False"
+                   },
+                   {
+                       "area":  "promotion-matrix",
+                       "name":  "all 45 requirement rows have promotion decisions",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "rows=45"
+                   },
+                   {
+                       "area":  "promotion-matrix",
+                       "name":  "R68 closes the R67 no-fresh-evidence gap",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "freshRows=45, noFreshRows=0"
+                   },
+                   {
+                       "area":  "promotion-matrix",
+                       "name":  "R69 does not promote rows without user signoff and residual gap closure",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "promoted=0, stillPartial=45"
+                   },
+                   {
+                       "area":  "next-batch",
+                       "name":  "R69 emits a concrete residual coding batch instead of asking the user to inspect manually",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "task=REC-P0-070, rows=11"
+                   },
+                   {
+                       "area":  "gap-report",
+                       "name":  "gap report still exposes residual no-code configuration rows",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "FRC-2 residual rows present"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "allowed":  true,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r69-requirement-evidence-promotion-and-gap-decision\\verify-release.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "exitCode":  0,
+                             "allowed":  true,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r69-requirement-evidence-promotion-and-gap-decision\\final-usability-static-audit.log"
+                         },
+                         {
+                             "name":  "final-goal-framework-audit",
+                             "exitCode":  0,
+                             "allowed":  true,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r69-requirement-evidence-promotion-and-gap-decision\\final-goal-framework-audit.log"
+                         },
+                         {
+                             "name":  "final-requirement-coverage-audit",
+                             "exitCode":  1,
+                             "allowed":  true,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r69-requirement-evidence-promotion-and-gap-decision\\final-requirement-coverage-audit.log"
+                         }
+                     ],
+    "promotionMatrix":  [
+                            {
+                                "reqId":  "REQ-2.1",
+                                "area":  "Product goal: customizable no-code systems with workflow, OpenAPI, AI, tasks, messages, logs, and usable people-facing product.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R61 auth-entry",
+                                                      "R62 platform-system-shell"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need all functional and usability rows below to be `PROVEN` or `USER_EXCLUDED`, plus explicit user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-4.1",
+                                "area":  "Platform layer and custom system layer separation.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R62 platform-system-shell"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need deeper first-use and no-code-admin information-architecture acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-4.2",
+                                "area":  "Platform center.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R62 platform-system-shell"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need platform workspace/admin daily-use breadth and user acceptance beyond engineering evidence.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-4.3",
+                                "area":  "Application configuration center.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need richer first-use-to-launch workflow, nested/disabled/unpublished menu permutations, broader cross-surface admin usability, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-4.4",
+                                "area":  "Application runtime.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need remaining runtime approval detail breadth, import/export rollback UX, file preview/version/storage failure states, batch actions, deeper empty/error/accessibility states, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-4.5",
+                                "area":  "Workflow workbench.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R64 workflow-todo-message"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need broader workflow workbench scenarios such as reject/transfer/timer/escalation, richer failure states, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-4.6",
+                                "area":  "System management and operations center.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R66 operations-logs-release"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need full operator usability and all maintenance controls verified from deployed UI plus human acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.1",
+                                "area":  "Account and login.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R61 auth-entry",
+                                                      "R62 platform-system-shell"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need full MFA/SSO variants and account security UX coverage if still in final scope.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.2",
+                                "area":  "Systems and tenants.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R61 auth-entry",
+                                                      "R62 platform-system-shell"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need full system lifecycle, tenant lifecycle, initialization, preview/publish and rollback UX.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.3",
+                                "area":  "Applications.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need app lifecycle and platform-level app/system data interop coverage.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.3.1",
+                                "area":  "Module groups as runtime navigation.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need nested group behavior, disabled/unpublished state permutations, broader menu editing UX, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.4",
+                                "area":  "Modules.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need all module permissions/field-type permutations, binary PDF or user-approved HTML boundary, long-form usability, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.5",
+                                "area":  "Fields.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need formula/summary if in scope, richer field-specific UI widgets, broader validation UX/accessibility, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.6",
+                                "area":  "Dictionaries.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need dictionary hierarchy/import/history or other broader dictionary semantics if in scope, cross-surface dictionary reuse, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.7",
+                                "area":  "Departments and members.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need full org tree, member lifecycle, binding, import/sync and permission impact.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.8",
+                                "area":  "Pages.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R68 page-visual-designer"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need broader runtime daily-use pages, import/export/file/error states, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.9",
+                                "area":  "Menus.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need explicit menu configuration page breadth, nested groups, disabled/unpublished permutations, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.10",
+                                "area":  "Permissions.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need broader permission matrix usability, menu/module/action/field/data-scope permutations, audit/history of permission changes, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.11",
+                                "area":  "Data records.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need approval-detail integration breadth, sequence permutations, rollback/batch actions, deeper empty/error/accessibility states, and broader data-record usability before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.12",
+                                "area":  "Workflow.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R64 workflow-todo-message"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need full node library breadth, timers, external API nodes, field update nodes, richer publish impact, reject/transfer variants, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.13",
+                                "area":  "Files.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need file preview/download permission breadth, versioning, relation management, storage policy, and upload/download failure coverage before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.14",
+                                "area":  "Import and export.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need rollback/error-file failure cases, field mapping UX breadth, permissions matrix depth, and large-file UX before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.15",
+                                "area":  "OpenAPI.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R65 openapi-assistant"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need broader callback/webhook/API documentation UX, rate-limit behavior under load, external API node/workflow integration breadth, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.16",
+                                "area":  "Messages.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime",
+                                                      "R64 workflow-todo-message"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need templates/channels, delivery log, failure retry, do-not-disturb, platform/system separation breadth, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.17",
+                                "area":  "Logs and audit.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R66 operations-logs-release"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need full login/business/API/AI/import/export/approval audit query and detail UX plus human acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.18",
+                                "area":  "System management settings.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R66 operations-logs-release"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need all setting pages and risk confirmations verified from deployed UI plus human acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.19",
+                                "area":  "Intelligent capabilities.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R64 workflow-todo-message",
+                                                      "R65 openapi-assistant"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need richer user assistant flows, field/process/export-specific drafts, browser/API failure-state handling, broader AI read/write permission permutations, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-5.20",
+                                "area":  "Work management: projects, tasks, daily reports, calendar.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need full daily work usability, calendar, dashboard, task board, report draft and message/todo integration.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.1",
+                                "area":  "Overall visual style.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R68 page-visual-designer"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need broader human aesthetic review across runtime daily work, file/import/export/error states, and user acceptance before `PROVEN`; R35/R41/R42/R43/R46/R52 are engineering evidence only.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.2",
+                                "area":  "Web main layout.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use",
+                                                      "R61 auth-entry",
+                                                      "R62 platform-system-shell",
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need deeper first-use admin configuration, broader task-flow acceptance, and user signoff before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.3",
+                                "area":  "Home page.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R62 platform-system-shell"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need richer live operational data, broader work/todo/message integration, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.4",
+                                "area":  "List pages.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need admin list batch actions, richer error states, column width/fixed controls, keyboard/accessibility, and broader list usability review before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.5",
+                                "area":  "Form pages.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need field-specific UI breadth, more validation permutations, read-only/forbidden form permutations in browser, and accessibility before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.6",
+                                "area":  "Detail pages.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need approval sidebar terminal breadth, related child-row detail breadth, empty/error/accessibility states, and broader reload/re-login usability before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.7",
+                                "area":  "Field designer.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need formula/summary specialized widgets if in scope, deeper validation UI, relation/person/subtable accessibility review, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.8",
+                                "area":  "Page designer.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R68 page-visual-designer"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need drag/drop polish, full accessibility review, richer runtime widget behavior, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.9",
+                                "area":  "Flow designer.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R64 workflow-todo-message"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need broader node/property/branch/zoom/usability coverage, direct designer editing breadth, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.10",
+                                "area":  "Permission page.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R59 admin-first-use"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need richer permission matrix UX, batch role/member preview, conflict explanation, audit history, and user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-6.11",
+                                "area":  "Mobile.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R63 configured-runtime"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need mobile task usability across workflow/todo/message/ops primary journeys, binary PDF/user-approved print boundary decision, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-7",
+                                "area":  "Technical architecture.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R66 operations-logs-release"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need requirement-by-requirement technical architecture conformance audit.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-8",
+                                "area":  "Robustness.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R61 auth-entry",
+                                                      "R66 operations-logs-release"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need full config/data/permission/workflow/deploy robustness audit plus human acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-9",
+                                "area":  "Advanced/new capabilities.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R64 workflow-todo-message",
+                                                      "R65 openapi-assistant"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need remaining command-center and assistant enhancements, binary PDF or user-approved HTML export boundary, operations breadth, broader workflow/OpenAPI/AI variants, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-10",
+                                "area":  "Full delivery standard.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R61 auth-entry",
+                                                      "R66 operations-logs-release"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need all delivery checklist rows mapped to evidence and user signoff.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-14.1-14.37",
+                                "area":  "Launch capability rules: versioning, publish, lifecycle, business rules, uniqueness, rollback, print, KPI, health, permission preview, archive, confirmations, UX details, APIs, errors, idempotency, rate limit, cache, design system, performance, reports, audit, gray release, quotas, masking, accessibility, data design.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R65 openapi-assistant",
+                                                      "R66 operations-logs-release"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need evidence for every remaining non-print/non-integration 14.x item, operator-facing operations/rollback/backup/cache/quota/gray-release UX, binary PDF or user-approved HTML export boundary, and user acceptance before `PROVEN`.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            },
+                            {
+                                "reqId":  "REQ-A",
+                                "area":  "Confirmed product clarifications.",
+                                "previousLedgerStatus":  "PARTIAL",
+                                "decision":  "FRESH_ENGINEERING_EVIDENCE_STILL_PARTIAL",
+                                "freshEvidence":  [
+                                                      "R66 operations-logs-release"
+                                                  ],
+                                "hasFreshEvidence":  true,
+                                "canPromoteToProven":  false,
+                                "userSignoffRequired":  true,
+                                "residualGap":  "Need explicit appendix A coverage scan against implementation and UI plus user acceptance.",
+                                "decisionReason":  "Fresh engineering evidence exists, but the row still has a residual gap or explicit user acceptance boundary."
+                            }
+                        ],
+    "browserAuditPath":  "docs/evidence/recovery/screenshots/r69-requirement-evidence-promotion-and-gap-decision/requirement-evidence-browser-audit.json",
+    "accepted":  true
+}

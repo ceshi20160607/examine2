@@ -1,0 +1,142 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "PARTIAL_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-02T11:04:08.4064601+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "requirementRows":  [
+                            "REQ-4.3",
+                            "REQ-5.3",
+                            "REQ-5.3.1",
+                            "REQ-5.4",
+                            "REQ-5.5",
+                            "REQ-5.6",
+                            "REQ-5.7",
+                            "REQ-5.9",
+                            "REQ-5.10",
+                            "REQ-6.7",
+                            "REQ-6.10"
+                        ],
+    "journeyRows":  [
+                        "J2",
+                        "J3",
+                        "J5",
+                        "J8",
+                        "J9",
+                        "J11"
+                    ],
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "health reports database/schema/redis UP",
+                       "passed":  true,
+                       "detail":  "{\"status\":\"UP\",\"redis\":\"UP\",\"database\":\"UP\",\"schema\":\"UP\"}"
+                   },
+                   {
+                       "area":  "frontend-static",
+                       "name":  "no blocker or warning copy/placeholder findings",
+                       "passed":  true,
+                       "detail":  "blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "module-config",
+                       "name":  "R38 fresh module lifecycle and admin table parity passed",
+                       "passed":  true,
+                       "detail":  "columns=3, filters=6, sorters=1, mappings=3, forbidden=403/403, browser=2"
+                   },
+                   {
+                       "area":  "permission-preview",
+                       "name":  "R44 fresh no-code permission preview agrees with runtime permission",
+                       "passed":  true,
+                       "detail":  "role=1335, previewAllowed=False, secretLeaked=False, createDisabled=True, browser=4"
+                   },
+                   {
+                       "area":  "field-dict-menu",
+                       "name":  "R45 fresh field type dictionary and menu configuration passed",
+                       "passed":  true,
+                       "detail":  "fields=12, types=ATTACHMENT,CHILD_TABLE,DATE,DATETIME,DEPARTMENT,IMAGE,LONG_TEXT,MULTI_SELECT,NUMBER,RELATION,SELECT,TEXT,USER, activeOptions=ACTIVE,PENDING, normalSchema=15, browser=6"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r53-frc2-no-code-configuration\\verify-release.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r53-frc2-no-code-configuration\\final-usability-static-audit.log"
+                         },
+                         {
+                             "name":  "recovery-r38-module-lifecycle-admin-table",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r53-frc2-no-code-configuration\\recovery-r38-module-lifecycle-admin-table.log"
+                         },
+                         {
+                             "name":  "recovery-r44-no-code-permission-preview",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r53-frc2-no-code-configuration\\recovery-r44-no-code-permission-preview.log"
+                         },
+                         {
+                             "name":  "recovery-r45-field-dict-menu",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r53-frc2-no-code-configuration\\recovery-r45-field-dict-menu.log"
+                         }
+                     ],
+    "staticAudit":  {
+                        "warningCount":  0,
+                        "status":  "PASS",
+                        "blockerCount":  0
+                    },
+    "browserAuditFile":  "docs/evidence/recovery/screenshots/r53-frc2-no-code-configuration/no-code-configuration-browser-audit.json",
+    "moduleConfig":  {
+                         "importExportMappingCount":  3,
+                         "systemId":  "917",
+                         "rollbackResult":  "ROLLED_BACK",
+                         "schemaFilterCount":  6,
+                         "schemaColumnCount":  3,
+                         "publishCheckPassed":  true,
+                         "schemaSorterCount":  1,
+                         "moduleId":  "366"
+                     },
+    "permissionPreview":  {
+                              "previewAllowed":  false,
+                              "systemId":  "919",
+                              "runtimeRoleId":  "1335",
+                              "normalSecretColumnLeaked":  false,
+                              "previewHiddenSecret":  "HIDDEN",
+                              "normalSchemaColumnCount":  5,
+                              "normalCreateDisabled":  true,
+                              "moduleId":  "367"
+                          },
+    "fieldDictMenu":  {
+                          "activeSchemaOptionCodes":  [
+                                                          "ACTIVE",
+                                                          "PENDING"
+                                                      ],
+                          "moduleId":  "369",
+                          "dictPublishedVersion":  "DICT_TYPE_v1782961418965",
+                          "normalSchemaColumnCount":  15,
+                          "dictFieldReferenceCount":  2,
+                          "fieldCount":  12,
+                          "dictDisabledItemCount":  1,
+                          "runtimeRoleId":  "1339",
+                          "systemId":  "921",
+                          "fieldTypes":  [
+                                             "ATTACHMENT",
+                                             "CHILD_TABLE",
+                                             "DATE",
+                                             "DATETIME",
+                                             "DEPARTMENT",
+                                             "IMAGE",
+                                             "LONG_TEXT",
+                                             "MULTI_SELECT",
+                                             "NUMBER",
+                                             "RELATION",
+                                             "SELECT",
+                                             "TEXT",
+                                             "USER"
+                                         ]
+                      }
+}

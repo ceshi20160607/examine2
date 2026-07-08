@@ -1,0 +1,116 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "R80_LIVE_USER_TRIAL_WORKSPACE_ENGINEERING_EVIDENCE_ONLY",
+    "task":  "REC-P0-080",
+    "generatedAt":  "2026-07-06T16:28:59.9924492+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "release is verified before seeding trial workspace",
+                       "passed":  true,
+                       "detail":  "http://127.0.0.1:18131"
+                   },
+                   {
+                       "area":  "framework",
+                       "name":  "framework audit recognizes R80 trial workspace task",
+                       "passed":  true,
+                       "detail":  "errors=0, warnings=0"
+                   },
+                   {
+                       "area":  "static-usability",
+                       "name":  "static usability remains clean before trial handoff",
+                       "passed":  true,
+                       "detail":  "status=PASS, blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "runtime-trial",
+                       "name":  "configured runtime trial system remains after R63",
+                       "passed":  true,
+                       "detail":  "system=1118, module=453, normal=r63_member_0706162707_4a00b6"
+                   },
+                   {
+                       "area":  "workflow-trial",
+                       "name":  "workflow/todo/message trial system remains after R64",
+                       "passed":  true,
+                       "detail":  "system=1121, module=454, requester=r3_requester_0706162803307_ca6efa, approver=r3_approver_0706162803307_ca6efa"
+                   },
+                   {
+                       "area":  "signoff-boundary",
+                       "name":  "trial workspace does not close user signoff",
+                       "passed":  true,
+                       "detail":  "userScriptPassed=False, notClosed=45"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\verify-release.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\verify-release.err.log"
+                         },
+                         {
+                             "name":  "final-goal-framework-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\final-goal-framework-audit.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\final-goal-framework-audit.err.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\final-usability-static-audit.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\final-usability-static-audit.err.log"
+                         },
+                         {
+                             "name":  "final-requirement-coverage-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\final-requirement-coverage-audit.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\final-requirement-coverage-audit.err.log"
+                         },
+                         {
+                             "name":  "configured-runtime-trial-seed-r63",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\configured-runtime-trial-seed-r63.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\configured-runtime-trial-seed-r63.err.log"
+                         },
+                         {
+                             "name":  "workflow-todo-message-trial-seed-r64",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\workflow-todo-message-trial-seed-r64.log",
+                             "errorLogFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r80-live-user-trial-workspace\\workflow-todo-message-trial-seed-r64.err.log"
+                         }
+                     ],
+    "trialPack":  {
+                      "baseUrl":  "http://127.0.0.1:18131",
+                      "admin":  {
+                                    "loginName":  "admin",
+                                    "password":  "123123aa",
+                                    "entry":  "http://127.0.0.1:18131/#/platform"
+                                },
+                      "runtimeDailyUse":  {
+                                              "systemId":  "1118",
+                                              "tenantId":  "1150",
+                                              "moduleId":  "453",
+                                              "normalLoginName":  "r63_member_0706162707_4a00b6",
+                                              "readonlyLoginName":  "r63_readonly_0706162707_4a00b6",
+                                              "password":  "Aa123456!",
+                                              "entry":  "http://127.0.0.1:18131/#/systems/1118/modules",
+                                              "existingRecordId":  "625"
+                                          },
+                      "workflowTodoMessage":  {
+                                                  "systemId":  "1121",
+                                                  "tenantId":  "1153",
+                                                  "moduleId":  "454",
+                                                  "flowId":  "144",
+                                                  "requesterLoginName":  "r3_requester_0706162803307_ca6efa",
+                                                  "approverLoginName":  "r3_approver_0706162803307_ca6efa",
+                                                  "password":  "Aa123456!",
+                                                  "entry":  "http://127.0.0.1:18131/#/systems/1121/modules",
+                                                  "todoEntry":  "http://127.0.0.1:18131/#/systems/1121/todos",
+                                                  "messageEntry":  "http://127.0.0.1:18131/#/systems/1121/messages",
+                                                  "terminalRecordId":  "626"
+                                              }
+                  },
+    "accepted":  true
+}

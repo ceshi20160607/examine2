@@ -8,9 +8,13 @@ import com.unique.examine.module.manage.runtime.RuntimeRecordModels.BusinessDeta
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RecordHistoryEntry;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RecordMutationResult;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RecordSaveRequest;
+import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RuntimePrintRequest;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RecordSearchRequest;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RuntimeListSchemaVO;
 import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RuntimeRecordSearchVO;
+import com.unique.examine.module.manage.runtime.RuntimeRecordModels.RuntimeSceneOptionVO;
+import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplatePreviewVO;
+import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -38,6 +42,12 @@ public class RuntimeRecordController {
                                                        @PathVariable String moduleId,
                                                        @RequestParam(required = false) String sceneCode) {
         return ApiResponse.success(runtimeRecordService.listSchema(systemId, moduleId, sceneCode));
+    }
+
+    @GetMapping("/api/v1/systems/{systemId}/runtime/modules/{moduleId}/scenes")
+    public ApiResponse<List<RuntimeSceneOptionVO>> scenes(@PathVariable String systemId,
+                                                          @PathVariable String moduleId) {
+        return ApiResponse.success(runtimeRecordService.scenes(systemId, moduleId));
     }
 
     @PostMapping("/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records/search")
@@ -94,6 +104,24 @@ public class RuntimeRecordController {
                                                                     required = false) String idempotencyKey) {
         return ApiResponse.success(runtimeRecordService.executeAction(systemId, moduleId, recordId, actionCode,
                 request, idempotencyKey));
+    }
+
+    @PostMapping("/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records/{recordId}/print-preview")
+    public ApiResponse<PrintTemplatePreviewVO> printPreview(@PathVariable String systemId,
+                                                            @PathVariable String moduleId,
+                                                            @PathVariable String recordId,
+                                                            @RequestBody(required = false)
+                                                            RuntimePrintRequest request) {
+        return ApiResponse.success(runtimeRecordService.printPreview(systemId, moduleId, recordId, request));
+    }
+
+    @PostMapping("/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records/{recordId}/print-export")
+    public ApiResponse<PrintTemplatePreviewVO> printExport(@PathVariable String systemId,
+                                                           @PathVariable String moduleId,
+                                                           @PathVariable String recordId,
+                                                           @RequestBody(required = false)
+                                                           RuntimePrintRequest request) {
+        return ApiResponse.success(runtimeRecordService.printExport(systemId, moduleId, recordId, request));
     }
 
     @GetMapping("/api/v1/systems/{systemId}/runtime/modules/{moduleId}/records/{recordId}/history")

@@ -268,7 +268,8 @@ public class SystemContextService {
                 .eq(PlatRole::getStatus, ENABLED)
                 .eq(PlatRole::getDeleted, DELETED_NO))
                 .stream()
-                .map(PlatRole::getRoleCode)
+                .flatMap(role -> java.util.stream.Stream.of(String.valueOf(role.getId()), role.getRoleCode()))
+                .distinct()
                 .toList();
     }
 

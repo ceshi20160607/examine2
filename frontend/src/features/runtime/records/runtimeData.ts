@@ -12,6 +12,9 @@ export interface RuntimeModuleGroup {
   name: string;
   routePath: string;
   visible: boolean;
+  publishStatus?: string;
+  visibleRoleIds?: string[];
+  hierarchySupported?: boolean;
   disabledReason?: string;
 }
 
@@ -22,6 +25,9 @@ export interface RuntimeModuleItem {
   name: string;
   count: number;
   publishVersion: string;
+  publishStatus?: string;
+  visibleRoleIds?: string[];
+  runtimeVisible?: boolean;
   active?: boolean;
   disabledReason?: string;
 }

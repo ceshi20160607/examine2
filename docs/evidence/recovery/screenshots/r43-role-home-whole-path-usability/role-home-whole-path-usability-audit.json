@@ -1,0 +1,2231 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-043",
+    "frc":  "FRC-1E Role-specific home and whole-path usability closure",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "971",
+    "moduleId":  "390",
+    "generatedAt":  "2026-07-02T05:06:21.150Z",
+    "assetScripts":  [
+                         "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                     ],
+    "routeCount":  16,
+    "viewportCount":  2,
+    "resultCount":  32,
+    "failureCount":  0,
+    "warningCount":  0,
+    "results":  [
+                    {
+                        "role":  "admin",
+                        "key":  "platform-workbench",
+                        "route":  "/platform",
+                        "finalHash":  "#/platform",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-platform-workbench.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  309,
+                        "textPreview":  "unexamine???????????AI??????????admin??????????????????????????????????????????????????????????????? / 342??????R3 Runtime Target 0629161850220_5e768f????? /??????R45 Field Dict Menu 0701153054_fea05f????? /??????R45 Fie",
+                        "panelCount":  1,
+                        "buttonCount":  10,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-platform-workbench=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-system-switch-panel=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "platform-admin",
+                        "route":  "/platform/admin",
+                        "finalHash":  "#/platform/admin",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-platform-admin.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  269,
+                        "textPreview":  "unexamine???????????AI??????????admin???????????????????????????????????????????????????????????????????????????????????????????AI Agent ???????????????????14?????1??? SSO30?????23??????UP??????admin??????PLATFORM_ROOT??",
+                        "panelCount":  8,
+                        "buttonCount":  16,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-platform-admin-shell=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  true,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-dashboard",
+                        "route":  "/systems/971/dashboard",
+                        "finalHash":  "#/systems/971/dashboard",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-system-dashboard.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  306,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin??????????????????????????????????????????????????????????????????????????????0 ?? / 0 ????????0 ???????0 ????????????",
+                        "panelCount":  1,
+                        "buttonCount":  11,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-dashboard=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-home-overview=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-home-operations=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-runtime-modules",
+                        "route":  "/systems/971/modules",
+                        "finalHash":  "#/systems/971/modules",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-system-runtime-modules.png",
+                        "scrollWidth":  1265,
+                        "overflowX":  0,
+                        "textLength":  1450,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin?R43 Operations 0702130417_7dea05?R43 Request 0702130417_7dea05?8 ? / MODULE_v1782968667060??R43 OPERATIONS 0702130417",
+                        "panelCount":  2,
+                        "buttonCount":  27,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  ".runtime-shell",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".runtime-module-sidebar",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".runtime-main",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-work",
+                        "route":  "/systems/971/work",
+                        "finalHash":  "#/systems/971/work",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-system-work.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  281,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin??????????????????????????????????????????????????????????????????????????0???????0???????0???????0???????????????????",
+                        "panelCount":  7,
+                        "buttonCount":  14,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-work-page=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".work-tabs",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-todos",
+                        "route":  "/systems/971/todos",
+                        "finalHash":  "#/systems/971/todos",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-system-todos.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  290,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin???????????????????????????????????????? (0)????? (0)????? (0)????? (0)?????? (0)????? (0)????????????????????? 1 ????",
+                        "panelCount":  4,
+                        "buttonCount":  20,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-todo-workbench=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-messages",
+                        "route":  "/systems/971/messages",
+                        "finalHash":  "#/systems/971/messages",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-system-messages.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  226,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin?????????????????????????????????????????????????????????????????????????????????????????????????? 1 ???? 20 ??? 0 ???",
+                        "panelCount":  3,
+                        "buttonCount":  20,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-message-center=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-admin",
+                        "route":  "/systems/971/admin",
+                        "finalHash":  "#/systems/971/admin",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-system-admin.png",
+                        "scrollWidth":  1265,
+                        "overflowX":  0,
+                        "textLength":  164,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05??????????????????????????????admin????????????????????????????????????????????????????????????????????AI Agent????????????????...",
+                        "panelCount":  1,
+                        "buttonCount":  23,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  ".admin-layout",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".admin-sidebar",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".admin-content",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  true,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-platform-workbench",
+                        "route":  "/platform",
+                        "finalHash":  "#/platform",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-normal-platform-workbench.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  202,
+                        "textPreview":  "unexamine???????????AI??????????r43_member_0702130417_7dea05???????????????????????????????????????????????????R43 Visual Audit 0702130417_7dea05????? / 1313??????R43 Owned 0702130417_7dea05????? /?????",
+                        "panelCount":  1,
+                        "buttonCount":  8,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-platform-workbench=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-system-switch-panel=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-platform-admin-denied",
+                        "route":  "/platform/admin",
+                        "finalHash":  "#/platform/admin",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-normal-platform-admin-denied.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  62,
+                        "textPreview":  "unexamine?????????????????????????????????????????????????????",
+                        "panelCount":  0,
+                        "buttonCount":  1,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  ".auth-card",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-dashboard",
+                        "route":  "/systems/971/dashboard",
+                        "finalHash":  "#/systems/971/dashboard",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-normal-system-dashboard.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  324,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05??????????????????????????????????????????????????????????????????????????????0 ?? / 0 ????????0 ???",
+                        "panelCount":  1,
+                        "buttonCount":  10,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-dashboard=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-home-overview=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-home-operations=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-runtime-modules",
+                        "route":  "/systems/971/modules",
+                        "finalHash":  "#/systems/971/modules",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-normal-system-runtime-modules.png",
+                        "scrollWidth":  1265,
+                        "overflowX":  0,
+                        "textLength":  1588,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05?R43 Operations 0702130417_7dea05?R43 Request 0702130417_7dea05?8 ? / MODULE_v1782968667060??R43 OPE",
+                        "panelCount":  2,
+                        "buttonCount":  26,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  ".runtime-shell",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".runtime-module-sidebar",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".runtime-main",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-work",
+                        "route":  "/systems/971/work",
+                        "finalHash":  "#/systems/971/work",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-normal-system-work.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  299,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05??????????????????????????????????????????????????????????????????????????0???????0???????0???????0?",
+                        "panelCount":  7,
+                        "buttonCount":  13,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-work-page=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".work-tabs",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-todos",
+                        "route":  "/systems/971/todos",
+                        "finalHash":  "#/systems/971/todos",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-normal-system-todos.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  308,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05???????????????????????????????????????? (0)????? (0)????? (0)????? (0)?????? (0)????? (0)??????????",
+                        "panelCount":  4,
+                        "buttonCount":  19,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-todo-workbench=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-system-todo-layout=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-messages",
+                        "route":  "/systems/971/messages",
+                        "finalHash":  "#/systems/971/messages",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-normal-system-messages.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  244,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05?????????????????????????????????????????????????????????????????????????????????????????????????? 1",
+                        "panelCount":  3,
+                        "buttonCount":  19,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-message-center=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-admin-denied",
+                        "route":  "/systems/971/admin",
+                        "finalHash":  "#/systems/971/admin",
+                        "viewport":  "desktop",
+                        "viewportSize":  {
+                                             "width":  1280,
+                                             "height":  720
+                                         },
+                        "screenshot":  "desktop-normal-system-admin-denied.png",
+                        "scrollWidth":  1280,
+                        "overflowX":  0,
+                        "textLength":  85,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05???????????????????????????????????????????????????",
+                        "panelCount":  0,
+                        "buttonCount":  1,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-admin-denied=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "platform-workbench",
+                        "route":  "/platform",
+                        "finalHash":  "#/platform",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-platform-workbench.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  309,
+                        "textPreview":  "unexamine???????????AI??????????admin??????????????????????????????????????????????????????????????? / 342??????R3 Runtime Target 0629161850220_5e768f????? /??????R45 Field Dict Menu 0701153054_fea05f????? /??????R45 Fie",
+                        "panelCount":  1,
+                        "buttonCount":  10,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-platform-workbench=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-system-switch-panel=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "platform-admin",
+                        "route":  "/platform/admin",
+                        "finalHash":  "#/platform/admin",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-platform-admin.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  269,
+                        "textPreview":  "unexamine???????????AI??????????admin???????????????????????????????????????????????????????????????????????????????????????????AI Agent ???????????????????14?????1??? SSO30?????23??????UP??????admin??????PLATFORM_ROOT??",
+                        "panelCount":  8,
+                        "buttonCount":  16,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-platform-admin-shell=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  true,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-dashboard",
+                        "route":  "/systems/971/dashboard",
+                        "finalHash":  "#/systems/971/dashboard",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-system-dashboard.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  306,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin??????????????????????????????????????????????????????????????????????????????0 ?? / 0 ????????0 ???????0 ????????????",
+                        "panelCount":  1,
+                        "buttonCount":  11,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-dashboard=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-home-overview=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-home-operations=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-runtime-modules",
+                        "route":  "/systems/971/modules",
+                        "finalHash":  "#/systems/971/modules",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-system-runtime-modules.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  1450,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin?R43 Operations 0702130417_7dea05?R43 Request 0702130417_7dea05?8 ? / MODULE_v1782968667060??R43 OPERATIONS 0702130417",
+                        "panelCount":  2,
+                        "buttonCount":  27,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  ".runtime-shell",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".runtime-module-sidebar",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".runtime-main",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-work",
+                        "route":  "/systems/971/work",
+                        "finalHash":  "#/systems/971/work",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-system-work.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  281,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin??????????????????????????????????????????????????????????????????????????0???????0???????0???????0???????????????????",
+                        "panelCount":  7,
+                        "buttonCount":  14,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-work-page=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".work-tabs",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-todos",
+                        "route":  "/systems/971/todos",
+                        "finalHash":  "#/systems/971/todos",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-system-todos.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  290,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin???????????????????????????????????????? (0)????? (0)????? (0)????? (0)?????? (0)????? (0)????????????????????? 1 ????",
+                        "panelCount":  4,
+                        "buttonCount":  20,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-todo-workbench=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-messages",
+                        "route":  "/systems/971/messages",
+                        "finalHash":  "#/systems/971/messages",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-system-messages.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  226,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05??????????????????????????admin?????????????????????????????????????????????????????????????????????????????????????????????????? 1 ???? 20 ??? 0 ???",
+                        "panelCount":  3,
+                        "buttonCount":  20,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-message-center=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "admin",
+                        "key":  "system-admin",
+                        "route":  "/systems/971/admin",
+                        "finalHash":  "#/systems/971/admin",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-system-admin.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  164,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05??????????????????????????????admin????????????????????????????????????????????????????????????????????AI Agent????????????????...",
+                        "panelCount":  1,
+                        "buttonCount":  23,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  ".admin-layout",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".admin-sidebar",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".admin-content",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  true,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-platform-workbench",
+                        "route":  "/platform",
+                        "finalHash":  "#/platform",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-normal-platform-workbench.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  202,
+                        "textPreview":  "unexamine???????????AI??????????r43_member_0702130417_7dea05???????????????????????????????????????????????????R43 Visual Audit 0702130417_7dea05????? / 1313??????R43 Owned 0702130417_7dea05????? /?????",
+                        "panelCount":  1,
+                        "buttonCount":  8,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-platform-workbench=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-system-switch-panel=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-platform-admin-denied",
+                        "route":  "/platform/admin",
+                        "finalHash":  "#/platform/admin",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-normal-platform-admin-denied.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  62,
+                        "textPreview":  "unexamine?????????????????????????????????????????????????????",
+                        "panelCount":  0,
+                        "buttonCount":  1,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  ".auth-card",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-dashboard",
+                        "route":  "/systems/971/dashboard",
+                        "finalHash":  "#/systems/971/dashboard",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-normal-system-dashboard.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  324,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05??????????????????????????????????????????????????????????????????????????????0 ?? / 0 ????????0 ???",
+                        "panelCount":  1,
+                        "buttonCount":  10,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-dashboard=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-home-overview=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-home-operations=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-runtime-modules",
+                        "route":  "/systems/971/modules",
+                        "finalHash":  "#/systems/971/modules",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-normal-system-runtime-modules.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  1588,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05?R43 Operations 0702130417_7dea05?R43 Request 0702130417_7dea05?8 ? / MODULE_v1782968667060??R43 OPE",
+                        "panelCount":  2,
+                        "buttonCount":  26,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  ".runtime-shell",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".runtime-module-sidebar",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".runtime-main",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-work",
+                        "route":  "/systems/971/work",
+                        "finalHash":  "#/systems/971/work",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-normal-system-work.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  299,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05??????????????????????????????????????????????????????????????????????????0???????0???????0???????0?",
+                        "panelCount":  7,
+                        "buttonCount":  13,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-work-page=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  ".work-tabs",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-todos",
+                        "route":  "/systems/971/todos",
+                        "finalHash":  "#/systems/971/todos",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-normal-system-todos.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  308,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05???????????????????????????????????????? (0)????? (0)????? (0)????? (0)?????? (0)????? (0)??????????",
+                        "panelCount":  4,
+                        "buttonCount":  19,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-todo-workbench=\"true\"]",
+                                                            "visible":  true
+                                                        },
+                                                        {
+                                                            "selector":  "[data-system-todo-layout=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-messages",
+                        "route":  "/systems/971/messages",
+                        "finalHash":  "#/systems/971/messages",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-normal-system-messages.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  244,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05?????R43 Operations 0702130417_7dea05?????????????????????r43_member_0702130417_7dea05?????????????????????????????????????????????????????????????????????????????????????????????????? 1",
+                        "panelCount":  3,
+                        "buttonCount":  19,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-message-center=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    },
+                    {
+                        "role":  "normal",
+                        "key":  "normal-system-admin-denied",
+                        "route":  "/systems/971/admin",
+                        "finalHash":  "#/systems/971/admin",
+                        "viewport":  "mobile",
+                        "viewportSize":  {
+                                             "width":  390,
+                                             "height":  720
+                                         },
+                        "screenshot":  "mobile-normal-system-admin-denied.png",
+                        "scrollWidth":  390,
+                        "overflowX":  0,
+                        "textLength":  85,
+                        "textPreview":  "R43 Visual Audit 0702130417_7dea05???????????????????????????????????????????????????",
+                        "panelCount":  0,
+                        "buttonCount":  1,
+                        "clipped":  [
+
+                                    ],
+                        "controlOverflow":  [
+
+                                            ],
+                        "duplicateDetailActions":  [
+
+                                                   ],
+                        "expectedSelectorResults":  [
+                                                        {
+                                                            "selector":  "[data-system-admin-denied=\"true\"]",
+                                                            "visible":  true
+                                                        }
+                                                    ],
+                        "forbiddenSelectorResults":  [
+
+                                                     ],
+                        "missingTexts":  [
+
+                                         ],
+                        "forbiddenTextHits":  [
+
+                                              ],
+                        "placeholderMatches":  [
+
+                                               ],
+                        "genericToastMatches":  [
+
+                                                ],
+                        "demoMatches":  [
+
+                                        ],
+                        "mojibakeCount":  0,
+                        "mojibakeSamples":  [
+
+                                            ],
+                        "adminShellVisible":  false,
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                         ],
+                        "blockers":  [
+
+                                     ],
+                        "warnings":  [
+
+                                     ]
+                    }
+                ],
+    "failures":  [
+
+                 ],
+    "warnings":  [
+
+                 ],
+    "forbiddenCreateStatus":  403,
+    "forbiddenAdminStatus":  403,
+    "cleanup":  [
+                    "971:DELETE",
+                    "972:DELETE"
+                ]
+}

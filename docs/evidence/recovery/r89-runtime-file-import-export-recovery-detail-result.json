@@ -1,0 +1,93 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "R89_RUNTIME_FILE_IMPORT_EXPORT_RECOVERY_DETAIL_ENGINEERING_EVIDENCE_ONLY",
+    "task":  "REC-P0-089",
+    "generatedAt":  "2026-07-07T21:48:20.2443879+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "accepted":  true,
+    "checks":  [
+                   {
+                       "area":  "state",
+                       "name":  "R89 is active and R88 remains accepted engineering evidence",
+                       "passed":  true,
+                       "detail":  "currentBatch=RECOVERY-R89; user_script_passed=False"
+                   },
+                   {
+                       "area":  "api-import",
+                       "name":  "runtime import precheck and confirm return task recovery detail",
+                       "passed":  true,
+                       "detail":  "precheck=task_import_precheck_6f42d73c; task=task_import_confirm_1d904b1e; rollback=True"
+                   },
+                   {
+                       "area":  "api-import-failure",
+                       "name":  "failed import precheck returns error file and failed task",
+                       "passed":  true,
+                       "detail":  "badPrecheck=task_import_precheck_765f8107; errorFile=file_precheck_error_765f8107; download=200"
+                   },
+                   {
+                       "area":  "api-export",
+                       "name":  "all selected and template exports return downloadable result files",
+                       "passed":  true,
+                       "detail":  "all=file_export_result_99d07869; selected=file_export_result_a501f4c1; template=file_export_result_43f33386"
+                   },
+                   {
+                       "area":  "permission",
+                       "name":  "anonymous import and export requests are denied",
+                       "passed":  true,
+                       "detail":  "export=/api/v1/systems/1118/runtime/modules/453/exports; import=/api/v1/systems/1118/runtime/modules/453/imports/precheck"
+                   },
+                   {
+                       "area":  "runtime-search",
+                       "name":  "imported row is searchable and hidden field stays absent",
+                       "passed":  true,
+                       "detail":  "total=15; hiddenSecretNote=0"
+                   },
+                   {
+                       "area":  "frontend-source",
+                       "name":  "R89 source markers exist for recovery detail and file actions",
+                       "passed":  true,
+                       "detail":  "missing="
+                   },
+                   {
+                       "area":  "deployed-asset",
+                       "name":  "deployed frontend asset contains R89 runtime recovery markers",
+                       "passed":  true,
+                       "detail":  "assetLength=241094; missing="
+                   },
+                   {
+                       "area":  "browser-export",
+                       "name":  "browser export panel exposes empty selected state and result file actions",
+                       "passed":  true,
+                       "detail":  "results=[{\"kind\":\"export-empty-desktop\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432087477\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":false,\"exportPanel\":true,\"recoveryDetail\":true,\"recoveryState\":\"empty\",\"taskId\":\"\",\"taskStatus\":\"\",\"resultFileId\":\"\",\"errorFileId\":\"\",\"rollbackSupported\":\"\",\"rollbackReason\":\"\",\"selectedExportState\":\"empty\",\"selectedEmptyReason\":true,\"resultDownloads\":0,\"errorDownloads\":0,\"resultPreviews\":0,\"errorPreviews\":0,\"fileActions\":0,\"precheckId\":\"\",\"precheckPassed\":\"\",\"precheckIssues\":\"\",\"textSampleLength\":570},{\"kind\":\"export-result-desktop\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432087477\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":false,\"exportPanel\":true,\"recoveryDetail\":true,\"recoveryState\":\"ready\",\"taskId\":\"task_runtime_record_export_5b73bab0\",\"taskStatus\":\"SUCCESS\",\"resultFileId\":\"file_export_result_5b73bab0\",\"errorFileId\":\"file_export_error_5b73bab0\",\"rollbackSupported\":\"false\",\"rollbackReason\":\"unsupported\",\"selectedExportState\":\"empty\",\"selectedEmptyReason\":true,\"resultDownloads\":4,\"errorDownloads\":4,\"resultPreviews\":4,\"errorPreviews\":4,\"fileActions\":2,\"precheckId\":\"\",\"precheckPassed\":\"\",\"precheckIssues\":\"\",\"textSampleLength\":1945},{\"kind\":\"import-precheck-desktop\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432093258\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":true,\"exportPanel\":false,\"recoveryDetail\":true,\"recoveryState\":\"ready\",\"taskId\":\"task_import_precheck_f1e2aa32\",\"taskStatus\":\"SUCCESS\",\"resultFileId\":\"file_precheck_result_f1e2aa32\",\"errorFileId\":\"file_precheck_error_f1e2aa32\",\"rollbackSupported\":\"false\",\"rollbackReason\":\"unsupported\",\"selectedExportState\":\"\",\"selectedEmptyReason\":false,\"resultDownloads\":4,\"errorDownloads\":4,\"resultPreviews\":4,\"errorPreviews\":4,\"fileActions\":2,\"precheckId\":\"task_import_precheck_f1e2aa32\",\"precheckPassed\":\"true\",\"precheckIssues\":\"0\",\"textSampleLength\":2058},{\"kind\":\"import-confirm-desktop\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432093258\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":true,\"exportPanel\":false,\"recoveryDetail\":true,\"recoveryState\":\"ready\",\"taskId\":\"task_import_confirm_3a19c77f\",\"taskStatus\":\"SUCCESS\",\"resultFileId\":\"file_import_result_3a19c77f\",\"errorFileId\":\"file_import_error_3a19c77f\",\"rollbackSupported\":\"true\",\"rollbackReason\":\"\",\"selectedExportState\":\"\",\"selectedEmptyReason\":false,\"resultDownloads\":4,\"errorDownloads\":4,\"resultPreviews\":4,\"errorPreviews\":4,\"fileActions\":2,\"precheckId\":\"task_import_precheck_f1e2aa32\",\"precheckPassed\":\"true\",\"precheckIssues\":\"0\",\"textSampleLength\":2062},{\"kind\":\"export-empty-mobile\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432097741\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":false,\"exportPanel\":true,\"recoveryDetail\":true,\"recoveryState\":\"ready\",\"taskId\":\"task_runtime_record_export_5b73bab0\",\"taskStatus\":\"SUCCESS\",\"resultFileId\":\"file_export_result_5b73bab0\",\"errorFileId\":\"file_export_error_5b73bab0\",\"rollbackSupported\":\"false\",\"rollbackReason\":\"unsupported\",\"selectedExportState\":\"empty\",\"selectedEmptyReason\":true,\"resultDownloads\":4,\"errorDownloads\":4,\"resultPreviews\":4,\"errorPreviews\":4,\"fileActions\":2,\"precheckId\":\"\",\"precheckPassed\":\"\",\"precheckIssues\":\"\",\"textSampleLength\":1959}]"
+                   },
+                   {
+                       "area":  "browser-import",
+                       "name":  "browser import panel exposes precheck confirm and recovery detail",
+                       "passed":  true,
+                       "detail":  "results=[{\"kind\":\"export-empty-desktop\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432087477\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":false,\"exportPanel\":true,\"recoveryDetail\":true,\"recoveryState\":\"empty\",\"taskId\":\"\",\"taskStatus\":\"\",\"resultFileId\":\"\",\"errorFileId\":\"\",\"rollbackSupported\":\"\",\"rollbackReason\":\"\",\"selectedExportState\":\"empty\",\"selectedEmptyReason\":true,\"resultDownloads\":0,\"errorDownloads\":0,\"resultPreviews\":0,\"errorPreviews\":0,\"fileActions\":0,\"precheckId\":\"\",\"precheckPassed\":\"\",\"precheckIssues\":\"\",\"textSampleLength\":570},{\"kind\":\"export-result-desktop\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432087477\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":false,\"exportPanel\":true,\"recoveryDetail\":true,\"recoveryState\":\"ready\",\"taskId\":\"task_runtime_record_export_5b73bab0\",\"taskStatus\":\"SUCCESS\",\"resultFileId\":\"file_export_result_5b73bab0\",\"errorFileId\":\"file_export_error_5b73bab0\",\"rollbackSupported\":\"false\",\"rollbackReason\":\"unsupported\",\"selectedExportState\":\"empty\",\"selectedEmptyReason\":true,\"resultDownloads\":4,\"errorDownloads\":4,\"resultPreviews\":4,\"errorPreviews\":4,\"fileActions\":2,\"precheckId\":\"\",\"precheckPassed\":\"\",\"precheckIssues\":\"\",\"textSampleLength\":1945},{\"kind\":\"import-precheck-desktop\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432093258\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":true,\"exportPanel\":false,\"recoveryDetail\":true,\"recoveryState\":\"ready\",\"taskId\":\"task_import_precheck_f1e2aa32\",\"taskStatus\":\"SUCCESS\",\"resultFileId\":\"file_precheck_result_f1e2aa32\",\"errorFileId\":\"file_precheck_error_f1e2aa32\",\"rollbackSupported\":\"false\",\"rollbackReason\":\"unsupported\",\"selectedExportState\":\"\",\"selectedEmptyReason\":false,\"resultDownloads\":4,\"errorDownloads\":4,\"resultPreviews\":4,\"errorPreviews\":4,\"fileActions\":2,\"precheckId\":\"task_import_precheck_f1e2aa32\",\"precheckPassed\":\"true\",\"precheckIssues\":\"0\",\"textSampleLength\":2058},{\"kind\":\"import-confirm-desktop\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432093258\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":true,\"exportPanel\":false,\"recoveryDetail\":true,\"recoveryState\":\"ready\",\"taskId\":\"task_import_confirm_3a19c77f\",\"taskStatus\":\"SUCCESS\",\"resultFileId\":\"file_import_result_3a19c77f\",\"errorFileId\":\"file_import_error_3a19c77f\",\"rollbackSupported\":\"true\",\"rollbackReason\":\"\",\"selectedExportState\":\"\",\"selectedEmptyReason\":false,\"resultDownloads\":4,\"errorDownloads\":4,\"resultPreviews\":4,\"errorPreviews\":4,\"fileActions\":2,\"precheckId\":\"task_import_precheck_f1e2aa32\",\"precheckPassed\":\"true\",\"precheckIssues\":\"0\",\"textSampleLength\":2062},{\"kind\":\"export-empty-mobile\",\"hash\":\"#/systems/1118/modules?moduleId=453\\u0026r89=1783432097741\",\"overflowX\":0,\"blockerText\":false,\"panel\":true,\"importPanel\":false,\"exportPanel\":true,\"recoveryDetail\":true,\"recoveryState\":\"ready\",\"taskId\":\"task_runtime_record_export_5b73bab0\",\"taskStatus\":\"SUCCESS\",\"resultFileId\":\"file_export_result_5b73bab0\",\"errorFileId\":\"file_export_error_5b73bab0\",\"rollbackSupported\":\"false\",\"rollbackReason\":\"unsupported\",\"selectedExportState\":\"empty\",\"selectedEmptyReason\":true,\"resultDownloads\":4,\"errorDownloads\":4,\"resultPreviews\":4,\"errorPreviews\":4,\"fileActions\":2,\"precheckId\":\"\",\"precheckPassed\":\"\",\"precheckIssues\":\"\",\"textSampleLength\":1959}]"
+                   },
+                   {
+                       "area":  "browser-containment",
+                       "name":  "browser R89 panels have no horizontal overflow or blocker text",
+                       "passed":  true,
+                       "detail":  "overflow=0; blockers=0"
+                   }
+               ],
+    "data":  {
+                 "systemId":  "1118",
+                 "tenantId":  "1150",
+                 "moduleId":  "453",
+                 "importPrecheckId":  "task_import_precheck_6f42d73c",
+                 "importTaskId":  "task_import_confirm_1d904b1e",
+                 "failedPrecheckId":  "task_import_precheck_765f8107",
+                 "failedErrorFileId":  "file_precheck_error_765f8107",
+                 "exportAllTaskId":  "task_runtime_record_export_99d07869",
+                 "exportAllResultFileId":  "file_export_result_99d07869",
+                 "exportSelectedTaskId":  "task_runtime_record_export_a501f4c1",
+                 "exportTemplateTaskId":  "task_runtime_record_export_43f33386",
+                 "browserAudit":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r89-runtime-file-import-export-recovery-detail\\runtime-file-import-export-recovery-browser-audit.json",
+                 "browserOverflowCount":  0,
+                 "browserBlockerCount":  0
+             }
+}

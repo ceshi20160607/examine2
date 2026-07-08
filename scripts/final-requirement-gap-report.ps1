@@ -42,7 +42,7 @@ $batchMap = [ordered]@{
     'FRC-2 No-Code Configuration Depth' = @('REQ-4.3', 'REQ-5.3', 'REQ-5.3.1', 'REQ-5.4', 'REQ-5.5', 'REQ-5.6', 'REQ-5.7', 'REQ-5.9', 'REQ-5.10', 'REQ-6.7', 'REQ-6.10')
     'FRC-3 Runtime User Depth' = @('REQ-4.4', 'REQ-5.11', 'REQ-5.13', 'REQ-5.14', 'REQ-5.16', 'REQ-5.20', 'REQ-6.4', 'REQ-6.5', 'REQ-6.6', 'REQ-6.11')
     'FRC-4 Workflow, Integration, AI Depth' = @('REQ-4.5', 'REQ-5.12', 'REQ-5.15', 'REQ-5.19')
-    'FRC-5 Operations, Robustness, Delivery' = @('REQ-4.6', 'REQ-7', 'REQ-8', 'REQ-10', 'REQ-14.1-14.37', 'REQ-A')
+    'FRC-5 Operations, Robustness, Delivery' = @('REQ-4.6', 'REQ-5.17', 'REQ-5.18', 'REQ-7', 'REQ-8', 'REQ-10', 'REQ-14.1-14.37', 'REQ-A')
     'FRC-6 Human Acceptance Pass' = @('REQ-2.1', 'REQ-4.1', 'REQ-4.2', 'REQ-6.2')
 }
 

@@ -1,0 +1,14 @@
+﻿{
+    "status":  "PASS",
+    "generatedAt":  "2026-07-02T13:45:37.9298149+08:00",
+    "source":  "R69 aggregates R67 final role-journey browser evidence and R68 page visual designer browser evidence.",
+    "screenshotEvidenceBoundary":  "Screenshots prove visible hierarchy, overflow, clipping, and visible state only. API/readback assertions, permission positives/negatives, requirement matrix, residual gap decisions, and explicit user signoff prove behavior and acceptance.",
+    "r67BrowserAuditPath":  "docs/evidence/recovery/screenshots/r67-final-role-journey-requirement-acceptance-candidate/final-role-journey-browser-audit.json",
+    "r68BrowserAuditPath":  "docs/evidence/recovery/screenshots/r68-page-visual-designer-fresh-evidence/page-visual-designer-browser-audit.json",
+    "r67RoleShellResults":  32,
+    "r68PageDesignerBrowserResults":  8,
+    "r68PageRuntimeBrowserResults":  10,
+    "noFreshEvidenceRowsAfterR68":  [
+
+                                    ]
+}

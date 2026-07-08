@@ -1,0 +1,125 @@
+{
+  "results": [
+    {
+      "kind": "admin-role-desktop",
+      "hash": "#/systems/1138/admin",
+      "overflowX": 0,
+      "blockerText": false,
+      "workbench": true,
+      "roleValue": "1657",
+      "moduleValue": "460",
+      "batchButton": true,
+      "impactPanel": true,
+      "decisionCount": 4,
+      "deniedCreate": true,
+      "deniedDelete": true,
+      "allowedEdit": true,
+      "allowedSubmit": true,
+      "affectedMembers": "1",
+      "fieldMaskSummary": "460.secretNote:HIDDEN",
+      "dataScopeSummary": "{\"type\":\"SELF\",\"moduleId\":\"460\",\"expression\":\"ownerMemberId == currentMember\"}",
+      "auditCount": 5,
+      "audits": [
+        {
+          "actionCode": "record.submitApproval",
+          "allowed": "true",
+          "id": "aud_32"
+        },
+        {
+          "actionCode": "record.delete",
+          "allowed": "false",
+          "id": "aud_31"
+        },
+        {
+          "actionCode": "record.edit",
+          "allowed": "true",
+          "id": "aud_30"
+        },
+        {
+          "actionCode": "record.create",
+          "allowed": "false",
+          "id": "aud_29"
+        },
+        {
+          "actionCode": "record.submitApproval",
+          "allowed": "true",
+          "id": "aud_28"
+        }
+      ],
+      "deniedCopy": true,
+      "textLength": 1962
+    },
+    {
+      "kind": "admin-role-mobile",
+      "hash": "#/systems/1138/admin",
+      "overflowX": 0,
+      "blockerText": false,
+      "workbench": true,
+      "roleValue": "1657",
+      "moduleValue": "460",
+      "batchButton": true,
+      "impactPanel": true,
+      "decisionCount": 0,
+      "deniedCreate": false,
+      "deniedDelete": false,
+      "allowedEdit": false,
+      "allowedSubmit": false,
+      "affectedMembers": "",
+      "fieldMaskSummary": "",
+      "dataScopeSummary": "",
+      "auditCount": 5,
+      "audits": [
+        {
+          "actionCode": "record.submitApproval",
+          "allowed": "true",
+          "id": "aud_32"
+        },
+        {
+          "actionCode": "record.delete",
+          "allowed": "false",
+          "id": "aud_31"
+        },
+        {
+          "actionCode": "record.edit",
+          "allowed": "true",
+          "id": "aud_30"
+        },
+        {
+          "actionCode": "record.create",
+          "allowed": "false",
+          "id": "aud_29"
+        },
+        {
+          "actionCode": "record.submitApproval",
+          "allowed": "true",
+          "id": "aud_28"
+        }
+      ],
+      "deniedCopy": true,
+      "textLength": 1594
+    },
+    {
+      "kind": "normal-admin-denied",
+      "hash": "#/systems/1138/admin",
+      "overflowX": 0,
+      "blockerText": false,
+      "workbench": false,
+      "roleValue": "",
+      "moduleValue": "",
+      "batchButton": false,
+      "impactPanel": false,
+      "decisionCount": 0,
+      "deniedCreate": false,
+      "deniedDelete": false,
+      "allowedEdit": false,
+      "allowedSubmit": false,
+      "affectedMembers": "",
+      "fieldMaskSummary": "",
+      "dataScopeSummary": "",
+      "auditCount": 0,
+      "audits": [],
+      "deniedCopy": true,
+      "textLength": 87
+    }
+  ]
+}

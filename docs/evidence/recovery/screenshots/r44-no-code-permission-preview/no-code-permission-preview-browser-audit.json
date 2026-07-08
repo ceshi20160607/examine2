@@ -1,0 +1,101 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972620577#/systems/1003/admin/role-management",
+      "selectors": [
+        {
+          "selector": "[data-role-permission-workbench=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-permission-preview-panel=\"true\"]",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R44 NoCode Permission 0702140959_2e881b\n仪表盘\nR44 Visible Group 0702140959_2e881b\nR44 Hidden Group 0702140959_2e881b\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR44 NoCode Permission 0702140959_2e881b 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n角色管理\n新建角色\n\n组织、员工和角色会写入当前系统，并受当前系统/租户上下文约束。\n\n角色\n类型\n状态\n重置\n角色管理\n序号\t角色\t类型\t内置\t状态\t说明\n1\t系统超级管理员 SYSTEM_SUPER_ADMIN\tSYSTEM_SUPER_ADMIN\t是\t启用\t创建系统时自动生成，拥有系统内全部权限\n2\tR44 Hidden Role 0702140959_2e881b R44_HIDDEN_ROLE_0702140959_2e881b\tCUSTOM\t否\t启用\tRecovery R44 hidden navigation role\n3\tR44 Runtime Member 0702140959_2e881b R44_RUNTIME_MEMBER_0702140959_2e881b\tCUSTOM\t否\t启用\tRecovery R44 runtime role\n第 1 页，每页 20 条，共 3 条\n上一页\n下一页\n角色权限配置\n动作、字段、数据范围写入真实权限接口\n角色\n系统超级管理员 / SYSTEM_SUPER_ADMIN\nR44 Hidd",
+      "role": "admin",
+      "key": "role-permission",
+      "viewport": "desktop",
+      "blockers": []
+    },
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972626314#/systems/1003/admin/role-management",
+      "selectors": [
+        {
+          "selector": "[data-role-permission-workbench=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-permission-preview-panel=\"true\"]",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R44 NoCode Permission 0702140959_2e881b\n仪表盘\nR44 Visible Group 0702140959_2e881b\nR44 Hidden Group 0702140959_2e881b\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR44 NoCode Permission 0702140959_2e881b 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n角色管理\n新建角色\n\n组织、员工和角色会写入当前系统，并受当前系统/租户上下文约束。\n\n角色\n类型\n状态\n重置\n角色管理\n序号\t角色\t类型\t内置\t状态\t说明\n1\t系统超级管理员 SYSTEM_SUPER_ADMIN\tSYSTEM_SUPER_ADMIN\t是\t启用\t创建系统时自动生成，拥有系统内全部权限\n2\tR44 Hidden Role 0702140959_2e881b R44_HIDDEN_ROLE_0702140959_2e881b\tCUSTOM\t否\t启用\tRecovery R44 hidden navigation role\n3\tR44 Runtime Member 0702140959_2e881b R44_RUNTIME_MEMBER_0702140959_2e881b\tCUSTOM\t否\t启用\tRecovery R44 runtime role\n第 1 页，每页 20 条，共 3 条\n上一页\n下一页\n角色权限配置\n动作、字段、数据范围写入真实权限接口\n角色\n系统超级管理员 / SYSTEM_SUPER_ADMIN\nR44 Hidd",
+      "role": "admin",
+      "key": "role-permission",
+      "viewport": "mobile",
+      "blockers": []
+    },
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972632194#/systems/1003/modules",
+      "selectors": [
+        {
+          "selector": ".runtime-shell",
+          "visible": true
+        },
+        {
+          "selector": ".runtime-module-sidebar",
+          "visible": true
+        },
+        {
+          "selector": ".runtime-main",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R44 NoCode Permission 0702140959_2e881b\n仪表盘\nR44 Visible Group 0702140959_2e881b\n工作\n待办\n命令\n助手\n消息\n系统切换\nr44_member_0702140959_2e881b\nR44 Visible Group 0702140959_2e881b\nR44 Visible Module 0702140959_2e881b\n0 条 / MODULE_v1782972611581\n\nR44 VISIBLE GROUP 0702140959_2E881B\n\nR44 Visible Module 0702140959_2e881b\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R44 Visible Module 0702140959_2e881b / 默认\nR44 Runtime Scene 0702140959_2e881b / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1003_1035_1361\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n暂无业务数据\n\n当前筛选条件下暂无记录。\n\nRUNTIME\n暂无业务数据\n当前筛选条件下暂无记录。",
+      "role": "normal",
+      "key": "runtime-permission",
+      "viewport": "desktop",
+      "blockers": []
+    },
+    {
+      "ok": true,
+      "url": "http://127.0.0.1:18131/?audit=1782972634210#/systems/1003/modules",
+      "selectors": [
+        {
+          "selector": ".runtime-shell",
+          "visible": true
+        },
+        {
+          "selector": ".runtime-module-sidebar",
+          "visible": true
+        },
+        {
+          "selector": ".runtime-main",
+          "visible": true
+        }
+      ],
+      "requiredTextsMissing": [],
+      "forbiddenTexts": [],
+      "overflowX": 0,
+      "textSample": "R44 NoCode Permission 0702140959_2e881b\n仪表盘\nR44 Visible Group 0702140959_2e881b\n工作\n待办\n命令\n助手\n消息\n系统切换\nr44_member_0702140959_2e881b\nR44 Visible Group 0702140959_2e881b\nR44 Visible Module 0702140959_2e881b\n0 条 / MODULE_v1782972611581\n\nR44 VISIBLE GROUP 0702140959_2E881B\n\nR44 Visible Module 0702140959_2e881b\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R44 Visible Module 0702140959_2e881b / 默认\nR44 Runtime Scene 0702140959_2e881b / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1003_1035_1361\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n暂无业务数据\n\n当前筛选条件下暂无记录。\n\nRUNTIME\n暂无业务数据\n当前筛选条件下暂无记录。",
+      "role": "normal",
+      "key": "runtime-permission",
+      "viewport": "mobile",
+      "blockers": []
+    }
+  ]
+}

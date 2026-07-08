@@ -1,0 +1,35 @@
+{
+  "activeAsset": "/assets/index-B9EQzV1l.js",
+  "buttons": [
+    {
+      "disabled": false,
+      "text": "关闭",
+      "title": ""
+    },
+    {
+      "disabled": false,
+      "text": "生成建议",
+      "title": ""
+    },
+    {
+      "disabled": false,
+      "text": "后台变更草稿",
+      "title": ""
+    }
+  ],
+  "drawerPresent": true,
+  "drawerText": "智能助手车关闭系统车租户278角色SYSTEM_SUPER_ADMIN权限快照生成后显示需求生成建议后台变更草稿",
+  "overflowX": 0,
+  "textareas": [
+    {
+      "label": "助手需求",
+      "placeholder": "描述你希望助手分析、草拟或预览的内容",
+      "value": "帮我基于当前系统上下文生成处理建议、写入预览和今日日报草稿。"
+    }
+  ],
+  "url": "http://127.0.0.1:18131/#/systems/258/dashboard",
+  "viewport": {
+    "height": 720,
+    "width": 1280
+  }
+}

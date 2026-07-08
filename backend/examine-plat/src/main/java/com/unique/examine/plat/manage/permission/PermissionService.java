@@ -29,6 +29,10 @@ import com.unique.examine.plat.manage.common.SystemMemberContextResolver;
 import com.unique.examine.plat.manage.common.SystemMemberContextResolver.SystemMemberContext;
 import com.unique.examine.plat.manage.permission.PermissionModels.EffectivePermissionSnapshot;
 import com.unique.examine.plat.manage.permission.PermissionModels.PermissionDecisionVO;
+import com.unique.examine.plat.manage.permission.PermissionModels.PermissionActionDecisionVO;
+import com.unique.examine.plat.manage.permission.PermissionModels.PermissionBatchPreviewRequest;
+import com.unique.examine.plat.manage.permission.PermissionModels.PermissionBatchPreviewVO;
+import com.unique.examine.plat.manage.permission.PermissionModels.PermissionPreviewAuditVO;
 import com.unique.examine.plat.manage.permission.PermissionModels.PermissionPreviewRequest;
 import com.unique.examine.plat.manage.permission.PermissionModels.RolePermissionSaveRequest;
 import com.unique.examine.plat.manage.permission.PermissionModels.RolePermissionVO;
@@ -121,7 +125,7 @@ public class PermissionService {
      * @return role permissions
      */
     public RolePermissionVO getRolePermissions(String systemId, String roleId) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         PlatRole role = requireSystemRole(context, roleId);
         Optional<PlatRolePermission> payloadRow = latestRolePayload(role.getId());
         if (payloadRow.isEmpty()) {
@@ -147,7 +151,7 @@ public class PermissionService {
      */
     @Transactional(rollbackFor = Exception.class)
     public RolePermissionVO saveRolePermissions(String systemId, String roleId, RolePermissionSaveRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         PlatRole role = requireSystemRole(context, roleId);
         RolePermissionSaveRequest resolved = Objects.isNull(request)
                 ? new RolePermissionSaveRequest(Map.of(), Map.of(), Map.of(), Map.of(), List.of(), List.of())
@@ -208,28 +212,144 @@ public class PermissionService {
      */
     @Transactional(rollbackFor = Exception.class)
     public PermissionDecisionVO preview(String systemId, PermissionPreviewRequest request) {
-        SystemMemberContext context = contextResolver.resolve(systemId);
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
         List<PlatRole> roles = previewRoles(context, request);
         PermissionAggregate aggregate = aggregate(context, roles);
         String actionCode = request == null ? null : request.actionCode();
         PermissionDecisionVO decision = buildDecision(aggregate, actionCode);
-        PlatPermissionPreviewLog log = new PlatPermissionPreviewLog();
-        log.setSystemId(context.systemId());
-        log.setTenantId(context.tenantId());
-        log.setSystemMemberId(previewMemberId(context, request));
-        log.setRoleIds(toJson(roleIds(roles)));
-        log.setModuleId(parseOptionalId(request == null ? null : request.moduleId()));
-        log.setRecordId(parseOptionalId(request == null ? null : request.recordId()));
-        log.setActionCode(actionCode);
-        log.setDecisionPayload(toJson(decision));
-        log.setTraceId(RequestContext.current().traceId());
-        log.setCreatedAt(LocalDateTime.now());
-        permissionPreviewLogBaseService.saveEntity(log);
+        PlatPermissionPreviewLog log = savePreviewLog(context, previewMemberId(context, request), roles,
+                request == null ? null : request.moduleId(), request == null ? null : request.recordId(),
+                actionCode, decision);
         return new PermissionDecisionVO(decision.allowed(), decision.disabledReason(), decision.missingPermissions(),
                 decision.dataScopeExpression(), decision.fieldMaskRules(), decision.explain(),
                 decision.permissionVersion(), decision.traceId(), "aud_" + log.getId());
     }
 
+    /**
+     * Batch-preview several runtime actions and return impact/audit readback for the role matrix.
+     *
+     * @param systemId system id
+     * @param request batch preview request
+     * @return impact preview
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public PermissionBatchPreviewVO batchPreview(String systemId, PermissionBatchPreviewRequest request) {
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
+        PermissionPreviewRequest roleRequest = new PermissionPreviewRequest(
+                request == null ? null : request.systemMemberId(),
+                request == null ? null : request.tenantId(),
+                request == null ? List.of() : request.roleIds(),
+                request == null ? null : request.moduleId(),
+                request == null ? null : request.recordId(),
+                null);
+        List<PlatRole> roles = previewRoles(context, roleRequest);
+        PermissionAggregate aggregate = aggregate(context, roles);
+        Long memberId = previewMemberId(context, roleRequest);
+        List<PermissionActionDecisionVO> decisions = new ArrayList<>();
+        for (String actionCode : resolvedActionCodes(request)) {
+            PermissionDecisionVO decision = buildDecision(aggregate, actionCode);
+            PlatPermissionPreviewLog log = savePreviewLog(context, memberId, roles,
+                    request == null ? null : request.moduleId(), request == null ? null : request.recordId(),
+                    actionCode, decision);
+            decisions.add(new PermissionActionDecisionVO(actionCode, decision.allowed(), decision.disabledReason(),
+                    decision.missingPermissions(), "aud_" + log.getId()));
+        }
+        String roleFilter = roles.isEmpty() ? null : String.valueOf(roles.get(0).getId());
+        return new PermissionBatchPreviewVO(aggregate.permissionVersion(), roleIds(roles),
+                request == null ? null : request.moduleId(), countAffectedMembers(context, roles), decisions,
+                maskedFields(aggregate.fieldPermissions()), aggregate.dataScope(), aggregate.explain(),
+                recentPreviewAudits(context, roleFilter, request == null ? null : request.moduleId(), 5),
+                RequestContext.current().traceId());
+    }
+
+    /**
+     * Read recent permission preview audit rows for the role matrix workbench.
+     *
+     * @param systemId system id
+     * @param roleId optional role id filter
+     * @param moduleId optional module id filter
+     * @param pageSize max rows
+     * @return recent audit rows
+     */
+    public List<PermissionPreviewAuditVO> previewLogs(String systemId, String roleId, String moduleId, Integer pageSize) {
+        SystemMemberContext context = contextResolver.requireSystemAdmin(systemId);
+        return recentPreviewAudits(context, roleId, moduleId, pageSize);
+    }
+
+    private PlatPermissionPreviewLog savePreviewLog(SystemMemberContext context, Long previewMemberId,
+                                                    List<PlatRole> roles, String moduleId, String recordId,
+                                                    String actionCode, PermissionDecisionVO decision) {
+        PlatPermissionPreviewLog log = new PlatPermissionPreviewLog();
+        log.setSystemId(context.systemId());
+        log.setTenantId(context.tenantId());
+        log.setSystemMemberId(previewMemberId);
+        log.setRoleIds(toJson(roleIds(roles)));
+        log.setModuleId(parseOptionalId(moduleId));
+        log.setRecordId(parseOptionalId(recordId));
+        log.setActionCode(actionCode);
+        log.setDecisionPayload(toJson(decision));
+        log.setTraceId(RequestContext.current().traceId());
+        log.setCreatedAt(LocalDateTime.now());
+        permissionPreviewLogBaseService.saveEntity(log);
+        return log;
+    }
+
+    private List<String> resolvedActionCodes(PermissionBatchPreviewRequest request) {
+        List<String> codes = request == null ? List.of() : safeStringList(request.actionCodes());
+        return codes.isEmpty()
+                ? List.of("record.create", "record.edit", "record.delete", "record.submitApproval")
+                : codes;
+    }
+
+    private int countAffectedMembers(SystemMemberContext context, List<PlatRole> roles) {
+        List<Long> roleIds = roles.stream().map(PlatRole::getId).filter(Objects::nonNull).distinct().toList();
+        if (roleIds.isEmpty()) {
+            return 0;
+        }
+        return (int) (roleMemberBaseService.list(new LambdaQueryWrapper<PlatRoleMember>()
+                        .eq(PlatRoleMember::getSystemId, context.systemId())
+                        .eq(PlatRoleMember::getTenantId, context.tenantId())
+                        .in(PlatRoleMember::getRoleId, roleIds))
+                .stream()
+                .map(row -> Objects.nonNull(row.getSystemMemberId())
+                        ? "m:" + row.getSystemMemberId()
+                        : "a:" + row.getAccountId())
+                .filter(StringUtils::hasText)
+                .distinct()
+                .count());
+    }
+
+    private List<PermissionPreviewAuditVO> recentPreviewAudits(SystemMemberContext context, String roleId,
+                                                               String moduleId, Integer pageSize) {
+        int size = Math.max(1, Math.min(20, Objects.requireNonNullElse(pageSize, 5)));
+        Long moduleLong = parseOptionalId(moduleId);
+        LambdaQueryWrapper<PlatPermissionPreviewLog> query = new LambdaQueryWrapper<PlatPermissionPreviewLog>()
+                .eq(PlatPermissionPreviewLog::getSystemId, context.systemId())
+                .eq(PlatPermissionPreviewLog::getTenantId, context.tenantId())
+                .orderByDesc(PlatPermissionPreviewLog::getId)
+                .last("LIMIT " + Math.max(size * 4, size));
+        if (Objects.nonNull(moduleLong)) {
+            query.eq(PlatPermissionPreviewLog::getModuleId, moduleLong);
+        }
+        return permissionPreviewLogBaseService.list(query).stream()
+                .filter(log -> !StringUtils.hasText(roleId) || logRoleIds(log).contains(roleId))
+                .limit(size)
+                .map(this::toPreviewAudit)
+                .toList();
+    }
+
+    private List<String> logRoleIds(PlatPermissionPreviewLog log) {
+        return readJson(log.getRoleIds(), STRING_LIST_TYPE, List.of());
+    }
+
+    private PermissionPreviewAuditVO toPreviewAudit(PlatPermissionPreviewLog log) {
+        Map<String, Object> payload = readJson(log.getDecisionPayload(), MAP_OBJECT_TYPE, Map.of());
+        boolean allowed = Boolean.TRUE.equals(payload.get("allowed"))
+                || "true".equalsIgnoreCase(String.valueOf(payload.get("allowed")));
+        return new PermissionPreviewAuditVO("aud_" + log.getId(), stringValue(log.getSystemMemberId()),
+                logRoleIds(log), stringValue(log.getModuleId()), log.getActionCode(), allowed,
+                stringValue(payload.get("disabledReason")), log.getTraceId(), log.getCreatedAt());
+    }
     private PermissionDecisionVO buildDecision(PermissionAggregate aggregate, String actionCode) {
         boolean hasAction = StringUtils.hasText(actionCode);
         boolean allowed = !hasAction || Boolean.TRUE.equals(aggregate.actionPermissions().get("*"))

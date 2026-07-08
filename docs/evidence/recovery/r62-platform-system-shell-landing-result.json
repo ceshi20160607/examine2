@@ -1,0 +1,86 @@
+{
+    "status":  "PASS",
+    "productStatus":  "PARTIAL_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-02T10:02:48.1631730+08:00",
+    "flowIds":  [
+                    "P1",
+                    "P2",
+                    "PA1",
+                    "S1",
+                    "S2",
+                    "B1",
+                    "J1",
+                    "J2",
+                    "J3",
+                    "J8",
+                    "J9",
+                    "J11"
+                ],
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "name":  "platform shell exposes required landing navigation",
+                       "passed":  true,
+                       "detail":  "P1/P2 platform workspace has dashboard, flow, apps, AI, todos, messages, and profile entry"
+                   },
+                   {
+                       "name":  "platform AI page is a real routed capability surface",
+                       "passed":  true,
+                       "detail":  "PA1 platform AI entry uses live shell state and health check instead of a dead placeholder"
+                   },
+                   {
+                       "name":  "platform AI keeps platform/system authority boundary explicit",
+                       "passed":  true,
+                       "detail":  "AI entry does not imply direct cross-system data bypass and config is platform-admin gated"
+                   },
+                   {
+                       "name":  "route registry includes visible platform and system shell entries",
+                       "passed":  true,
+                       "detail":  "route registry no longer hides core landing-shell entries from framework audits"
+                   },
+                   {
+                       "name":  "platform admin route remains guarded",
+                       "passed":  true,
+                       "detail":  "PA1 platform admin entry is visible only through role-aware shell and direct route guard"
+                   },
+                   {
+                       "name":  "business shells require initialized account state",
+                       "passed":  true,
+                       "detail":  "non-auth routes cannot render platform/system shells with only a stale token and empty account state"
+                   },
+                   {
+                       "name":  "system shell keeps runtime/admin separation and switch context",
+                       "passed":  true,
+                       "detail":  "S1/S2 system route guard, switch context, tenant switcher, and platform return remain explicit"
+                   },
+                   {
+                       "name":  "system shell exposes required role landing navigation",
+                       "passed":  true,
+                       "detail":  "system member/admin shells expose dashboard, work, todos, messages, switch, profile, and guarded admin"
+                   },
+                   {
+                       "name":  "npm typecheck",
+                       "passed":  true,
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "name":  "npm build",
+                       "passed":  true,
+                       "detail":  "exitCode=0"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "npm typecheck",
+                             "exitCode":  0,
+                             "stdoutTail":  "\n\u003e unexamine-frontend@0.0.1 typecheck\n\u003e tsc --noEmit\n\n",
+                             "stderrTail":  ""
+                         },
+                         {
+                             "name":  "npm build",
+                             "exitCode":  0,
+                             "stdoutTail":  "\n\u003e unexamine-frontend@0.0.1 build\n\u003e tsc --noEmit \u0026\u0026 vite build\n\n\u001b[36mvite v8.0.16 \u001b[32mbuilding client environment for production...\u001b[36m\u001b[39m\n\u001b[2K\rtransforming...✓ 26 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.50 kB │ gzip:  0.32 kB\ndist/assets/index-BduYNYz-.css   34.58 kB │ gzip:  6.97 kB\ndist/assets/index-CLQXbZ2s.js   246.06 kB │ gzip: 66.48 kB\n\n\u001b[32m✓ built in 162ms\u001b[39m\n",
+                             "stderrTail":  ""
+                         }
+                     ]
+}

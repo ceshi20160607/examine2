@@ -1,0 +1,203 @@
+{
+    "status":  "PASS",
+    "productStatus":  "R59_ACCEPTED_AS_DEPLOYED_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-02T11:04:11.2060686+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "coverageRows":  [
+                         "REQ-4.3",
+                         "REQ-5.3",
+                         "REQ-5.3.1",
+                         "REQ-5.4",
+                         "REQ-5.5",
+                         "REQ-5.6",
+                         "REQ-5.7",
+                         "REQ-5.9",
+                         "REQ-5.10",
+                         "REQ-6.2",
+                         "REQ-6.7",
+                         "REQ-6.10"
+                     ],
+    "userSignoff":  false,
+    "accepted":  true,
+    "checks":  [
+                   {
+                       "name":  "module configuration uses one active task surface",
+                       "passed":  true,
+                       "detail":  "module lifecycle, fields, list/import-export, page, and print are segmented instead of stacked"
+                   },
+                   {
+                       "name":  "module configuration still exposes required no-code tasks",
+                       "passed":  true,
+                       "detail":  "segmentation did not remove lifecycle, field, list, page, print, publish-check, or publish capability"
+                   },
+                   {
+                       "name":  "module workspace no longer renders all configuration panels in one return block",
+                       "passed":  true,
+                       "detail":  "the previous broad stacked module workspace is removed"
+                   },
+                   {
+                       "name":  "permission preview and runtime reflection contracts remain wired",
+                       "passed":  true,
+                       "detail":  "R59 next work can prove admin permission preview and normal runtime schema reflection from the same configuration"
+                   },
+                   {
+                       "name":  "responsive module task tabs are styled",
+                       "passed":  true,
+                       "detail":  "desktop and mobile CSS constrain the segmented module task surface"
+                   },
+                   {
+                       "name":  "npm typecheck",
+                       "passed":  true,
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "name":  "npm build",
+                       "passed":  true,
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "name":  "verify release",
+                       "passed":  true,
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "name":  "final usability static audit",
+                       "passed":  true,
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "name":  "R59 admin first-use browser audit",
+                       "passed":  true,
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "name":  "R53 fresh no-code configuration chain",
+                       "passed":  true,
+                       "detail":  "exitCode=0"
+                   },
+                   {
+                       "name":  "static audit has no visible blocker or warning findings",
+                       "passed":  true,
+                       "detail":  "status=PASS, blockers=0, warnings=0"
+                   },
+                   {
+                       "name":  "deployed browser first-use module workspace exposes one active task at a time",
+                       "passed":  true,
+                       "detail":  "results=10, blockers=0, overflow=0, tabs=fields,lifecycle,page,print,scene"
+                   },
+                   {
+                       "name":  "fresh no-code configuration chain still closes API readback permission and runtime reflection",
+                       "passed":  true,
+                       "detail":  "moduleColumns=3, normalSchema=5, fields=12"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "npm typecheck",
+                             "exitCode":  0,
+                             "stdoutTail":  "\n\u003e unexamine-frontend@0.0.1 typecheck\n\u003e tsc --noEmit\n\n",
+                             "stderrTail":  ""
+                         },
+                         {
+                             "name":  "npm build",
+                             "exitCode":  0,
+                             "stdoutTail":  "\n\u003e unexamine-frontend@0.0.1 build\n\u003e tsc --noEmit \u0026\u0026 vite build\n\n\u001b[36mvite v8.0.16 \u001b[32mbuilding client environment for production...\u001b[36m\u001b[39m\n\u001b[2K\rtransforming...✓ 26 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.50 kB │ gzip:  0.31 kB\ndist/assets/index-DzYIVez0.css   35.16 kB │ gzip:  7.06 kB\ndist/assets/index-Dc298sMo.js   247.33 kB │ gzip: 66.81 kB\n\n\u001b[32m✓ built in 196ms\u001b[39m\n",
+                             "stderrTail":  ""
+                         },
+                         {
+                             "name":  "verify release",
+                             "exitCode":  0,
+                             "stdoutTail":  "nd 9999\",\r\n                       \"passed\":  true,\r\n                       \"detail\":  \"nginx/unexamine.conf\"\r\n                   },\r\n                   {\r\n                       \"name\":  \"redis tcp reachable\",\r\n                       \"passed\":  true,\r\n                       \"detail\":  \"192.168.0.211:6379\"\r\n                   },\r\n                   {\r\n                       \"name\":  \"deployed frontend matches release assets\",\r\n                       \"passed\":  true,\r\n                       \"detail\":  \"release=[/assets/index-Dc298sMo.js, /assets/index-DzYIVez0.css], deployed=[/assets/index-Dc298sMo.js, /assets/index-DzYIVez0.css]\"\r\n                   },\r\n                   {\r\n                       \"name\":  \"backend health all UP\",\r\n                       \"passed\":  true,\r\n                       \"detail\":  \"status=UP, database=UP, schema=UP, redis=UP, redisError=\"\r\n                   },\r\n                   {\r\n                       \"name\":  \"admin login succeeds\",\r\n                       \"passed\":  true,\r\n                       \"detail\":  \"requestId=req_7685f82c-be23-41d6-bd0d-1a3cae636bff, traceId=trc_0d61a3d4-434d-4bf1-b89a-11793738a4c1\"\r\n                   }\r\n               ]\r\n}\r\n",
+                             "stderrTail":  ""
+                         },
+                         {
+                             "name":  "final usability static audit",
+                             "exitCode":  0,
+                             "stdoutTail":  "{\r\n    \"status\":  \"PASS\",\r\n    \"generatedAt\":  \"2026-07-02T11:01:12.7380848+08:00\",\r\n    \"source\":  \"frontend/src\",\r\n    \"scannedFiles\":  27,\r\n    \"blockerCount\":  0,\r\n    \"warningCount\":  0,\r\n    \"findings\":  [\r\n\r\n                 ]\r\n}\r\n",
+                             "stderrTail":  ""
+                         },
+                         {
+                             "name":  "R59 admin first-use browser audit",
+                             "exitCode":  0,
+                             "stdoutTail":  "{\r\n    \"status\":  \"PASS\",\r\n    \"productStatus\":  \"R59_ADMIN_FIRST_USE_BROWSER_EVIDENCE_ONLY\",\r\n    \"generatedAt\":  \"2026-07-02T11:01:43.1147954+08:00\",\r\n    \"baseUrl\":  \"http://127.0.0.1:18131\",\r\n    \"systemId\":  \"916\",\r\n    \"moduleId\":  \"365\",\r\n    \"moduleName\":  \"R59 Core Module 0702110118_9dd0b8\",\r\n    \"browserResultCount\":  10,\r\n    \"browserOverflowCount\":  0,\r\n    \"browserBlockerCount\":  0,\r\n    \"activeTabsCovered\":  [\r\n                              \"fields\",\r\n                              \"lifecycle\",\r\n                              \"page\",\r\n                              \"print\",\r\n                              \"scene\"\r\n                          ],\r\n    \"browserAuditPath\":  \"D:\\\\workspace\\\\01_project\\\\snow\\\\cursor\\\\examine2\\\\docs\\\\evidence\\\\recovery\\\\screenshots\\\\r59-admin-first-use\\\\admin-first-use-browser-audit.json\",\r\n    \"cleanup\":  \"916:DELETE\",\r\n    \"accepted\":  false,\r\n    \"userSignoff\":  false\r\n}\r\n",
+                             "stderrTail":  ""
+                         },
+                         {
+                             "name":  "R53 fresh no-code configuration chain",
+                             "exitCode":  0,
+                             "stdoutTail":  "_v1782961418965\",\r\n                          \"normalSchemaColumnCount\":  15,\r\n                          \"dictFieldReferenceCount\":  2,\r\n                          \"fieldCount\":  12,\r\n                          \"dictDisabledItemCount\":  1,\r\n                          \"runtimeRoleId\":  \"1339\",\r\n                          \"systemId\":  \"921\",\r\n                          \"fieldTypes\":  [\r\n                                             \"ATTACHMENT\",\r\n                                             \"CHILD_TABLE\",\r\n                                             \"DATE\",\r\n                                             \"DATETIME\",\r\n                                             \"DEPARTMENT\",\r\n                                             \"IMAGE\",\r\n                                             \"LONG_TEXT\",\r\n                                             \"MULTI_SELECT\",\r\n                                             \"NUMBER\",\r\n                                             \"RELATION\",\r\n                                             \"SELECT\",\r\n                                             \"TEXT\",\r\n                                             \"USER\"\r\n                                         ]\r\n                      }\r\n}\r\n",
+                             "stderrTail":  ""
+                         }
+                     ],
+    "staticAudit":  {
+                        "warningCount":  0,
+                        "status":  "PASS",
+                        "blockerCount":  0
+                    },
+    "browserFirstUse":  {
+                            "activeTabsCovered":  [
+                                                      "fields",
+                                                      "lifecycle",
+                                                      "page",
+                                                      "print",
+                                                      "scene"
+                                                  ],
+                            "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r59-admin-first-use\\admin-first-use-browser-audit.json",
+                            "browserBlockerCount":  0,
+                            "browserOverflowCount":  0,
+                            "browserResultCount":  10,
+                            "resultFile":  "docs/evidence/recovery/r59-admin-first-use-browser-result.json"
+                        },
+    "noCodeConfigurationChain":  {
+                                     "moduleConfig":  {
+                                                          "importExportMappingCount":  3,
+                                                          "systemId":  "917",
+                                                          "rollbackResult":  "ROLLED_BACK",
+                                                          "schemaFilterCount":  6,
+                                                          "schemaColumnCount":  3,
+                                                          "publishCheckPassed":  true,
+                                                          "schemaSorterCount":  1,
+                                                          "moduleId":  "366"
+                                                      },
+                                     "permissionPreview":  {
+                                                               "previewAllowed":  false,
+                                                               "systemId":  "919",
+                                                               "runtimeRoleId":  "1335",
+                                                               "normalSecretColumnLeaked":  false,
+                                                               "previewHiddenSecret":  "HIDDEN",
+                                                               "normalSchemaColumnCount":  5,
+                                                               "normalCreateDisabled":  true,
+                                                               "moduleId":  "367"
+                                                           },
+                                     "fieldDictMenu":  {
+                                                           "activeSchemaOptionCodes":  [
+                                                                                           "ACTIVE",
+                                                                                           "PENDING"
+                                                                                       ],
+                                                           "moduleId":  "369",
+                                                           "dictPublishedVersion":  "DICT_TYPE_v1782961418965",
+                                                           "normalSchemaColumnCount":  15,
+                                                           "dictFieldReferenceCount":  2,
+                                                           "fieldCount":  12,
+                                                           "dictDisabledItemCount":  1,
+                                                           "runtimeRoleId":  "1339",
+                                                           "systemId":  "921",
+                                                           "fieldTypes":  [
+                                                                              "ATTACHMENT",
+                                                                              "CHILD_TABLE",
+                                                                              "DATE",
+                                                                              "DATETIME",
+                                                                              "DEPARTMENT",
+                                                                              "IMAGE",
+                                                                              "LONG_TEXT",
+                                                                              "MULTI_SELECT",
+                                                                              "NUMBER",
+                                                                              "RELATION",
+                                                                              "SELECT",
+                                                                              "TEXT",
+                                                                              "USER"
+                                                                          ]
+                                                       },
+                                     "resultFile":  "docs/evidence/recovery/r53-frc2-no-code-configuration-coherence-result.json"
+                                 }
+}

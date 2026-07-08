@@ -5,6 +5,7 @@ import com.unique.examine.core.api.PageRequest;
 import com.unique.examine.core.api.PageResult;
 import com.unique.examine.module.manage.config.ModuleConfigModels.ActionConfigVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.ActionSaveRequest;
+import com.unique.examine.module.manage.config.ModuleConfigModels.DictImpactVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.DictItemSaveRequest;
 import com.unique.examine.module.manage.config.ModuleConfigModels.DictItemVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.DictTypeQueryRequest;
@@ -23,6 +24,8 @@ import com.unique.examine.module.manage.config.ModuleConfigModels.ModuleSaveRequ
 import com.unique.examine.module.manage.config.ModuleConfigModels.ModuleVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PermissionBindingVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplateSaveRequest;
+import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplatePreviewRequest;
+import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplatePreviewVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PrintTemplateVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PublishCheckResultVO;
 import com.unique.examine.module.manage.config.ModuleConfigModels.PublishRequest;
@@ -142,6 +145,19 @@ public class ModuleConfigController {
         return ApiResponse.success(moduleConfigService.saveDictType(systemId, request));
     }
 
+    @GetMapping("/api/v1/systems/{systemId}/dict-types/{dictTypeId}/impact")
+    public ApiResponse<DictImpactVO> dictImpact(@PathVariable String systemId,
+                                                @PathVariable String dictTypeId) {
+        return ApiResponse.success(moduleConfigService.dictImpact(systemId, dictTypeId));
+    }
+
+    @PostMapping("/api/v1/systems/{systemId}/dict-types/{dictTypeId}/publish")
+    public ApiResponse<PublishResult> publishDictType(@PathVariable String systemId,
+                                                      @PathVariable String dictTypeId,
+                                                      @RequestBody(required = false) PublishRequest request) {
+        return ApiResponse.success(moduleConfigService.publishDictType(systemId, dictTypeId, request));
+    }
+
     @GetMapping("/api/v1/systems/{systemId}/dict-types/{dictTypeId}/items")
     public ApiResponse<List<DictItemVO>> dictItems(@PathVariable String systemId,
                                                    @PathVariable String dictTypeId) {
@@ -216,6 +232,31 @@ public class ModuleConfigController {
                                                           @PathVariable String moduleId,
                                                           @RequestBody PrintTemplateSaveRequest request) {
         return ApiResponse.success(moduleConfigService.savePrintTemplate(systemId, moduleId, request));
+    }
+
+    @PostMapping("/api/v1/systems/{systemId}/modules/{moduleId}/print-templates/{templateCode}/publish-check")
+    public ApiResponse<PublishCheckResultVO> printTemplatePublishCheck(@PathVariable String systemId,
+                                                                       @PathVariable String moduleId,
+                                                                       @PathVariable String templateCode) {
+        return ApiResponse.success(moduleConfigService.printTemplatePublishCheck(systemId, moduleId, templateCode));
+    }
+
+    @PostMapping("/api/v1/systems/{systemId}/modules/{moduleId}/print-templates/{templateCode}/publish")
+    public ApiResponse<PublishResult> publishPrintTemplate(@PathVariable String systemId,
+                                                           @PathVariable String moduleId,
+                                                           @PathVariable String templateCode,
+                                                           @RequestBody(required = false) PublishRequest request) {
+        return ApiResponse.success(moduleConfigService.publishPrintTemplate(systemId, moduleId, templateCode, request));
+    }
+
+    @PostMapping("/api/v1/systems/{systemId}/modules/{moduleId}/print-templates/{templateCode}/preview")
+    public ApiResponse<PrintTemplatePreviewVO> previewPrintTemplate(@PathVariable String systemId,
+                                                                    @PathVariable String moduleId,
+                                                                    @PathVariable String templateCode,
+                                                                    @RequestBody(required = false)
+                                                                    PrintTemplatePreviewRequest request) {
+        return ApiResponse.success(moduleConfigService.previewPrintTemplate(systemId, moduleId, templateCode,
+                request == null ? null : request.effectiveValues(), false, "preview", false));
     }
 
     @PostMapping("/api/v1/systems/{systemId}/modules/{moduleId}/publish-check")

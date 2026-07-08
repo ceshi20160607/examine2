@@ -5,8 +5,13 @@ import com.unique.examine.core.error.BusinessException;
 import com.unique.examine.core.error.CommonErrorCode;
 import com.unique.examine.plat.base.entity.PlatAccount;
 import com.unique.examine.plat.base.entity.PlatAccountMemberBinding;
+import com.unique.examine.plat.base.entity.PlatRole;
+import com.unique.examine.plat.base.entity.PlatRoleMember;
 import com.unique.examine.plat.base.service.PlatAccountMemberBindingBaseService;
+import com.unique.examine.plat.base.service.PlatRoleBaseService;
+import com.unique.examine.plat.base.service.PlatRoleMemberBaseService;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -18,18 +23,26 @@ import org.springframework.stereotype.Component;
 public class SystemMemberContextResolver {
 
     private static final int ENABLED = 1;
+    private static final int DELETED_NO = 0;
+    private static final String SCOPE_SYSTEM = "SYSTEM";
     private static final String CURRENT_BINDING_PREFIX = "unexamine:context:current-binding:";
     private static final Duration CURRENT_BINDING_TTL = Duration.ofHours(8);
 
     private final CurrentAccountProvider currentAccountProvider;
     private final PlatAccountMemberBindingBaseService bindingBaseService;
+    private final PlatRoleMemberBaseService roleMemberBaseService;
+    private final PlatRoleBaseService roleBaseService;
     private final StringRedisTemplate redisTemplate;
 
     public SystemMemberContextResolver(CurrentAccountProvider currentAccountProvider,
                                        PlatAccountMemberBindingBaseService bindingBaseService,
+                                       PlatRoleMemberBaseService roleMemberBaseService,
+                                       PlatRoleBaseService roleBaseService,
                                        StringRedisTemplate redisTemplate) {
         this.currentAccountProvider = currentAccountProvider;
         this.bindingBaseService = bindingBaseService;
+        this.roleMemberBaseService = roleMemberBaseService;
+        this.roleBaseService = roleBaseService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -61,6 +74,21 @@ public class SystemMemberContextResolver {
     }
 
     /**
+     * Resolve current system context and require a system administrator role.
+     *
+     * @param systemId route system id
+     * @return resolved administrator context
+     */
+    public SystemMemberContext requireSystemAdmin(String systemId) {
+        SystemMemberContext context = resolve(systemId);
+        if (!hasSystemAdminRole(context)) {
+            throw new BusinessException(CommonErrorCode.PERMISSION_DENIED,
+                    "当前成员没有系统后台管理权限");
+        }
+        return context;
+    }
+
+    /**
      * Parse route ids.
      *
      * @param value raw id
@@ -73,6 +101,30 @@ public class SystemMemberContextResolver {
         } catch (NumberFormatException ex) {
             throw new BusinessException(CommonErrorCode.FIELD_VALIDATION_FAILED, message);
         }
+    }
+
+    private boolean hasSystemAdminRole(SystemMemberContext context) {
+        List<Long> roleIds = roleMemberBaseService.list(new LambdaQueryWrapper<PlatRoleMember>()
+                        .eq(PlatRoleMember::getSystemId, context.systemId())
+                        .eq(PlatRoleMember::getTenantId, context.tenantId())
+                        .eq(PlatRoleMember::getSystemMemberId, context.systemMemberId()))
+                .stream()
+                .map(PlatRoleMember::getRoleId)
+                .filter(Objects::nonNull)
+                .toList();
+        if (roleIds.isEmpty()) {
+            return false;
+        }
+        return roleBaseService.count(new LambdaQueryWrapper<PlatRole>()
+                .in(PlatRole::getId, roleIds)
+                .eq(PlatRole::getScope, SCOPE_SYSTEM)
+                .eq(PlatRole::getSystemId, context.systemId())
+                .eq(PlatRole::getTenantId, context.tenantId())
+                .eq(PlatRole::getDeleted, DELETED_NO)
+                .and(wrapper -> wrapper.eq(PlatRole::getRoleCode, "SYSTEM_SUPER_ADMIN")
+                        .or().eq(PlatRole::getRoleCode, "SYSTEM_ADMIN")
+                        .or().eq(PlatRole::getRoleType, "SYSTEM_SUPER_ADMIN")
+                        .or().eq(PlatRole::getRoleType, "SYSTEM_ADMIN"))) > 0;
     }
 
     private PlatAccountMemberBinding currentBinding(Long accountId, Long systemId) {

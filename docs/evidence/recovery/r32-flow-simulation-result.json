@@ -1,0 +1,39 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-032",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "698",
+    "flowId":  "124",
+    "highPath":  [
+                     "node_submit_review",
+                     "node_amount_condition",
+                     "node_manager_review",
+                     "node_end_passed"
+                 ],
+    "lowPath":  [
+                    "node_submit_review",
+                    "node_amount_condition",
+                    "node_end_passed"
+                ],
+    "highApproverCount":  2,
+    "lowApproverCount":  1,
+    "highRuntimeInstanceCreated":  false,
+    "lowRuntimeInstanceCreated":  false,
+    "blockerPassed":  false,
+    "blockerItemCodes":  [
+                             "E_SIM_APPROVER_EMPTY"
+                         ],
+    "cleanup":  "698:DELETE",
+    "apiAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r32-flow-simulation\\flow-simulation-api-audit.json",
+    "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r32-flow-simulation\\flow-simulation-browser-audit.json",
+    "desktopScreenshotPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r32-flow-simulation\\desktop-flow-simulation.png",
+    "mobileScreenshotPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r32-flow-simulation\\mobile-flow-simulation.png",
+    "deployedAssets":  [
+                           "/assets/index-DSRIRs9p.js",
+                           "/assets/index-BbjPFRgk.css"
+                       ],
+    "browserOverflowX":  {
+                             "desktop":  0,
+                             "mobile":  0
+                         }
+}

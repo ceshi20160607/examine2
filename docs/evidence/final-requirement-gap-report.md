@@ -1,14 +1,14 @@
-﻿# Final Requirement Gap Report
+# Final Requirement Gap Report
 
-Time: 2026-06-30T13:46:58.9683493+08:00
+Time: 2026-07-06T15:37:03.1231929+08:00
 
 ## Summary
 
 | Metric | Count |
 |---|---:|
 | Total rows | 45 |
-| OPEN | 1 |
-| PARTIAL | 44 |
+| OPEN | 0 |
+| PARTIAL | 45 |
 | Closed | 0 |
 
 ## Recommended Batch Order
@@ -17,69 +17,72 @@ Time: 2026-06-30T13:46:58.9683493+08:00
 
 | Req ID | Status | Area | Gap / Next Action |
 |---|---|---|---|
-| REQ-5.8 | PARTIAL | Pages. | Need deployed browser interaction evidence and broader page-definition coverage before `PROVEN`. |
-| REQ-6.1 | PARTIAL | Overall visual style. | Need broader human/UI audit against aesthetics, hierarchy, density, wording, role clarity, and user acceptance before `PROVEN`. |
-| REQ-6.3 | PARTIAL | Home page. | Need platform home page and broader role-specific home page usability audit before `PROVEN`. |
-| REQ-6.8 | PARTIAL | Page designer. | Need deployed browser page-designer interaction, visual preview, broader component coverage, copy/drag-drop/mobile preview, and usability evidence before `PROVEN`. |
-| REQ-9 | OPEN | Advanced/new capabilities. | Need command center, assistant, schema-driven page, advanced table, simulation, print designer decisions/evidence. |
+| REQ-5.8 | PARTIAL | Pages. | Need broader runtime daily-use pages, import/export/file/error states, and user acceptance before `PROVEN`. |
+| REQ-6.1 | PARTIAL | Overall visual style. | Need broader human aesthetic review across runtime daily work, file/import/export/error states, and user acceptance before `PROVEN`; R35/R41/R42/R43/R46/R52 are engineering evidence only. |
+| REQ-6.3 | PARTIAL | Home page. | Need richer live operational data, broader work/todo/message integration, and user acceptance before `PROVEN`. |
+| REQ-6.8 | PARTIAL | Page designer. | Need drag/drop polish, full accessibility review, richer runtime widget behavior, and user acceptance before `PROVEN`. |
+| REQ-9 | PARTIAL | Advanced/new capabilities. | Need remaining command-center and assistant enhancements, binary PDF or user-approved HTML export boundary, operations breadth, broader workflow/OpenAPI/AI variants, and user acceptance before `PROVEN`. |
 
 ### FRC-2 No-Code Configuration Depth
 
 | Req ID | Status | Area | Gap / Next Action |
 |---|---|---|---|
-| REQ-4.3 | PARTIAL | Application configuration center. | Need full app/page/action/print/configuration coverage, not only module/flow subset. |
+| REQ-4.3 | PARTIAL | Application configuration center. | Need richer first-use-to-launch workflow, nested/disabled/unpublished menu permutations, broader cross-surface admin usability, and user acceptance. |
 | REQ-5.3 | PARTIAL | Applications. | Need app lifecycle and platform-level app/system data interop coverage. |
-| REQ-5.3.1 | PARTIAL | Module groups as runtime navigation. | Need direct verification of module group visibility, sorting, role visibility and published navigation behavior. |
-| REQ-5.4 | PARTIAL | Modules. | Need all module lifecycle states, scenes, actions, permissions, print/import/export/publish rollback coverage. |
-| REQ-5.5 | PARTIAL | Fields. | Need all field types and field-specific config in the requirement, including formula/summary/relation/person/subtable if in scope. |
-| REQ-5.6 | PARTIAL | Dictionaries. | Need dictionary types, versioning, colors/icons, reference impact and publish checks. |
+| REQ-5.3.1 | PARTIAL | Module groups as runtime navigation. | Need nested group behavior, disabled/unpublished state permutations, broader menu editing UX, and user acceptance. |
+| REQ-5.4 | PARTIAL | Modules. | Need all module permissions/field-type permutations, binary PDF or user-approved HTML boundary, long-form usability, and user acceptance before `PROVEN`. |
+| REQ-5.5 | PARTIAL | Fields. | Need formula/summary if in scope, richer field-specific UI widgets, broader validation UX/accessibility, and user acceptance. |
+| REQ-5.6 | PARTIAL | Dictionaries. | Need dictionary hierarchy/import/history or other broader dictionary semantics if in scope, cross-surface dictionary reuse, and user acceptance. |
 | REQ-5.7 | PARTIAL | Departments and members. | Need full org tree, member lifecycle, binding, import/sync and permission impact. |
-| REQ-5.9 | PARTIAL | Menus. | Need menu configuration, permissions, ordering and runtime behavior evidence. |
-| REQ-5.10 | PARTIAL | Permissions. | Need effective permission preview, field/data/action permission matrix and UI/backend consistency coverage. |
-| REQ-6.7 | PARTIAL | Field designer. | Need all field type specialized configuration. |
-| REQ-6.10 | PARTIAL | Permission page. | Need permission configuration page and effective permission preview. |
+| REQ-5.9 | PARTIAL | Menus. | Need explicit menu configuration page breadth, nested groups, disabled/unpublished permutations, and user acceptance. |
+| REQ-5.10 | PARTIAL | Permissions. | Need broader permission matrix usability, menu/module/action/field/data-scope permutations, audit/history of permission changes, and user acceptance. |
+| REQ-6.7 | PARTIAL | Field designer. | Need formula/summary specialized widgets if in scope, deeper validation UI, relation/person/subtable accessibility review, and user acceptance. |
+| REQ-6.10 | PARTIAL | Permission page. | Need richer permission matrix UX, batch role/member preview, conflict explanation, audit history, and user acceptance. |
 
 ### FRC-3 Runtime User Depth
 
 | Req ID | Status | Area | Gap / Next Action |
 |---|---|---|---|
-| REQ-4.4 | PARTIAL | Application runtime. | Need full runtime page/list/form/detail/search/draft/advanced table coverage. |
-| REQ-5.11 | PARTIAL | Data records. | Need full list/form/detail/edit/history/draft/advanced query/sequence/attachment coverage. |
-| REQ-5.13 | PARTIAL | Files. | Need file permission, preview/download, version, relation, storage and failure coverage. |
-| REQ-5.14 | PARTIAL | Import and export. | Need rollback, precheck, mapping, error files, permissions and large-file UX. |
-| REQ-5.16 | PARTIAL | Messages. | Need templates/channels, delivery log, failure retry, do-not-disturb and platform/system separation evidence. |
+| REQ-4.4 | PARTIAL | Application runtime. | Need remaining runtime approval detail breadth, import/export rollback UX, file preview/version/storage failure states, batch actions, deeper empty/error/accessibility states, and user acceptance before `PROVEN`. |
+| REQ-5.11 | PARTIAL | Data records. | Need approval-detail integration breadth, sequence permutations, rollback/batch actions, deeper empty/error/accessibility states, and broader data-record usability before `PROVEN`. |
+| REQ-5.13 | PARTIAL | Files. | Need file preview/download permission breadth, versioning, relation management, storage policy, and upload/download failure coverage before `PROVEN`. |
+| REQ-5.14 | PARTIAL | Import and export. | Need rollback/error-file failure cases, field mapping UX breadth, permissions matrix depth, and large-file UX before `PROVEN`. |
+| REQ-5.16 | PARTIAL | Messages. | Need templates/channels, delivery log, failure retry, do-not-disturb, platform/system separation breadth, and user acceptance. |
 | REQ-5.20 | PARTIAL | Work management: projects, tasks, daily reports, calendar. | Need full daily work usability, calendar, dashboard, task board, report draft and message/todo integration. |
-| REQ-6.4 | PARTIAL | List pages. | Need full list design, filters, sort, columns, batch actions, empty/error states. |
-| REQ-6.5 | PARTIAL | Form pages. | Need validation, field-specific UI, drafts, errors and permission-specific forms. |
-| REQ-6.6 | PARTIAL | Detail pages. | Need full detail tabs, history, attachments, approval, logs and actions. |
-| REQ-6.11 | PARTIAL | Mobile. | Need mobile task usability across all primary journeys. |
+| REQ-6.4 | PARTIAL | List pages. | Need admin list batch actions, richer error states, column width/fixed controls, keyboard/accessibility, and broader list usability review before `PROVEN`. |
+| REQ-6.5 | PARTIAL | Form pages. | Need field-specific UI breadth, more validation permutations, read-only/forbidden form permutations in browser, and accessibility before `PROVEN`. |
+| REQ-6.6 | PARTIAL | Detail pages. | Need approval sidebar terminal breadth, related child-row detail breadth, empty/error/accessibility states, and broader reload/re-login usability before `PROVEN`. |
+| REQ-6.11 | PARTIAL | Mobile. | Need mobile task usability across workflow/todo/message/ops primary journeys, binary PDF/user-approved print boundary decision, and user acceptance before `PROVEN`. |
 
 ### FRC-4 Workflow, Integration, AI Depth
 
 | Req ID | Status | Area | Gap / Next Action |
 |---|---|---|---|
-| REQ-4.5 | PARTIAL | Workflow workbench. | Need broader workflow workbench scenarios and simulation coverage. |
-| REQ-5.12 | PARTIAL | Workflow. | Need full node library, branching, timers, external API, field update, simulation, publish impact. |
-| REQ-5.15 | PARTIAL | OpenAPI. | Need broader scope management, rate limits, callbacks/webhooks and API documentation UX if in scope. |
-| REQ-5.19 | PARTIAL | Intelligent capabilities. | Need model authorization lifecycle, user assistant flows, AI write/read permissions, logs and failure handling. |
+| REQ-4.5 | PARTIAL | Workflow workbench. | Need broader workflow workbench scenarios such as reject/transfer/timer/escalation, richer failure states, and user acceptance. |
+| REQ-5.12 | PARTIAL | Workflow. | Need full node library breadth, timers, external API nodes, field update nodes, richer publish impact, reject/transfer variants, and user acceptance. |
+| REQ-5.15 | PARTIAL | OpenAPI. | Need broader callback/webhook/API documentation UX, rate-limit behavior under load, external API node/workflow integration breadth, and user acceptance before `PROVEN`. |
+| REQ-5.19 | PARTIAL | Intelligent capabilities. | Need richer user assistant flows, field/process/export-specific drafts, browser/API failure-state handling, broader AI read/write permission permutations, and user acceptance before `PROVEN`. |
+| REQ-6.9 | PARTIAL | Flow designer. | Need broader node/property/branch/zoom/usability coverage, direct designer editing breadth, advanced node publish impact, and user acceptance. |
 
 ### FRC-5 Operations, Robustness, Delivery
 
 | Req ID | Status | Area | Gap / Next Action |
 |---|---|---|---|
-| REQ-4.6 | PARTIAL | System management and operations center. | Need full operator usability and all maintenance controls verified from deployed UI. |
+| REQ-4.6 | PARTIAL | System management and operations center. | Need full operator usability and all maintenance controls verified from deployed UI plus human acceptance. |
+| REQ-5.17 | PARTIAL | Logs and audit. | Need full login/business/API/AI/import/export/approval audit query and detail UX plus human acceptance. |
+| REQ-5.18 | PARTIAL | System management settings. | Need all setting pages and risk confirmations verified from deployed UI plus human acceptance. |
 | REQ-7 | PARTIAL | Technical architecture. | Need requirement-by-requirement technical architecture conformance audit. |
-| REQ-8 | PARTIAL | Robustness. | Need full config/data/permission/workflow/deploy robustness audit. |
+| REQ-8 | PARTIAL | Robustness. | Need full config/data/permission/workflow/deploy robustness audit plus human acceptance. |
 | REQ-10 | PARTIAL | Full delivery standard. | Need all delivery checklist rows mapped to evidence and user signoff. |
-| REQ-14.1-14.37 | PARTIAL | Launch capability rules: versioning, publish, lifecycle, business rules, uniqueness, rollback, print, KPI, health, permission preview, archive, confirmations, UX details, APIs, errors, idempotency, rate limit, cache, design system, performance, reports, audit, gray release, quotas, masking, accessibility, data design. | Need split task cards/evidence for every 14.x item or user-approved exclusion. |
-| REQ-A | PARTIAL | Confirmed product clarifications. | Need explicit appendix A coverage scan against implementation and UI. |
+| REQ-14.1-14.37 | PARTIAL | Launch capability rules: versioning, publish, lifecycle, business rules, uniqueness, rollback, print, KPI, health, permission preview, archive, confirmations, UX details, APIs, errors, idempotency, rate limit, cache, design system, performance, reports, audit, gray release, quotas, masking, accessibility, data design. | Need evidence for every remaining non-print/non-integration 14.x item, operator-facing operations/rollback/backup/cache/quota/gray-release UX, binary PDF or user-approved HTML export boundary, and user acceptance before `PROVEN`. |
+| REQ-A | PARTIAL | Confirmed product clarifications. | Need explicit appendix A coverage scan against implementation and UI plus user acceptance. |
 
 ### FRC-6 Human Acceptance Pass
 
 | Req ID | Status | Area | Gap / Next Action |
 |---|---|---|---|
-| REQ-2.1 | PARTIAL | Product goal: customizable no-code systems with workflow, OpenAPI, AI, tasks, messages, logs, and usable people-facing product. | Need all functional and usability rows below to be `PROVEN` or `USER_EXCLUDED`. |
-| REQ-4.1 | PARTIAL | Platform layer and custom system layer separation. | Need manual role-journey audit for platform member/admin/system admin/system member information architecture. |
-| REQ-4.2 | PARTIAL | Platform center. | Need platform workspace usability audit beyond admin evidence. |
-| REQ-6.2 | PARTIAL | Web main layout. | Need manual inspection for ambiguity and information architecture. |
+| REQ-2.1 | PARTIAL | Product goal: customizable no-code systems with workflow, OpenAPI, AI, tasks, messages, logs, and usable people-facing product. | Need all functional and usability rows below to be `PROVEN` or `USER_EXCLUDED`, plus explicit user acceptance. |
+| REQ-4.1 | PARTIAL | Platform layer and custom system layer separation. | Need deeper first-use and no-code-admin information-architecture acceptance before `PROVEN`. |
+| REQ-4.2 | PARTIAL | Platform center. | Need platform workspace/admin daily-use breadth and user acceptance beyond engineering evidence. |
+| REQ-6.2 | PARTIAL | Web main layout. | Need deeper first-use admin configuration, broader task-flow acceptance, and user signoff before `PROVEN`. |
 

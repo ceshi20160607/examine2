@@ -397,7 +397,7 @@ public class AuthService {
 
     private DefaultLanding defaultLanding(String loginTarget, List<String> platformRoles, BindingTarget bindingTarget) {
         if ("PLATFORM".equalsIgnoreCase(loginTarget) && !platformRoles.isEmpty()) {
-            return new DefaultLanding("PLATFORM", null, null, "/platform/dashboard");
+            return new DefaultLanding("PLATFORM", null, null, "/platform");
         }
         if (Objects.nonNull(bindingTarget.binding())) {
             return new DefaultLanding("SYSTEM", String.valueOf(bindingTarget.binding().getSystemId()),
@@ -405,7 +405,7 @@ public class AuthService {
                     "/systems/" + bindingTarget.binding().getSystemId() + "/dashboard");
         }
         if (!platformRoles.isEmpty()) {
-            return new DefaultLanding("PLATFORM", null, null, "/platform/dashboard");
+            return new DefaultLanding("PLATFORM", null, null, "/platform");
         }
         return new DefaultLanding("NO_MEMBER", null, null, "/no-member");
     }

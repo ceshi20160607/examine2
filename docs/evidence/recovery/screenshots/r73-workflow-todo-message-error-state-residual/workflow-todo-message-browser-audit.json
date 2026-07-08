@@ -1,0 +1,120 @@
+﻿{
+    "status":  "PASS",
+    "screenshotEvidenceBoundary":  "Screenshots prove visual containment and visible controls only. API/readback assertions prove submit, todo, message, approval, permission, idempotency, and terminal state behavior.",
+    "submit":  {
+                   "status":  "PASS",
+                   "phase":  "submit",
+                   "results":  [
+                                   {
+                                       "key":  "requester-runtime-before-submit-desktop",
+                                       "phase":  "submit",
+                                       "url":  "http://127.0.0.1:18131/?r73=1782978364315#/systems/1024/modules",
+                                       "overflowX":  0,
+                                       "blockerTexts":  [
+
+                                                        ],
+                                       "textSample":  "R3 Runtime Target 0702154543869_b704c6\n仪表盘\nR3 Business Group 0702154543869_b704c6\n工作\n待办\n命令\n助手\n消息\n系统切换\nr3_requester_0702154543869_b704c6\nR3 Business Group 0702154543869_b704c6\nR3 Contract Ledger 0702154543869_b704c6\n1 条 / MODULE_v1782978357741\n\nR3 BUSINESS GROUP 0702154543869_B704C6\n\nR3 Contract Ledger 0702154543869_b704c6\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R3 Contract Ledger 0702154543869_b704c6 / 默认\nAll Contracts / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1024_1056_1396\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tContract Name ↕\tContract Amount ↕\tContract Number ↕\tContract Files ↕\t操作\n\t001\t-\t-\t-\tRuntime Contract Updated 0702154543869_b704c6\t3600.000000\tR3-0702154543869_b704c6-0001\t-\t\n操作\n编辑\n提交审批\n删除\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\n业务详情\nRuntime Contract 0702154543869_b704c6\n编辑\n删除\n打印预览\n导出打印\n标题\nRuntime Contract 0702154543869_b704c6\n摘要\nR1782978360163\n状态\nDRAFT\n权限版本\nperm_live_1024_1056_1396\n详细资料\n关联数据\n附件\n打印记录\n操作记录\n基本信息\n标题\n状态\n所属部门\nContract Name\nRuntime Contract Updated 0702154543869_b704c6\nContract Amount\n3600.000000\nContract Number\nR3-0702154543869_b704c6-0001\nContract Files\n审批流程\n\n当前记录未发起审批。\n\ntraceId: TRACE-592\nauditLogId: AUD-592",
+                                       "blockers":  [
+
+                                                    ]
+                                   },
+                                   {
+                                       "key":  "requester-runtime-after-submit-desktop",
+                                       "phase":  "submit",
+                                       "url":  "http://127.0.0.1:18131/?r73=1782978364315#/systems/1024/modules",
+                                       "overflowX":  0,
+                                       "blockerTexts":  [
+
+                                                        ],
+                                       "textSample":  "R3 Runtime Target 0702154543869_b704c6\n仪表盘\nR3 Business Group 0702154543869_b704c6\n工作\n待办\n命令\n助手\n消息\n系统切换\nr3_requester_0702154543869_b704c6\nR3 Business Group 0702154543869_b704c6\nR3 Contract Ledger 0702154543869_b704c6\n1 条 / MODULE_v1782978357741\n\nR3 BUSINESS GROUP 0702154543869_B704C6\n\nR3 Contract Ledger 0702154543869_b704c6\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R3 Contract Ledger 0702154543869_b704c6 / 默认\nAll Contracts / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1024_1056_1396\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n审批已提交：ACTION_ACCEPTED\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tContract Name ↕\tContract Amount ↕\tContract Number ↕\tContract Files ↕\t操作\n\t001\t-\t-\t-\tRuntime Contract Updated 0702154543869_b704c6\t3600.000000\tR3-0702154543869_b704c6-0001\t-\t\n操作\n编辑\n提交审批（不可用）\n删除（不可用）\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\n业务详情\nRuntime Contract Updated 0702154543869_b704c6\n编辑\n删除\n打印预览\n导出打印\n标题\nRuntime Contract Updated 0702154543869_b704c6\n摘要\nR1782978360163\n状态\nPENDING_APPROVAL\n权限版本\nperm_live_1024_1056_1396\n详细资料\n关联数据\n附件\n打印记录\n操作记录\n基本信息\n标题\n状态\n所属部门\nContract Name\nRuntime Contract Updated 0702154543869_b704c6\nContract Amount\n3600.000000\nContract Number\nR3-0702154543869_b704c6-0001\nContract Files\n审批流程信息\nSubmit review\nSubmit review- / RUNNING / -\n编辑\n提交审批\n删除\n\ntraceId: TRACE-592\nauditLogId: AUD-592",
+                                       "blockers":  [
+
+                                                    ]
+                                   },
+                                   {
+                                       "key":  "requester-runtime-after-submit-mobile",
+                                       "phase":  "submit",
+                                       "url":  "http://127.0.0.1:18131/?r73=1782978370679#/systems/1024/modules",
+                                       "overflowX":  0,
+                                       "blockerTexts":  [
+
+                                                        ],
+                                       "textSample":  "R3 Runtime Target 0702154543869_b704c6\n仪表盘\nR3 Business Group 0702154543869_b704c6\n工作\n待办\n命令\n助手\n消息\n系统切换\nr3_requester_0702154543869_b704c6\nR3 Business Group 0702154543869_b704c6\nR3 Contract Ledger 0702154543869_b704c6\n1 条 / MODULE_v1782978357741\n\nR3 BUSINESS GROUP 0702154543869_B704C6\n\nR3 Contract Ledger 0702154543869_b704c6\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R3 Contract Ledger 0702154543869_b704c6 / 默认\nAll Contracts / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1024_1056_1396\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tContract Name ↕\tContract Amount ↕\tContract Number ↕\tContract Files ↕\t操作\n\t001\t-\t-\t-\tRuntime Contract Updated 0702154543869_b704c6\t3600.000000\tR3-0702154543869_b704c6-0001\t-\t\n操作\n编辑\n提交审批（不可用）\n删除（不可用）\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\n业务详情\nRuntime Contract Updated 0702154543869_b704c6\n编辑\n删除\n打印预览\n导出打印\n标题\nRuntime Contract Updated 0702154543869_b704c6\n摘要\nR1782978360163\n状态\nPENDING_APPROVAL\n权限版本\nperm_live_1024_1056_1396\n详细资料\n关联数据\n附件\n打印记录\n操作记录\n基本信息\n标题\n状态\n所属部门\nContract Name\nRuntime Contract Updated 0702154543869_b704c6\nContract Amount\n3600.000000\nContract Number\nR3-0702154543869_b704c6-0001\nContract Files\n审批流程信息\nSubmit review\nSubmit review- / RUNNING / -\n编辑\n提交审批\n删除\n\ntraceId: TRACE-592\nauditLogId: AUD-592",
+                                       "blockers":  [
+
+                                                    ]
+                                   }
+                               ]
+               },
+    "approve":  {
+                    "status":  "PASS",
+                    "phase":  "approve",
+                    "results":  [
+                                    {
+                                        "key":  "approver-message-before-approval-desktop",
+                                        "phase":  "approve",
+                                        "url":  "http://127.0.0.1:18131/?r73=1782978374196#/systems/1024/messages",
+                                        "overflowX":  0,
+                                        "blockerTexts":  [
+
+                                                         ],
+                                        "textSample":  "R3 Runtime Target 0702154543869_b704c6\n仪表盘\nR3 Business Group 0702154543869_b704c6\n工作\n待办\n命令\n助手\n消息\n系统切换\nr3_approver_0702154543869_b704c6\n消息\n\n消息按时间流展示，整条消息点击跳转到审批、业务详情或工作对象，辅助操作只处理阅读和归档状态。\n\n消息关键字\n应用筛选\n重置\n全部\n未读\n已读\n当前消息\n已归档\n全部标为已读\n你有一条新的审批待办\n2026-07-02T15:46:08\n\n记录 592 已提交到 Submit review，请及时处理。\n\nread\nactive\n归档\ntpl_flow_approval_pending / approval / traceId=trc_3ddde99f-87ed-4e74-954a-eba6662b94f3\n第 1 页，每页 20 条，共 1 条\n上一页\n下一页",
+                                        "blockers":  [
+
+                                                     ]
+                                    },
+                                    {
+                                        "key":  "approver-todo-before-approval-desktop",
+                                        "phase":  "approve",
+                                        "url":  "http://127.0.0.1:18131/?r73=1782978374196#/systems/1024/todos",
+                                        "overflowX":  0,
+                                        "blockerTexts":  [
+
+                                                         ],
+                                        "textSample":  "R3 Runtime Target 0702154543869_b704c6\n仪表盘\nR3 Business Group 0702154543869_b704c6\n工作\n待办\n命令\n助手\n消息\n系统切换\nr3_approver_0702154543869_b704c6\n待办\n\n左侧仅展示待办类型，右侧是当前类型的待办列表、筛选和分页。\n\n审批待办 (1)\n流程审批 (1)\n超时提醒 (0)\n工作待办 (0)\n今日需处理 (0)\n提醒待办 (0)\n待办关键字\n应用筛选\n重置\n序号\t标题\t来源\t优先级\t到期\t状态\t操作\n1\t待审批记录：592记录 592\t审批流程：Submit review\tHIGH\t2026-07-02T23:46:08\tPENDING\t\n审批\n拒绝\n转交\n第 1 页，每页 20 条，共 1 条\n上一页\n下一页\n\ntraceId: trc_59d1ca68-eebf-44dc-9f8e-196a8af486c0",
+                                        "blockers":  [
+
+                                                     ]
+                                    },
+                                    {
+                                        "key":  "approver-todo-after-approval-desktop",
+                                        "phase":  "approve",
+                                        "url":  "http://127.0.0.1:18131/?r73=1782978374196#/systems/1024/todos",
+                                        "overflowX":  0,
+                                        "blockerTexts":  [
+
+                                                         ],
+                                        "textSample":  "R3 Runtime Target 0702154543869_b704c6\n仪表盘\nR3 Business Group 0702154543869_b704c6\n工作\n待办\n命令\n助手\n消息\n系统切换\nr3_approver_0702154543869_b704c6\n正在读取待办...",
+                                        "blockers":  [
+
+                                                     ]
+                                    },
+                                    {
+                                        "key":  "requester-runtime-approved-desktop",
+                                        "phase":  "approve",
+                                        "url":  "http://127.0.0.1:18131/?r73=1782978376310#/systems/1024/modules",
+                                        "overflowX":  0,
+                                        "blockerTexts":  [
+
+                                                         ],
+                                        "textSample":  "R3 Runtime Target 0702154543869_b704c6\n仪表盘\nR3 Business Group 0702154543869_b704c6\n工作\n待办\n命令\n助手\n消息\n系统切换\nr3_requester_0702154543869_b704c6\nR3 Business Group 0702154543869_b704c6\nR3 Contract Ledger 0702154543869_b704c6\n1 条 / MODULE_v1782978357741\n\nR3 BUSINESS GROUP 0702154543869_B704C6\n\nR3 Contract Ledger 0702154543869_b704c6\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R3 Contract Ledger 0702154543869_b704c6 / 默认\nAll Contracts / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1024_1056_1396\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tContract Name ↕\tContract Amount ↕\tContract Number ↕\tContract Files ↕\t操作\n\t001\t-\t-\t-\tRuntime Contract Updated 0702154543869_b704c6\t3600.000000\tR3-0702154543869_b704c6-0001\t-\t\n操作\n编辑\n提交审批（不可用）\n删除（不可用）\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\n业务详情\nRuntime Contract Updated 0702154543869_b704c6\n编辑\n删除\n打印预览\n导出打印\n标题\nRuntime Contract Updated 0702154543869_b704c6\n摘要\nR1782978360163\n状态\nAPPROVED\n权限版本\nperm_live_1024_1056_1396\n详细资料\n关联数据\n附件\n打印记录\n操作记录\n基本信息\n标题\n状态\n所属部门\nContract Name\nRuntime Contract Updated 0702154543869_b704c6\nContract Amount\n3600.000000\nContract Number\nR3-0702154543869_b704c6-0001\nContract Files\n审批流程信息\n审批已通过\n审批已通过- / APPROVED / -\n编辑\n提交审批\n删除\n\ntraceId: TRACE-592\nauditLogId: AUD-592",
+                                        "blockers":  [
+
+                                                     ]
+                                    },
+                                    {
+                                        "key":  "requester-runtime-approved-mobile",
+                                        "phase":  "approve",
+                                        "url":  "http://127.0.0.1:18131/?r73=1782978378984#/systems/1024/modules",
+                                        "overflowX":  0,
+                                        "blockerTexts":  [
+
+                                                         ],
+                                        "textSample":  "R3 Runtime Target 0702154543869_b704c6\n仪表盘\nR3 Business Group 0702154543869_b704c6\n工作\n待办\n命令\n助手\n消息\n系统切换\nr3_requester_0702154543869_b704c6\nR3 Business Group 0702154543869_b704c6\nR3 Contract Ledger 0702154543869_b704c6\n1 条 / MODULE_v1782978357741\n\nR3 BUSINESS GROUP 0702154543869_B704C6\n\nR3 Contract Ledger 0702154543869_b704c6\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R3 Contract Ledger 0702154543869_b704c6 / 默认\nAll Contracts / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1024_1056_1396\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tContract Name ↕\tContract Amount ↕\tContract Number ↕\tContract Files ↕\t操作\n\t001\t-\t-\t-\tRuntime Contract Updated 0702154543869_b704c6\t3600.000000\tR3-0702154543869_b704c6-0001\t-\t\n操作\n编辑\n提交审批（不可用）\n删除（不可用）\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\n业务详情\nRuntime Contract Updated 0702154543869_b704c6\n编辑\n删除\n打印预览\n导出打印\n标题\nRuntime Contract Updated 0702154543869_b704c6\n摘要\nR1782978360163\n状态\nAPPROVED\n权限版本\nperm_live_1024_1056_1396\n详细资料\n关联数据\n附件\n打印记录\n操作记录\n基本信息\n标题\n状态\n所属部门\nContract Name\nRuntime Contract Updated 0702154543869_b704c6\nContract Amount\n3600.000000\nContract Number\nR3-0702154543869_b704c6-0001\nContract Files\n审批流程信息\n审批已通过\n审批已通过- / APPROVED / -\n编辑\n提交审批\n删除\n\ntraceId: TRACE-592\nauditLogId: AUD-592",
+                                        "blockers":  [
+
+                                                     ]
+                                    }
+                                ]
+                }
+}

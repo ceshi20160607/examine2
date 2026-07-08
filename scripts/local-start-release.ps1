@@ -21,6 +21,22 @@ $FrontendDir = Join-Path $RepoRoot 'release\unexamine-0.0.1-SNAPSHOT\frontend'
 $Jar = Join-Path $BackendDir 'examine-web.jar'
 $LogDir = Join-Path $BackendDir 'logs'
 
+function Normalize-ProcessPathEnvironment {
+    $envVars = [System.Environment]::GetEnvironmentVariables('Process')
+    $pathEntries = @($envVars.GetEnumerator() | Where-Object { [string]$_.Key -ieq 'Path' })
+    if ($pathEntries.Count -le 1) {
+        return
+    }
+    $pathValue = [string]($pathEntries | Where-Object { [string]$_.Key -ceq 'Path' } | Select-Object -First 1).Value
+    if ([string]::IsNullOrWhiteSpace($pathValue)) {
+        $pathValue = [string]($pathEntries | Select-Object -First 1).Value
+    }
+    foreach ($entry in $pathEntries) {
+        [System.Environment]::SetEnvironmentVariable([string]$entry.Key, $null, 'Process')
+    }
+    [System.Environment]::SetEnvironmentVariable('Path', $pathValue, 'Process')
+}
+
 function Get-ListeningProcessIds {
     param([Parameter(Mandatory = $true)][int]$Port)
     try {
@@ -60,6 +76,7 @@ if (-not (Test-Path $FrontendDir)) {
 if (-not (Test-Path $NodeExe)) {
     throw "Node executable not found: $NodeExe"
 }
+Normalize-ProcessPathEnvironment
 Assert-PortAvailable -Port $BackendPort -Name 'Backend'
 Assert-PortAvailable -Port $FrontendPort -Name 'Frontend'
 
@@ -78,11 +95,15 @@ $env:UNEXAMINE_REDIS_PASSWORD = $RedisPassword
 $env:UNEXAMINE_REDIS_DATABASE = [string]$RedisDatabase
 $env:UNEXAMINE_ALLOW_ACCOUNT_ID_HEADER = 'false'
 $env:UNEXAMINE_CORS_ALLOWED_ORIGINS = "http://127.0.0.1:$FrontendPort,http://localhost:$FrontendPort,http://127.0.0.1:5173,http://localhost:5173"
+$env:UNEXAMINE_TOMCAT_PROTOCOL = 'org.apache.coyote.http11.Http11Nio2Protocol'
+$env:UNEXAMINE_REDIS_SOCKET_TEMPLATE_ENABLED = 'true'
 
 $Args = @(
     '-Xms32m',
     '-Xmx192m',
     '-XX:+UseSerialGC',
+    '-Djava.net.preferIPv4Stack=true',
+    '-Djava.net.preferIPv6Addresses=false',
     '-jar',
     $Jar,
     "--spring.config.additional-location=optional:file:$BackendDir/"
@@ -178,13 +199,24 @@ function proxyApi(req, res) {
     method: req.method,
     headers: { ...req.headers, host: `127.0.0.1:${backendPort}` },
   }, (upstreamRes) => {
-    res.writeHead(upstreamRes.statusCode || 502, upstreamRes.headers);
+    if (!res.headersSent && !res.destroyed) {
+      res.writeHead(upstreamRes.statusCode || 502, upstreamRes.headers);
+    }
+    upstreamRes.on('error', () => {
+      if (!res.destroyed) {
+        res.destroy();
+      }
+    });
     upstreamRes.pipe(res);
   });
   upstream.on('error', (error) => {
+    if (res.headersSent || res.destroyed) {
+      return;
+    }
     res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ code: 'LOCAL_PROXY_ERROR', message: error.message }));
   });
+  req.on('aborted', () => upstream.destroy());
   req.pipe(upstream);
 }
 

@@ -1,0 +1,31 @@
+﻿{
+    "status":  "PASS",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "919",
+    "moduleId":  "367",
+    "hiddenModuleId":  "368",
+    "runtimeRoleId":  "1335",
+    "dictTypeId":  "468",
+    "dictItemCount":  2,
+    "fieldCount":  3,
+    "permissionVersion":  "perm_1782961389336_trc9e424",
+    "previewAllowed":  false,
+    "previewMissingPermissions":  [
+                                      "record.create"
+                                  ],
+    "previewHiddenSecret":  "HIDDEN",
+    "adminStatusFilterOptionCount":  2,
+    "normalSchemaColumnCount":  5,
+    "normalSecretColumnLeaked":  false,
+    "normalCreateDisabled":  true,
+    "forbiddenCreateStatus":  403,
+    "forbiddenAdminStatus":  403,
+    "browserResultCount":  4,
+    "browserOverflowCount":  0,
+    "browserBlockerCount":  0,
+    "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r44-no-code-permission-preview\\no-code-permission-preview-browser-audit.json",
+    "cleanup":  [
+                    "919:DELETE",
+                    "920:DELETE"
+                ]
+}

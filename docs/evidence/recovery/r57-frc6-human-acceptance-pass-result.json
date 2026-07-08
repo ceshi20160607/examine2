@@ -1,0 +1,1368 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "PARTIAL_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-02T13:06:22.4675180+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "requirementRows":  [
+                            "REQ-2.1",
+                            "REQ-4.1",
+                            "REQ-4.2",
+                            "REQ-6.2"
+                        ],
+    "journeyRows":  [
+                        "J0",
+                        "J1",
+                        "J2",
+                        "J3",
+                        "J4",
+                        "J5",
+                        "J6",
+                        "J7",
+                        "J8",
+                        "J9",
+                        "J10",
+                        "J11"
+                    ],
+    "userSignoff":  false,
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "health reports database/schema/redis UP",
+                       "passed":  true,
+                       "detail":  "{\"status\":\"UP\",\"redis\":\"UP\",\"database\":\"UP\",\"schema\":\"UP\"}"
+                   },
+                   {
+                       "area":  "frontend-static",
+                       "name":  "no blocker or warning copy/placeholder findings",
+                       "passed":  true,
+                       "detail":  "blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "fresh-human-journey",
+                       "name":  "R43 fresh role home whole-path usability script passed",
+                       "passed":  true,
+                       "detail":  "status=PASS, routes=16, results=32, failures=0, warnings=0"
+                   },
+                   {
+                       "area":  "permission-negative",
+                       "name":  "R43 fresh denied route and API permission checks passed",
+                       "passed":  true,
+                       "detail":  "forbiddenCreate=403, forbiddenAdmin=403"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "admin/platform-workbench has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/platform-workbench/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/platform-workbench/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/platform-workbench/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/platform-workbench/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/3, buttons=10/12"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/platform-workbench/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/platform-workbench/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/platform-workbench/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/platform-workbench/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/platform-workbench/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/platform-workbench/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/3, buttons=10/12"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/platform-workbench/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/platform-workbench/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "admin/platform-admin has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/platform-admin/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/platform-admin/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/platform-admin/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=True, expected=True"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/platform-admin/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=8/9, buttons=16/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/platform-admin/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/platform-admin/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/platform-admin/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/platform-admin/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/platform-admin/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=True, expected=True"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/platform-admin/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=8/9, buttons=16/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/platform-admin/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/platform-admin/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "admin/system-dashboard has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-dashboard/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-dashboard/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-dashboard/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-dashboard/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/4, buttons=11/16"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-dashboard/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-dashboard/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-dashboard/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-dashboard/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-dashboard/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-dashboard/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/4, buttons=11/16"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-dashboard/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-dashboard/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "admin/system-runtime-modules has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-runtime-modules/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-runtime-modules/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-runtime-modules/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-runtime-modules/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=2/4, buttons=27/64"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-runtime-modules/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-runtime-modules/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-runtime-modules/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-runtime-modules/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-runtime-modules/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-runtime-modules/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=2/4, buttons=27/64"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-runtime-modules/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-runtime-modules/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "admin/system-work has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-work/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-work/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-work/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-work/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=7/8, buttons=14/18"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-work/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-work/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-work/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-work/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-work/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-work/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=7/8, buttons=14/18"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-work/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-work/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "admin/system-todos has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-todos/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-todos/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-todos/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-todos/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=4/5, buttons=20/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-todos/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-todos/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-todos/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-todos/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-todos/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-todos/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=4/5, buttons=20/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-todos/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-todos/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "admin/system-messages has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-messages/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-messages/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-messages/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-messages/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=3/4, buttons=20/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-messages/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-messages/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-messages/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-messages/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-messages/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-messages/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=3/4, buttons=20/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-messages/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-messages/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "admin/system-admin has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-admin/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-admin/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-admin/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=True, expected=True"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-admin/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/9, buttons=23/36"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-admin/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-admin/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "admin/system-admin/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "admin/system-admin/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "admin/system-admin/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=True, expected=True"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "admin/system-admin/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/9, buttons=23/36"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "admin/system-admin/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "admin/system-admin/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "normal/normal-platform-workbench has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-platform-workbench/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-platform-workbench/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-platform-workbench/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-platform-workbench/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/3, buttons=8/12"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-platform-workbench/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-platform-workbench/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-platform-workbench/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-platform-workbench/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-platform-workbench/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-platform-workbench/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/3, buttons=8/12"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-platform-workbench/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-platform-workbench/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "normal/normal-platform-admin-denied has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-platform-admin-denied/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-platform-admin-denied/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-platform-admin-denied/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-platform-admin-denied/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=0/1, buttons=1/3"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-platform-admin-denied/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-platform-admin-denied/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-platform-admin-denied/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-platform-admin-denied/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-platform-admin-denied/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-platform-admin-denied/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=0/1, buttons=1/3"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-platform-admin-denied/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-platform-admin-denied/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "normal/normal-system-dashboard has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-dashboard/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-dashboard/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-dashboard/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-dashboard/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/4, buttons=10/16"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-dashboard/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-dashboard/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-dashboard/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-dashboard/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-dashboard/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-dashboard/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=1/4, buttons=10/16"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-dashboard/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-dashboard/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "normal/normal-system-runtime-modules has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-runtime-modules/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-runtime-modules/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-runtime-modules/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-runtime-modules/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=2/4, buttons=26/64"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-runtime-modules/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-runtime-modules/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-runtime-modules/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-runtime-modules/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-runtime-modules/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-runtime-modules/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=2/4, buttons=26/64"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-runtime-modules/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-runtime-modules/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "normal/normal-system-work has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-work/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-work/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-work/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-work/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=7/8, buttons=13/18"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-work/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-work/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-work/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-work/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-work/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-work/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=7/8, buttons=13/18"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-work/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-work/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "normal/normal-system-todos has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-todos/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-todos/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-todos/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-todos/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=4/5, buttons=19/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-todos/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-todos/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-todos/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-todos/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-todos/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-todos/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=4/5, buttons=19/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-todos/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-todos/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "normal/normal-system-messages has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-messages/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-messages/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-messages/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-messages/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=3/4, buttons=19/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-messages/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-messages/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-messages/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-messages/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-messages/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-messages/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=3/4, buttons=19/24"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-messages/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-messages/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-route",
+                       "name":  "normal/normal-system-admin-denied has desktop and mobile evidence",
+                       "passed":  true,
+                       "detail":  "count=2, viewports=desktop,mobile"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-admin-denied/desktop has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-admin-denied/desktop has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-admin-denied/desktop admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-admin-denied/desktop stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=0/1, buttons=1/3"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-admin-denied/desktop expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-admin-denied/desktop expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "role-journey-visual",
+                       "name":  "normal/normal-system-admin-denied/mobile has no overflow/clipping/control text overflow",
+                       "passed":  true,
+                       "detail":  "overflow=0, clipped=0, controlOverflow=0"
+                   },
+                   {
+                       "area":  "role-journey-copy",
+                       "name":  "normal/normal-system-admin-denied/mobile has no placeholder/generic/demo/mojibake findings",
+                       "passed":  true,
+                       "detail":  "placeholder=0, genericToast=0, demo=0, mojibake=0"
+                   },
+                   {
+                       "area":  "role-shell-separation",
+                       "name":  "normal/normal-system-admin-denied/mobile admin-shell visibility matches role surface",
+                       "passed":  true,
+                       "detail":  "adminShellVisible=False, expected=False"
+                   },
+                   {
+                       "area":  "one-primary-surface",
+                       "name":  "normal/normal-system-admin-denied/mobile stays below page-stacking density threshold",
+                       "passed":  true,
+                       "detail":  "panels=0/1, buttons=1/3"
+                   },
+                   {
+                       "area":  "role-journey-selectors",
+                       "name":  "normal/normal-system-admin-denied/mobile expected selectors visible and forbidden selectors absent",
+                       "passed":  true,
+                       "detail":  "missingSelectors=0, forbiddenSelectors=0"
+                   },
+                   {
+                       "area":  "role-journey-text",
+                       "name":  "normal/normal-system-admin-denied/mobile expected text present and forbidden text absent",
+                       "passed":  true,
+                       "detail":  "missingTexts=0, forbiddenTextHits=0"
+                   },
+                   {
+                       "area":  "data-readback-after-action",
+                       "name":  "fresh journey created system/module and rendered runtime data for admin and normal roles",
+                       "passed":  true,
+                       "detail":  "systemId=971, moduleId=390, adminRuntime=2, normalRuntime=2"
+                   },
+                   {
+                       "area":  "real-entry-sequence",
+                       "name":  "normal platform member can see system switch before entering system routes",
+                       "passed":  true,
+                       "detail":  "normalPlatformResults=2"
+                   },
+                   {
+                       "area":  "permission-positive-negative",
+                       "name":  "admin positives and normal denied states are both visible in deployed browser journeys",
+                       "passed":  true,
+                       "detail":  "adminRuntime=2, normalRuntime=2, normalDenied=2"
+                   }
+               ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r57-frc6-human-acceptance-pass\\verify-release.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r57-frc6-human-acceptance-pass\\final-usability-static-audit.log"
+                         },
+                         {
+                             "name":  "recovery-r43-role-home-whole-path-usability",
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r57-frc6-human-acceptance-pass\\recovery-r43-role-home-whole-path-usability.log"
+                         }
+                     ],
+    "staticAudit":  {
+                        "warningCount":  0,
+                        "status":  "PASS",
+                        "blockerCount":  0
+                    },
+    "browserAuditFile":  "docs/evidence/recovery/screenshots/r57-frc6-human-acceptance-pass/human-acceptance-browser-audit.json",
+    "humanJourney":  {
+                         "routeCount":  16,
+                         "moduleId":  "390",
+                         "forbiddenCreateStatus":  403,
+                         "resultCount":  32,
+                         "assetScripts":  [
+                                              "http://127.0.0.1:18131/assets/index-D3FrPh_v.js"
+                                          ],
+                         "warningCount":  0,
+                         "forbiddenAdminStatus":  403,
+                         "failureCount":  0,
+                         "viewportCount":  2,
+                         "systemId":  "971",
+                         "sourceTask":  "REC-P0-043 fresh rerun"
+                     },
+    "v7HumanUsableGate":  {
+                              "onePrimaryTaskSurface":  "panel/button density thresholds and no overflow/clipping/control-overflow checks",
+                              "userSignoffBoundary":  "false",
+                              "dataReadbackAfterAction":  "systemId=971, moduleId=390",
+                              "roleShellSeparation":  "adminShellVisible and forbidden selector/text assertions",
+                              "ambiguousCopyOrTipRisk":  "static audit plus placeholder/generic/demo/mojibake checks",
+                              "realEntrySequence":  "login -\u003e platform workspace or system switch -\u003e correct shell -\u003e platform/system/work/runtime/todo/message/admin route",
+                              "reloadReloginRestartRequirement":  "covered by fresh deployed release verification and fresh role journey execution against the release service",
+                              "primaryRoleJourney":  "platform normal member, platform administrator, system administrator, and system normal member paths are covered by fresh R43 admin/normal route pairs",
+                              "permissionPositiveAndNegative":  "forbiddenCreate=403, forbiddenAdmin=403"
+                          }
+}

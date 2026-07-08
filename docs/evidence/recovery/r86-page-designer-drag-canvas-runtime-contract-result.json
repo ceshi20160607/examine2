@@ -1,0 +1,86 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-086",
+    "frc":  "FRC-1 Page designer drag canvas and runtime component contract closure",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "1130",
+    "moduleId":  "458",
+    "pageCode":  "main",
+    "savedPageStatus":  "DRAFT",
+    "publishCheckPassed":  true,
+    "publishedVersion":  "PAGE_v1783421161375",
+    "adminSchemaVersion":  "PAGE_v1783421161375",
+    "normalSchemaVersion":  "PAGE_v1783421161375",
+    "normalReadonlyCount":  5,
+    "hiddenFieldLeaked":  false,
+    "hiddenComponentLeaked":  false,
+    "componentReadbackCount":  6,
+    "copiedComponentCodes":  [
+                                 "toolbar_copy"
+                             ],
+    "hiddenComponentCodes":  [
+                                 "toolbar_copy"
+                             ],
+    "componentWorkbench":  {
+                               "rendered":  true,
+                               "mobilePreview":  true,
+                               "rowCount":  6,
+                               "actionButtonCount":  38,
+                               "focusableControlCount":  36,
+                               "dragCanvas":  true,
+                               "draggableRowCount":  6,
+                               "widthValues":  [
+                                                   "half",
+                                                   "half",
+                                                   "full",
+                                                   "third",
+                                                   "half",
+                                                   "third"
+                                               ],
+                               "placementValues":  [
+                                                       "top",
+                                                       "top",
+                                                       "main",
+                                                       "right",
+                                                       "main",
+                                                       "right"
+                                                   ],
+                               "mobilePreviewComponentCount":  5
+                           },
+    "schemaContract":  {
+                           "adminLayoutComponentCount":  5,
+                           "normalLayoutComponentCount":  4,
+                           "schemaPreviewStrip":  true,
+                           "schemaPreviewComponentCount":  5
+                       },
+    "groupPublishedVersion":  "MODULE_GROUP_v1783421160605",
+    "forbiddenCreateStatus":  403,
+    "assetScripts":  [
+                         "http://127.0.0.1:18131/assets/index-YU9KKh-k.js"
+                     ],
+    "browserResultCount":  5,
+    "browserOverflowCount":  0,
+    "schemaComponentStripBrowserResultCount":  2,
+    "sourceMarkers":  {
+                          "dragCanvas":  true,
+                          "draggableRows":  true,
+                          "width":  true,
+                          "placement":  true,
+                          "schemaStrip":  true,
+                          "schemaWidth":  true,
+                          "schemaPlacement":  true
+                      },
+    "releaseMarkers":  {
+                           "dragCanvas":  true,
+                           "draggableRows":  true,
+                           "schemaStrip":  true,
+                           "schemaWidth":  true,
+                           "schemaPlacement":  true
+                       },
+    "evidenceDir":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r86-page-designer-drag-canvas-runtime-contract",
+    "browserAuditPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r86-page-designer-drag-canvas-runtime-contract\\page-designer-browser-audit.json",
+    "cleanup":  [
+                    "1130:DELETE",
+                    "1131:DELETE"
+                ]
+}

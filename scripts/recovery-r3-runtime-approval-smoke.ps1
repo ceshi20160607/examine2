@@ -1,6 +1,7 @@
 param(
     [string]$BaseUrl = 'http://127.0.0.1:18131',
     [switch]$KeepCreatedData,
+    [switch]$StopBeforeSubmit,
     [switch]$StopAfterSubmit
 )
 
@@ -318,6 +319,10 @@ $null = Invoke-Api -Method 'Post' -Path "/api/v1/systems/$script:TargetSystemId/
     reason = 'recovery-r3 module publish'
     idempotencyKey = "module-publish-r3-$Suffix"
 }
+$GroupPublish = Invoke-Api -Method 'Post' -Path "/api/v1/systems/$script:TargetSystemId/module-groups/$($Group.groupId)/publish" -Headers $script:AdminHeaders -Body @{
+    reason = 'recovery-r3 module group publish'
+    idempotencyKey = "module-group-publish-r3-$Suffix"
+}
 
 $Flow = Invoke-Api -Method 'Post' -Path "/api/v1/systems/$script:TargetSystemId/flows" -Headers $script:AdminHeaders -Body @{
     flowCode = "flow_r3_$Suffix"
@@ -534,6 +539,39 @@ Assert-True -Condition ($AttachmentAfterUpdate -contains $UploadedFileId) -Messa
 $History = Invoke-Api -Method 'Get' -Path "/api/v1/systems/$script:TargetSystemId/runtime/modules/$ModuleId/records/$RecordId/history?pageNo=1&pageSize=20" -Headers $NormalHeaders
 Assert-True -Condition ([int]$History.total -ge 2) -Message 'Runtime history did not include create and update entries.'
 
+if ($StopBeforeSubmit) {
+    [ordered]@{
+        status = 'PASS'
+        task = 'REC-P0-005,REC-P0-006-setup-before-submit'
+        generatedAt = (Get-Date).ToString('o')
+        baseUrl = $BaseUrl
+        suffix = $Suffix
+        password = $Password
+        targetSystemId = $script:TargetSystemId
+        targetTenantId = $TargetTenantId
+        requesterAccount = $NormalLoginName
+        approverAccount = $ApproverLoginName
+        requesterAccountId = $NormalLogin.profile.accountId
+        approverAccountId = $ApproverLogin.profile.accountId
+        requesterMemberId = $RequesterMember.systemMemberId
+        approverMemberId = $ApproverMember.systemMemberId
+        moduleId = $ModuleId
+        moduleGroupId = $Group.groupId
+        moduleGroupPublishedVersion = $GroupPublish.publishedVersion
+        flowId = $Flow.flowId
+        flowCode = $Flow.flowCode
+        recordId = $RecordId
+        recordTitle = "Runtime Contract Updated $Suffix"
+        runtimeSchemaActionCount = @($ListSchema.rowActions).Count
+        runtimeSchemaColumnCount = @($ListSchema.columns).Count
+        historyTotal = $History.total
+        normalOwnedSystemId = $script:NormalOwnedSystemId
+        approverOwnedSystemId = $script:ApproverOwnedSystemId
+        cleanup = if ($KeepCreatedData) { @('SKIPPED') } else { Remove-CreatedSystems }
+    } | ConvertTo-Json -Depth 30
+    return
+}
+
 $Approval = Invoke-Api -Method 'Post' -Path "/api/v1/systems/$script:TargetSystemId/runtime/modules/$ModuleId/records/$RecordId/actions/record.submitApproval" -Headers $NormalHeaders -Body @{
     parameters = @{}
     selectedRecordIds = @($RecordId)
@@ -599,6 +637,8 @@ if ($StopAfterSubmit) {
         requesterMemberId = $RequesterMember.systemMemberId
         approverMemberId = $ApproverMember.systemMemberId
         moduleId = $ModuleId
+        moduleGroupId = $Group.groupId
+        moduleGroupPublishedVersion = $GroupPublish.publishedVersion
         recordId = $RecordId
         pendingTaskId = $PendingTaskId
         pendingTodoId = $PendingTodo.todoId
@@ -697,6 +737,8 @@ if (Test-Path -LiteralPath $AttachmentFile) {
     approverMemberId = $ApproverMember.systemMemberId
     approverBindingId = $ApproverBinding.bindingId
     moduleId = $ModuleId
+    moduleGroupId = $Group.groupId
+    moduleGroupPublishedVersion = $GroupPublish.publishedVersion
     sceneId = $Scene.sceneId
     permissionVersion = $Permission.permissionVersion
     runtimeSchemaActionCount = @($ListSchema.rowActions).Count

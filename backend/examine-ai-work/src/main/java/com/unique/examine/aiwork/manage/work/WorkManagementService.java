@@ -361,17 +361,26 @@ public class WorkManagementService {
         String status = Boolean.TRUE.equals(request == null ? null : request.submitNow()) ? "SUBMITTED"
                 : safeText(request == null ? null : request.status(), "DRAFT");
         LocalDateTime now = LocalDateTime.now();
-        WorkDailyReport report = new WorkDailyReport();
-        report.setSystemId(context.systemId());
-        report.setTenantId(context.tenantId());
-        report.setReportDate(reportDate);
-        report.setSubmitterId(context.memberId());
+        WorkDailyReport report = dailyReportBaseService.getOne(new LambdaQueryWrapper<WorkDailyReport>()
+                .eq(WorkDailyReport::getSystemId, context.systemId())
+                .eq(WorkDailyReport::getTenantId, context.tenantId())
+                .eq(WorkDailyReport::getSubmitterId, context.memberId())
+                .eq(WorkDailyReport::getReportDate, reportDate)
+                .last("LIMIT 1"), false);
+        boolean creating = Objects.isNull(report);
+        if (creating) {
+            report = new WorkDailyReport();
+            report.setSystemId(context.systemId());
+            report.setTenantId(context.tenantId());
+            report.setReportDate(reportDate);
+            report.setSubmitterId(context.memberId());
+            report.setCreatedAt(now);
+        }
         report.setStatus(status);
         report.setContent(safeText(request == null ? null : request.content(), "Daily report draft."));
         report.setSourceSummary(sourceSummaryJson(request == null ? null : request.sourceIds()));
         report.setPermissionSnapshotId("perm_work_" + context.systemId() + "_" + context.memberId());
         report.setSubmittedAt("SUBMITTED".equals(status) ? now : null);
-        report.setCreatedAt(now);
         report.setUpdatedAt(now);
         dailyReportBaseService.saveEntity(report);
         return toDailyReportVO(report, context);

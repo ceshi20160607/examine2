@@ -1,0 +1,801 @@
+﻿{
+    "results":  [
+                    {
+                        "key":  "desktop-admin-system-home",
+                        "hash":  "#/systems/1091/dashboard",
+                        "overflowX":  0,
+                        "textPreview":  "R42 Page Designer 0706153032_87ea3b\n仪表盘\nR42 Operations 0706153032_87ea3b\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\n系统工作台\n\n当前系统成员权限范围内的业务入口、待办、消息和工作概览。\n\n今日概览\n\n来自后台首页配置，运行态按当前成员权限读取。\n\n业务可用\n工作概览\n0 项目 / 0 普通\n今日预警\n0 条\n当月日历\n0 天\n业务模块入口\n已发布\n今日预警\n\n暂无今日预警\n\n近期日历\n\n暂无日历事项\n\n打开业务模块\n\ntraceId: trc_945cad41-77ce-4dea-aca0-2806b686d35b",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-B1rdGYHk.js"
+                                         ],
+                        "hasHomeOverviewMarker":  true,
+                        "hasHomeOperationsMarker":  true,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  false,
+                        "hasPageComponentWorkbench":  false,
+                        "hasPageMobilePreview":  false,
+                        "componentRows":  [
+
+                                          ],
+                        "componentRowCount":  0,
+                        "componentActionButtonCount":  0,
+                        "focusableComponentControlCount":  0,
+                        "focusResults":  [
+
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  false,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  ""
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  false,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  true,
+                        "hasModuleName":  false,
+                        "hasPageName":  false,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  false,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+
+                                         ]
+                    },
+                    {
+                        "key":  "desktop-admin-runtime-validation",
+                        "hash":  "#/systems/1091/modules",
+                        "overflowX":  0,
+                        "textPreview":  "R42 Page Designer 0706153032_87ea3b\n仪表盘\nR42 Operations 0706153032_87ea3b\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\nR42 Operations 0706153032_87ea3b\nR42 Request 0706153032_87ea3b\n1 条 / MODULE_v1783323050223\n\nR42 OPERATIONS 0706153032_87EA3B\n\nR42 Request 0706153032_87ea3b\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R42 Request 0706153032_87ea3b / 默认\nR42 Default View / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1091_1123_1481\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n表单校验未通过。\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tPublic Name ↕\tSecret Note ↕\tAmount Value ↕\t操作\n\t001\t-\t-\t-\tR42 Visible Record 0706153032_87ea3b\tR42 Hidden Secret 0706153032_87ea3b\t3600.000000\t\n操作\n编辑\n提交审批\n删除\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\nRECORD FORM\n新建R42 Request 0706153032_87ea3b\n收起\n标题\n必填\n标题为必填项。\n状态\n必填\n状态为必填项。\n所属部门\nPublic Name\n必填\nPublic Name为必填项。\nSecret Note\nAmount Value\n附件\n\n暂无附件\n\n提交结果承接\n\n表单校验未通过。\n\n标题为必填项。\n\n状态为必填项。\n\nPublic Name为必填项。\n\n保存草稿\n保存记录\n提交审批\n取消",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-B1rdGYHk.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  false,
+                        "hasPageComponentWorkbench":  false,
+                        "hasPageMobilePreview":  false,
+                        "componentRows":  [
+
+                                          ],
+                        "componentRowCount":  0,
+                        "componentActionButtonCount":  0,
+                        "focusableComponentControlCount":  0,
+                        "focusResults":  [
+
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  true,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  "新建记录"
+                                              },
+                        "hasRuntimeSchemaFormMarker":  true,
+                        "hasRuntimeValidationErrors":  true,
+                        "invalidFieldCodes":  [
+                                                  "title",
+                                                  "status",
+                                                  "publicName",
+                                                  "title",
+                                                  "status",
+                                                  "publicName"
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  false,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  false,
+                        "hasModuleName":  true,
+                        "hasPageName":  false,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  true,
+                        "fields":  [
+                                       {
+                                           "fieldCode":  "title",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "status",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "ownerDept",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "publicName",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "secretNote",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "amountValue",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       }
+                                   ],
+                        "modulePanels":  [
+
+                                         ]
+                    },
+                    {
+                        "key":  "desktop-admin-runtime-validation-saved",
+                        "hash":  "#/systems/1091/modules",
+                        "overflowX":  0,
+                        "textPreview":  "R42 Page Designer 0706153032_87ea3b\n仪表盘\nR42 Operations 0706153032_87ea3b\n工作\n待办\n命令\n助手\n消息\n系统切换\n系统后台\nadmin\nR42 Operations 0706153032_87ea3b\nR42 Request 0706153032_87ea3b\n1 条 / MODULE_v1783323050223\n\nR42 OPERATIONS 0706153032_87EA3B\n\nR42 Request 0706153032_87ea3b\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R42 Request 0706153032_87ea3b / 默认\nR42 Default View / 默认\n新建记录\n更多操作\n导入数据\n导出数据\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1091_1123_1481\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n系统内部异常 traceId=trc_16cffd91-75e3-4c33-be05-93ec8c8a00db\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tPublic Name ↕\tSecret Note ↕\tAmount Value ↕\t操作\n\t001\t-\t-\t-\tR42 Visible Record 0706153032_87ea3b\tR42 Hidden Secret 0706153032_87ea3b\t3600.000000\t\n操作\n编辑\n提交审批\n删除\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\nRECORD FORM\n新建R42 Request 0706153032_87ea3b\n收起\n标题\n必填\n状态\n必填\n所属部门\nPublic Name\n必填\nSecret Note\nAmount Value\n附件\n\n暂无附件\n\n提交结果承接\n\n系统内部异常 traceId=trc_16cffd91-75e3-4c33-be05-93ec8c8a00db\n\n保存草稿\n保存记录\n提交审批\n取消",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-B1rdGYHk.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  false,
+                        "hasPageComponentWorkbench":  false,
+                        "hasPageMobilePreview":  false,
+                        "componentRows":  [
+
+                                          ],
+                        "componentRowCount":  0,
+                        "componentActionButtonCount":  0,
+                        "focusableComponentControlCount":  0,
+                        "focusResults":  [
+
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  true,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  "新建记录"
+                                              },
+                        "hasRuntimeSchemaFormMarker":  true,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  false,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  false,
+                        "hasModuleName":  true,
+                        "hasPageName":  false,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  true,
+                        "fields":  [
+                                       {
+                                           "fieldCode":  "title",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "status",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "ownerDept",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "publicName",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "secretNote",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       },
+                                       {
+                                           "fieldCode":  "amountValue",
+                                           "disabled":  false,
+                                           "readonly":  false,
+                                           "value":  ""
+                                       }
+                                   ],
+                        "modulePanels":  [
+
+                                         ]
+                    },
+                    {
+                        "key":  "desktop-admin-module-page-designer",
+                        "hash":  "#/systems/1091/admin",
+                        "overflowX":  0,
+                        "textPreview":  "系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR42 Page Designer 0706153032_87ea3b 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n模块管理\n模块分组\nR42 Operations 0706153032_87ea3b\n模块配置\n\n先筛选/选择模块，再配置字段、动作和发布。\n\n新建模块\n\n模块创建、发布检查、发布和回滚会调用真实后台接口并返回 traceId。\n\n模块\n分组\n全部分组\nR42 Operations 0706153032_87ea3b\n发布\n全部发布状态\n草稿\n已发布\n状态\n全部状态\n启用\n停用\n应用筛选\n重置\n模块\t状态\t发布\t版本\t操作\n\nR42 Request 0706153032_87ea3b\nr42_request_0706153032_87ea3b\n启用\tPUBLISHED\tMODULE_v1783323050223\t当前模块\n模块列表\nR42 Request 0706153032_87ea3br42_request_0706153032_87ea3b\n启用\nPUBLISHED\nR42 Request 0706153032_87ea3b\n\nr42_request_0706153032_87ea3b / MODULE_v1783323050223\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：441\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n组件布局已保存：5 个组件，4 个可见。\n\n当前模块\nR42 Request 0706153032_87ea3b (r42_request_0706153032_87ea3b)\n页面数量\n1\n当前页面\nR42 Runtime Main 0706153032_87ea3b / PUBLISHED\n组件预览\nPage Actions / Readonly Form / Hidden Secret / Runtime Records\n组件工作台\n\n调整组件顺序、复制常用组件、控制发布可见性，并同步验证移动端排布。\n\n添加表单组件\n保存组件布局\n1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nsort 10\n上移\n下移\n复制组件\n显示\n2\nPage Actions\n\nSHORTCUT / MODULE_ACTIONS / toolbar\n\n可见\nsort 20",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-B1rdGYHk.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  true,
+                        "hasPageComponentWorkbench":  true,
+                        "hasPageMobilePreview":  true,
+                        "componentRows":  [
+                                              {
+                                                  "code":  "toolbar_copy",
+                                                  "visible":  "false",
+                                                  "text":  "1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nsort 10\n上移\n下移\n复制组件\n显示"
+                                              },
+                                              {
+                                                  "code":  "toolbar",
+                                                  "visible":  "true",
+                                                  "text":  "2\nPage Actions\n\nSHORTCUT / MODULE_ACTIONS / toolbar\n\n可见\nsort 20\n上移\n下移\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "form",
+                                                  "visible":  "true",
+                                                  "text":  "3\nReadonly Form\n\nFORM / MODULE_FIELDS / form\n\n可见\nsort 30\n上移\n下移\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "secret",
+                                                  "visible":  "true",
+                                                  "text":  "4\nHidden Secret\n\nDETAIL / RECORD_DETAIL / secret\n\n可见\nsort 40\n上移\n下移\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "list",
+                                                  "visible":  "true",
+                                                  "text":  "5\nRuntime Records\n\nLIST / RUNTIME_RECORDS / list\n\n可见\nsort 50\n上移\n下移\n复制组件\n隐藏"
+                                              }
+                                          ],
+                        "componentRowCount":  5,
+                        "componentActionButtonCount":  22,
+                        "focusableComponentControlCount":  20,
+                        "focusResults":  [
+                                             {
+                                                 "text":  "添加表单组件",
+                                                 "ariaLabel":  "添加一个表单组件",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "保存组件布局",
+                                                 "ariaLabel":  "保存页面组件布局",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Page Actions 副本",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "显示",
+                                                 "ariaLabel":  "显示组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Runtime Records",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             }
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  false,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  ""
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  true,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  false,
+                        "hasModuleName":  true,
+                        "hasPageName":  true,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  true,
+                        "hasSecretText":  true,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+                                             "R42 Request 0706153032_87ea3b\n\nr42_request_0706153032_87ea3b / MODULE_v1783323050223\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：441\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n组件布局已保存：5 个组件，4 个可见。\n\n当前模块\nR42 Request 0706153032_87ea3b (r42_request_0706153032_87ea3b)\n页面数量\n1\n当前页面\nR42 Runtime Main 0706153032_87ea3b / PUBLISHED\n组件预览\nPage Actions / Readonly Form / Hi",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n组件布局已保存：5 个组件，4 个可见。\n\n当前模块\nR42 Request 0706153032_87ea3b (r42_request_0706153032_87ea3b)\n页面数量\n1\n当前页面\nR42 Runtime Main 0706153032_87ea3b / PUBLISHED\n组件预览\nPage Actions / Readonly Form / Hidden Secret / Runtime Records\n组件工作台\n\n调整组件顺序、复制常用组件、控制发布可见性，并同步验证移动端排布。\n\n添加表单组件\n保存组件布局\n1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nsort 10\n上移\n下移\n复制组件\n显示",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n组件布局已保存：5 个组件，4 个可见。\n\n当前模块\nR42 Request 0706153032_87ea3b (r42_request_0706153032_87ea3b)\n页面数量\n1\n当前页面\nR42 Runtime Main 0706153032_87ea3b / PUBLISHED\n组件预览\nPage Actions / Readonly Form / Hidden Secret / Runtime Records\n组件工作台\n\n调整组件顺序、复制常用组件、控制发布可见性，并同步验证移动端排布。\n\n添加表单组件\n保存组件布局\n1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nsort 10\n上移\n下移\n复制组件\n显示"
+                                         ]
+                    },
+                    {
+                        "key":  "desktop-admin-dashboard-config",
+                        "hash":  "#/systems/1091/admin",
+                        "overflowX":  0,
+                        "textPreview":  "系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR42 Page Designer 0706153032_87ea3b 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n首页配置\n首页标题系统工作台\n视觉语义calm-workbench\n显示组件4\n发布状态DRAFT\n首页说明\n当前系统成员权限范围内的业务入口、待办、消息和工作概览。\n运行态读取\n/work/home-page\n页面组件\n工作概览 / 今日预警 / 当月日历 / 业务模块入口\n保存首页配置\n发布检查\n\n首页设计会保存到系统后台配置，发布检查通过后由业务首页读取。\n\n工作概览WORK_DASHBOARD\n今日预警WORK_WARNING\n当月日历WORK_CALENDAR\n业务模块入口RUNTIME_MODULES\n\ntraceId: trc_df622d89-105a-41bd-a3fe-3c4bb0c0e198",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-B1rdGYHk.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  true,
+                        "hasModulePageDesignerMarker":  false,
+                        "hasPageComponentWorkbench":  false,
+                        "hasPageMobilePreview":  false,
+                        "componentRows":  [
+
+                                          ],
+                        "componentRowCount":  0,
+                        "componentActionButtonCount":  0,
+                        "focusableComponentControlCount":  0,
+                        "focusResults":  [
+
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  false,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  ""
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  false,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  true,
+                        "hasModuleName":  false,
+                        "hasPageName":  false,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  false,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+
+                                         ]
+                    },
+                    {
+                        "key":  "mobile-admin-module-page-designer",
+                        "hash":  "#/systems/1091/admin",
+                        "overflowX":  0,
+                        "textPreview":  "系统后台\n返回业务首页\n系统信息\n组织架构\n角色管理\n模块管理\n流程管理\n字典管理\n仪表盘管理\n数据源\n对外应用\n工作配置\n统一认证\nAI Agent\n日志管理\n系统后台\n\nR42 Page Designer 0706153032_87ea3b 的后台配置，只影响当前系统内的组织、角色、模块、流程、字典、工作、SSO、Agent 和日志。\n\n模块管理\n模块分组\nR42 Operations 0706153032_87ea3b\n模块配置\n\n先筛选/选择模块，再配置字段、动作和发布。\n\n新建模块\n\n模块创建、发布检查、发布和回滚会调用真实后台接口并返回 traceId。\n\n模块\n分组\n全部分组\nR42 Operations 0706153032_87ea3b\n发布\n全部发布状态\n草稿\n已发布\n状态\n全部状态\n启用\n停用\n应用筛选\n重置\n模块\t状态\t发布\t版本\t操作\n\nR42 Request 0706153032_87ea3b\nr42_request_0706153032_87ea3b\n启用\tPUBLISHED\tMODULE_v1783323050223\t当前模块\n模块列表\nR42 Request 0706153032_87ea3br42_request_0706153032_87ea3b\n启用\nPUBLISHED\nR42 Request 0706153032_87ea3b\n\nr42_request_0706153032_87ea3b / MODULE_v1783323050223\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：441\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n页面设计器保存模块页面草稿，发布后运行态才能读取。\n\n当前模块\nR42 Request 0706153032_87ea3b (r42_request_0706153032_87ea3b)\n页面数量\n1\n当前页面\nR42 Runtime Main 0706153032_87ea3b / DRAFT\n组件预览\nPage Actions 副本 / Page Actions / Readonly Form / Hidden Secret / Runtime Records\n组件工作台\n\n调整组件顺序、复制常用组件、控制发布可见性，并同步验证移动端排布。\n\n添加表单组件\n保存组件布局\n1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nsort 10\n上移\n下移\n复制组件\n显示\n2\nPage Actions\n\nSHORTCUT / MODULE_ACTIONS / ",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-B1rdGYHk.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  true,
+                        "hasPageComponentWorkbench":  true,
+                        "hasPageMobilePreview":  true,
+                        "componentRows":  [
+                                              {
+                                                  "code":  "toolbar_copy",
+                                                  "visible":  "false",
+                                                  "text":  "1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nsort 10\n上移\n下移\n复制组件\n显示"
+                                              },
+                                              {
+                                                  "code":  "toolbar",
+                                                  "visible":  "true",
+                                                  "text":  "2\nPage Actions\n\nSHORTCUT / MODULE_ACTIONS / toolbar\n\n可见\nsort 20\n上移\n下移\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "form",
+                                                  "visible":  "true",
+                                                  "text":  "3\nReadonly Form\n\nFORM / MODULE_FIELDS / form\n\n可见\nsort 30\n上移\n下移\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "secret",
+                                                  "visible":  "true",
+                                                  "text":  "4\nHidden Secret\n\nDETAIL / RECORD_DETAIL / secret\n\n可见\nsort 40\n上移\n下移\n复制组件\n隐藏"
+                                              },
+                                              {
+                                                  "code":  "list",
+                                                  "visible":  "true",
+                                                  "text":  "5\nRuntime Records\n\nLIST / RUNTIME_RECORDS / list\n\n可见\nsort 50\n上移\n下移\n复制组件\n隐藏"
+                                              }
+                                          ],
+                        "componentRowCount":  5,
+                        "componentActionButtonCount":  22,
+                        "focusableComponentControlCount":  20,
+                        "focusResults":  [
+                                             {
+                                                 "text":  "添加表单组件",
+                                                 "ariaLabel":  "添加一个表单组件",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "保存组件布局",
+                                                 "ariaLabel":  "保存页面组件布局",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Page Actions 副本",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "显示",
+                                                 "ariaLabel":  "显示组件 Page Actions 副本",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Page Actions",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Readonly Form",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Hidden Secret",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "上移",
+                                                 "ariaLabel":  "上移组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "下移",
+                                                 "ariaLabel":  "下移组件 Runtime Records",
+                                                 "focused":  false,
+                                                 "disabled":  true
+                                             },
+                                             {
+                                                 "text":  "复制组件",
+                                                 "ariaLabel":  "复制组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             },
+                                             {
+                                                 "text":  "隐藏",
+                                                 "ariaLabel":  "隐藏组件 Runtime Records",
+                                                 "focused":  true,
+                                                 "disabled":  false
+                                             }
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  false,
+                                                  "disabled":  false,
+                                                  "title":  "",
+                                                  "ariaLabel":  "",
+                                                  "text":  ""
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  true,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  false,
+                        "hasModuleName":  true,
+                        "hasPageName":  true,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  true,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+                                             "R42 Request 0706153032_87ea3b\n\nr42_request_0706153032_87ea3b / MODULE_v1783323050223\n\n发布检查\n发布\n回滚\n启用\n发布状态：PUBLISHED\n分组：441\n生命周期\n字段\n列表/动作/导入导出\n页面\n打印\n当前任务：页面\n运行态页面组件、移动端顺序和发布\n模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n页面设计器保存模块页面草稿，发布后运行态才能读取。\n\n当前模块\nR42 Request 0706153032_87ea3b (r42_request_0706153032_87ea3b)\n页面数量\n1\n当前页面\nR42 Runtime Main 0706153032_87ea3b / DRAFT\n组件预览\nPage Actions 副本 / Page Actions /",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n页面设计器保存模块页面草稿，发布后运行态才能读取。\n\n当前模块\nR42 Request 0706153032_87ea3b (r42_request_0706153032_87ea3b)\n页面数量\n1\n当前页面\nR42 Runtime Main 0706153032_87ea3b / DRAFT\n组件预览\nPage Actions 副本 / Page Actions / Readonly Form / Hidden Secret / Runtime Records\n组件工作台\n\n调整组件顺序、复制常用组件、控制发布可见性，并同步验证移动端排布。\n\n添加表单组件\n保存组件布局\n1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nso",
+                                             "模块页面设计器\n保存模块页面\n发布检查\n发布页面\n运行态读取\nSchema 预览\n\n页面设计器保存模块页面草稿，发布后运行态才能读取。\n\n当前模块\nR42 Request 0706153032_87ea3b (r42_request_0706153032_87ea3b)\n页面数量\n1\n当前页面\nR42 Runtime Main 0706153032_87ea3b / DRAFT\n组件预览\nPage Actions 副本 / Page Actions / Readonly Form / Hidden Secret / Runtime Records\n组件工作台\n\n调整组件顺序、复制常用组件、控制发布可见性，并同步验证移动端排布。\n\n添加表单组件\n保存组件布局\n1\nPage Actions 副本\n\nSHORTCUT / MODULE_ACTIONS / toolbar_copy\n\n已隐藏\nso"
+                                         ]
+                    },
+                    {
+                        "key":  "desktop-normal-runtime-readonly-form",
+                        "hash":  "#/systems/1091/modules",
+                        "overflowX":  0,
+                        "textPreview":  "R42 Page Designer 0706153032_87ea3b\n仪表盘\nR42 Operations 0706153032_87ea3b\n工作\n待办\n命令\n助手\n消息\n系统切换\nr42_page_member_0706153032_87ea3b\nR42 Operations 0706153032_87ea3b\nR42 Request 0706153032_87ea3b\n1 条 / MODULE_v1783323050223\n\nR42 OPERATIONS 0706153032_87EA3B\n\nR42 Request 0706153032_87ea3b\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R42 Request 0706153032_87ea3b / 默认\nR42 Default View / 默认\n新建记录\n更多操作\n导入数据\n导出数据（当前角色未配置动作权限：record.export）\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1091_1123_1483\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tPublic Name ↕\tAmount Value ↕\t操作\n\t001\t-\t-\t-\tR42 Visible Record 0706153032_87ea3b\t3600.000000\t\n操作\n编辑（不可用）\n提交审批（不可用）\n删除（不可用）\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\n业务详情\n3600\n编辑\n删除\n打印预览\n导出打印\n标题\n3600\n摘要\nR1783323050749\n状态\nDRAFT\n权限版本\nperm_live_1091_1123_1483\n详细资料\n关联数据\n附件\n打印记录\n操作记录\n基本信息\n标题\n状态\n所属部门\nPublic Name\nR42 Visible Record 0706153032_87ea3b\nAmount Value\n3600.000000\n审批流程\n\n当前记录未发起审批。\n\ntraceId: TRACE-617\nauditLogId: AUD-617",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-B1rdGYHk.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  false,
+                        "hasPageComponentWorkbench":  false,
+                        "hasPageMobilePreview":  false,
+                        "componentRows":  [
+
+                                          ],
+                        "componentRowCount":  0,
+                        "componentActionButtonCount":  0,
+                        "focusableComponentControlCount":  0,
+                        "focusResults":  [
+
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  true,
+                                                  "disabled":  true,
+                                                  "title":  "当前角色未配置动作权限：record.create",
+                                                  "ariaLabel":  "",
+                                                  "text":  "新建记录"
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  false,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  false,
+                        "hasModuleName":  true,
+                        "hasPageName":  false,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  false,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+
+                                         ]
+                    },
+                    {
+                        "key":  "mobile-normal-runtime-readonly-form",
+                        "hash":  "#/systems/1091/modules",
+                        "overflowX":  0,
+                        "textPreview":  "R42 Page Designer 0706153032_87ea3b\n仪表盘\nR42 Operations 0706153032_87ea3b\n工作\n待办\n命令\n助手\n消息\n系统切换\nr42_page_member_0706153032_87ea3b\nR42 Operations 0706153032_87ea3b\nR42 Request 0706153032_87ea3b\n1 条 / MODULE_v1783323050223\n\nR42 OPERATIONS 0706153032_87EA3B\n\nR42 Request 0706153032_87ea3b\n\n列表行点击打开右侧详情，操作列只保留编辑、删除、打印等差异动作。\n\n默认视图\n全部R42 Request 0706153032_87ea3b / 默认\nR42 Default View / 默认\n新建记录\n更多操作\n导入数据\n导出数据（当前角色未配置动作权限：record.export）\n列设置\n搜索当前模块数据\ntitle\nstatus\nownerDept\n快速搜索\n高级筛选\n\n当前视图：默认视图 / 权限快照：eps_1091_1123_1483\n\n已选 0 条\n删除\n导出选中\n勾选后启用删除和导出选中。\n\t序号\t标题 ↕\t状态 ↕\t所属部门 ↕\tPublic Name ↕\tAmount Value ↕\t操作\n\t001\t-\t-\t-\tR42 Visible Record 0706153032_87ea3b\t3600.000000\t\n操作\n编辑（不可用）\n提交审批（不可用）\n删除（不可用）\n第 1 页，每页 10 条，共 1 条\n上一页\n下一页\n业务详情\n3600\n编辑\n删除\n打印预览\n导出打印\n标题\n3600\n摘要\nR1783323050749\n状态\nDRAFT\n权限版本\nperm_live_1091_1123_1483\n详细资料\n关联数据\n附件\n打印记录\n操作记录\n基本信息\n标题\n状态\n所属部门\nPublic Name\nR42 Visible Record 0706153032_87ea3b\nAmount Value\n3600.000000\n审批流程\n\n当前记录未发起审批。\n\ntraceId: TRACE-617\nauditLogId: AUD-617",
+                        "assetScripts":  [
+                                             "http://127.0.0.1:18131/assets/index-B1rdGYHk.js"
+                                         ],
+                        "hasHomeOverviewMarker":  false,
+                        "hasHomeOperationsMarker":  false,
+                        "hasHomeConfigMarker":  false,
+                        "hasModulePageDesignerMarker":  false,
+                        "hasPageComponentWorkbench":  false,
+                        "hasPageMobilePreview":  false,
+                        "componentRows":  [
+
+                                          ],
+                        "componentRowCount":  0,
+                        "componentActionButtonCount":  0,
+                        "focusableComponentControlCount":  0,
+                        "focusResults":  [
+
+                                         ],
+                        "createButtonState":  {
+                                                  "exists":  true,
+                                                  "disabled":  true,
+                                                  "title":  "当前角色未配置动作权限：record.create",
+                                                  "ariaLabel":  "",
+                                                  "text":  "新建记录"
+                                              },
+                        "hasRuntimeSchemaFormMarker":  false,
+                        "hasRuntimeValidationErrors":  false,
+                        "invalidFieldCodes":  [
+
+                                              ],
+                        "hasEnglishReadonlyReason":  false,
+                        "hasModulePageDesigner":  false,
+                        "hasHomeAndPageDesignerTitle":  false,
+                        "hasHomeConfigTitle":  false,
+                        "hasModuleName":  true,
+                        "hasPageName":  false,
+                        "hasSchemaReadSuccess":  false,
+                        "hasSchemaPreviewPanel":  false,
+                        "hasSecretText":  false,
+                        "fields":  [
+
+                                   ],
+                        "modulePanels":  [
+
+                                         ]
+                    }
+                ]
+}

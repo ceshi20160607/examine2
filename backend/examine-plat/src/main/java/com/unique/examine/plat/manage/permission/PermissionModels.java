@@ -36,6 +36,26 @@ public final class PermissionModels {
                                        List<Map<String, Object>> explain, String permissionVersion,
                                        String traceId, String auditLogId) {
     }
+    public record PermissionBatchPreviewRequest(String systemMemberId, String tenantId, List<String> roleIds,
+                                                String moduleId, String recordId, List<String> actionCodes) {
+    }
+
+    public record PermissionActionDecisionVO(String actionCode, boolean allowed, String disabledReason,
+                                             List<String> missingPermissions, String auditLogId) {
+    }
+
+    public record PermissionPreviewAuditVO(String previewLogId, String systemMemberId, List<String> roleIds,
+                                           String moduleId, String actionCode, boolean allowed,
+                                           String disabledReason, String traceId, LocalDateTime createdAt) {
+    }
+
+    public record PermissionBatchPreviewVO(String permissionVersion, List<String> roleIds, String moduleId,
+                                           int affectedMemberCount, List<PermissionActionDecisionVO> decisions,
+                                           Map<String, String> fieldMaskRules,
+                                           Map<String, Object> dataScopeExpression,
+                                           List<Map<String, Object>> explain,
+                                           List<PermissionPreviewAuditVO> recentAudits, String traceId) {
+    }
 
     public record EffectivePermissionSnapshot(String snapshotId, String permissionVersion, String systemMemberId,
                                               String tenantId, List<String> sourceRoleIds, List<String> denyPolicyIds,

@@ -1,0 +1,155 @@
+{
+  "status": "PASS",
+  "task": "REC-P0-040",
+  "baseUrl": "http://127.0.0.1:18131",
+  "systemId": "755",
+  "accountName": "r40_member_0630210606836_d0fcc5",
+  "recordValue": "R40 Record Updated 0630210606836_d0fcc5",
+  "attachmentName": "r40-runtime-attachment-0630210606836_d0fcc5.txt",
+  "generatedAt": "2026-06-30T13:07:41.463Z",
+  "loginState": {
+    "ok": true,
+    "hash": "#/systems/755/dashboard"
+  },
+  "results": [
+    {
+      "key": "desktop-runtime-record-edit-uploader",
+      "screenshot": "desktop-runtime-record-edit-uploader.png",
+      "hash": "#/systems/755/modules",
+      "hasRuntime": true,
+      "hasTable": true,
+      "hasDetail": false,
+      "hasEditPanel": true,
+      "hasUploader": true,
+      "hasAttachmentDetail": false,
+      "hasHistoryList": false,
+      "hasRecordValue": true,
+      "hasAttachmentName": true,
+      "overflowX": 0,
+      "scripts": [
+        "http://127.0.0.1:18131/config.js",
+        "http://127.0.0.1:18131/assets/index-DQnwg1ks.js"
+      ],
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "key": "desktop-runtime-record-attachment-detail",
+      "screenshot": "desktop-runtime-record-attachment-detail.png",
+      "hash": "#/systems/755/modules",
+      "hasRuntime": true,
+      "hasTable": true,
+      "hasDetail": true,
+      "hasEditPanel": false,
+      "hasUploader": false,
+      "hasAttachmentDetail": true,
+      "hasHistoryList": false,
+      "hasRecordValue": true,
+      "hasAttachmentName": true,
+      "overflowX": 0,
+      "scripts": [
+        "http://127.0.0.1:18131/config.js",
+        "http://127.0.0.1:18131/assets/index-DQnwg1ks.js"
+      ],
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "key": "desktop-runtime-record-history",
+      "screenshot": "desktop-runtime-record-history.png",
+      "hash": "#/systems/755/modules",
+      "hasRuntime": true,
+      "hasTable": true,
+      "hasDetail": true,
+      "hasEditPanel": false,
+      "hasUploader": false,
+      "hasAttachmentDetail": false,
+      "hasHistoryList": true,
+      "hasRecordValue": true,
+      "hasAttachmentName": false,
+      "overflowX": 0,
+      "scripts": [
+        "http://127.0.0.1:18131/config.js",
+        "http://127.0.0.1:18131/assets/index-DQnwg1ks.js"
+      ],
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "key": "mobile-runtime-record-edit-uploader",
+      "screenshot": "mobile-runtime-record-edit-uploader.png",
+      "hash": "#/systems/755/modules",
+      "hasRuntime": true,
+      "hasTable": true,
+      "hasDetail": false,
+      "hasEditPanel": true,
+      "hasUploader": true,
+      "hasAttachmentDetail": false,
+      "hasHistoryList": false,
+      "hasRecordValue": true,
+      "hasAttachmentName": true,
+      "overflowX": 0,
+      "scripts": [
+        "http://127.0.0.1:18131/config.js",
+        "http://127.0.0.1:18131/assets/index-DQnwg1ks.js"
+      ],
+      "viewport": {
+        "width": 390,
+        "height": 720
+      }
+    },
+    {
+      "key": "mobile-runtime-record-attachment-detail",
+      "screenshot": "mobile-runtime-record-attachment-detail.png",
+      "hash": "#/systems/755/modules",
+      "hasRuntime": true,
+      "hasTable": true,
+      "hasDetail": true,
+      "hasEditPanel": false,
+      "hasUploader": false,
+      "hasAttachmentDetail": true,
+      "hasHistoryList": false,
+      "hasRecordValue": true,
+      "hasAttachmentName": true,
+      "overflowX": 0,
+      "scripts": [
+        "http://127.0.0.1:18131/config.js",
+        "http://127.0.0.1:18131/assets/index-DQnwg1ks.js"
+      ],
+      "viewport": {
+        "width": 390,
+        "height": 720
+      }
+    },
+    {
+      "key": "mobile-runtime-record-history",
+      "screenshot": "mobile-runtime-record-history.png",
+      "hash": "#/systems/755/modules",
+      "hasRuntime": true,
+      "hasTable": true,
+      "hasDetail": true,
+      "hasEditPanel": false,
+      "hasUploader": false,
+      "hasAttachmentDetail": false,
+      "hasHistoryList": true,
+      "hasRecordValue": true,
+      "hasAttachmentName": false,
+      "overflowX": 0,
+      "scripts": [
+        "http://127.0.0.1:18131/config.js",
+        "http://127.0.0.1:18131/assets/index-DQnwg1ks.js"
+      ],
+      "viewport": {
+        "width": 390,
+        "height": 720
+      }
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,17 @@
+﻿{
+    "status":  "PASS",
+    "generatedAt":  "2026-07-01T15:09:57.8554876+08:00",
+    "source":  "R52 aggregation of fresh R43 and R46 deployed browser audits",
+    "r43":  {
+                "warningCount":  0,
+                "resultCount":  32,
+                "failureCount":  0,
+                "resultFile":  "docs/evidence/recovery/r43-role-home-whole-path-usability-result.json"
+            },
+    "r46":  {
+                "browserBlockerCount":  0,
+                "browserResultCount":  10,
+                "browserOverflowCount":  0,
+                "resultFile":  "docs/evidence/recovery/r46-page-surface-result.json"
+            }
+}

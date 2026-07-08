@@ -1,0 +1,31 @@
+﻿{
+    "status":  "PASS",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "917",
+    "moduleId":  "366",
+    "updatedModuleName":  "R38 Request Updated 0702110224_96b7e1",
+    "actionCode":  "record.audit",
+    "sceneId":  "674",
+    "schemaColumnCount":  3,
+    "schemaFilterCount":  6,
+    "schemaSorterCount":  1,
+    "importSupported":  true,
+    "exportSupported":  true,
+    "importExportMappingCount":  3,
+    "publishCheckPassed":  true,
+    "publishedVersion":  "MODULE_v1782961354460",
+    "rollbackResult":  "ROLLED_BACK",
+    "forbiddenCreateStatus":  403,
+    "forbiddenAdminStatus":  403,
+    "browserResultCount":  2,
+    "browserOverflowCount":  0,
+    "browserBlockerCount":  0,
+    "deployedScripts":  [
+                            "http://127.0.0.1:18131/config.js",
+                            "http://127.0.0.1:18131/assets/index-Dc298sMo.js"
+                        ],
+    "cleanup":  [
+                    "917:DELETE",
+                    "918:DELETE"
+                ]
+}

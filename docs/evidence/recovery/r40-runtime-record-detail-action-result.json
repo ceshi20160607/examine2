@@ -1,0 +1,42 @@
+﻿{
+    "status":  "PASS",
+    "task":  "REC-P0-040",
+    "generatedAt":  "2026-06-30T21:07:42.5782453+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "systemId":  "755",
+    "tenantId":  "787",
+    "moduleId":  "258",
+    "runtimeRoleId":  "1062",
+    "normalAccount":  "r40_member_0630210606836_d0fcc5",
+    "normalMemberId":  "986",
+    "draftId":  "draft_trc_e5df",
+    "recordId":  "355",
+    "uploadedFileId":  "file_a2a86657_1782824822227",
+    "uploadedFileName":  "r40-runtime-attachment-0630210606836_d0fcc5.txt",
+    "detailTabCodes":  [
+                           "base",
+                           "attachments",
+                           "print",
+                           "operationLogs"
+                       ],
+    "detailAttachmentCount":  4,
+    "detailHistoryCount":  2,
+    "historyTotal":  2,
+    "deleteResult":  "DELETED",
+    "forbiddenAdminStatus":  403,
+    "archiveAccepted":  true,
+    "historyAfterActionTotal":  3,
+    "browserStatus":  "PASS",
+    "browserResultCount":  6,
+    "browserOverflowCount":  0,
+    "browserBlockerCount":  0,
+    "deployedScripts":  [
+                            "http://127.0.0.1:18131/config.js",
+                            "http://127.0.0.1:18131/assets/index-DQnwg1ks.js"
+                        ],
+    "browserResultPath":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r40-runtime-record-detail-action\\runtime-record-detail-action-browser.json",
+    "cleanup":  [
+                    "755:DELETE",
+                    "756:DELETE"
+                ]
+}
