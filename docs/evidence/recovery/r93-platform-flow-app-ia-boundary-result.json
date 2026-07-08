@@ -1,0 +1,103 @@
+﻿{
+    "status":  "PASS",
+    "batch":  "RECOVERY-R93",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "checkedAt":  "2026-07-08T15:09:14.9810072+08:00",
+    "checks":  [
+                   {
+                       "name":  "R93 task recorded in ledger",
+                       "passed":  true,
+                       "detail":  "next-execution ledger must record R93 as active or accepted."
+                   },
+                   {
+                       "name":  "R92/R94/R95 sequencing after R93 acceptance",
+                       "passed":  true,
+                       "detail":  "R92 must either be active immediately after R93 or accepted with R94/R95 active as the follow-up deployed audit."
+                   },
+                   {
+                       "name":  "R93 task card exists",
+                       "passed":  true,
+                       "detail":  "task card must persist the new user feedback and boundary."
+                   },
+                   {
+                       "name":  "platform apps function found",
+                       "passed":  true,
+                       "detail":  "createPlatformAppsPage must be statically inspectable."
+                   },
+                   {
+                       "name":  "apps page separated marker",
+                       "passed":  true,
+                       "detail":  "apps page must expose explicit no-system-entry markers."
+                   },
+                   {
+                       "name":  "apps page no system switch panel",
+                       "passed":  true,
+                       "detail":  "apps page must not render the system switch panel."
+                   },
+                   {
+                       "name":  "apps page no system cards",
+                       "passed":  true,
+                       "detail":  "apps page must not render platform system cards."
+                   },
+                   {
+                       "name":  "apps page has application list",
+                       "passed":  true,
+                       "detail":  "apps page must show application rows/config affordances."
+                   },
+                   {
+                       "name":  "flow function found",
+                       "passed":  true,
+                       "detail":  "createPlatformFlowPage must be statically inspectable."
+                   },
+                   {
+                       "name":  "flow independent markers",
+                       "passed":  true,
+                       "detail":  "Flow page must expose independent module/list markers."
+                   },
+                   {
+                       "name":  "platform header found",
+                       "passed":  true,
+                       "detail":  "createPlatformHeader must be statically inspectable."
+                   },
+                   {
+                       "name":  "primary platform nav follows temp_flow",
+                       "passed":  true,
+                       "detail":  "primary nav must include workbench/Flow/apps/work."
+                   },
+                   {
+                       "name":  "auxiliary platform nav separated",
+                       "passed":  true,
+                       "detail":  "AI/todo/message/profile/system-entry must be auxiliary, not app content."
+                   },
+                   {
+                       "name":  "system entry remains on workbench",
+                       "passed":  true,
+                       "detail":  "system entry panel must still exist for /platform workbench."
+                   },
+                   {
+                       "name":  "platform work route registered",
+                       "passed":  true,
+                       "detail":  "routes.ts must include /platform/work."
+                   },
+                   {
+                       "name":  "system admin deep section route",
+                       "passed":  true,
+                       "detail":  "system shell must support /systems/{id}/admin/openapi-apps."
+                   },
+                   {
+                       "name":  "responsive platform styles present",
+                       "passed":  true,
+                       "detail":  "styles must include platform IA responsive support."
+                   }
+               ],
+    "failures":  [
+
+                 ],
+    "deployed":  {
+                     "checked":  true,
+                     "reachable":  false,
+                     "assetChecked":  false,
+                     "detail":  "The operation has timed out."
+                 }
+}

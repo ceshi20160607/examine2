@@ -203,7 +203,7 @@ $r60HasContract = -not [string]::IsNullOrWhiteSpace($r60Section) `
     -and $r60Section -match 'flow id'
 Add-Check $checks 'REC-P0-060 task card locks flow blueprint before coding' $r60HasContract 'R60 must make the flow blueprint an active framework task'
 
-$activeFlowBlueprintTask = ($nextTasks -join ' ') -match 'REC-P0-060|REC-P0-061|REC-P0-062|REC-P0-059|REC-P0-063|REC-P0-064|REC-P0-065|REC-P0-066|REC-P0-067|REC-P0-068|REC-P0-069|REC-P0-070|REC-P0-071|REC-P0-072|REC-P0-073|REC-P0-074|REC-P0-075|REC-P0-077|REC-P0-078|REC-P0-079|REC-P0-080|REC-P0-081|REC-P0-082|REC-P0-083|REC-P0-084|REC-P0-085|REC-P0-086|REC-P0-087|REC-P0-088|REC-P0-089|REC-P0-090|REC-P0-091|REC-P0-092' `
+$activeFlowBlueprintTask = ($nextTasks -join ' ') -match 'REC-P0-060|REC-P0-061|REC-P0-062|REC-P0-059|REC-P0-063|REC-P0-064|REC-P0-065|REC-P0-066|REC-P0-067|REC-P0-068|REC-P0-069|REC-P0-070|REC-P0-071|REC-P0-072|REC-P0-073|REC-P0-074|REC-P0-075|REC-P0-077|REC-P0-078|REC-P0-079|REC-P0-080|REC-P0-081|REC-P0-082|REC-P0-083|REC-P0-084|REC-P0-085|REC-P0-086|REC-P0-087|REC-P0-088|REC-P0-089|REC-P0-090|REC-P0-091|REC-P0-092|REC-P0-093|REC-P0-094|REC-P0-095|REC-P0-096|REC-P0-097|REC-P0-098|REC-P0-099|REC-P0-100|REC-P0-101|REC-P0-102|REC-P0-103' `
     -and $nextText -match 'REC-P0-060 Flow Blueprint And Rebuild Contract Lock' `
     -and $nextText -match 'REC-P0-063 B1/B2 Configured Runtime First-Use And Daily Business Closure' `
     -and $nextText -match 'REC-P0-064 C4/B4/B5 Workflow Todo Message First-Use And Closure' `
@@ -234,6 +234,17 @@ $activeFlowBlueprintTask = ($nextTasks -join ' ') -match 'REC-P0-060|REC-P0-061|
     -and $nextText -match 'REC-P0-090 System Org Member Role Binding First-Use Closure' `
     -and $nextText -match 'REC-P0-091 Role Permission Matrix Impact Preview Audit Closure' `
     -and $nextText -match 'REC-P0-092 Workflow Designer Advanced Node Publish Impact Closure' `
+    -and $nextText -match 'REC-P0-093 Platform Flow And Application IA Boundary Realignment' `
+    -and $nextText -match 'REC-P0-094 Fresh Deployed Role Journey Audit After R92/R93' `
+    -and $nextText -match 'REC-P0-095 Platform Workbench System Entry Density And List Rewrite Closure' `
+    -and $nextText -match 'REC-P0-096 Final Remaining Partial Coverage Or User Trial Readiness Selection' `
+    -and $nextText -match 'REC-P0-097 C1 Fresh System Initialization Path And Empty Dashboard Hierarchy Closure' `
+    -and $nextText -match 'REC-P0-098 Final User Trial Script Readiness And Signoff Path' `
+    -and $nextText -match 'REC-P0-099 Post-R98 User Trial Feedback Intake And Residual Repair Selection' `
+    -and $nextText -match 'REC-P0-100 Platform Flow Application Workbench Depth And Action Clarity Closure' `
+    -and $nextText -match 'REC-P0-101 Platform Flow Application Persistence Permission And Readback Closure' `
+    -and $nextText -match 'REC-P0-102 Final User Trial Refresh After Platform Flow Application Readback' `
+    -and $nextText -match 'REC-P0-103 Fresh Deployed Human Usability Audit After R102' `
     -and $finalUsableText -match 'final-system-flow-blueprint\.md' `
     -and $fixText -match 'Batch R60' `
     -and $fixText -match 'Batch R63' `
@@ -266,7 +277,16 @@ $activeFlowBlueprintTask = ($nextTasks -join ' ') -match 'REC-P0-060|REC-P0-061|
     -and $fixText -match 'Batch R89' `
     -and $fixText -match 'Batch R90' `
     -and $fixText -match 'Batch R91' `
-    -and $fixText -match 'Batch R92'
+    -and $fixText -match 'Batch R92' `
+    -and $fixText -match 'Batch R95' `
+    -and $fixText -match 'Batch R96' `
+    -and $fixText -match 'Batch R97' `
+    -and $fixText -match 'Batch R98' `
+    -and $fixText -match 'Batch R99' `
+    -and $fixText -match 'Batch R100' `
+    -and $fixText -match 'Batch R101' `
+    -and $fixText -match 'Batch R102' `
+    -and $fixText -match 'Batch R103'
 Add-Check $checks 'active next task follows flow-blueprint execution after user correction' $activeFlowBlueprintTask 'session, ledger, final acceptance, and fix batches must keep R60 recorded and keep subsequent tasks flow-derived'
 
 $finalAcceptanceReopened = $finalUsableText -match 'REOPENED_BY_USER_FEEDBACK' `
@@ -283,6 +303,234 @@ foreach ($line in ($finalUsableText -split "`r?`n")) {
 Add-Check $checks 'final usable-system journey rows do not claim final PASS after user feedback' ($allJourneyPassRows.Count -eq 0) (($allJourneyPassRows | Select-Object -First 5) -join ' | ')
 
 $nextTaskContractMappings = @(
+    [ordered]@{
+        Pattern = 'Fresh Deployed Human Usability Audit After R102|REC-P0-103'
+        TaskId = 'REC-P0-103'
+        FrcId = 'REC-P0-103'
+        RequiredCoverageRows = @(
+            'REQ-2.1',
+            'REQ-4.1',
+            'REQ-4.2',
+            'REQ-6.1',
+            'REQ-6.2',
+            'REQ-6.3',
+            'REQ-6.11',
+            'REQ-9',
+            'REQ-14.1-14.37'
+        )
+        RequiredRows = @(
+            'Requirement source',
+            'Target role',
+            'Entry point',
+            'User job',
+            'Data contract',
+            'Permission contract',
+            'State contract',
+            'Copy contract',
+            'Acceptance assertions',
+            'Screenshot evidence boundary'
+        )
+        RequiredEvidence = @(
+            'scripts/recovery-r103-fresh-deployed-human-usability-audit-after-r102.ps1',
+            'docs/evidence/recovery/r103-fresh-deployed-human-usability-audit-after-r102-result.json',
+            'docs/evidence/recovery/r103-fresh-deployed-human-usability-audit-after-r102-2026-07-08.md'
+        )
+        RequireVisualOnlyScreenshotBoundary = $true
+    },
+    [ordered]@{
+        Pattern = 'Final User Trial Refresh After Platform Flow Application Readback|REC-P0-102'
+        TaskId = 'REC-P0-102'
+        FrcId = 'REC-P0-102'
+        RequiredCoverageRows = @(
+            'REQ-2.1',
+            'REQ-4.1',
+            'REQ-4.2',
+            'REQ-5.15',
+            'REQ-6.1',
+            'REQ-6.2',
+            'REQ-6.3',
+            'REQ-6.11',
+            'REQ-9',
+            'REQ-14.1-14.37'
+        )
+        RequiredRows = @(
+            'Requirement source',
+            'Target role',
+            'Entry point',
+            'User job',
+            'Data contract',
+            'Permission contract',
+            'State contract',
+            'Copy contract',
+            'Acceptance assertions',
+            'Screenshot evidence boundary'
+        )
+        RequiredEvidence = @(
+            'scripts/recovery-r102-final-user-trial-refresh-after-r101.ps1',
+            'docs/evidence/recovery/r102-final-user-trial-refresh-after-r101-result.json',
+            'docs/evidence/recovery/r102-final-user-trial-refresh-after-r101-2026-07-08.md'
+        )
+        RequireVisualOnlyScreenshotBoundary = $true
+    },
+    [ordered]@{
+        Pattern = 'Platform Flow Application Persistence Permission And Readback Closure|REC-P0-101'
+        TaskId = 'REC-P0-101'
+        FrcId = 'REC-P0-101'
+        RequiredCoverageRows = @(
+            'REQ-4.1',
+            'REQ-4.2',
+            'REQ-5.15',
+            'REQ-6.1',
+            'REQ-6.2',
+            'REQ-6.3',
+            'REQ-6.11',
+            'REQ-9',
+            'REQ-2.1'
+        )
+        RequiredRows = @(
+            'Requirement source',
+            'Target role',
+            'Entry point',
+            'User job',
+            'Data contract',
+            'Permission contract',
+            'State contract',
+            'Copy contract',
+            'Acceptance assertions',
+            'Screenshot evidence boundary'
+        )
+        RequiredEvidence = @(
+            'scripts/recovery-r101-platform-flow-application-api-readback.ps1',
+            'docs/evidence/recovery/r101-platform-flow-application-api-readback-result.json',
+            'docs/evidence/recovery/r101-platform-flow-application-api-readback-2026-07-08.md'
+        )
+        RequireVisualOnlyScreenshotBoundary = $true
+    },
+    [ordered]@{
+        Pattern = 'Platform Flow Application Workbench Depth And Action Clarity Closure|REC-P0-100'
+        TaskId = 'REC-P0-100'
+        FrcId = 'REC-P0-100'
+        RequiredCoverageRows = @(
+            'REQ-4.1',
+            'REQ-4.2',
+            'REQ-5.15',
+            'REQ-6.1',
+            'REQ-6.2',
+            'REQ-6.3',
+            'REQ-6.11',
+            'REQ-9',
+            'REQ-2.1'
+        )
+        RequiredRows = @(
+            'Requirement source',
+            'Target role',
+            'Entry point',
+            'User job',
+            'Data contract',
+            'Permission contract',
+            'State contract',
+            'Copy contract',
+            'Acceptance assertions',
+            'Screenshot evidence boundary'
+        )
+        RequiredEvidence = @(
+            'scripts/recovery-r100-platform-flow-application-depth.ps1',
+            'scripts/recovery-r100-browser-audit.js',
+            'docs/evidence/recovery/r100-platform-flow-application-depth-result.json',
+            'docs/evidence/recovery/r100-platform-flow-application-depth-2026-07-08.md'
+        )
+        RequireVisualOnlyScreenshotBoundary = $true
+    },
+    [ordered]@{
+        Pattern = 'Post-R98 User Trial Feedback Intake And Residual Repair Selection|REC-P0-099'
+        TaskId = 'REC-P0-099'
+        FrcId = 'REC-P0-099'
+        RequiredCoverageRows = @(
+            'REQ-2.1',
+            'REQ-6.2',
+            'REQ-9'
+        )
+        RequiredRows = @(
+            'Requirement source',
+            'Target role',
+            'Entry point',
+            'User job',
+            'Data contract',
+            'Permission contract',
+            'State contract',
+            'Copy contract',
+            'Acceptance assertions',
+            'Screenshot evidence boundary'
+        )
+        RequiredEvidence = @(
+            'scripts/recovery-r99-post-r98-user-feedback-intake-and-next-repair-selection.ps1',
+            'docs/evidence/recovery/r99-post-r98-user-feedback-intake-and-next-repair-selection-result.json',
+            'docs/evidence/recovery/r99-post-r98-user-feedback-intake-and-next-repair-selection-2026-07-08.md'
+        )
+        RequireVisualOnlyScreenshotBoundary = $true
+    },
+    [ordered]@{
+        Pattern = 'Final User Trial Script Readiness And Signoff Path|REC-P0-098'
+        TaskId = 'REC-P0-098'
+        FrcId = 'REC-P0-098'
+        RequiredCoverageRows = @(
+            'REQ-2.1',
+            'REQ-6.2',
+            'REQ-9'
+        )
+        RequiredRows = @(
+            'Requirement source',
+            'Target role',
+            'Entry point',
+            'User job',
+            'Data contract',
+            'Permission contract',
+            'State contract',
+            'Copy contract',
+            'Acceptance assertions',
+            'Screenshot evidence boundary'
+        )
+        RequiredEvidence = @(
+            'scripts/recovery-r98-final-user-trial-readiness-and-signoff-path.ps1',
+            'docs/evidence/recovery/r98-final-user-trial-readiness-and-signoff-path-result.json',
+            'docs/evidence/recovery/r98-final-user-trial-readiness-and-signoff-path-2026-07-08.md'
+        )
+        RequireVisualOnlyScreenshotBoundary = $true
+    },
+    [ordered]@{
+        Pattern = 'C1 Fresh System Initialization Path|REC-P0-097'
+        TaskId = 'REC-P0-097'
+        FrcId = 'REC-P0-097'
+        RequiredCoverageRows = @(
+            'REQ-4.1',
+            'REQ-4.3',
+            'REQ-5.2',
+            'REQ-5.4',
+            'REQ-5.7',
+            'REQ-5.10',
+            'REQ-6.2',
+            'REQ-6.3',
+            'REQ-2.1'
+        )
+        RequiredRows = @(
+            'Requirement source',
+            'Target role',
+            'Entry point',
+            'User job',
+            'Data contract',
+            'Permission contract',
+            'State contract',
+            'Copy contract',
+            'Acceptance assertions',
+            'Screenshot evidence boundary'
+        )
+        RequiredEvidence = @(
+            'scripts/recovery-r97-c1-fresh-system-initialization-path.ps1',
+            'docs/evidence/recovery/r97-c1-fresh-system-initialization-path-result.json',
+            'docs/evidence/recovery/r97-c1-fresh-system-initialization-path-2026-07-08.md'
+        )
+        RequireVisualOnlyScreenshotBoundary = $true
+    },
     [ordered]@{
         Pattern = 'Workflow Designer Advanced Node Publish Impact Closure|REC-P0-092'
         TaskId = 'REC-P0-092'
@@ -1607,7 +1855,7 @@ foreach ($nextTask in $nextTasks) {
 
 $badCompletionTerms = @()
 foreach ($line in ($nextText -split "`r?`n")) {
-    if ($line -match '\b(final|complete|done)\b' -and $line -notmatch 'not complete|cannot|Completion Rule|final requirement|final product|final goal|final user|final orchestration|final-system-flow-blueprint|Future reusable framework extraction|this product is complete|Final usable-system audit|Final Role Journey|final candidate refresh|final journey evidence consistency|Framework v\d|static usability audit|remains engineering evidence|user signoff (is|are) open') {
+    if ($line -match '\b(final|complete|done)\b' -and $line -notmatch 'not complete|cannot|Completion Rule|final requirement|final product|final goal|final user|final orchestration|final-system-flow-blueprint|Future reusable framework extraction|this product is complete|Final usable-system audit|Final Role Journey|final candidate refresh|Final Remaining Partial Coverage|final journey evidence consistency|Framework v\d|static usability audit|remains engineering evidence|user signoff (is|are) open') {
         $badCompletionTerms += $line.Trim()
     }
 }

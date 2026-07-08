@@ -1,0 +1,60 @@
+{
+  "results": [
+    {
+      "kind": "admin-desktop-after",
+      "hash": "#/systems/1163/admin",
+      "overflowX": 0,
+      "blockerText": false,
+      "designer": true,
+      "libraryTypes": "approval,condition,field_update,external_api,timer,timeout_reminder,end",
+      "advancedPresetButton": true,
+      "nodeTypes": [
+        "approval",
+        "condition",
+        "external_api",
+        "timer",
+        "field_update",
+        "timeout_reminder",
+        "end"
+      ],
+      "selectedNodeType": "external_api",
+      "propertyFieldCount": 3,
+      "publishSummary": "true",
+      "publishPassed": "true",
+      "publishImpactCount": 7,
+      "publishWarningCount": 4,
+      "simulationPassed": "true",
+      "simulationImpactCount": 7,
+      "simulationStepCount": 5,
+      "textLength": 3050
+    },
+    {
+      "kind": "admin-mobile",
+      "hash": "#/systems/1163/admin",
+      "overflowX": 0,
+      "blockerText": false,
+      "designer": true,
+      "libraryTypes": "approval,condition,field_update,external_api,timer,timeout_reminder,end",
+      "advancedPresetButton": true,
+      "nodeTypes": [
+        "approval",
+        "condition",
+        "external_api",
+        "timer",
+        "field_update",
+        "timeout_reminder",
+        "end"
+      ],
+      "selectedNodeType": "approval",
+      "propertyFieldCount": 3,
+      "publishSummary": "pending",
+      "publishPassed": "",
+      "publishImpactCount": 0,
+      "publishWarningCount": 0,
+      "simulationPassed": "",
+      "simulationImpactCount": 0,
+      "simulationStepCount": 0,
+      "textLength": 1837
+    }
+  ]
+}

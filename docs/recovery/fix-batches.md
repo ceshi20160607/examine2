@@ -3282,7 +3282,7 @@ Still partial:
 - Every role/permission matrix permutation, workflow/timer permissions, SSO mapping breadth, audit-history breadth, and user acceptance remain governed by the coverage ledger.
 ## Batch R92: REC-P0-092 Workflow Designer Advanced Node Publish Impact Closure
 
-Status: in_progress as deployed workflow-designer advanced-node and publish-impact engineering evidence only; user signoff remains open.
+Status: accepted as deployed workflow-designer advanced-node and publish-impact engineering evidence only; user signoff remains open.
 
 Reason:
 
@@ -3292,14 +3292,14 @@ Reason:
 
 Tasks:
 
-- Keep REC-P0-092 as the active next executable task in the next execution ledger and session state.
+- R92 is accepted; keep its evidence linked in the next execution ledger and session state accepted batches.
 - Add deterministic advanced-node configuration/readback and publish-impact evidence for timer, reject/transfer, field update, external API, and simulation/failure states where required.
 - Add deployed flow designer/runtime markers for advanced node library, node properties, publish impact, simulation result, requester/approver todo/message states, terminal action states, and denied normal-admin state.
 - Add deterministic R92 evidence that checks source markers, deployed asset markers, API readback, browser DOM markers, workflow runtime positives/negatives, and user signoff separation.
 
-Planned evidence:
+Accepted evidence:
 
-- Script: `scripts/recovery-r92-workflow-advanced-node-publish-impact.ps1`
+- Script: `scripts/recovery-r92-workflow-advanced-node-publish-impact.ps1` PASS on `http://127.0.0.1:18132`.
 - Result: `docs/evidence/recovery/r92-workflow-advanced-node-publish-impact-result.json`
 - Summary: `docs/evidence/recovery/r92-workflow-advanced-node-publish-impact-2026-07-08.md`
 - Browser audit: `docs/evidence/recovery/screenshots/r92-workflow-advanced-node-publish-impact/workflow-advanced-node-browser-audit.json`
@@ -3310,9 +3310,176 @@ Still partial:
 - Every workflow/node permutation, full timer/escalation scheduler semantics, OpenAPI/AI breadth, operations breadth, and user acceptance remain governed by the coverage ledger.
 
 ## RECOVERY-R93 Platform Flow/Application IA Boundary
+Status: accepted as engineering evidence only on 2026-07-08. R93 PASS proves platform Application is not system entry, Flow is independent, and /platform remains system entry; final user signoff remains open and R92 resumes as active next work.
+
 
 Trigger: 2026-07-08 user feedback plus `temp_flow.md` and `temp_flow_persion.html` review.
 
 Scope: correct platform workbench information architecture before resuming workflow feature slices. Main platform modules must be dashboard/workbench, Flow, Application, and Work; AI, system switch, create system, todo, message, and profile are auxiliary actions. `/platform/apps` must become an application/authorization/configuration surface, not a system-entry page. `/platform/flow` must become an independent platform Flow surface. `/platform` keeps the system-entry panel.
 
 Evidence: `scripts/recovery-r93-platform-flow-app-ia-boundary.ps1` and deployed/source browser checks. Engineering evidence only; no user signoff claim.
+
+## RECOVERY-R94 Fresh Deployed Role Journey Audit After R92/R93
+
+Status: active as the next deployed-use audit gate; no user signoff claim.
+
+Reason:
+
+- R92 and R93 are accepted as engineering evidence, but final acceptance is still reopened by user feedback.
+- The next step must re-audit the running release across real role journeys before selecting another implementation slice.
+- Any remaining hierarchy, wording, layout, permission, or stale-placeholder problem must become a specific task card before coding.
+
+Tasks:
+
+- Create and run `scripts/recovery-r94-fresh-deployed-role-journey-audit.ps1` on the current release.
+- Verify release/static/framework/coverage gates, then inspect deployed role journeys J1-J11.
+- Preserve R93 platform Application/Flow/system-entry separation and R92 workflow runtime evidence.
+- Write the next concrete repair task only from audit findings; do not claim final user signoff.
+
+Accepted evidence:
+
+- Result: `docs/evidence/recovery/r94-fresh-deployed-role-journey-audit-result.json`.
+- Summary: `docs/evidence/recovery/r94-fresh-deployed-role-journey-audit-2026-07-08.md`.
+- Browser audit: `docs/evidence/recovery/screenshots/r94-fresh-deployed-role-journey-audit/fresh-deployed-role-journey-browser-audit.json`.
+
+Still partial:
+
+- R94 cannot set `gates.user_script_passed=true` or claim final completion.
+- Coverage rows remain governed by the final coverage ledger until explicit user verification or exclusion.
+
+## Batch R95 - Platform Workbench System Entry Density And List Rewrite
+
+Status: `active`.
+
+Source: R94 diagnostic FAIL on current deployed release.
+
+Scope: rewrite the platform workbench system-entry panel from card pile to compact searchable list/table. Preserve `/platform/apps` as Application and `/platform/flow` as Flow.
+
+Acceptance: `scripts/recovery-r95-platform-workbench-system-entry-density.ps1` plus R94/R93 regression. `gates.user_script_passed=false`.
+
+R95 PASS evidence:
+
+- `scripts/recovery-r95-platform-workbench-system-entry-density.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r95-platform-workbench-system-entry-density-result.json`.
+- Browser audit: `docs/evidence/recovery/screenshots/r95-platform-workbench-system-entry-density/platform-workbench-system-entry-density-browser-audit.json`.
+- Workbench browser facts: rowCount=15, systemCardCount=0, max workbench main buttons=5, overflow=0, R93 regression PASS.
+
+Next: REC-P0-096 selects the next remaining partial coverage/user-trial readiness path. `gates.user_script_passed=false`.
+
+## Batch R96 - Final Remaining Partial Coverage Or User Trial Readiness Selection
+
+Status: accepted as decision engineering evidence only on 2026-07-08.
+
+R96 refreshed framework/static/coverage audits, kept coverage honest with notClosed `45`, referenced R95 PASS, and selected `REC-P0-097 C1 Fresh System Initialization Path And Empty Dashboard Hierarchy Closure` as the next executable flow-order repair. It does not claim final completion or user signoff.
+
+Evidence:
+
+- Script: `scripts/recovery-r96-final-remaining-partial-coverage-selection.ps1`
+- Result: `docs/evidence/recovery/r96-final-remaining-partial-coverage-selection-result.json`
+- Summary: `docs/evidence/recovery/r96-final-remaining-partial-coverage-selection-2026-07-08.md`
+
+## Batch R97 - C1 Fresh System Initialization Path And Empty Dashboard Hierarchy
+
+Status: accepted as deployed engineering evidence only on 2026-07-08.
+
+Source: R96 selected the next C1 first-use gap after R95. Fresh or empty systems need a real setup path; the business dashboard must not mix runtime work panels with initialization when no modules exist.
+
+Scope: rewrite the current local first-use surfaces without changing the frozen API contract unless evidence proves a missing readback field. System admin gets a ten-step C1 guide with readback status; empty system dashboard gets one primary initialization surface and no runtime action pile for admins.
+
+Acceptance: `scripts/recovery-r97-c1-fresh-system-initialization-path.ps1`, deployed browser desktop/mobile checks, source/deployed marker checks, R96/R95 references, and `gates.user_script_passed=false`.
+
+R97 PASS evidence:
+
+- `scripts/recovery-r97-c1-fresh-system-initialization-path.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r97-c1-fresh-system-initialization-path-result.json`.
+- Browser audit: `docs/evidence/recovery/screenshots/r97-c1-fresh-system-initialization-path/c1-fresh-system-initialization-path-browser-audit.json`.
+- Fresh system `1177` had moduleCount `0`; empty dashboard/C1 guide browser checks passed with blockers `0` and overflow `0`.
+- R97 keeps `gates.user_script_passed=false`; final user acceptance remains open.
+
+## Batch R98 - Final User Trial Script Readiness And Signoff Path
+
+Status: accepted as engineering evidence only on 2026-07-08.
+
+Source: R97 closed the first-use empty-system hierarchy as engineering evidence. Remaining coverage rows are still partial and final acceptance still requires explicit user verification/signoff.
+
+Scope: produce the current user-trial handoff path from the deployed release: release verification, trial credentials/routes, browser login smoke, coverage/signoff boundary, and a concise user checklist. Do not implement new product features unless the readiness script finds a blocker.
+
+Acceptance: `scripts/recovery-r98-final-user-trial-readiness-and-signoff-path.ps1`, R97 PASS reference, framework/static/coverage audits, deployed login smoke, user checklist output, and `gates.user_script_passed=false`.
+R98 PASS evidence:
+
+- `scripts/recovery-r98-final-user-trial-readiness-and-signoff-path.ps1` PASS on `http://127.0.0.1:18131`.
+- Result/checklist/browser evidence under `docs/evidence/recovery/r98-final-user-trial-readiness-and-signoff-path-result.json`, `docs/evidence/recovery/r98-user-trial-checklist-2026-07-08.md`, and `docs/evidence/recovery/screenshots/r98-final-user-trial-readiness-and-signoff-path/`.
+- Browser login smoke resultCount `11`, blockers `0`, overflow `0`; framework/static PASS; coverage notClosed `45`; `gates.user_script_passed=false`.
+
+## Batch R99 - Post-R98 User Trial Feedback Intake And Residual Repair Selection
+
+Status: active.
+
+Source: R98 prepared a current human trial checklist and proved the deployed login routes, but final acceptance still requires explicit user signoff or concrete user feedback.
+
+Scope: intake the user's R98 checklist result. If the user signs off, preserve the exact signoff evidence before changing the gate. If the user reports a blocker, create the next concrete recovery task card from that route/account/state before coding.
+
+Acceptance: `scripts/recovery-r99-post-r98-user-feedback-intake-and-next-repair-selection.ps1`, R98 PASS reference, checklist availability, coverage/signoff boundary, and no `gates.user_script_passed=true` unless explicit user signoff is present.
+R99 PASS evidence:
+
+- `scripts/recovery-r99-post-r98-user-feedback-intake-and-next-repair-selection.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r99-post-r98-user-feedback-intake-and-next-repair-selection-result.json`.
+- R99 is accepted as decision evidence only: R98 remained PASS, coverage notClosed `45`, user signoff false, and R100 was selected from the documented platform Flow/Application depth gap.
+
+## Batch R100 - Platform Flow Application Workbench Depth And Action Clarity
+
+Status: active.
+
+Source: R99 selected the next repair from explicit platform Flow/Application feedback and `temp_flow.md` P2/P3.
+
+Scope: deepen `/platform/flow` and `/platform/apps` from boundary-correct pages into task-grade workbench pages. Preserve platform/system separation, Application/system-entry separation, and user signoff separation.
+
+Acceptance: `scripts/recovery-r100-platform-flow-application-depth.ps1`, `scripts/recovery-r100-browser-audit.js`, source/deployed marker checks, desktop/mobile browser checks, framework/static/coverage boundary, and `gates.user_script_passed=false`.
+R100 PASS evidence:
+
+- `scripts/recovery-r100-platform-flow-application-depth.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r100-platform-flow-application-depth-result.json`.
+- Browser audit: `docs/evidence/recovery/screenshots/r100-platform-flow-application-depth/platform-flow-application-depth-browser-audit.json`.
+- R100 is accepted as deployed engineering evidence only: Flow/Application workbench depth, no system-entry leakage, deployed marker checks, desktop/mobile blockers `0`, maxOverflow `0`, coverage notClosed `45`, user signoff false.
+
+## Batch R101 - Platform Flow Application Persistence Permission And Readback
+
+Status: accepted as deployed engineering evidence only on 2026-07-08.
+
+Source: R100 intentionally closed frontend workbench depth first and recorded that rows/actions remain frontend contract samples until API/readback closes.
+
+Scope: persist and read back platform Flow/Application objects, permission positives/negatives, platform todo/message/log feedback, deployed frontend binding, and no direct system-business-write boundary.
+
+Acceptance: `scripts/recovery-r101-platform-flow-application-api-readback.ps1`, API readback, deployed browser readback, framework/static/coverage boundary, and `gates.user_script_passed=false`.
+R101 PASS evidence:
+
+- `scripts/recovery-r101-platform-flow-application-api-readback.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r101-platform-flow-application-api-readback-result.json`.
+- Browser audit: `docs/evidence/recovery/screenshots/r101-platform-flow-application-api-readback/platform-flow-application-api-readback-browser-audit.json`.
+- R101 proves persisted platform Flow/Application objects, permission positives/negatives, platform todo/message/log feedback, deployed frontend readback, and `NO_SYSTEM_BUSINESS_WRITE`. It keeps `gates.user_script_passed=false`.
+
+## Batch R102 - Final User Trial Refresh After Platform Flow Application Readback
+
+Status: active.
+
+Source: R101 closed the platform Flow/Application API/readback gap, but final acceptance still requires explicit user verification or concrete fresh feedback.
+
+Scope: refresh the current deployed user trial/signoff path with R101 included. Start from the running release, verify login/trial routes plus `/platform/flow` and `/platform/apps`, keep coverage/signoff honest, and write the next repair only from concrete feedback.
+
+Acceptance: `scripts/recovery-r102-final-user-trial-refresh-after-r101.ps1`, refreshed checklist/signoff evidence, R101 PASS reference, release/framework/static/coverage checks, deployed browser smoke, and `gates.user_script_passed=false` unless explicit user signoff is recorded.
+R102 PASS evidence:
+
+- `scripts/recovery-r102-final-user-trial-refresh-after-r101.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r102-final-user-trial-refresh-after-r101-result.json`.
+- Browser audit: `docs/evidence/recovery/screenshots/r102-final-user-trial-refresh-after-r101/final-user-trial-refresh-browser-audit.json`.
+- R102 proves the current deployed trial path still works after R101, including Flow/Application API readback and platform/system boundary checks. It keeps `gates.user_script_passed=false`.
+
+## Batch R103 - Fresh Deployed Human Usability Audit After R102
+
+Status: active.
+
+Source: R102 proves the current deployment is technically trial-ready after R101, but final user signoff remains open and coverage remains partial. The user still requires a normal usable system, so the next step is a fresh deployed human-usability audit rather than another blind feature patch.
+
+Scope: inspect current deployed role journeys for hierarchy, copy, layout density, duplicate actions, platform/system boundary confusion, stale placeholders, and route-specific blockers. Select the next concrete repair task only from evidence.
+
+Acceptance: `scripts/recovery-r103-fresh-deployed-human-usability-audit-after-r102.ps1`, browser audit, R102 PASS reference, framework/static/coverage checks, next repair selection, and `gates.user_script_passed=false`.

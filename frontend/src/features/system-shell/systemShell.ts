@@ -1,4 +1,4 @@
-import {
+﻿import {
   autoDraftDailyReport,
   archiveSystemMessage,
   createDailyReport,
@@ -79,7 +79,7 @@ export function renderSystemShell(route: string, navigate: Navigate): HTMLElemen
   const root = createElement('div', { className: 'workspace-shell' });
   const requestedSystemId = routeSystemId(route);
   const render = () => {
-    if (route.endsWith('/admin') && !canEnterSystemAdmin()) {
+    if (isSystemAdminRoute(route) && !canEnterSystemAdmin()) {
       root.replaceChildren(createSystemAccessDenied(requestedSystemId ?? activeSystemId(), navigate));
       return;
     }
@@ -165,8 +165,8 @@ function createSystemHeader(navigate: Navigate): HTMLElement {
 }
 
 function createSystemContent(route: string, navigate: Navigate): HTMLElement {
-  if (route.endsWith('/admin')) {
-    return renderSystemAdmin(navigate);
+  if (isSystemAdminRoute(route)) {
+    return renderSystemAdmin(navigate, systemAdminSectionFromRoute(route));
   }
   if (route.endsWith('/todos')) {
     return createTodoWorkbench(navigate);
@@ -186,6 +186,13 @@ function createSystemContent(route: string, navigate: Navigate): HTMLElement {
   return renderRuntimeRecordPage();
 }
 
+function isSystemAdminRoute(route: string): boolean {
+  return /^\/systems\/[^/]+\/admin(?:\/[^/]+)?$/.test(route);
+}
+
+function systemAdminSectionFromRoute(route: string): string {
+  return route.match(/^\/systems\/[^/]+\/admin\/([^/?#]+)/)?.[1] ?? 'system-info';
+}
 function createSystemProfile(navigate: Navigate): HTMLElement {
   const logoutButton = createButton('退出登录', 'primary', false);
   logoutButton.addEventListener('click', () => {
@@ -234,10 +241,22 @@ function createDashboard(navigate: Navigate): HTMLElement {
     .then(([dashboard, homePage, todos, messages, projectTasks, plainTasks]) => {
       const hasRuntimeModules = (headerNavigation?.modules ?? []).length > 0;
       const data: SystemDashboardData = { dashboard, homePage, todos, messages, projectTasks, plainTasks };
-      const initializationPrompt = !hasRuntimeModules && canEnterSystemAdmin() ? [createSystemInitializationPrompt(navigate)] : [];
+      const isEmptyAdminDashboard = !hasRuntimeModules && canEnterSystemAdmin();
+      if (isEmptyAdminDashboard) {
+        root.replaceChildren(
+          createElement(
+            'div',
+            { className: 'page-heading', dataset: { systemDashboardHeading: 'true', r97EmptyDashboardHeading: 'true' } },
+            createElement('h1', {}, '系统初始化'),
+            createElement('p', {}, '当前系统还没有发布的业务模块。先完成初始化，再把运行态工作台交给普通成员使用。'),
+          ),
+          createSystemInitializationPrompt(navigate),
+          createTraceLine(dashboard.traceId ?? `trace_dashboard_${activeSystemId()}`),
+        );
+        return;
+      }
       root.replaceChildren(
         createElement('div', { className: 'page-heading', dataset: { systemDashboardHeading: 'true' } }, createElement('h1', {}, homePage.title || '系统工作台'), createElement('p', {}, homePage.subtitle || '从这里处理今天的工作、待办、消息和业务数据。')),
-        ...initializationPrompt,
         createHomeOverviewPanel(homePage, dashboard, hasRuntimeModules),
         createDashboardDailyActionHub(data, navigate, hasRuntimeModules),
         createDashboardRuntimeEfficiencyPanel(navigate),
@@ -249,24 +268,44 @@ function createDashboard(navigate: Navigate): HTMLElement {
   return root;
 }
 function createSystemInitializationPrompt(navigate: Navigate): HTMLElement {
+  const systemId = activeSystemId();
   const adminButton = createButton('进入系统初始化', 'primary', false);
-  adminButton.addEventListener('click', () => navigate(`/systems/${activeSystemId()}/admin`));
+  adminButton.dataset.r97EmptyDashboardPrimaryAction = 'system-admin-first-use';
+  adminButton.addEventListener('click', () => navigate(`/systems/${systemId}/admin`));
+  const moduleButton = createButton('配置业务模块', 'secondary', false);
+  moduleButton.dataset.r97EmptyDashboardSecondaryAction = 'module-config';
+  moduleButton.addEventListener('click', () => navigate(`/systems/${systemId}/admin/module-config`));
+  const orgButton = createButton('配置组织成员', 'secondary', false);
+  orgButton.dataset.r97EmptyDashboardSecondaryAction = 'org-structure';
+  orgButton.addEventListener('click', () => navigate(`/systems/${systemId}/admin/org-structure`));
+  const steps = [
+    '确认系统信息与访问地址',
+    '配置组织、成员和账号绑定',
+    '配置角色、权限和数据范围',
+    '创建模块分组、模块和字段',
+    '发布检查后再开放运行态',
+  ];
   return createElement(
     'section',
-    { className: 'onboarding-panel' },
+    {
+      className: 'onboarding-panel system-first-use-dashboard',
+      dataset: {
+        r97EmptySystemDashboard: 'true',
+        emptyDashboardPrimarySurface: 'initialization',
+        dashboardActionHubSuppressed: 'true',
+        dashboardRuntimePanelsSuppressed: 'true',
+      },
+    },
     createElement('div', { className: 'runtime-card-head' },
-      createElement('div', {}, createElement('h2', {}, '当前系统还没有可用业务模块'), createElement('p', {}, '先完成组织、角色、模块、流程和发布检查，再把系统交给普通成员使用。')),
+      createElement('div', {}, createElement('h2', {}, '先完成系统初始化'), createElement('p', {}, '这里暂不展示今日行动、业务搜索和运行态日历，避免把未配置系统误认为已经可用。')),
       renderStatusPill('待初始化', 'warning'),
     ),
     createElement(
       'div',
-      { className: 'onboarding-mini-grid' },
-      createElement('span', {}, '1. 配置组织与成员'),
-      createElement('span', {}, '2. 配置角色权限'),
-      createElement('span', {}, '3. 创建并发布模块'),
-      createElement('span', {}, '4. 绑定流程、字典和运行态动作'),
+      { className: 'onboarding-mini-grid', dataset: { r97EmptyDashboardSteps: String(steps.length) } },
+      ...steps.map((step, index) => createElement('span', { dataset: { r97EmptyDashboardStep: String(index + 1) } }, `${index + 1}. ${step}`)),
     ),
-    createElement('div', { className: 'inline-actions' }, adminButton),
+    createElement('div', { className: 'inline-actions' }, adminButton, orgButton, moduleButton),
   );
 }
 
@@ -726,6 +765,7 @@ function createTodoActionButtons(row: TodoRow, reload: () => void): HTMLButtonEl
     .map((action) => {
       const button = createButton(action.actionName, action.enabled ? 'ghost' : 'secondary', !action.enabled, action.disabledReason);
       button.dataset.systemTodoAction = action.actionCode;
+      button.dataset.systemTodoId = row.todoId;
       button.dataset.todoId = row.todoId;
       button.addEventListener('click', async (event) => {
         event.stopPropagation();

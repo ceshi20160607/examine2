@@ -138,7 +138,9 @@ public class RequestContextFilter extends OncePerRequestFilter {
         }
         return !path.startsWith("/api/v1/platform/system-switch")
                 && !path.startsWith("/api/v1/platform/todos")
-                && !path.startsWith("/api/v1/platform/messages");
+                && !path.startsWith("/api/v1/platform/messages")
+                && !path.startsWith("/api/v1/platform/flows")
+                && !path.startsWith("/api/v1/platform/applications");
     }
 
     private boolean requiresSystemAdmin(HttpServletRequest request) {

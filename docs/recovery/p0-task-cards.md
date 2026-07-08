@@ -19,6 +19,8 @@ Permission rule:
 States:
 Explicitly not complete if:
 Acceptance script:
+
+
 Evidence paths:
 ```
 
@@ -83,6 +85,8 @@ Acceptance script:
 6. Call a protected API with forged `X-Account-Id` and no token and expect `AUTH_UNAUTHORIZED`.
 7. Restart service and verify health gates all dependencies.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/rec-p0-001-auth-release.md`
@@ -145,6 +149,8 @@ Acceptance script:
 3. Capture system business shell and system admin shell.
 4. Login/switch as a normal system member and verify admin entries are absent and direct URLs return forbidden.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/rec-p0-002-four-shells.md`
@@ -205,6 +211,8 @@ Acceptance script:
 3. Switch into tenant A and record context fields.
 4. Switch into tenant B and verify all context-dependent UI/API data changes.
 5. Verify direct system business access without member context is rejected.
+
+
 
 Evidence paths:
 
@@ -270,6 +278,8 @@ Acceptance script:
 5. Run publish check and publish.
 6. Open system business shell and verify module navigation/schema from API.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/rec-p0-004-module-publish.md`
@@ -331,6 +341,8 @@ Acceptance script:
 4. Edit record and verify history.
 5. Allocate automatic numbers in two batches and verify continuity.
 6. Verify a user without field permission cannot read/write restricted fields.
+
+
 
 Evidence paths:
 
@@ -395,6 +407,8 @@ Acceptance script:
 5. Approve and verify record/sidebar/history/log state.
 6. Repeat approval and verify idempotent rejection.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/rec-p0-006-approval-todo-message.md`
@@ -448,6 +462,8 @@ Acceptance script:
 2. Create or update at least one platform system or identity provider.
 3. Switch as system admin and verify all system admin dependencies load from APIs.
 4. Create/update at least one department, role, dictionary, or flow draft.
+
+
 
 Evidence paths:
 
@@ -509,6 +525,8 @@ Acceptance script:
 5. Run final browser/API user script from login through module, record, approval, todo, message, admin, and release stop.
 6. Set `gates.user_script_passed=true` only after user signoff.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/rec-p0-008-final-release.md`
@@ -567,6 +585,8 @@ Acceptance script:
 2. Browser check platform workspace, platform admin, system business, system admin, todo, message, work, and runtime pages.
 3. For each visible P0 action, either execute a real API flow or verify it is disabled with a precise reason.
 4. Capture screenshots proving that admin pages are no longer broad mixed piles and that pagination/filter/action states visibly change.
+
+
 
 Evidence paths:
 
@@ -628,6 +648,8 @@ Acceptance script:
 4. Verify task list and kanban data contain the created records.
 5. Verify deployed frontend shows the created records in the matching tabs.
 6. Clean up or use clearly marked recovery data.
+
+
 
 Evidence paths:
 
@@ -693,6 +715,8 @@ Acceptance script:
 6. Process the approval todo or approval task as the approver and verify pending todo total becomes `0`, handled total becomes `1`.
 7. Verify deployed frontend shows the todo and message centers with real data, filters, and state changes.
 8. Clean created systems by default.
+
+
 
 Evidence paths:
 
@@ -762,6 +786,8 @@ Acceptance script:
 9. Verify deployed frontend shows the OpenAPI app/rotation/call log and runtime import/export/upload results with real backend data.
 10. Clean created systems and files by default.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/r10-openapi-upload-import-export-2026-06-29.md`
@@ -821,6 +847,8 @@ Acceptance script:
 8. Confirm work Agent draft and verify manual-confirm-required/source snapshot/readback.
 9. Bind a normal system member account and assert it cannot manage Agent policies.
 10. Add R11 to R5 final release orchestration after standalone R11 passes.
+
+
 
 Evidence paths:
 
@@ -889,6 +917,8 @@ Acceptance script:
 9. Verify deployed frontend shows the no-member page/request state or system admin SSO state with real backend data.
 10. Clean created systems by default.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/r9-sso-no-member-2026-06-27.md`
@@ -952,6 +982,8 @@ Acceptance script:
 7. Run publish check, publish, then open system business shell and verify the module is visible.
 8. Capture deployed-browser evidence and include the task in final release verification before user signoff.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/r12-module-builder-usability-2026-06-29.md`
@@ -1012,6 +1044,8 @@ Acceptance script:
 5. Specifically assert narrow system admin keeps navigation compact and the selected panel visible in the first viewport.
 6. Specifically assert narrow work dashboard/cards use a single-column or otherwise non-clipped layout.
 7. Re-run frontend typecheck/build, release package, local release start, verify-release, and the final R5 orchestration including this card.
+
+
 
 Evidence paths:
 
@@ -1077,6 +1111,8 @@ Acceptance script:
 7. Assert selected content is visible, no document-level horizontal overflow exists, and screenshots are captured.
 8. Clean the created system and include this script in R5 final release orchestration.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/r14-real-login-session-state-2026-06-29.md`
@@ -1139,6 +1175,8 @@ Acceptance script:
 4. Verify login with the old password fails and login with the new password succeeds.
 5. Verify reusing the same reset ticket fails.
 6. Clean created system data by default and include R15 in R5 final release orchestration.
+
+
 
 Evidence paths:
 
@@ -1205,6 +1243,8 @@ Acceptance script:
 7. Read departments/members and assert `default_department` plus owner-member binding.
 8. Clean the created system by default and include R16 in final release orchestration.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/r16-register-first-use-browser-closure-2026-06-29.md`
@@ -1270,6 +1310,8 @@ Acceptance script:
 7. Assert backend admin APIs reject the normal member and runtime search returns the frontend-created record.
 8. Capture desktop/mobile screenshots, clean created systems, and include R17 in final release orchestration.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/r17-normal-member-real-login-runtime-2026-06-29.md`
@@ -1333,6 +1375,8 @@ Acceptance script:
 7. Assert the system-admin header entry is absent and direct system-admin URL renders access denied.
 8. Capture mobile/desktop screenshots, clean created systems, and include R18 in final release orchestration.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/r18-runtime-mobile-action-containment-2026-06-29.md`
@@ -1393,6 +1437,8 @@ Acceptance script:
 4. Navigate to system admin, verify next page is enabled for a representative paged list, click it, and assert the visible page number and record set changed.
 5. Assert no admin pagination control shows the unsupported-pagination disabled reason for callback-backed resources.
 6. Capture evidence, clean disposable data, and include R19 in final release orchestration.
+
+
 
 Evidence paths:
 
@@ -1461,6 +1507,8 @@ Acceptance script:
 7. Run API publish and snapshot readback to prove the saved canvas is publishable.
 8. Clean disposable systems and include R20 in R5 final release orchestration.
 
+
+
 Evidence paths:
 
 - `docs/evidence/recovery/r20-flow-canvas-designer-2026-06-29.md`
@@ -1528,6 +1576,8 @@ Acceptance script:
 4. It writes `docs/evidence/recovery/r21-final-usable-system-audit-result.json`.
 5. Only when J0-J7 all pass and user verification/signoff is recorded may the final product goal be claimed.
 
+
+
 Evidence paths:
 
 - `docs/recovery/final-usable-system-acceptance.md`
@@ -1586,6 +1636,8 @@ Acceptance script:
 2. Run `scripts/recovery-r22-ops-maintenance-smoke.ps1`.
 3. The script must verify release health/assets, packaged script command support, API operations, and deployed browser operation buttons.
 4. Add R22 evidence to the final R21 J7 gate.
+
+
 
 Evidence paths:
 
@@ -1648,6 +1700,8 @@ Acceptance script:
 3. The audit must fail until all requirement rows are `PROVEN` or `USER_EXCLUDED`.
 4. The gap report must list recommended closure batches in order.
 5. Final completion claims are blocked while the audit fails.
+
+
 
 Evidence paths:
 
@@ -1730,6 +1784,8 @@ Acceptance script:
 6. Run a visual/wording audit for primary home/page routes.
 7. Split advanced capabilities into explicit sub-task cards or prove implemented surfaces.
 8. Update `docs/framework/final-requirement-coverage-ledger.md` and rerun `scripts/final-requirement-coverage-audit.ps1`.
+
+
 
 Evidence paths:
 
@@ -2259,6 +2315,8 @@ Acceptance script:
 3. Set `.cursor/session/state.json` `build_plan.nextTasks` to the next FRC work.
 4. Run `scripts/final-goal-framework-audit.ps1`.
 5. Run `scripts/final-requirement-coverage-audit.ps1 -NoFailExit` and confirm final completion remains blocked.
+
+
 
 Evidence paths:
 
@@ -3281,6 +3339,8 @@ Acceptance script:
 6. Verify forbidden admin access, deployed desktop/mobile containment, evidence files, and cleanup.
 7. Keep `gates.user_script_passed=false`.
 
+
+
 Evidence paths:
 
 - Script: `scripts/recovery-r45-field-dict-menu-smoke.ps1`
@@ -3385,6 +3445,8 @@ Acceptance script:
 4. Log in as a normal member and verify runtime/home surfaces match the configured role-visible page definition without admin clutter.
 5. Verify forbidden admin access, no fake/generic placeholder states, deployed desktop/mobile containment, evidence files, and cleanup.
 6. Keep `gates.user_script_passed=false`.
+
+
 
 Evidence paths:
 
@@ -3498,6 +3560,8 @@ Acceptance script:
 5. Verify empty/error/no-permission states, denied direct APIs, desktop/mobile containment, evidence files, and cleanup.
 6. Keep `gates.user_script_passed=false`.
 
+
+
 Evidence paths:
 
 - Script: `scripts/recovery-r47-runtime-daily-use-smoke.ps1`
@@ -3608,6 +3672,8 @@ Acceptance script:
 5. Verify requester/normal-member forbidden actions, duplicate action idempotency, desktop/mobile containment, evidence files, and cleanup.
 6. Keep `gates.user_script_passed=false`.
 
+
+
 Evidence paths:
 
 - Script: `scripts/recovery-r48-workflow-message-flow-smoke.ps1`
@@ -3716,6 +3782,8 @@ Acceptance script:
 4. Open the assistant as a normal member, prove scoped session/readback and write preview/confirm/reject behavior.
 5. Verify forbidden admin/integration mutation, desktop/mobile containment, evidence files, and cleanup.
 6. Keep `gates.user_script_passed=false`.
+
+
 
 Evidence paths:
 
@@ -3828,6 +3896,8 @@ Acceptance script:
 5. Verify normal-member forbidden admin/ops APIs and deployed desktop/mobile containment.
 6. Keep `gates.user_script_passed=false`.
 
+
+
 Evidence paths:
 
 - Script: `scripts/recovery-r50-operations-release-log-smoke.ps1`
@@ -3892,6 +3962,8 @@ Requirement Confirmation Contract:
 | Acceptance assertions | framework audit PASS; coverage audit executes and reports notClosed rows; final acceptance reopened; release verify passes; next recommended batch exists |
 | Screenshot evidence boundary | Screenshots prove visual rendering only; they do not prove requirement closure. API/readback assertions and coverage rows drive next work. |
 
+
+
 Evidence paths:
 
 - Script: `scripts/recovery-r51-final-role-journey-gap-audit.ps1`
@@ -3951,6 +4023,8 @@ Requirement Confirmation Contract:
 | Copy contract | labels, tips, disabled reasons, empty/error messages must be specific, non-contradictory, and not generic success/placeholder wording |
 | Acceptance assertions | deployed browser route audit plus API/readback assertions for configured home/page/runtime data, permission positives/negatives, and static usability blockers |
 | Screenshot evidence boundary | Screenshots prove visual hierarchy, overflow, clipping, and visible copy only; they do not prove data, permission, persistence, or requirement closure. API/readback assertions are required. |
+
+
 
 Evidence paths:
 
@@ -4018,6 +4092,8 @@ Requirement Confirmation Contract:
 | Acceptance assertions | deployed browser route audit plus API/readback assertions for configured module/field/dictionary/menu/permission state and permission positives/negatives |
 | Screenshot evidence boundary | Screenshots prove visual hierarchy, overflow, clipping, and visible copy only; they do not prove data, permission, persistence, or requirement closure. API/readback assertions are required. |
 
+
+
 Evidence paths:
 
 - Script: `scripts/recovery-r53-frc2-no-code-configuration-coherence.ps1`
@@ -4083,6 +4159,8 @@ Requirement Confirmation Contract:
 | Copy contract | labels, tips, disabled reasons, task results, import/export messages, and empty/error messages must be action-specific; no generic success/placeholder wording |
 | Acceptance assertions | deployed browser route audit plus API/readback assertions for runtime record/file/import/export/message/work states and permission positives/negatives |
 | Screenshot evidence boundary | Screenshots prove visual hierarchy, overflow, clipping, visible state, and visible copy only; they do not prove data, permission, persistence, task completion, or requirement closure. API/readback assertions are required. |
+
+
 
 Evidence paths:
 
@@ -4150,6 +4228,8 @@ Requirement Confirmation Contract:
 | Copy contract | labels, tips, disabled reasons, integration errors, confirmation text, and task/message results must be specific; no generic success/placeholder wording |
 | Acceptance assertions | deployed browser route audit plus API/readback assertions for workflow/message/OpenAPI/assistant states and permission positives/negatives |
 | Screenshot evidence boundary | Screenshots prove visual hierarchy, overflow, clipping, visible state, and visible copy only; they do not prove workflow closure, integration permission, audit persistence, AI boundary, or requirement closure. API/readback assertions are required. |
+
+
 
 Evidence paths:
 
@@ -4219,6 +4299,8 @@ Requirement Confirmation Contract:
 | Copy contract | labels, tips, disabled reasons, operation errors, log detail text, and release messages must be specific; no generic success/placeholder wording |
 | Acceptance assertions | deployed browser route audit plus API/readback assertions for health/logs/operations/release states and permission positives/negatives |
 | Screenshot evidence boundary | Screenshots prove visual hierarchy, overflow, clipping, visible state, and visible copy only; they do not prove operations safety, release integrity, audit persistence, robustness, launch-rule coverage, or requirement closure. API/readback assertions are required. |
+
+
 
 Evidence paths:
 
@@ -4295,6 +4377,8 @@ Requirement Confirmation Contract:
 | Acceptance assertions | deployed browser journey audit plus API/readback assertions for route, role, context, permission, data, and post-action state |
 | Screenshot evidence boundary | Screenshots prove visual hierarchy, overflow, clipping, visible state, and visible copy only; they do not prove user signoff or requirement closure. API/readback assertions and explicit user signoff remain separate. |
 
+
+
 Evidence paths:
 
 - Script: `scripts/recovery-r57-frc6-human-acceptance-pass.ps1`
@@ -4360,6 +4444,8 @@ Requirement Confirmation Contract:
 | Copy contract | no placeholder/generic/demo/mojibake findings after convergence |
 | Acceptance assertions | deployed release verification, static usability audit, fresh R57 rerun, and R58 density thresholds all pass |
 | Screenshot evidence boundary | Screenshots and browser metrics prove visible density/containment/copy only; they do not prove user signoff or full requirement closure. |
+
+
 
 Evidence paths:
 
@@ -4439,6 +4525,8 @@ Requirement Confirmation Contract:
 | Copy contract | page labels, tips, disabled reasons, publish/check results, permission explanations, and empty/error copy must be specific and role-appropriate |
 | Acceptance assertions | deployed browser/API/readback assertions for admin configuration, normal runtime reflection, density thresholds, permission positives/negatives, and cleanup |
 | Screenshot evidence boundary | Screenshots prove visual hierarchy, overflow, clipping, visible state, and visible copy only; screenshots do not prove functional completion. API/readback assertions plus permission/state assertions prove behavior. |
+
+
 
 Evidence paths:
 
@@ -4574,6 +4662,8 @@ Acceptance script:
 
 - `scripts/recovery-r68-page-visual-designer-fresh-evidence.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r68-page-visual-designer-fresh-evidence-result.json`
@@ -4646,6 +4736,8 @@ Requirement Confirmation Contract:
 Acceptance script:
 
 - `scripts/recovery-r69-requirement-evidence-promotion-and-gap-decision.ps1`
+
+
 
 Evidence paths:
 
@@ -4720,6 +4812,8 @@ Requirement Confirmation Contract:
 Acceptance script:
 
 - `scripts/recovery-r70-no-code-configuration-residual-depth.ps1`
+
+
 
 Evidence paths:
 
@@ -4806,6 +4900,8 @@ Acceptance script:
 
 - `scripts/recovery-r71-no-code-frontend-binding-and-hierarchy-residual.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r71-no-code-frontend-binding-and-hierarchy-residual-result.json`
@@ -4877,6 +4973,8 @@ Requirement Confirmation Contract:
 Acceptance script:
 
 - `scripts/recovery-r72-runtime-file-import-export-error-state-residual.ps1`
+
+
 
 Evidence paths:
 
@@ -4953,6 +5051,8 @@ Acceptance script:
 
 - `scripts/recovery-r73-workflow-todo-message-error-state-residual.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r73-workflow-todo-message-error-state-residual-result.json`
@@ -5028,6 +5128,8 @@ Acceptance script:
 
 - `scripts/recovery-r74-openapi-ai-external-service-error-state-residual.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r74-openapi-ai-external-service-error-state-residual-result.json`
@@ -5101,6 +5203,8 @@ Acceptance script:
 
 - `scripts/recovery-r75-operations-logs-release-error-state-residual.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r75-operations-logs-release-error-state-residual-result.json`
@@ -5172,6 +5276,8 @@ Acceptance script:
 
 - `scripts/recovery-r77-final-requirement-candidate-refresh-after-residual.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r77-final-requirement-candidate-refresh-after-residual-result.json`
@@ -5237,6 +5343,8 @@ Requirement Confirmation Contract:
 Acceptance script:
 
 - `scripts/recovery-r80-live-user-trial-workspace.ps1`
+
+
 
 Evidence paths:
 
@@ -5308,6 +5416,8 @@ Acceptance script:
 
 - `scripts/recovery-r81-trial-login-role-use-audit.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r81-trial-login-role-use-audit-result.json`
@@ -5373,6 +5483,8 @@ Requirement Confirmation Contract:
 Acceptance script:
 
 - `scripts/recovery-r82-visible-copy-encoding-trial-usability.ps1`
+
+
 
 Evidence paths:
 
@@ -5487,6 +5599,8 @@ Acceptance script:
 
 - `scripts/recovery-r79-final-user-verification-readiness.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r79-final-user-verification-readiness-result.json`
@@ -5556,6 +5670,8 @@ Acceptance script:
 
 - `scripts/recovery-r78-frc1-product-surface-human-acceptance-residual.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r78-frc1-product-surface-human-acceptance-residual-result.json`
@@ -5624,6 +5740,8 @@ Requirement Confirmation Contract:
 Acceptance script:
 
 - `scripts/recovery-r76-auth-shell-entry-role-flow-residual.ps1`
+
+
 
 Evidence paths:
 
@@ -5964,6 +6082,8 @@ Requirement Confirmation Contract:
 | Acceptance assertions | framework audit verifies the blueprint exists and active tasks reference it; later coding tasks derive deterministic browser/API/readback evidence from flow ids |
 | Screenshot evidence boundary | screenshots may verify only visible shell, hierarchy, density, overflow, and copy after a flow contract exists |
 
+
+
 Evidence paths:
 
 - Flow blueprint: `docs/framework/final-system-flow-blueprint.md`
@@ -6032,6 +6152,8 @@ Requirement Confirmation Contract:
 | Acceptance assertions | typecheck/build plus targeted route guard smoke for no-token platform/system/no-member/auth routes and register landing target |
 | Screenshot evidence boundary | screenshots prove only visible auth/shell state; token/context/API assertions prove behavior |
 
+
+
 Evidence paths:
 
 - Script: `scripts/recovery-r61-auth-entry-guard.ps1`
@@ -6084,6 +6206,8 @@ Data scope: platform roles, available systems, current system/tenant/member cont
 Permission rule: platform admin/root can see platform admin; platform member cannot. System admin can see system admin after switch context; normal member cannot. No platform shell can directly edit system business configuration.
 
 States: no available systems, disabled system, no-member mapping, platform admin denied, system admin denied, switch loading/failure, active shell, and role-specific empty states.
+
+
 
 Evidence paths:
 
@@ -6490,6 +6614,8 @@ Requirement Confirmation Contract:
 
 Acceptance script: `scripts/recovery-r89-runtime-file-import-export-recovery-detail.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r89-runtime-file-import-export-recovery-detail-result.json`
@@ -6626,6 +6752,8 @@ Requirement Confirmation Contract:
 
 Acceptance script: `scripts/recovery-r91-permission-impact-preview-audit.ps1`
 
+
+
 Evidence paths:
 
 - Result: `docs/evidence/recovery/r91-permission-impact-preview-audit-result.json`
@@ -6643,7 +6771,9 @@ Explicitly not complete if:
 - User signoff is implied from engineering evidence; `gates.user_script_passed` must remain false.
 ## REC-P0-092 Workflow Designer Advanced Node Publish Impact Closure
 
-Status: `in_progress` as deployed workflow-designer advanced-node and publish-impact engineering evidence only; user signoff remains open.
+Status: `accepted` as deployed workflow-designer advanced-node and publish-impact engineering evidence only; user signoff remains open.
+
+Engineering acceptance: `scripts/recovery-r92-workflow-advanced-node-publish-impact.ps1` returned PASS on `http://127.0.0.1:18132` after R93. Evidence proves advanced node library/property readback, canvas save/readback, publish warnings and impact refs, simulation high/low paths, publish snapshot, normal-member flow-admin denials, browser/deployed markers, mobile containment, and fresh R73 child runtime todo/message terminal-state PASS. This does not close final user verification.
 
 User role: system administrator configuring workflow; requester/approver normal members experiencing resulting workflow/todo/message behavior.
 
@@ -6700,7 +6830,9 @@ Explicitly not complete if:
 
 ## REC-P0-093 Platform Flow And Application IA Boundary Realignment
 
-Status: `in_progress` as platform information-architecture and human-usability boundary correction; user signoff remains open.
+Status: `accepted` as platform information-architecture engineering evidence only; final user signoff remains open and `gates.user_script_passed=false`.
+
+Engineering acceptance: scripts/recovery-r93-platform-flow-app-ia-boundary.ps1 returned PASS on http://127.0.0.1:18132. Typecheck/build/package-release also passed. The accepted boundary is: /platform/apps is application/authorization configuration, /platform/flow is independent platform Flow, and /platform keeps system entry. This acceptance does not close final user verification.
 
 Flow source: `temp_flow.md`, `temp_flow_persion.html`, `docs/framework/final-system-flow-blueprint.md`, `.cursor/knowledge/project-operating-rules.md`.
 
@@ -6756,3 +6888,550 @@ Explicitly not complete if:
 - Navigation still makes AI/todo/message/profile compete with the main platform modules as equal primary work modules.
 - Browser evidence only proves routes open without checking source/deployed markers, hierarchy, copy, and system-entry separation.
 - User signoff is implied from engineering evidence; `gates.user_script_passed` must remain false.
+
+## REC-P0-094 Fresh Deployed Role Journey Audit After R92/R93
+
+Status: `diagnostic-fail` accepted as failure-finding engineering evidence; no user signoff claim.
+
+User role: platform administrator, platform member, system administrator, normal member, requester, approver, external integrator, and operator.
+
+Business goal: after R92 workflow closure and R93 platform IA realignment, audit the current running release from real role journeys before starting another feature slice. The audit must identify whether page hierarchy, wording, layout density, permission states, and task ownership now feel like one normal usable system; any failure must become a specific follow-up task card before coding.
+
+Implementation strategy boundary: if the audit shows a route, shell, or module is structurally inconsistent with the target architecture, the follow-up task may delete and rewrite that local implementation instead of preserving the old code. The choice must be based on the faster path to the role journey and must preserve frozen API, data, permission, and signoff boundaries.
+
+Requirement rows: all remaining `PARTIAL` rows in final coverage, especially `REQ-4.x`, `REQ-5.x`, `REQ-6.x`, `REQ-9`, `REQ-14.1-14.37`, and `REQ-2.1`.
+
+Journey rows: J1-J11.
+
+Frontend scope: no feature implementation in R94 unless the audit script itself needs stable read-only markers. It may inspect `/platform`, `/platform/flow`, `/platform/apps`, `/platform/work`, platform admin, system dashboard, system admin, runtime modules, work, todo, message, OpenAPI/application, and operations/log routes.
+
+Backend scope: no business mutation beyond controlled seed/readback required for audit evidence. Existing APIs may be used to create temporary audit systems/records if the script needs fresh data.
+
+Generator scope: none. Generated CRUD cannot close the audit.
+
+Data scope: role accounts, system switch context, current system, modules, records, workflow/todo/message ids, application/openapi rows, operations/log rows, visible route markers, disabled reasons, trace ids, browser overflow/blocker counts, and coverage status.
+
+Permission rule: every journey must prove the visible route belongs to the current role and that forbidden platform/system/admin/runtime mutations remain denied.
+
+States: logged out, platform workbench, platform Flow, platform Application, platform Work, platform admin, system dashboard, system admin configuration, normal runtime, work management, todo/message, workflow requester/approver, external app/OpenAPI, operations/logs, denied/no-permission, empty, loading, success/failure, desktop/mobile containment, and user signoff boundary.
+
+Requirement Confirmation Contract:
+
+| Contract item | Required content |
+|---|---|
+| Requirement source | final coverage `PARTIAL` rows and user feedback about hierarchy/copy/layout confusion after R92/R93 |
+| Target role | all product roles needed for deployed-use verification |
+| Entry point | deployed login on the current release, then role-specific platform/system/runtime/admin routes |
+| User job | decide whether the current product can be used normally, and locate the next concrete non-usable route or state if not |
+| Data contract | fresh or retained role accounts, route markers, business readback ids, permission denials, browser audit metrics, coverage counts |
+| Permission contract | platform/system/admin/runtime boundaries remain enforced; R93 Application-vs-system-entry boundary remains enforced |
+| State contract | loaded, empty, denied, actionable, success/failure, terminal workflow, mobile containment, no fake success |
+| Copy contract | visible labels and disabled reasons must be understandable, non-misleading, and free of obvious mojibake/generic placeholder copy |
+| Acceptance assertions | release verification, static usability/framework/coverage audits, deployed browser role journeys, source/deployed marker checks, permission negatives, and explicit user-signoff false |
+| Screenshot evidence boundary | Screenshots prove visual hierarchy, containment, and visible copy only. API/readback/permission assertions prove behavior. |
+
+Acceptance script: `scripts/recovery-r94-fresh-deployed-role-journey-audit.ps1`
+
+Evidence paths:
+
+- Result: `docs/evidence/recovery/r94-fresh-deployed-role-journey-audit-result.json`
+- Summary: `docs/evidence/recovery/r94-fresh-deployed-role-journey-audit-2026-07-08.md`
+- Browser audit: `docs/evidence/recovery/screenshots/r94-fresh-deployed-role-journey-audit/fresh-deployed-role-journey-browser-audit.json`
+
+Explicitly not complete if:
+
+- The audit starts from old evidence instead of the current deployed release.
+- It only checks route reachability without role job, copy, hierarchy, permission, and readback assertions.
+- It hides remaining `PARTIAL` coverage rows or promotes them to final `PROVEN` without user verification.
+- It claims final user signoff; `gates.user_script_passed` must remain false.
+- It forces incremental patching when a local rewrite is the clearer and faster way to restore the platform/system/module boundary.
+
+R94 diagnostic result on 2026-07-08: `FAIL` as deployed audit evidence only. Release/framework/static/R93 passed, coverage stayed partial with notClosed `45`, Application remained separated from system entry, and user signoff stayed false. The remaining hard blocker is `/platform` system-entry density: when many systems are visible, the workbench behaves like a card pile on desktop and mobile. R81/R57 legacy child scripts are reference warnings because their retained data/marker contracts are stale.
+
+## REC-P0-095 Platform Workbench System Entry Density And List Rewrite Closure
+
+Status: `accepted` as deployed engineering evidence only after R95 PASS; user signoff remains open.
+
+User role: platform administrator and platform member entering the platform workbench before choosing a system.
+
+Business goal: rewrite the `/platform` system-entry surface from a pile of system cards into a compact, searchable, scan-friendly list/table that clearly separates platform modules from system entry, shows current-system/member context, supports many visible systems without button/card clutter, and keeps Application/Flow independent.
+
+Requirement rows: `REQ-4.1`, `REQ-4.2`, `REQ-5.1`, `REQ-6.1`, `REQ-6.2`, `REQ-6.3`, `REQ-6.11`, `REQ-2.1`.
+
+Journey rows: P1, P2, S1, J1, J2, J5, J8, J9, J11.
+
+Frontend scope: `frontend/src/features/platform/platformShell.ts` and related responsive CSS only. Replace the old system-card pile with a list/table style system-entry panel, quick filters/search, current/target markers, disabled reason handling, and stable R95 DOM markers. Do not move system entry into `/platform/apps`.
+
+Backend scope: none unless a read-only API shape is missing. Existing `shellState.availableSystems` and `switchToSystem` must remain the data/action boundary.
+
+Generator scope: none.
+
+Data scope: available systems, enabled/disabled state, tenant/member binding id, target system id, current system id, disabled reason, visible count, filter/search state, and selected/target row markers.
+
+Permission rule: enabled rows may enter the system through `switchToSystem`; disabled rows route to no-member/request mapping. Platform Application remains application list/configuration, not system entry.
+
+States: many systems, no systems, enabled, disabled/no-member, target system, current system, desktop/mobile containment, no horizontal overflow, no card pile, no generic placeholder copy, user signoff false.
+
+Requirement Confirmation Contract:
+
+| Contract item | Required content |
+|---|---|
+| Requirement source | R94 result `docs/evidence/recovery/r94-fresh-deployed-role-journey-audit-result.json` and user feedback about confusing hierarchy/layout |
+| Target role | platform administrator and platform member |
+| Entry point | deployed `/platform` workbench after login |
+| User job | find and enter the correct system without mistaking Application/Flow for system entry |
+| Data contract | visible systems render as rows with member binding/tenant/enabled/target/current state and disabled reasons |
+| Permission contract | enabled enter system action uses system switch; disabled row explains mapping/request path; apps page has zero system-entry cards |
+| State contract | many systems stay compact; mobile has no overflow; empty and disabled states remain readable |
+| Copy contract | labels use system-entry/list wording, not application wording; no mojibake/generic placeholder copy |
+| Acceptance assertions | source/deployed marker checks, R94 rerun, R93 regression, browser desktop/mobile `/platform` workbench no card-pile blockers, Application boundary remains PASS |
+| Screenshot evidence boundary | Screenshots prove visual hierarchy and containment only; system switch/readback markers prove behavior. |
+
+Acceptance script: `scripts/recovery-r95-platform-workbench-system-entry-density.ps1`
+
+Evidence paths:
+
+- Result: `docs/evidence/recovery/r95-platform-workbench-system-entry-density-result.json`
+- Summary: `docs/evidence/recovery/r95-platform-workbench-system-entry-density-2026-07-08.md`
+- Browser audit: `docs/evidence/recovery/screenshots/r95-platform-workbench-system-entry-density/platform-workbench-system-entry-browser-audit.json`
+
+Explicitly not complete if:
+
+- `/platform` still renders system entry primarily as a pile of cards/buttons when many systems are visible.
+- `/platform/apps` regresses into system entry or renders `data-platform-system-card`.
+- The fix hides disabled/no-member reasons or member binding context.
+- Mobile or desktop has horizontal overflow or button text clipping.
+- It claims final user signoff; `gates.user_script_passed` must remain false.
+
+R95 accepted evidence:
+
+- Script: `scripts/recovery-r95-platform-workbench-system-entry-density.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r95-platform-workbench-system-entry-density-result.json`.
+- Summary: `docs/evidence/recovery/r95-platform-workbench-system-entry-density-2026-07-08.md`.
+- Browser audit: `docs/evidence/recovery/screenshots/r95-platform-workbench-system-entry-density/platform-workbench-system-entry-density-browser-audit.json`.
+- Browser facts: `/platform` desktop/mobile rowCount=15, systemCardCount=0, rowRoleButtonCount=0, max workbench main buttons=5, overflow=0, search miss/restore passed; `/platform/apps` and `/platform/flow` leaked no system-entry panel/cards.
+- Regression: R93 PASS, verify-release PASS, `gates.user_script_passed=false`.
+
+Still partial:
+
+- R95 closes the concrete platform workbench density/card-pile blocker only.
+- Final completion still requires explicit user verification/signoff or closure of remaining partial coverage rows.
+## REC-P0-096 Final Remaining Partial Coverage Or User Trial Readiness Selection
+
+Status: `accepted` as decision engineering evidence only after R96 PASS; user signoff remains open.
+
+Business goal: choose the next executable closure from the remaining final coverage ledger, or prepare a user-trial readiness path, without treating engineering evidence as final acceptance.
+
+Requirement rows: all remaining `PARTIAL` rows in `docs/evidence/final-requirement-coverage-audit-result.json`, especially platform/system/workflow/runtime breadth rows still marked notClosed.
+
+Journey rows: J1-J11, selected according to the next notClosed gap.
+
+Tasks:
+
+- Refresh final framework/static/coverage audits from the current workspace.
+- Read the notClosed coverage rows and select exactly one next concrete repair task, unless the next action is explicit user trial/signoff preparation.
+- If a local surface is structurally inconsistent with the target architecture, delete/rewrite that local implementation when faster than patching old code.
+- Keep `gates.user_script_passed=false` until the user explicitly signs off.
+
+Planned evidence:
+
+- R96 decision/audit script result under `docs/evidence/recovery/`.
+- Updated ledger/task card pointing at the chosen next implementation task or explicit user trial path.
+- No final completion claim without user signoff.
+
+R96 accepted evidence:
+
+- Script: `scripts/recovery-r96-final-remaining-partial-coverage-selection.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r96-final-remaining-partial-coverage-selection-result.json`.
+- Summary: `docs/evidence/recovery/r96-final-remaining-partial-coverage-selection-2026-07-08.md`.
+- Decision: selected `REC-P0-097 C1 Fresh System Initialization Path And Empty Dashboard Hierarchy Closure` because R95 closed platform system-entry density and the next flow-order gap is C1 first-use setup plus empty dashboard hierarchy.
+- Boundary: coverage remains notClosed `45`, `gates.user_script_passed=false`, and no final completion claim is made.
+
+## REC-P0-097 C1 Fresh System Initialization Path And Empty Dashboard Hierarchy Closure
+
+Status: `accepted` as deployed engineering evidence only after R97 PASS; user signoff remains open.
+
+Flow ids: `A2`, `P2`, `S1`, `B1`, `C1`, `C2`, `C3`, `J1`, `J2`, `J3`, `J5`, `J8`, `J9`, `J11`.
+
+User role: new system creator, platform-authorized system creator, and system administrator entering a fresh or empty system.
+
+Business goal: a creator/admin who registers or creates a system lands in a clear system-admin first-use guide, sees ten real setup steps with backend readback status, can jump to the relevant admin surface, and sees an empty business dashboard that presents one primary initialization surface instead of mixing runtime panels with setup work.
+
+Requirement rows: `REQ-4.1`, `REQ-4.3`, `REQ-5.2`, `REQ-5.4`, `REQ-5.7`, `REQ-5.10`, `REQ-6.2`, `REQ-6.3`, `REQ-2.1`.
+Requirement Confirmation Contract:
+
+| Contract item | Required content |
+|---|---|
+| Requirement source | `docs/framework/final-system-flow-blueprint.md` flow `C1 First-Use Configuration Guide`, `docs/evidence/final-requirement-gap-report.md` rows `REQ-4.1` and `REQ-6.2`, and `.cursor/knowledge/project-operating-rules.md` registration/system initialization rules. |
+| Target role | System administrator or creator with system admin permission. |
+| Entry point | `/register-with-system` success route, `/platform` create-system route, `/systems/{systemId}/admin`, and `/systems/{systemId}/dashboard` for an empty system. |
+| User job | Understand required setup, jump to each real admin section, and avoid mistaking an unconfigured dashboard for usable runtime. |
+| Data contract | Read system/member/tenant context plus departments, members, roles, module groups, modules, page designs, dict types, flows, work config, OpenAPI apps, SSO, Agent, data source, logs, warnings, and readiness status. |
+| Permission contract | System admin can open setup sections; normal members must not see admin-only setup controls from the business shell; runtime access stays scoped by `SystemSwitchContext`. |
+| State contract | Fresh system, partially configured system, no modules, modules configured, warnings present, no admin permission, loading, error, desktop/mobile containment, and no horizontal overflow. |
+| Copy contract | Visible copy says system initialization/setup, not application entry or generic dashboard success; blocked steps name the missing state; no mojibake or generic placeholder copy. |
+| Acceptance assertions | Source markers, typecheck/build, deployed marker check, browser desktop/mobile empty-dashboard and admin-guide hierarchy checks, no empty-dashboard runtime action pile, R96 PASS reference, and user signoff false. |
+| Screenshot evidence boundary | Screenshots prove visual hierarchy, containment, and visible copy. They do not prove behavior, persistence, permission, or requirement closure. API/readback assertions prove behavior. |
+
+Requirement source: `docs/framework/final-system-flow-blueprint.md` flow `C1 First-Use Configuration Guide`, `docs/evidence/final-requirement-gap-report.md` rows `REQ-4.1` and `REQ-6.2`, and `.cursor/knowledge/project-operating-rules.md` registration/system initialization rules.
+
+Target role: system administrator or creator with system admin permission.
+
+Entry point: `/register-with-system` success route, `/platform` create-system route, `/systems/{systemId}/admin`, and `/systems/{systemId}/dashboard` for an empty system.
+
+User job: understand what must be configured before normal members can use the system, jump to each real admin section, and avoid mistaking an unconfigured system dashboard for a usable runtime workspace.
+
+Frontend scope: `frontend/src/features/system-admin/systemAdmin.ts`, `frontend/src/features/system-shell/systemShell.ts`, and `frontend/src/styles.css`. Replace the short 5-step checklist with the C1 ten-step readback guide and stable DOM markers; make empty admin dashboards render a single first-use surface with direct admin action and no runtime action hub/efficiency pile.
+
+Backend scope: reuse existing `loadSystemAdminData`, system switch context, home/work/todo/message/module APIs, and registration/create-system routing. Add backend only if evidence proves a missing readback field.
+
+Generator scope: none; generated CRUD is not completion evidence.
+
+Data contract: read and render system name, tenant/member context, departments, members, roles, module groups, modules, fields/page designs where available, dict types, flows, work config, OpenAPI apps, SSO/Agent/data source/log status, warning count, and published/runtime readiness status.
+
+Permission contract: system admin can open setup sections; normal members must not see admin-only controls on the empty dashboard; enabled admin links stay in the system admin shell; runtime routes remain permission-scoped through `SystemSwitchContext`.
+
+State contract: fresh system, partially configured system, no modules, modules configured, warnings present, no admin permission, loading, error, desktop/mobile containment, and no horizontal overflow.
+
+Copy contract: visible copy must say this is system initialization/setup, not application entry or generic dashboard success; disabled or blocked steps must name what is missing; no mojibake or generic placeholder copy.
+
+Acceptance assertions: source markers for R97 C1 guide and empty dashboard hierarchy, typecheck/build, deployed asset marker check, browser desktop/mobile `/systems/{id}/dashboard` empty-state checks, browser `/systems/{id}/admin` ten-step guide checks, no dashboard action-hub/runtime-efficiency when empty and admin, R96 PASS reference, and `gates.user_script_passed=false`.
+
+Screenshot evidence boundary: Screenshots prove visual hierarchy, containment, and visible copy only. API/readback assertions prove behavior.
+
+Acceptance script: `scripts/recovery-r97-c1-fresh-system-initialization-path.ps1`
+
+Evidence paths:
+
+- Result: `docs/evidence/recovery/r97-c1-fresh-system-initialization-path-result.json`
+- Summary: `docs/evidence/recovery/r97-c1-fresh-system-initialization-path-2026-07-08.md`
+- Browser audit: `docs/evidence/recovery/screenshots/r97-c1-fresh-system-initialization-path/c1-fresh-system-initialization-path-browser-audit.json`
+
+Explicitly not complete if:
+
+- Empty system dashboard still renders runtime action hub, runtime efficiency, or work/message/todo panels as competing primary surfaces for a system admin.
+- System admin first-use guide has fewer than ten C1 steps or lacks readback status markers.
+- Registration or platform create-system routes no longer land in `/systems/{systemId}/admin`.
+- Normal members see system-admin setup controls from the business shell.
+- The evidence only checks source text or screenshots without deployed browser/readback assertions.
+- It claims final user signoff; `gates.user_script_passed` must remain false.
+
+
+
+R97 accepted evidence:
+
+- Script: `scripts/recovery-r97-c1-fresh-system-initialization-path.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r97-c1-fresh-system-initialization-path-result.json`.
+- Summary: `docs/evidence/recovery/r97-c1-fresh-system-initialization-path-2026-07-08.md`.
+- Browser audit: `docs/evidence/recovery/screenshots/r97-c1-fresh-system-initialization-path/c1-fresh-system-initialization-path-browser-audit.json`.
+- Fresh system evidence: system `1177`, department/member/role counts `1/1/1`, module/module-group counts `0/0`, effective role includes `SYSTEM_SUPER_ADMIN`.
+- Browser facts: empty dashboard desktop/mobile PASS, C1 guide desktop/mobile PASS, resultCount `4`, blockers `0`, maxOverflow `0`, deployed R97 markers present, framework/static PASS, coverage notClosed `45`, `gates.user_script_passed=false`.
+
+## REC-P0-098 Final User Trial Script Readiness And Signoff Path
+
+Status: `accepted` as engineering evidence only on 2026-07-08; user signoff remains open.
+
+User role: the human reviewer and all trial roles needed to verify the current deployed system.
+
+Business goal: turn the current deployed engineering state into a clear user-trial path: verify the running release, expose the right trial credentials/routes/checklist, run a light browser smoke from the login page, and preserve the boundary that only the user can set final signoff.
+
+Requirement rows: `REQ-2.1`, `REQ-6.2`, `REQ-9` plus all remaining `PARTIAL` rows still visible in the coverage ledger.
+
+Requirement Confirmation Contract:
+
+| Contract item | Required content |
+|---|---|
+| Requirement source | R97 PASS evidence, `docs/recovery/continuation-implementation-guide.md`, `docs/evidence/final-requirement-coverage-audit-result.json`, and the reopened final usable-system acceptance notes. |
+| Target role | Human reviewer, platform admin, system admin, normal member, readonly member, requester, and approver trial accounts where available. |
+| Entry point | Current deployed `http://127.0.0.1:18131/` login page, retained trial routes, and any fresh trial workspace route generated by the script. |
+| User job | Know exactly how to try the system, what to verify, where engineering evidence ends, and how to provide signoff or identify the next blocker. |
+| Data contract | Release health, deployed asset hash, trial credentials, trial system/module/record ids, role routes, browser smoke results, coverage counts, and user-signoff state. |
+| Permission contract | Trial roles must start from login and retain their role boundaries; forbidden admin/runtime actions must remain denied where checked. |
+| State contract | release running, login, platform workbench, system dashboard/admin/runtime/work/todo/message trial paths, empty/error/denied states if encountered, desktop/mobile smoke, and signoff open. |
+| Copy contract | The user-facing checklist must be readable Chinese, not claim completion, and must explain engineering evidence vs user acceptance. |
+| Acceptance assertions | release verification, R97 PASS reference, framework/static/coverage audits, browser login smoke for trial paths, generated user verification checklist, and explicit `gates.user_script_passed=false`. |
+| Screenshot evidence boundary | Screenshots prove visible route/copy/containment only; they do not prove final acceptance. API/readback assertions and the user's own signoff prove acceptance. |
+
+Acceptance script: `scripts/recovery-r98-final-user-trial-readiness-and-signoff-path.ps1`
+
+Evidence paths:
+
+- Result: `docs/evidence/recovery/r98-final-user-trial-readiness-and-signoff-path-result.json`
+- Summary: `docs/evidence/recovery/r98-final-user-trial-readiness-and-signoff-path-2026-07-08.md`
+- Trial checklist: `docs/evidence/recovery/r98-user-trial-checklist-2026-07-08.md`
+
+Explicitly not complete if:
+
+- It marks `gates.user_script_passed=true` without explicit user signoff.
+- It hides notClosed coverage rows or promotes them to `PROVEN` from engineering evidence.
+- It gives the user old/stale credentials or routes that do not start from the deployed login page.
+- It claims screenshots or smoke scripts are equivalent to human acceptance.
+R98 accepted evidence:
+
+- Script: `scripts/recovery-r98-final-user-trial-readiness-and-signoff-path.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r98-final-user-trial-readiness-and-signoff-path-result.json`.
+- Summary: `docs/evidence/recovery/r98-final-user-trial-readiness-and-signoff-path-2026-07-08.md`.
+- Trial checklist: `docs/evidence/recovery/r98-user-trial-checklist-2026-07-08.md`.
+- Browser audit: `docs/evidence/recovery/screenshots/r98-final-user-trial-readiness-and-signoff-path/final-user-trial-readiness-browser-audit.json`.
+- Facts: release health `UP`, verify-release PASS, retained trial API login PASS for admin/normal/readonly/requester/approver, runtime record `625` readback PASS, readonly create denied `403`, workflow record `626` status `APPROVED`, handled todo total `1`, browser smoke resultCount `11`, blockers `0`, warnings `0`, maxOverflow `0`, framework/static PASS, coverage missing `0`, notClosed `45`, `gates.user_script_passed=false`.
+
+## REC-P0-099 Post-R98 User Trial Feedback Intake And Residual Repair Selection
+
+Status: `accepted` as decision engineering evidence only after R99 PASS; user signoff remains open.
+
+User role: human reviewer, conductor, and worker agents selecting the next repair only from explicit feedback or remaining coverage rows.
+
+Business goal: keep the final handoff honest after R98. The next action is either explicit user signoff from the R98 checklist, or a new concrete recovery task created from user feedback. No feature coding should start from vague chat context.
+
+Requirement rows: `REQ-2.1`, `REQ-6.2`, `REQ-9` plus all remaining `PARTIAL` rows still visible in the coverage ledger.
+
+Requirement Confirmation Contract:
+
+| Contract item | Required content |
+|---|---|
+| Requirement source | R98 PASS evidence, `docs/evidence/recovery/r98-user-trial-checklist-2026-07-08.md`, explicit user feedback/signoff, and `docs/evidence/final-requirement-coverage-audit-result.json`. |
+| Target role | Human reviewer plus the affected product role named by feedback. |
+| Entry point | R98 checklist route, current deployed login page, or the exact route/account named by user feedback. |
+| User job | Decide whether the current product can be accepted, or convert one concrete human-visible issue into the next recovery task card. |
+| Data contract | User feedback/signoff text, route/account, screenshot or observed state when provided, coverage counts, current release assets, and signoff gate value. |
+| Permission contract | User signoff is the only source allowed to close `gates.user_script_passed`; worker scripts may only prepare evidence or create the next repair contract. |
+| State contract | signoff open, signoff accepted, feedback received, no feedback, next repair selected, coverage still partial, desktop/mobile context where relevant. |
+| Copy contract | Handoff and feedback intake text must not claim completion before signoff and must preserve the engineering-evidence vs user-acceptance boundary. |
+| Acceptance assertions | R99 script or intake update confirms R98 PASS, checklist availability, current gate false unless explicit signoff exists, coverage counts visible, and the next concrete task is selected only from feedback or documented residual coverage. |
+| Screenshot evidence boundary | Screenshots prove visual feedback context only. They do not prove final acceptance, permission correctness, persistence, or functional completion without explicit user signoff and API/readback assertions. |
+
+Acceptance script: `scripts/recovery-r99-post-r98-user-feedback-intake-and-next-repair-selection.ps1`
+
+Evidence paths:
+
+- Result: `docs/evidence/recovery/r99-post-r98-user-feedback-intake-and-next-repair-selection-result.json`
+- Summary: `docs/evidence/recovery/r99-post-r98-user-feedback-intake-and-next-repair-selection-2026-07-08.md`
+
+Explicitly not complete if:
+
+- It changes `gates.user_script_passed=true` without explicit user signoff.
+
+- It starts product coding before translating feedback into a concrete requirement/task-card contract.
+- It hides remaining notClosed coverage rows or treats R98 browser smoke as final user acceptance.
+R99 accepted evidence:
+
+- Script: `scripts/recovery-r99-post-r98-user-feedback-intake-and-next-repair-selection.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r99-post-r98-user-feedback-intake-and-next-repair-selection-result.json`.
+- Summary: `docs/evidence/recovery/r99-post-r98-user-feedback-intake-and-next-repair-selection-2026-07-08.md`.
+- Facts: R98 PASS/checklist present, coverage missing `0`, notClosed `45`, `gates.user_script_passed=false`, Flow/Application depth gaps selected for R100.
+
+## REC-P0-100 Platform Flow Application Workbench Depth And Action Clarity Closure
+
+Status: `accepted` as deployed engineering evidence only after R100 PASS; user signoff remains open.
+
+User role: platform administrator and platform ordinary member using platform workspace Flow/Application modules; worker agents implementing the next concrete repair.
+
+Business goal: make platform Flow and platform Application usable task modules, not just boundary copy. Platform Flow must show list/detail/run feedback with traceId and failure handling. Platform Application must show authorization/application rows with request/change ids and request/adjust/disable actions, while still forbidding system-entry bypass.
+
+Requirement rows: `REQ-4.1`, `REQ-4.2`, `REQ-5.15`, `REQ-6.1`, `REQ-6.2`, `REQ-6.3`, `REQ-6.11`, `REQ-9`, `REQ-2.1`.
+
+Flow ids: `P2 Platform Flow`, `P3 Platform Application/Authorization`, `P6 Platform Todo`, `P7 Platform Messages`, `P9 Platform Agent`, `S1 System Switch`, `E1 Platform OpenAPI Caller`.
+
+Requirement Confirmation Contract:
+
+| Contract item | Required content |
+|---|---|
+| Requirement source | `temp_flow.md` P2/P3, `temp_flow_persion.html` platform Flow/Application deep sections, R99 result, and the 2026-07-08 user feedback that Flow and Application are independent modules. |
+| Target role | Platform administrator and platform ordinary member. |
+| Entry point | Deployed login -> `/platform` -> top navigation `Flow` or `Application`; do not use a system business route as the starting point. |
+| User job | In Flow, inspect platform flows, understand trigger source/affected systems/recent run/failure/audit state, open detail, run health/log action, retry or create compensation task without writing system business data. In Application, inspect authorized systems/applications, request or adjust authorization, see requestId/authorizationChangeId, platform todo/message/log feedback, and disabled reasons. |
+| Data contract | Flow rows, flow detail, run batch, traceId, failure feedback, retry/compensation task marker, authorization rows, requestId, authorizationChangeId, status, expiry, scope, platform todo/message/log result. Static local rows are acceptable only as frontend contract samples when no dedicated API exists yet, but copy must state platform boundary and must not fake final persistence. |
+| Permission contract | Platform admins see configuration/adjust/disable actions enabled where relevant. Platform members can view and request authorization but cannot enter platform admin-only configuration. Neither role can enter a system from Application or write system business data from Flow/Application. System business data still requires S1 system switch. |
+| State contract | desktop/mobile layout, empty/list/detail, selected row, disabled reason, pending request, approved/disabled authorization, latest run ok/fail, retry queued, compensation queued, log trace present, no system-entry card/action leakage. |
+| Copy contract | Page copy must be specific to Flow/Application work objects: trigger source, affected systems, run batch, failure feedback, audit status, authorization, requestId, authorizationChangeId, platform todo/message/log. Avoid generic explanation-only panels and avoid `enter system` wording in Application actions. |
+| Acceptance assertions | Source and deployed frontend expose stable markers for `platformFlowRow`, `platformFlowDetailPanel`, `platformFlowRunBatch`, `platformFlowRetryAction`, `platformFlowCompensationAction`, `platformAuthorizationRow`, `platformAuthorizationRequest`, `platformAuthorizationDetailPanel`, `authorizationChangeId`, and `requestId`; browser audit checks `/platform/flow` and `/platform/apps` on desktop/mobile, no overflow/blockers, no system-entry cards, no direct system business write action, and no user signoff claim. |
+| Screenshot evidence boundary | Screenshots prove visual hierarchy, density, overflow, selected detail visibility, and absence of system-entry leakage only. They do not prove final user acceptance, functional completion, or backend persistence without API/readback assertions and explicit user signoff. |
+
+Generated vs coded boundary:
+
+- Generated/plumbing scope: existing platform shell routing, common table/filter/status components, existing platform health/admin/system-context APIs.
+- Coded business behavior: Flow/Application workbench object rows, detail panels, action disabled reasons, result markers, trace/request/change ids, platform boundary copy, and browser evidence.
+- Backend scope: add backend only if the existing APIs cannot supply required readback; otherwise keep this as a frontend contract/deployed UX closure and record the remaining API breadth honestly.
+
+Acceptance script: `scripts/recovery-r100-platform-flow-application-depth.ps1`
+
+Evidence paths:
+
+- Browser audit: `scripts/recovery-r100-browser-audit.js`
+- Result: `docs/evidence/recovery/r100-platform-flow-application-depth-result.json`
+- Summary: `docs/evidence/recovery/r100-platform-flow-application-depth-2026-07-08.md`
+
+Explicitly not complete if:
+
+- `/platform/apps` renders system switch cards or an `enter system` primary action.
+- `/platform/flow` is only a generic capability explanation without rows, detail, run feedback, and failure actions.
+- Flow/Application copy implies direct system business data writes from the platform shell.
+- It changes `gates.user_script_passed=true` without explicit user signoff.
+
+
+R100 accepted evidence:
+
+- Script: `scripts/recovery-r100-platform-flow-application-depth.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r100-platform-flow-application-depth-result.json`.
+- Summary: `docs/evidence/recovery/r100-platform-flow-application-depth-2026-07-08.md`.
+- Browser audit: `docs/evidence/recovery/screenshots/r100-platform-flow-application-depth/platform-flow-application-depth-browser-audit.json`.
+- Facts: deployed assets `/assets/index-Dfqzt6Tt.js` and `/assets/index-GpmV72HI.css`; Flow rows `3`, Application authorization rows `3`, browser results `4`, blockers `0`, maxOverflow `0`, framework/static PASS, coverage notClosed `45`, `gates.user_script_passed=false`.
+
+## REC-P0-101 Platform Flow Application Persistence Permission And Readback Closure
+
+Status: `accepted` as deployed engineering evidence only after R101 PASS; user signoff remains open.
+
+User role: platform administrator and platform ordinary member using platform Flow/Application after R100; backend/frontend/test workers implementing real persistence and readback.
+
+Business goal: promote R100 frontend contract samples into real platform objects. Platform Flow definitions, run batches, retry/compensation tasks, Application authorization requests, authorizationChangeId, platform todo/message/log feedback, and permission boundaries must be persisted, read back, and visible after reload.
+
+Requirement rows: `REQ-4.1`, `REQ-4.2`, `REQ-5.15`, `REQ-6.1`, `REQ-6.2`, `REQ-6.3`, `REQ-6.11`, `REQ-9`, `REQ-2.1`.
+
+Flow ids: `P2 Platform Flow`, `P3 Platform Application/Authorization`, `P6 Platform Todo`, `P7 Platform Messages`, `P9 Platform Agent`, `S1 System Switch`, `E1 Platform OpenAPI Caller`.
+
+Requirement Confirmation Contract:
+
+| Contract item | Required content |
+|---|---|
+| Requirement source | R100 PASS evidence, `temp_flow.md` P2/P3, `temp_flow_persion.html` Flow/Application deep sections, and final coverage rows still marked `PARTIAL`. |
+| Target role | Platform administrator and platform ordinary member. |
+| Entry point | Deployed login -> `/platform/flow` and `/platform/apps`; API calls must use the same authenticated platform account context as the frontend. |
+| User job | Create/read/update platform Flow definitions and Application authorization requests; run publish/check/retry/compensation or request/adjust/disable actions; see durable runBatchId, traceId, requestId, authorizationChangeId, platform todo/message/log feedback after reload. |
+| Data contract | Platform Flow definition, trigger source, affected systems, node summary, idempotency key, retry/compensation policy, run batch, traceId, platform task/message/log; Application authorization, authorized system/tenant/modules, scope, expiry, data isolation, requestId, authorizationChangeId, approval status. |
+| Permission contract | Platform admin can configure/adjust/disable and run checks. Platform member can view and request but cannot perform admin-only mutations. Neither role can write system business data from platform Flow/Application; system data remains behind S1 system switch and system permissions. |
+| State contract | loading, empty, list, detail, create draft, saved, publish/check passed/failed, retry queued, compensation queued, request pending, approved, rejected, disabled, forbidden, reload readback, no system-entry leakage. |
+| Copy contract | UI must distinguish persisted backend results from frontend contract samples; success copy must include real ids and trace/readback, not generic success toasts. |
+| Acceptance assertions | API creates/reads platform Flow and authorization objects, permission negatives return 401/403, frontend renders persisted rows with `platformFlowRow`, `platformAuthorizationRow`, `requestId`, `authorizationChangeId`, runBatch/trace markers after reload, browser desktop/mobile has no overflow or system-entry leakage, and coverage/user signoff remain honest. |
+| Screenshot evidence boundary | Screenshots prove visual hierarchy, density, selected detail visibility, and absence of system-entry leakage only. They do not prove final acceptance, functional completion, or backend persistence without API/readback assertions and explicit user signoff. |
+
+Generated vs coded boundary:
+
+- Generated/plumbing scope: existing auth/session, platform shell routing, common response/page wrappers, migration scaffolding where needed.
+- Coded business behavior: platform Flow/Application persistence services, permission checks, task/message/log feedback, frontend API binding, reload readback, and deterministic evidence.
+- Backend scope: add or extend APIs/tables only for platform Flow/Application objects required by this task; do not create direct system business write paths.
+
+Acceptance script: `scripts/recovery-r101-platform-flow-application-api-readback.ps1`
+
+Evidence paths:
+
+- Result: `docs/evidence/recovery/r101-platform-flow-application-api-readback-result.json`
+- Summary: `docs/evidence/recovery/r101-platform-flow-application-api-readback-2026-07-08.md`
+- Browser audit: `docs/evidence/recovery/screenshots/r101-platform-flow-application-api-readback/platform-flow-application-api-readback-browser-audit.json`
+
+Explicitly not complete if:
+
+- It keeps R100 rows as static frontend samples without API/readback evidence.
+- It lets platform Flow/Application write system business records directly.
+- It lacks platform member/admin permission negative evidence.
+- It changes `gates.user_script_passed=true` without explicit user signoff.
+
+R101 accepted evidence:
+
+- Script: `scripts/recovery-r101-platform-flow-application-api-readback.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r101-platform-flow-application-api-readback-result.json`.
+- Summary: `docs/evidence/recovery/r101-platform-flow-application-api-readback-2026-07-08.md`.
+- Browser audit: `docs/evidence/recovery/screenshots/r101-platform-flow-application-api-readback/platform-flow-application-api-readback-browser-audit.json`.
+- Facts: Flow persisted and read back with `flowId=4`, run/retry/compensation batches and trace ids; Application authorization request/adjust/disable persisted with request/change ids; ordinary member view/request positives and admin-only mutation negatives returned `403`; platform todo/message/log feedback read back; deployed browser resultCount `4`, blockers `0`, maxOverflow `0`; coverage notClosed `45`; `gates.user_script_passed=false`.
+
+## REC-P0-102 Final User Trial Refresh After Platform Flow Application Readback
+
+Status: `active` after R101 PASS; user signoff remains open.
+
+User role: user/reviewer running the current deployed product, with platform administrator and retained trial role accounts.
+
+Business goal: refresh the current user trial and signoff path after R101 made platform Flow/Application API-backed. The system should be tried from the running release with the latest Flow/Application behavior included, then either record explicit user signoff or create the next concrete repair card from fresh feedback.
+
+Requirement rows: all remaining `PARTIAL` rows, especially `REQ-2.1`, `REQ-4.1`, `REQ-4.2`, `REQ-5.15`, `REQ-6.1`, `REQ-6.2`, `REQ-6.3`, `REQ-6.11`, `REQ-9`, and `REQ-14.1-14.37`.
+
+Flow ids: P2 Platform Flow, P3 Platform Application/Authorization, P6 Platform Todo, P7 Platform Messages, P9 Platform Agent, S1 System Switch, E1 Platform OpenAPI Caller, plus J1-J11 final role journeys.
+
+Requirement Confirmation Contract:
+
+| Contract item | Required content |
+|---|---|
+| Requirement source | R98 user trial checklist, R99 feedback intake rule, R100/R101 Flow/Application evidence, final coverage ledger still marked `PARTIAL`, and current user feedback. |
+| Target role | User/reviewer, platform administrator, retained runtime normal/readonly member, retained workflow requester/approver. |
+| Entry point | Current deployed release login -> trial checklist routes -> `/platform/flow` and `/platform/apps` -> retained runtime/workflow routes. |
+| User job | Verify that the current product can be used end to end enough for feedback/signoff, including the latest platform Flow/Application API-backed behavior. |
+| Data contract | Reuse retained trial records plus R101 persisted Flow/Application objects; do not seed unrelated fake business data unless the script writes it to evidence. |
+| Permission contract | Preserve platform admin/member and system role boundaries; no `gates.user_script_passed=true` unless explicit user signoff is captured. |
+| State contract | Running release, login success/failure, route reachability, platform Flow/Application readback, trial checklist availability, feedback/signoff state, next repair selection. |
+| Copy contract | Checklist and evidence must be Chinese-readable where user-facing; engineering files may stay concise but must distinguish evidence from final acceptance. |
+| Acceptance assertions | R101 evidence is present/PASS, release verifies, trial routes load from deployed login, `/platform/flow` and `/platform/apps` show persisted readback, framework/static/coverage remain honest, and the output either records user signoff or keeps signoff false with the next concrete task. |
+| Screenshot evidence boundary | Screenshots prove visible routing, hierarchy, and containment only. They do not prove functional completion or final acceptance without API/readback assertions and explicit user signoff. |
+
+Generated vs coded boundary:
+
+- Generated/plumbing scope: reuse existing auth/session, release verification, trial checklist, R101 evidence, browser smoke harness, and coverage audits.
+- Coded business behavior: only fix a blocker if the R102 audit finds a specific failing route/state and a task card is written first.
+- Backend/frontend scope: no new broad feature work in R102 unless the audit produces a concrete blocker and the task card is updated before coding.
+
+Acceptance script: `scripts/recovery-r102-final-user-trial-refresh-after-r101.ps1`
+
+Evidence paths:
+
+- Result: `docs/evidence/recovery/r102-final-user-trial-refresh-after-r101-result.json`
+- Summary: `docs/evidence/recovery/r102-final-user-trial-refresh-after-r101-2026-07-08.md`
+- Browser audit: `docs/evidence/recovery/screenshots/r102-final-user-trial-refresh-after-r101/final-user-trial-refresh-browser-audit.json`
+
+Explicitly not complete if:
+
+- It reuses the R98 checklist without checking the current R101 deployment.
+- It changes `gates.user_script_passed=true` without explicit user signoff.
+- It selects more coding from vague feedback without a task card.
+- It weakens the R101 platform/system `NO_SYSTEM_BUSINESS_WRITE` boundary.
+R102 accepted evidence:
+
+- Script: `scripts/recovery-r102-final-user-trial-refresh-after-r101.ps1` PASS on `http://127.0.0.1:18131`.
+- Result: `docs/evidence/recovery/r102-final-user-trial-refresh-after-r101-result.json`.
+- Summary: `docs/evidence/recovery/r102-final-user-trial-refresh-after-r101-2026-07-08.md`.
+- Browser audit: `docs/evidence/recovery/screenshots/r102-final-user-trial-refresh-after-r101/final-user-trial-refresh-browser-audit.json`.
+- Facts: release/verify PASS, R98 trial accounts login/readback PASS, readonly create denied `403`, workflow terminal state `APPROVED` with handled todo readback, R101 Flow/Application API readback PASS, browser resultCount `10`, blockers `0`, warnings `0`, maxOverflow `0`, framework/static PASS, coverage notClosed `45`, `gates.user_script_passed=false`.
+
+## REC-P0-103 Fresh Deployed Human Usability Audit After R102
+
+Status: `active` after R102 PASS; user signoff remains open.
+
+User role: user/reviewer plus platform administrator, platform ordinary member, system administrator, normal member, requester/approver, and operator using the current deployed release.
+
+Business goal: inspect the current deployed product after R101/R102 from the user's real target: a normal person can understand page hierarchy, find the right module, use one primary task surface, avoid confusing platform/system boundaries, and identify the next concrete repair if the system still feels messy.
+
+Requirement rows: all remaining `PARTIAL` rows, especially `REQ-2.1`, `REQ-4.1`, `REQ-4.2`, `REQ-6.1`, `REQ-6.2`, `REQ-6.3`, `REQ-6.11`, `REQ-9`, and `REQ-14.1-14.37`.
+
+Flow ids: J1-J11 plus P2 Platform Flow, P3 Platform Application, S1 System Switch, B1-B5 runtime/work/todo/message, C1-C4 configuration/workflow, E1/E2 integration, O1-O3 operations.
+
+Requirement Confirmation Contract:
+
+| Contract item | Required content |
+|---|---|
+| Requirement source | User feedback about confusing hierarchy/copy/layout, `temp_flow.md`, `temp_flow_persion.html`, R101/R102 PASS evidence, final coverage ledger still marked `PARTIAL`, and current deployed browser behavior. |
+| Target role | User/reviewer and the affected product roles discovered by the audit. |
+| Entry point | Current deployed release login -> platform workbench/Flow/Application -> retained runtime/workflow routes -> system admin/operations routes as needed. |
+| User job | Determine the next concrete human-usability repair from current deployed evidence, not from vague preference or old screenshots. |
+| Data contract | Browser facts, route markers, visible text, overflow/control density, duplicate action counts, platform/system boundary markers, R101/R102 evidence references, and selected next task. |
+| Permission contract | Audit must preserve platform/system and admin/member boundaries; it may record denials but must not weaken permissions or set `gates.user_script_passed=true`. |
+| State contract | release reachable, login route, loaded route, empty/list/detail, forbidden/no-permission, visible blockers, warnings, no blocker, selected repair, user signoff open. |
+| Copy contract | Findings must name the concrete route/object/action and distinguish engineering evidence from final user acceptance. |
+| Acceptance assertions | R102 evidence is present/PASS, framework/static/coverage pass, browser audit inspects current deployed routes for hierarchy/layout/copy/boundary problems, result either selects a concrete next repair task or records no engineering blocker while keeping user signoff false. |
+| Screenshot evidence boundary | Screenshots prove visible hierarchy, copy, density, and containment only. They do not prove functional completion or final acceptance without API/readback assertions and explicit user signoff. |
+
+Generated vs coded boundary:
+
+- Generated/plumbing scope: browser audit harness, existing R102 evidence, framework/static/coverage audits, current deployed route metadata.
+- Coded business behavior: no product coding inside R103 unless the audit writes a concrete next task card first.
+- Backend/frontend scope: do not patch broad UI from vague observations; convert each blocker into one task-carded repair.
+
+Acceptance script: `scripts/recovery-r103-fresh-deployed-human-usability-audit-after-r102.ps1`
+
+Evidence paths:
+
+- Result: `docs/evidence/recovery/r103-fresh-deployed-human-usability-audit-after-r102-result.json`
+- Summary: `docs/evidence/recovery/r103-fresh-deployed-human-usability-audit-after-r102-2026-07-08.md`
+- Browser audit: `docs/evidence/recovery/screenshots/r103-fresh-deployed-human-usability-audit-after-r102/fresh-human-usability-browser-audit.json`
+
+Explicitly not complete if:
+
+- It claims final acceptance from engineering evidence.
+- It changes `gates.user_script_passed=true` without explicit user signoff.
+- It selects more coding from vague feedback without route/object/action evidence.
+- It misses the platform Flow/Application boundary regression checks from R101/R102.

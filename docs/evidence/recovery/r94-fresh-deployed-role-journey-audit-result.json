@@ -1,0 +1,231 @@
+﻿{
+    "status":  "FAIL",
+    "productStatus":  "R94_DEPLOYED_ROLE_JOURNEY_AUDIT_ENGINEERING_EVIDENCE_ONLY",
+    "task":  "REC-P0-094",
+    "generatedAt":  "2026-07-08T14:35:34.4427748+08:00",
+    "baseUrl":  "http://127.0.0.1:18132",
+    "userSignoff":  false,
+    "rewriteAllowedForFollowUp":  true,
+    "rewriteBoundary":  "If a route, shell, or module is structurally inconsistent with the target architecture, the follow-up task may delete and rewrite that local implementation when faster than preserving old code.",
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "current deployed release health is UP",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "{\"status\":\"UP\",\"redis\":\"UP\",\"database\":\"UP\",\"schema\":\"UP\"}"
+                   },
+                   {
+                       "area":  "release",
+                       "name":  "verify-release child process completed",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0, log=D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r94-fresh-deployed-role-journey-audit\\verify-release.log"
+                   },
+                   {
+                       "area":  "framework",
+                       "name":  "final goal framework audit passes",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, warnings=1"
+                   },
+                   {
+                       "area":  "static-usability",
+                       "name":  "static usability audit has no blocker/warning findings",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "coverage-boundary",
+                       "name":  "coverage audit keeps remaining partial rows visible",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=FAIL, missing=0, notClosed=45"
+                   },
+                   {
+                       "area":  "r93-regression",
+                       "name":  "R93 platform Flow/Application IA boundary still passes",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, userSignoff=False"
+                   },
+                   {
+                       "area":  "role-journey-reference",
+                       "name":  "R81 retained deployed login role-use audit is readable when retained data still exists",
+                       "passed":  false,
+                       "severity":  "WARN",
+                       "detail":  "status=FAIL, userSignoff=False, browser="
+                   },
+                   {
+                       "area":  "role-journey-reference",
+                       "name":  "R57 legacy fresh human-usable role journey aggregation remains readable when its marker contract is current",
+                       "passed":  false,
+                       "severity":  "WARN",
+                       "detail":  "status=FAIL, userSignoff=, resultCount="
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "R94 platform browser audit process completed",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0, log=D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r94-fresh-deployed-role-journey-audit\\browser-audit.log"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "platform route browser audit has no blockers",
+                       "passed":  false,
+                       "severity":  "ERROR",
+                       "detail":  "status=FAIL, blockers=2, mojibakeResults=0, overflow=0"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "platform Application remains separated from system entry",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "platformApplicationBoundaryPassed=True"
+                   },
+                   {
+                       "area":  "signoff-boundary",
+                       "name":  "R94 keeps user signoff false",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "user_script_passed=False"
+                   }
+               ],
+    "failures":  [
+                     "browser/platform route browser audit has no blockers: status=FAIL, blockers=2, mojibakeResults=0, overflow=0"
+                 ],
+    "warnings":  [
+                     "role-journey-reference/R81 retained deployed login role-use audit is readable when retained data still exists: status=FAIL, userSignoff=False, browser=",
+                     "role-journey-reference/R57 legacy fresh human-usable role journey aggregation remains readable when its marker contract is current: status=FAIL, userSignoff=, resultCount="
+                 ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "script":  "scripts/verify-release.ps1",
+                             "args":  [
+                                          "-BaseUrl",
+                                          "http://127.0.0.1:18132",
+                                          "-CheckDeployedFrontend",
+                                          "-NoFailExit"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r94-fresh-deployed-role-journey-audit\\verify-release.log"
+                         },
+                         {
+                             "name":  "final-goal-framework-audit",
+                             "script":  "scripts/final-goal-framework-audit.ps1",
+                             "args":  [
+                                          "-NoFailExit"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r94-fresh-deployed-role-journey-audit\\final-goal-framework-audit.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "script":  "scripts/final-usability-static-audit.ps1",
+                             "args":  [
+                                          "-NoFailExit"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r94-fresh-deployed-role-journey-audit\\final-usability-static-audit.log"
+                         },
+                         {
+                             "name":  "final-requirement-coverage-audit",
+                             "script":  "scripts/final-requirement-coverage-audit.ps1",
+                             "args":  [
+                                          "-NoFailExit"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r94-fresh-deployed-role-journey-audit\\final-requirement-coverage-audit.log"
+                         },
+                         {
+                             "name":  "recovery-r93-platform-flow-app-ia-boundary",
+                             "script":  "scripts/recovery-r93-platform-flow-app-ia-boundary.ps1",
+                             "args":  [
+                                          "-BaseUrl",
+                                          "http://127.0.0.1:18132",
+                                          "-NoFailExit"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r94-fresh-deployed-role-journey-audit\\recovery-r93-platform-flow-app-ia-boundary.log"
+                         },
+                         {
+                             "name":  "recovery-r81-trial-login-role-use-audit",
+                             "script":  "scripts/recovery-r81-trial-login-role-use-audit.ps1",
+                             "args":  [
+                                          "-BaseUrl",
+                                          "http://127.0.0.1:18132",
+                                          "-NoFailExit"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r94-fresh-deployed-role-journey-audit\\recovery-r81-trial-login-role-use-audit.log"
+                         },
+                         {
+                             "name":  "recovery-r57-frc6-human-acceptance-pass",
+                             "script":  "scripts/recovery-r57-frc6-human-acceptance-pass.ps1",
+                             "args":  [
+                                          "-BaseUrl",
+                                          "http://127.0.0.1:18132",
+                                          "-NoFailExit"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r94-fresh-deployed-role-journey-audit\\recovery-r57-frc6-human-acceptance-pass.log"
+                         }
+                     ],
+    "framework":  {
+                      "status":  "PASS",
+                      "warnings":  1,
+                      "coverage":  {
+                                       "totalRows":  45,
+                                       "open":  0,
+                                       "partial":  45,
+                                       "closed":  0,
+                                       "notClosed":  45
+                                   }
+                  },
+    "staticUsability":  {
+                            "status":  "PASS",
+                            "blockers":  0,
+                            "warnings":  0
+                        },
+    "coverage":  {
+                     "status":  "FAIL",
+                     "missing":  0,
+                     "notClosed":  45
+                 },
+    "r93":  {
+                "status":  "PASS",
+                "userSignoff":  false
+            },
+    "r81":  {
+                "status":  "FAIL",
+                "userSignoff":  false,
+                "browserStatus":  null,
+                "browserBlockers":  null
+            },
+    "r57":  {
+                "status":  "FAIL",
+                "userSignoff":  null,
+                "resultCount":  null,
+                "failures":  null,
+                "warnings":  null
+            },
+    "browserAudit":  {
+                         "status":  "FAIL",
+                         "resultCount":  9,
+                         "blockerResultCount":  2,
+                         "mojibakeResultCount":  0,
+                         "overflowCount":  0,
+                         "platformApplicationBoundaryPassed":  true,
+                         "path":  "docs/evidence/recovery/screenshots/r94-fresh-deployed-role-journey-audit/fresh-deployed-role-journey-browser-audit.json"
+                     },
+    "nextRecommendedTask":  {
+                                "taskId":  "REC-P0-095",
+                                "title":  "Platform Workbench System Entry Density And List Rewrite Closure",
+                                "reason":  "R94 found the platform workbench system-entry area still behaves like a card pile when many systems are visible.",
+                                "preferredStrategy":  "rewrite the workbench system-entry panel into a compact searchable list/table with clear current-system context instead of patching the old card pile"
+                            },
+    "error":  null
+}

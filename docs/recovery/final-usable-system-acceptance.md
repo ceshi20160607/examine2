@@ -206,3 +206,52 @@ R81 is accepted as trial login and role-use engineering evidence only. It starte
 The final usable-system gate remains reopened. The latest user feedback reports two product-level blockers: page hierarchy/copy/layout are still confusing, and the platform Application page was misunderstood as a system-entry page. This contradicts `temp_flow.md` and `temp_flow_persion.html`, where platform Flow and platform Application are independent platform modules, while system entry belongs to the system-switch workflow and must create `SystemSwitchContext`.
 
 Immediate correction: `REC-P0-093 Platform Flow And Application IA Boundary Realignment` is active before continuing feature-slice work. The architecture itself remains viable, but the active gate is strengthened so future work must preserve platform/system separation, application/system-entry separation, and human-readable page hierarchy before claiming engineering progress. `gates.user_script_passed` remains false.
+
+R93 engineering correction is accepted on 2026-07-08: the current release at http://127.0.0.1:18132 passed scripts/recovery-r93-platform-flow-app-ia-boundary.ps1, proving the platform Application page is not a system-entry page, platform Flow is independent, and system entry remains on /platform. This keeps the product moving toward the target architecture, but final human acceptance is still open and gates.user_script_passed remains false.
+
+R92 is accepted as deployed workflow-designer advanced-node and publish-impact engineering evidence only. It passed on `http://127.0.0.1:18132` with R73 child evidence and R93 IA regression, proving workflow designer breadth and runtime todo/message boundaries without claiming final signoff. Active next work is R94 fresh deployed role-journey audit after R92/R93. User signoff remains explicitly false.
+
+User follow-up on 2026-07-08 adds an implementation boundary for the remaining work: if current local code is structurally inconsistent with the target platform/system architecture, the next repair may delete and rewrite that route, shell, or module instead of patching it in place. This is still governed by task cards, deployed evidence, frozen API/data/permission contracts, and `gates.user_script_passed=false`.
+
+R94 diagnostic audit is accepted as a failure-finding gate, not as product acceptance. On `http://127.0.0.1:18132`, release/framework/static checks passed, R93 Flow/Application boundary passed, coverage remained partial with notClosed `45`, and `/platform/apps` stayed separated from system entry. The hard current blocker is `/platform` system-entry density: many systems render as a card pile on desktop and mobile. Active next work is R95, which may rewrite that local panel rather than patching the old card implementation. `gates.user_script_passed=false` remains unchanged.
+
+## 2026-07-08 R95 platform workbench system-entry density PASS
+
+R95 closed the R94 `/platform` system-entry density blocker as engineering evidence only. The deployed release at `http://127.0.0.1:18131` now renders system entry as a compact searchable row list instead of legacy system cards. Browser audit facts: rowCount=15, systemCardCount=0, rowRoleButtonCount=0, max workbench main buttons=5, overflow=0, search miss/restore passed, `/platform/apps` and `/platform/flow` leaked no system-entry panel/cards. Evidence: `docs/evidence/recovery/r95-platform-workbench-system-entry-density-result.json` and `docs/evidence/recovery/screenshots/r95-platform-workbench-system-entry-density/platform-workbench-system-entry-density-browser-audit.json`. R95 keeps `gates.user_script_passed=false`; final user acceptance remains open.
+
+## 2026-07-08 R96 final remaining coverage selection PASS
+
+R96 is accepted as decision evidence only. It refreshed framework/static/coverage audits on the current workspace, confirmed coverage remains notClosed `45`, kept `gates.user_script_passed=false`, referenced R95 platform workbench density PASS, and selected `REC-P0-097 C1 Fresh System Initialization Path And Empty Dashboard Hierarchy Closure` as the next executable task. The reason is flow-order and usability driven: a fresh or empty system must expose a real C1 setup path before deeper no-code/runtime work, and the empty business dashboard must not mix runtime panels with initialization.
+
+## 2026-07-08 R97 C1 fresh system initialization path PASS
+
+R97 is accepted as deployed engineering evidence only. The current release at `http://127.0.0.1:18131` was rebuilt and restarted, then `scripts/recovery-r97-c1-fresh-system-initialization-path.ps1` passed. It created fresh system `1177`, proved owner context and zero runtime modules, verified the empty system dashboard shows one initialization-first surface without runtime action hub/efficiency panels, verified system admin shows the ten-step C1 initialization guide, and kept browser blockers/overflow at `0`.
+
+Evidence: `docs/evidence/recovery/r97-c1-fresh-system-initialization-path-result.json`, `docs/evidence/recovery/r97-c1-fresh-system-initialization-path-2026-07-08.md`, and `docs/evidence/recovery/screenshots/r97-c1-fresh-system-initialization-path/c1-fresh-system-initialization-path-browser-audit.json`.
+
+Final user acceptance remains open: coverage still reports notClosed `45` and `gates.user_script_passed=false`. Active next work is R98 final user trial script readiness and signoff path.
+## 2026-07-08 R98 final user trial readiness PASS
+
+R98 is accepted as engineering evidence only. The current deployed release at `http://127.0.0.1:18131` passed `scripts/recovery-r98-final-user-trial-readiness-and-signoff-path.ps1`: release health and verify-release passed, retained R80 trial accounts still log in, runtime record `625` is readable, readonly create is denied `403`, workflow record `626` remains `APPROVED`, browser login smoke covered `11` trial routes with blockers `0` and overflow `0`, framework/static audits passed, and coverage remains honest with notClosed `45`.
+
+The user-facing checklist is `docs/evidence/recovery/r98-user-trial-checklist-2026-07-08.md`. Final user acceptance remains open because `gates.user_script_passed=false`. Active next work is R99 feedback/signoff intake, not more feature coding from vague context.
+## 2026-07-08 R99 Decision And R100 Active Repair
+
+R99 is accepted as decision engineering evidence only. Evidence: `docs/evidence/recovery/r99-post-r98-user-feedback-intake-and-next-repair-selection-result.json` and summary `docs/evidence/recovery/r99-post-r98-user-feedback-intake-and-next-repair-selection-2026-07-08.md`.
+
+R99 did not close final acceptance: coverage remains notClosed `45` and `gates.user_script_passed=false`. The next active repair is `REC-P0-100 Platform Flow Application Workbench Depth And Action Clarity Closure`, selected from the platform Flow/Application feedback and `temp_flow.md` P2/P3.
+## 2026-07-08 R100 Accepted And R101 Persistence Active
+
+R100 is accepted as deployed engineering evidence only. Evidence: `docs/evidence/recovery/r100-platform-flow-application-depth-result.json`, summary `docs/evidence/recovery/r100-platform-flow-application-depth-2026-07-08.md`, and browser audit `docs/evidence/recovery/screenshots/r100-platform-flow-application-depth/platform-flow-application-depth-browser-audit.json`.
+
+R100 does not close final acceptance: coverage remains notClosed `45` and `gates.user_script_passed=false`. R101 is active to convert the Flow/Application frontend contract into persisted API/readback/permission evidence.
+## 2026-07-08 R101 Accepted And R102 Trial Refresh Active
+
+R101 is accepted as deployed engineering evidence only. It passed `scripts/recovery-r101-platform-flow-application-api-readback.ps1` on `http://127.0.0.1:18131`, proving persisted platform Flow/Application API readback, admin/member permission negatives, platform todo/message/log feedback, deployed browser readback, and the `NO_SYSTEM_BUSINESS_WRITE` boundary.
+
+Final acceptance is still open: coverage remains notClosed `45` and `gates.user_script_passed=false`. Active next work is `REC-P0-102 Final User Trial Refresh After Platform Flow Application Readback`, which refreshes the current user trial/signoff path before any further feature coding.
+## 2026-07-08 R102 Accepted And R103 Audit Active
+
+R102 is accepted as deployed engineering evidence only. It passed `scripts/recovery-r102-final-user-trial-refresh-after-r101.ps1` on `http://127.0.0.1:18131`, proving the current deployment remains trial-ready after R101 with Flow/Application API readback and retained role-route browser evidence.
+
+Final user acceptance is still open: coverage remains notClosed `45` and `gates.user_script_passed=false`. Active next work is `REC-P0-103 Fresh Deployed Human Usability Audit After R102`, focused on the user's core concern: page hierarchy, copy, layout, and next concrete repair selection from the current deployed product.

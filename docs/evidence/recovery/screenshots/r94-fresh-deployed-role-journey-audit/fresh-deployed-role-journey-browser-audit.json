@@ -1,0 +1,466 @@
+{
+  "status": "FAIL",
+  "generatedAt": "2026-07-08T06:35:33.607Z",
+  "baseUrl": "http://127.0.0.1:18132",
+  "resultCount": 9,
+  "blockerResultCount": 2,
+  "overflowCount": 0,
+  "mojibakeResultCount": 0,
+  "platformApplicationBoundaryPassed": true,
+  "results": [
+    {
+      "key": "platform-workbench",
+      "route": "/platform",
+      "viewport": "desktop",
+      "hash": "#/platform",
+      "textLength": 1011,
+      "overflowX": 0,
+      "panelCount": 2,
+      "mainButtonCount": 20,
+      "controlOverflow": [],
+      "blockerTokens": [],
+      "mojibakeTokens": [],
+      "expectedSelectorResults": [
+        {
+          "selector": "[data-platform-workbench=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-primary-nav=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-aux-nav=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-system-entry-panel=\"true\"]",
+          "visible": true
+        }
+      ],
+      "forbiddenSelectorResults": [
+        {
+          "selector": "[data-platform-apps-page=\"true\"]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-flow-page=\"true\"]",
+          "visible": false
+        }
+      ],
+      "missingTexts": [],
+      "forbiddenTextHits": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": true,
+      "hasSystemEntryPanel": true,
+      "systemCardCount": 15,
+      "hasApplicationList": false,
+      "appRowCount": 0,
+      "appSystemEntryCount": 0,
+      "hasFlowList": false,
+      "flowCapabilityCount": 0,
+      "blockers": [
+        "system entry card pile too large 15/8"
+      ]
+    },
+    {
+      "key": "platform-workbench",
+      "route": "/platform",
+      "viewport": "mobile",
+      "hash": "#/platform",
+      "textLength": 1011,
+      "overflowX": 0,
+      "panelCount": 2,
+      "mainButtonCount": 20,
+      "controlOverflow": [],
+      "blockerTokens": [],
+      "mojibakeTokens": [],
+      "expectedSelectorResults": [
+        {
+          "selector": "[data-platform-workbench=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-primary-nav=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-aux-nav=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-system-entry-panel=\"true\"]",
+          "visible": true
+        }
+      ],
+      "forbiddenSelectorResults": [
+        {
+          "selector": "[data-platform-apps-page=\"true\"]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-flow-page=\"true\"]",
+          "visible": false
+        }
+      ],
+      "missingTexts": [],
+      "forbiddenTextHits": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": true,
+      "hasSystemEntryPanel": true,
+      "systemCardCount": 15,
+      "hasApplicationList": false,
+      "appRowCount": 0,
+      "appSystemEntryCount": 0,
+      "hasFlowList": false,
+      "flowCapabilityCount": 0,
+      "blockers": [
+        "system entry card pile too large 15/8"
+      ]
+    },
+    {
+      "key": "platform-flow",
+      "route": "/platform/flow",
+      "viewport": "desktop",
+      "hash": "#/platform/flow",
+      "textLength": 394,
+      "overflowX": 0,
+      "panelCount": 3,
+      "mainButtonCount": 3,
+      "controlOverflow": [],
+      "blockerTokens": [],
+      "mojibakeTokens": [],
+      "expectedSelectorResults": [
+        {
+          "selector": "[data-platform-flow-page=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-flow-separated-from-application=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-flow-list=\"true\"]",
+          "visible": true
+        }
+      ],
+      "forbiddenSelectorResults": [
+        {
+          "selector": "[data-platform-application-list=\"true\"]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-system-entry-panel=\"true\"]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-system-card]",
+          "visible": false
+        }
+      ],
+      "missingTexts": [],
+      "forbiddenTextHits": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasSystemEntryPanel": false,
+      "systemCardCount": 0,
+      "hasApplicationList": false,
+      "appRowCount": 0,
+      "appSystemEntryCount": 0,
+      "hasFlowList": true,
+      "flowCapabilityCount": 3,
+      "blockers": []
+    },
+    {
+      "key": "platform-flow",
+      "route": "/platform/flow",
+      "viewport": "mobile",
+      "hash": "#/platform/flow",
+      "textLength": 394,
+      "overflowX": 0,
+      "panelCount": 3,
+      "mainButtonCount": 3,
+      "controlOverflow": [],
+      "blockerTokens": [],
+      "mojibakeTokens": [],
+      "expectedSelectorResults": [
+        {
+          "selector": "[data-platform-flow-page=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-flow-separated-from-application=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-flow-list=\"true\"]",
+          "visible": true
+        }
+      ],
+      "forbiddenSelectorResults": [
+        {
+          "selector": "[data-platform-application-list=\"true\"]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-system-entry-panel=\"true\"]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-system-card]",
+          "visible": false
+        }
+      ],
+      "missingTexts": [],
+      "forbiddenTextHits": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasSystemEntryPanel": false,
+      "systemCardCount": 0,
+      "hasApplicationList": false,
+      "appRowCount": 0,
+      "appSystemEntryCount": 0,
+      "hasFlowList": true,
+      "flowCapabilityCount": 3,
+      "blockers": []
+    },
+    {
+      "key": "platform-apps",
+      "route": "/platform/apps",
+      "viewport": "desktop",
+      "hash": "#/platform/apps",
+      "textLength": 475,
+      "overflowX": 0,
+      "panelCount": 3,
+      "mainButtonCount": 5,
+      "controlOverflow": [],
+      "blockerTokens": [],
+      "mojibakeTokens": [],
+      "expectedSelectorResults": [
+        {
+          "selector": "[data-platform-apps-page=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-application-list=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-application-boundary=\"true\"]",
+          "visible": true
+        }
+      ],
+      "forbiddenSelectorResults": [
+        {
+          "selector": "[data-platform-system-card]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-system-entry-panel=\"true\"]",
+          "visible": false
+        },
+        {
+          "selector": "[data-system-switch-panel=\"true\"]",
+          "visible": false
+        }
+      ],
+      "missingTexts": [],
+      "forbiddenTextHits": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasSystemEntryPanel": false,
+      "systemCardCount": 0,
+      "hasApplicationList": true,
+      "appRowCount": 4,
+      "appSystemEntryCount": 0,
+      "hasFlowList": false,
+      "flowCapabilityCount": 0,
+      "blockers": []
+    },
+    {
+      "key": "platform-apps",
+      "route": "/platform/apps",
+      "viewport": "mobile",
+      "hash": "#/platform/apps",
+      "textLength": 475,
+      "overflowX": 0,
+      "panelCount": 3,
+      "mainButtonCount": 5,
+      "controlOverflow": [],
+      "blockerTokens": [],
+      "mojibakeTokens": [],
+      "expectedSelectorResults": [
+        {
+          "selector": "[data-platform-apps-page=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-application-list=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-application-boundary=\"true\"]",
+          "visible": true
+        }
+      ],
+      "forbiddenSelectorResults": [
+        {
+          "selector": "[data-platform-system-card]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-system-entry-panel=\"true\"]",
+          "visible": false
+        },
+        {
+          "selector": "[data-system-switch-panel=\"true\"]",
+          "visible": false
+        }
+      ],
+      "missingTexts": [],
+      "forbiddenTextHits": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasSystemEntryPanel": false,
+      "systemCardCount": 0,
+      "hasApplicationList": true,
+      "appRowCount": 4,
+      "appSystemEntryCount": 0,
+      "hasFlowList": false,
+      "flowCapabilityCount": 0,
+      "blockers": []
+    },
+    {
+      "key": "platform-work",
+      "route": "/platform/work",
+      "viewport": "desktop",
+      "hash": "#/platform/work",
+      "textLength": 248,
+      "overflowX": 0,
+      "panelCount": 2,
+      "mainButtonCount": 3,
+      "controlOverflow": [],
+      "blockerTokens": [],
+      "mojibakeTokens": [],
+      "expectedSelectorResults": [
+        {
+          "selector": "[data-platform-work-page=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-work-boundary=\"true\"]",
+          "visible": true
+        }
+      ],
+      "forbiddenSelectorResults": [
+        {
+          "selector": "[data-platform-system-card]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-application-list=\"true\"]",
+          "visible": false
+        }
+      ],
+      "missingTexts": [],
+      "forbiddenTextHits": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasSystemEntryPanel": false,
+      "systemCardCount": 0,
+      "hasApplicationList": false,
+      "appRowCount": 0,
+      "appSystemEntryCount": 0,
+      "hasFlowList": false,
+      "flowCapabilityCount": 0,
+      "blockers": []
+    },
+    {
+      "key": "platform-work",
+      "route": "/platform/work",
+      "viewport": "mobile",
+      "hash": "#/platform/work",
+      "textLength": 248,
+      "overflowX": 0,
+      "panelCount": 2,
+      "mainButtonCount": 3,
+      "controlOverflow": [],
+      "blockerTokens": [],
+      "mojibakeTokens": [],
+      "expectedSelectorResults": [
+        {
+          "selector": "[data-platform-work-page=\"true\"]",
+          "visible": true
+        },
+        {
+          "selector": "[data-platform-work-boundary=\"true\"]",
+          "visible": true
+        }
+      ],
+      "forbiddenSelectorResults": [
+        {
+          "selector": "[data-platform-system-card]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-application-list=\"true\"]",
+          "visible": false
+        }
+      ],
+      "missingTexts": [],
+      "forbiddenTextHits": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasSystemEntryPanel": false,
+      "systemCardCount": 0,
+      "hasApplicationList": false,
+      "appRowCount": 0,
+      "appSystemEntryCount": 0,
+      "hasFlowList": false,
+      "flowCapabilityCount": 0,
+      "blockers": []
+    },
+    {
+      "key": "platform-admin",
+      "route": "/platform/admin",
+      "viewport": "desktop",
+      "hash": "#/platform/admin",
+      "textLength": 231,
+      "overflowX": 0,
+      "panelCount": 0,
+      "mainButtonCount": 0,
+      "controlOverflow": [],
+      "blockerTokens": [],
+      "mojibakeTokens": [],
+      "expectedSelectorResults": [
+        {
+          "selector": "[data-platform-admin-standalone=\"true\"]",
+          "visible": true
+        }
+      ],
+      "forbiddenSelectorResults": [
+        {
+          "selector": "[data-platform-workbench=\"true\"]",
+          "visible": false
+        },
+        {
+          "selector": "[data-platform-system-entry-panel=\"true\"]",
+          "visible": false
+        }
+      ],
+      "missingTexts": [],
+      "forbiddenTextHits": [],
+      "hasAuthForm": false,
+      "hasPlatformWorkbench": false,
+      "hasSystemEntryPanel": false,
+      "systemCardCount": 0,
+      "hasApplicationList": false,
+      "appRowCount": 0,
+      "appSystemEntryCount": 0,
+      "hasFlowList": false,
+      "flowCapabilityCount": 0,
+      "blockers": []
+    }
+  ],
+  "screenshotEvidenceBoundary": "Screenshots prove visual hierarchy, containment, and visible copy only. API/readback/permission assertions live in the R94 PowerShell aggregation and child scripts."
+}

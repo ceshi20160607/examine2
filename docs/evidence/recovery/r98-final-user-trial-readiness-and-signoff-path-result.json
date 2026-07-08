@@ -1,0 +1,274 @@
+﻿{
+    "status":  "PASS",
+    "productStatus":  "R98_FINAL_USER_TRIAL_READINESS_ENGINEERING_EVIDENCE_ONLY",
+    "task":  "REC-P0-098",
+    "generatedAt":  "2026-07-08T17:04:50.1647730+08:00",
+    "baseUrl":  "http://127.0.0.1:18131",
+    "userSignoff":  false,
+    "checklist":  "docs/evidence/recovery/r98-user-trial-checklist-2026-07-08.md",
+    "releaseAssets":  [
+                          "/assets/index-CejcRNev.js",
+                          "/assets/index-BKptqjBa.css"
+                      ],
+    "trialPack":  {
+                      "baseUrl":  "http://127.0.0.1:18131",
+                      "admin":  {
+                                    "loginName":  "admin",
+                                    "password":  "123123aa",
+                                    "entry":  "http://127.0.0.1:18131/#/platform"
+                                },
+                      "runtimeDailyUse":  {
+                                              "systemId":  "1118",
+                                              "tenantId":  "1150",
+                                              "moduleId":  "453",
+                                              "normalLoginName":  "r63_member_0706162707_4a00b6",
+                                              "readonlyLoginName":  "r63_readonly_0706162707_4a00b6",
+                                              "password":  "Aa123456!",
+                                              "entry":  "http://127.0.0.1:18131/#/systems/1118/modules",
+                                              "existingRecordId":  "625"
+                                          },
+                      "workflowTodoMessage":  {
+                                                  "systemId":  "1121",
+                                                  "tenantId":  "1153",
+                                                  "moduleId":  "454",
+                                                  "flowId":  "144",
+                                                  "requesterLoginName":  "r3_requester_0706162803307_ca6efa",
+                                                  "approverLoginName":  "r3_approver_0706162803307_ca6efa",
+                                                  "password":  "Aa123456!",
+                                                  "entry":  "http://127.0.0.1:18131/#/systems/1121/modules",
+                                                  "todoEntry":  "http://127.0.0.1:18131/#/systems/1121/todos",
+                                                  "messageEntry":  "http://127.0.0.1:18131/#/systems/1121/messages",
+                                                  "terminalRecordId":  "626"
+                                              }
+                  },
+    "r97Reference":  {
+                         "status":  "PASS",
+                         "systemId":  "1177",
+                         "browserStatus":  "PASS",
+                         "resultPath":  "docs/evidence/recovery/r97-c1-fresh-system-initialization-path-result.json"
+                     },
+    "apiEvidence":  {
+                        "runtimeRecordId":  "625",
+                        "runtimeRecordTitle":  "R63 Browser Updated 0706162707_4a00b6",
+                        "readonlyCreateStatus":  403,
+                        "workflowRecordId":  "626",
+                        "workflowStatus":  "APPROVED",
+                        "handledTodoTotal":  1,
+                        "approverMessageTotal":  0
+                    },
+    "checks":  [
+                   {
+                       "area":  "process",
+                       "name":  "R98 is active in ledger task card and fix batch",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "R98 must be the active recovery handoff contract."
+                   },
+                   {
+                       "area":  "process",
+                       "name":  "R98 planned evidence paths are declared",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "R98 task card must declare result, summary, and checklist evidence."
+                   },
+                   {
+                       "area":  "process",
+                       "name":  "continuation guide exists for human handoff",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "docs/recovery/continuation-implementation-guide.md must remain available."
+                   },
+                   {
+                       "area":  "signoff-boundary",
+                       "name":  "user signoff remains false before trial handoff",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "user_script_passed=False"
+                   },
+                   {
+                       "area":  "prior-evidence",
+                       "name":  "R80 trial pack remains available",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, accepted=True"
+                   },
+                   {
+                       "area":  "prior-evidence",
+                       "name":  "R97 empty-system hierarchy evidence is PASS",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, system=1177, browser=PASS"
+                   },
+                   {
+                       "area":  "release",
+                       "name":  "current deployed release health is UP",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "{\"status\":\"UP\",\"redis\":\"UP\",\"database\":\"UP\",\"schema\":\"UP\"}"
+                   },
+                   {
+                       "area":  "deployed",
+                       "name":  "deployed frontend asset manifest is readable",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "/assets/index-CejcRNev.js, /assets/index-BKptqjBa.css"
+                   },
+                   {
+                       "area":  "release",
+                       "name":  "verify-release child process completed",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0, log=D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r98-final-user-trial-readiness-and-signoff-path\\verify-release.log"
+                   },
+                   {
+                       "area":  "trial-login",
+                       "name":  "all retained trial accounts can still log in through API",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "admin, normal, readonly, requester, and approver tokens returned."
+                   },
+                   {
+                       "area":  "trial-readback",
+                       "name":  "runtime retained record is readable by normal member",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "{\"runtimeRecordId\":\"625\",\"runtimeRecordTitle\":\"R63 Browser Updated 0706162707_4a00b6\",\"readonlyCreateStatus\":403,\"workflowRecordId\":\"626\",\"workflowStatus\":\"APPROVED\",\"handledTodoTotal\":1,\"approverMessageTotal\":0}"
+                   },
+                   {
+                       "area":  "permission",
+                       "name":  "readonly member is denied create mutation",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=403"
+                   },
+                   {
+                       "area":  "workflow-readback",
+                       "name":  "workflow terminal record and handled todo remain readable",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "{\"runtimeRecordId\":\"625\",\"runtimeRecordTitle\":\"R63 Browser Updated 0706162707_4a00b6\",\"readonlyCreateStatus\":403,\"workflowRecordId\":\"626\",\"workflowStatus\":\"APPROVED\",\"handledTodoTotal\":1,\"approverMessageTotal\":0}"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "R98 browser smoke process completed",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "exitCode=0, log=D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r98-final-user-trial-readiness-and-signoff-path\\browser-audit.log"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "login smoke for trial paths passes without blockers",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, results=11, blockers=0, overflow=0"
+                   },
+                   {
+                       "area":  "browser",
+                       "name":  "browser smoke has no visible encoding warnings",
+                       "passed":  true,
+                       "severity":  "WARN",
+                       "detail":  "warningResults=0"
+                   },
+                   {
+                       "area":  "framework",
+                       "name":  "framework audit passes with active R98 contract",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS"
+                   },
+                   {
+                       "area":  "static-usability",
+                       "name":  "static usability audit has no blockers",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "status=PASS, blockers=0, warnings=0"
+                   },
+                   {
+                       "area":  "coverage",
+                       "name":  "coverage remains honest until explicit user signoff",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "missing=0, notClosed=45, userSignoff=False"
+                   },
+                   {
+                       "area":  "checklist",
+                       "name":  "user trial checklist is generated in readable handoff path",
+                       "passed":  true,
+                       "severity":  "ERROR",
+                       "detail":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\r98-user-trial-checklist-2026-07-08.md"
+                   }
+               ],
+    "failures":  [
+
+                 ],
+    "warnings":  [
+
+                 ],
+    "childResults":  [
+                         {
+                             "name":  "verify-release",
+                             "script":  "scripts/verify-release.ps1",
+                             "args":  [
+                                          "-BaseUrl",
+                                          "http://127.0.0.1:18131",
+                                          "-CheckDeployedFrontend"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r98-final-user-trial-readiness-and-signoff-path\\verify-release.log"
+                         },
+                         {
+                             "name":  "final-goal-framework-audit",
+                             "script":  "scripts/final-goal-framework-audit.ps1",
+                             "args":  [
+                                          "-NoFailExit"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r98-final-user-trial-readiness-and-signoff-path\\final-goal-framework-audit.log"
+                         },
+                         {
+                             "name":  "final-usability-static-audit",
+                             "script":  "scripts/final-usability-static-audit.ps1",
+                             "args":  [
+
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r98-final-user-trial-readiness-and-signoff-path\\final-usability-static-audit.log"
+                         },
+                         {
+                             "name":  "final-requirement-coverage-audit",
+                             "script":  "scripts/final-requirement-coverage-audit.ps1",
+                             "args":  [
+                                          "-NoFailExit"
+                                      ],
+                             "exitCode":  0,
+                             "logFile":  "D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r98-final-user-trial-readiness-and-signoff-path\\final-requirement-coverage-audit.log"
+                         }
+                     ],
+    "frameworkAudit":  {
+                           "status":  "PASS"
+                       },
+    "staticAudit":  {
+                        "status":  "PASS",
+                        "blockerCount":  0,
+                        "warningCount":  0
+                    },
+    "coverage":  {
+                     "totalRows":  45,
+                     "missingCount":  0,
+                     "notClosedCount":  45
+                 },
+    "browserAudit":  {
+                         "status":  "PASS",
+                         "resultCount":  11,
+                         "blockerResultCount":  0,
+                         "warningResultCount":  0,
+                         "maxOverflowX":  0,
+                         "path":  "docs/evidence/recovery/screenshots/r98-final-user-trial-readiness-and-signoff-path/final-user-trial-readiness-browser-audit.json"
+                     },
+    "error":  null,
+    "nextRecommendedTask":  {
+                                "taskId":  "USER_SIGNOFF_OR_FEEDBACK_INTAKE",
+                                "title":  "Run the R98 checklist manually, then either sign off or create the next concrete recovery task from feedback.",
+                                "reason":  "R98 only prepares the human trial path and preserves gates.user_script_passed=false."
+                            }
+}

@@ -176,3 +176,43 @@ For every remaining non-OK row:
 User feedback identifies a live information-architecture blocker: platform Application currently behaves like system entry, while Flow and Application should be separate platform modules. This makes the product feel confusing even if individual engineering slices pass. R93 must correct platform navigation, copy, page structure, and DOM/source markers before more feature-slice acceptance.
 
 Audit rule added: platform Application may show application/authorization/configuration objects and actions, but it must not render the system-switch panel, system cards, or primary “enter system” actions. Platform Flow must read as its own module. System entry remains on `/platform` workbench/system switch only.
+
+R93 engineering acceptance update: the current release passed scripts/recovery-r93-platform-flow-app-ia-boundary.ps1 on http://127.0.0.1:18132. The live IA boundary is now: platform Application is application/authorization configuration, platform Flow is independent, and /platform keeps system entry. Final user signoff remains open; continue with R92 as the next active feature slice.
+
+## 2026-07-08 R92 Acceptance And R94 Audit Gate
+
+R92 engineering acceptance update: the current release passed `scripts/recovery-r92-workflow-advanced-node-publish-impact.ps1` on `http://127.0.0.1:18132`. The workflow designer now has deployed evidence for advanced nodes, property readback, publish impact, simulation, runtime todo/message terminal states, permission negatives, and mobile containment. R73 child evidence passed fresh, and R93 platform Flow/Application IA regression also passed.
+
+Active next task: `REC-P0-094 Fresh Deployed Role Journey Audit After R92/R93`. The product goal remains open because user signoff is still false and final coverage rows remain partial. R94 must inspect the current deployed product across role journeys before the next repair is selected.
+
+## 2026-07-08 R97 C1 fresh system initialization path
+
+R97 PASS on the deployed release proves a fresh empty system now directs system admins to initialization instead of mixing runtime panels into the dashboard. It remains engineering evidence only; R98 is active for final user trial/signoff readiness and gates.user_script_passed=false.
+
+## 2026-07-08 R98 Trial Readiness Addendum
+
+R98 prepared the current human trial path on the deployed release. Evidence: `docs/evidence/recovery/r98-final-user-trial-readiness-and-signoff-path-result.json`, checklist `docs/evidence/recovery/r98-user-trial-checklist-2026-07-08.md`, and browser audit `docs/evidence/recovery/screenshots/r98-final-user-trial-readiness-and-signoff-path/final-user-trial-readiness-browser-audit.json`.
+
+Audit result: browser smoke started from the deployed login page for admin, runtime normal/readonly, workflow requester, and workflow approver routes; resultCount `11`, blockers `0`, warnings `0`, overflow `0`. This improves trial readiness but does not close final acceptance. Current active gate moves to R99: explicit user signoff or feedback intake before the next repair.
+## 2026-07-08 R99/R100 Flow Application Depth Selection
+
+R99 PASS converted the open post-trial gate into a concrete next repair without claiming user acceptance. It confirmed R98 PASS/checklist, `gates.user_script_passed=false`, coverage notClosed `45`, and selected R100 because `temp_flow.md` P2/P3 require platform Flow/Application depth beyond the R93/R95 boundary fix.
+
+Active next task: `REC-P0-100 Platform Flow Application Workbench Depth And Action Clarity Closure`. The product audit rule is now stronger: `/platform/flow` must expose task-grade Flow rows, detail, run feedback, retry/compensation and trace evidence; `/platform/apps` must expose authorization/application rows, request/change ids and platform feedback without rendering system-entry actions.
+## 2026-07-08 R100 Platform Flow Application Depth Acceptance
+
+R100 PASS on the deployed release deepened platform Flow and Application from boundary-correct pages into task-grade workbench surfaces. Flow now exposes rows, detail, runBatch/traceId, retry and compensation feedback. Application now exposes authorization rows, requestId, authorizationChangeId, authorization detail, request/change feedback, and no system-entry action leakage. Browser desktop/mobile blockers `0`, maxOverflow `0`.
+
+This remains engineering evidence only. R101 is active because R100 rows/actions are frontend contract samples; the next step must persist Flow/Application objects and read them back through APIs with permission positives/negatives.
+## 2026-07-08 R101 Platform Flow Application API Readback Acceptance
+
+R101 PASS on the deployed release proves platform Flow and platform Application are now API-backed persisted platform objects instead of R100 frontend contract samples. Flow create/update/run/retry/compensation, Application authorization request/adjust/disable, platform todo/message/log feedback, admin/member permission boundaries, and the `NO_SYSTEM_BUSINESS_WRITE` boundary all passed with deployed browser containment blockers `0` and maxOverflow `0`.
+
+Evidence: `docs/evidence/recovery/r101-platform-flow-application-api-readback-result.json`, summary `docs/evidence/recovery/r101-platform-flow-application-api-readback-2026-07-08.md`, and browser audit `docs/evidence/recovery/screenshots/r101-platform-flow-application-api-readback/platform-flow-application-api-readback-browser-audit.json`.
+
+This remains engineering evidence only. Current active task moves to `REC-P0-102 Final User Trial Refresh After Platform Flow Application Readback` so the user trial/signoff path is refreshed on the current deployment before further feature coding.
+## 2026-07-08 R102 Final User Trial Refresh After R101
+
+R102 PASS on the deployed release refreshed the current user trial path after R101. It verified release health, retained trial account login/readback, readonly permission denial, workflow terminal/todo readback, R101 Flow/Application API readback, browser Flow/Application/trial routes with blockers `0`, warnings `0`, maxOverflow `0`, framework/static PASS, and coverage notClosed `45`.
+
+This remains engineering evidence only. Active next task moves to `REC-P0-103 Fresh Deployed Human Usability Audit After R102` so the next change is selected from current deployed hierarchy/copy/layout evidence rather than vague continued patching.

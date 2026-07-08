@@ -669,6 +669,82 @@ export interface PlatformSystemLifecycleResult {
   operatedAt?: string;
 }
 
+export interface PlatformFlowView {
+  flowId: string;
+  flowCode: string;
+  flowName: string;
+  triggerSource: string;
+  affectedSystems: string[];
+  nodeSummary: string;
+  status: string;
+  retryPolicy: string;
+  compensationPolicy: string;
+  currentRunBatchId?: string;
+  traceId: string;
+  auditLogId: string;
+  latestTaskId?: string;
+  latestTodoId?: string;
+  latestMessageId?: string;
+  permissionMode: string;
+  canManage: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PlatformFlowRunFeedback {
+  flowId: string;
+  runBatchId: string;
+  action: string;
+  status: string;
+  taskId: string;
+  retryTaskId?: string;
+  compensationTaskId?: string;
+  traceId: string;
+  auditLogId: string;
+  todoId?: string;
+  messageId?: string;
+  boundary: string;
+  createdAt?: string;
+}
+
+export interface PlatformAuthorizationView {
+  authorizationId: string;
+  applicationName: string;
+  applicationType: string;
+  targetSystemId: string;
+  targetTenantId: string;
+  moduleScope: string[];
+  scope: string[];
+  expiryAt: string;
+  dataIsolation: string;
+  requestId: string;
+  authorizationChangeId: string;
+  approvalStatus: string;
+  status: string;
+  traceId: string;
+  auditLogId: string;
+  latestTodoId?: string;
+  latestMessageId?: string;
+  permissionMode: string;
+  canManage: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PlatformAuthorizationActionFeedback {
+  authorizationId: string;
+  requestId: string;
+  authorizationChangeId: string;
+  action: string;
+  status: string;
+  traceId: string;
+  auditLogId: string;
+  todoId?: string;
+  messageId?: string;
+  boundary: string;
+  operatedAt?: string;
+}
+
 export interface PlatformHealth {
   status: string;
   checks: string[];
@@ -2159,6 +2235,95 @@ export async function loadPlatformTodos(options: TodoSearchOptions = {}): Promis
   ));
 }
 
+export async function loadPlatformFlows(options: { pageNo?: number; pageSize?: number; keyword?: string; status?: string } = {}): Promise<PageResult<PlatformFlowView>> {
+  const pageNo = options.pageNo ?? 1;
+  const pageSize = options.pageSize ?? 20;
+  const params = new URLSearchParams({ pageNo: String(pageNo), pageSize: String(pageSize) });
+  if (options.keyword) { params.set('keyword', options.keyword); }
+  if (options.status) { params.set('status', options.status); }
+  return unwrap(await apiClient.get<PageResult<PlatformFlowView>>(`/api/v1/platform/flows?${params.toString()}`));
+}
+
+export async function createPlatformFlowDraft(input: Partial<PlatformFlowView> = {}): Promise<PlatformFlowView> {
+  const idempotencyKey = createIdempotencyKey('platform_flow_create');
+  return unwrap(await apiClient.post<PlatformFlowView>(
+    '/api/v1/platform/flows',
+    {
+      flowCode: input.flowCode ?? `platform_flow_${Date.now()}`,
+      flowName: input.flowName ?? 'Platform Flow Draft',
+      triggerSource: input.triggerSource ?? 'platform authorization / application access / operations task',
+      affectedSystems: input.affectedSystems ?? ['platform'],
+      nodeSummary: input.nodeSummary ?? 'trigger, check, platform feedback, finish',
+      retryPolicy: input.retryPolicy ?? 'retry twice after failure',
+      compensationPolicy: input.compensationPolicy ?? 'create platform compensation task after failure',
+      idempotencyKey,
+    },
+    idempotencyKey,
+  ));
+}
+
+export async function runPlatformFlowAction(flowId: string, action: 'run-check' | 'retry' | 'compensate', reason = 'platform flow workbench action'): Promise<PlatformFlowRunFeedback> {
+  const idempotencyKey = createIdempotencyKey(`platform_flow_${action}`);
+  return unwrap(await apiClient.post<PlatformFlowRunFeedback>(
+    `/api/v1/platform/flows/${flowId}/${action}`,
+    { reason, idempotencyKey },
+    idempotencyKey,
+  ));
+}
+
+export async function loadPlatformAuthorizations(options: { pageNo?: number; pageSize?: number; keyword?: string; status?: string; approvalStatus?: string } = {}): Promise<PageResult<PlatformAuthorizationView>> {
+  const pageNo = options.pageNo ?? 1;
+  const pageSize = options.pageSize ?? 20;
+  const params = new URLSearchParams({ pageNo: String(pageNo), pageSize: String(pageSize) });
+  if (options.keyword) { params.set('keyword', options.keyword); }
+  if (options.status) { params.set('status', options.status); }
+  if (options.approvalStatus) { params.set('approvalStatus', options.approvalStatus); }
+  return unwrap(await apiClient.get<PageResult<PlatformAuthorizationView>>(`/api/v1/platform/applications/authorizations?${params.toString()}`));
+}
+
+export async function createPlatformAuthorizationRequest(input: Partial<PlatformAuthorizationView> = {}): Promise<PlatformAuthorizationView> {
+  const idempotencyKey = createIdempotencyKey('platform_authorization_request');
+  return unwrap(await apiClient.post<PlatformAuthorizationView>(
+    '/api/v1/platform/applications/authorizations',
+    {
+      applicationName: input.applicationName ?? 'Platform Authorization Request',
+      applicationType: input.applicationType ?? 'platform application',
+      targetSystemId: input.targetSystemId ?? 'platform',
+      targetTenantId: input.targetTenantId ?? 'platform',
+      moduleScope: input.moduleScope ?? ['platform.authorization', 'platform.flow'],
+      scope: input.scope ?? ['platform:authorization:read', 'platform:authorization:request'],
+      expiryAt: input.expiryAt ?? '2026-12-31',
+      dataIsolation: input.dataIsolation ?? 'platform scope',
+      approvalStatus: input.approvalStatus ?? 'PENDING',
+      reason: 'platform application authorization request',
+      idempotencyKey,
+    },
+    idempotencyKey,
+  ));
+}
+
+export async function runPlatformAuthorizationAction(authorizationId: string, action: 'adjust' | 'disable', input: Partial<PlatformAuthorizationView> = {}): Promise<PlatformAuthorizationActionFeedback> {
+  const idempotencyKey = createIdempotencyKey(`platform_authorization_${action}`);
+  if (action === 'disable') {
+    return unwrap(await apiClient.post<PlatformAuthorizationActionFeedback>(
+      `/api/v1/platform/applications/authorizations/${authorizationId}/disable`,
+      { reason: 'platform authorization disable', idempotencyKey },
+      idempotencyKey,
+    ));
+  }
+  return unwrap(await apiClient.patch<PlatformAuthorizationActionFeedback>(
+    `/api/v1/platform/applications/authorizations/${authorizationId}`,
+    {
+      reason: 'platform authorization adjust',
+      scope: input.scope,
+      expiryAt: input.expiryAt,
+      approvalStatus: input.approvalStatus ?? 'APPROVED',
+      idempotencyKey,
+    },
+    idempotencyKey,
+  ));
+}
+
 export async function executeSystemTodoAction(
   systemId: string,
   todoId: string,
@@ -2841,7 +3006,7 @@ export async function createSystemFlow(systemId: string, input: {
 }): Promise<FlowDefinitionView> {
   return unwrap(await apiClient.post<FlowDefinitionView>(`/api/v1/systems/${systemId}/flows`, {
     flowCode: input.flowCode,
-    flowName: input.flowName,
+      flowName: input.flowName ?? 'Platform Flow Draft',
     boundModuleId: input.boundModuleId,
     status: 1,
     triggerRule: {

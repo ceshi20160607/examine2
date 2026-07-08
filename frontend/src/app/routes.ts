@@ -23,6 +23,7 @@ export const appRoutes: AppRoute[] = [
   { path: '/platform', label: '平台工作台', area: 'platform-workbench', taskOwner: 'FE-010', enabled: true },
   { path: '/platform/flow', label: '平台流程', area: 'platform-workbench', taskOwner: 'FE-010', enabled: true },
   { path: '/platform/apps', label: '平台应用', area: 'platform-workbench', taskOwner: 'FE-010', enabled: true },
+  { path: '/platform/work', label: '平台工作', area: 'platform-workbench', taskOwner: 'FE-030', enabled: true },
   { path: '/platform/ai', label: '平台 AI', area: 'platform-workbench', taskOwner: 'FE-010', enabled: true },
   { path: '/platform/todos', label: '平台待办', area: 'platform-workbench', taskOwner: 'FE-030', enabled: true },
   { path: '/platform/messages', label: '平台消息', area: 'platform-workbench', taskOwner: 'FE-030', enabled: true },

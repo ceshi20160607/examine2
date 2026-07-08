@@ -430,18 +430,29 @@ async function approveFromTodo(client) {
     return JSON.stringify({ ok: true });
   })()`);
   await waitFor(client, `JSON.stringify({ ok: location.hash.includes('/todos') && !!document.querySelector('[data-system-todo-row="${todoId}"]') })`, 30000);
+  await waitFor(client, `JSON.stringify({ ok: !!(document.querySelector('[data-system-todo-action="approve"][data-system-todo-id="${todoId}"]') || document.querySelector('[data-system-todo-action="approve"][data-todo-id="${todoId}"]') || document.querySelector('[data-system-todo-row="${todoId}"] [data-system-todo-action="approve"]')) })`, 30000);
   const todoBefore = await screenshot(client, 'approver-todo-before-approval-desktop');
   await evaluate(client, `(() => {
-    const button = document.querySelector('[data-system-todo-action="approve"][data-system-todo-id="${todoId}"]');
+    const row = document.querySelector('[data-system-todo-row="${todoId}"]');
+    const button = document.querySelector('[data-system-todo-action="approve"][data-system-todo-id="${todoId}"]')
+      || document.querySelector('[data-system-todo-action="approve"][data-todo-id="${todoId}"]')
+      || row?.querySelector('[data-system-todo-action="approve"]')
+      || Array.from(row?.querySelectorAll('button') ?? []).find((item) => (item.textContent || '').includes('审批'));
+    if (!button) {
+      throw new Error(JSON.stringify({ ok: false, todoId, rowHtml: row?.outerHTML ?? '', actionButtons: Array.from(document.querySelectorAll('[data-system-todo-action]')).map((item) => item.outerHTML) }));
+    }
     button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     return JSON.stringify({ ok: true });
   })()`);
-  await waitFor(client, `JSON.stringify({ ok: !!document.querySelector('.modal-overlay input') })`, 10000);
+  await waitFor(client, `JSON.stringify({ ok: !!document.querySelector('[data-dialog-input="value"]') && !!document.querySelector('[data-dialog-submit="true"]') })`, 10000);
   await evaluate(client, `(() => {
-    const input = document.querySelector('.modal-overlay input');
+    const input = document.querySelector('[data-dialog-input="value"]') || document.querySelector('.modal-overlay input');
+    const submit = document.querySelector('[data-dialog-submit="true"]') || document.querySelector('.modal-actions .button.primary');
+    if (!input || !submit) {
+      return JSON.stringify({ ok: false, hasInput: !!input, hasSubmit: !!submit });
+    }
     input.value = 'Approved through R73 browser todo';
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    const submit = document.querySelector('.modal-actions .button.primary');
     submit.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     return JSON.stringify({ ok: true });
   })()`);

@@ -1,0 +1,22 @@
+﻿{
+    "status":  "FAIL",
+    "productStatus":  "PARTIAL_ENGINEERING_EVIDENCE_ONLY",
+    "generatedAt":  "2026-07-08T14:34:29.2795546+08:00",
+    "baseUrl":  "http://127.0.0.1:18132",
+    "error":  "Child script failed: recovery-r43-role-home-whole-path-usability exitCode=1 log=D:\\workspace\\01_project\\snow\\cursor\\examine2\\docs\\evidence\\recovery\\screenshots\\r57-frc6-human-acceptance-pass\\recovery-r43-role-home-whole-path-usability.log",
+    "checks":  [
+                   {
+                       "area":  "release",
+                       "name":  "health reports database/schema/redis UP",
+                       "passed":  true,
+                       "detail":  "{\"status\":\"UP\",\"redis\":\"UP\",\"database\":\"UP\",\"schema\":\"UP\"}"
+                   },
+                   {
+                       "area":  "frontend-static",
+                       "name":  "no blocker or warning copy/placeholder findings",
+                       "passed":  true,
+                       "detail":  "blockers=0, warnings=0"
+                   }
+               ]
+}
+

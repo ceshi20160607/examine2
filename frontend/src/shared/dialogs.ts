@@ -58,6 +58,7 @@ export function requestFormInput(title: string, fields: DialogField[], submitLab
     const controls = new Map<string, HTMLInputElement | HTMLTextAreaElement>();
     const cancelButton = createButton('取消', 'ghost', false);
     const submitButton = createButton(submitLabel, 'primary', false);
+    submitButton.dataset.dialogSubmit = 'true';
     const cleanup = (value: Record<string, string> | undefined) => {
       overlay.remove();
       resolve(value);
@@ -67,6 +68,7 @@ export function requestFormInput(title: string, fields: DialogField[], submitLab
         ? createElement('textarea', { ariaLabel: field.label })
         : createElement('input', { ariaLabel: field.label });
       control.value = field.defaultValue ?? '';
+      control.dataset.dialogInput = field.name;
       if (control instanceof HTMLInputElement) {
         control.type = field.type ?? 'text';
       }

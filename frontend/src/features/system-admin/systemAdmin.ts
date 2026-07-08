@@ -1,4 +1,4 @@
-import {
+﻿import {
   createOpenApiApp,
   createSystemDataSource,
   createSystemDictItem,
@@ -227,62 +227,162 @@ function createSystemInfoPanel(data: SystemAdminData, systemName: string, onSele
 }
 
 function createInitializationGuide(data: SystemAdminData, onSelect: (targetId: string) => void): HTMLElement {
+  const publishedModules = data.modules.records.filter((module) => module.publishStatus === 'PUBLISHED' || module.currentVersion);
+  const moduleStarted = data.moduleGroups.length > 0 || data.modules.total > 0;
+  const fieldsStarted = data.modules.total > 0 || data.dictTypes.total > 0;
+  const pageStarted = data.pageDesigns.length > 0 || data.modules.total > 0;
+  const flowStarted = data.flows.total > 0 || data.notificationTemplates.total > 0;
+  const integrationStarted = data.openApiApps.total > 0 || data.dataSources.total > 0 || data.agentPolicies.total > 0 || Boolean(data.ssoPolicy);
+  const stepState = (done: boolean, started = false): { status: string; tone: StatusTone; blocked: boolean } => {
+    if (done) {
+      return { status: '已完成', tone: 'success', blocked: false };
+    }
+    if (started) {
+      return { status: '已开始', tone: 'info', blocked: false };
+    }
+    return { status: '待配置', tone: 'warning', blocked: true };
+  };
   const steps = [
     {
+      key: 'system-info',
+      title: '系统信息与访问地址',
+      target: 'system-info',
+      action: '查看信息',
+      hint: '确认系统名称、租户、成员上下文和权限快照。',
+      readback: `当前系统：${shellState.currentSystem?.systemName ?? '当前系统'}，tenantId=${shellState.currentSystem?.tenantId ?? '-'}`,
+      ...stepState(Boolean(shellState.currentSystem?.systemId), true),
+    },
+    {
+      key: 'organization-members',
       title: '组织与成员',
-      status: data.members.total > 1 || data.departments.length > 0 ? '已开始' : '待配置',
       target: 'org-structure',
       action: '配置组织',
-      hint: '建立部门、员工和成员映射，普通成员才能进入系统业务页。',
+      hint: '建立部门、成员和账号绑定，普通成员才能进入业务页。',
+      readback: `部门 ${data.departments.length} 个，成员 ${data.members.total} 个`,
+      ...stepState(data.members.total > 1 || data.departments.length > 0, data.members.total > 0),
     },
     {
-      title: '角色权限',
-      status: data.roles.total > 1 ? '已开始' : '待配置',
+      key: 'roles-permissions',
+      title: '角色与权限',
       target: 'role-management',
       action: '配置角色',
-      hint: '把后台权限、业务模块权限和数据范围落到系统角色。',
+      hint: '把后台权限、业务模块权限、字段权限和数据范围落到系统角色。',
+      readback: `角色 ${data.roles.total} 个`,
+      ...stepState(data.roles.total > 1, data.roles.total > 0),
     },
     {
-      title: '业务模块',
-      status: data.modules.total > 0 ? '已开始' : '待配置',
+      key: 'module-groups-modules',
+      title: '模块分组与模块',
       target: 'module-config',
       action: '配置模块',
-      hint: '创建模块、字段、列表场景、行操作和发布检查。',
+      hint: '创建运行态导航分组和业务模块。',
+      readback: `分组 ${data.moduleGroups.length} 个，模块 ${data.modules.total} 个`,
+      ...stepState(data.moduleGroups.length > 0 && data.modules.total > 0, moduleStarted),
     },
     {
-      title: '流程与字典',
-      status: data.flows.total > 0 || data.dictTypes.total > 0 ? '已开始' : '待配置',
+      key: 'fields-dictionaries',
+      title: '字段与字典',
+      target: 'module-config',
+      action: '配置字段',
+      hint: '补齐字段、校验、字典和字段权限，避免运行态只有空壳。',
+      readback: `字典 ${data.dictTypes.total} 个，字段随模块详情读取`,
+      ...stepState(data.dictTypes.total > 0 && data.modules.total > 0, fieldsStarted),
+    },
+    {
+      key: 'page-list-detail-actions',
+      title: '页面、列表、详情与动作',
+      target: 'dashboard-config',
+      action: '配置页面',
+      hint: '配置首页、列表场景、详情页、行操作、导入导出和打印边界。',
+      readback: `页面设计 ${data.pageDesigns.length} 个，首页配置 ${data.homePageConfig ? '已读取' : '未读取'}`,
+      ...stepState(data.pageDesigns.length > 0 || Boolean(data.homePageConfig), pageStarted),
+    },
+    {
+      key: 'workflow-messages',
+      title: '流程与消息',
       target: 'flow-management',
       action: '配置流程',
-      hint: '发布审批流程和业务字典后，运行态才能形成记录、审批、待办和消息闭环。',
+      hint: '发布审批流程和消息模板后，记录才能形成待办与消息闭环。',
+      readback: `流程 ${data.flows.total} 个，消息模板 ${data.notificationTemplates.total} 个`,
+      ...stepState(flowStarted, flowStarted),
     },
     {
-      title: '工作与集成',
-      status: data.workConfig ? '已开始' : '待配置',
+      key: 'work-configuration',
+      title: '工作配置',
       target: 'work-config',
       action: '配置工作',
-      hint: '配置任务、日报、Agent、SSO、OpenAPI 等长期使用能力。',
+      hint: '配置任务、日报、工作字段和发布检查。',
+      readback: data.workConfig ? '工作配置已读取' : '未读取工作配置',
+      ...stepState(Boolean(data.workConfig), Boolean(data.workConfig)),
+    },
+    {
+      key: 'integration-openapi-ai',
+      title: 'OpenAPI、SSO、Agent 与数据源',
+      target: 'openapi-apps',
+      action: '配置集成',
+      hint: '配置外部应用、密钥、身份源、Agent 策略和数据源检查。',
+      readback: `OpenAPI ${data.openApiApps.total} 个，数据源 ${data.dataSources.total} 个，Agent ${data.agentPolicies.total} 个`,
+      ...stepState(integrationStarted, integrationStarted),
+    },
+    {
+      key: 'publish-runtime-preview',
+      title: '发布检查与运行态预览',
+      target: 'module-config',
+      action: '发布检查',
+      hint: '至少发布一个可见模块后，再让普通成员进入运行态。',
+      readback: `已发布模块 ${publishedModules.length} 个`,
+      ...stepState(publishedModules.length > 0, data.modules.total > 0),
     },
   ];
+  const blockingCount = steps.filter((step) => step.blocked).length;
+  const startedCount = steps.filter((step) => step.status !== '待配置').length;
   return createElement(
     'section',
-    { className: 'onboarding-panel' },
+    {
+      className: 'onboarding-panel c1-initialization-guide',
+      dataset: {
+        r97C1Guide: 'true',
+        c1StepCount: String(steps.length),
+        c1BlockingCount: String(blockingCount),
+        c1StartedCount: String(startedCount),
+      },
+    },
     createElement('div', { className: 'runtime-card-head' },
-      createElement('div', {}, createElement('h3', {}, '系统初始化清单'), createElement('p', {}, '按这个顺序把空系统配置到可以交给普通成员使用。')),
-      renderStatusPill(data.modules.total > 0 ? '可继续完善' : '待初始化', data.modules.total > 0 ? 'info' : 'warning'),
+      createElement('div', {}, createElement('h3', {}, '系统初始化清单'), createElement('p', {}, '按 C1 首用顺序配置空系统；每一步都读取当前后台状态。')),
+      renderStatusPill(blockingCount === 0 ? '可预览运行态' : `阻塞 ${blockingCount} 项`, blockingCount === 0 ? 'success' : 'warning'),
     ),
     createElement(
       'div',
-      { className: 'onboarding-checklist' },
+      { className: 'onboarding-progress-strip', dataset: { r97C1Progress: `${startedCount}/${steps.length}` } },
+      createMetric('已开始步骤', `${startedCount}/${steps.length}`),
+      createMetric('发布阻塞', String(blockingCount)),
+      createMetric('已发布模块', String(publishedModules.length)),
+    ),
+    createElement(
+      'div',
+      { className: 'onboarding-checklist onboarding-checklist-detailed' },
       ...steps.map((step, index) => {
-        const button = createButton(step.action, step.status === '待配置' ? 'primary' : 'secondary', false);
+        const button = createButton(step.action, step.blocked ? 'primary' : 'secondary', false);
+        button.dataset.r97C1StepAction = step.key;
         button.addEventListener('click', () => onSelect(step.target));
         return createElement(
           'article',
-          { className: 'onboarding-check-item' },
+          {
+            className: 'onboarding-check-item onboarding-check-item-detailed',
+            dataset: {
+              r97C1Step: step.key,
+              c1StepStatus: step.status,
+              c1StepTarget: step.target,
+              c1StepBlocked: String(step.blocked),
+            },
+          },
           createElement('span', { className: 'step-index' }, String(index + 1)),
-          createElement('div', { className: 'onboarding-check-main' }, createElement('strong', {}, step.title)),
-          renderStatusPill(step.status, step.status === '待配置' ? 'warning' : 'info'),
+          createElement('div', { className: 'onboarding-check-main' },
+            createElement('strong', {}, step.title),
+            createElement('small', {}, step.hint),
+            createElement('small', { className: 'step-readback' }, step.readback),
+          ),
+          renderStatusPill(step.status, step.tone),
           button,
         );
       }),
@@ -2996,9 +3096,17 @@ function createFlowDesigner(
         await persistCanvas();
         const check = await runFlowPublishCheck(systemId, flow.flowId, '系统后台流程画布发布检查');
         publishCheckResult.replaceChildren(renderFlowPublishCheckResult(check));
+        publishCheckResult.dataset.r92PublishImpactSummary = 'true';
+        publishCheckResult.dataset.r92PublishPassed = String(check.passed);
+        publishCheckResult.dataset.r92PublishImpactCount = String((check.impactRefs ?? []).length);
+        publishCheckResult.dataset.r92PublishWarningCount = String(check.warningItems.length);
+        publishCheckResult.dataset.r92PublishFailureCount = String(check.failureItems.length);
+        publishCheckResult.dataset.r92PublishTraceId = check.traceId;
         status.textContent = flowCheckMessage(check);
-        result.textContent = status.textContent;      } catch (error) {
+        result.textContent = status.textContent;
+      } catch (error) {
         status.textContent = error instanceof Error ? error.message : '流程发布检查失败。';
+        publishCheckResult.dataset.r92PublishImpactSummary = 'failed';
         publishCheckResult.replaceChildren(createElement('p', { className: 'field-error', dataset: { r92PublishImpactSummary: 'failed' } }, status.textContent));
       } finally {
         button.disabled = false;
@@ -3097,8 +3205,8 @@ function renderFlowPublishCheckResult(check: FlowPublishCheckResult): HTMLElemen
 }
 
 function impactRefText(item: Record<string, unknown>): string {
-  const type = String(item.refType ?? item.type ?? 'UNKNOWN');
-  const name = String(item.name ?? item.refName ?? item.refId ?? '-');
+  const type = String(item.objectType ?? item.refType ?? item.type ?? 'UNKNOWN');
+  const name = String(item.name ?? item.refName ?? item.objectId ?? item.refId ?? '-');
   const impactType = String(item.impactType ?? item.action ?? '-');
   return `${type} / ${name}: ${impactType}`;
 }
@@ -3181,6 +3289,8 @@ function createFlowCanvasPanel(nodes: FlowNodeConfigView[], edges: FlowEdgeView[
   nodes.forEach((node) => {
     const button = createButton(node.nodeName, node.nodeKey === selectedNodeKey ? 'primary' : 'secondary', false);
     button.classList.add('flow-canvas-node');
+    button.dataset.r92CanvasNodeType = node.nodeType;
+    button.dataset.r92CanvasNodeKey = node.nodeKey;
     button.style.left = `${node.position.x}px`;
     button.style.top = `${node.position.y}px`;
     button.style.width = `${node.position.width}px`;
@@ -3199,7 +3309,7 @@ function createFlowPropertyPanel(
   onDelete: (nodeKey: string) => void,
 ): HTMLElement {
   if (!node) {
-    return createElement('aside', { className: 'flow-property-panel' }, createElement('strong', {}, '属性面板'), createElement('p', {}, '先从节点库添加节点。'));
+    return createElement('aside', { className: 'flow-property-panel', dataset: { r92SelectedNodeType: '', r92SelectedNodeKey: '' } }, createElement('strong', {}, '属性面板'), createElement('p', {}, '先从节点库添加节点。'));
   }
   const libraryItem = library.find((item) => item.nodeType === node.nodeType);
   const nameInput = createElement('input', { ariaLabel: '节点名称' });
@@ -3223,12 +3333,14 @@ function createFlowPropertyPanel(
   deleteButton.addEventListener('click', () => onDelete(node.nodeKey));
   return createElement(
     'aside',
-    { className: 'flow-property-panel' },
+    { className: 'flow-property-panel', dataset: { r92SelectedNodeType: node.nodeType, r92SelectedNodeKey: node.nodeKey } },
     createElement('strong', {}, '属性面板'),
     createElement('label', {}, createElement('span', {}, '节点名称'), nameInput),
     createElement('div', { className: 'flow-property-schema' },
       createElement('span', {}, libraryItem?.nodeTypeName ?? node.nodeType),
-      ...(libraryItem?.propertySchema ?? []).slice(0, 6).map((field) => createElement('small', {}, `${field.fieldName}${field.required ? ' *' : ''}`)),
+      ...(libraryItem?.propertySchema ?? []).slice(0, 6).map((field) =>
+        createElement('small', { dataset: { r92PropertyField: field.fieldCode ?? field.fieldName ?? '' } }, `${field.fieldName}${field.required ? ' *' : ''}`),
+      ),
     ),
     createElement('label', {}, createElement('span', {}, '属性 JSON'), jsonInput),
     createElement('div', { className: 'inline-actions' }, saveButton, deleteButton),

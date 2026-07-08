@@ -1,6 +1,6 @@
-# Final Requirement Gap Report
+﻿# Final Requirement Gap Report
 
-Time: 2026-07-06T15:37:03.1231929+08:00
+Time: 2026-07-08T15:36:11.9721651+08:00
 
 ## Summary
 
@@ -62,7 +62,6 @@ Time: 2026-07-06T15:37:03.1231929+08:00
 | REQ-5.12 | PARTIAL | Workflow. | Need full node library breadth, timers, external API nodes, field update nodes, richer publish impact, reject/transfer variants, and user acceptance. |
 | REQ-5.15 | PARTIAL | OpenAPI. | Need broader callback/webhook/API documentation UX, rate-limit behavior under load, external API node/workflow integration breadth, and user acceptance before `PROVEN`. |
 | REQ-5.19 | PARTIAL | Intelligent capabilities. | Need richer user assistant flows, field/process/export-specific drafts, browser/API failure-state handling, broader AI read/write permission permutations, and user acceptance before `PROVEN`. |
-| REQ-6.9 | PARTIAL | Flow designer. | Need broader node/property/branch/zoom/usability coverage, direct designer editing breadth, advanced node publish impact, and user acceptance. |
 
 ### FRC-5 Operations, Robustness, Delivery
 

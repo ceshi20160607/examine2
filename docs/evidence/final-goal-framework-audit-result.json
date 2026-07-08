@@ -1,6 +1,6 @@
 ﻿{
     "status":  "PASS",
-    "generatedAt":  "2026-07-08T10:29:47.2106615+08:00",
+    "generatedAt":  "2026-07-08T20:47:21.5494141+08:00",
     "coverageLedgerPath":  "docs/framework/final-requirement-coverage-ledger.md",
     "gapReportPath":  "docs/evidence/final-requirement-gap-report.md",
     "nextExecutionLedgerPath":  "docs/framework/next-execution-ledger.md",
@@ -18,21 +18,23 @@
                      "notClosed":  45
                  },
     "nextTasks":  [
-                      "REC-P0-092 Workflow Designer Advanced Node Publish Impact Closure"
+                      "REC-P0-103 Fresh Deployed Human Usability Audit After R102"
                   ],
     "activeTaskContracts":  [
                                 {
-                                    "nextTask":  "REC-P0-092 Workflow Designer Advanced Node Publish Impact Closure",
-                                    "taskId":  "REC-P0-092",
-                                    "frcId":  "REC-P0-092",
+                                    "nextTask":  "REC-P0-103 Fresh Deployed Human Usability Audit After R102",
+                                    "taskId":  "REC-P0-103",
+                                    "frcId":  "REC-P0-103",
                                     "requiredCoverageRows":  [
-                                                                 "REQ-4.5",
-                                                                 "REQ-5.12",
-                                                                 "REQ-5.16",
-                                                                 "REQ-5.19",
-                                                                 "REQ-6.9",
+                                                                 "REQ-2.1",
+                                                                 "REQ-4.1",
+                                                                 "REQ-4.2",
+                                                                 "REQ-6.1",
+                                                                 "REQ-6.2",
+                                                                 "REQ-6.3",
                                                                  "REQ-6.11",
-                                                                 "REQ-2.1"
+                                                                 "REQ-9",
+                                                                 "REQ-14.1-14.37"
                                                              ],
                                     "sectionFound":  true,
                                     "missingContractRows":  [
@@ -91,7 +93,7 @@
                        "name":  "session state has next executable tasks while requirements remain partial",
                        "passed":  true,
                        "severity":  "ERROR",
-                       "detail":  "nextTasks=REC-P0-092 Workflow Designer Advanced Node Publish Impact Closure"
+                       "detail":  "nextTasks=REC-P0-103 Fresh Deployed Human Usability Audit After R102"
                    },
                    {
                        "name":  "task card contract contains User role",
@@ -292,61 +294,61 @@
                        "detail":  ""
                    },
                    {
-                       "name":  "active task card exists for REC-P0-092",
+                       "name":  "active task card exists for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
-                       "detail":  "nextTask=REC-P0-092 Workflow Designer Advanced Node Publish Impact Closure"
+                       "detail":  "nextTask=REC-P0-103 Fresh Deployed Human Usability Audit After R102"
                    },
                    {
-                       "name":  "active task card requirement contract is complete for REC-P0-092",
+                       "name":  "active task card requirement contract is complete for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
                        "detail":  "missingRows="
                    },
                    {
-                       "name":  "active task card screenshot boundary is visual-only for REC-P0-092",
+                       "name":  "active task card screenshot boundary is visual-only for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
                        "detail":  "screenshot boundary must reject functional completion without assertions"
                    },
                    {
-                       "name":  "active task card evidence paths are planned for REC-P0-092",
+                       "name":  "active task card evidence paths are planned for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
                        "detail":  "missingEvidence="
                    },
                    {
-                       "name":  "active task coverage rows exist in coverage ledger for REC-P0-092",
+                       "name":  "active task coverage rows exist in coverage ledger for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
                        "detail":  "missingCoverageRows="
                    },
                    {
-                       "name":  "active task coverage rows remain unfinished for REC-P0-092",
+                       "name":  "active task coverage rows remain unfinished for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
                        "detail":  "closedCoverageRows="
                    },
                    {
-                       "name":  "active task coverage rows keep concrete gaps for REC-P0-092",
+                       "name":  "active task coverage rows keep concrete gaps for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
                        "detail":  "emptyCoverageGaps="
                    },
                    {
-                       "name":  "active task card references every required coverage row for REC-P0-092",
+                       "name":  "active task card references every required coverage row for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
                        "detail":  "missingTaskCoverageRefs="
                    },
                    {
-                       "name":  "next execution ledger row references every active coverage row for REC-P0-092",
+                       "name":  "next execution ledger row references every active coverage row for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
                        "detail":  "missingNextLedgerRefs="
                    },
                    {
-                       "name":  "gap report exposes every active coverage row for REC-P0-092",
+                       "name":  "gap report exposes every active coverage row for REC-P0-103",
                        "passed":  true,
                        "severity":  "ERROR",
                        "detail":  "missingGapReportRefs="

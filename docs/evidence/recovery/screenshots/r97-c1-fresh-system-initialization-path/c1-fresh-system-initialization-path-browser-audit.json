@@ -1,0 +1,286 @@
+{
+  "status": "PASS",
+  "generatedAt": "2026-07-08T08:19:41.954Z",
+  "baseUrl": "http://127.0.0.1:18131",
+  "systemId": "1177",
+  "resultCount": 4,
+  "blockerResultCount": 0,
+  "emptyDashboardPassed": true,
+  "c1GuidePassed": true,
+  "maxOverflowX": 0,
+  "maxControlOverflowCount": 0,
+  "requiredC1Steps": [
+    "system-info",
+    "organization-members",
+    "roles-permissions",
+    "module-groups-modules",
+    "fields-dictionaries",
+    "page-list-detail-actions",
+    "workflow-messages",
+    "work-configuration",
+    "integration-openapi-ai",
+    "publish-runtime-preview"
+  ],
+  "results": [
+    {
+      "kind": "empty-dashboard",
+      "viewport": "desktop",
+      "route": "#/systems/1177/dashboard",
+      "textLength": 317,
+      "hasHeading": true,
+      "hasPanel": true,
+      "primarySurface": "initialization",
+      "actionHubSuppressed": "true",
+      "runtimePanelsSuppressed": "true",
+      "stepCountMarker": 5,
+      "stepCount": 5,
+      "primaryActionCount": 1,
+      "secondaryActionCount": 2,
+      "dailyHubCount": 0,
+      "runtimePanelCount": 0,
+      "modulePreviewCount": 0,
+      "operationPanelCount": 0,
+      "adminCopyVisible": true,
+      "mojibake": false,
+      "overflowX": 0,
+      "controlOverflowCount": 0,
+      "blockers": []
+    },
+    {
+      "kind": "empty-dashboard",
+      "viewport": "mobile",
+      "route": "#/systems/1177/dashboard",
+      "textLength": 317,
+      "hasHeading": true,
+      "hasPanel": true,
+      "primarySurface": "initialization",
+      "actionHubSuppressed": "true",
+      "runtimePanelsSuppressed": "true",
+      "stepCountMarker": 5,
+      "stepCount": 5,
+      "primaryActionCount": 1,
+      "secondaryActionCount": 2,
+      "dailyHubCount": 0,
+      "runtimePanelCount": 0,
+      "modulePreviewCount": 0,
+      "operationPanelCount": 0,
+      "adminCopyVisible": true,
+      "mojibake": false,
+      "overflowX": 0,
+      "controlOverflowCount": 0,
+      "blockers": []
+    },
+    {
+      "kind": "c1-guide",
+      "viewport": "desktop",
+      "route": "#/systems/1177/admin",
+      "textLength": 1112,
+      "hasGuide": true,
+      "stepCountMarker": 10,
+      "blockingCount": 4,
+      "startedCount": 6,
+      "progress": "6/10",
+      "steps": [
+        {
+          "key": "system-info",
+          "status": "已完成",
+          "target": "system-info",
+          "blocked": "false"
+        },
+        {
+          "key": "organization-members",
+          "status": "已完成",
+          "target": "org-structure",
+          "blocked": "false"
+        },
+        {
+          "key": "roles-permissions",
+          "status": "已开始",
+          "target": "role-management",
+          "blocked": "false"
+        },
+        {
+          "key": "module-groups-modules",
+          "status": "待配置",
+          "target": "module-config",
+          "blocked": "true"
+        },
+        {
+          "key": "fields-dictionaries",
+          "status": "待配置",
+          "target": "module-config",
+          "blocked": "true"
+        },
+        {
+          "key": "page-list-detail-actions",
+          "status": "已完成",
+          "target": "dashboard-config",
+          "blocked": "false"
+        },
+        {
+          "key": "workflow-messages",
+          "status": "待配置",
+          "target": "flow-management",
+          "blocked": "true"
+        },
+        {
+          "key": "work-configuration",
+          "status": "已完成",
+          "target": "work-config",
+          "blocked": "false"
+        },
+        {
+          "key": "integration-openapi-ai",
+          "status": "已完成",
+          "target": "openapi-apps",
+          "blocked": "false"
+        },
+        {
+          "key": "publish-runtime-preview",
+          "status": "待配置",
+          "target": "module-config",
+          "blocked": "true"
+        }
+      ],
+      "actions": [
+        "system-info",
+        "organization-members",
+        "roles-permissions",
+        "module-groups-modules",
+        "fields-dictionaries",
+        "page-list-detail-actions",
+        "workflow-messages",
+        "work-configuration",
+        "integration-openapi-ai",
+        "publish-runtime-preview"
+      ],
+      "stepKeys": [
+        "system-info",
+        "organization-members",
+        "roles-permissions",
+        "module-groups-modules",
+        "fields-dictionaries",
+        "page-list-detail-actions",
+        "workflow-messages",
+        "work-configuration",
+        "integration-openapi-ai",
+        "publish-runtime-preview"
+      ],
+      "readbackCount": 10,
+      "metricCount": 0,
+      "adminCopyVisible": true,
+      "mojibake": false,
+      "overflowX": 0,
+      "controlOverflowCount": 0,
+      "missingSteps": [],
+      "missingActions": [],
+      "blockers": []
+    },
+    {
+      "kind": "c1-guide",
+      "viewport": "mobile",
+      "route": "#/systems/1177/admin",
+      "textLength": 1112,
+      "hasGuide": true,
+      "stepCountMarker": 10,
+      "blockingCount": 4,
+      "startedCount": 6,
+      "progress": "6/10",
+      "steps": [
+        {
+          "key": "system-info",
+          "status": "已完成",
+          "target": "system-info",
+          "blocked": "false"
+        },
+        {
+          "key": "organization-members",
+          "status": "已完成",
+          "target": "org-structure",
+          "blocked": "false"
+        },
+        {
+          "key": "roles-permissions",
+          "status": "已开始",
+          "target": "role-management",
+          "blocked": "false"
+        },
+        {
+          "key": "module-groups-modules",
+          "status": "待配置",
+          "target": "module-config",
+          "blocked": "true"
+        },
+        {
+          "key": "fields-dictionaries",
+          "status": "待配置",
+          "target": "module-config",
+          "blocked": "true"
+        },
+        {
+          "key": "page-list-detail-actions",
+          "status": "已完成",
+          "target": "dashboard-config",
+          "blocked": "false"
+        },
+        {
+          "key": "workflow-messages",
+          "status": "待配置",
+          "target": "flow-management",
+          "blocked": "true"
+        },
+        {
+          "key": "work-configuration",
+          "status": "已完成",
+          "target": "work-config",
+          "blocked": "false"
+        },
+        {
+          "key": "integration-openapi-ai",
+          "status": "已完成",
+          "target": "openapi-apps",
+          "blocked": "false"
+        },
+        {
+          "key": "publish-runtime-preview",
+          "status": "待配置",
+          "target": "module-config",
+          "blocked": "true"
+        }
+      ],
+      "actions": [
+        "system-info",
+        "organization-members",
+        "roles-permissions",
+        "module-groups-modules",
+        "fields-dictionaries",
+        "page-list-detail-actions",
+        "workflow-messages",
+        "work-configuration",
+        "integration-openapi-ai",
+        "publish-runtime-preview"
+      ],
+      "stepKeys": [
+        "system-info",
+        "organization-members",
+        "roles-permissions",
+        "module-groups-modules",
+        "fields-dictionaries",
+        "page-list-detail-actions",
+        "workflow-messages",
+        "work-configuration",
+        "integration-openapi-ai",
+        "publish-runtime-preview"
+      ],
+      "readbackCount": 10,
+      "metricCount": 0,
+      "adminCopyVisible": true,
+      "mojibake": false,
+      "overflowX": 0,
+      "controlOverflowCount": 0,
+      "missingSteps": [],
+      "missingActions": [],
+      "blockers": []
+    }
+  ]
+}

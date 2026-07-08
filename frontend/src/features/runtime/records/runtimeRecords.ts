@@ -442,6 +442,14 @@ function createRecordRow(row: RuntimeRecordRow, columns: DynamicColumn[], render
 
 function createRowActionButton(action: ActionContract, row: RuntimeRecordRow, render: () => void): HTMLButtonElement {
   const button = createButton(action.name, 'ghost', !action.enabled, action.disabledReason);
+  button.dataset.runtimeRecordAction = action.actionCode;
+  button.dataset.runtimeRecordActionRecord = row.recordId;
+  if (action.actionCode === 'record.edit') {
+    button.dataset.runtimeEditRecord = row.recordId;
+  }
+  if (action.actionCode === 'record.submitApproval') {
+    button.dataset.runtimeSubmitApprovalRow = row.recordId;
+  }
   button.addEventListener('click', async (event) => {
     event.stopPropagation();
     state.activeRecordId = row.recordId;
@@ -615,6 +623,7 @@ function createEditPanel(panel: 'create' | 'edit', onClose: () => void, render: 
   saveDraftButton.dataset.runtimeSaveDraftR88 = 'true';
   saveButton.dataset.runtimeSaveRecordR88 = 'true';
   submitApprovalButton.dataset.runtimeSubmitApprovalR88 = 'true';
+  submitApprovalButton.dataset.runtimeSubmitApproval = panel;
   saveDraftButton.addEventListener('click', async () => {
     const fieldValues = collectFormValues();
     try {
@@ -664,7 +673,7 @@ function createEditPanel(panel: 'create' | 'edit', onClose: () => void, render: 
   });
   return createElement(
     'aside',
-    { className: 'runtime-side-panel edit-panel' },
+    { className: 'runtime-side-panel edit-panel', dataset: { runtimeEditPanel: panel, runtimeEditRecord: active?.recordId ?? '' } },
     createElement(
       'header',
       { className: 'runtime-panel-head' },
@@ -789,11 +798,13 @@ function createApprovalSidebar(row: RuntimeRecordRow, render: () => void): HTMLE
   const detail = row.detail;
   const approval = detail.approvalSidebar;
   if (!approval) {
-    return createElement('section', { className: 'runtime-card' }, createElement('h3', {}, '审批流程'), createElement('p', {}, '当前记录未发起审批。'));
+    return createElement('section', { className: 'runtime-card', dataset: { runtimeApprovalSidebar: row.recordId, runtimeApprovalStatus: 'NONE' } }, createElement('h3', {}, '审批流程'), createElement('p', {}, '当前记录未发起审批。'));
   }
+  const latestTimelineItem = approval.timeline[approval.timeline.length - 1];
+  const approvalStatus = latestTimelineItem?.result ?? '';
   return createElement(
     'section',
-    { className: 'runtime-card approval-card' },
+    { className: 'runtime-card approval-card', dataset: { runtimeApprovalSidebar: row.recordId, runtimeApprovalStatus: approvalStatus } },
     createElement('div', { className: 'runtime-card-head' }, createElement('h3', {}, '审批流程信息'), createElement('span', {}, approval.currentNodeName)),
     createElement(
       'ol',

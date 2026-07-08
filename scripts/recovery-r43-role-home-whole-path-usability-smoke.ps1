@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$BaseUrl = 'http://127.0.0.1:18131',
     [switch]$KeepCreatedData,
     [switch]$NoFailExit
@@ -221,11 +221,14 @@ $RuntimeRole = Invoke-Api -Method 'Post' -Path "/api/v1/systems/$SystemId/roles"
     status = 1
     description = 'Recovery R43 role journey runtime member'
 }
+$RolesPage = Invoke-Api -Method 'Get' -Path "/api/v1/systems/$SystemId/roles?pageNo=1&pageSize=100" -Headers $script:AdminHeaders
+$SuperRole = @($RolesPage.records | Where-Object { $_.roleCode -eq 'SYSTEM_SUPER_ADMIN' }) | Select-Object -First 1
+Assert-True -Condition ($null -ne $SuperRole -and -not [string]::IsNullOrWhiteSpace([string]$SuperRole.roleId)) -Message 'SYSTEM_SUPER_ADMIN role was not found for R43 module group visibility.'
 
 $Group = Invoke-Api -Method 'Post' -Path "/api/v1/systems/$SystemId/module-groups" -Headers $script:AdminHeaders -Body @{
     name = "R43 Operations $script:Suffix"
     sort = 10
-    visibleRoleIds = @([string]$RuntimeRole.roleId)
+    visibleRoleIds = @([string]$RuntimeRole.roleId, [string]$SuperRole.roleId)
     publishStatus = 'DRAFT'
 }
 
@@ -246,7 +249,7 @@ $null = Invoke-Api -Method 'Post' -Path "/api/v1/systems/$SystemId/modules/$Modu
     sceneCode = 'default'
     sceneName = 'R43 Daily View'
     defaultScene = $true
-    visibleRoleIds = @([string]$RuntimeRole.roleId)
+    visibleRoleIds = @([string]$RuntimeRole.roleId, [string]$SuperRole.roleId)
     columnFieldIds = @([string]$TitleField.fieldId, [string]$StatusField.fieldId, [string]$AmountField.fieldId)
     filterFieldIds = @([string]$TitleField.fieldId, [string]$StatusField.fieldId)
     sortFieldIds = @([string]$TitleField.fieldId)
@@ -273,6 +276,11 @@ $null = Invoke-Api -Method 'Put' -Path "/api/v1/systems/$SystemId/roles/$($Runti
 $null = Invoke-Api -Method 'Post' -Path "/api/v1/systems/$SystemId/modules/$ModuleId/publish" -Headers $script:AdminHeaders -Body @{
     reason = 'recovery-r43 module publish'
     idempotencyKey = "module-publish-r43-$script:Suffix"
+}
+
+$null = Invoke-Api -Method 'Post' -Path "/api/v1/systems/$SystemId/module-groups/$($Group.groupId)/publish" -Headers $script:AdminHeaders -Body @{
+    reason = 'recovery-r43 group publish'
+    idempotencyKey = "group-publish-r43-$script:Suffix"
 }
 
 1..8 | ForEach-Object {
@@ -871,4 +879,3 @@ $final | ConvertTo-Json -Depth 20
 if ($Audit.status -ne 'PASS' -and -not $NoFailExit) {
     exit 1
 }
-
