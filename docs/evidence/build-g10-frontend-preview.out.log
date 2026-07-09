@@ -1,6 +1,0 @@
-
-> unexamine-frontend@0.0.1 preview
-> vite preview --host 0.0.0.0 --port 18093 --strictPort
-
-  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m18093[22m/[39m
-  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.0.60:[1m18093[22m/[39m

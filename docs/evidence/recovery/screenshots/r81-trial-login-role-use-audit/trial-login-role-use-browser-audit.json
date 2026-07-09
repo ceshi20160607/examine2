@@ -1,4 +1,0 @@
-{
-  "status": "FAIL",
-  "error": "Error: wait timeout: JSON.stringify({ ok: !!document.querySelector('.runtime-shell') && !!document.querySelector('[data-runtime-record-row=\"625\"]') }) last={\"ok\":false}\n    at waitFor (D:\\workspace\\01_project\\snow\\cursor\\examine2\\.tmp-browser\\unexamine-r81-trial-login-role-use.js:75:9)\n    at async run (D:\\workspace\\01_project\\snow\\cursor\\examine2\\.tmp-browser\\unexamine-r81-trial-login-role-use.js:176:3)"
-}

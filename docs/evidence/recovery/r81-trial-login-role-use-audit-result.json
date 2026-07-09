@@ -1,9 +1,0 @@
-﻿{
-    "status":  "FAIL",
-    "productStatus":  "R81_TRIAL_LOGIN_ROLE_USE_AUDIT_FAILED",
-    "task":  "REC-P0-081",
-    "generatedAt":  "2026-07-08T14:24:57.1060960+08:00",
-    "baseUrl":  "http://127.0.0.1:18132",
-    "userSignoff":  false,
-    "error":  "Error: wait timeout: JSON.stringify({ ok: !!document.querySelector(\u0027.runtime-shell\u0027) \u0026\u0026 !!document.querySelector(\u0027[data-runtime-record-row=\"625\"]\u0027) }) last={\"ok\":false}"
-}

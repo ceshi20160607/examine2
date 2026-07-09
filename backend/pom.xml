@@ -11,24 +11,15 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.unique</groupId>
-    <artifactId>examine</artifactId>
+    <groupId>com.unique.unexamine</groupId>
+    <artifactId>unexamine-clean</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>examine</name>
-    <description>unexamine backend parent project</description>
+    <name>unexamine-clean</name>
 
     <modules>
-        <module>examine-core</module>
-        <module>examine-plat</module>
-        <module>examine-module</module>
-        <module>examine-flow</module>
-        <module>examine-message-log</module>
-        <module>examine-upload</module>
-        <module>examine-app</module>
-        <module>examine-ai-work</module>
-        <module>examine-generator</module>
-        <module>examine-web</module>
+        <module>unexamine-core</module>
+        <module>unexamine-web</module>
     </modules>
 
     <properties>
@@ -36,39 +27,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.release>${java.version}</maven.compiler.release>
-        <mybatis-plus.version>3.5.9</mybatis-plus.version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-extension</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-spring</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-extension</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-spring</artifactId>
-        </dependency>
-    </dependencies>
 
     <build>
         <pluginManagement>

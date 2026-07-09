@@ -1,9 +1,0 @@
-﻿{
-    "checkedAt":  "2026-06-24T10:56:00+08:00",
-    "baseUrl":  "http://127.0.0.1:18091",
-    "endpoint":  "/api/v1/health",
-    "code":  "SUCCESS",
-    "traceId":  "trc_6c4ba0a0-d673-4546-9da0-da278010757d",
-    "serverLog":  "docs\\evidence\\build-g9qa-server.out.log",
-    "serverErrLog":  "docs\\evidence\\build-g9qa-server.err.log"
-}

@@ -1,16 +1,10 @@
 {
-  "name": "unexamine-frontend",
+  "name": "unexamine-clean-frontend",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 0.0.0.0",
-    "typecheck": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.5",
-    "vite": "^8.0.16"
+    "dev": "node scripts/dev-server.mjs",
+    "build": "node scripts/build.mjs"
   }
 }
