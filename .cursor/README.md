@@ -27,6 +27,7 @@
 ## 保留来源
 
 - `docs/user_requirement.md`
+- `docs/user_setting.md`
 - `docs/design/prototypes/**`
 - `temp_flow.md`
 - `temp_flow_persion.html`

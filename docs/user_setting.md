@@ -1,5 +1,6 @@
 # 该项目环境配置
-
+## 编码
+- utf-8
 ## node
 - D:\java\nodejs
 ## jdk21
