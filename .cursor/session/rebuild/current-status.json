@@ -1,0 +1,17 @@
+{
+    "updated_at":  "2026-07-09T15:05:28+08:00",
+    "accepted":  [
+                     "REBUILD-P0-001",
+                     "REBUILD-P0-002",
+                     "REBUILD-P0-003",
+                     "REBUILD-P0-004",
+                     "REBUILD-P0-005"
+                 ],
+    "last_evidence":  ".cursor/session/rebuild/evidence/rebuild-p0-005-business-module-runtime.json",
+    "nextTask":  "REBUILD-P0-006 Flow And Application Gateway",
+    "running":  {
+                    "frontend":  null,
+                    "backend":  null
+                },
+    "note":  "Business module configuration and runtime list/detail verified with file persistence and frontend readback."
+}

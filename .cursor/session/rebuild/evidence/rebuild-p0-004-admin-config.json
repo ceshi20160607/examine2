@@ -1,0 +1,34 @@
+{
+    "task":  "REBUILD-P0-004 Admin Configuration Foundation",
+    "status":  "PASS",
+    "timestamp":  "2026-07-09T14:59:29+08:00",
+    "verification":  "scripts/verify-admin-config.ps1",
+    "backend":  {
+                    "configCount":  13,
+                    "persistedFile":  "data/admin-config.json",
+                    "patchedCode":  "basic",
+                    "requiredCodes":  [
+                                          "basic",
+                                          "org",
+                                          "role",
+                                          "module",
+                                          "flow",
+                                          "application",
+                                          "dashboard",
+                                          "dict",
+                                          "work",
+                                          "app-config",
+                                          "ai",
+                                          "datasource",
+                                          "log"
+                                      ],
+                    "patchedStatus":  "published"
+                },
+    "frontend":  {
+                     "adminConfigReadback":  "implemented",
+                     "rightDetailTabs":  "show backend config readback",
+                     "build":  "PASS",
+                     "adminListRows":  "bound to /api/admin/config"
+                 },
+    "nonCompletionBoundary":  "Admin configuration foundation has file-backed config items. Full role-permission enforcement and module-specific editors continue in later rebuild tasks."
+}

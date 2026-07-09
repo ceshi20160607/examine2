@@ -1,0 +1,32 @@
+{
+  "task": "REBUILD-P0-002 Clean Project Scaffold",
+  "status": "PASS",
+  "timestamp": "2026-07-09T14:25:00+08:00",
+  "archive": ".oldbk/restart-20260708-220451",
+  "backend": {
+    "build": "PASS",
+    "jar": "backend/unexamine-web/target/unexamine-web-0.0.1-SNAPSHOT.jar",
+    "healthUrl": "http://127.0.0.1:9999/api/v1/health",
+    "healthStatus": "UP"
+  },
+  "frontend": {
+    "build": "PASS",
+    "dist": "frontend/dist/index.html",
+    "devUrl": "http://127.0.0.1:5173",
+    "htmlHasAppRoot": true,
+    "htmlHasMainScript": true
+  },
+  "shellApi": {
+    "url": "http://127.0.0.1:9999/api/shell?context=system",
+    "context": "system",
+    "navCount": 9,
+    "moduleGroupCount": 2,
+    "flowCount": 9,
+    "layoutRuleCount": 3
+  },
+  "browser": {
+    "status": "SKIPPED_TOOL_ACL",
+    "reason": "In-app browser runtime failed to read plugin files because Windows sandbox returned apply deny-read ACLs."
+  },
+  "nonCompletionBoundary": "This is a clean runnable scaffold only. Full usable-system acceptance remains open."
+}

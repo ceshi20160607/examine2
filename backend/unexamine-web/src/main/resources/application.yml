@@ -1,0 +1,8 @@
+server:
+  port: 9999
+
+spring:
+  application:
+    name: unexamine-clean
+  jackson:
+    default-property-inclusion: non_null
