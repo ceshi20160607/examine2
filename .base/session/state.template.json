@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "instance": "{{INSTANCE_NAME}}",
+  "updatedAt": "{{UPDATED_AT}}",
+  "phase": "initialization",
+  "currentNode": "S0-INSTANCE-INIT",
+  "status": "in_progress",
+  "gates": {
+    "instanceReady": false,
+    "requirementsUnderstood": false,
+    "designComplete": false,
+    "implementationReady": false,
+    "integrationPassed": false,
+    "userAccepted": false
+  },
+  "blockedScopes": [],
+  "openDecisions": [],
+  "outputs": [],
+  "evidence": [],
+  "nextNode": null
+}
