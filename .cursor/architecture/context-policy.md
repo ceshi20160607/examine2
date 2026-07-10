@@ -25,7 +25,8 @@ LLM 上下文有限，且长对话易产生 **幻读**（把讨论当事实）�
 ```yaml
 task_id: TASK-xxx
 role: backend
-agent_spec: .cursor/agents/backend.md
+agent_spec: .cursor/agents/backend/role.md
+agent_update: .cursor/agents/backend/update.md
 inputs:
   - docs/user_requirement.md
   - docs/api/auth.md

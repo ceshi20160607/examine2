@@ -3,11 +3,19 @@
   "architecture": "cursor-v3-requirements-rebuild",
   "phase": "requirements-and-engineering-architecture",
   "mode": "requirements-rebuild",
-  "updated_at": "2026-07-09T17:54:39+08:00",
+  "updated_at": "2026-07-10T19:17:14+08:00",
+  "template_alignment": {
+    "templateSource": ".base",
+    "runtimeDependency": false,
+    "instanceEntry": ".cursor/INSTANCE.md",
+    "roleLayout": ".cursor/agents/{role}/role.md + update.md",
+    "portableTemplateChecked": true
+  },
   "archive": {
-    "restartArchive": ".oldbk/restart-20260708-220451",
-    "oldCursorBackup": ".oldbk/restart-20260708-220451/.cursor-before-clean-rebuild",
-    "oldImplementationIsReferenceOnly": true
+    "oldImplementationRemoved": true,
+    "legacyInventory": ".cursor/session/rebuild/legacy-inventory.md",
+    "planningPractice": ".cursor/session/rebuild/planning-practice.md",
+    "oldImplementationIsReferenceOnly": false
   },
   "retained_sources": [
     "docs/user_requirement.md",
@@ -17,6 +25,9 @@
     "docs/temp_flow_persion.html"
   ],
   "cursor_sources": [
+    ".cursor/INSTANCE.md",
+    ".cursor/CONDUCTOR.md",
+    ".cursor/session/rebuild/planning-practice.md",
     ".cursor/architecture/requirements-rebuild.md",
     ".cursor/architecture/encoding-and-records.md",
     ".cursor/architecture/clean-rebuild.md",
@@ -31,10 +42,14 @@
   ],
   "gates": {
     "source_preserved": true,
-    "old_implementation_archived": true,
+    "old_implementation_archived": false,
+    "old_implementation_removed": true,
     "requirements_rebuild_active": true,
     "requirements_rebuild_accepted": false,
-    "engineering_architecture_ready": true,
+    "engineering_framework_ready": true,
+    "requirements_understanding_ready": false,
+    "project_design_ready": false,
+    "database_plan_ready": false,
     "legacy_inventory_ready": true,
     "committee_review_ready": true,
     "ui_system_ready": true,
@@ -51,18 +66,15 @@
     "rowPrimaryAction": "click row to open detail while preserving list context; row buttons only perform distinct actions"
   },
   "requirements_plan": {
-    "plan": ".cursor/session/rebuild/task-plan.md",
-    "currentBatch": "REQUIREMENTS-R0",
-    "status": "requirements_rebuild_active",
+    "plan": ".cursor/session/rebuild/planning-practice.md",
+    "currentBatch": "S1-REQUIREMENT-UNDERSTANDING",
+    "status": "in_progress",
+    "currentOutput": ".cursor/session/rebuild/requirement-understanding.md",
     "nextTasks": [
-      "REQ-R0-001 Product Boundary Contract",
-      "REQ-R0-002 Engineering Architecture Map",
-      "REQ-R0-003 Committee Review Gate",
-      "REQ-R0-004 Legacy Inventory And Cleanup Plan",
-      "REQ-R0-005 Backend Codegen And Manage Contract",
-      "REQ-R0-006 Requirement-To-Task Breakdown",
-      "REQ-R0-007 User Review Package",
-      "REQ-R0-008 UI System And Interaction Contract"
+      "S1-001 Consolidate retained requirement sources",
+      "S1-002 Review requirement understanding by professional roles",
+      "S1-003 Resolve product conflicts and open decisions",
+      "S1-004 Run requirement-understanding gate review"
     ]
   },
   "historical_build_plan": {
@@ -91,17 +103,33 @@
   },
   "last_checks": {
     "encoding_check": {
-      "checked_at": "2026-07-09T17:54:39+08:00",
+      "checked_at": "2026-07-10T19:17:14+08:00",
       "command": "powershell -ExecutionPolicy Bypass -File .cursor/scripts/check-encoding.ps1",
       "status": "pass"
     },
     "json_parse": {
-      "checked_at": "2026-07-09T17:54:39+08:00",
+      "checked_at": "2026-07-10T19:17:14+08:00",
       "files": [
+        ".base/session/state.template.json",
         ".cursor/session/state.json",
         ".cursor/session/rebuild/current-status.json"
       ],
       "status": "pass"
+    },
+    "template_portability": {
+      "checked_at": "2026-07-10T19:17:14+08:00",
+      "checks": [
+        "no instance-directory reference in template source",
+        "no current-project name, path, requirement file, or technology binding in template source",
+        "public role, skill, lifecycle, and node contracts copied unchanged into project instance"
+      ],
+      "status": "pass"
+    },
+    "diff_check": {
+      "checked_at": "2026-07-10T19:17:14+08:00",
+      "command": "git diff --check",
+      "status": "pass",
+      "note": "Only an existing CRLF-to-LF working-copy warning remains for context-policy.md."
     }
   }
 }
