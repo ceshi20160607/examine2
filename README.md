@@ -1,9 +1,20 @@
 # examine2
 
-**低代码平台 + 审批（flow）平台模块**：对内支持自建系统，对外可为第三方系统提供审批能力；业务数据与审批运行时数据分层。
+`examine2` is the rebuild workspace for `unexamine`, a configurable business system platform with workflow, permissions, runtime business pages, OpenAPI integration, AI assistance, and operations support.
 
----
+Current status: framework and requirements are being consolidated before implementation.
 
-## 重构
+Start here:
 
-- 将项目使用ai重构
+- `docs/user_requirement.md`: product requirement source
+- `docs/design/prototypes/index.html`: prototype reference
+- `docs/framework/current-engineering-framework.md`: active engineering framework
+- `docs/framework/legacy-extract.md`: useful information extracted from the removed legacy archive
+
+Important rule:
+
+- new implementation starts from clear requirements and database design
+- base persistence code should be generated after schema planning
+- business behavior is coded explicitly above the generated base layer
+- old code is not patched or reused as the new project
+
