@@ -150,3 +150,36 @@
 - `业务模块` 以配置的系统内业务模块组作为标签页；组下模块必须覆盖字段、动作、页面、打印模板和运行态权限。
 - `flow管理` 必须覆盖流程图、业务模块/外部系统关联、审批人、数据源、审批节点、动作、发布检查和运行读回。
 - 列表主界面采用左侧标签页/左侧分类；详情采用右侧标签页/右侧工作区；行点击打开详情，行内按钮只做差异动作。
+
+## 15. Requirements Rebuild And Engineering Governance Rule
+
+- 当前阶段不是开发，是重新整理需求和完善工程。禁止继续按旧 `REBUILD-P0-006` 进入 Flow/Application 编码。
+- 后续所有工作必须先按工程架构组织：产品域、后端模块、前端壳和路由、表前缀、权限边界、状态流转、消息/待办/日志副作用、验收证据必须能互相映射。
+- 需求、参考原型、流程图和任务拆分阶段必须尽量发现产品边界、工程架构、权限数据、角色旅程和验收口径问题；不能等编码时发现一个就临时改一次。
+- 如果编码阶段暴露出上述结构性问题，必须停止当前实现，走组委会式复审。组委会至少覆盖产品、架构、后端、前端、DBA、测试视角，结论写回 `.cursor` 或 retained source 派生文件后再继续。
+- 组委会不是小缺陷处理流程；小文案、小样式、小字段遗漏可按任务修复，但影响产品边界、数据模型、权限模型、流程闭环、任务拆分或验收标准的问题必须走组委会。
+- 遗留文件处理必须先盘点分类：retained source、reference implementation、evidence archive、generated/cache noise、deletion candidate、unknown。没有盘点和影响说明，不得删除。
+- 有参考价值的旧实现只总结模式和目录经验，不作为当前完成证据；没有参考价值的遗留物要写清删除原因和影响后再删；不确定的先保留。
+- 后端编码恢复时必须遵循 `.cursor/architecture/backend-structure.md`：先由代码生成工具生成 `base` 基础代码，再在 `manage` 下写业务逻辑。
+- `base` 层只放 generator 产出的 entity、mapper、mapper.xml、IService、ServiceImpl 等贴表基础代码；不要手写大批量 base CRUD。
+- `manage` 层承接 controller、业务 service、BO/DTO、VO、权限、事务编排、读回、消息/待办/日志副作用和业务语义。
+- 生成 CRUD、静态页面、接口 200、构建通过都只是局部证据，不能证明产品可用。
+- UI/功能复审已升级为工程框架：后续用户可见任务必须遵守 `.cursor/architecture/ui-system.md` 和 `.cursor/session/rebuild/ui-system-interaction-contract.md`，按深色顶栏、高密度列表、右侧详情工作区、清晰状态与读回证据实现；旧 `19999` 产物只能作为失败参考，不能作为目标样式或完成证据。
+
+## 16. Encoding And Records Rule
+
+- 活跃项目文本文件统一 UTF-8；`.editorconfig` 是编码规则入口。
+- Windows PowerShell 读取或写入项目文本时必须显式使用 `-Encoding UTF8`，避免把 UTF-8 无 BOM 文件误读成乱码。
+- 看到乱码时先判断是文件内容损坏还是终端/命令解码错误；确认后再修复，不能盲目重写大文件。
+- 新增或修改治理、需求、设计、任务、源码文件后，必须扫描常见 mojibake 标记；命中后先处理编码问题再继续验收。
+- 确定性会议纪要统一维护在 `.cursor/session/project-minutes.md`，只记录已经确定的日期、主题、结论、来源和影响。
+- 未确定事项不写入会议纪要，保留在对应文件的 Open Decisions、Open Questions、Next Work 或任务阻断项中。
+- 临时文件不得成为事实来源；需要跨任务保留时，必须登记到 `.cursor/session/project-minutes.md` 的 Temporary File Ledger，并写清用途、处置规则和 owner。
+
+## 17. Leader Three-Cycle Governance Rule
+
+- 用户明确要求 leader 组织相关人持续推进时，不得把普通继续推进问题反复抛回给用户。
+- leader 必须组织产品、架构、后端、前端、DBA、测试/QA 等相关视角，完成复审、整理、处理、决策、补充和再验证。
+- 大范围治理/重构整理采用三轮内部闭环：第 1 轮角色复审，第 2 轮落盘集成，第 3 轮一致性验证。
+- 每轮只把确定结论写入 `.cursor/session/project-minutes.md`；未确定项留在对应契约的 Open Decisions 或任务阻断项。
+- 三轮内可自行继续，不需要用户逐句确认。只有最终签收、真实用户偏好选择、外部事实无法从项目文件推断时，才向用户请求裁决。

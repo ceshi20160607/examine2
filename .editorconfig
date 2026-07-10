@@ -1,5 +1,7 @@
 root = true
 
+# Project text files are UTF-8. On Windows PowerShell, always read/write with
+# explicit -Encoding UTF8 to avoid mojibake in Chinese project documents.
 [*]
 charset = utf-8
 end_of_line = lf
@@ -8,3 +10,6 @@ trim_trailing_whitespace = true
 
 [*.md]
 trim_trailing_whitespace = false
+
+[*.{ps1,psm1,psd1}]
+charset = utf-8

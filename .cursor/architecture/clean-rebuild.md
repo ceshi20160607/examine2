@@ -4,12 +4,14 @@
 
 This project is now in clean rebuild mode. The previous implementation is archived under `.oldbk/restart-20260708-220451/` and may be read only as a reference.
 
+Update 2026-07-09: clean rebuild is currently paused at requirements and engineering reconstruction. The active instruction is not to continue coding from the old P0 queue. Read `.cursor/architecture/requirements-rebuild.md` before using this file.
+
 The active product must be rebuilt from these retained sources:
 
 - `docs/user_requirement.md`
 - `docs/design/prototypes/**`
-- `temp_flow.md`
-- `temp_flow_persion.html`
+- `docs/temp_flow.md`
+- `docs/temp_flow_persion.html`
 - `.cursor/knowledge/project-operating-rules.md`
 - `.cursor/knowledge/failure-lessons.md`
 
@@ -18,7 +20,7 @@ The active product must be rebuilt from these retained sources:
 - Do not continue the old `RECOVERY-R*` implementation line.
 - Do not promote old scripts, old releases, or old evidence as clean rebuild acceptance.
 - Do not recreate page/API piles. Build from role journeys and product boundaries.
-- Coding starts only after the rebuild task plan exists on disk and the active task points to it.
+- Coding starts only after the requirements rebuild package, engineering architecture map, legacy inventory, committee review gate, task breakdown, and coding gate are accepted.
 - The user has explicitly authorized continuing without further clarification unless a decision is impossible to infer from retained sources.
 
 ## Product Shells

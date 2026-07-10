@@ -9,7 +9,7 @@
 | 3 | Open Design 怎么装 | 见 [open-design/install.md](../open-design/install.md) |
 | 4 | Agent 还是 Skill？如何并行？ | 见下文 + [agents-vs-skills.md](./agents-vs-skills.md) |
 | 5 | 不传上下文，新会话读文档 | [context-policy.md](./context-policy.md) |
-| 6 | 先 UI 认同 → 再拆任务 → 多角色 API → 再开发 | [work-graph.md](./work-graph.md) |
+| 6 | 先需求/工程/UI 契约 → UI 认同 → 再拆任务 → 多角色 API → 再开发 | [work-graph.md](./work-graph.md), [ui-system.md](./ui-system.md) |
 | 7 | 每任务独立验收，不当裁判又当选手 | [acceptance.md](./acceptance.md) |
 | 8 | 除 `user_requirement.md` 外旧文档删除 | 已执行；新产物按本架构路径生成 |
 
@@ -79,4 +79,9 @@ frontend/        # Gate 后重建
 sql/             # Gate 后重建
 ```
 
-**`design_user_approved = false` 时不得创建 backend/frontend/sql。**
+**`requirements_rebuild_accepted = false` 或 `design_user_approved = false` 时不得创建 backend/frontend/sql。**
+
+## 当前新增框架
+
+- [requirements-rebuild.md](./requirements-rebuild.md)：当前需求重整和工程完善阶段。
+- [ui-system.md](./ui-system.md)：高密度企业业务系统 UI 框架，约束顶栏、列表、详情、状态和视觉验收。

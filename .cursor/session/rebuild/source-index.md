@@ -4,8 +4,8 @@
 
 - `docs/user_requirement.md`: full product requirement. Key lines identify the product as a long-term usable enterprise customization system, not a low-code demo or debug backend.
 - `docs/design/prototypes/index.html`: retained prototype baseline.
-- `temp_flow.md`: complete project flow map and module boundary map.
-- `temp_flow_persion.html`: human-readable flow mind map and visual boundary reference.
+- `docs/temp_flow.md`: complete project flow map and module boundary map.
+- `docs/temp_flow_persion.html`: human-readable flow mind map and visual boundary reference.
 
 ## Archived Reference
 

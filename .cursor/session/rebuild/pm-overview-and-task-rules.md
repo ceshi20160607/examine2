@@ -1,60 +1,47 @@
 # PM Overview And Task Rules
 
-## Updated User Directive
+## Current Directive
 
-The user wants a normally usable system, developed in an engineering way:
+The previous rebuild attempts did not satisfy the target. The current responsibility is to reorganize requirements and engineering architecture before any development continues.
 
-1. Understand requirements from retained sources.
-2. Communicate and clarify requirement details through durable PM overview artifacts, without stopping for avoidable questions.
-3. PM owns the whole project view and confirms boundaries before implementation slices.
-4. Split work into small executable tasks.
-5. Each task must code, verify, write evidence, and update the next task.
-6. Final target is a clear, usable system with reasonable functions and pages that people can use.
+This is not a coding phase.
 
-## Requirement Understanding
+## Active Queue
 
-The active product is a configurable enterprise business system with context-aware platform/system shells.
+Current batch: `REQUIREMENTS-R0`
 
-- 工作台: current context statistics and dashboard, configurable in backend/admin.
-- Flow: workflow/service configuration, binding internal business modules or external third-party systems.
-- 应用: authorization gateway for internal app communication and external service exposure; Flow/system service external exposure must be linked through an Application first.
-- 工作: work dashboard, project tasks, normal tasks, daily reports.
-- AI: AI-assisted parsing/expansion entry, configured in backend/admin.
-- 待办: backend-configured reminders/actions, approvals, today replies, and fixed action categories.
-- 消息: user-related messages: mentions, approvals, copied info, import/export and operation feedback.
-- 后台: basic info, org, roles, modules, flow, applications, dashboards, dictionaries, work config, application config, AI config, data sources, logs.
-- 个人信息: profile, switch system, logout.
-- 业务模块: configured system module groups as tabs; group modules own fields, actions, pages, print templates.
-- flow管理: flowchart, module/external binding, approvers, data sources, approval nodes, actions.
+1. `REQ-R0-001 Product Boundary Contract`
+2. `REQ-R0-002 Engineering Architecture Map`
+3. `REQ-R0-003 Committee Review Gate`
+4. `REQ-R0-004 Legacy Inventory And Cleanup Plan`
+5. `REQ-R0-005 Backend Codegen And Manage Contract`
+6. `REQ-R0-006 Requirement-To-Task Breakdown`
+7. `REQ-R0-007 User Review Package`
+8. `REQ-R0-008 UI System And Interaction Contract`
 
-## UI Rules
+The old `REBUILD-P0-006 Flow And Application Gateway` task is not current.
 
-- List-dominant surfaces use left-side tabs/categories.
-- Detail surfaces use right-side tabs/work areas.
-- Row click opens detail while preserving list context.
-- Row buttons are only for actions different from opening detail.
+## PM Responsibilities In This Stage
 
-## Current Small-Task Breakdown
+- Maintain the whole-project view.
+- Keep product domains mapped to engineering modules.
+- Ensure requirement/prototype/flow inconsistencies are found before coding.
+- Route structural problems through committee review, not ad hoc implementation.
+- Keep legacy material classified before anything is deleted.
+- Ensure future coding tasks state source requirement, backend/frontend/sql scope, generated base scope, handwritten manage scope, permission paths, state/readback, side effects, and evidence.
 
-- `REBUILD-P0-001`: source/archive/architecture baseline. Done.
-- `REBUILD-P0-002`: clean runnable scaffold. Done.
-- `REBUILD-P0-003`: auth and platform/system context shell. Done.
-- `REBUILD-P0-004`: admin configuration foundation. Done.
-- `REBUILD-P0-005`: business module configuration and runtime list/detail. Done.
-- `REBUILD-P0-006`: Flow and Application gateway. Current.
-- `REBUILD-P0-007`: Work, todo, message, AI assistance.
-- `REBUILD-P0-008`: release and human trial readiness.
+## Acceptance Rules For Requirements Rebuild
 
-## Acceptance Rules
+Each `REQ-R0-*` task must produce durable files under `.cursor/session/rebuild/` or `.cursor/architecture/`.
 
-A task is accepted only when it has:
+No task is accepted from chat-only conclusions.
 
-- backend behavior;
-- frontend behavior;
-- persisted data/readback where relevant;
-- permission/auth negative path where relevant;
-- task-specific script evidence;
-- `.cursor/session/rebuild/evidence/*` evidence;
-- next task updated.
+Coding opens only after the user review package confirms:
 
-Engineering evidence still does not set `gates.user_script_passed=true`; that remains user verification/signoff only.
+- product boundary is stable;
+- engineering architecture map is stable;
+- legacy inventory is understood;
+- committee gate is defined;
+- backend codegen/manage workflow is frozen;
+- future task breakdown is cross-layer and evidence-driven;
+- UI system follows the dense enterprise operations pattern from the reference screenshots.

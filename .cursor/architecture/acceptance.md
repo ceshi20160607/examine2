@@ -36,8 +36,10 @@ The verifier must check:
 5. Generated plumbing is separated from coded business behavior.
 6. Frontend, backend, data, permission, state, and readback evidence pass where applicable.
 7. Browser/API evidence starts from the realistic role entry point.
-8. No new open P0 issue points to the task.
-9. Implementer and verifier are not the same actor.
+8. User-facing work names its UI pattern from `.cursor/architecture/ui-system.md` and proves the visual contract with browser evidence.
+9. Screenshots are treated as visual evidence only, not as proof of persistence, permission, or business completion.
+10. No new open P0 issue points to the task.
+11. Implementer and verifier are not the same actor.
 
 ## Final Goal Acceptance
 
@@ -49,6 +51,7 @@ Final acceptance requires:
 - release/package/deployment evidence passes when the goal is deployable software
 - permission positive and negative cases are covered
 - key empty/loading/disabled/validation/error/async states are covered
+- user-facing shells, dense lists, right-side details, and admin/runtime separation are visually checked where applicable
 - disposable test data is cleaned or intentionally retained with a reason
 - user signoff is recorded separately
 
@@ -75,6 +78,7 @@ Task evidence should be stored as:
   - data_readback:
   - permission:
   - states:
+  - ui_visual:
   - release:
 - issues: []
 ```

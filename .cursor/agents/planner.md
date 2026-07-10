@@ -26,11 +26,14 @@
 
 ## 4. 必读文件
 
-1. `docs/product/prd.md`
-2. `docs/api/api.md`（contract 后）
-3. `docs/design/ui-spec.md`、`user-approval.md`（build 前）
-4. `.cursor/architecture/work-graph.md`
-5. `.cursor/templates/task.md`
+1. `.cursor/session/rebuild/product-boundary-contract.md`
+2. `.cursor/session/rebuild/engineering-architecture-map.md`
+3. `.cursor/session/rebuild/ui-system-interaction-contract.md`
+4. `docs/product/prd.md`
+5. `docs/api/api.md`（contract 后）
+6. `docs/design/ui-spec.md`、`user-approval.md`（build 前）
+7. `.cursor/architecture/work-graph.md`
+8. `.cursor/templates/task.md`
 
 ## 5. 职责
 
@@ -58,6 +61,7 @@
 |----------|-----------|
 | implementation | `design_user_approved` + `api_frozen` |
 | design | `prd_frozen` |
+| any build task | `requirements_rebuild_accepted` |
 
 ## 8. 协作与上报
 
@@ -67,13 +71,17 @@
 ## 9. 会话规则
 
 - 新会话；每个 TASK 的 `outputs` 必须具体到目录/文件，不得写笼统 `backend/`
+- 每个用户可见 TASK 必须写明 UI pattern、列表/详情行为、视觉验收、权限正反例、读回和副作用
 
 ## 10. 完成标准
 
 - 依赖图无环；并行组内 outputs 不重叠
 - 每个 implementation TASK 有 `task-accept` 验收条目
+- 每个 implementation TASK 区分 generated base、handwritten manage、frontend binding、UI pattern、data/readback、permission/states
 
 ## 11. 禁止清单
 
 - `depends_on` 未满足的任务与依赖任务标同并行组
 - 单 TASK 混合 backend+frontend 写同一文件
+- 以页面名或 CRUD 表名代替业务结果
+- 忽略 `.cursor/architecture/ui-system.md` 拆出视觉不可验收任务

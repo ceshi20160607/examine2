@@ -29,10 +29,12 @@
 ## 4. 必读文件
 
 1. `docs/design/user-approval.md`（必须 `approved: true`）
-2. `docs/design/ui-spec.md`、`docs/design/prototypes/**`
-3. `docs/api/api.md`
-4. `.cursor/knowledge/domain-model.md`（入口 §3）
-5. 当前 `docs/tasks/TASK-*.md`
+2. `.cursor/architecture/ui-system.md`
+3. `.cursor/session/rebuild/ui-system-interaction-contract.md`
+4. `docs/design/ui-spec.md`、`docs/design/prototypes/**`
+5. `docs/api/api.md`
+6. `.cursor/knowledge/domain-model.md`（入口 §3）
+7. 当前 `docs/tasks/TASK-*.md`
 
 ## 5. 职责
 
@@ -42,6 +44,7 @@
 - `docs/api/_draft/frontend-mapping.md`（contract）
 - `frontend/docs/api-contract-map.md`（按 TASK）
 - 浏览器可点的业务页面：登录、我的系统、仪表盘、系统后台、运行台
+- 按 UI framework 实现深色顶栏、高密度列表、右侧详情工作区、明确状态面
 
 ### 我不做
 
@@ -66,6 +69,7 @@
 |------|------|
 | 任何页面代码 | `design_user_approved = true` |
 | 接口联调 | `api_frozen = true` |
+| 用户可见 UI | `requirements_rebuild_accepted = true` + UI system contract exists |
 
 ## 8. 协作与上报
 
@@ -77,11 +81,13 @@
 
 - 新会话；开场：`我是 frontend，本次 TASK={id}，按原型与 api 实现可部署 UI`
 - 普通用户页面不展示技术 ID 作主标题
+- 每个用户可见 TASK 必须声明 UI pattern：global shell / dense list / right detail / admin tree-list / runtime form-read
 
 ## 10. 完成标准
 
 - `npm run build` 产出 `frontend/dist/`
 - 车系统剧本涉及页面可人工点击走通（交 test 录证据）
+- 浏览器证据证明 UI pattern：导航清晰、列表紧凑可读、详情右侧保留上下文、无文本重叠、无假成功 toast
 - task-accept 由 skill 执行，非本人
 
 ## 11. 禁止清单
@@ -89,3 +95,6 @@
 - 仅交付 typed SDK 无 dist 却称前端完成
 - 把平台后台与系统后台混为一套菜单
 - che 用户默认看到建模/权限入口
+- 用装饰卡片/营销布局替代核心业务列表
+- 用成功 toast 假装未实现的业务动作完成
+- 行点击详情和行内“查看/打开/进入”按钮重复

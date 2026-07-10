@@ -1,19 +1,31 @@
-# Clean Rebuild Task Plan Progress
+# Requirements Rebuild Progress
 
-## Accepted Evidence
+## Status
 
-- `REBUILD-P0-001`: clean source/archive/architecture baseline written.
-- `REBUILD-P0-002`: scaffold build PASS, backend health PASS, shell API PASS, frontend static build PASS. Evidence: `.cursor/session/rebuild/evidence/rebuild-p0-002-scaffold.json`.
+The old clean-rebuild implementation queue is superseded.
 
-## Next Executable Task
+Do not use this file to continue `REBUILD-P0-*` coding. The active queue is now in `.cursor/session/rebuild/task-plan.md` and starts with:
 
-`REBUILD-P0-003 Auth And Context Shell`
+`REQ-R0-001` through `REQ-R0-008`
 
-## State Note
+The role-review outputs are leader-draft-complete and are now being held under the user review package.
 
-`.cursor/session/state.json` still lists `REBUILD-P0-002` as next because direct state-file update hit Windows ACL during the previous turn. Use this progress file and `.cursor/session/rebuild/current-status.json` as the clean-rebuild continuation ledger until state promotion succeeds.
-- REBUILD-P0-004: admin configuration foundation PASS. Evidence: .cursor/session/rebuild/evidence/rebuild-p0-004-admin-config.json.
+## Historical Evidence
+
+The following historical batches may be read only as context:
+
+- `REBUILD-P0-001`: source/archive/architecture baseline.
+- `REBUILD-P0-002`: scaffold evidence.
+- `REBUILD-P0-003`: auth/context shell evidence.
+- `REBUILD-P0-004`: admin configuration foundation evidence.
+- `REBUILD-P0-005`: business module configuration/runtime evidence.
+
+These do not reopen coding and do not prove the current workspace is runnable.
 
 ## Current Next Executable Task
 
-REBUILD-P0-005 Business Module Configuration And Runtime`n
+`REQ-R0-007 User Review Package / leader consistency audit`
+
+## Gate
+
+Coding remains closed until the requirements rebuild package is accepted.

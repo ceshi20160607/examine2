@@ -18,7 +18,9 @@
 
 ```mermaid
 stateDiagram-v2
-    [*] --> discovery: 启动
+    [*] --> requirements_rebuild: 当前启动
+    requirements_rebuild --> requirements_review: REQ-R0 产物齐全
+    requirements_review --> discovery: requirements_rebuild_accepted
     discovery --> design: prd_frozen
     design --> design_blocked: 等你确认 Open Design
     design_blocked --> contract: design_user_approved
@@ -30,6 +32,19 @@ stateDiagram-v2
 ```
 
 ## 调度规则
+
+### 0. 当前 requirements rebuild 硬规则
+
+当前阶段必须先执行 `.cursor/session/rebuild/task-plan.md` 中的 `REQ-R0-*` 队列。
+
+Conductor 必须拒绝：
+
+- 继续旧 `REBUILD-P0-*` 当前任务；
+- 创建或修改 `backend/**`、`frontend/**`、`sql/**`；
+- 把历史 evidence 当作当前工程完成证明；
+- 在产品边界、工程架构、遗留盘点、组委会门、任务拆分未完成时进入 coding。
+
+当前阶段只允许修改 `.cursor/**`、`docs/**` 中与需求、架构、评审、任务拆分、遗留清单相关的文件。
 
 ### 1. 每次拉起 Worker = 新会话
 

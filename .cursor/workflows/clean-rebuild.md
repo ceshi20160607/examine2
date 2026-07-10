@@ -9,19 +9,21 @@
 - `.cursor/session/rebuild/task-plan.md`
 - `docs/user_requirement.md`
 - `docs/design/prototypes/**`
-- `temp_flow.md`
-- `temp_flow_persion.html`
+- `docs/temp_flow.md`
+- `docs/temp_flow_persion.html`
 
 ## Steps
 
 1. Restore disk context from `.cursor` and retained source files.
 2. Keep `.oldbk/restart-20260708-220451/` as reference-only.
-3. Execute the current `nextTasks[0]` from `.cursor/session/state.json`.
-4. Before coding, make sure the task maps to a product boundary, role journey, data object, permission boundary, and acceptance evidence.
-5. After each task, write evidence and update `state.json` with the next executable task.
+3. If `mode=requirements-rebuild`, execute the `REQ-R0-*` queue and do not code.
+4. Execute the current `nextTasks[0]` from `.cursor/session/state.json` only when its gate is open.
+5. Before coding, make sure the task maps to a product boundary, role journey, data object, permission boundary, and acceptance evidence.
+6. After each task, write evidence and update `state.json` with the next executable task.
 
 ## Phase Order
 
+0. Requirements rebuild and engineering architecture.
 1. Source baseline and IA lock.
 2. Clean project scaffold.
 3. Auth, account, system switch, and shell context.

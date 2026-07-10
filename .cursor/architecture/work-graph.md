@@ -4,7 +4,10 @@
 
 ```mermaid
 flowchart TD
-    A[Phase 0: Discovery] --> B{prd_frozen?}
+    Z[Phase -1: Requirements Rebuild] --> ZA{requirements_rebuild_accepted?}
+    ZA -->|否| Z
+    ZA -->|是| A[Phase 0: Discovery]
+    A --> B{prd_frozen?}
     B -->|否| A
     B -->|是| C[Phase 1: Design]
     C --> D[uiux 写 ui-spec.md]
@@ -37,6 +40,19 @@ flowchart TD
 ```
 
 ## Phase 0: Discovery
+
+## Phase -1: Requirements Rebuild
+
+| 步骤 | 角色 | 输入 | 输出 |
+|------|------|------|------|
+| -1.1 | leader/pm | retained sources + 用户最新纠偏 | `.cursor/session/rebuild/product-boundary-contract.md` |
+| -1.2 | architect | 产品边界 + backend-structure | `.cursor/session/rebuild/engineering-architecture-map.md` |
+| -1.3 | leader | 参考截图 + 旧产物问题 | `.cursor/session/rebuild/ui-system-interaction-contract.md` |
+| -1.4 | leader/pm | 旧实现和归档 | `.cursor/session/rebuild/legacy-inventory.md` |
+| -1.5 | planner | 以上产物 | `.cursor/session/rebuild/requirement-task-breakdown.md` |
+| Gate | leader + 你 | REQ-R0 全部产物 | `gates.requirements_rebuild_accepted = true` |
+
+**硬规则：** `requirements_rebuild_accepted = false` → 禁止继续旧 `REBUILD-P0-*` 队列，禁止进入 Design/Contract/Build，禁止创建或修改 `backend/`、`frontend/`、`sql/`。
 
 | 步骤 | 角色 | 输入 | 输出 |
 |------|------|------|------|

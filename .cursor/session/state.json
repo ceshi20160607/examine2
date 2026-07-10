@@ -1,89 +1,107 @@
 {
-    "sessionId":  "unexamine-clean-rebuild-20260708",
-    "architecture":  "cursor-v3-clean-rebuild",
-    "phase":  "flow-application-gateway",
-    "mode":  "clean-rebuild",
-    "updated_at":  "2026-07-09T15:05:28+08:00",
-    "archive":  {
-                    "restartArchive":  ".oldbk/restart-20260708-220451",
-                    "oldCursorBackup":  ".oldbk/restart-20260708-220451/.cursor-before-clean-rebuild",
-                    "oldImplementationIsReferenceOnly":  true
-                },
-    "retained_sources":  [
-                             "docs/user_requirement.md",
-                             "docs/design/prototypes/**",
-                             "temp_flow.md",
-                             "temp_flow_persion.html"
-                         ],
-    "cursor_sources":  [
-                           ".cursor/architecture/clean-rebuild.md",
-                           ".cursor/workflows/clean-rebuild.md",
-                           ".cursor/session/rebuild/source-index.md",
-                           ".cursor/session/rebuild/module-boundary-map.md",
-                           ".cursor/session/rebuild/task-plan.md",
-                           ".cursor/knowledge/agent-operating-rules.md",
-                           ".cursor/knowledge/project-operating-rules.md",
-                           ".cursor/knowledge/failure-lessons.md"
-                       ],
-    "gates":  {
-                  "source_preserved":  true,
-                  "old_implementation_archived":  true,
-                  "clean_rebuild_architecture_ready":  true,
-                  "clean_rebuild_task_plan_ready":  true,
-                  "coding_allowed_after_rebuild_plan":  true,
-                  "build_batch_accepted":  true,
-                  "user_script_passed":  false
-              },
-    "product_boundaries":  {
-                               "workbench":  "context statistics and dashboard, platform statistics in platform context and system statistics in system context",
-                               "flow":  "workflow configuration and orchestration; internal/external binding; external exposure requires Application authorization",
-                               "application":  "authorization gateway for internal app communication and external service exposure",
-                               "work":  "work dashboard, project tasks, normal tasks, daily reports",
-                               "ai":  "AI assistance entry with backend/admin configuration",
-                               "todo":  "backend-configured reminders/actions/approvals/today replies",
-                               "message":  "user-related mentions, approvals, copied info, import/export and operation feedback",
-                               "admin":  "basic info, org, roles, modules, flow, applications, dashboards, dictionaries, work config, application config, AI config, data sources, logs",
-                               "profile":  "profile, switch system, logout",
-                               "businessModules":  "configured module groups, modules, fields, actions, pages, print templates",
-                               "flowManagement":  "flowchart, related business modules/external systems, approvers, data sources, approval nodes, actions"
-                           },
-    "layout_contract":  {
-                            "listSurfaces":  "left-side tabs or left-side category navigation",
-                            "detailSurfaces":  "right-side tabs or right-side work area",
-                            "rowPrimaryAction":  "click row to open detail while preserving list context"
-                        },
-    "build_plan":  {
-                       "plan":  ".cursor/session/rebuild/task-plan.md",
-                       "currentBatch":  "REBUILD-R0",
-                       "acceptedBatches":  [
-                                               "REBUILD-P0-001",
-                                               "REBUILD-P0-002",
-                                               "REBUILD-P0-003",
-                                               "REBUILD-P0-004",
-                                               "REBUILD-P0-005"
-                                           ],
-                       "status":  "flow_application_gateway_next",
-                       "nextTasks":  [
-                                         "REBUILD-P0-006 Flow And Application Gateway",
-                                         "REBUILD-P0-007 Work Todo Message AI",
-                                         "REBUILD-P0-008 Release And Human Trial Readiness"
-                                     ]
-                   },
-    "non_completion_boundaries":  [
-                                      "Old RECOVERY-R evidence is not clean rebuild completion.",
-                                      "Generated CRUD is plumbing only.",
-                                      "Static prototype pages are not completion.",
-                                      "API 200 or build success alone is not completion.",
-                                      "Final acceptance remains open until runnable role journeys are verified and the user signs off."
-                                  ],
-    "latest_user_directive":  {
-                                  "date":  "2026-07-08",
-                                  "summary":  "Clean restart, archive old development to .oldbk, keep only retained requirements/prototypes/flow files, upgrade .cursor architecture, replan from retained sources, then code and verify until the system is normally usable.",
-                                  "ask_user_before_continuing":  false
-                              },
-    "last_evidence":  {
-                          "task":  "REBUILD-P0-005 Business Module Configuration And Runtime",
-                          "path":  ".cursor/session/rebuild/evidence/rebuild-p0-005-business-module-runtime.json",
-                          "status":  "PASS"
-                      }
+  "sessionId": "unexamine-requirements-rebuild-20260709",
+  "architecture": "cursor-v3-requirements-rebuild",
+  "phase": "requirements-and-engineering-architecture",
+  "mode": "requirements-rebuild",
+  "updated_at": "2026-07-09T17:54:39+08:00",
+  "archive": {
+    "restartArchive": ".oldbk/restart-20260708-220451",
+    "oldCursorBackup": ".oldbk/restart-20260708-220451/.cursor-before-clean-rebuild",
+    "oldImplementationIsReferenceOnly": true
+  },
+  "retained_sources": [
+    "docs/user_requirement.md",
+    "docs/user_setting.md",
+    "docs/design/prototypes/**",
+    "docs/temp_flow.md",
+    "docs/temp_flow_persion.html"
+  ],
+  "cursor_sources": [
+    ".cursor/architecture/requirements-rebuild.md",
+    ".cursor/architecture/encoding-and-records.md",
+    ".cursor/architecture/clean-rebuild.md",
+    ".cursor/architecture/backend-structure.md",
+    ".cursor/knowledge/agent-operating-rules.md",
+    ".cursor/knowledge/project-operating-rules.md",
+    ".cursor/knowledge/failure-lessons.md",
+    ".cursor/session/rebuild/source-index.md",
+    ".cursor/session/rebuild/module-boundary-map.md",
+    ".cursor/session/rebuild/task-plan.md",
+    ".cursor/session/project-minutes.md"
+  ],
+  "gates": {
+    "source_preserved": true,
+    "old_implementation_archived": true,
+    "requirements_rebuild_active": true,
+    "requirements_rebuild_accepted": false,
+    "engineering_architecture_ready": true,
+    "legacy_inventory_ready": true,
+    "committee_review_ready": true,
+    "ui_system_ready": true,
+    "leader_consistency_audit_ready": true,
+    "encoding_and_records_ready": true,
+    "leader_three_cycle_governance_ready": true,
+    "coding_allowed": false,
+    "user_script_passed": false
+  },
+  "product_boundary_contract": ".cursor/session/rebuild/product-boundary-contract.md",
+  "layout_contract": {
+    "listSurfaces": "left-side tabs or left-side category navigation",
+    "detailSurfaces": "right-side tabs or right-side work area",
+    "rowPrimaryAction": "click row to open detail while preserving list context; row buttons only perform distinct actions"
+  },
+  "requirements_plan": {
+    "plan": ".cursor/session/rebuild/task-plan.md",
+    "currentBatch": "REQUIREMENTS-R0",
+    "status": "requirements_rebuild_active",
+    "nextTasks": [
+      "REQ-R0-001 Product Boundary Contract",
+      "REQ-R0-002 Engineering Architecture Map",
+      "REQ-R0-003 Committee Review Gate",
+      "REQ-R0-004 Legacy Inventory And Cleanup Plan",
+      "REQ-R0-005 Backend Codegen And Manage Contract",
+      "REQ-R0-006 Requirement-To-Task Breakdown",
+      "REQ-R0-007 User Review Package",
+      "REQ-R0-008 UI System And Interaction Contract"
+    ]
+  },
+  "historical_build_plan": {
+    "acceptedBatches": [
+      "REBUILD-P0-001",
+      "REBUILD-P0-002",
+      "REBUILD-P0-003",
+      "REBUILD-P0-004",
+      "REBUILD-P0-005"
+    ],
+    "status": "superseded_by_requirements_rebuild",
+    "note": "Do not resume REBUILD-P0-006 until the requirements rebuild package is accepted."
+  },
+  "non_completion_boundaries": [
+    "Old RECOVERY-R evidence is not clean rebuild completion.",
+    "Historical REBUILD-P0 evidence is not enough to resume coding in the current workspace.",
+    "Generated CRUD is plumbing only.",
+    "Static prototype pages are not completion.",
+    "API 200 or build success alone is not completion.",
+    "Final acceptance remains open until runnable role journeys are verified and the user signs off."
+  ],
+  "latest_user_directive": {
+    "date": "2026-07-09",
+    "summary": "Previous rebuilds failed to meet the target. Stop coding and first reorganize requirements and engineering architecture. Future work must follow engineering architecture, use committee review for structural issues, inventory legacy material before keeping or deleting it, and when coding resumes generate base code first then write manage logic. The leader must not ask the user to repeatedly say continue; leader organizes relevant roles, integrates findings, makes durable decisions, supplements project files, pulls decisions again, and repeats three internal cycles before reporting a package.",
+    "ask_user_before_continuing": false
+  },
+  "last_checks": {
+    "encoding_check": {
+      "checked_at": "2026-07-09T17:54:39+08:00",
+      "command": "powershell -ExecutionPolicy Bypass -File .cursor/scripts/check-encoding.ps1",
+      "status": "pass"
+    },
+    "json_parse": {
+      "checked_at": "2026-07-09T17:54:39+08:00",
+      "files": [
+        ".cursor/session/state.json",
+        ".cursor/session/rebuild/current-status.json"
+      ],
+      "status": "pass"
+    }
+  }
 }

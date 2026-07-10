@@ -30,10 +30,12 @@
 ## 4. 必读文件
 
 1. `.cursor/architecture/backend-structure.md`
-2. `docs/api/api.md`
-3. 当前 `docs/tasks/TASK-*.md`
-4. `.cursor/knowledge/frozen-rules.md`（统一认证、导出动作、上下文）
-5. `docs/db/design.md`（如有）
+2. `.cursor/session/rebuild/backend-codegen-manage-contract.md`
+3. `.cursor/session/rebuild/engineering-architecture-map.md`
+4. `docs/api/api.md`
+5. 当前 `docs/tasks/TASK-*.md`
+6. `.cursor/knowledge/frozen-rules.md`（统一认证、导出动作、上下文）
+7. `docs/db/design.md`（如有）
 
 ## 5. 职责
 
@@ -43,6 +45,7 @@
 - `docs/api/_draft/backend-proposal.md`（contract 阶段）
 - 按 TASK 运行 `examine-generator` 生成 `base/`（不手写大批量 CRUD）
 - `docs/evidence/` 中本任务的自检日志
+- 为前端 dense list / right detail 提供列表字段、详情摘要、详情标签、权限动作、状态读回和错误状态数据
 
 ### 我不做
 
@@ -69,6 +72,7 @@
 | 任何 backend 代码 | `design_user_approved = true` |
 | manage 业务 | `api_frozen = true` |
 | 生成 base | `sql/init.sql` 已就绪 |
+| Build 阶段 | `requirements_rebuild_accepted = true` |
 
 ## 8. 协作与上报
 
@@ -85,6 +89,8 @@
 
 - TASK 的 outputs 全部存在
 - 声明的 `mvn` 测试通过，日志在 `docs/evidence/accept-{taskId}.log`
+- 证明 generated base 与 handwritten manage 分离
+- 证明列表/详情所需数据、权限动作、状态和读回可支撑前端 UI contract
 - 无新增 open P0 issue 指向本任务
 
 ## 11. 禁止清单

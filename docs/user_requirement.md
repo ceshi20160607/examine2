@@ -1919,6 +1919,7 @@ AI Agent 联动：
 
 - Java 21。
 - Spring Boot。
+- undertown为容器不用tomcat
 - 自研认证和权限拦截，不使用 Spring Security。
 - MyBatis-Plus。
 - MySQL。
