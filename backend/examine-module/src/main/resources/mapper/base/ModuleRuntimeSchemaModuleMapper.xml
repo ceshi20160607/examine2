@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ModuleRuntimeSchemaModuleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RuntimeSchemaModule">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="schema_version_id" property="schemaVersionId" />
+        <result column="module_snapshot_id" property="moduleSnapshotId" />
+        <result column="source_module_id" property="sourceModuleId" />
+        <result column="logical_module_id" property="logicalModuleId" />
+        <result column="module_code" property="moduleCode" />
+        <result column="module_name" property="moduleName" />
+        <result column="snapshot_json" property="snapshotJson" />
+        <result column="checksum" property="checksum" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, schema_version_id, module_snapshot_id, source_module_id, logical_module_id, module_code, module_name, snapshot_json, checksum, created_at
+    </sql>
+
+</mapper>

@@ -3039,7 +3039,7 @@ event 采用本地接口承载，不接消息队列；统一承载通知和自�
 
 ### A.4 设计阶段流程
 
-见 `.cursor/workflows/phase-1-internal-design-complete.md`：团队内部完成设计包后，再请用户调用 Open Design。
+见 `.cursor/workflows/lifecycle.md` 的 S2 Gate：团队先完成 product/uiux/architect/frontend/test 内部设计闭环和可开发设计包，再进入外部原型工具或用户设计确认；外部原型不能替代内部设计责任。
 
 ### A.5 可配置仪表盘与数据源
 

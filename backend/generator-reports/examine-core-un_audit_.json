@@ -1,0 +1,18 @@
+{
+  "generatedAt" : "2026-07-15T12:14:51.139698300+08:00",
+  "execute" : true,
+  "databaseProduct" : "MySQL",
+  "databaseVersion" : "8.4.10",
+  "schema" : "examine2_app_test",
+  "moduleName" : "examine-core",
+  "tablePrefix" : "un_audit_",
+  "basePackage" : "com.unique.examine.core",
+  "sourceRoot" : "examine-core/src/main/java",
+  "mapperXmlRoot" : "examine-core/src/main/resources/mapper/base",
+  "tables" : [ "un_audit_operation", "un_audit_security" ],
+  "databaseGeneratedColumns" : {
+    "un_audit_operation" : [ ],
+    "un_audit_security" : [ ]
+  },
+  "generatedFiles" : [ "examine-core/src/main/java/com/unique/examine/core/base/entity/Operation.java", "examine-core/src/main/java/com/unique/examine/core/base/entity/Security.java", "examine-core/src/main/java/com/unique/examine/core/base/mapper/CoreOperationMapper.java", "examine-core/src/main/java/com/unique/examine/core/base/mapper/CoreSecurityMapper.java", "examine-core/src/main/java/com/unique/examine/core/base/service/IOperationService.java", "examine-core/src/main/java/com/unique/examine/core/base/service/ISecurityService.java", "examine-core/src/main/java/com/unique/examine/core/base/service/impl/CoreOperationServiceImpl.java", "examine-core/src/main/java/com/unique/examine/core/base/service/impl/CoreSecurityServiceImpl.java", "examine-core/src/main/resources/mapper/base/CoreOperationMapper.xml", "examine-core/src/main/resources/mapper/base/CoreSecurityMapper.xml" ]
+}

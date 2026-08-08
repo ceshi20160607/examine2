@@ -1,0 +1,29 @@
+.auth-panel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.auth-panel :is(a, button, input):focus-visible {
+  outline: 3px solid rgb(8 127 115 / 28%);
+  outline-offset: 2px;
+}
+
+.auth-panel [aria-busy="true"] {
+  cursor: progress;
+}
+
+@media (max-width: 400px) {
+  .auth-flow-steps {
+    gap: 4px;
+  }
+
+  .auth-flow-steps li {
+    min-width: 0;
+    gap: 4px;
+    white-space: normal;
+  }
+
+  .auth-flow-steps li span {
+    flex: 0 0 auto;
+  }
+}

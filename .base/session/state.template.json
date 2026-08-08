@@ -1,21 +1,143 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 5,
+  "frameworkVersion": "2.4.0",
   "instance": "{{INSTANCE_NAME}}",
+  "project": "{{PROJECT_NAME}}",
   "updatedAt": "{{UPDATED_AT}}",
-  "phase": "initialization",
+  "lifecyclePhase": "S0_INITIALIZATION",
+  "deliveryPhase": "P0_ENGINEERING_BASELINE",
   "currentNode": "S0-INSTANCE-INIT",
   "status": "in_progress",
+  "projectProgress": {
+    "source": "session/project-progress.json",
+    "projection": "session/PROJECT_PROGRESS.md",
+    "validator": "scripts/validate-project-progress.ps1",
+    "packageCheckpointLimit": 3
+  },
   "gates": {
     "instanceReady": false,
-    "requirementsUnderstood": false,
-    "designComplete": false,
-    "implementationReady": false,
+    "requirementsBaselineAccepted": false,
+    "designBaselineAccepted": false,
     "integrationPassed": false,
+    "releasePassed": false,
     "userAccepted": false
   },
-  "blockedScopes": [],
-  "openDecisions": [],
+  "active": {
+    "objective": "Initialize the engineering instance",
+    "owner": "leader",
+    "nodeRecord": "{{CURRENT_NODE_PATH}}",
+    "primaryOutput": null,
+    "slice": {
+      "id": "S0-INSTANCE-INIT",
+      "gate": "in_progress",
+      "targetMinutes": 240,
+      "startedAt": null,
+      "targetAt": null,
+      "pausedAt": null,
+      "completedAt": null,
+      "remainingEstimateMinutes": 240,
+      "activeSpentMinutes": 0,
+      "checkpointEvents": {"fact": null, "replan": null, "completion": null},
+      "overrunHistory": [],
+      "blockedWaitingEvidence": null,
+      "integrationOwner": "leader",
+      "requirementGate": "sliceRequirementGates.S0-INSTANCE-INIT",
+      "demoPath": null,
+      "demoManifest": {"path": null, "sha256": null, "verdict": "pending", "executedAt": null, "entryPoint": null},
+      "coveredGoalItems": [],
+      "remainingGoalItems": []
+    },
+    "taskExecution": [],
+    "workstreams": [
+      {
+        "id": "{{WORKSTREAM_ID}}",
+        "goal": "{{WORKSTREAM_GOAL}}",
+        "status": "planned",
+        "tasks": [
+          {
+            "id": "{{TASK_ID}}",
+            "result": "{{SINGLE_RESULT}}",
+            "moduleScope": "{{MODULE_SCOPE}}",
+            "writeScope": ["{{WRITE_SCOPE}}"],
+            "dependsOnArtifacts": [],
+            "estimateMinutes": 60,
+            "qualityStage": "functional",
+            "responsiveScope": "deferred",
+            "acceptanceCommand": "{{AFFECTED_MODULE_CHECK}}"
+          }
+        ]
+      }
+    ]
+  },
+  "deliveryCadence": {
+    "roadmap": null,
+    "initialUnderstandingMaxMinutes": 240,
+    "taskEstimateMinMinutes": 10,
+    "taskEstimateMaxMinutes": 120,
+    "factCheckpointFormula": "routine:none;critical:min(30m,estimate*50%)",
+    "replanCheckpointFormula": "active>120m:single_replan",
+    "overrunReviewFormula": "estimate*100%",
+    "demoPeriodTargetMinutes": 240,
+    "tasksPerDemoPeriod": "dependency_graph",
+    "overrunPolicy": "warn_replan_without_blocking_disjoint_work",
+    "schedulingPolicy": "disjoint_modules_parallel_by_default",
+    "verificationPolicy": "affected_layers_then_slice_then_phase_release",
+    "responsivePolicy": "functional_reference_viewport_then_release_hardening",
+    "governanceByRisk": ["routine", "standard", "critical"]
+  },
+  "sources": [],
+  "enabledRoles": [
+    "leader",
+    "pm",
+    "product",
+    "analyst",
+    "architect",
+    "uiux",
+    "planner",
+    "dba",
+    "backend",
+    "frontend",
+    "test",
+    "ops"
+  ],
+  "issues": {
+    "registry": "{{ISSUE_REGISTRY_PATH}}",
+    "openP0": [],
+    "openP1": []
+  },
+  "sliceRequirementGates": {
+    "S0-INSTANCE-INIT": {
+      "status": "in_progress",
+      "requirementIds": [],
+      "reviewVerdict": "pending",
+      "evidencePath": null,
+      "evidenceSha256": null
+    }
+  },
+  "decisions": {
+    "pendingUser": "{{PENDING_USER_DECISIONS_PATH}}",
+    "records": [],
+    "lastUserDecisionCheckAt": null
+  },
   "outputs": [],
   "evidence": [],
-  "nextNode": null
+  "blockedScopes": [],
+  "nextNode": null,
+  "completionBoundary": {
+    "engineeringFinalGate": "OPEN",
+    "userAccepted": false,
+    "userSignoffPath": null,
+    "userSignoffSha256": null
+  },
+  "completionLedger": {
+    "tasks": {},
+    "slices": {},
+    "phases": {},
+    "journeys": {},
+    "requiredJourneyIds": [],
+    "integrationEvidencePath": null,
+    "integrationEvidenceSha256": null,
+    "releaseEvidencePath": null,
+    "releaseEvidenceSha256": null
+  }
 }

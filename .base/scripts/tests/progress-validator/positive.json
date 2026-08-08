@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-04T00:00:00Z",
+  "currentNode": "NODE-BUILD",
+  "currentOutcomeId": "OUTCOME-BUILD",
+  "nextOutcomeId": "OUTCOME-DEFERRED",
+  "summary": {
+    "counts": {
+      "total": 3,
+      "completed": 1,
+      "inProgress": 1,
+      "remaining": 0,
+      "deferred": 1
+    },
+    "outcomeUnits": {
+      "total": 4,
+      "completed": 2,
+      "inProgress": 1,
+      "remaining": 0,
+      "deferred": 1
+    },
+    "percentage": 50.0
+  },
+  "outcomes": [
+    {
+      "id": "OUTCOME-BASELINE",
+      "title": "Accepted functional baseline",
+      "phase": "PHASE-BASELINE",
+      "weight": 2,
+      "status": "completed",
+      "evidencePath": "evidence-header/acceptance.md",
+      "blockingReason": null,
+      "dependsOn": []
+    },
+    {
+      "id": "OUTCOME-BUILD",
+      "title": "Current feature implementation",
+      "phase": "PHASE-BUILD",
+      "weight": 1,
+      "status": "in_progress",
+      "evidencePath": null,
+      "blockingReason": null,
+      "dependsOn": [
+        "OUTCOME-BASELINE"
+      ]
+    },
+    {
+      "id": "OUTCOME-DEFERRED",
+      "title": "Scope-preserved release follow-up",
+      "phase": "PHASE-RELEASE",
+      "weight": 1,
+      "status": "deferred",
+      "evidencePath": null,
+      "blockingReason": "Wait for the release boundary while retaining the denominator.",
+      "dependsOn": [
+        "OUTCOME-BUILD"
+      ]
+    }
+  ],
+  "packageCheckpoints": [
+    {
+      "id": "CP1_FUNCTIONAL_BASELINE",
+      "state": "ready",
+      "requiredOutcomeIds": [
+        "OUTCOME-BASELINE"
+      ],
+      "verificationCommands": [
+        {
+          "command": "invoke-functional-baseline-check",
+          "status": "pass",
+          "evidencePath": "evidence-header/acceptance.md"
+        }
+      ],
+      "attempts": []
+    },
+    {
+      "id": "CP2_FEATURE_COMPLETE",
+      "state": "not_ready",
+      "requiredOutcomeIds": [
+        "OUTCOME-BUILD"
+      ],
+      "verificationCommands": [
+        {
+          "command": "invoke-feature-complete-check",
+          "status": "pending",
+          "evidencePath": null
+        }
+      ],
+      "attempts": []
+    },
+    {
+      "id": "CP3_RELEASE_CANDIDATE",
+      "state": "not_ready",
+      "requiredOutcomeIds": [
+        "OUTCOME-DEFERRED"
+      ],
+      "verificationCommands": [
+        {
+          "command": "invoke-release-candidate-check",
+          "status": "pending",
+          "evidencePath": null
+        }
+      ],
+      "attempts": []
+    }
+  ]
+}

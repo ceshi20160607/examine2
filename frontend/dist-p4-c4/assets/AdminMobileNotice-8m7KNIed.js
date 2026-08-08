@@ -1,0 +1,1 @@
+import{P as e,_ as t,lt as n,p as r,u as i,v as a}from"./runtime-core.esm-bundler-tn2k5pT9.js";import{t as o}from"./lock-keyhole-3ygfG62Y.js";var s={class:`mobile-readonly-notice`},c=a({__name:`AdminMobileNotice`,setup(a){return(a,c)=>(e(),r(`div`,s,[t(n(o),{size:16}),c[0]||=i(`span`,null,`当前宽度仅支持查看，管理操作请使用桌面端。`,-1)]))}});export{c as t};

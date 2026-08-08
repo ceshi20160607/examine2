@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.PlatTenantDomainMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.TenantDomain">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="domain_name" property="domainName" />
+        <result column="status" property="status" />
+        <result column="is_primary" property="isPrimary" />
+        <result column="verification_token_hash" property="verificationTokenHash" />
+        <result column="verified_at" property="verifiedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="deleted_at" property="deletedAt" />
+        <result column="deleted_by" property="deletedBy" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, domain_name, status, is_primary, verification_token_hash, verified_at, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, version
+    </sql>
+
+</mapper>

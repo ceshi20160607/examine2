@@ -1,0 +1,4 @@
+{
+  "case": "attempt-limit",
+  "expectedMessage": "Project package attempt limit exceeded"
+}

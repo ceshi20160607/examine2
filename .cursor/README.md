@@ -1,51 +1,63 @@
 # examine2 工程实例
 
-本目录是当前项目实际运行的工程系统，负责把 `docs/` 中的人类可读输入转化为需求理解、设计契约、实现任务、验证证据和用户验收材料。
+本目录使用可复用工程模板，把 `docs/` 的粗糙输入逐步转化为需求包、设计契约、开发任务、测试证据、发布包和用户验收结果。
 
-## 当前状态
+## 状态入口
 
-- 阶段：`requirements-rebuild`
-- 当前节点：`S1 需求理解`
-- 编码 Gate：关闭
-- 下一产出：`.cursor/session/rebuild/requirement-understanding.md`
+- 全项目进度简表：`.cursor/session/PROJECT_PROGRESS.md`。
+- 全项目进度机器事实源：`.cursor/session/project-progress.json`。
+- 运行状态唯一事实源：`.cursor/session/state.json`。
+- 当前执行节点：`.cursor/session/current-node.md`。
+- 分期、演示节奏和最终目标剩余范围：`.cursor/session/delivery-roadmap.md`。
+- 本文件只说明稳定入口，不复制阶段、已完成节点或下一任务，避免状态漂移。
 
-## 每次启动顺序
+## 每轮启动顺序
 
 1. `.cursor/INSTANCE.md`
 2. `.cursor/session/state.json`
-3. `.cursor/CONDUCTOR.md`
-4. `.cursor/session/rebuild/planning-practice.md`
+3. `.cursor/LEADER.md`
+4. `.cursor/GOVERNANCE.md`
 5. `.cursor/workflows/lifecycle.md`
-6. 当前阶段对应的 architecture/workflow 文件
-7. `.cursor/agents/{role}/role.md`
-8. `.cursor/agents/{role}/update.md`（存在时）
-9. 本次任务声明的输入文件
+6. `.cursor/session/pending-user-decisions.md`
+7. 当前角色 `role.md`、`update.md` 和任务声明输入
 
-不要把聊天记忆当成工程事实。需求、决定、问题、状态和证据都必须写入项目文件。
+未列入任务输入的历史架构、旧证据、旧任务和聊天记录不主动读取。
 
-## 角色与技能
+## Leader 与 PM
 
-角色公共契约和项目增量位于同一角色目录：
+- Leader 对工程总目标、节点验收、Gate、升级和最终工程状态负责。
+- PM 对项目计划、问题分流、会议组织、依赖和风险负责。
+- PM 收到 backend/frontend 等角色疑问后，按影响组织提交人、product、uiux 及相关专业角色会审。
+- PM 无法收敛时升级 Leader；Leader 结合项目文件和权威资料仍无法解决时，写入用户待决文件。
 
-```text
-.cursor/agents/{role}/role.md
-.cursor/agents/{role}/update.md
-```
+## 角色与上下文
 
-公共技能契约位于 `.cursor/skills/README.md`，项目专项技能位于同一目录的独立文件。技能是无状态执行能力，不拥有产品决策权。
+公共契约：`.cursor/agents/{role}/role.md`。
 
-## 项目输入
+项目增量：`.cursor/agents/{role}/update.md`。
+
+每个角色使用干净上下文，只读声明文件，只写声明输出。多角色不得并发修改同一主文件，实现者不得验收自己的任务。
+
+## 当前输入
 
 - `docs/user_requirement.md`
-- `docs/user_setting.md`
 - `docs/temp_flow.md`
 - `docs/temp_flow_persion.html`
 - `docs/design/prototypes/index.html`
+- `docs/user_setting.md`（仅按任务最小读取敏感配置）
 
-`docs/` 不是工程框架，也不存放工程运行状态。
+## 当前阶段顺序
 
-## 当前实现边界
+```text
+需求理解
+ -> 产品/UI/工程设计
+ -> 数据库设计与生成边界
+ -> 敏捷业务切片开发
+ -> 独立测试与集成
+ -> 发布验证
+ -> 用户整体验收
+```
 
-当前只允许整理需求、设计、工程契约、状态和评审产出。业务代码目录在 Gate 通过前保持不存在。
+生成 CRUD、页面存在、API 200、构建成功、截图和历史批次通过都不能单独证明系统可用。
 
-后续编码顺序固定为：数据库设计，生成基础持久化代码，手写业务行为，绑定真实前端，调试集成，角色旅程验证，用户整体验收。
+执行层为“项目阶段 -> 目标 240 分钟功能批次 -> 10..120 分钟模块任务”。状态从 `.cursor/session/state.json#active.workstreams` 读取；无依赖且写集不重叠的模块默认并行。task 只验证受影响层，slice 验证真实入口，响应式/全量回归/重启矩阵在 phase/release hardening 统一执行。任务和切片通过均不得冒充阶段、旅程、发布或最终验收完成。

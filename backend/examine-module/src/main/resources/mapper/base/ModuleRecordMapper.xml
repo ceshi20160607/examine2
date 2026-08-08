@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ModuleRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.Record">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="record_id" property="recordId" />
+        <result column="schema_version_id" property="schemaVersionId" />
+        <result column="module_snapshot_id" property="moduleSnapshotId" />
+        <result column="logical_module_id" property="logicalModuleId" />
+        <result column="record_no" property="recordNo" />
+        <result column="title" property="title" />
+        <result column="status" property="status" />
+        <result column="prior_status" property="priorStatus" />
+        <result column="owner_member_id" property="ownerMemberId" />
+        <result column="owner_department_id" property="ownerDepartmentId" />
+        <result column="draft_expires_at" property="draftExpiresAt" />
+        <result column="deleted_at" property="deletedAt" />
+        <result column="deleted_by" property="deletedBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, record_id, schema_version_id, module_snapshot_id, logical_module_id, record_no, title, status, prior_status, owner_member_id, owner_department_id, draft_expires_at, deleted_at, deleted_by, created_at, created_by, updated_at, updated_by, version
+    </sql>
+
+</mapper>

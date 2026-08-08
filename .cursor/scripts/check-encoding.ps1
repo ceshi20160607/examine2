@@ -31,10 +31,22 @@ if ($existingRoots.Count -eq 0) {
 
 $files = & rg --files @excludeArgs -- @existingRoots
 $badEncoding = @()
+$textExtensions = @(
+    ".css", ".html", ".java", ".js", ".json", ".jsonl", ".md", ".mjs",
+    ".properties", ".ps1", ".scss", ".sql", ".ts", ".tsx", ".txt", ".vue",
+    ".xml", ".yaml", ".yml"
+)
+$textFileNames = @(".editorconfig", ".gitattributes", ".gitignore", "LICENSE")
 
 foreach ($rel in $files) {
     $path = Join-Path (Get-Location) $rel
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        continue
+    }
+
+    $extension = [System.IO.Path]::GetExtension($path).ToLowerInvariant()
+    $fileName = [System.IO.Path]::GetFileName($path)
+    if ($extension -notin $textExtensions -and $fileName -notin $textFileNames) {
         continue
     }
 

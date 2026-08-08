@@ -1,37 +1,81 @@
-# 公共技能契约
+# 公共技能目录
 
-技能是无身份、无长期记忆、输入输出确定的一次性能力。技能不拥有产品决策权，也不维护工程状态。
+技能是无身份、无长期记忆、输入输出确定的一次性能力。技能可以由角色调用，但不能拥有产品决策权、项目推进权或用户签字权。
 
-每次调用必须声明：技能名、触发原因、输入、输出、判定标准和失败去向。
+本文件定义技能索引；每项技能的必需输入、执行步骤、通过条件和失败输出在 `skills/playbooks.md`。角色不得只引用技能名称而跳过 playbook。
 
-| 技能 | 触发 | 必需输入 | 产出 | 失败处理 |
-|---|---|---|---|---|
-| `source-trace` | 整理需求来源 | 来源清单、优先级 | 来源映射和冲突 | 交 analyst/pm |
-| `requirement-consolidation` | 形成需求理解 | 权威输入、已有决策 | 需求总账和缺口 | 交 analyst/pm |
-| `decision-review` | 需要范围或产品裁决 | 方案、影响、来源 | 决策建议或升级项 | 交 pm/用户 |
-| `scope-check` | 阶段或任务进入 Gate | 目标、范围、产出 | pass/fail 与越界项 | 交 conductor |
-| `journey-review` | 设计、任务或验收检查 | 角色、入口、步骤、结果 | 旅程覆盖报告 | 交所属角色 |
-| `design-review` | 设计节点关闭前 | 需求、旅程、设计 | 设计问题和结论 | 交 uiux/pm |
-| `data-contract-review` | 数据设计或接口设计 | 业务规则、模型、读写结果 | 数据契约问题 | 交 dba/backend |
-| `migration-check` | 数据变更前后 | 迁移、回滚、样例数据 | 可执行验证结果 | 阻断发布 |
-| `contract-check` | 实现前或联调前 | 接口、数据、权限、状态契约 | 一致性报告 | 阻断实现/联调 |
-| `dependency-check` | 计划和调度 | 节点、依赖、路径所有权 | DAG 和冲突结果 | 交 planner/conductor |
-| `build-check` | 实现批次完成 | 源码、构建说明 | 构建和单测证据 | 退回实现角色 |
-| `browser-check` | 用户界面变更 | 运行地址、旅程、视口 | 交互和视觉证据 | 退回 frontend/uiux |
-| `acceptance-check` | 任务或节点声称完成 | 验收契约、运行结果 | 独立 pass/fail | 退回负责人 |
-| `regression-check` | 修复或集成后 | 影响范围、历史用例 | 回归报告 | 阻断节点关闭 |
-| `gate-review` | 阶段推进前 | 状态、产出、问题、证据 | Gate 判定 | conductor 保持原阶段 |
-| `record-sync` | 决策或状态变化后 | 变化内容、来源 | 状态与记录同步结果 | 阻断交接 |
-
-技能输出至少包含：
+## 统一调用契约
 
 ```yaml
-skill: "{{SKILL}}"
-verdict: "pass | fail | blocked"
+skill: "{{SKILL_ID}}"
+trigger: "{{WHY_NOW}}"
 inputs: []
+output: "{{OUTPUT_PATH}}"
+checks: []
+pass_condition: []
+failure_owner: "{{ROLE}}"
+```
+
+统一输出至少包含：
+
+```yaml
+skill: "{{SKILL_ID}}"
+verdict: "pass | fail | blocked"
+checked_inputs: []
 checks: []
 evidence: []
 issues: []
 next_owner: "{{ROLE}}"
 ```
 
+## 需求与产品技能
+
+| skill | 触发 | 核心检查 | 输出 |
+|---|---|---|---|
+| `source-trace` | 整理/变更需求 | 来源存在、优先级、引用锚点、冲突 | 来源映射与冲突 |
+| `requirement-consolidation` | 形成需求包 | 角色、触发、行为、结果、状态、权限、数据、异常 | 结构化需求检查 |
+| `journey-review` | 需求/设计/任务/验收 | 真实入口、步骤、系统行为、持久结果、失败路径 | 旅程覆盖判定 |
+| `scope-check` | 范围或任务变化 | in/out/deferred、来源、影响、越界 | 范围判定 |
+| `decision-review` | 产品决策 | 事实、选项、取舍、权力边界、用户专属项 | 决策建议/升级 |
+
+## 设计与架构技能
+
+| skill | 触发 | 核心检查 | 输出 |
+|---|---|---|---|
+| `design-review` | UI/UX 节点 | IA、主任务、状态、权限、断链、重复入口 | 设计判定与问题 |
+| `architecture-review` | 工程设计 | 模块、依赖、数据归属、质量属性、演进 | 架构判定与风险 |
+| `contract-check` | 契约冻结/联调 | UI/API/data/permission/state/error 一致性 | 一致性报告 |
+| `data-contract-review` | 数据/API 设计 | 生命周期、唯一性、隔离、审计、读回 | 数据契约问题 |
+| `security-review` | 身份/权限/敏感操作 | 认证、授权、数据范围、密钥、日志、滥用 | 安全风险与措施 |
+| `failure-mode-review` | 关键流程/发布 | 超时、重试、幂等、并发、补偿、恢复 | 故障模式清单 |
+| `performance-review` | 数据/接口/页面 | 数据量、复杂度、索引、分页、缓存、容量 | 性能风险与基线 |
+| `accessibility-check` | 用户界面 | 键盘、焦点、标签、对比、状态可感知 | 可访问性判定 |
+
+## 计划与协作技能
+
+| skill | 触发 | 核心检查 | 输出 |
+|---|---|---|---|
+| `dependency-check` | 计划/调度 | DAG、前置、并行、共享写入、关键路径 | 依赖判定 |
+| `meeting-check` | 跨角色会审 | 参与人、证据、分歧、决定、行动和复核 | 会审完整性判定 |
+| `gate-review` | 节点/阶段推进 | 必需产出、issue、证据、签字和阻断 | Gate pass/fail |
+| `record-sync` | 决策/状态变化 | 状态、issue、决定、节点和下一步一致 | 同步结果 |
+| `research-check` | 外部事实不确定 | 权威来源、时效、适用版本、推断边界 | 带来源研究结论 |
+
+## 实现与验证技能
+
+| skill | 触发 | 核心检查 | 输出 |
+|---|---|---|---|
+| `build-check` | 实现批次 | 依赖、编译、单测、制品、警告 | 构建证据 |
+| `api-readback-check` | 服务端/旅程 | 写入、真实读回、权限、错误、幂等 | API/数据证据 |
+| `browser-check` | 用户界面 | 路由、交互、控制台、布局、视口、真实数据 | 浏览器证据 |
+| `acceptance-check` | 任务声称完成 | 任务契约、跨层证据、独立性、问题 | 独立验收判定 |
+| `regression-check` | 修复/集成 | 影响范围、旧能力、关键旅程 | 回归判定 |
+| `migration-check` | 数据变化/发布 | 前置、迁移、验证、回滚、不可逆项 | 迁移判定 |
+| `release-check` | 发布/交付 | 制品、配置、启动、健康、重启、回滚、清理 | 发布判定 |
+
+## 技能硬规则
+
+- `pass` 必须有实际检查和证据；未执行是 `blocked`，不是 `pass`。
+- 技能失败只报告事实并指定责任角色，不自行修改被检查产出。
+- 低层技能结果不能代替高层 Gate。`build-check` 通过不能代替 `journey-review`、`release-check` 或用户验收。
+- 截图只能支持视觉检查，不能单独证明数据、权限、持久化或业务完成。

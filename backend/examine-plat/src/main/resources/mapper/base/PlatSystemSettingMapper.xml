@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.PlatSystemSettingMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.SystemSetting">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="setting_key" property="settingKey" />
+        <result column="value_kind" property="valueKind" />
+        <result column="value_json" property="valueJson" />
+        <result column="secret_ref" property="secretRef" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, setting_key, value_kind, value_json, secret_ref, status, created_at, created_by, updated_at, updated_by, version
+    </sql>
+
+</mapper>

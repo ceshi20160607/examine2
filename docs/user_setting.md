@@ -2,25 +2,25 @@
 ## 编码
 - utf-8
 ## node
-- D:\java\nodejs
+- D:\dev\nodejs24
 ## jdk21
-- D:\\java\\jdk\\jdk21
+- D:\\dev\\jdk21
 ## jdk8
-- D:\\java\\jdk\\jdk8
+- D:\\dev\\jdk8
 ## maven
-- D:\\java\\apache-maven-3.8.5
+- D:\\dev\\maven
 ## database
-- url: jdbc:mysql://192.168.0.211:3306/examine2?characterEncoding=utf8\&useSSL=false\&zeroDateTimeBehavior=convertToNull\&tinyInt1isBit=false\&serverTimezone=Asia/Shanghai\&useAffectedRows=true\&allowPublicKeyRetrieval=true
-- username: examine
-- password: examine
+- url: ${EXAMINE_DB_URL}
+- username: ${EXAMINE_DB_USERNAME}
+- password: ${EXAMINE_DB_PASSWORD}
 ## redis
-- host: 192.168.0.211
-- port: 6379
-- password: 123456
-- database: 10
+- host: ${EXAMINE_REDIS_HOST}
+- port: ${EXAMINE_REDIS_PORT}
+- password: ${EXAMINE_REDIS_PASSWORD}
+- database: ${EXAMINE_REDIS_DATABASE}
 
 ## default account
-- username: admin
-- password: 123123aa
-- role: platform root super administrator
+- username: ${EXAMINE_BOOTSTRAP_ROOT_USERNAME}
+- password: ${EXAMINE_BOOTSTRAP_ROOT_PASSWORD}
+- role: <BOOTSTRAP_ROLE_DESCRIPTION>
 

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.PlatRefreshTokenMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.RefreshToken">
+        <id column="id" property="id" />
+        <result column="context_session_id" property="contextSessionId" />
+        <result column="token_hash" property="tokenHash" />
+        <result column="token_family" property="tokenFamily" />
+        <result column="status" property="status" />
+        <result column="issued_at" property="issuedAt" />
+        <result column="expires_at" property="expiresAt" />
+        <result column="used_at" property="usedAt" />
+        <result column="revoked_at" property="revokedAt" />
+        <result column="rotated_to_id" property="rotatedToId" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_session_id, token_hash, token_family, status, issued_at, expires_at, used_at, revoked_at, rotated_to_id, created_at
+    </sql>
+
+</mapper>

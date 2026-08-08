@@ -1,0 +1,22 @@
+CREATE TABLE un_work_task (
+    id BIGINT UNSIGNED NOT NULL,
+    system_id BIGINT UNSIGNED NOT NULL,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    creator_member_id BIGINT UNSIGNED NOT NULL,
+    assignee_member_id BIGINT UNSIGNED NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    version BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_work_task_scope_id (system_id, tenant_id, id),
+    KEY idx_work_task_assignee_state (system_id, tenant_id, assignee_member_id, status, updated_at),
+    KEY idx_work_task_creator_state (system_id, tenant_id, creator_member_id, status, updated_at),
+    KEY idx_work_task_tenant_updated (system_id, tenant_id, updated_at),
+    CONSTRAINT chk_work_task_scope CHECK (system_id > 0 AND tenant_id > 0),
+    CONSTRAINT chk_work_task_members CHECK (creator_member_id > 0 AND assignee_member_id > 0),
+    CONSTRAINT chk_work_task_status CHECK (status IN ('OPEN', 'COMPLETED')),
+    CONSTRAINT chk_work_task_version CHECK (version > 0),
+    CONSTRAINT chk_work_task_title CHECK (CHAR_LENGTH(TRIM(title)) BETWEEN 1 AND 500)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

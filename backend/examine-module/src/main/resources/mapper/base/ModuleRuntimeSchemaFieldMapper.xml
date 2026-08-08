@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ModuleRuntimeSchemaFieldMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RuntimeSchemaField">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="schema_version_id" property="schemaVersionId" />
+        <result column="module_snapshot_id" property="moduleSnapshotId" />
+        <result column="field_snapshot_id" property="fieldSnapshotId" />
+        <result column="source_field_id" property="sourceFieldId" />
+        <result column="logical_module_id" property="logicalModuleId" />
+        <result column="logical_field_id" property="logicalFieldId" />
+        <result column="parent_field_snapshot_id" property="parentFieldSnapshotId" />
+        <result column="dictionary_id" property="dictionaryId" />
+        <result column="target_module_id" property="targetModuleId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="field_name" property="fieldName" />
+        <result column="field_type" property="fieldType" />
+        <result column="field_scope" property="fieldScope" />
+        <result column="is_required" property="isRequired" />
+        <result column="is_readonly" property="isReadonly" />
+        <result column="property_json" property="propertyJson" />
+        <result column="result_schema" property="resultSchema" />
+        <result column="evaluator_version" property="evaluatorVersion" />
+        <result column="expression_checksum" property="expressionChecksum" />
+        <result column="topological_rank" property="topologicalRank" />
+        <result column="dependency_json" property="dependencyJson" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, schema_version_id, module_snapshot_id, field_snapshot_id, source_field_id, logical_module_id, logical_field_id, parent_field_snapshot_id, dictionary_id, target_module_id, field_code, field_name, field_type, field_scope, is_required, is_readonly, property_json, result_schema, evaluator_version, expression_checksum, topological_rank, dependency_json, created_at
+    </sql>
+
+</mapper>

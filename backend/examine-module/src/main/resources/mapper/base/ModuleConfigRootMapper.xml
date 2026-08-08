@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ModuleConfigRootMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.ConfigRoot">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="status" property="status" />
+        <result column="draft_revision" property="draftRevision" />
+        <result column="draft_checksum" property="draftChecksum" />
+        <result column="active_version_id" property="activeVersionId" />
+        <result column="base_version_id" property="baseVersionId" />
+        <result column="last_check_id" property="lastCheckId" />
+        <result column="created_at" property="createdAt" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, status, draft_revision, draft_checksum, active_version_id, base_version_id, last_check_id, created_at, created_by, updated_at, updated_by, version
+    </sql>
+
+</mapper>

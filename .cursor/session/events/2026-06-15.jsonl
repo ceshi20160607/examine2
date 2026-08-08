@@ -1,7 +1,0 @@
-{"ts":"2026-06-15T12:00:00+08:00","actor":"conductor","action":"phase_complete","ref":"phase-0-discovery","detail":"outputs: requirements/analysis, legacy-summary, product/prd, product/understanding"}
-{"ts":"2026-06-15T12:00:00+08:00","actor":"conductor","action":"gate_pass","ref":"prd_frozen","detail":"pm understanding: no open P0"}
-{"ts":"2026-06-15T14:00:00+08:00","actor":"uiux","action":"artifact_created","ref":"docs/design/ui-spec.md","detail":"MVP IA, P0 pages, car-system matrix, Naive UI recommend"}
-{"ts":"2026-06-15T16:00:00+08:00","actor":"uiux","action":"artifact_created","ref":"docs/design/design-diff.md","detail":"prototypes vs ui-spec, 9/9 P0, no blockers"}
-{"ts":"2026-06-15T16:00:00+08:00","actor":"conductor","action":"phase_pause","ref":"design_user_approval","detail":"await user sign user-approval.md"}
-{"ts":"2026-06-15T22:35:00+08:00","actor":"conductor","action":"design_rework","ref":"RES-006","detail":"business list omissions documented; v3.1 Open Design prototypes generated and runtime-list/admin-modeling corrected for columns, search, scenes, filters, export, sort, sequence, selection limits"}
-{"ts":"2026-06-15T23:05:00+08:00","actor":"conductor","action":"brief_rework","ref":"RES-007","detail":"updated prototype brief to v3.2 for compact list header, scene/search/project selector density, single primary action, contextual selection bar, and separate user/role pages; awaiting manual Open Design generation"}

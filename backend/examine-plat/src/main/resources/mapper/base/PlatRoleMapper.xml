@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.PlatRoleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.Role">
+        <id column="id" property="id" />
+        <result column="scope_type" property="scopeType" />
+        <result column="scope_key" property="scopeKey" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="role_code" property="roleCode" />
+        <result column="name" property="name" />
+        <result column="role_type" property="roleType" />
+        <result column="status" property="status" />
+        <result column="permission_version" property="permissionVersion" />
+        <result column="data_scope_id" property="dataScopeId" />
+        <result column="is_builtin" property="isBuiltin" />
+        <result column="published_version" property="publishedVersion" />
+        <result column="created_at" property="createdAt" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="deleted_at" property="deletedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, scope_type, scope_key, system_id, tenant_id, role_code, name, role_type, status, permission_version, data_scope_id, is_builtin, published_version, created_at, created_by, updated_at, updated_by, deleted_at, version
+    </sql>
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.PlatDataScopeTargetMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.DataScopeTarget">
+        <id column="id" property="id" />
+        <result column="scope_type" property="scopeType" />
+        <result column="scope_key" property="scopeKey" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="data_scope_id" property="dataScopeId" />
+        <result column="target_type" property="targetType" />
+        <result column="department_id" property="departmentId" />
+        <result column="account_id" property="accountId" />
+        <result column="member_id" property="memberId" />
+        <result column="created_at" property="createdAt" />
+        <result column="created_by" property="createdBy" />
+        <result column="deleted_at" property="deletedAt" />
+        <result column="deleted_by" property="deletedBy" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, scope_type, scope_key, system_id, tenant_id, data_scope_id, target_type, department_id, account_id, member_id, created_at, created_by, deleted_at, deleted_by
+    </sql>
+
+</mapper>

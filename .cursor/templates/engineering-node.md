@@ -1,53 +1,80 @@
 # 工程节点 {{NODE_ID}}：{{NODE_NAME}}
 
-## 节点身份
+## 1. 节点身份
 
-- 阶段：`{{PHASE}}`
-- 状态：`pending | in_progress | review | passed | blocked`
-- 主责角色：`{{OWNER_ROLE}}`
-- 协作角色：`{{REVIEW_ROLES}}`
-- 前置节点：`{{DEPENDENCIES}}`
-- 开始时间：`{{STARTED_AT}}`
-- 更新时间：`{{UPDATED_AT}}`
+- status_ref: `session/state.json#currentNode/status`
+- slice_gate_ref: `session/state.json#active.slice.gate`
+- goal_or_journey:
+- owner:
+- integration_owner:
+- quality_stage: functional | hardening
+- cycle_id:
+- cycle_start_at:
+- cycle_end_at: `cycle_start_at + 240m`
+- delivery_cycle_minutes: `240`
+- task_count: `dependency_graph`
+- real_demo_path:
+- rolling_package_path:
+- formal_checkpoint: CP1 | CP2 | CP3
 
-## 为什么做
+## 2. 边界
 
-- 用户或工程目标：`{{OBJECTIVE}}`
-- 本节点解决的问题：`{{PROBLEM}}`
-- 不在本节点解决：`{{OUT_OF_SCOPE}}`
+- delivers:
+- does_not_deliver:
+- deferred_to_hardening:
+- remaining_goal_items:
 
-## 输入
-
-| 输入路径 | 来源角色 | 使用目的 | 是否已确认 |
+| module capability | before cycle | committed this cycle | status/remaining reason |
 |---|---|---|---|
-| `{{INPUT_PATH}}` | `{{SOURCE_ROLE}}` | `{{PURPOSE}}` | `yes/no` |
+|  | completed / remaining | yes / no | pending |
 
-## 产出
+工程节点必须覆盖一个可说明的模块结果，不能只覆盖一个接口、页面片段或证据动作。功能节点先交付真实能力和合理的参考桌面 UI 基线；移动端、关键断点、全状态截图、跨模块视觉统一和可访问性可以延期，但必须登记到 release 前的 hardening 节点。
 
-| 产出路径 | 内容 | 负责人 | 验证方式 |
+### 2.1 参考桌面 UI 基线（用户可见节点必填）
+
+| area | frozen behavior |
+|---|---|
+| shell/navigation | 现有系统导航和当前位置 |
+| page header | 标题、上下文、说明、主操作 |
+| list | 搜索/筛选、工具栏、表头、行操作、空/加载/错误状态 |
+| detail/edit | 按用户任务组织的标签页，不堆成长页卡片 |
+| actions | primary/secondary/danger 层级和权限/禁用反馈 |
+
+## 3. 契约 artifacts
+
+| artifact | owner | accepted/hash | consumers |
 |---|---|---|---|
-| `{{OUTPUT_PATH}}` | `{{CONTENT}}` | `{{OWNER}}` | `{{CHECK}}` |
+|  |  |  |  |
 
-## 当前理解或设计结论
+消费者只等待自己所需 artifact accepted，不等待整个上游 task passed。
 
-用可执行、可验收的语言写结论，不写“完善、支持、优化”等无法判定的表述。
+## 4. 模块 DAG
 
-## 决策与问题
+| task | module_scope | depends_on_artifacts | write_scope | estimate | mode | acceptance_command |
+|---|---|---|---|---:|---|---|
+|  |  |  |  |  |  |  |
 
-| 编号 | 类型 | 内容 | 决策人/负责人 | 状态 | 截止或升级条件 |
-|---|---|---|---|---|---|
-| `{{ID}}` | `decision/issue/risk` | `{{DETAIL}}` | `{{OWNER}}` | `{{STATUS}}` | `{{ESCALATION}}` |
+无依赖且 `module_scope/write_scope` 不重叠时默认 `parallel`。串行任务必须说明共享 schema/migration、lockfile、公共契约、同一聚合根或实际运行资源冲突。
 
-## Gate 与证据
+## 5. 分层验证
 
-| 检查项 | 结果 | 证据路径 | 检查人 |
-|---|---|---|---|
-| `{{CHECK}}` | `pass/fail/blocked` | `{{EVIDENCE}}` | `{{VERIFIER}}` |
+| level | when | required result |
+|---|---|---|
+| task | 每个短任务 | 仅受影响模块 build/unit/API/data/permission/UI 中的必要项；禁止打包和全量矩阵 |
+| cycle | 240 分钟到点或承诺项提前完成 | 一次累积回归、生产构建、滚动包、冷启动/健康检查、关键角色入口、跨层读回和权限正反例 |
+| formal checkpoint | CP1/CP2/CP3 | 按正式检查点声明的全部 outcome 和验证命令 |
+| hardening/release | 发布前 | 全站响应式、断点、视觉、无障碍、性能、安全和干净部署 |
 
-## 下一节点
+## 6. 完成
 
-- 下一节点：`{{NEXT_NODE}}`
-- 进入条件：`{{ENTRY_CONDITION}}`
-- 选择理由：`{{WHY_NEXT}}`
-- 当前仍阻断的范围：`{{BLOCKED_SCOPE}}`
-
+- task_results:
+- cumulative_regression_result:
+- production_build_result:
+- rolling_package_result_and_sha256:
+- cold_start_and_health_result:
+- browser_journey_result:
+- completed_module_items:
+- remaining_module_items_with_reason:
+- deferred_hardening_items:
+- verdict: pass | fail | blocked
+- next_node:

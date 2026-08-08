@@ -1,0 +1,3 @@
+examine:
+  security:
+    deployment-mode: PRODUCTION
