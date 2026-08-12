@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "authorities": {
+    "requirements": "template_base/tools/tb.py requirements-validate",
+    "contract": "template_base/tools/tb.py contract-promote",
+    "delivery": "template_base/tools/tb.py status"
+  },
+  "strategy": "vertical-slice",
+  "roles": [
+    {
+      "id": "requirement-analyst",
+      "writes": ["one requirement fragment for its assigned packet"],
+      "mustNot": ["read unassigned source blocks", "write a project contract", "resolve decisions", "write application code"]
+    },
+    {
+      "id": "product-integrator",
+      "writes": ["requirement-analysis.json", "project.contract.candidate.json"],
+      "mustNot": ["resolve blocking decisions without user evidence", "drop uncovered source blocks", "write application code"]
+    },
+    {
+      "id": "builder",
+      "writes": ["handwritten business logic", "tests"],
+      "mustNot": ["edit generated files", "set user acceptance", "replace real APIs with mocks"]
+    },
+    {
+      "id": "reviewer",
+      "writes": ["review findings"],
+      "mustNot": ["change implementation while reviewing", "set any gate result"]
+    }
+  ],
+  "computedPhases": [
+    {
+      "id": "INTAKE",
+      "requires": ["source requirement exists"]
+    },
+    {
+      "id": "CONTRACT_READY",
+      "requires": ["contract schema valid", "source hash matches", "no unresolved decisions"]
+    },
+    {
+      "id": "GENERATED",
+      "requires": ["repeatable generation", "generated tree hashes match"]
+    },
+    {
+      "id": "ENGINEERING_READY",
+      "requires": ["backend tests", "frontend production build", "real browser journey", "MySQL readback"]
+    },
+    {
+      "id": "RELEASE_READY",
+      "requires": ["engineering ready", "hash-bound explicit user acceptance"]
+    }
+  ],
+  "parallelism": {
+    "requirementAnalysis": {
+      "allowedAfter": "INTAKE",
+      "unit": "one generated non-overlapping requirement packet"
+    },
+    "implementation": {
+      "allowedAfter": "CONTRACT_READY",
+      "unit": "independent vertical slice"
+    },
+    "forbidden": ["parallel edits to shared generated files", "frontend/backend completion claims without an integrated journey", "free-form multi-agent requirement discussion"]
+  }
+}

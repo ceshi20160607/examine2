@@ -1,0 +1,672 @@
+{
+  "schemaVersion": 6,
+  "frameworkVersion": "3.2.0",
+  "instance": "examine2-engineering",
+  "project": "examine2",
+  "updatedAt": "2026-08-10T23:22:06+08:00",
+  "lifecyclePhase": "S3_IMPLEMENTATION",
+  "deliveryPhase": "PHASE-P1-FOUNDATION",
+  "currentNode": "PHASE-P1-FOUNDATION-CLOSE",
+  "status": "passed",
+  "projectProgress": {
+    "source": "session/project-progress.json",
+    "projection": "session/PROJECT_PROGRESS.md",
+    "validator": "scripts/validate-project-progress.ps1",
+    "packageCheckpointLimit": 3
+  },
+  "projectDelivery": {
+    "source": "session/project-delivery.json",
+    "schema": "skills/compile-project-delivery/references/typed-contract.md",
+    "validator": "skills/compile-project-delivery/scripts/validate_delivery_plan.py",
+    "status": "accepted"
+  },
+  "gates": {
+    "instanceReady": true,
+    "requirementsBaselineAccepted": true,
+    "designBaselineAccepted": true,
+    "integrationPassed": false,
+    "releasePassed": false,
+    "userAccepted": false
+  },
+  "active": {
+    "objective": "List only authorized systems and atomically establish the exact enabled or settings-only SYSTEM context before entry",
+    "owner": "leader",
+    "nodeRecord": "session/current-node.md",
+    "primaryOutput": "session/cycles/CYCLE-P1-04-SYSTEM-ENTRY/contract.md",
+    "slice": {
+      "id": "CYCLE-P1-04-SYSTEM-ENTRY",
+      "gate": "passed",
+      "targetMinutes": 240,
+      "startedAt": "2026-08-10T22:22:00+08:00",
+      "targetAt": "2026-08-11T02:22:00+08:00",
+      "pausedAt": null,
+      "completedAt": "2026-08-10T23:21:00+08:00",
+      "remainingEstimateMinutes": 0,
+      "activeSpentMinutes": 92,
+      "checkpointEvents": {
+        "fact": {
+          "occurredAt": "2026-08-10T22:58:12+08:00",
+          "activeSpentMinutes": 71,
+          "decision": "activate_cycle_verification_after_parallel_tasks_passed",
+          "evidencePath": ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-SHELL-UI/manifest.json",
+          "evidenceSha256": "sha256:11f6d2aa62b7b13dbf6f6e66bd7eb1b3a8b0319b1807c75d66c838e0e9276ad1"
+        },
+        "replan": null,
+        "completion": {
+          "occurredAt": "2026-08-10T23:21:00+08:00",
+          "activeSpentMinutes": 92,
+          "decision": "pass_and_close_p1_foundation_phase",
+          "evidencePath": ".cursor/session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/manifest.json",
+          "evidenceSha256": "sha256:f1d0660a25b74f2acf8cf530ebab8adb2f30c6947ea7f271f789f6537f5cbace"
+        }
+      },
+      "overrunHistory": [],
+      "blockedWaitingEvidence": null,
+      "integrationOwner": "leader",
+      "requirementGate": "sliceRequirementGates.CYCLE-P1-04-SYSTEM-ENTRY",
+      "demoPath": "/login -> /platform/systems -> /systems/{systemId}/admin/onboarding -> reload -> logout",
+      "demoManifest": {
+        "path": ".cursor/session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/manifest.json",
+        "sha256": "sha256:f1d0660a25b74f2acf8cf530ebab8adb2f30c6947ea7f271f789f6537f5cbace",
+        "verdict": "pass",
+        "executedAt": "2026-08-10T23:21:00+08:00",
+        "entryPoint": "/login -> /platform/systems -> /systems/{systemId}/admin/onboarding -> reload -> logout"
+      },
+      "coveredGoalItems": [
+        "REQ-P1-LIST-SYSTEMS",
+        "REQ-P1-SWITCH-CONTEXT",
+        "REQ-P1-SYSTEM-SHELL"
+      ],
+      "remainingGoalItems": []
+    },
+    "taskExecution": [
+      {
+        "id": "TASK-P1-04-SYSTEM-ENTRY-BACKEND",
+        "result": "list only authorized systems and establish a complete permitted enabled or settings-only system context before entry",
+        "status": "passed",
+        "kind": "implementation",
+        "owner": "backend-system-entry",
+        "verifier": "leader",
+        "contractPath": "session/cycles/CYCLE-P1-04-SYSTEM-ENTRY/contract.md",
+        "contractHash": "sha256:638a9325684a08de38c6ba62539fe9299850ad79aa34465f0964ebe4f2b36ad7",
+        "requirementIds": [
+          "REQ-P1-LIST-SYSTEMS",
+          "REQ-P1-SWITCH-CONTEXT",
+          "REQ-P1-SYSTEM-SHELL"
+        ],
+        "journeyIds": [
+          "CASE-P1-LIST-SYSTEMS",
+          "CASE-P1-SYSTEM-ENTRY",
+          "CASE-P1-SYSTEM-ENTRY-DENIED",
+          "CASE-P1-SYSTEM-DISABLED-ADMIN"
+        ],
+        "acceptanceCaseIds": [
+          "CASE-P1-LIST-SYSTEMS",
+          "CASE-P1-SYSTEM-ENTRY",
+          "CASE-P1-SYSTEM-ENTRY-DENIED",
+          "CASE-P1-SYSTEM-DISABLED-ADMIN"
+        ],
+        "estimateMinutes": 110,
+        "activeSpentMinutes": 48,
+        "startedAt": "2026-08-10T22:22:00+08:00",
+        "targetAt": "2026-08-11T00:12:00+08:00",
+        "pausedAt": null,
+        "completedAt": "2026-08-10T23:17:22+08:00",
+        "remainingEstimateMinutes": 0,
+        "checkpointEvents": {
+          "fact": null,
+          "replan": null,
+          "completion": {
+            "occurredAt": "2026-08-10T23:17:22+08:00",
+            "activeSpentMinutes": 48,
+            "decision": "pass_and_release_cycle_verification_dependency",
+            "evidencePath": ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-ENTRY-BACKEND/manifest.json",
+            "evidenceSha256": "sha256:d8e4e2480b80d6b200b9d505547dfef0d25c2bbbf1b933e079c74981d827c38e"
+          }
+        },
+        "overrunHistory": [],
+        "blockedWaitingEvidence": null,
+        "stopReason": null,
+        "remainingScope": null,
+        "runnableBaseline": "passed Registration cycle plus accepted P1-04 contract with five list and eleven switch IService dependencies",
+        "evidenceManifest": ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-ENTRY-BACKEND/manifest.json",
+        "evidenceManifestSha256": "sha256:d8e4e2480b80d6b200b9d505547dfef0d25c2bbbf1b933e079c74981d827c38e",
+        "evidence": {
+          "unit": {
+            "path": ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-ENTRY-BACKEND/manifest.json",
+            "sha256": "sha256:d8e4e2480b80d6b200b9d505547dfef0d25c2bbbf1b933e079c74981d827c38e",
+            "verdict": "pass"
+          },
+          "build": null
+        },
+        "executionMode": "parallel",
+        "schedulingReason": "backend system entry and frontend system shell have disjoint write sets and isolated focused tests",
+        "criticalPathRank": 1,
+        "integrationOrder": 1,
+        "estimatedParallelSavingsMinutes": 80,
+        "estimatedIntegrationCostMinutes": 10,
+        "parallelGroup": "system-entry-build",
+        "runtimeIsolation": {
+          "migrationTarget": "shared-readonly:p1-vnext-schema",
+          "generatedOutput": "none:system-entry-use-case",
+          "lockfileOwner": "TASK-P1-04-SYSTEM-ENTRY-BACKEND",
+          "databaseSchema": "p1-system-entry-backend",
+          "testDataNamespace": "p1-system-entry-backend",
+          "port": "none:backend-focused-test",
+          "runtimeId": "p1-system-entry-backend"
+        },
+        "dependsOn": [],
+        "writes": [
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/vnext/manage/systementry",
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/vnext/manage/auth/VNextSessionService.java",
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/vnext/manage/auth/VNextSystemSessionService.java",
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/vnext/manage/auth/SystemContextSnapshotCodec.java",
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/vnext/manage/auth/SessionContext.java",
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/vnext/manage/auth/AccountContext.java",
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/vnext/manage/auth/SystemSummary.java",
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/vnext/manage/auth/TenantSummary.java",
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/vnext/manage/auth/DataScopeContext.java",
+          "backend/examine-plat/src/main/java/com/unique/examine/plat/manage/controller/ContextController.java",
+          "backend/examine-web/src/main/java/com/unique/examine/web/vnext/systementry",
+          "backend/examine-web/src/test/java/com/unique/examine/web/P1SystemEntryUseCaseContractTest.java",
+          "backend/examine-web/src/test/java/com/unique/examine/web/P1SystemEntryCycleIntegrationTest.java"
+        ]
+      },
+      {
+        "id": "TASK-P1-04-SYSTEM-SHELL-UI",
+        "result": "show a compact authorized-system list and render the correct enabled, denied or settings-only system shell",
+        "status": "passed",
+        "kind": "implementation",
+        "owner": "frontend-system-entry",
+        "verifier": "leader",
+        "contractPath": "session/cycles/CYCLE-P1-04-SYSTEM-ENTRY/contract.md",
+        "contractHash": "sha256:638a9325684a08de38c6ba62539fe9299850ad79aa34465f0964ebe4f2b36ad7",
+        "requirementIds": [
+          "REQ-P1-LIST-SYSTEMS",
+          "REQ-P1-SWITCH-CONTEXT",
+          "REQ-P1-SYSTEM-SHELL"
+        ],
+        "journeyIds": [
+          "CASE-P1-LIST-SYSTEMS",
+          "CASE-P1-SYSTEM-ENTRY",
+          "CASE-P1-SYSTEM-ENTRY-DENIED",
+          "CASE-P1-SYSTEM-DISABLED-ADMIN"
+        ],
+        "acceptanceCaseIds": [
+          "CASE-P1-LIST-SYSTEMS",
+          "CASE-P1-SYSTEM-ENTRY",
+          "CASE-P1-SYSTEM-ENTRY-DENIED",
+          "CASE-P1-SYSTEM-DISABLED-ADMIN"
+        ],
+        "estimateMinutes": 110,
+        "activeSpentMinutes": 36,
+        "startedAt": "2026-08-10T22:22:00+08:00",
+        "targetAt": "2026-08-11T00:12:00+08:00",
+        "pausedAt": null,
+        "completedAt": "2026-08-10T22:58:12+08:00",
+        "remainingEstimateMinutes": 0,
+        "checkpointEvents": {
+          "fact": null,
+          "replan": null,
+          "completion": {
+            "occurredAt": "2026-08-10T22:58:12+08:00",
+            "activeSpentMinutes": 36,
+            "decision": "pass_and_release_cycle_verification_dependency",
+            "evidencePath": ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-SHELL-UI/manifest.json",
+            "evidenceSha256": "sha256:11f6d2aa62b7b13dbf6f6e66bd7eb1b3a8b0319b1807c75d66c838e0e9276ad1"
+          }
+        },
+        "overrunHistory": [],
+        "blockedWaitingEvidence": null,
+        "stopReason": null,
+        "remainingScope": null,
+        "runnableBaseline": "passed Registration UI task plus accepted P1-04 API and UI contract",
+        "evidenceManifest": ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-SHELL-UI/manifest.json",
+        "evidenceManifestSha256": "sha256:11f6d2aa62b7b13dbf6f6e66bd7eb1b3a8b0319b1807c75d66c838e0e9276ad1",
+        "evidence": {
+          "unit": {
+            "path": ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-SHELL-UI/manifest.json",
+            "sha256": "sha256:11f6d2aa62b7b13dbf6f6e66bd7eb1b3a8b0319b1807c75d66c838e0e9276ad1",
+            "verdict": "pass"
+          },
+          "build": {
+            "path": ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-SHELL-UI/manifest.json",
+            "sha256": "sha256:11f6d2aa62b7b13dbf6f6e66bd7eb1b3a8b0319b1807c75d66c838e0e9276ad1",
+            "verdict": "pass"
+          }
+        },
+        "executionMode": "parallel",
+        "schedulingReason": "frontend system shell and backend system entry have disjoint write sets and isolated focused tests",
+        "criticalPathRank": 1,
+        "integrationOrder": 2,
+        "estimatedParallelSavingsMinutes": 80,
+        "estimatedIntegrationCostMinutes": 10,
+        "parallelGroup": "system-entry-build",
+        "runtimeIsolation": {
+          "migrationTarget": "none:frontend",
+          "generatedOutput": "none:frontend",
+          "lockfileOwner": "none",
+          "databaseSchema": "none:frontend",
+          "testDataNamespace": "p1-system-entry-frontend",
+          "port": "none:frontend-unit-test",
+          "runtimeId": "p1-system-entry-frontend"
+        },
+        "dependsOn": [],
+        "writes": [
+          "frontend/src/vnext/platform-shell",
+          "frontend/src/vnext/onboarding",
+          "frontend/src/router/index.ts",
+          "frontend/src/stores/session.ts",
+          "frontend/src/types/session.ts",
+          "frontend/src/services/api.ts",
+          "frontend/tests/unit/p1-system-entry-foundation.spec.ts",
+          "frontend/tests/unit/p1-login-foundation.spec.ts",
+          "frontend/tests/unit/p1-registration-foundation.spec.ts",
+          "frontend/tests/unit/session.spec.ts",
+          "frontend/tests/unit/access-policy.spec.ts",
+          "frontend/tests/unit/account-security-navigation.spec.ts",
+          "frontend/tests/unit/system-command-center.spec.ts",
+          "frontend/tests/unit/platform-agent-view.spec.ts",
+          "frontend/tests/unit/ai-navigation.spec.ts",
+          "frontend/tests/unit/analytics-navigation.spec.ts",
+          "frontend/tests/unit/audit-navigation.spec.ts",
+          "frontend/tests/unit/dashboard-navigation.spec.ts",
+          "frontend/tests/unit/data-source-navigation.spec.ts",
+          "frontend/tests/unit/enterprise-identity-admin.spec.ts",
+          "frontend/tests/unit/flow-view.spec.ts",
+          "frontend/tests/unit/kpi-navigation.spec.ts",
+          "frontend/tests/unit/member-picker.spec.ts",
+          "frontend/tests/unit/message-inbox-view.spec.ts",
+          "frontend/tests/unit/openapi-admin-navigation.spec.ts",
+          "frontend/tests/unit/operations-dashboard.spec.ts",
+          "frontend/tests/unit/platform-ai-navigation.spec.ts",
+          "frontend/tests/unit/platform-settings-navigation.spec.ts",
+          "frontend/tests/unit/platform-todo-view.spec.ts",
+          "frontend/tests/unit/platform-work-view.spec.ts",
+          "frontend/tests/unit/platform-workbench.spec.ts",
+          "frontend/tests/unit/record-comment-panel.spec.ts",
+          "frontend/tests/unit/record-file-panel.spec.ts",
+          "frontend/tests/unit/record-history-panel.spec.ts",
+          "frontend/tests/unit/record-team-panel.spec.ts",
+          "frontend/tests/unit/report-navigation.spec.ts",
+          "frontend/tests/unit/system-dashboard-view.spec.ts",
+          "frontend/tests/unit/system-onboarding-navigation.spec.ts",
+          "frontend/tests/unit/system-organization-view.spec.ts",
+          "frontend/tests/unit/system-workbench-batch-commands.spec.ts",
+          "frontend/tests/unit/todo-action-center.spec.ts",
+          "frontend/tests/unit/todo-navigation.spec.ts",
+          "frontend/tests/unit/ui-hardening-state-matrix.spec.ts",
+          "frontend/tests/unit/work-daily-reports.spec.ts",
+          "frontend/tests/unit/work-message-template-navigation.spec.ts",
+          "frontend/tests/unit/work-tasks-view.spec.ts",
+          "frontend/tests/unit/work-todo-navigation.spec.ts",
+          "frontend/tests/e2e/p1-system-entry-cycle.spec.ts"
+        ]
+      },
+      {
+        "id": "TASK-P1-04-VERIFY",
+        "result": "close system entry with executed context evidence and one real authorized-system browser entry",
+        "status": "passed",
+        "kind": "integration",
+        "owner": "test",
+        "verifier": "leader",
+        "contractPath": "session/cycles/CYCLE-P1-04-SYSTEM-ENTRY/contract.md",
+        "contractHash": "sha256:638a9325684a08de38c6ba62539fe9299850ad79aa34465f0964ebe4f2b36ad7",
+        "requirementIds": [
+          "REQ-P1-LIST-SYSTEMS",
+          "REQ-P1-SWITCH-CONTEXT",
+          "REQ-P1-SYSTEM-SHELL"
+        ],
+        "journeyIds": [
+          "CASE-P1-LIST-SYSTEMS",
+          "CASE-P1-SYSTEM-ENTRY",
+          "CASE-P1-SYSTEM-ENTRY-DENIED",
+          "CASE-P1-SYSTEM-DISABLED-ADMIN"
+        ],
+        "acceptanceCaseIds": [
+          "CASE-P1-LIST-SYSTEMS",
+          "CASE-P1-SYSTEM-ENTRY",
+          "CASE-P1-SYSTEM-ENTRY-DENIED",
+          "CASE-P1-SYSTEM-DISABLED-ADMIN"
+        ],
+        "estimateMinutes": 45,
+        "activeSpentMinutes": 8,
+        "startedAt": "2026-08-10T22:59:00+08:00",
+        "targetAt": "2026-08-10T23:44:00+08:00",
+        "pausedAt": null,
+        "completedAt": "2026-08-10T23:21:00+08:00",
+        "remainingEstimateMinutes": 0,
+        "checkpointEvents": {
+          "fact": null,
+          "replan": null,
+          "completion": {
+            "occurredAt": "2026-08-10T23:21:00+08:00",
+            "activeSpentMinutes": 8,
+            "decision": "pass_cycle_with_real_integration_and_browser_entry",
+            "evidencePath": ".cursor/session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/manifest.json",
+            "evidenceSha256": "sha256:f1d0660a25b74f2acf8cf530ebab8adb2f30c6947ea7f271f789f6537f5cbace"
+          }
+        },
+        "overrunHistory": [],
+        "blockedWaitingEvidence": null,
+        "stopReason": null,
+        "remainingScope": null,
+        "runnableBaseline": "frozen system-entry cycle plan and both system-entry task manifests",
+        "evidenceManifest": ".cursor/session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/manifest.json",
+        "evidenceManifestSha256": "sha256:f1d0660a25b74f2acf8cf530ebab8adb2f30c6947ea7f271f789f6537f5cbace",
+        "evidence": {
+          "integration": {
+            "path": ".cursor/session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/manifest.json",
+            "sha256": "sha256:f1d0660a25b74f2acf8cf530ebab8adb2f30c6947ea7f271f789f6537f5cbace",
+            "verdict": "pass"
+          },
+          "uiSmoke": {
+            "path": ".cursor/session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/manifest.json",
+            "sha256": "sha256:f1d0660a25b74f2acf8cf530ebab8adb2f30c6947ea7f271f789f6537f5cbace",
+            "verdict": "pass"
+          }
+        },
+        "executionMode": "serial",
+        "schedulingReason": "cycle verification consumes both parallel implementation results",
+        "criticalPathRank": 2,
+        "integrationOrder": 3,
+        "estimatedParallelSavingsMinutes": 0,
+        "estimatedIntegrationCostMinutes": 0,
+        "parallelGroup": "none",
+        "dependsOn": [
+          "TASK-P1-04-SYSTEM-ENTRY-BACKEND",
+          "TASK-P1-04-SYSTEM-SHELL-UI"
+        ],
+        "writes": [
+          ".cursor/session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY"
+        ]
+      }
+    ],
+    "workstreams": []
+  },
+  "deliveryCadence": {
+    "roadmap": "session/delivery-roadmap.md",
+    "initialUnderstandingMaxMinutes": 240,
+    "taskEstimateMinMinutes": 10,
+    "taskEstimateMaxMinutes": 120,
+    "factCheckpointFormula": "routine:none;critical:min(30m,estimate*50%)",
+    "replanCheckpointFormula": "active>120m:single_replan",
+    "overrunReviewFormula": "estimate*100%",
+    "demoPeriodTargetMinutes": 240,
+    "tasksPerDemoPeriod": "dependency_graph",
+    "overrunPolicy": "warn_replan_without_blocking_disjoint_work",
+    "schedulingPolicy": "disjoint_modules_parallel_by_default",
+    "verificationPolicy": "task_affected_then_cycle_once_then_module_page_then_phase_then_project",
+    "performancePolicy": "external_optional_after_project_completion",
+    "responsivePolicy": "functional_reference_viewport_then_release_hardening",
+    "governanceByRisk": [
+      "routine",
+      "standard",
+      "critical"
+    ]
+  },
+  "sources": [
+    {
+      "id": "SRC-USER-REQUIREMENT",
+      "path": "docs/user_requirement.md",
+      "sha256": "f169074a45793cce1a89fb2713c0fe4a6150cc9308e81a54e0246d4b247ef406",
+      "authority": "sole_product_source"
+    }
+  ],
+  "enabledRoles": [
+    "leader",
+    "pm",
+    "product",
+    "analyst",
+    "architect",
+    "uiux",
+    "planner",
+    "dba",
+    "backend",
+    "frontend",
+    "test",
+    "ops"
+  ],
+  "issues": {
+    "registry": "session/issues/registry.jsonl",
+    "openP0": [],
+    "openP1": []
+  },
+  "sliceRequirementGates": {
+    "CYCLE-P1-01-FOUNDATION": {
+      "status": "accepted",
+      "requirementIds": [
+        "REQ-P1-BASE-MANAGE",
+        "REQ-P1-DATABASE-BOOT",
+        "REQ-P1-DEFAULT-ADMIN"
+      ],
+      "reviewVerdict": "pass",
+      "evidencePath": "session/baseline/pre-development-gate.json",
+        "evidenceSha256": "sha256:7a2194884939876a99432dfdf9f7402bcb3487e505e680b046b55cc1ae554049"
+    },
+    "CYCLE-P1-02-LOGIN": {
+      "status": "accepted",
+      "requirementIds": [
+        "REQ-P1-LOGIN",
+        "REQ-P1-LOGOUT"
+      ],
+      "reviewVerdict": "pass",
+      "evidencePath": "session/baseline/pre-development-gate.json",
+        "evidenceSha256": "sha256:7a2194884939876a99432dfdf9f7402bcb3487e505e680b046b55cc1ae554049"
+      },
+      "CYCLE-P1-03-REGISTRATION": {
+        "status": "accepted",
+        "requirementIds": [
+          "REQ-P1-REGISTER-FIRST-SYSTEM"
+        ],
+        "reviewVerdict": "pass",
+        "evidencePath": "session/baseline/pre-development-gate.json",
+        "evidenceSha256": "sha256:7a2194884939876a99432dfdf9f7402bcb3487e505e680b046b55cc1ae554049"
+      },
+      "CYCLE-P1-04-SYSTEM-ENTRY": {
+        "status": "accepted",
+        "requirementIds": [
+          "REQ-P1-LIST-SYSTEMS",
+          "REQ-P1-SWITCH-CONTEXT",
+          "REQ-P1-SYSTEM-SHELL"
+        ],
+        "reviewVerdict": "pass",
+        "evidencePath": "session/baseline/pre-development-gate.json",
+        "evidenceSha256": "sha256:7a2194884939876a99432dfdf9f7402bcb3487e505e680b046b55cc1ae554049"
+      }
+  },
+  "decisions": {
+    "pendingUser": "session/pending-user-decisions.md",
+    "records": [
+      "DEC-SINGLE-SOURCE",
+      "DEC-NO-CORE-PERFORMANCE",
+      "DEC-LEGACY-BOUNDARY"
+    ],
+    "lastUserDecisionCheckAt": "2026-08-10T19:32:00+08:00"
+  },
+  "outputs": [
+    "session/baseline/README.md",
+    "session/baseline/execution-strategy.md",
+    "session/baseline/completion-audit.md",
+    "session/baseline/product-contract.md",
+    "session/baseline/architecture-contract.md",
+    "session/baseline/p1-api-contract.json",
+    "session/baseline/p1-data-contract.json",
+    "session/baseline/p1-backend-boundary-contract.json",
+    "session/baseline/runtime-module-list.ui.json",
+    "session/baseline/pre-development-gate.json",
+    "session/project-delivery.json",
+    "session/cycles/CYCLE-P1-01-FOUNDATION/contract.md",
+    "session/rebuild-v3/contracts/p1-foundation-contract.json",
+    "session/rebuild-v3/contracts/p1-ui-contract.json",
+    "session/cycles/CYCLE-P1-02-LOGIN/contract.md",
+    "session/cycles/CYCLE-P1-03-REGISTRATION/contract.md",
+    "session/cycles/CYCLE-P1-04-SYSTEM-ENTRY/contract.md",
+    "session/cycles/CYCLE-P1-04-SYSTEM-ENTRY/task-backend-test-plan.json",
+    "session/cycles/CYCLE-P1-04-SYSTEM-ENTRY/task-frontend-test-plan.json"
+  ],
+  "evidence": [],
+  "blockedScopes": [
+    "product semantics outside the frozen P1 contract",
+    "legacy product expansion",
+    "core performance and capacity work",
+    "responsive hardening before functional completion"
+  ],
+  "nextNode": "PHASE-P2-PLATFORM-SYSTEM-CONFIG-BASELINE",
+  "completionBoundary": {
+    "engineeringFinalGate": "OPEN",
+    "userAccepted": false,
+    "userSignoffPath": null,
+    "userSignoffSha256": null
+  },
+  "completionLedger": {
+    "tasks": {
+      "TASK-P1-01-GENERATOR": {
+        "sliceId": "CYCLE-P1-01-FOUNDATION",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/TASK-P1-01-GENERATOR/manifest.json",
+        "evidenceSha256": "sha256:586be0fb2ac4d0b235b8d8a02947656338b4025a2e8de99bf0e9ac04bd09b4ea"
+      },
+      "TASK-P1-01-DATABASE": {
+        "sliceId": "CYCLE-P1-01-FOUNDATION",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/TASK-P1-01-DATABASE/manifest.json",
+        "evidenceSha256": "sha256:ae5129276572f097421bc5c079157b64d299fc8cef04e1c1269908388cfb0605"
+      },
+      "TASK-P1-01-VERIFY": {
+        "sliceId": "CYCLE-P1-01-FOUNDATION",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/CYCLE-P1-01-FOUNDATION/manifest.json",
+        "evidenceSha256": "sha256:f0a047b44dab83f6b386aadfb24f00cef5f3f43c43498da9da1f2304c98e8d2b"
+      },
+      "TASK-P1-02-LOGIN-UI": {
+        "sliceId": "CYCLE-P1-02-LOGIN",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/TASK-P1-02-LOGIN-UI/manifest.json",
+        "evidenceSha256": "sha256:31510e9656356067758f50f135c429c129ec03b611ebf6c23123d44d0db76972"
+      },
+      "TASK-P1-02-AUTH-BACKEND": {
+        "sliceId": "CYCLE-P1-02-LOGIN",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/TASK-P1-02-AUTH-BACKEND/manifest.json",
+        "evidenceSha256": "sha256:cb886f6f6bae20687bafb10bbd553438ff204c1daa43ed3b3d2c907970f6965f"
+      },
+      "TASK-P1-02-VERIFY": {
+        "sliceId": "CYCLE-P1-02-LOGIN",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/CYCLE-P1-02-LOGIN/manifest.json",
+        "evidenceSha256": "sha256:6f2ec7c319daf03e6c9fa66f6abffd33caa55219e2a545b5330ff83399cf246e"
+      },
+      "TASK-P1-03-REGISTER-UI": {
+        "sliceId": "CYCLE-P1-03-REGISTRATION",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/TASK-P1-03-REGISTER-UI/manifest.json",
+        "evidenceSha256": "sha256:dac42a824723230b6d3c1bce5e4754c02110a4048108e61822eb2c1e4e010bbe"
+      },
+      "TASK-P1-03-REGISTER-BACKEND": {
+        "sliceId": "CYCLE-P1-03-REGISTRATION",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/TASK-P1-03-REGISTER-BACKEND/manifest.json",
+        "evidenceSha256": "sha256:d9dd5fb053a246d1186746fa0d7623b64ddb8dcd793494628c74f349c2968911"
+      },
+      "TASK-P1-03-VERIFY": {
+        "sliceId": "CYCLE-P1-03-REGISTRATION",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/CYCLE-P1-03-REGISTRATION/manifest.json",
+        "evidenceSha256": "sha256:4edf888f586f276dcb17d4502963e372b3e5e2d8bb41fc8846077624ea6d848c"
+      },
+      "TASK-P1-04-SYSTEM-ENTRY-BACKEND": {
+        "sliceId": "CYCLE-P1-04-SYSTEM-ENTRY",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/TASK-P1-04-SYSTEM-ENTRY-BACKEND/manifest.json",
+        "evidenceSha256": "sha256:d8e4e2480b80d6b200b9d505547dfef0d25c2bbbf1b933e079c74981d827c38e"
+      },
+      "TASK-P1-04-SYSTEM-SHELL-UI": {
+        "sliceId": "CYCLE-P1-04-SYSTEM-ENTRY",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/TASK-P1-04-SYSTEM-SHELL-UI/manifest.json",
+        "evidenceSha256": "sha256:11f6d2aa62b7b13dbf6f6e66bd7eb1b3a8b0319b1807c75d66c838e0e9276ad1"
+      },
+      "TASK-P1-04-VERIFY": {
+        "sliceId": "CYCLE-P1-04-SYSTEM-ENTRY",
+        "verdict": "pass",
+        "evidencePath": "session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/manifest.json",
+        "evidenceSha256": "sha256:f1d0660a25b74f2acf8cf530ebab8adb2f30c6947ea7f271f789f6537f5cbace"
+      }
+    },
+    "slices": {
+      "CYCLE-P1-01-FOUNDATION": {
+        "phaseId": "PHASE-P1-FOUNDATION",
+        "verdict": "pass",
+        "requiredTaskIds": [
+          "TASK-P1-01-GENERATOR",
+          "TASK-P1-01-DATABASE",
+          "TASK-P1-01-VERIFY"
+        ],
+        "evidencePath": "session/evidence/baseline/CYCLE-P1-01-FOUNDATION/manifest.json",
+        "evidenceSha256": "sha256:f0a047b44dab83f6b386aadfb24f00cef5f3f43c43498da9da1f2304c98e8d2b"
+      },
+      "CYCLE-P1-02-LOGIN": {
+        "phaseId": "PHASE-P1-FOUNDATION",
+        "verdict": "pass",
+        "requiredTaskIds": [
+          "TASK-P1-02-AUTH-BACKEND",
+          "TASK-P1-02-LOGIN-UI",
+          "TASK-P1-02-VERIFY"
+        ],
+        "evidencePath": "session/evidence/baseline/CYCLE-P1-02-LOGIN/manifest.json",
+        "evidenceSha256": "sha256:6f2ec7c319daf03e6c9fa66f6abffd33caa55219e2a545b5330ff83399cf246e"
+      },
+      "CYCLE-P1-03-REGISTRATION": {
+        "phaseId": "PHASE-P1-FOUNDATION",
+        "verdict": "pass",
+        "requiredTaskIds": [
+          "TASK-P1-03-REGISTER-BACKEND",
+          "TASK-P1-03-REGISTER-UI",
+          "TASK-P1-03-VERIFY"
+        ],
+        "evidencePath": "session/evidence/baseline/CYCLE-P1-03-REGISTRATION/manifest.json",
+        "evidenceSha256": "sha256:4edf888f586f276dcb17d4502963e372b3e5e2d8bb41fc8846077624ea6d848c"
+      },
+      "CYCLE-P1-04-SYSTEM-ENTRY": {
+        "phaseId": "PHASE-P1-FOUNDATION",
+        "verdict": "pass",
+        "requiredTaskIds": [
+          "TASK-P1-04-SYSTEM-ENTRY-BACKEND",
+          "TASK-P1-04-SYSTEM-SHELL-UI",
+          "TASK-P1-04-VERIFY"
+        ],
+        "evidencePath": "session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/manifest.json",
+        "evidenceSha256": "sha256:f1d0660a25b74f2acf8cf530ebab8adb2f30c6947ea7f271f789f6537f5cbace"
+      }
+    },
+    "phases": {
+      "PHASE-P1-FOUNDATION": {
+        "verdict": "pass",
+        "requiredSliceIds": [
+          "CYCLE-P1-01-FOUNDATION",
+          "CYCLE-P1-02-LOGIN",
+          "CYCLE-P1-03-REGISTRATION",
+          "CYCLE-P1-04-SYSTEM-ENTRY"
+        ],
+        "journeyIds": [
+          "CASE-P1-LOGIN",
+          "CASE-P1-REGISTER-FIRST-SYSTEM",
+          "CASE-P1-SYSTEM-ENTRY"
+        ],
+        "evidencePath": "session/evidence/baseline/PHASE-P1-FOUNDATION/acceptance.md",
+        "evidenceSha256": "sha256:82629eeeaa12242f3699d839b3fd3df3e787354ff9094e4b18228c57baca19d6"
+      }
+    },
+    "journeys": {},
+    "requiredJourneyIds": [
+      "CASE-P1-LOGIN",
+      "CASE-P1-REGISTER-FIRST-SYSTEM",
+      "CASE-P1-SYSTEM-ENTRY"
+    ],
+    "integrationEvidencePath": null,
+    "integrationEvidenceSha256": null,
+    "releaseEvidencePath": null,
+    "releaseEvidenceSha256": null
+  }
+}

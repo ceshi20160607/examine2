@@ -1,0 +1,70 @@
+.vnext-onboarding {
+  --onboarding-ink: #172033;
+  --onboarding-muted: #667085;
+  --onboarding-line: #e4e9f1;
+  --onboarding-primary: #2459d3;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr);
+  background: #f5f7fa;
+  color: var(--onboarding-ink);
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.vnext-onboarding__sidebar { padding: 22px 14px; background: #17223a; color: #fff; }
+.vnext-onboarding__brand { padding: 0 10px 22px; font-size: 16px; font-weight: 700; }
+.vnext-onboarding__nav-item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 7px;
+  color: #d8e0ef;
+  font-size: 14px;
+  text-decoration: none;
+}
+.vnext-onboarding__nav-item.is-active { background: #2b3b5d; color: #fff; font-weight: 600; }
+.vnext-onboarding__body { min-width: 0; }
+.vnext-onboarding__topbar {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--onboarding-line);
+  background: #fff;
+}
+.vnext-onboarding__topbar span { display: grid; font-size: 14px; line-height: 1.25; }
+.vnext-onboarding__topbar small { color: var(--onboarding-muted); font-size: 11px; font-weight: 400; }
+.vnext-onboarding__account { display: flex; align-items: center; gap: 16px; }
+.vnext-onboarding__account button,
+.vnext-onboarding__state button {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #ccd4e0;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--onboarding-ink);
+  cursor: pointer;
+}
+.vnext-onboarding__account button:disabled { cursor: not-allowed; opacity: .55; }
+.vnext-onboarding__content { max-width: 920px; padding: 44px 40px; }
+.vnext-onboarding__welcome,
+.vnext-onboarding__state {
+  padding: 32px;
+  border: 1px solid var(--onboarding-line);
+  border-radius: 12px;
+  background: #fff;
+}
+.vnext-onboarding__eyebrow { margin: 0 0 8px; color: #067647; font-size: 13px; font-weight: 700; }
+.vnext-onboarding__welcome h1 { margin: 0; font-size: 26px; }
+.vnext-onboarding__welcome > p:last-of-type { margin: 10px 0 26px; color: var(--onboarding-muted); line-height: 1.65; }
+.vnext-onboarding__welcome dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
+.vnext-onboarding__welcome dl div { padding: 14px 16px; border: 1px solid var(--onboarding-line); border-radius: 8px; }
+.vnext-onboarding__welcome dt { color: var(--onboarding-muted); font-size: 12px; }
+.vnext-onboarding__welcome dd { margin: 5px 0 0; font-size: 15px; font-weight: 650; }
+.vnext-onboarding__state { display: grid; justify-items: start; gap: 9px; }
+.vnext-onboarding__state strong { font-size: 20px; }
+.vnext-onboarding__state p { margin: 0; color: var(--onboarding-muted); }
+.vnext-onboarding__state button { margin-top: 6px; }
+.vnext-onboarding__state.is-error strong,
+.vnext-onboarding__state.is-denied strong { color: #b42318; }
+.vnext-onboarding__action-error { margin: 12px 0 0; color: #b42318; font-size: 13px; }

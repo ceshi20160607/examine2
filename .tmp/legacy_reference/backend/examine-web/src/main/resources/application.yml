@@ -1,0 +1,144 @@
+spring:
+  application:
+    name: examine2
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${EXAMINE_DB_URL}
+    username: ${EXAMINE_DB_USERNAME}
+    password: ${EXAMINE_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${EXAMINE_DB_POOL_MAX:20}
+      minimum-idle: ${EXAMINE_DB_POOL_MIN:2}
+      connection-timeout: 5000
+  data:
+    redis:
+      host: ${EXAMINE_REDIS_HOST}
+      port: ${EXAMINE_REDIS_PORT:6379}
+      password: ${EXAMINE_REDIS_PASSWORD:}
+      database: ${EXAMINE_REDIS_DATABASE:0}
+      timeout: 3s
+      ssl:
+        enabled: ${EXAMINE_REDIS_TLS_ENABLED:false}
+  servlet:
+    multipart:
+      max-file-size: ${EXAMINE_FILE_MAX_HTTP_FILE_SIZE:20MB}
+      max-request-size: ${EXAMINE_FILE_MAX_HTTP_REQUEST_SIZE:25MB}
+  flyway:
+    enabled: true
+    locations: ${EXAMINE_FLYWAY_LOCATIONS:filesystem:../sql/migration}
+    validate-migration-naming: true
+    clean-disabled: true
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${EXAMINE_SERVER_PORT:8080}
+  shutdown: graceful
+  undertow:
+    max-http-post-size: ${EXAMINE_MAX_HTTP_POST_SIZE:25MB}
+
+management:
+  endpoints:
+    web:
+      base-path: /management
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  global-config:
+    banner: false
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deletedAt
+      logic-not-delete-value: "null"
+      logic-delete-value: "now()"
+  configuration:
+    map-underscore-to-camel-case: true
+    call-setters-on-nulls: true
+
+logging:
+  pattern:
+    level: "%5p requestId=%X{requestId:-} traceId=%X{traceId:-}"
+
+examine:
+  file:
+    storage:
+      mode: ${EXAMINE_FILE_STORAGE_MODE:LOCAL}
+      max-single-upload-bytes: ${EXAMINE_FILE_MAX_SINGLE_UPLOAD_BYTES:20971520}
+      max-multipart-upload-bytes: ${EXAMINE_FILE_MAX_MULTIPART_UPLOAD_BYTES:104857600}
+      max-part-bytes: ${EXAMINE_FILE_MAX_PART_BYTES:5242880}
+      local:
+        root: ${EXAMINE_FILE_LOCAL_ROOT:./data/files}
+      s3:
+        endpoint: ${EXAMINE_FILE_S3_ENDPOINT:}
+        allow-loopback-http-for-testing: ${EXAMINE_FILE_S3_ALLOW_LOOPBACK_HTTP_FOR_TESTING:false}
+        region: ${EXAMINE_FILE_S3_REGION:}
+        bucket: ${EXAMINE_FILE_S3_BUCKET:}
+        prefix: ${EXAMINE_FILE_S3_PREFIX:}
+        path-style: ${EXAMINE_FILE_S3_PATH_STYLE:true}
+        access-key: ${EXAMINE_FILE_S3_ACCESS_KEY:}
+        secret-key: ${EXAMINE_FILE_S3_SECRET_KEY:}
+        connect-timeout: ${EXAMINE_FILE_S3_CONNECT_TIMEOUT:3s}
+        read-timeout: ${EXAMINE_FILE_S3_READ_TIMEOUT:10s}
+        request-timeout: ${EXAMINE_FILE_S3_REQUEST_TIMEOUT:15s}
+  event:
+    account-recovery-mail:
+      enabled: ${EXAMINE_ACCOUNT_RECOVERY_MAIL_ENABLED:false}
+      host: ${EXAMINE_ACCOUNT_RECOVERY_MAIL_HOST:}
+      port: ${EXAMINE_ACCOUNT_RECOVERY_MAIL_PORT:587}
+      username: ${EXAMINE_ACCOUNT_RECOVERY_MAIL_USERNAME:}
+      password: ${EXAMINE_ACCOUNT_RECOVERY_MAIL_PASSWORD:}
+      smtp-auth: ${EXAMINE_ACCOUNT_RECOVERY_MAIL_SMTP_AUTH:false}
+      start-tls: ${EXAMINE_ACCOUNT_RECOVERY_MAIL_START_TLS:true}
+      from: ${EXAMINE_ACCOUNT_RECOVERY_MAIL_FROM:}
+      public-base-url: ${EXAMINE_PUBLIC_BASE_URL:}
+    delivery:
+      smtp:
+        enabled: ${EXAMINE_EVENT_SMTP_ENABLED:false}
+        host: ${EXAMINE_EVENT_SMTP_HOST:}
+        port: ${EXAMINE_EVENT_SMTP_PORT:587}
+        from: ${EXAMINE_EVENT_SMTP_FROM:}
+        authentication: ${EXAMINE_EVENT_SMTP_AUTHENTICATION:true}
+        username-secret-ref: ${EXAMINE_EVENT_SMTP_USERNAME_SECRET_REF:}
+        password-secret-ref: ${EXAMINE_EVENT_SMTP_PASSWORD_SECRET_REF:}
+        start-tls: ${EXAMINE_EVENT_SMTP_START_TLS:true}
+        start-tls-required: ${EXAMINE_EVENT_SMTP_START_TLS_REQUIRED:true}
+        connect-timeout: ${EXAMINE_EVENT_SMTP_CONNECT_TIMEOUT:3s}
+        read-timeout: ${EXAMINE_EVENT_SMTP_READ_TIMEOUT:5s}
+        write-timeout: ${EXAMINE_EVENT_SMTP_WRITE_TIMEOUT:5s}
+      webhook:
+        enabled: ${EXAMINE_EVENT_WEBHOOK_ENABLED:false}
+        connect-timeout: ${EXAMINE_EVENT_WEBHOOK_CONNECT_TIMEOUT:3s}
+        request-timeout: ${EXAMINE_EVENT_WEBHOOK_REQUEST_TIMEOUT:5s}
+        allow-loopback-http-for-testing: ${EXAMINE_EVENT_WEBHOOK_ALLOW_LOOPBACK_HTTP_FOR_TESTING:false}
+  module:
+    datasource:
+      jdbc:
+        allowed-targets: ${EXAMINE_DATASOURCE_JDBC_ALLOWED_TARGETS:}
+        tls-mode: ${EXAMINE_DATASOURCE_JDBC_TLS_MODE:VERIFY_IDENTITY}
+  runtime:
+    sensitive:
+      key-ring-root: ${EXAMINE_SENSITIVE_KEY_RING_ROOT:}
+      key-ring-file: ${EXAMINE_SENSITIVE_KEY_RING_FILE:}
+  bootstrap:
+    root:
+      username: ${EXAMINE_BOOTSTRAP_ROOT_USERNAME:}
+      password: ${EXAMINE_BOOTSTRAP_ROOT_PASSWORD:}
+      display-name: ${EXAMINE_BOOTSTRAP_ROOT_DISPLAY_NAME:}
+  security:
+    deployment-mode: ${EXAMINE_DEPLOYMENT_MODE:LOCAL}
+    access-token-ttl: ${EXAMINE_ACCESS_TOKEN_TTL:30m}
+    refresh-token-ttl: ${EXAMINE_REFRESH_TOKEN_TTL:7d}
+    secure-cookies: ${EXAMINE_SECURE_COOKIES:true}
+    login-max-failures: ${EXAMINE_LOGIN_MAX_FAILURES:5}
+    login-lock-duration: ${EXAMINE_LOGIN_LOCK_DURATION:15m}
+    password-recovery:
+      token-ttl: ${EXAMINE_PASSWORD_RECOVERY_TOKEN_TTL:30m}
+      ip-requests-per-minute: ${EXAMINE_PASSWORD_RECOVERY_IP_REQUESTS_PER_MINUTE:5}
+      account-requests-per-hour: ${EXAMINE_PASSWORD_RECOVERY_ACCOUNT_REQUESTS_PER_HOUR:3}

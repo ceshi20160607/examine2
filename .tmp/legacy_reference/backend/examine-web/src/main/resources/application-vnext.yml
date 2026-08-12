@@ -1,0 +1,46 @@
+spring:
+  config:
+    activate:
+      on-profile: vnext
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${EXAMINE_VNEXT_DB_URL}
+    username: ${EXAMINE_VNEXT_DB_USERNAME}
+    password: ${EXAMINE_VNEXT_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${EXAMINE_VNEXT_DB_POOL_MAX:20}
+      minimum-idle: ${EXAMINE_VNEXT_DB_POOL_MIN:2}
+      connection-timeout: 5000
+  data:
+    redis:
+      host: ${EXAMINE_VNEXT_REDIS_HOST}
+      port: ${EXAMINE_VNEXT_REDIS_PORT:6379}
+      password: ${EXAMINE_VNEXT_REDIS_PASSWORD:}
+      database: ${EXAMINE_VNEXT_REDIS_DATABASE:0}
+      timeout: 3s
+      ssl:
+        enabled: ${EXAMINE_VNEXT_REDIS_TLS_ENABLED:false}
+  flyway:
+    enabled: true
+    locations: ${EXAMINE_VNEXT_FLYWAY_LOCATIONS:classpath:db/migration-vnext}
+    validate-migration-naming: true
+    baseline-on-migrate: false
+    clean-disabled: true
+
+examine:
+  # The legacy runner treats blank credentials as disabled. Keep these explicit so
+  # it cannot run alongside the vNext bootstrap when legacy environment variables exist.
+  bootstrap:
+    root:
+      username: ""
+      password: ""
+      display-name: ""
+  foundation:
+    vnext:
+      enabled: true
+      bootstrap:
+        username: ${EXAMINE_VNEXT_BOOTSTRAP_USERNAME:admin}
+        password: ${EXAMINE_VNEXT_BOOTSTRAP_PASSWORD:123123aa}
+        display-name: ${EXAMINE_VNEXT_BOOTSTRAP_DISPLAY_NAME:Platform Administrator}
+  scheduling:
+    enabled: false

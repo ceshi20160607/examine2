@@ -1,0 +1,70 @@
+{
+  "contractVersion": 1,
+  "phaseId": "PHASE-P1-FOUNDATION",
+  "source": {
+    "path": "docs/user_requirement.md",
+    "sha256": "f169074a45793cce1a89fb2713c0fe4a6150cc9308e81a54e0246d4b247ef406"
+  },
+  "usableResult": "A new user registers with a first system, becomes its super administrator, enters the system shell, and can later sign in and enter the same authorized system again.",
+  "engineering": {
+    "frontend": ["Vue 3", "TypeScript", "Vite", "Pinia", "Vue Router"],
+    "backend": ["Java 21", "Spring Boot", "Undertow", "MyBatis-Plus"],
+    "runtimeDependencies": ["MySQL", "Redis", "Flyway"],
+    "authentication": "Project authentication and permission interceptors; no Spring Security",
+    "generatedBoundary": {
+      "packages": ["base.entity", "base.mapper", "base.mapper.xml", "base.service"],
+      "responsibility": "table-shaped persistence and generated CRUD only",
+      "frontendDependency": "the product frontend does not call generated base controllers"
+    },
+    "businessBoundary": {
+      "packages": ["manage.controller", "manage.application", "manage.service", "manage.domain", "manage.validator", "manage.permission", "manage.event"],
+      "responsibility": "one complete product action, validation, authorization, transaction and event orchestration",
+      "ordinaryCallChain": "controller -> use-case service -> generated IService -> generated ServiceImpl -> generated BaseMapper -> database",
+      "forbiddenDependencies": ["base.mapper", "JdbcTemplate", "NamedParameterJdbcTemplate", "ResultSet", "inline SQL", "dynamic table names"],
+      "specialPersistence": "Only a named repository port may call a repository/JDBC adapter or custom mapper XML when the accepted data contract proves generated IService is insufficient."
+    },
+    "sqlPolicy": "New special SQL exists only behind a named repository or custom mapper XML; controller, manage, application and domain code must not add inline business SQL or inject BaseMapper.",
+    "complexityPolicy": "Do not add a broad service that combines unrelated product actions; split by aggregate and action boundary.",
+    "legacyPolicy": "Existing code and historical PASS evidence are reference material only. Reuse code only after it conforms to this phase contract; freeze unrelated legacy surfaces instead of extending them."
+  },
+  "database": {
+    "migration": "A clean MySQL database migrates once with Flyway and a second check is non-destructive.",
+    "bootstrapScope": ["default platform super administrator", "account", "session", "system", "default tenant", "system member", "bootstrap role and permission"],
+    "contract": ".cursor/session/baseline/p1-data-contract.json",
+    "defaultAdministrator": {
+      "username": "admin",
+      "initialPassword": "123123aa",
+      "storage": "secure hash only",
+      "idempotency": "initialize once; repeated initialization neither duplicates the account nor resets an existing password",
+      "secrecy": "never emit the password in logs, responses or evidence"
+    },
+    "transactionBoundary": "Registration plus first-system bootstrap is atomic.",
+    "passwordStorage": "Passwords are never stored in plaintext."
+  },
+  "api": {
+    "contract": ".cursor/session/baseline/p1-api-contract.json",
+    "requiredActions": [
+      "login",
+      "refresh session",
+      "read current account and platform context",
+      "logout",
+      "register account with first system",
+      "list authorized systems",
+      "switch into an enabled authorized system"
+    ],
+    "responseRule": "Every failure has a stable business code, a human-readable message and requestId.",
+    "authorizationRule": "Frontend hiding never replaces backend authorization; a platform account without systemMemberId cannot enter system business pages. A disabled system denies ordinary members while an authorized system administrator receives ADMIN_SETTINGS_ONLY context."
+  },
+  "boundaryContract": ".cursor/session/baseline/p1-backend-boundary-contract.json",
+  "explicitExclusions": [
+    "module and field configuration",
+    "business record CRUD",
+    "organization and role administration beyond bootstrap super administrator",
+    "SSO and MFA",
+    "multi-tenant administration",
+    "Flow",
+    "OpenAPI applications",
+    "work management and AI",
+    "performance, capacity, million-record and concurrency testing"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+    "generatedAt":  "2026-07-21T23:47:43.6678857+08:00",
+    "baseUrl":  "http://127.0.0.1:18080",
+    "systemId":  "2079248383403778050",
+    "tenantId":  "2079248383403778051",
+    "username":  "p4c3_owner_22d1474f",
+    "password":  "P4-C3-Owner-22d1474f!",
+    "schemaVersionId":  "2079593906145021954",
+    "moduleCode":  "work_order",
+    "fields":  {
+                   "amount":  "2079593899606102019",
+                   "taxed":  "2079593900524654594",
+                   "total":  "2079593901170577409",
+                   "summary":  "2079593901900386307",
+                   "lookup":  "2079593902626000897",
+                   "aggregate":  "2079593903225786370"
+               },
+    "records":  {
+                    "customer":  "2079594152463912962",
+                    "order":  "2079594154963718145"
+                },
+    "expected":  {
+                     "taxed":  "41.5",
+                     "total":  "42.5",
+                     "summary":  "1",
+                     "lookup":  "P4-C4 Restart Acme",
+                     "aggregate":  "8.25"
+                 },
+    "preparedRecordVersion":  3,
+    "queryTotal":  1
+}

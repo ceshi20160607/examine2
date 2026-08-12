@@ -1,0 +1,21 @@
+{
+    "schemaVersion":  1,
+    "frameworkVersion":  "3.2.0",
+    "basePath":  "../.base",
+    "manifestSha256":  "01cf13f850b2cefde962d13df1b193c1ec71b1e0884f44eeada69c898d0d7300",
+    "instantiatedAt":  "2026-08-08T18:56:30.1971267+08:00",
+    "syncedAt":  "2026-08-10T19:39:36.7431570+08:00",
+    "allowedOverlays":  [
+                            "INSTANCE.md",
+                            "README.md",
+                            "base.lock.json",
+                            "session/state.json",
+                            "session/project-delivery.json",
+                            "session/project-progress.json",
+                            "session/PROJECT_PROGRESS.md",
+                            "session/current-node.md",
+                            "session/delivery-roadmap.md",
+                            "session/pending-user-decisions.md",
+                            "PROJECT_FRAMEWORK.md"
+                        ]
+}

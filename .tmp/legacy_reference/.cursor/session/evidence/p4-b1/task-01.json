@@ -1,0 +1,45 @@
+{
+  "taskId": "P4-B1-01",
+  "sliceId": "P4-B1-EDIT-AUTOSAVE",
+  "verdict": "pass",
+  "executedAt": "2026-07-17T19:50:54+08:00",
+  "singleOutcome": "Scoped server DRAFT read and CAS manual update for DRAFT/ACTIVE records.",
+  "contract": {
+    "read": "GET /api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records/{recordId}",
+    "write": "PUT /api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records/{recordId}",
+    "guards": [
+      "module update permission",
+      "effective data scope",
+      "current immutable schema and module snapshot",
+      "DRAFT or ACTIVE state",
+      "expectedVersion CAS",
+      "field write permission and typed validation",
+      "idempotency"
+    ],
+    "completionBoundary": "This task proves the server draft/read and manual-update transaction. Autosave/conflict is task 02; visible browser interaction is task 03."
+  },
+  "implementation": {
+    "recordRuntimeServiceSha256": "sha256:de6477f7f2978ca7dc48ca87bb03c1b391d4086d0b9d8e7bf9799c3f4a91eae5",
+    "recordRuntimeViewsSha256": "sha256:106346e193e35c3de5ab0030f4efc0695a2988afa5164750c1d516df76091ca0",
+    "moduleRuntimeControllerSha256": "sha256:bdab24be9ab8316f1003c26fcfd12bd31831d2442c8ce263f0ff1dd7bd26e961",
+    "integrationTestSha256": "sha256:7d6e753641fe13f0e976679d881c91effb6b9bdaa48dccddc27fb0130d81b72c"
+  },
+  "verification": {
+    "command": "mvn.cmd -pl examine-web -am -Dtest=Vs3DraftJourneyIntegrationTest#servesPublishedRecordSchemaListAndDetailWithStrictQueryGuards -Dsurefire.failIfNoSpecifiedTests=false test",
+    "result": "BUILD SUCCESS; 1 test, 0 failures, 0 errors, 0 skipped",
+    "api": [
+      "DRAFT direct read returns update/autosave/activate actions",
+      "manual update increments version once",
+      "same idempotency key replays version 1",
+      "same key with a different body returns IDEMPOTENCY_CONFLICT"
+    ],
+    "db": [
+      "manual update preserves draft expiry",
+      "writable field replacement leaves one current typed value",
+      "typed index carries DRAFT before activation and ACTIVE after update"
+    ],
+    "ui": "Not applicable to this backend-only task; no UI completion is claimed.",
+    "browser": "Not applicable to this backend-only task; task 03 owns real browser evidence.",
+    "restart": "Persistent MySQL readback is proven here; process restart readback remains mandatory at the P4-B1 node gate."
+  }
+}

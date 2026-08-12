@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ModuleReferenceRecalcTaskMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.ReferenceRecalcTask">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="source_record_id" property="sourceRecordId" />
+        <result column="source_record_version" property="sourceRecordVersion" />
+        <result column="status" property="status" />
+        <result column="attempt_count" property="attemptCount" />
+        <result column="available_at" property="availableAt" />
+        <result column="correlation_id" property="correlationId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, source_record_id, source_record_version, status, attempt_count, available_at, correlation_id, created_at, updated_at, version
+    </sql>
+
+</mapper>

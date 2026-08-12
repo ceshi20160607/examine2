@@ -1,0 +1,32 @@
+{
+    "testId":  "p1-system-entry-integration",
+    "category":  "cycle_integration",
+    "outcomeClass":  "regression",
+    "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/scripts/run-maven-focused-test.ps1 -Module examine-web -Tests P1SystemEntryCycleIntegrationTest",
+    "commandSha256":  "a2118cd0103ad14b69fe5eeb401d29acd08d2f02fc43d66d6243da9e13ef3dcd",
+    "exitCode":  0,
+    "timedOut":  false,
+    "mavenModule":  "examine-web",
+    "expectedTestSelectors":  [
+                                  "P1SystemEntryCycleIntegrationTest"
+                              ],
+    "missingTestSelectors":  [
+
+                             ],
+    "executedTestCount":  1,
+    "reportedTestCount":  1,
+    "skippedTestCount":  0,
+    "failureCount":  0,
+    "errorCount":  0,
+    "reportPaths":  [
+                        ".cursor/session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/surefire-reports/01-p1-system-entry-integration-TEST-com.unique.examine.web.P1SystemEntryCycleIntegrationTest.xml"
+                    ],
+    "reportSha256":  [
+                         "8aad8880f14406b63d356316f8876315b25defad69c3872982ddaa3ac2b60073"
+                     ],
+    "startedAt":  "2026-08-10T23:18:23.8224750+08:00",
+    "completedAt":  "2026-08-10T23:20:43.5975808+08:00",
+    "verdict":  "pass",
+    "logPath":  ".cursor/session/evidence/baseline/CYCLE-P1-04-SYSTEM-ENTRY/01-p1-system-entry-integration.log",
+    "logSha256":  "05ec44fdf28cf27213b90a65bc41d118981237025ea7a70aa7a1a60eb3e430bc"
+}

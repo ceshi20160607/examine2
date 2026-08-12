@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "path": "../../docs/user_requirement.md",
+    "sha256": "3bae2650d53cb0a0b790c5730a5f34e558f2d6efed25ae9d33d4b945dff8fe48"
+  },
+  "application": {
+    "kind": "runtime-configurable-platform",
+    "businessModuleRealization": "runtime-metadata",
+    "identityStrategy": "platform-unified",
+    "tenancyStrategy": "runtime-switchable-multi-tenant"
+  },
+  "boundaries": {
+    "fixedCore": [
+      "统一平台账号、登录会话与系统切换",
+      "系统、默认主租户、租户切换与租户隔离",
+      "平台组织权限与系统租户组织权限",
+      "多角色权限合并、按模块动作计算数据范围",
+      "配置草稿、校验、发布、版本与回滚",
+      "业务数据标准归属、逻辑删除、不可变审计",
+      "Flow 运行内核、版本快照与待办消息基础设施",
+      "自建应用认证、签名、防重放、限流与调用日志"
+    ],
+    "runtimeConfigured": [
+      "多层级业务模块",
+      "模块字段、字典关联、模块关联与页面布局",
+      "列表、详情、新建、编辑、删除、转移、转化、导入和导出动作",
+      "转化字段映射与目标模块校验",
+      "模块动作和数据事件触发的 Flow 绑定",
+      "租户字段、页面、字典、Flow、仪表盘和 AI 扩展配置"
+    ],
+    "forbiddenImplementations": [
+      "为管理员在运行时创建的每个业务模块生成并编译独立 Java Entity、Mapper 和物理业务表",
+      "继续在旧 backend 或 frontend 目录增加新产品实现",
+      "使用角色切换代替多角色权限合并",
+      "让角色权限绕过系统边界、租户隔离、安全硬限制或显式共享授权",
+      "把旧代码存在、接口返回成功或模拟页面通过当作业务验收"
+    ]
+  },
+  "firstVerticalSlice": {
+    "name": "注册到动态业务模块真实运行",
+    "orderedOutcomes": [
+      "注册统一平台用户并创建第一个系统和默认主租户",
+      "登录后获得明确的平台、系统、租户、成员和有效角色上下文",
+      "管理员以草稿配置一个模块、字段、页面动作和基础权限",
+      "发布模块配置 v1，运行态只读取该不可变发布版本",
+      "普通成员在权限范围内打开动态列表并完成新建、详情和编辑",
+      "数据库读回业务数据的系统、租户、负责人、审计和配置版本归属",
+      "浏览器验证无权限用户看不到动作且后端拒绝越权请求"
+    ],
+    "deferredCapabilities": [
+      "跨租户共享",
+      "模块转化",
+      "完整 Flow 设计器与复杂审批节点",
+      "平台及系统自建应用",
+      "AI、项目任务、日志、完整待办和消息中心"
+    ]
+  },
+  "unresolvedDecisions": []
+}

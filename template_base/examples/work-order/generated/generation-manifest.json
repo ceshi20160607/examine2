@@ -1,0 +1,133 @@
+{
+  "contractSha256": "dfa689b3cacfbaa81c31262ff3e4d74331462730b7a7d250331f86095cd8bb94",
+  "generatedFiles": [
+    {
+      "path": "backend/pom.xml",
+      "sha256": "8844f1f81447a0bdfe204038f43c6e4d18e13e7bd3924652c7cdb06cfe95b30d"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/Application.java",
+      "sha256": "164b0f24007e801beefc64ffdb5d7adb9f580b84df6e38caeff55e8c14864418"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/api/ApiExceptionHandler.java",
+      "sha256": "f7e24927507aae6cfaaa3e72d6d029fe8587a5f04598099818e43d9fc10f18a1"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/api/ApiResponse.java",
+      "sha256": "6d4d115b7f5df3bb8da6173ee8f7c366777689382f4fce87520630b4f3c95d1f"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/base/entity/WorkOrder.java",
+      "sha256": "13b903cc0bfaa6d2d878601e0c793560ece393161d21c1ee557ba1f5f68f52f2"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/base/mapper/WorkOrderMapper.java",
+      "sha256": "e2e6e39f0d05b9d43d05425f7d00d82ffdecb262e276202236b41ff01e28cdc1"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/base/service/IWorkOrderService.java",
+      "sha256": "9597ee25debf6968571b85e32671afb00d3c3eeb1b7486619d30cbf694c77822"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/base/service/impl/WorkOrderServiceImpl.java",
+      "sha256": "576485cbc8deef70efcadb90ba22948137d8b4deb39687defb569761be356d47"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/manage/generated/workorder/WorkOrderCommand.java",
+      "sha256": "da4019128b93f26680f64f8a9424d61ab716fdf2a6c778713d96256d28fea7a9"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/manage/generated/workorder/WorkOrderController.java",
+      "sha256": "92968136f9765e58e72859eb580aa79040506d4f007ed3ea6c2e898ba2295e58"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/manage/generated/workorder/WorkOrderCrudService.java",
+      "sha256": "15adf55638f8465fd29edd141b1965c6a2a703fe84be075c07161f82009ed3b6"
+    },
+    {
+      "path": "backend/src/main/java/io/templatebase/sample/workorder/manage/generated/workorder/WorkOrderView.java",
+      "sha256": "31b0dcee330fb90063dfc65d368a12d358c6d0badc0cab06026b7ccc03d45021"
+    },
+    {
+      "path": "backend/src/main/resources/application.yml",
+      "sha256": "8fa4590d4b58c4a9ccb4de6fc5743bbdab20b8ba79cab7f03747e00c96ec2d64"
+    },
+    {
+      "path": "backend/src/main/resources/db/migration/V1__generated_modules.sql",
+      "sha256": "5c6b6342c192bef83e7001402c999e97fb7ef4f2e148951c82f90bcbef1c5d37"
+    },
+    {
+      "path": "backend/src/test/java/templatebase/GeneratedBoundaryTest.java",
+      "sha256": "2de6c7704bb6607a79aaaad0a9c4919f1e6c7e1f1f4241f07ab48fd33f5169c3"
+    },
+    {
+      "path": "backend/src/test/resources/application.yml",
+      "sha256": "e5c576088c8b4b06feb8dd1ecc4edfac188799f5d6b2c03c0c80e6a90a592270"
+    },
+    {
+      "path": "deploy/compose.yaml",
+      "sha256": "7b38a0cdf4f4e028c1dd6d1e58f9527d2089db12ce10e3f1d2b1a67173c13aa5"
+    },
+    {
+      "path": "deploy/local.env.example",
+      "sha256": "b83259d026ca3e8093185e619ee14d3971cf02a9ea0de27b2632516a49fe9611"
+    },
+    {
+      "path": "frontend/index.html",
+      "sha256": "11a04cd8c1e614927241c2e9120d0bdd956da707f7ca1a12304ddc6ff1627836"
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "1a15f1ff7a21cc1666b1010ceeeb6ed85ca9faab0bfac027a7886f62b6999230"
+    },
+    {
+      "path": "frontend/playwright.config.ts",
+      "sha256": "d5a44384e62d4486d55a7c43f162fc412722f5d08a28f3fc1971f8b5d3d11cdd"
+    },
+    {
+      "path": "frontend/src/App.vue",
+      "sha256": "84bcfdb856866e475d42710ad5e4fbc05d8092dbabb438fa95fbcbbad44f9e27"
+    },
+    {
+      "path": "frontend/src/api/client.ts",
+      "sha256": "3feff806f9d212f57910946db8b54f7d4ec520c80dac6472d62c7862408994d4"
+    },
+    {
+      "path": "frontend/src/generated/modules.ts",
+      "sha256": "8f729c0f618831cb7afba4aeadcc36251c08ba47053112340469a5399558eabe"
+    },
+    {
+      "path": "frontend/src/main.ts",
+      "sha256": "189290b1d23e1926559add7c7697f4e7c12b472d6e7fd080fbc9b1066b6bef28"
+    },
+    {
+      "path": "frontend/src/router.ts",
+      "sha256": "779b510c279f5616f29a7737bc91f3c80716c231fa2763c91b272e83c96a3b4a"
+    },
+    {
+      "path": "frontend/src/styles.css",
+      "sha256": "c82d760b15d726ba5aa4c4e25c014447ea6e3d94085dd155844c0d5855da374a"
+    },
+    {
+      "path": "frontend/src/views/GeneratedCrudView.vue",
+      "sha256": "f640d476e5bc03a9a9fed705e688c1c47a2eced68c0c0b019be76a223ae2f1a1"
+    },
+    {
+      "path": "frontend/tests/e2e/real-crud.spec.ts",
+      "sha256": "a1115ec47833186bd68a1f3b16d58ca6658534d567ff4069b770e0df8f3db6d1"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "sha256": "281508ac1efb7a065fec6c741e6f608c37bc89540a3fd03e59309cda10306b93"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "sha256": "0e49d9885b6c83f41f67c576f4ebf0501ea6c7f0b773335c4927a40e934b864a"
+    }
+  ],
+  "generatorVersion": "0.1.0-dev",
+  "projectId": "work-order-sample",
+  "schemaVersion": 1,
+  "sourceSha256": "79b0abfa08b1f41c8807164d1c2c48e75a2dcf8092eceed866a86e7758a8c257"
+}

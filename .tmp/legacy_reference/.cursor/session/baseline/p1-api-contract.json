@@ -1,0 +1,123 @@
+{
+  "contractVersion": 1,
+  "phaseId": "PHASE-P1-FOUNDATION",
+  "status": "accepted",
+  "basePath": "/api/v1",
+  "responseEnvelope": {
+    "successCode": "OK",
+    "fields": ["code", "message", "data", "requestId", "traceId", "errors"],
+    "rule": "HTTP status and business code both express failure; requestId and traceId are always present"
+  },
+  "session": {
+    "transport": "HttpOnly SameSite cookie",
+    "accessCookie": "context session token; never returned to JavaScript",
+    "refreshCookie": "rotating refresh token; never returned to JavaScript",
+    "switchRule": "system switch issues a new context session only after membership, tenant, status and permission snapshots are resolved"
+  },
+  "endpoints": [
+    {
+      "id": "API-P1-LOGIN",
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "auth": "anonymous",
+      "request": {"account": "string:1..254", "password": "string:1..200"},
+      "successHttpStatus": 200,
+      "successData": "AccountContext",
+      "businessCodes": ["OK", "AUTH_INVALID_CREDENTIALS", "AUTH_ACCOUNT_DISABLED", "AUTH_RATE_LIMITED"],
+      "idempotency": "not applicable; repeated valid login may replace/issue a session according to session policy",
+      "readback": "GET /api/v1/me/context returns the same account"
+    },
+    {
+      "id": "API-P1-REFRESH",
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "auth": "refresh_cookie",
+      "request": {},
+      "successHttpStatus": 200,
+      "successData": "AccountContext",
+      "businessCodes": ["OK", "AUTH_REFRESH_INVALID", "AUTH_REFRESH_REPLAY", "AUTH_ACCOUNT_DISABLED"],
+      "idempotency": "single-use refresh token rotates within one family; replay revokes the family",
+      "readback": "GET /api/v1/me/context succeeds with the rotated session"
+    },
+    {
+      "id": "API-P1-CURRENT-CONTEXT",
+      "method": "GET",
+      "path": "/api/v1/me/context",
+      "auth": "context_session",
+      "request": {},
+      "successHttpStatus": 200,
+      "successData": "AccountContext",
+      "businessCodes": ["OK", "AUTH_SESSION_REQUIRED", "AUTH_SESSION_EXPIRED"],
+      "idempotency": "read only",
+      "readback": "returned context matches persisted active context session"
+    },
+    {
+      "id": "API-P1-LOGOUT",
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "auth": "context_session",
+      "request": {},
+      "successHttpStatus": 200,
+      "successData": null,
+      "businessCodes": ["OK", "AUTH_SESSION_REQUIRED"],
+      "idempotency": "revoking an already revoked current session is safe",
+      "readback": "GET /api/v1/me/context is denied and both cookies are cleared"
+    },
+    {
+      "id": "API-P1-REGISTER-FIRST-SYSTEM",
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "auth": "anonymous",
+      "request": {
+        "username": "^[A-Za-z][A-Za-z0-9_]{2,31}$",
+        "displayName": "string:1..120",
+        "password": "string:10..200",
+        "systemName": "string:1..160",
+        "systemCode": "^[a-z][a-z0-9_]{2,31}$"
+      },
+      "headers": {"Idempotency-Key": "required UUID generated once per form submission"},
+      "successHttpStatus": 200,
+      "successData": "AccountContext with firstSystemId and SYSTEM_ADMIN context",
+      "businessCodes": ["OK", "REGISTER_USERNAME_CONFLICT", "REGISTER_SYSTEM_CODE_CONFLICT", "REGISTER_INVALID", "REGISTER_FAILED"],
+      "idempotency": "same key and same payload returns the original result; same key with different payload is rejected",
+      "readback": "account, system, default tenant, member, membership, role and active session all exist after commit"
+    },
+    {
+      "id": "API-P1-LIST-SYSTEMS",
+      "method": "GET",
+      "path": "/api/v1/context/systems",
+      "auth": "context_session",
+      "request": {},
+      "successHttpStatus": 200,
+      "successData": "AuthorizedSystem[]",
+      "businessCodes": ["OK", "AUTH_SESSION_REQUIRED"],
+      "idempotency": "read only",
+      "readback": "every returned item has an active membership for the current account; unauthorized systems are absent"
+    },
+    {
+      "id": "API-P1-SWITCH-SYSTEM",
+      "method": "POST",
+      "path": "/api/v1/context/systems/{systemId}:switch",
+      "auth": "context_session",
+      "request": {},
+      "successHttpStatus": 200,
+      "successData": "AccountContext with SystemSwitchContext",
+      "businessCodes": ["OK", "AUTH_SESSION_REQUIRED", "SYSTEM_NOT_FOUND", "SYSTEM_MEMBER_REQUIRED", "SYSTEM_MEMBER_DISABLED", "SYSTEM_DISABLED", "SYSTEM_NO_TENANT"],
+      "idempotency": "repeated switch resolves a fresh permission snapshot without duplicating membership",
+      "readback": "GET /api/v1/me/context returns the selected system, tenant, member, roles, data scope, permissions and restrictedMode"
+    }
+  ],
+  "types": {
+    "AccountContext": ["account", "context", "systems", "tenants", "firstSystemId"],
+    "SystemSwitchContext": ["systemId", "systemName", "tenantId", "tenantName", "memberId", "roleIds", "dataScope", "permissionVersion", "permissions", "restrictedMode"],
+    "DataScopeContext": ["id", "code", "kind"],
+    "AuthorizedSystem": ["id", "code", "name", "status", "memberStatus", "roleNames", "recentEnteredAt", "defaultTenantId"]
+  },
+  "uiMapping": {
+    "/login": ["API-P1-LOGIN", "API-P1-REFRESH", "API-P1-CURRENT-CONTEXT"],
+    "/register": ["API-P1-REGISTER-FIRST-SYSTEM"],
+    "/platform/systems": ["API-P1-LIST-SYSTEMS", "API-P1-SWITCH-SYSTEM", "API-P1-LOGOUT"],
+    "/systems/:systemId/admin/onboarding": ["API-P1-CURRENT-CONTEXT", "API-P1-LOGOUT"]
+  },
+  "explicitExclusions": ["password recovery", "SSO", "MFA", "organization administration", "module data", "Flow", "performance and capacity"]
+}

@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-C1-03",
+  "sliceId": "P4-C1-NUMERIC-TIME-SELECTION-FIELDS",
+  "verdict": "pass",
+  "checkedAt": "2026-07-20T18:49:02+08:00",
+  "singleOutcome": "Ordinary-member desktop/mobile configuration, form, detail, typed query, unique-conflict feedback and packaged-backend restart readback for all eleven P4-C1 field types.",
+  "contract": {
+    "path": ".cursor/session/current-node.md",
+    "sha256": "sha256:c9af518ff0144768b6a45074c7318c8e4a0ce05a256c4f7ed3471cc0967af902",
+    "principal": "p4c1q_member_fa5a8b3d",
+    "completionBoundary": "P4-C1 eleven numeric, time and selection fields only; P4-C2 and later product slices remain open."
+  },
+  "implementation": {
+    "runtimeViewsSha256": "sha256:1646b1daf330220af05c0827e924a3f05d6475596573a03010ca88553a5bb823",
+    "runtimeServiceSha256": "sha256:3577c460c5168f2d2e8d43e1d97297b3213eec089aa8c217b612bed26da79497",
+    "runtimeFieldInputSha256": "sha256:d49bc1005839b68f284037a9196c40de812af7733752b0397ec5f73e2a7122ba",
+    "runtimeFieldModelSha256": "sha256:c284132c9302d182f482ce4165379351d141bf19b55166f70934ed253306b272",
+    "workbenchSha256": "sha256:4e8c981deb86a95990718ae88c9775d349e2bec41f3b3e30ae8baeb9bd385747",
+    "configStudioSha256": "sha256:699b688ef5f9185dc3fc7c576ec5feb08c272dc89e3f939ac0fe4327d0d2f8af",
+    "configModelSha256": "sha256:a22c6d3e1b10e09931c868c07c14e942cf3678f2cc4f50b61bc4f3660db4a36f",
+    "mainSha256": "sha256:2e0d9bf3ac950ca5e1b29e9e18606a5c7402e5a697be13535de2579cad860766",
+    "unitTestSha256": "sha256:db4252f6bc85a87687eb142a6a4ff0f8ea614e2e367d18b2dda0793339e9b348",
+    "e2eTestSha256": "sha256:f2739c14d8adc2e28b655c00bd1ea854d834d471d6a8ab7c308e54016f6c4447",
+    "packagedJarSha256": "sha256:a900b5e4f15a6000d4e3f6d43c44740eef93b3f3845f960b4213357868c34a4a"
+  },
+  "checks": [
+    {
+      "name": "frontend unit, type and production build",
+      "result": "8 files / 27 tests passed; strict vue-tsc passed; Vite production build passed"
+    },
+    {
+      "name": "backend module regression",
+      "result": "1 core and 8 examine-module tests passed with zero failures"
+    },
+    {
+      "name": "empty-schema migration integration",
+      "result": "P4A1SchemaIntegrationTest passed; independent MySQL 8.4 container applied and validated all 11 migrations through V4.5.0"
+    },
+    {
+      "name": "real Edge desktop/mobile journey",
+      "result": "3 required tests passed and 3 conditional viewport/restart tests skipped before restart; zero unexpected console/page errors, HTTP 5xx or document overflow"
+    },
+    {
+      "name": "packaged restart readback",
+      "result": "PID 46940 health UP; fresh ordinary-member context read record 2079153913844924418 with the same eleven canonical values; 1/1 restart test passed"
+    },
+    {
+      "name": "framework validation",
+      "result": ".base reusable template and .cursor instance both passed validate-framework.ps1"
+    }
+  ],
+  "evidence": {
+    "api": {
+      "schema": "exactly eleven P4-C1 types and CASCADE parentValue relationships read from the published schema",
+      "write": "create, autosave, activate and active update preserve canonical values",
+      "query": "PERCENT GTE plus MONEY EQ/CNY and MONEY CNY sort return server totals and the created record",
+      "conflict": "duplicate completion_rate activation shows FIELD_UNIQUE_CONFLICT at field and form level",
+      "result": "pass"
+    },
+    "db": {
+      "flyway": "remote V4.5.0 and independent empty MySQL replay pass",
+      "desktopRecordId": "2079153913844924418",
+      "mobileRecordId": "2079154029737738242",
+      "result": "pass"
+    },
+    "ui": {
+      "configuration": "MONEY exposes allowed/fixed currencies, disables searchable and limits index modes",
+      "form": "currency plus exact amount, date/time pairs, multi-select, cascade, switch, rating, progress slider/input and tags render on desktop/mobile",
+      "detail": "all eleven display values render after activation, edit and refresh",
+      "query": "typed field/operator/value/currency/sort controls render responsively",
+      "result": "pass"
+    },
+    "browser": {
+      "desktopReadback": {"path": ".cursor/session/evidence/p4-c1/browser-desktop.json", "sha256": "sha256:052fb3514eefbfc445bfefdbb6f540ae93fd443b2ae29e222b842ec39ceafa29"},
+      "mobileReadback": {"path": ".cursor/session/evidence/p4-c1/browser-mobile.json", "sha256": "sha256:c7e4864f0925a915b96ab023c665bd8c9a72396870d206a2a04fc576265ec415"},
+      "configuration": {"path": ".cursor/session/evidence/p4-c1/config-money-desktop.png", "sha256": "sha256:b56ed6b97a43e1b152da9125c05efed3b179ec90b61ad0d3d2f5e3c096ce9b75"},
+      "screenshots": [
+        {"path": ".cursor/session/evidence/p4-c1/eleven-field-form-desktop-top.png", "sha256": "sha256:a212bd40f28ba3618c1728a63b06f2e26abc783fa87f04eda00674e801ccba08"},
+        {"path": ".cursor/session/evidence/p4-c1/eleven-field-form-desktop-bottom.png", "sha256": "sha256:509c2a1b9c54d142b36b8b174f18503134e395b7e18029d2ec3febe425671d0e"},
+        {"path": ".cursor/session/evidence/p4-c1/eleven-field-form-mobile-top.png", "sha256": "sha256:01d0cff2642e22a7f732f4cb2f8f8669b859936dc662448b62977994ec782436"},
+        {"path": ".cursor/session/evidence/p4-c1/eleven-field-form-mobile-bottom.png", "sha256": "sha256:6c1918a4b5dd36f92676d34a912f34742e3d6858013056b15ef832388e0d31f4"},
+        {"path": ".cursor/session/evidence/p4-c1/eleven-fields-desktop-top.png", "sha256": "sha256:564d5432483c21f8a3b550be6b60298b9886479780206be8e7d68b90ac5a574a"},
+        {"path": ".cursor/session/evidence/p4-c1/eleven-fields-mobile-top.png", "sha256": "sha256:e8d5df020055e141862b32929df9dfc0449427d8ee8d8a8219544721a05e9046"},
+        {"path": ".cursor/session/evidence/p4-c1/eleven-fields-mobile-bottom.png", "sha256": "sha256:006001064aa941683d3b9976917fe05098ae14094db183c73c5af4fe2b161375"},
+        {"path": ".cursor/session/evidence/p4-c1/typed-query-desktop-top.png", "sha256": "sha256:b6933f83f0662ebc31adc0578f3ce682718548395645ee8f5f557de236ec412a"},
+        {"path": ".cursor/session/evidence/p4-c1/typed-query-desktop-bottom.png", "sha256": "sha256:fc1bd367e17daa215a13508de1b79bb701dc647c7f4ab02ff21d840807304f53"},
+        {"path": ".cursor/session/evidence/p4-c1/typed-query-mobile-top.png", "sha256": "sha256:ffd425cc243d90a695497becad65d1d6aa18563d965e40d471ca3176f8a2ad13"},
+        {"path": ".cursor/session/evidence/p4-c1/typed-query-mobile-bottom.png", "sha256": "sha256:d3d9a497e94b58d7284668a6fa660ed6e28107291023e4cfe697c01fe5ee6dd1"},
+        {"path": ".cursor/session/evidence/p4-c1/typed-query-result-desktop.png", "sha256": "sha256:b6ab2240379fc2f5ba6beb6f4118ba6a73783244169484fe46240cce518fc38d"},
+        {"path": ".cursor/session/evidence/p4-c1/typed-query-result-mobile.png", "sha256": "sha256:e719a86a254055bfcfab240ff0687e1b4cdb2de5b26717e50f51862be962354c"}
+      ],
+      "result": "pass"
+    },
+    "restart": {
+      "oldPid": 26840,
+      "newPid": 46940,
+      "health": "UP",
+      "recordId": "2079153913844924418",
+      "screenshot": {"path": ".cursor/session/evidence/p4-c1/restart-readback-desktop.png", "sha256": "sha256:ba6b36b80d74dfa38522400a039082a981a7a191f92789237fb942a4995b7064"},
+      "result": "pass"
+    }
+  },
+  "resolvedFindings": [
+    {
+      "code": "P4-C1-CASCADE-PARENT",
+      "finding": "Runtime option DTO omitted the parent relationship required to build a cascade tree.",
+      "resolution": "ReferenceOption and schema mapping now expose parentValue from the published snapshot."
+    },
+    {
+      "code": "P4-C1-CONTROL-REGISTRATION",
+      "finding": "Cascader, Rate and Slider tags rendered as unresolved components.",
+      "resolution": "The Ant Design Vue components are registered centrally and verified in desktop/mobile screenshots."
+    },
+    {
+      "code": "P4-C1-EDIT-LOAD-RACE",
+      "finding": "The edit form briefly accepted input before the requested active record finished loading, allowing a new draft to be created.",
+      "resolution": "formReady gates controls and actions until the route record and loaded aggregate match."
+    },
+    {
+      "code": "P4-C1-TAG-IMPLICIT-SUBMIT",
+      "finding": "Enter inside the TAG selector could submit the outer form while adding a tag.",
+      "resolution": "The form prevents implicit submit after the tag selector handles Enter; both tags persist through edit and refresh."
+    },
+    {
+      "code": "P4-C1-CONFIG-A11Y-I18N",
+      "finding": "Configuration selects lacked explicit accessible labels and the shared modal showed an English Cancel button.",
+      "resolution": "Index/currency controls have aria labels and the shared modal uses Chinese confirm/cancel labels."
+    }
+  ],
+  "deferred": [
+    "PHONE, EMAIL, URL, IDENTITY, ADDRESS, GEO, RICH_TEXT, JSON, SECRET, STATUS and BARCODE belong to P4-C2",
+    "relation/subtable, derived fields, files, collaboration, Flow, task center, reports and release acceptance remain later slices",
+    "the production bundle size warning remains a later performance optimization and did not block P4-C1 behavior"
+  ]
+}

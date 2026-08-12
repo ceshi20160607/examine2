@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-07-21T21:46:00+08:00",
+  "verdict": "pass",
+  "module": "examine-module",
+  "tablePrefix": "un_module_",
+  "database": "MySQL 8.4.10",
+  "tables": 30,
+  "generatedFiles": 150,
+  "firstTreeSha256": "8a8adaa5fd98b25b94f4a7b754995c11d58a1aab314781377b850873a93c2e91",
+  "secondTreeSha256": "8a8adaa5fd98b25b94f4a7b754995c11d58a1aab314781377b850873a93c2e91",
+  "deterministic": true,
+  "reportPath": "backend/generator-reports/examine-module-un_module_.json",
+  "reportSha256": "2ce7fa0ee92204e0bef2f90735113deae1ca7755de8124ab16989bcef11e2f05",
+  "businessLogicInGeneratedBase": false
+}

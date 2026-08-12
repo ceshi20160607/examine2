@@ -1,0 +1,21 @@
+{
+    "checkedAt":  "2026-07-21T02:36:58.5586710+08:00",
+    "verdict":  "pass",
+    "backendHealth":  "UP",
+    "projectionRestored":  true,
+    "customerVersionBefore":  5,
+    "customerVersionAfter":  6,
+    "dependentVersionBefore":  11,
+    "dependentVersionWhileFailed":  11,
+    "dependentVersionAfterRetry":  12,
+    "failedState":  "FAILED",
+    "failedResultPreserved":  "Acme Customer Retry 20260721023603",
+    "failedCorrelationIdPresent":  true,
+    "retryState":  "PENDING",
+    "retryReplayStable":  true,
+    "readyState":  "READY",
+    "readyResult":  "Acme Customer Retry 20260721023650",
+    "sourceVersion":  6,
+    "taskStatus":  "PASSED",
+    "taskAttemptCount":  0
+}

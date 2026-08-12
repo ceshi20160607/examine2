@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "path": "user_require.md",
+    "sha256": "79b0abfa08b1f41c8807164d1c2c48e75a2dcf8092eceed866a86e7758a8c257"
+  },
+  "project": {
+    "id": "work-order-sample",
+    "name": "工单管理样例",
+    "groupId": "io.templatebase.sample",
+    "artifactId": "work-order-sample",
+    "basePackage": "io.templatebase.sample.workorder"
+  },
+  "runtime": {
+    "java": 21,
+    "springBoot": "3.5.16",
+    "database": "mysql",
+    "redis": true,
+    "serverPort": 18080
+  },
+  "ui": {
+    "library": "ant-design-vue",
+    "brand": "Template Base",
+    "density": "comfortable",
+    "referenceViewport": "1440x900"
+  },
+  "modules": [
+    {
+      "id": "work-order",
+      "name": "工单",
+      "route": "/work-orders",
+      "table": "tb_work_order",
+      "actions": ["list", "detail", "create", "update", "delete"],
+      "fields": [
+        { "code": "id", "column": "id", "label": "ID", "type": "id", "required": true, "list": false, "form": false, "filter": false },
+        { "code": "orderNo", "column": "order_no", "label": "工单编号", "type": "string", "length": 40, "required": true, "unique": true, "list": true, "form": true, "filter": true },
+        { "code": "title", "column": "title", "label": "标题", "type": "string", "length": 160, "required": true, "list": true, "form": true, "filter": true },
+        { "code": "description", "column": "description", "label": "说明", "type": "text", "required": false, "list": false, "form": true, "filter": false },
+        { "code": "priority", "column": "priority", "label": "优先级", "type": "integer", "required": true, "list": true, "form": true, "filter": true },
+        { "code": "urgent", "column": "urgent", "label": "紧急", "type": "boolean", "required": true, "list": true, "form": true, "filter": true },
+        { "code": "createdAt", "column": "created_at", "label": "创建时间", "type": "datetime", "required": true, "list": true, "form": false, "filter": false }
+      ],
+      "businessRules": [
+        { "id": "WORK-ORDER-NO-UNIQUE", "description": "工单编号必须唯一", "implementation": "generated" }
+      ]
+    }
+  ],
+  "unresolvedDecisions": []
+}

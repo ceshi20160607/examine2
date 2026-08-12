@@ -1,0 +1,174 @@
+{
+  "config": {
+    "argv": [
+      "D:\\dev\\nodejs24\\node.exe",
+      "D:\\workspace\\01_project\\snow\\cursor\\examine2\\frontend\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "tests/e2e/batch107-http-datasource-runtime.spec.ts",
+      "--project=desktop",
+      "--workers=1"
+    ],
+    "configFile": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\frontend\\playwright.config.ts",
+    "rootDir": "D:/workspace/01_project/snow/cursor/examine2/frontend/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "D:/workspace/01_project/snow/cursor/examine2/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "D:/workspace/01_project/snow/cursor/examine2/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "D:/workspace/01_project/snow/cursor/examine2/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-compact",
+        "name": "desktop-compact",
+        "testDir": "D:/workspace/01_project/snow/cursor/examine2/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/(vs3|p4-a1)\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "D:/workspace/01_project/snow/cursor/examine2/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "D:/workspace/01_project/snow/cursor/examine2/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node node_modules/vite/bin/vite.js --port 5177",
+      "url": "http://127.0.0.1:5177",
+      "timeout": 120000,
+      "reuseExistingServer": false,
+      "env": {
+        "VITE_API_PROXY_TARGET": "http://127.0.0.1:18080"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "batch107-http-datasource-runtime.spec.ts",
+      "file": "batch107-http-datasource-runtime.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "loads published HTTP rows only after one explicit action",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5780,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-05T09:22:46.304Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dab4d87b80d06d9acf8d-f247af1de3180c98d80d",
+          "file": "batch107-http-datasource-runtime.spec.ts",
+          "line": 125,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-05T09:22:43.771Z",
+    "duration": 12210.680999999999,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

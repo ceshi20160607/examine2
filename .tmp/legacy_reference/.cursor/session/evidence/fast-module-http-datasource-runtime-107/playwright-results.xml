@@ -1,0 +1,6 @@
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="12.210681">
+<testsuite name="batch107-http-datasource-runtime.spec.ts" timestamp="2026-08-05T09:22:45.469Z" hostname="desktop" tests="1" failures="0" skipped="0" time="5.78" errors="0">
+<testcase name="loads published HTTP rows only after one explicit action" classname="batch107-http-datasource-runtime.spec.ts" time="5.78">
+</testcase>
+</testsuite>
+</testsuites>

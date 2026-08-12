@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Management UI"
+  short_description: "Build clear, restrained management-system interfaces"
+  default_prompt: "Use $build-management-ui to freeze and validate a clear management-page contract before implementing the frontend."

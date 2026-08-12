@@ -1,0 +1,117 @@
+{
+  "project": "desktop",
+  "principal": "p4c2_member_1858efd2",
+  "systemId": "2079175642445213697",
+  "recordId": "2079231114548301826",
+  "title": "P4-C2 浏览器验收 desktop 1784562302002",
+  "canonicalValues": [
+    {
+      "fieldCode": "subject",
+      "fieldName": "工单主题",
+      "type": "TEXT",
+      "value": "结构化字段 1784562302002-e0ad2",
+      "displayValue": "结构化字段 1784562302002-e0ad2"
+    },
+    {
+      "fieldCode": "contact_phone",
+      "fieldName": "Contact phone",
+      "type": "PHONE",
+      "value": [
+        "+8613962302002"
+      ],
+      "displayValue": "+8613962302002"
+    },
+    {
+      "fieldCode": "contact_email",
+      "fieldName": "Contact email",
+      "type": "EMAIL",
+      "value": [
+        "accept-1784562302002-e0ad2@example.com"
+      ],
+      "displayValue": "accept-1784562302002-e0ad2@example.com"
+    },
+    {
+      "fieldCode": "reference_url",
+      "fieldName": "Reference URL",
+      "type": "URL",
+      "value": "https://example.com/accept/1784562302002-e0ad2",
+      "displayValue": "https://example.com/accept/1784562302002-e0ad2"
+    },
+    {
+      "fieldCode": "identity_number",
+      "fieldName": "Identity number",
+      "type": "IDENTITY",
+      "value": "110101199003053182",
+      "displayValue": "**************3182"
+    },
+    {
+      "fieldCode": "service_address",
+      "fieldName": "Service address",
+      "type": "ADDRESS",
+      "value": {
+        "countryCode": "CN",
+        "display": "Beijing Chaoyang 1784562302002-e0ad2",
+        "regionCode": "BJ",
+        "city": "Beijing"
+      },
+      "displayValue": "Beijing Chaoyang 1784562302002-e0ad2"
+    },
+    {
+      "fieldCode": "service_geo",
+      "fieldName": "Service coordinates",
+      "type": "GEO",
+      "value": {
+        "lat": 39.9,
+        "lng": 116.4
+      },
+      "displayValue": "39.9, 116.4"
+    },
+    {
+      "fieldCode": "asset_barcode",
+      "fieldName": "Asset barcode",
+      "type": "BARCODE",
+      "value": {
+        "symbology": "CODE128",
+        "payload": "ASSET-1784562302002-e0ad2"
+      },
+      "displayValue": "CODE128 ASSET-1784562302002-e0ad2"
+    },
+    {
+      "fieldCode": "rich_notes",
+      "fieldName": "Rich notes",
+      "type": "RICH_TEXT",
+      "value": "<p><strong>Browser acceptance 1784562302002-e0ad2</strong></p>",
+      "displayValue": "Browser acceptance 1784562302002-e0ad2"
+    },
+    {
+      "fieldCode": "metadata_json",
+      "fieldName": "Metadata JSON",
+      "type": "JSON",
+      "value": {
+        "count": 7,
+        "ticket": "TICKET-2302002"
+      },
+      "displayValue": "{\"count\":7,\"ticket\":\"TICKET-2302002\"}"
+    },
+    {
+      "fieldCode": "private_secret",
+      "fieldName": "Private secret",
+      "type": "SECRET",
+      "displayValue": "********"
+    },
+    {
+      "fieldCode": "workflow_status",
+      "fieldName": "Workflow status",
+      "type": "STATUS",
+      "value": "2079175985535086593",
+      "displayValue": "Active"
+    }
+  ],
+  "structuredQueryFields": [
+    "service_geo",
+    "metadata_json",
+    "private_secret"
+  ],
+  "sensitiveDataPersistedInUrlOrStorage": false,
+  "capturedAt": "2026-07-20T15:45:15.636Z"
+}

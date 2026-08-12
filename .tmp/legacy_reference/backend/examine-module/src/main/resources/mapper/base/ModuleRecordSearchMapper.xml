@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ModuleRecordSearchMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.RecordSearch">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="record_id" property="recordId" />
+        <result column="schema_version_id" property="schemaVersionId" />
+        <result column="module_snapshot_id" property="moduleSnapshotId" />
+        <result column="logical_module_id" property="logicalModuleId" />
+        <result column="logical_field_id" property="logicalFieldId" />
+        <result column="index_generation_id" property="indexGenerationId" />
+        <result column="record_status" property="recordStatus" />
+        <result column="field_type" property="fieldType" />
+        <result column="token_ordinal" property="tokenOrdinal" />
+        <result column="token" property="token" />
+        <result column="token_hash" property="tokenHash" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, record_id, schema_version_id, module_snapshot_id, logical_module_id, logical_field_id, index_generation_id, record_status, field_type, token_ordinal, token, token_hash, created_at
+    </sql>
+
+</mapper>

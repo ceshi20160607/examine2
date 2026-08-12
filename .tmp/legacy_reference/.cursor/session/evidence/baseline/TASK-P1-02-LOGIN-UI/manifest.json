@@ -1,0 +1,20 @@
+{
+    "schemaVersion":  1,
+    "scopeId":  "TASK-P1-02-LOGIN-UI",
+    "planPath":  ".cursor/session/cycles/CYCLE-P1-02-LOGIN/task-frontend-test-plan.json",
+    "planSha256":  "1c9c9969a364469ec3934316fde8009864cd7bac3decda44a2ad50ecb10dffef",
+    "sourceCommitSha":  "c9fc62da6528b462f321a64771a341a56671f7da",
+    "sourceDirty":  true,
+    "generatedAt":  "2026-08-10T20:15:03.2248306+08:00",
+    "verdict":  "pass",
+    "executedTestCount":  14,
+    "tests":  [
+                  {
+                      "testId":  "p1-login-ui-affected",
+                      "evidencePath":  ".cursor/session/evidence/baseline/TASK-P1-02-LOGIN-UI/01-p1-login-ui-affected.json",
+                      "evidenceSha256":  "08e3b9d7cb6a86d20a2c5a0a290a7b7294cefb2fc2dd091388ba9b778bbb2e11",
+                      "verdict":  "pass",
+                      "executedTestCount":  14
+                  }
+              ]
+}

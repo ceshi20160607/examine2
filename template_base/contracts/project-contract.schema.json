@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/contracts/project-contract.schema.json",
+  "title": "Template Base Project Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "source",
+    "project",
+    "runtime",
+    "ui",
+    "modules",
+    "unresolvedDecisions"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "groupId", "artifactId", "basePackage"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "groupId": { "type": "string", "minLength": 3 },
+        "artifactId": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "basePackage": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["java", "springBoot", "database", "redis", "serverPort"],
+      "properties": {
+        "java": { "const": 21 },
+        "springBoot": { "type": "string", "minLength": 1 },
+        "database": { "const": "mysql" },
+        "redis": { "const": true },
+        "serverPort": { "type": "integer", "minimum": 1024, "maximum": 65535 }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["library", "brand", "density", "referenceViewport"],
+      "properties": {
+        "library": { "const": "ant-design-vue" },
+        "brand": { "type": "string", "minLength": 1 },
+        "density": { "enum": ["compact", "comfortable"] },
+        "referenceViewport": { "const": "1440x900" }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/module" }
+    },
+    "unresolvedDecisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "question", "blocking"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "question": { "type": "string", "minLength": 1 },
+          "blocking": { "const": true }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "column", "label", "type", "required", "list", "form", "filter"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+        "column": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "label": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["id", "string", "text", "integer", "decimal", "boolean", "date", "datetime"] },
+        "required": { "type": "boolean" },
+        "list": { "type": "boolean" },
+        "form": { "type": "boolean" },
+        "filter": { "type": "boolean" },
+        "length": { "type": "integer", "minimum": 1, "maximum": 4000 },
+        "unique": { "type": "boolean" }
+      }
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "route", "table", "actions", "fields", "businessRules"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "route": { "type": "string", "pattern": "^/[a-z][a-z0-9-/]*$" },
+        "table": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["list", "detail", "create", "update", "delete"] }
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/field" }
+        },
+        "businessRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "description", "implementation"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "description": { "type": "string", "minLength": 1 },
+              "implementation": { "enum": ["generated", "handwritten"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

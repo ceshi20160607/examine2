@@ -1,0 +1,41 @@
+{
+  "format": "HDR_EQUIVALENT_EXACT_1MS",
+  "schemaVersion": 1,
+  "precisionMs": 1,
+  "nearestRank": true,
+  "rawSamplesSha256": "490a9818a663286d20a9b9aab39db85e1fb0dc4d26ef123f27420d5e9ac6c8c9",
+  "classes": {
+    "list": {
+      "samples": 13,
+      "p75": 939,
+      "p95": 20484,
+      "buckets": {
+        "46": 1,
+        "47": 1,
+        "51": 1,
+        "251": 1,
+        "289": 1,
+        "338": 1,
+        "475": 1,
+        "491": 1,
+        "623": 1,
+        "939": 1,
+        "3236": 1,
+        "18461": 1,
+        "20484": 1
+      }
+    },
+    "detail": {
+      "samples": 4,
+      "p75": 111,
+      "p95": 118,
+      "buckets": {
+        "54": 1,
+        "62": 1,
+        "111": 1,
+        "118": 1
+      }
+    }
+  },
+  "histogramSha256": "8b467ec1ca53cdef49c38ddae826d303443dee8c61f685d44231eacd10056cda"
+}

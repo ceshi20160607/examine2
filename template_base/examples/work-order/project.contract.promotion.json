@@ -1,0 +1,9 @@
+{
+  "analysisPath": "requirement-analysis.json",
+  "analysisSha256": "7656c1fe3180ef1bab83e8cabf28f82a26eac400226e9a10a997d50f576a0902",
+  "boundTargetCount": 14,
+  "contractSha256": "dfa689b3cacfbaa81c31262ff3e4d74331462730b7a7d250331f86095cd8bb94",
+  "projectId": "work-order-sample",
+  "requirementsSha256": "79b0abfa08b1f41c8807164d1c2c48e75a2dcf8092eceed866a86e7758a8c257",
+  "schemaVersion": 1
+}

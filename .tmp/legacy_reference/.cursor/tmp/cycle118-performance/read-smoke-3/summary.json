@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "contractId": "VS4-PERF-SEED-V1:20260715",
+  "smoke": true,
+  "mode": "read",
+  "startedAt": "2026-08-08T06:10:49.156Z",
+  "elapsedSeconds": 20.011146,
+  "vus": 2,
+  "counts": {
+    "Q06": 1,
+    "Q07": 1,
+    "DETAIL": 4,
+    "Q09": 2,
+    "Q12_SC01": 1,
+    "Q12_SC02": 1,
+    "Q12_SC03": 1,
+    "Q12_SC04": 1,
+    "Q12_SC05": 1,
+    "Q12_SC06": 1,
+    "Q12_SC07": 1,
+    "Q04": 2
+  },
+  "metrics": {
+    "list": {
+      "samples": 13,
+      "p75": 2230,
+      "p95": 20011,
+      "max": 20011
+    },
+    "detail": {
+      "samples": 4,
+      "p75": 167,
+      "p95": 187,
+      "max": 187
+    }
+  },
+  "unexpectedErrors": 1,
+  "errorExamples": [
+    {
+      "id": "Q06",
+      "status": 422,
+      "failure": "HTTP_422_QUERY_FIELD_UNAVAILABLE"
+    }
+  ],
+  "thresholdPass": false
+}

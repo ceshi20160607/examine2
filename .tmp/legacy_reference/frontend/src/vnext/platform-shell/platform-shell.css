@@ -1,0 +1,94 @@
+.vnext-shell {
+  --shell-ink: #172033;
+  --shell-muted: #667085;
+  --shell-line: #e4e9f1;
+  --shell-primary: #2459d3;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr);
+  background: #f5f7fa;
+  color: var(--shell-ink);
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.vnext-shell__sidebar { padding: 22px 14px; background: #17223a; color: #fff; }
+.vnext-shell__brand { padding: 0 10px 22px; font-size: 16px; font-weight: 700; }
+.vnext-shell__nav-item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 7px;
+  color: #d8e0ef;
+  font-size: 14px;
+  text-decoration: none;
+}
+.vnext-shell__nav-item.is-active { background: #2b3b5d; color: #fff; font-weight: 600; }
+.vnext-shell__body { min-width: 0; }
+.vnext-shell__topbar {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--shell-line);
+  background: #fff;
+}
+.vnext-shell__account { display: flex; align-items: center; gap: 16px; }
+.vnext-shell__account span { display: grid; color: var(--shell-ink); font-size: 14px; line-height: 1.25; }
+.vnext-shell__account small { color: var(--shell-muted); font-size: 11px; font-weight: 400; }
+.vnext-shell__account button {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #ccd4e0;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--shell-ink);
+  cursor: pointer;
+}
+.vnext-shell__account button:disabled { cursor: not-allowed; opacity: .55; }
+.vnext-shell__content { max-width: 1180px; padding: 28px 32px; }
+.vnext-page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.vnext-page-header h1 { margin: 0; font-size: 24px; line-height: 1.35; }
+.vnext-page-header p { margin: 5px 0 0; color: var(--shell-muted); font-size: 14px; }
+.vnext-system-list { overflow: hidden; border: 1px solid var(--shell-line); border-radius: 10px; background: #fff; }
+.vnext-system-list__scroll { overflow-x: auto; }
+.vnext-system-list table { width: 100%; border-collapse: collapse; }
+.vnext-system-list th,
+.vnext-system-list td { height: 48px; padding: 0 18px; border-bottom: 1px solid #edf0f5; text-align: left; font-size: 14px; }
+.vnext-system-list th { background: #fafbfc; color: #596579; font-size: 13px; font-weight: 600; }
+.vnext-system-list tbody tr:last-child td { border-bottom: 0; }
+.vnext-system-list td:first-child strong,
+.vnext-system-list td:first-child span { display: block; }
+.vnext-system-list td:first-child span { margin-top: 2px; color: var(--shell-muted); font-size: 12px; }
+.vnext-system-list__feedback { margin: 0; padding: 11px 18px; border-bottom: 1px solid #edf0f5; color: var(--shell-muted); font-size: 13px; }
+.vnext-system-list__feedback.is-error { color: #b42318; }
+.vnext-system-list__enter {
+  min-width: 84px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #b7c5df;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--shell-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vnext-system-list__enter:disabled { cursor: not-allowed; opacity: .55; }
+.vnext-status { color: #344054; }
+.vnext-status[data-status="ACTIVE"] { color: #067647; }
+.vnext-status[data-status="INIT_FAILED"],
+.vnext-status[data-status="DISABLED"] { color: #b42318; }
+.vnext-state { min-height: 180px; display: grid; place-content: center; gap: 8px; padding: 24px; color: var(--shell-muted); text-align: center; }
+.vnext-state strong { color: var(--shell-ink); }
+.vnext-state button {
+  justify-self: center;
+  padding: 7px 14px;
+  border: 1px solid #ccd4e0;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--shell-ink);
+  cursor: pointer;
+}
+.vnext-state--error { color: #b42318; }
+.vnext-shell__action-error { margin: 12px 0 0; color: #b42318; font-size: 13px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

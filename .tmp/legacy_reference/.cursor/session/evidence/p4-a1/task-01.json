@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-A1-01",
+  "sliceId": "P4-A1-READ-RUNTIME",
+  "verdict": "pass",
+  "checkedAt": "2026-07-17T13:15:54+08:00",
+  "contract": {
+    "fieldTypes": [
+      "TEXT",
+      "TEXTAREA",
+      "NUMBER",
+      "DATE",
+      "DATETIME",
+      "RADIO",
+      "MEMBER",
+      "DEPARTMENT"
+    ],
+    "tables": [
+      "un_module_record",
+      "un_module_record_value",
+      "un_module_record_index",
+      "un_module_record_search"
+    ],
+    "endpoints": [
+      {
+        "id": "record-schema",
+        "method": "GET",
+        "path": "/api/v1/systems/{systemId}/runtime/modules/{moduleCode}/record-schema"
+      },
+      {
+        "id": "record-list",
+        "method": "GET",
+        "path": "/api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records"
+      },
+      {
+        "id": "record-detail",
+        "method": "GET",
+        "path": "/api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records/{recordId}"
+      }
+    ],
+    "completionBoundary": "Read runtime plumbing only; P4-A1-02 must consume this schema before the slice can pass."
+  },
+  "migration": {
+    "path": "sql/migration/V4_0_0__p4_a1_read_runtime.sql",
+    "sha256": "sha256:31ee7a5152e56330402a78998b48e6c243be7fb6ce14602904752a870a847785",
+    "emptyDatabaseReplay": "pass",
+    "upgradeFrom": "3.2.0",
+    "upgradeMigrationsExecuted": 1,
+    "repeatMigrationsExecuted": 0,
+    "remoteDatabase": {
+      "host": "192.168.0.211",
+      "database": "examine2",
+      "flywayVersion": "4.0.0",
+      "migrationCount": 6,
+      "tableCountIncludingFlyway": 53,
+      "bootstrapRootCount": 1
+    }
+  },
+  "generator": {
+    "reportPath": "backend/generator-reports/examine-module-un_module_.json",
+    "reportSha256": "sha256:7e832397e4e6a73c2f1b7f452437e06d51eb0adf889ed485420c7a1618cd1cb2",
+    "moduleTables": 21,
+    "moduleGeneratedFiles": 105,
+    "newTables": 4,
+    "newGeneratedFiles": 20,
+    "deleteRegenerateSha256Before": "sha256:2a1a5e85ddbb5fa12a6b1507a9f3861e4efebb392dbfa12dd25131df7c89472c",
+    "deleteRegenerateSha256After": "sha256:2a1a5e85ddbb5fa12a6b1507a9f3861e4efebb392dbfa12dd25131df7c89472c",
+    "deterministic": true
+  },
+  "evidence": {
+    "api": {
+      "command": "GET http://127.0.0.1:18080/management/health",
+      "result": "UP"
+    },
+    "db": {
+      "test": "P4A1SchemaIntegrationTest",
+      "testSourceSha256": "sha256:2b1be2d233a6b04252b375e324876c9402134269b23c935cbb839df374463772",
+      "testsPassed": 1,
+      "assertions": [
+        "V1 through V3.2 from empty database",
+        "V3.2 to V4 forward migration",
+        "repeat migration applies zero changes",
+        "record schema foreign key rejection",
+        "record value unique rejection",
+        "record value typed payload CHECK rejection",
+        "record value missing-parent rejection"
+      ]
+    },
+    "ui": {
+      "command": "npm.cmd run build",
+      "typecheck": "pass",
+      "productionBuild": "pass"
+    },
+    "browser": {
+      "command": "npx.cmd playwright test tests/e2e/vs3.spec.ts --project=desktop --grep ordinary member",
+      "passed": 1,
+      "failed": 0
+    },
+    "restart": {
+      "artifact": "backend/examine-web/target/examine-web-1.0.0-SNAPSHOT.jar",
+      "before": "1:b6b8c86eb7a093783b69edd6bafbfe089a650b500df13f6e440a6d8cf19e619f:0",
+      "after": "1:b6b8c86eb7a093783b69edd6bafbfe089a650b500df13f6e440a6d8cf19e619f:0",
+      "healthAfterRestart": "UP",
+      "result": "pass"
+    }
+  },
+  "resolvedFindings": [
+    {
+      "code": "P4-A1-DDL-INDEX-WIDTH",
+      "finding": "utf8mb4 VARCHAR(1000) exceeded the 3072-byte composite index limit",
+      "resolution": "bounded normalized record_index string values to VARCHAR(512) while retaining the typed route index"
+    }
+  ]
+}

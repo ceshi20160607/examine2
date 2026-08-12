@@ -1,0 +1,25 @@
+{
+    "schemaVersion":  1,
+    "createdAt":  "2026-08-08T11:31:50.9722700+08:00",
+    "label":  "cycle118-rehearsal",
+    "sourceVersion":  {
+                          "schemaVersion":  1,
+                          "product":  "Examine2",
+                          "version":  "8.96.0",
+                          "cycleId":  "CYCLE-FINAL-DELIVERY-118-ROLLING",
+                          "attemptId":  "20260808-113105",
+                          "createdAt":  "2026-08-08T11:31:06.4219134+08:00",
+                          "latestMigration":  "V8_96_0__platform_lifecycle_recovery_settings",
+                          "migrationCount":  117,
+                          "backendJarSha256":  "8faddabb795b24dbdc319749529bdbd63537f0058a8f1ab4d8730430fabe6cbc"
+                      },
+    "database":  {
+                     "sha256":  "88c03b5569dca7b3517e7e3e0fe5e9b407740344c3639030fe38eb188e64222f",
+                     "path":  "database.sql"
+                 },
+    "files":  {
+                  "sha256":  "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85",
+                  "path":  "files.zip"
+              },
+    "secretsIncluded":  false
+}

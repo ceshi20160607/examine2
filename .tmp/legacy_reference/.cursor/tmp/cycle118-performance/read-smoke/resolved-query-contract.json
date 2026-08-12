@@ -1,0 +1,832 @@
+{
+  "schemaVersion": 1,
+  "contractId": "VS4-PERF-SEED-V1:20260715",
+  "cases": [
+    {
+      "id": "Q01",
+      "baseId": "Q01",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "PREDICATE",
+          "fieldCode": "record_no",
+          "operator": "EQ",
+          "value": "R-0500000"
+        },
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedCardinality": "1"
+      }
+    },
+    {
+      "id": "Q02",
+      "baseId": "Q02",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "PREDICATE",
+          "fieldCode": "perf_text",
+          "operator": "PREFIX",
+          "value": "华东-20"
+        },
+        "sort": [
+          {
+            "fieldCode": "perf_text",
+            "direction": "ASC",
+            "nulls": "LAST"
+          }
+        ],
+        "columns": [
+          "perf_text"
+        ],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedCardinality": "1000..20000"
+      }
+    },
+    {
+      "id": "Q03",
+      "baseId": "Q03",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "PREDICATE",
+          "fieldCode": "perf_number",
+          "operator": "BETWEEN",
+          "value": [
+            1000,
+            2000
+          ]
+        },
+        "sort": [
+          {
+            "fieldCode": "perf_number",
+            "direction": "DESC",
+            "nulls": "LAST"
+          }
+        ],
+        "columns": [
+          "perf_number"
+        ],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedSelectivity": "5%..15%"
+      }
+    },
+    {
+      "id": "Q04",
+      "baseId": "Q04",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "PREDICATE",
+          "fieldCode": "perf_date",
+          "operator": "BETWEEN",
+          "value": [
+            "2026-01-01",
+            "2026-03-31"
+          ]
+        },
+        "sort": [
+          {
+            "fieldCode": "perf_date",
+            "direction": "ASC",
+            "nulls": "LAST"
+          }
+        ],
+        "columns": [
+          "perf_date"
+        ],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedSelectivity": "20%..30%"
+      }
+    },
+    {
+      "id": "Q05",
+      "baseId": "Q05",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "PREDICATE",
+          "fieldCode": "perf_member",
+          "operator": "HAS_ANY",
+          "value": [
+            "9400042"
+          ]
+        },
+        "sort": [],
+        "columns": [
+          "perf_member"
+        ],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedSelectivity": "0.5%..5%"
+      }
+    },
+    {
+      "id": "Q06",
+      "baseId": "Q06",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "PREDICATE",
+          "fieldCode": "perf_department",
+          "operator": "IN_TREE",
+          "value": "9500010"
+        },
+        "sort": [
+          {
+            "fieldCode": "updated_at",
+            "direction": "DESC",
+            "nulls": "LAST"
+          }
+        ],
+        "columns": [
+          "perf_department"
+        ],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedSelectivity": "5%..20%"
+      }
+    },
+    {
+      "id": "Q07",
+      "baseId": "Q07",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_text",
+              "operator": "PREFIX",
+              "value": "华东-20"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_number",
+              "operator": "BETWEEN",
+              "value": [
+                1000,
+                2000
+              ]
+            }
+          ]
+        },
+        "sort": [],
+        "columns": [
+          "perf_text",
+          "perf_number"
+        ],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedSelectivity": "0.1%..5%"
+      }
+    },
+    {
+      "id": "Q08",
+      "baseId": "Q08",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_text",
+              "operator": "PREFIX",
+              "value": "华东-20"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_number",
+              "operator": "BETWEEN",
+              "value": [
+                1000,
+                2000
+              ]
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_date",
+              "operator": "BETWEEN",
+              "value": [
+                "2026-01-01",
+                "2026-03-31"
+              ]
+            }
+          ]
+        },
+        "sort": [
+          {
+            "fieldCode": "perf_text",
+            "direction": "ASC",
+            "nulls": "LAST"
+          },
+          {
+            "fieldCode": "perf_number",
+            "direction": "DESC",
+            "nulls": "LAST"
+          },
+          {
+            "fieldCode": "perf_date",
+            "direction": "ASC",
+            "nulls": "LAST"
+          }
+        ],
+        "columns": [
+          "perf_text",
+          "perf_number",
+          "perf_date"
+        ],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedSelectivity": "0.01%..2%",
+        "stableTieBreak": "recordId"
+      }
+    },
+    {
+      "id": "Q09",
+      "baseId": "Q09",
+      "kind": "search",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": "合同2026",
+        "filter": null,
+        "sort": [],
+        "columns": [
+          "perf_text"
+        ],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedCardinality": "100..10000"
+      }
+    },
+    {
+      "id": "Q10",
+      "baseId": "Q10",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "archived",
+        "q": null,
+        "filter": null,
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 200,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "expectedSelectivity": "10% base"
+      }
+    },
+    {
+      "id": "Q11",
+      "baseId": "Q11",
+      "kind": "list",
+      "scope": null,
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "record_no",
+              "operator": "EQ",
+              "value": "R-0500000"
+            },
+            {
+              "kind": "AND",
+              "children": [
+                {
+                  "kind": "PREDICATE",
+                  "fieldCode": "record_no",
+                  "operator": "EQ",
+                  "value": "R-0500000"
+                },
+                {
+                  "kind": "AND",
+                  "children": [
+                    {
+                      "kind": "PREDICATE",
+                      "fieldCode": "record_no",
+                      "operator": "EQ",
+                      "value": "R-0500000"
+                    },
+                    {
+                      "kind": "AND",
+                      "children": [
+                        {
+                          "kind": "PREDICATE",
+                          "fieldCode": "record_no",
+                          "operator": "EQ",
+                          "value": "R-0500000"
+                        },
+                        {
+                          "kind": "PREDICATE",
+                          "fieldCode": "record_no",
+                          "operator": "EQ",
+                          "value": "R-0500000"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": {
+        "astDepth": 5,
+        "astLeaves": 20
+      }
+    },
+    {
+      "id": "Q12_SC01",
+      "baseId": "Q12",
+      "kind": "list",
+      "scope": "SC-01",
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_text",
+              "operator": "PREFIX",
+              "value": "华东-20"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_number",
+              "operator": "BETWEEN",
+              "value": [
+                1000,
+                2000
+              ]
+            }
+          ]
+        },
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": [
+        "R100",
+        "R101",
+        "R102",
+        "R103",
+        "R104",
+        "R105",
+        "R106"
+      ]
+    },
+    {
+      "id": "Q12_SC02",
+      "baseId": "Q12",
+      "kind": "list",
+      "scope": "SC-02",
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_text",
+              "operator": "PREFIX",
+              "value": "华东-20"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_number",
+              "operator": "BETWEEN",
+              "value": [
+                1000,
+                2000
+              ]
+            }
+          ]
+        },
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": [
+        "R100"
+      ]
+    },
+    {
+      "id": "Q12_SC03",
+      "baseId": "Q12",
+      "kind": "list",
+      "scope": "SC-03",
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_text",
+              "operator": "PREFIX",
+              "value": "华东-20"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_number",
+              "operator": "BETWEEN",
+              "value": [
+                1000,
+                2000
+              ]
+            }
+          ]
+        },
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": [
+        "R100",
+        "R101"
+      ]
+    },
+    {
+      "id": "Q12_SC04",
+      "baseId": "Q12",
+      "kind": "list",
+      "scope": "SC-04",
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_text",
+              "operator": "PREFIX",
+              "value": "华东-20"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_number",
+              "operator": "BETWEEN",
+              "value": [
+                1000,
+                2000
+              ]
+            }
+          ]
+        },
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": [
+        "R100",
+        "R101",
+        "R102"
+      ]
+    },
+    {
+      "id": "Q12_SC05",
+      "baseId": "Q12",
+      "kind": "list",
+      "scope": "SC-05",
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_text",
+              "operator": "PREFIX",
+              "value": "华东-20"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_number",
+              "operator": "BETWEEN",
+              "value": [
+                1000,
+                2000
+              ]
+            }
+          ]
+        },
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": [
+        "R103"
+      ]
+    },
+    {
+      "id": "Q12_SC06",
+      "baseId": "Q12",
+      "kind": "list",
+      "scope": "SC-06",
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_text",
+              "operator": "PREFIX",
+              "value": "华东-20"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_number",
+              "operator": "BETWEEN",
+              "value": [
+                1000,
+                2000
+              ]
+            }
+          ]
+        },
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": [
+        "R104"
+      ]
+    },
+    {
+      "id": "Q12_SC07",
+      "baseId": "Q12",
+      "kind": "list",
+      "scope": "SC-07",
+      "method": "POST",
+      "path": "/api/v1/systems/9100001/runtime/modules/performance_records/records:query",
+      "body": {
+        "recordScope": "active",
+        "q": null,
+        "filter": {
+          "kind": "AND",
+          "children": [
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_text",
+              "operator": "PREFIX",
+              "value": "华东-20"
+            },
+            {
+              "kind": "PREDICATE",
+              "fieldCode": "perf_number",
+              "operator": "BETWEEN",
+              "value": [
+                1000,
+                2000
+              ]
+            }
+          ]
+        },
+        "sort": [],
+        "columns": [],
+        "viewId": null,
+        "page": 1,
+        "size": 50,
+        "schemaVersionId": 9100003
+      },
+      "expected": [
+        "R100",
+        "R101",
+        "R103",
+        "R105"
+      ]
+    }
+  ]
+}

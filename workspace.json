@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "workspaceId": "unexamine-rebuild",
+  "requirements": {
+    "path": "docs/user_requirement.md",
+    "sha256": "3bae2650d53cb0a0b790c5730a5f34e558f2d6efed25ae9d33d4b945dff8fe48",
+    "intake": "projects/unexamine/requirements/requirement-intake.json"
+  },
+  "template": {
+    "path": "template_base",
+    "versionFile": "template_base/VERSION"
+  },
+  "legacyRoot": {
+    "path": ".tmp/legacy_reference",
+    "searchPolicy": "explicit-only",
+    "ignoreFile": ".ignore"
+  },
+  "activeProject": {
+    "path": "projects/unexamine",
+    "architectureBaseline": "projects/unexamine/architecture-baseline.json",
+    "implementationPolicy": "new-code-only"
+  },
+  "legacyReferences": [
+    {
+      "path": ".tmp/legacy_reference/.base",
+      "purpose": "旧工程模板与流程规则，仅提炼经验证的通用规则",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/.cursor",
+      "purpose": "旧项目执行记录、验收证据与过程资料",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/backend",
+      "purpose": "旧后端业务行为、数据模型与接口参考，不作为新实现底座",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/frontend",
+      "purpose": "旧前端页面、交互和测试参考，不在原目录继续开发",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/sql",
+      "purpose": "旧数据库结构与迁移参考",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/delivery",
+      "purpose": "旧交付与部署材料参考",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/performance",
+      "purpose": "旧性能脚本和结论参考，不作为当前阶段验收门槛",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/docs/design",
+      "purpose": "页面原型与视觉参考，产品语义仍以正式需求为准",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/docs/temp_flow.md",
+      "purpose": "旧 Flow 草稿参考",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/docs/temp_flow_persion.html",
+      "purpose": "旧 Flow 人员配置原型参考",
+      "writePolicy": "reference-only"
+    },
+    {
+      "path": ".tmp/legacy_reference/docs/user_setting.md",
+      "purpose": "旧用户设置补充资料参考",
+      "writePolicy": "reference-only"
+    }
+  ]
+}

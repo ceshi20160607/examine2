@@ -1,0 +1,32 @@
+{
+    "testId":  "p1-system-entry-usecase-contract",
+    "category":  "affected_unit",
+    "outcomeClass":  "regression",
+    "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/scripts/run-maven-focused-test.ps1 -Module examine-web -Tests P1SystemEntryUseCaseContractTest",
+    "commandSha256":  "229b03f6b8359e7d63eb091643a27c797766024dc4197d7ae5db6cd05a40749b",
+    "exitCode":  0,
+    "timedOut":  false,
+    "mavenModule":  "examine-web",
+    "expectedTestSelectors":  [
+                                  "P1SystemEntryUseCaseContractTest"
+                              ],
+    "missingTestSelectors":  [
+
+                             ],
+    "executedTestCount":  8,
+    "reportedTestCount":  8,
+    "skippedTestCount":  0,
+    "failureCount":  0,
+    "errorCount":  0,
+    "reportPaths":  [
+                        ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-ENTRY-BACKEND/surefire-reports/01-p1-system-entry-usecase-contract-TEST-com.unique.examine.web.P1SystemEntryUseCaseContractTest.xml"
+                    ],
+    "reportSha256":  [
+                         "a6ba9808c6d81381f03c17953b106435af582472993ee65ca6d1d4853970288f"
+                     ],
+    "startedAt":  "2026-08-10T23:15:44.6712869+08:00",
+    "completedAt":  "2026-08-10T23:17:21.9454506+08:00",
+    "verdict":  "pass",
+    "logPath":  ".cursor/session/evidence/baseline/TASK-P1-04-SYSTEM-ENTRY-BACKEND/01-p1-system-entry-usecase-contract.log",
+    "logSha256":  "f9a6af50c9540d8a902e1191aaef1e891cf1691198349e47f5f1474f05878b25"
+}

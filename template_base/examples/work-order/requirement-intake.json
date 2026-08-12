@@ -1,0 +1,66 @@
+{
+  "blockCount": 5,
+  "blocks": [
+    {
+      "headingPath": [
+        "工单样例需求"
+      ],
+      "id": "B0001",
+      "kind": "heading",
+      "lineEnd": 1,
+      "lineStart": 1,
+      "preview": "# 工单样例需求",
+      "sha256": "07c4a6dfb975d208872d0d5728078977e2402507c66d51c8426fda2acf23e0dd"
+    },
+    {
+      "headingPath": [
+        "工单样例需求"
+      ],
+      "id": "B0002",
+      "kind": "paragraph",
+      "lineEnd": 3,
+      "lineStart": 3,
+      "preview": "系统用于登记和跟踪内部工单。",
+      "sha256": "63e57e1db7d404db3b2541e340bb93df608bbbe9683ea89e002008a623513ef2"
+    },
+    {
+      "headingPath": [
+        "工单样例需求"
+      ],
+      "id": "B0003",
+      "kind": "paragraph",
+      "lineEnd": 5,
+      "lineStart": 5,
+      "preview": "管理员可以创建、修改、查看和删除工单。工单包含编号、标题、说明、优先级、是否紧急和创建时间。编号必须唯一，标题必填。",
+      "sha256": "8238c12b408c8a974d599ce625ab939f2fc7b878746efe050c29b191b1acd576"
+    },
+    {
+      "headingPath": [
+        "工单样例需求"
+      ],
+      "id": "B0004",
+      "kind": "paragraph",
+      "lineEnd": 7,
+      "lineStart": 7,
+      "preview": "列表默认展示编号、标题、优先级、是否紧急和创建时间。用户可以使用编号或标题快速搜索。点击一行后在右侧查看详情；页面右上角只有一个“新建工单”主按钮。",
+      "sha256": "f45450bea6d4a4419fd19302dc0320311ccd2d9f7f69907f231497151b8fc710"
+    },
+    {
+      "headingPath": [
+        "工单样例需求"
+      ],
+      "id": "B0005",
+      "kind": "paragraph",
+      "lineEnd": 9,
+      "lineStart": 9,
+      "preview": "本样例只验证 Template Base 的生成、构建和真实读写能力，不代表 examine 产品需求。",
+      "sha256": "d0acf00d964beaac5f28277de296c44ac6ef140621f9b20ef856ab8ce2fd20c0"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "lineCount": 10,
+    "path": "user_require.md",
+    "sha256": "79b0abfa08b1f41c8807164d1c2c48e75a2dcf8092eceed866a86e7758a8c257"
+  }
+}

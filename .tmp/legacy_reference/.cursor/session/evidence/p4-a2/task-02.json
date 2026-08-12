@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-A2-02",
+  "sliceId": "P4-A2-CREATE-ACTIVATE",
+  "verdict": "pass",
+  "checkedAt": "2026-07-17T16:41:00+08:00",
+  "contract": {
+    "endpoint": "POST /api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records/{recordId}:activate",
+    "success": "HTTP 200, ACTIVE, version increment and cleared draft expiry",
+    "guards": ["module update permission", "data scope", "DRAFT state", "expectedVersion CAS", "active schema", "required values", "valid references", "idempotency"],
+    "completionBoundary": "Activation lifecycle only; edit, autosave, archive and recovery remain later P4 nodes."
+  },
+  "implementation": {
+    "recordMutationSupportSha256": "sha256:3f59b0e51dfae5216b112924bdfd5497b2fab4df5aeb6c99763fa1d5c58729b0",
+    "recordRuntimeServiceSha256": "sha256:0b2a82ced3f6c5318b47bad0cdebe3ad9dab1d93cc6ad3a3f8d4888417142742",
+    "moduleRuntimeControllerSha256": "sha256:90df64155fe0f880d0382bd57d13bb4c7cc958a4deac4a054098519a4e24f227",
+    "integrationTestSha256": "sha256:63927497a1181ac122dc4691012f0d2a142752f910ade293b396efd595734c31"
+  },
+  "evidence": {
+    "api": {
+      "test": "Vs3DraftJourneyIntegrationTest#servesPublishedRecordSchemaListAndDetailWithStrictQueryGuards",
+      "passed": 1,
+      "failed": 0,
+      "assertions": [
+        "incomplete draft activation returns RECORD_VALIDATION_FAILED with a field error",
+        "wrong expectedVersion returns RECORD_VERSION_CONFLICT",
+        "activation returns ACTIVE v1",
+        "idempotent activation replay returns the same result",
+        "repeated activation with a new key returns RECORD_STATE_INVALID"
+      ],
+      "ordinaryMemberAuthorization": {
+        "roleId": "2078035683935977474",
+        "createWithoutGrant": "403 PERMISSION_DENIED",
+        "activateWithoutUpdateGrant": "403 PERMISSION_DENIED",
+        "activateAfterGrant": "ACTIVE v1",
+        "permissionStageRecordId": "2078035733118386177"
+      }
+    },
+    "db": {
+      "ordinaryMemberId": "2078035702944563201",
+      "rolePublishedVersion": 3,
+      "allowedPermissions": [
+        "system.runtime.access",
+        "system.workbench.view",
+        "module.work_order.view",
+        "module.work_order.create",
+        "module.work_order.update"
+      ],
+      "activeRecords": ["2078035733118386177", "2078036396263014402", "2078036462642069505"],
+      "draftExpiresAtAfterActivation": null,
+      "remainingDraftCount": 0,
+      "result": "pass"
+    },
+    "ui": {
+      "activationButtonBoundToPersistedDraftVersion": true,
+      "requiredFieldErrorPreservesDraft": true,
+      "result": "pass"
+    },
+    "browser": {
+      "principal": "p4a2_member_7f17a2 (non-root)",
+      "desktopRecordId": "2078036396263014402",
+      "mobileRecordId": "2078036462642069505",
+      "desktopScreenshot": ".cursor/session/evidence/p4-a2/activated-detail-desktop.png",
+      "mobileScreenshot": ".cursor/session/evidence/p4-a2/activated-detail-mobile.png",
+      "result": "pass"
+    },
+    "restart": {
+      "beforePid": 26400,
+      "afterPid": 27040,
+      "healthAfterRestart": "UP",
+      "principalAfterRestart": "non-root ordinary member",
+      "recordIdsRead": ["2078036396263014402", "2078036462642069505"],
+      "result": "pass"
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-A1-02",
+  "sliceId": "P4-A1-READ-RUNTIME",
+  "verdict": "pass",
+  "checkedAt": "2026-07-17T13:41:00+08:00",
+  "contract": {
+    "endpoints": [
+      "GET /api/v1/systems/{systemId}/runtime/modules/{moduleCode}/record-schema",
+      "GET /api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records",
+      "GET /api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records/{recordId}"
+    ],
+    "scope": "published snapshot, current system/tenant/module/schema, role-bound data scope and field projection",
+    "completionBoundary": "Backend read runtime only; ordinary-member UI remains P4-A1-03."
+  },
+  "implementation": {
+    "runtimeAuthorizationFacadeSha256": "sha256:ecd43c2ee9799cd69be1c4019b41ca6ca6e7325bba76dbcab7bd8f5b18fc7e20",
+    "runtimeAuthorizationBridgeSha256": "sha256:4827cea59acd34472a9f66eebff6fbdac58dfec54ef3ccfd449681e175a687ae",
+    "recordRuntimeViewsSha256": "sha256:fcb68d33de3e90b47a3a3ee12f77d782608e0a465109a0b7447f9da3cc9a06e4",
+    "recordRuntimeServiceSha256": "sha256:8ecce8ff6ced4cad7e2929739ab70d5e9041f2a925e9b8e486954ec23b45d404",
+    "moduleRuntimeControllerSha256": "sha256:59a86ee6ce47e228e078fc343b7f0addbcb24bdb0204fb6b538373e4392cb5b3"
+  },
+  "evidence": {
+    "api": {
+      "test": "Vs3DraftJourneyIntegrationTest#servesPublishedRecordSchemaListAndDetailWithStrictQueryGuards",
+      "testSourceSha256": "sha256:071d871ca0ef09dac4d962e4f1bc0a7b33859b9dd59c5cfb3cc3d4c7b6daba34",
+      "passed": 1,
+      "failed": 0,
+      "assertions": [
+        "published record schema is READY",
+        "server-side pagination and whitelisted sort",
+        "typed field value projection",
+        "detail uses the same scope",
+        "invalid size, sort and filter return QUERY_INVALID",
+        "unknown direct id returns RECORD_NOT_FOUND"
+      ]
+    },
+    "db": {
+      "container": "mysql:8.0.44",
+      "migrations": 6,
+      "flywayVersion": "4.0.0",
+      "recordsInserted": 2,
+      "listTotal": 2,
+      "result": "pass"
+    },
+    "ui": {
+      "command": "npm.cmd run typecheck",
+      "result": "pass"
+    },
+    "browser": {
+      "cumulativeSmoke": "P4-A1-01 VS3 ordinary-member browser entry",
+      "permissionAssertionAdded": "ordinary member without module grant receives PERMISSION_DENIED from record list",
+      "result": "pass"
+    },
+    "restart": {
+      "artifact": "backend/examine-web/target/examine-web-1.0.0-SNAPSHOT.jar",
+      "artifactSha256": "sha256:cfde5aabbfc91f36d78ab1db9ba9cda07edeb2a020aa4e1c1d70d5b07c04153a",
+      "pid": 23400,
+      "health": "UP",
+      "remoteDatabase": "192.168.0.211:3306/examine2",
+      "recordId": "7000000000000000001",
+      "recordNo": "REMOTE-001",
+      "title": "P4 restart readback",
+      "schemaVersionId": "2077985069801603073",
+      "listTotal": 1,
+      "result": "pass"
+    }
+  },
+  "resolvedFindings": [
+    {
+      "code": "P4-A1-HISTORICAL-SNAPSHOT-BOUNDARY",
+      "finding": "Initial record and value reads were scoped to logical module only.",
+      "resolution": "List, detail and values now require the active schema version and module snapshot in addition to system, tenant and logical module."
+    }
+  ]
+}

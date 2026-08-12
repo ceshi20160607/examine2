@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ModulePublishRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.PublishRecord">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="operation_type" property="operationType" />
+        <result column="from_version_id" property="fromVersionId" />
+        <result column="to_version_id" property="toVersionId" />
+        <result column="target_version_id" property="targetVersionId" />
+        <result column="check_id" property="checkId" />
+        <result column="draft_revision" property="draftRevision" />
+        <result column="idempotency_key" property="idempotencyKey" />
+        <result column="request_id" property="requestId" />
+        <result column="trace_id" property="traceId" />
+        <result column="result" property="result" />
+        <result column="impact_report_json" property="impactReportJson" />
+        <result column="operated_at" property="operatedAt" />
+        <result column="operated_by" property="operatedBy" />
+        <result column="reason" property="reason" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, operation_type, from_version_id, to_version_id, target_version_id, check_id, draft_revision, idempotency_key, request_id, trace_id, result, impact_report_json, operated_at, operated_by, reason
+    </sql>
+
+</mapper>

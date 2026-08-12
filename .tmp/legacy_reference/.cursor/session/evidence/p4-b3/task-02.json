@@ -1,0 +1,83 @@
+{
+  "taskId": "P4-B3-02",
+  "sliceId": "P4-B3-QUERY-SAVED-VIEW",
+  "verdict": "pass",
+  "completedAt": "2026-07-20T13:21:49+08:00",
+  "contract": {
+    "path": ".cursor/session/current-node.md",
+    "sha256": "sha256:612ed4b44f102552f16a00f306f50bfb3cb69c9a62c899e1a857818998523acd"
+  },
+  "outcome": "Owner-scoped personal saved views persist the accepted canonical query model with strict validation, CAS, idempotency, soft delete, stale-field invalidNodes, audit and outbox behavior.",
+  "checks": [
+    {
+      "name": "saved-view HTTP and MySQL journey",
+      "command": "mvn -pl examine-web -am -Dtest=Vs3DraftJourneyIntegrationTest#servesPublishedRecordSchemaListAndDetailWithStrictQueryGuards -Dsurefire.failIfNoSpecifiedTests=false test",
+      "result": "1 test passed; 0 failures; Flyway V1.0.0 through V4.3.0 on MySQL 8.0.44",
+      "report": "backend/examine-web/target/surefire-reports/TEST-com.unique.examine.web.Vs3DraftJourneyIntegrationTest.xml",
+      "reportSha256": "sha256:6696f158d4359e9b9a699ddc5b03e7ebba1430c8e0b93cf5287da3e1930a5502"
+    },
+    {
+      "name": "empty and forward migration replay",
+      "command": "mvn -pl examine-web -am -Dtest=P4A1SchemaIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false test",
+      "result": "1 test passed; V1-V3.2 empty replay, four forward migrations to V4.3.0, repeat migration zero changes on MySQL 8.4.10",
+      "report": "backend/examine-web/target/surefire-reports/TEST-com.unique.examine.web.P4A1SchemaIntegrationTest.xml",
+      "reportSha256": "sha256:9a40d5f88b87add05c51701979769cfeda1db491aca6ed9ae58c54b9d3bf175d"
+    },
+    {
+      "name": "database-first generator",
+      "command": "mvn -pl examine-generator exec:java -Dexec.mainClass=com.unique.examine.generator.cli.GeneratorCli -Dexec.args=--backend-root=. --module-name=examine-module --table-prefix=un_module_ --base-package=com.unique.examine.module --execute",
+      "result": "22 tables; 110 files; SavedView entity/mapper/XML/service/serviceImpl generated; active_marker excluded",
+      "report": "backend/generator-reports/examine-module-un_module_.json",
+      "reportSha256": "sha256:22607224a612afb2bded88356f95a365a1b4f8fd52cb9946a9420c1989c06c05"
+    },
+    {
+      "name": "remote upgrade and packaged restart",
+      "command": "GET http://127.0.0.1:18080/management/health plus JDBC schema readback",
+      "result": "health UP; Flyway 4.3.0 success=true; un_module_saved_view table count=1; packaged PID 40768"
+    }
+  ],
+  "verifiedBehavior": [
+    "create and idempotent replay with changed-body conflict",
+    "owner-only list and non-disclosing cross-member not-found",
+    "rename and update with expected-version CAS and stale-version conflict",
+    "active trimmed name uniqueness and name reuse after soft delete",
+    "100-view limit enforced under a member row lock",
+    "delete idempotent replay returns the original success after the row is soft-deleted",
+    "stored retired-field query remains unchanged while application prunes invalid nodes and reports stable /filter pointers",
+    "saved query cannot nest another viewId and columns must match the query columns",
+    "successful mutations emit RUNTIME_SAVED_VIEW audit and outbox records",
+    "record query still applies current schema, module access and data scope after loading a saved view"
+  ],
+  "artifacts": [
+    {"path": "sql/migration/V4_2_0__p4_b3_query_search_permissions.sql", "sha256": "sha256:4678f8a933b22919da48a993dd9031e1a6459b4b530de6cd709be40744f65b47"},
+    {"path": "sql/migration/V4_3_0__p4_b3_saved_view.sql", "sha256": "sha256:c48bd6cb8a21562e814b9bb1278d06474b12ca6cd065ebc557e8845fcd43df09"},
+    {"path": "backend/examine-module/src/main/java/com/unique/examine/module/runtime/service/SavedViewService.java", "sha256": "sha256:f85f228f68a72224c1a4c6dd87183cc63ef7aaf6ac342688352719edb0e1b05a"},
+    {"path": "backend/examine-module/src/main/java/com/unique/examine/module/runtime/service/SavedViewRepository.java", "sha256": "sha256:b4c4aa48adab3e5744e45d8015834f781cbc166ced92f2562ff0548990272758"},
+    {"path": "backend/examine-module/src/main/java/com/unique/examine/module/runtime/query/SavedViewRequestParser.java", "sha256": "sha256:3b27e9068e6c6abd493809adda263064d47f370e916d89602f8609af3f4dd340"},
+    {"path": "backend/examine-module/src/main/java/com/unique/examine/module/base/entity/SavedView.java", "sha256": "sha256:0542107d9b4dcc3acb6a50f870ada4588f4640521bcd7ed7e50bf864dbb5f4ac"},
+    {"path": "backend/examine-web/src/test/java/com/unique/examine/web/Vs3DraftJourneyIntegrationTest.java", "sha256": "sha256:518d8bf8c2a71895f86413a596faeddead9bb624bb19e3748165c581619b5da3"}
+  ],
+  "evidenceClasses": {
+    "api": "pass: authenticated saved-view CRUD, replay and stable negative codes",
+    "db": "pass: empty and populated forward migration, constraints, CAS, owner scope, generator and persisted readback",
+    "ui": "pass: query/view payloads and invalidNodes are serialized for the P4-B3-03 workbench consumer",
+    "browser": "pass: HTTP-level ordinary-member journey; visual saved-view controls are intentionally P4-B3-03",
+    "restart": "pass: packaged backend PID 40768 reads the remote V4.3.0 schema and reports health UP"
+  },
+  "resolvedFindings": [
+    {
+      "code": "P4-B3-MIGRATION-SIGNED-ID",
+      "finding": "Populated MySQL inferred ROW_NUMBER subtraction as unsigned and rejected deterministic negative backfill IDs.",
+      "resolution": "Both operands are explicitly cast SIGNED; populated remote upgrade and empty MySQL 8.4 replay pass."
+    },
+    {
+      "code": "P4-B3-DELETE-REPLAY",
+      "finding": "Delete replay looked up the already soft-deleted row before checking the idempotency record.",
+      "resolution": "Authorization and request parsing precede replay lookup; resource lookup and CAS run only for first execution."
+    }
+  ],
+  "deferred": [
+    "desktop/mobile controls, URL normalization and visual stale-view repair belong to P4-B3-03",
+    "batch consumption of querySnapshotToken belongs to P4-D3"
+  ]
+}

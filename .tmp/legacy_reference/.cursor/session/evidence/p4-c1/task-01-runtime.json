@@ -1,0 +1,32 @@
+﻿{
+    "verifiedAt":  "2026-07-20T16:13:18.4793280+08:00",
+    "systemId":  "2079108917141876737",
+    "schemaVersionId":  "2079108942592913410",
+    "recordId":  "2079117365720047617",
+    "status":  "ACTIVE",
+    "version":  1,
+    "canonicalTypes":  [
+                           "PERCENT",
+                           "MONEY",
+                           "DATE_RANGE",
+                           "TIME",
+                           "TIME_RANGE",
+                           "MULTI_SELECT",
+                           "CASCADE",
+                           "SWITCH",
+                           "RATING",
+                           "PROGRESS",
+                           "TAG"
+                       ],
+    "persistedFieldCount":  11,
+    "persistedValueRowCount":  16,
+    "persistedIndexRowCount":  16,
+    "invalidVector":  {
+                          "status":  422,
+                          "code":  "FIELD_VALUE_INVALID",
+                          "path":  "values.completion_rate"
+                      },
+    "recordCountBeforeInvalid":  7,
+    "recordCountAfterInvalid":  7,
+    "result":  "PASS"
+}

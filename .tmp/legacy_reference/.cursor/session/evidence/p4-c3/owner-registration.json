@@ -1,0 +1,42 @@
+﻿{
+    "code":  "OK",
+    "data":  {
+                 "account":  {
+                                 "id":  "2079248383403778049",
+                                 "username":  "p4c3_owner_22d1474f",
+                                 "displayName":  "P4-C3 Owner 22d1474f"
+                             },
+                 "context":  {
+                                 "type":  "PLATFORM",
+                                 "account":  {
+                                                 "id":  "2079248383403778049",
+                                                 "username":  "p4c3_owner_22d1474f",
+                                                 "displayName":  "P4-C3 Owner 22d1474f"
+                                             },
+                                 "permissionVersion":  "1",
+                                 "permissions":  [
+                                                     "platform.runtime.access"
+                                                 ],
+                                 "shells":  [
+                                                "PLATFORM_RUNTIME"
+                                            ]
+                             },
+                 "systems":  [
+                                 {
+                                     "id":  "2079248383403778050",
+                                     "code":  "p4_c3_22d1474f",
+                                     "name":  "P4-C3 Relation Workspace 22d1474f",
+                                     "status":  "INITIALIZING",
+                                     "memberStatus":  "ACTIVE",
+                                     "defaultTenantId":  "2079248383403778051"
+                                 }
+                             ],
+                 "tenants":  [
+
+                             ],
+                 "firstSystemId":  "2079248383403778050"
+             },
+    "username":  "p4c3_owner_22d1474f",
+    "systemCode":  "p4_c3_22d1474f",
+    "password":  "P4-C3-Owner-22d1474f!"
+}

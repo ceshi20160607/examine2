@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Backend Module"
+  short_description: "Enforce Base reuse, SQL boundaries, and focused tests"
+  default_prompt: "Use $implement-backend-module to implement this backend task from its frozen contracts."

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-08T11:46:00+08:00",
+  "standard": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+  "desktopViewport": "1440x900",
+  "mobileViewport": "390x844",
+  "criticalOrSeriousViolations": 0,
+  "desktopPages": [
+    "/auth/login",
+    "/platform/workbench",
+    "/platform/admin/systems",
+    "/systems/2085920203721703426/admin/onboarding",
+    "/systems/2085920203721703426/workbench",
+    "/systems/2085920203721703426/workbench#command-center",
+    "/account"
+  ],
+  "authenticatedMobilePages": [
+    "/platform/workbench",
+    "/platform/admin/systems",
+    "/systems/2085920203721703426/admin/onboarding",
+    "/systems/2085920203721703426/workbench",
+    "/account"
+  ],
+  "anonymousMobilePages": ["/auth/login"],
+  "keyboard": {
+    "skipLink": "first focus -> Enter -> MAIN#platform-main",
+    "commandOpen": "button or Ctrl+K -> search INPUT",
+    "commandClose": "Escape -> button[aria-label='打开统一命令中心']"
+  }
+}

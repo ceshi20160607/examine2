@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-B2-02",
+  "sliceId": "P4-B2-LIFECYCLE-RECOVERY",
+  "verdict": "pass",
+  "checkedAt": "2026-07-20T10:50:00+08:00",
+  "singleOutcome": "Restart-safe due-draft expiry worker and authorized EXPIRED-to-DRAFT recovery.",
+  "contract": {
+    "worker": "bounded MySQL SELECT FOR UPDATE SKIP LOCKED batch",
+    "transition": "DRAFT -> EXPIRED -> DRAFT",
+    "recoveryExpiry": "fresh server-side 30-day draft expiry",
+    "permission": "module.{moduleCode}.action.recover_draft",
+    "source": "system actor with null account id"
+  },
+  "implementation": {
+    "workerSha256": "sha256:e22fa40463ec6f050d311ba41cd80aee012c26740e04e9edc057895f4933bd29",
+    "mutationSupportSha256": "sha256:467c0f242a5fb2cfb0bc64002a8b648a1d7db8753fc1eb625b6d305bfdf43684",
+    "recordServiceSha256": "sha256:61ab7f38efcff930a90c489ed253f891a8f5b050e9c84d7df677a567f8fc3e0d",
+    "controllerSha256": "sha256:466e19b124cfeb75d5fa679dc0bc5fc9fcfa239c14358aa5e1a51cbb29e9331d",
+    "schedulingBootstrapSha256": "sha256:b054d2d70a8eb5b59fed13f25f61826eaeb37e7364d766b1bf8ae1f21babefe6",
+    "integrationTestSha256": "sha256:589d1e5ac1c3b216bc3412d784e71c16482620c148ee31a629a6087eb9fa37b7"
+  },
+  "evidence": {
+    "api": {
+      "recover": "EXPIRED version 1 recovered to DRAFT version 2; replay stayed version 2",
+      "postRecoveryWrite": "manual edit committed as version 3 with the same typed value aggregate",
+      "missingGrant": "PERMISSION_DENIED",
+      "result": "pass"
+    },
+    "db": {
+      "firstWorkerRun": 1,
+      "secondWorkerRun": 0,
+      "expiredIndexRows": 1,
+      "systemAuditRows": 1,
+      "deduplicatedOutboxRows": 1,
+      "renewedExpiry": "> now + 29 days",
+      "result": "pass"
+    },
+    "ui": {
+      "boundary": "backend-only task; EXPIRED projection exposes RECOVER_DRAFT for P4-B2-03",
+      "result": "pass"
+    },
+    "browser": {
+      "boundary": "browser recovery interaction belongs to P4-B2-03; real HTTP projection is verified here",
+      "result": "pass"
+    },
+    "restart": {
+      "workerState": "no local queue or timer cursor; rerun derives due work only from MySQL",
+      "result": "pass"
+    }
+  },
+  "testReport": {
+    "path": "backend/examine-web/target/surefire-reports/com.unique.examine.web.Vs3DraftJourneyIntegrationTest.txt",
+    "sha256": "sha256:1f195d964ab5c017bfbd4a4e36d47792d9123558a1130cc522fe8b1503410cc7"
+  }
+}

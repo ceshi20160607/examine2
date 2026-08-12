@@ -1,0 +1,119 @@
+{
+  "contractVersion": 1,
+  "pageId": "crm-customer-list",
+  "pageKind": "management-list-detail",
+  "module": {
+    "title": "客户",
+    "entityLabel": "客户",
+    "requirementIds": ["CRM-CUSTOMER-LIST", "CRM-CUSTOMER-DETAIL"]
+  },
+  "header": {
+    "layout": "single_row",
+    "titleSource": "module",
+    "rightActions": [
+      {
+        "id": "create",
+        "label": "新建客户",
+        "purpose": "create_customer",
+        "kind": "primary",
+        "compact": true,
+        "requiresSelection": false,
+        "requirementId": "CRM-CUSTOMER-CREATE"
+      }
+    ]
+  },
+  "toolbar": {
+    "layout": "single_row_wrap",
+    "search": {
+      "visible": true,
+      "mode": "fuzzy",
+      "purpose": "quick_text_search"
+    },
+    "advancedFilter": {
+      "visible": true,
+      "surface": "drawer",
+      "purpose": "structured_conditions"
+    },
+    "import": {
+      "visible": true,
+      "placement": "toolbar_right",
+      "compact": true,
+      "requirementId": "CRM-CUSTOMER-IMPORT"
+    },
+    "export": {
+      "visible": true,
+      "placement": "toolbar_right",
+      "compact": true,
+      "requirementId": "CRM-CUSTOMER-EXPORT"
+    },
+    "batchActions": {
+      "visibility": "when_selection_nonempty",
+      "actions": [
+        {
+          "id": "batch-transfer",
+          "label": "转移负责人",
+          "purpose": "transfer_selected_customers",
+          "kind": "secondary",
+          "compact": true,
+          "requiresSelection": true,
+          "requirementId": "CRM-CUSTOMER-TRANSFER"
+        }
+      ]
+    }
+  },
+  "table": {
+    "headerVisible": true,
+    "density": "compact",
+    "selectionControl": "checkbox",
+    "rowClick": "open_right_detail",
+    "columns": [
+      { "id": "name", "label": "客户名称" },
+      { "id": "industry", "label": "所属行业" },
+      { "id": "owner", "label": "负责人" },
+      { "id": "status", "label": "客户状态" }
+    ],
+    "rowActions": [
+      {
+        "id": "edit",
+        "label": "编辑",
+        "purpose": "edit_customer",
+        "kind": "secondary",
+        "compact": true,
+        "requiresSelection": false,
+        "requirementId": "CRM-CUSTOMER-EDIT"
+      }
+    ]
+  },
+  "detail": {
+    "surface": "right_drawer",
+    "layout": "tabs",
+    "preserveListContext": true,
+    "stackedSections": false,
+    "relatedDataPlacement": "tabs",
+    "tabs": [
+      { "id": "overview", "label": "概览", "purpose": "customer_summary_and_fields" },
+      { "id": "contacts", "label": "联系人", "purpose": "related_contacts" },
+      { "id": "opportunities", "label": "商机", "purpose": "related_opportunities" },
+      { "id": "activities", "label": "跟进记录", "purpose": "related_activities" }
+    ]
+  },
+  "optionalEntries": [
+    { "id": "favorite_module", "defaultVisible": false, "placement": "absent", "requirementId": null },
+    { "id": "follow_record", "defaultVisible": false, "placement": "absent", "requirementId": null },
+    { "id": "operations", "defaultVisible": false, "placement": "absent", "requirementId": null },
+    { "id": "reports", "defaultVisible": false, "placement": "absent", "requirementId": null },
+    { "id": "saved_views", "defaultVisible": false, "placement": "absent", "requirementId": null }
+  ],
+  "dashboard": {
+    "enabled": true,
+    "primaryEditor": "visual_drag_resize",
+    "primarySurface": "visual_canvas",
+    "jsonMode": "advanced_optional"
+  },
+  "states": {
+    "loading": true,
+    "empty": true,
+    "error": true,
+    "permissionDenied": true
+  }
+}

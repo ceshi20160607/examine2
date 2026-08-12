@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.module.base.mapper.ModulePageMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.module.base.entity.Page">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="module_id" property="moduleId" />
+        <result column="page_code" property="pageCode" />
+        <result column="page_name" property="pageName" />
+        <result column="page_type" property="pageType" />
+        <result column="is_default" property="isDefault" />
+        <result column="desired_status" property="desiredStatus" />
+        <result column="layout_json" property="layoutJson" />
+        <result column="code_locked_at" property="codeLockedAt" />
+        <result column="created_revision" property="createdRevision" />
+        <result column="updated_revision" property="updatedRevision" />
+        <result column="created_at" property="createdAt" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="version" property="version" />
+        <result column="deleted_at" property="deletedAt" />
+        <result column="deleted_by" property="deletedBy" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, module_id, page_code, page_name, page_type, is_default, desired_status, layout_json, code_locked_at, created_revision, updated_revision, created_at, created_by, updated_at, updated_by, version, deleted_at, deleted_by
+    </sql>
+
+</mapper>

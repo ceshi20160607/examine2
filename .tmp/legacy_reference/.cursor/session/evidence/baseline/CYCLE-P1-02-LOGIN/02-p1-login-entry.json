@@ -1,0 +1,32 @@
+{
+    "testId":  "p1-login-entry",
+    "category":  "real_entry",
+    "outcomeClass":  "positive_business",
+    "command":  "set E2E_MANAGED_WEB_SERVER=true\u0026\u0026 npm.cmd --prefix frontend run e2e -- --project=desktop p1-login-cycle.spec.ts",
+    "commandSha256":  "d7518d0d1df0df251a1f2a5de5ab5d8dca22ede2f291e17c10a86fca847c0ff3",
+    "exitCode":  0,
+    "timedOut":  false,
+    "mavenModule":  null,
+    "expectedTestSelectors":  [
+
+                              ],
+    "missingTestSelectors":  [
+
+                             ],
+    "executedTestCount":  1,
+    "reportedTestCount":  1,
+    "skippedTestCount":  0,
+    "failureCount":  0,
+    "errorCount":  0,
+    "reportPaths":  [
+
+                    ],
+    "reportSha256":  [
+
+                     ],
+    "startedAt":  "2026-08-10T20:48:30.2843064+08:00",
+    "completedAt":  "2026-08-10T20:48:40.4951356+08:00",
+    "verdict":  "pass",
+    "logPath":  ".cursor/session/evidence/baseline/CYCLE-P1-02-LOGIN/02-p1-login-entry.log",
+    "logSha256":  "9fa338c222ccdd0f6aa68a7960bb36fe16c1376bca27f850fe316c7c6626aee6"
+}

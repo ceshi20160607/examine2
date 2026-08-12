@@ -1,0 +1,29 @@
+{
+    "checkedAt":  "2026-07-20T20:19:40.1750636+08:00",
+    "verdict":  "pass",
+    "systemId":  "2079175642445213697",
+    "schemaVersionId":  "2079176002647846914",
+    "recordId":  "2079179401548230657",
+    "recordStatus":  "ACTIVE",
+    "workflowStatus":  "2079175985535086593",
+    "p4C2Types":  [
+                      "PHONE",
+                      "EMAIL",
+                      "URL",
+                      "IDENTITY",
+                      "ADDRESS",
+                      "GEO",
+                      "BARCODE",
+                      "RICH_TEXT",
+                      "JSON",
+                      "SECRET",
+                      "STATUS"
+                  ],
+    "valueRows":  13,
+    "sensitiveRows":  2,
+    "plaintextSensitiveColumns":  0,
+    "sensitiveOmissionPreserved":  true,
+    "auditPlaintextLeaks":  0,
+    "invalidIdentityCode":  "FIELD_VALUE_INVALID",
+    "health":  "UP"
+}

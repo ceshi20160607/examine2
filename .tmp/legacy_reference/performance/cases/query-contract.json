@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "contractId": "VS4-PERF-SEED-V1:20260715",
+  "method": "POST",
+  "pathTemplate": "/api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records:query",
+  "successEnvelope": { "code": "OK", "required": ["code", "data"] },
+  "cases": {
+    "Q01": { "expectedCardinality": "1" },
+    "Q02": { "expectedCardinality": "1000..20000" },
+    "Q03": { "expectedSelectivity": "5%..15%" },
+    "Q04": { "expectedSelectivity": "20%..30%" },
+    "Q05": { "expectedSelectivity": "0.5%..5%" },
+    "Q06": { "expectedSelectivity": "5%..20%" },
+    "Q07": { "expectedSelectivity": "0.1%..5%" },
+    "Q08": { "expectedSelectivity": "0.01%..2%", "stableTieBreak": "recordId" },
+    "Q09": { "expectedCardinality": "100..10000" },
+    "Q10": { "expectedSelectivity": "10% base" },
+    "Q11": { "astDepth": 5, "astLeaves": 20 },
+    "Q12": {
+      "baseQuery": "Q07",
+      "scopeVariants": {
+        "SC-01": ["R100", "R101", "R102", "R103", "R104", "R105", "R106"],
+        "SC-02": ["R100"],
+        "SC-03": ["R100", "R101"],
+        "SC-04": ["R100", "R101", "R102"],
+        "SC-05": ["R103"],
+        "SC-06": ["R104"],
+        "SC-07": ["R100", "R101", "R103", "R105"]
+      }
+    }
+  }
+}

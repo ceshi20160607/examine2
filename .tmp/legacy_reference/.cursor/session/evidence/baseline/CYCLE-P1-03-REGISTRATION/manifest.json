@@ -1,0 +1,27 @@
+{
+    "schemaVersion":  1,
+    "scopeId":  "CYCLE-P1-03-REGISTRATION",
+    "planPath":  ".cursor/session/baseline/test-plans/cycle-p1-03-registration.json",
+    "planSha256":  "91059741b37c1d54f2e6c2697348fecbc75ccba5fb1313d640641be24cef9bec",
+    "sourceCommitSha":  "c9fc62da6528b462f321a64771a341a56671f7da",
+    "sourceDirty":  true,
+    "generatedAt":  "2026-08-10T22:02:53.5372915+08:00",
+    "verdict":  "pass",
+    "executedTestCount":  2,
+    "tests":  [
+                  {
+                      "testId":  "p1-registration-integration",
+                      "evidencePath":  ".cursor/session/evidence/baseline/CYCLE-P1-03-REGISTRATION/01-p1-registration-integration.json",
+                      "evidenceSha256":  "c764a21e4330acd05ad38c6412ee8e672744393d390015e27d18fd92e020bf92",
+                      "verdict":  "pass",
+                      "executedTestCount":  1
+                  },
+                  {
+                      "testId":  "p1-registration-entry",
+                      "evidencePath":  ".cursor/session/evidence/baseline/CYCLE-P1-03-REGISTRATION/02-p1-registration-entry.json",
+                      "evidenceSha256":  "98f99a48154a8b6edd96ce21303ee54851d8746b5ffdff88c7ff5acef5c49557",
+                      "verdict":  "pass",
+                      "executedTestCount":  1
+                  }
+              ]
+}

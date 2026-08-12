@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "P4-C4-DERIVED-FIELD-CONTRACT",
+  "checkedAt": "2026-07-22T00:12:00+08:00",
+  "activeSpentMinutes": 180,
+  "verdict": "pass",
+  "decision": "finish_frontend_non_browser_baseline_then_pause_for_real_browser",
+  "facts": {
+    "task01": "passed",
+    "task02": "passed with packaged restart",
+    "task03Implementation": "typed configuration and runtime renderers implemented",
+    "browserRuntime": "initialized but no browser instances available"
+  },
+  "reforecast": {
+    "remainingActiveMinutes": 45,
+    "remainingScope": "Real Edge desktop/mobile journeys, screenshots, failed-to-pending-to-ready retry, permission/stale/restart readback and task review closure."
+  },
+  "evidence": [
+    ".cursor/session/evidence/p4-c4/task-02.json",
+    ".cursor/session/evidence/p4-c4/task-03-browser-wait.json",
+    ".cursor/session/meetings/P4-C4-task-03-review.md"
+  ]
+}

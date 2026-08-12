@@ -1,0 +1,5 @@
+export interface PlatformFlowDefinition { id:string;code:string;name:string;description:string|null;draft:{steps?:string[]};draftVersion:number;status:'DRAFT'|'PUBLISHED'|'DISABLED';activeVersionNumber:number|null;version:number;createdAt:string;updatedAt:string }
+export interface PlatformFlowInstance { id:string;definitionId:string;definitionVersion:number;status:string;input:unknown;result:unknown;startedAt:string;completedAt:string|null;version:number }
+export interface PlatformDashboard { id:string;code:string;name:string;description:string|null;draft:{statistics?:string[];quickEntries?:string[];includeHealth?:boolean};draftVersion:number;status:string;activeVersionNumber:number|null;version:number;createdAt:string;updatedAt:string }
+export interface PlatformDashboardRuntime { code:string;name:string;description:string|null;versionNumber:number;statistics:{code:string;label:string;value:number;requiredPermission:string}[];health:{service:string;state:string}[];quickEntries:{label:string;path:string;requiredPermission:string}[];publishedAt:string }
+export interface ConfigCheck { valid:boolean;issues:string[] }

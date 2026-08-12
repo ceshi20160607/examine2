@@ -1,0 +1,800 @@
+{
+  "intake": {
+    "path": "requirement-intake.json",
+    "requirementsSha256": "3bae2650d53cb0a0b790c5730a5f34e558f2d6efed25ae9d33d4b945dff8fe48",
+    "sha256": "df72f37608102466bd439602633db95b907981321c6ca65c3849ca65863381cd"
+  },
+  "packetCount": 48,
+  "packets": [
+    {
+      "blockIds": [
+        "B0004",
+        "B0005",
+        "B0006",
+        "B0007"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "1. 方案定位"
+      ],
+      "id": "RWP-0001",
+      "lineEnd": 26,
+      "lineStart": 8
+    },
+    {
+      "blockIds": [
+        "B0010",
+        "B0017",
+        "B0018",
+        "B0019",
+        "B0020",
+        "B0021"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "2. 总体目标",
+        "2.1 产品目标"
+      ],
+      "id": "RWP-0002",
+      "lineEnd": 95,
+      "lineStart": 32
+    },
+    {
+      "blockIds": [
+        "B0033",
+        "B0034",
+        "B0035",
+        "B0036",
+        "B0037",
+        "B0039",
+        "B0040",
+        "B0041",
+        "B0043",
+        "B0044"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "4.1 平台层和自定义系统层"
+      ],
+      "id": "RWP-0003",
+      "lineEnd": 217,
+      "lineStart": 151
+    },
+    {
+      "blockIds": [
+        "B0045",
+        "B0047",
+        "B0048",
+        "B0050",
+        "B0051",
+        "B0052",
+        "B0053",
+        "B0054",
+        "B0055",
+        "B0057"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "4.1 平台层和自定义系统层",
+        "自定义系统层负责什么"
+      ],
+      "id": "RWP-0004",
+      "lineEnd": 286,
+      "lineStart": 219
+    },
+    {
+      "blockIds": [
+        "B0058",
+        "B0059",
+        "B0060",
+        "B0062",
+        "B0063",
+        "B0064",
+        "B0065",
+        "B0066",
+        "B0067",
+        "B0069"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "4.1 平台层和自定义系统层",
+        "权限划分"
+      ],
+      "id": "RWP-0005",
+      "lineEnd": 333,
+      "lineStart": 288
+    },
+    {
+      "blockIds": [
+        "B0070",
+        "B0071",
+        "B0072",
+        "B0073",
+        "B0074"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "4.1 平台层和自定义系统层",
+        "页面入口"
+      ],
+      "id": "RWP-0006",
+      "lineEnd": 346,
+      "lineStart": 335
+    },
+    {
+      "blockIds": [
+        "B0117",
+        "B0118",
+        "B0119",
+        "B0120"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.1 账号和登录"
+      ],
+      "id": "RWP-0007",
+      "lineEnd": 580,
+      "lineStart": 555
+    },
+    {
+      "blockIds": [
+        "B0122",
+        "B0123",
+        "B0124",
+        "B0125"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.2 系统和租户"
+      ],
+      "id": "RWP-0008",
+      "lineEnd": 621,
+      "lineStart": 584
+    },
+    {
+      "blockIds": [
+        "B0137",
+        "B0138",
+        "B0139",
+        "B0140"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.4 模块"
+      ],
+      "id": "RWP-0009",
+      "lineEnd": 683,
+      "lineStart": 663
+    },
+    {
+      "blockIds": [
+        "B0142",
+        "B0143",
+        "B0144",
+        "B0145",
+        "B0146",
+        "B0147",
+        "B0148",
+        "B0149",
+        "B0150",
+        "B0151"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.5 字段"
+      ],
+      "id": "RWP-0010",
+      "lineEnd": 785,
+      "lineStart": 687
+    },
+    {
+      "blockIds": [
+        "B0167",
+        "B0168",
+        "B0169",
+        "B0170",
+        "B0171",
+        "B0172",
+        "B0173",
+        "B0174",
+        "B0175",
+        "B0176"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.8 页面"
+      ],
+      "id": "RWP-0011",
+      "lineEnd": 904,
+      "lineStart": 846
+    },
+    {
+      "blockIds": [
+        "B0177",
+        "B0178",
+        "B0179",
+        "B0180",
+        "B0181",
+        "B0182",
+        "B0183",
+        "B0184",
+        "B0185",
+        "B0186"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.8 页面"
+      ],
+      "id": "RWP-0012",
+      "lineEnd": 957,
+      "lineStart": 906
+    },
+    {
+      "blockIds": [
+        "B0187",
+        "B0188",
+        "B0189",
+        "B0190",
+        "B0191",
+        "B0192",
+        "B0193",
+        "B0194"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.8 页面"
+      ],
+      "id": "RWP-0013",
+      "lineEnd": 988,
+      "lineStart": 959
+    },
+    {
+      "blockIds": [
+        "B0196",
+        "B0197",
+        "B0198",
+        "B0199"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.9 菜单"
+      ],
+      "id": "RWP-0014",
+      "lineEnd": 1006,
+      "lineStart": 992
+    },
+    {
+      "blockIds": [
+        "B0201",
+        "B0202",
+        "B0203",
+        "B0204",
+        "B0205",
+        "B0206",
+        "B0207",
+        "B0208"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.10 权限"
+      ],
+      "id": "RWP-0015",
+      "lineEnd": 1051,
+      "lineStart": 1010
+    },
+    {
+      "blockIds": [
+        "B0210",
+        "B0211",
+        "B0212",
+        "B0213"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "5.11 数据记录"
+      ],
+      "id": "RWP-0016",
+      "lineEnd": 1087,
+      "lineStart": 1055
+    },
+    {
+      "blockIds": [
+        "B0335",
+        "B0336",
+        "B0337",
+        "B0338",
+        "B0339",
+        "B0340"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "6.2 Web 主布局"
+      ],
+      "id": "RWP-0017",
+      "lineEnd": 1708,
+      "lineStart": 1689
+    },
+    {
+      "blockIds": [
+        "B0349",
+        "B0350",
+        "B0351",
+        "B0352",
+        "B0353",
+        "B0354"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "6.4 列表页"
+      ],
+      "id": "RWP-0018",
+      "lineEnd": 1762,
+      "lineStart": 1738
+    },
+    {
+      "blockIds": [
+        "B0356",
+        "B0357",
+        "B0358",
+        "B0359"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "6.5 表单页"
+      ],
+      "id": "RWP-0019",
+      "lineEnd": 1780,
+      "lineStart": 1766
+    },
+    {
+      "blockIds": [
+        "B0361",
+        "B0362",
+        "B0363",
+        "B0364"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "6.6 详情页"
+      ],
+      "id": "RWP-0020",
+      "lineEnd": 1797,
+      "lineStart": 1784
+    },
+    {
+      "blockIds": [
+        "B0366",
+        "B0367",
+        "B0368",
+        "B0369"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "6.7 字段设计器"
+      ],
+      "id": "RWP-0021",
+      "lineEnd": 1814,
+      "lineStart": 1801
+    },
+    {
+      "blockIds": [
+        "B0371",
+        "B0372",
+        "B0373",
+        "B0374"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "6.8 页面设计器"
+      ],
+      "id": "RWP-0022",
+      "lineEnd": 1829,
+      "lineStart": 1818
+    },
+    {
+      "blockIds": [
+        "B0381",
+        "B0382",
+        "B0383",
+        "B0384"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "6.10 权限页面"
+      ],
+      "id": "RWP-0023",
+      "lineEnd": 1865,
+      "lineStart": 1852
+    },
+    {
+      "blockIds": [
+        "B0393",
+        "B0394",
+        "B0395",
+        "B0396"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "7.1 前端技术"
+      ],
+      "id": "RWP-0024",
+      "lineEnd": 1914,
+      "lineStart": 1894
+    },
+    {
+      "blockIds": [
+        "B0398",
+        "B0399",
+        "B0400",
+        "B0401"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "7.2 后端技术"
+      ],
+      "id": "RWP-0025",
+      "lineEnd": 1938,
+      "lineStart": 1918
+    },
+    {
+      "blockIds": [
+        "B0403",
+        "B0404",
+        "B0405",
+        "B0406",
+        "B0407",
+        "B0408",
+        "B0409",
+        "B0410",
+        "B0411",
+        "B0412"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "7.3 架构方式"
+      ],
+      "id": "RWP-0026",
+      "lineEnd": 1984,
+      "lineStart": 1942
+    },
+    {
+      "blockIds": [
+        "B0413"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "7.3 架构方式"
+      ],
+      "id": "RWP-0027",
+      "lineEnd": 1991,
+      "lineStart": 1986
+    },
+    {
+      "blockIds": [
+        "B0415",
+        "B0416",
+        "B0417",
+        "B0418"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "7.4 数据保存方式"
+      ],
+      "id": "RWP-0028",
+      "lineEnd": 2007,
+      "lineStart": 1995
+    },
+    {
+      "blockIds": [
+        "B0425",
+        "B0426",
+        "B0427",
+        "B0428",
+        "B0429"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "7.6 权限体系"
+      ],
+      "id": "RWP-0029",
+      "lineEnd": 2050,
+      "lineStart": 2032
+    },
+    {
+      "blockIds": [
+        "B0444",
+        "B0445"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "8.1 配置健壮"
+      ],
+      "id": "RWP-0030",
+      "lineEnd": 2107,
+      "lineStart": 2101
+    },
+    {
+      "blockIds": [
+        "B0447",
+        "B0448"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "8.2 数据健壮"
+      ],
+      "id": "RWP-0031",
+      "lineEnd": 2118,
+      "lineStart": 2111
+    },
+    {
+      "blockIds": [
+        "B0450",
+        "B0451"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "8.3 权限健壮"
+      ],
+      "id": "RWP-0032",
+      "lineEnd": 2128,
+      "lineStart": 2122
+    },
+    {
+      "blockIds": [
+        "B0483",
+        "B0484",
+        "B0485",
+        "B0486",
+        "B0487"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "10. 全量交付标准"
+      ],
+      "id": "RWP-0033",
+      "lineEnd": 2260,
+      "lineStart": 2230
+    },
+    {
+      "blockIds": [
+        "B0489",
+        "B0490",
+        "B0491",
+        "B0492"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "11. 实施顺序说明"
+      ],
+      "id": "RWP-0034",
+      "lineEnd": 2278,
+      "lineStart": 2264
+    },
+    {
+      "blockIds": [
+        "B0503",
+        "B0504",
+        "B0505",
+        "B0506"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.1 配置版本管理"
+      ],
+      "id": "RWP-0035",
+      "lineEnd": 2327,
+      "lineStart": 2313
+    },
+    {
+      "blockIds": [
+        "B0508",
+        "B0509",
+        "B0510",
+        "B0511",
+        "B0512",
+        "B0513"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.2 配置发布机制"
+      ],
+      "id": "RWP-0036",
+      "lineEnd": 2348,
+      "lineStart": 2331
+    },
+    {
+      "blockIds": [
+        "B0515",
+        "B0516",
+        "B0517",
+        "B0518"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.3 模块生命周期"
+      ],
+      "id": "RWP-0037",
+      "lineEnd": 2363,
+      "lineStart": 2352
+    },
+    {
+      "blockIds": [
+        "B0579",
+        "B0580",
+        "B0581",
+        "B0582"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.16 命名和编码规范"
+      ],
+      "id": "RWP-0038",
+      "lineEnd": 2579,
+      "lineStart": 2560
+    },
+    {
+      "blockIds": [
+        "B0584",
+        "B0585",
+        "B0586",
+        "B0587"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.17 配置迁移和升级"
+      ],
+      "id": "RWP-0039",
+      "lineEnd": 2597,
+      "lineStart": 2583
+    },
+    {
+      "blockIds": [
+        "B0607",
+        "B0608",
+        "B0609",
+        "B0610"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.22 API 规范"
+      ],
+      "id": "RWP-0040",
+      "lineEnd": 2688,
+      "lineStart": 2670
+    },
+    {
+      "blockIds": [
+        "B0612",
+        "B0613",
+        "B0614",
+        "B0615",
+        "B0616"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.23 错误码和异常规范"
+      ],
+      "id": "RWP-0041",
+      "lineEnd": 2712,
+      "lineStart": 2692
+    },
+    {
+      "blockIds": [
+        "B0618",
+        "B0619",
+        "B0620",
+        "B0621"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.24 幂等和重复提交"
+      ],
+      "id": "RWP-0042",
+      "lineEnd": 2729,
+      "lineStart": 2716
+    },
+    {
+      "blockIds": [
+        "B0633",
+        "B0634",
+        "B0635",
+        "B0636"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.27 前端设计系统"
+      ],
+      "id": "RWP-0043",
+      "lineEnd": 2791,
+      "lineStart": 2771
+    },
+    {
+      "blockIds": [
+        "B0638",
+        "B0639",
+        "B0640",
+        "B0641"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.28 前端权限和路由守卫"
+      ],
+      "id": "RWP-0044",
+      "lineEnd": 2807,
+      "lineStart": 2795
+    },
+    {
+      "blockIds": [
+        "B0653",
+        "B0654",
+        "B0655",
+        "B0656"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.31 变更审计"
+      ],
+      "id": "RWP-0045",
+      "lineEnd": 2863,
+      "lineStart": 2849
+    },
+    {
+      "blockIds": [
+        "B0681",
+        "B0682",
+        "B0683",
+        "B0684"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "14.37 落地级数据设计原则"
+      ],
+      "id": "RWP-0046",
+      "lineEnd": 2961,
+      "lineStart": 2944
+    },
+    {
+      "blockIds": [
+        "B0715",
+        "B0729",
+        "B0730",
+        "B0734",
+        "B0736",
+        "B0740",
+        "B0744",
+        "B0748"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "附录 A：v2 已确认产品澄清（2026-06-15）",
+        "A.6 数据字典"
+      ],
+      "id": "RWP-0047",
+      "lineEnd": 3201,
+      "lineStart": 3052
+    },
+    {
+      "blockIds": [
+        "B0752",
+        "B0760"
+      ],
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "附录 A：v2 已确认产品澄清（2026-06-15）",
+        "A.14 平台、租户、权限、转化与 Flow 最终澄清（2026-08-12，冲突时优先）",
+        "A.14.10 租户可扩展配置范围"
+      ],
+      "id": "RWP-0048",
+      "lineEnd": 3252,
+      "lineStart": 3213
+    }
+  ],
+  "schemaVersion": 2,
+  "scope": {
+    "deferredBlockCount": 364,
+    "id": "slice-01-registration-to-runtime-module",
+    "path": "slice-01.scope.json",
+    "selectedBlockCount": 247,
+    "sha256": "99d33c02158a6cca2664dbaf5fc3d56dcb9eef546389725a0cacc12abeebbcee"
+  }
+}

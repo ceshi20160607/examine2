@@ -1,0 +1,32 @@
+{
+    "testId":  "p1-registration-usecase-contract",
+    "category":  "affected_unit",
+    "outcomeClass":  "regression",
+    "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/scripts/run-maven-focused-test.ps1 -Module examine-web -Tests P1RegistrationUseCaseContractTest",
+    "commandSha256":  "e1e5b131753b4ccdab5a40593b8f8c5f6cc6295095492a05804d8ad82594913a",
+    "exitCode":  0,
+    "timedOut":  false,
+    "mavenModule":  "examine-web",
+    "expectedTestSelectors":  [
+                                  "P1RegistrationUseCaseContractTest"
+                              ],
+    "missingTestSelectors":  [
+
+                             ],
+    "executedTestCount":  7,
+    "reportedTestCount":  7,
+    "skippedTestCount":  0,
+    "failureCount":  0,
+    "errorCount":  0,
+    "reportPaths":  [
+                        ".cursor/session/evidence/baseline/TASK-P1-03-REGISTER-BACKEND/surefire-reports/01-p1-registration-usecase-contract-TEST-com.unique.examine.web.P1RegistrationUseCaseContractTest.xml"
+                    ],
+    "reportSha256":  [
+                         "39d88c78d22fe1fb3734f130e6c9af9044a90889f83faab2e7929046aa2e51fc"
+                     ],
+    "startedAt":  "2026-08-10T21:40:07.2390257+08:00",
+    "completedAt":  "2026-08-10T21:41:27.6553912+08:00",
+    "verdict":  "pass",
+    "logPath":  ".cursor/session/evidence/baseline/TASK-P1-03-REGISTER-BACKEND/01-p1-registration-usecase-contract.log",
+    "logSha256":  "7347ad368889f410a7581640c0f8402e1aa70ea930060856995c542e792b8f06"
+}

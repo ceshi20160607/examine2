@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "planId": "VERIFY-CYCLE-P1-02-LOGIN",
+  "level": "cycle",
+  "scopeId": "CYCLE-P1-02-LOGIN",
+  "requirementIds": ["REQ-P1-LOGIN", "REQ-P1-LOGOUT"],
+  "acceptanceCaseIds": ["CASE-P1-LOGIN", "CASE-P1-LOGIN-INVALID", "CASE-P1-LOGOUT"],
+  "projectFunctionalComplete": false,
+  "performanceExplicitlyEnabled": false,
+  "separatePerformancePlan": false,
+  "performanceApproval": null,
+  "testVerdict": "planned",
+  "businessOutcome": "not_evaluated",
+  "requirementAcceptance": "pending",
+  "acceptanceAuthority": null,
+  "acceptanceEvidence": null,
+  "fullSuiteRuns": 0,
+  "tests": [
+    {
+      "id": "p1-login-integration",
+      "category": "cycle_integration",
+      "outcomeClass": "regression",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/scripts/run-maven-focused-test.ps1 -Module examine-web -Tests P1LoginCycleIntegrationTest",
+      "executionCount": 1,
+      "result": "planned",
+      "httpStatuses": [200, 401],
+      "actualEvidence": null,
+      "assertions": ["valid login creates hashed session and refresh state", "refresh rotates token", "current context reads the same account", "invalid password creates no session", "logout revokes the current session family"]
+    },
+    {
+      "id": "p1-login-entry",
+      "category": "real_entry",
+      "outcomeClass": "positive_business",
+      "command": "set E2E_MANAGED_WEB_SERVER=true&& npm.cmd --prefix frontend run e2e -- --project=desktop p1-login-cycle.spec.ts",
+      "executionCount": 1,
+      "result": "planned",
+      "httpStatuses": [200],
+      "actualEvidence": null,
+      "assertions": ["admin submits /login", "My Systems opens", "account survives reload", "logout returns to /login", "no Operations, Reports, favorites or placeholder navigation is visible"]
+    }
+  ]
+}

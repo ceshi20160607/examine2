@@ -1,0 +1,5 @@
+{
+  "createEndpoint": "/api/customers",
+  "readEndpoint": "/api/customers/{id}",
+  "persistence": "customer"
+}

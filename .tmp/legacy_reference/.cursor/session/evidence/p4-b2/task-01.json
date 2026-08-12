@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-B2-01",
+  "sliceId": "P4-B2-LIFECYCLE-RECOVERY",
+  "verdict": "pass",
+  "checkedAt": "2026-07-20T10:50:00+08:00",
+  "singleOutcome": "Forward migration and CAS lifecycle state machine for archive, unarchive, trash, restore and discard.",
+  "contract": {
+    "commands": ["archive", "unarchive", "trash", "restore-from-trash", "discard"],
+    "permissions": [
+      "module.{moduleCode}.action.archive",
+      "module.{moduleCode}.action.unarchive",
+      "module.{moduleCode}.delete",
+      "module.{moduleCode}.action.restore_trash"
+    ],
+    "invariants": [
+      "no physical record or typed-value deletion",
+      "one scoped row-lock and version CAS per command",
+      "TRASHED preserves exact prior status and delete metadata",
+      "restore clears prior/delete metadata",
+      "typed index and search status change in the aggregate transaction",
+      "successful command emits one audit and one outbox event"
+    ]
+  },
+  "implementation": {
+    "migrationSha256": "sha256:e0e21a241273b8ffd9dac5fa51869316662749571ccc81a30018473729a2cfb2",
+    "controllerSha256": "sha256:466e19b124cfeb75d5fa679dc0bc5fc9fcfa239c14358aa5e1a51cbb29e9331d",
+    "recordServiceSha256": "sha256:61ab7f38efcff930a90c489ed253f891a8f5b050e9c84d7df677a567f8fc3e0d",
+    "integrationTestSha256": "sha256:589d1e5ac1c3b216bc3412d784e71c16482620c148ee31a629a6087eb9fa37b7"
+  },
+  "evidence": {
+    "api": {
+      "test": "servesPublishedRecordSchemaListAndDetailWithStrictQueryGuards",
+      "result": "1/1 pass",
+      "assertions": [
+        "idempotent replay returns the committed version",
+        "stale version returns structured RECORD_VERSION_CONFLICT",
+        "unsupported source state returns RECORD_STATE_INVALID",
+        "five independently missing lifecycle grants return PERMISSION_DENIED"
+      ]
+    },
+    "db": {
+      "flyway": "seven migrations applied from empty MySQL through v4.1.0",
+      "states": ["ACTIVE", "ARCHIVED", "TRASHED"],
+      "preserved": ["typed values", "typed indexes", "prior_status", "deleted_at", "deleted_by"],
+      "result": "pass"
+    },
+    "ui": {
+      "boundary": "backend-only task; server action projection is verified for the frontend consumer",
+      "result": "pass"
+    },
+    "browser": {
+      "boundary": "browser execution belongs to P4-B2-03; HTTP contract is exercised against a real Undertow server",
+      "result": "pass"
+    },
+    "restart": {
+      "boundary": "no process-local lifecycle state; MySQL is the committed source of truth",
+      "result": "pass"
+    }
+  },
+  "testReport": {
+    "path": "backend/examine-web/target/surefire-reports/com.unique.examine.web.Vs3DraftJourneyIntegrationTest.txt",
+    "sha256": "sha256:1f195d964ab5c017bfbd4a4e36d47792d9123558a1130cc522fe8b1503410cc7"
+  }
+}

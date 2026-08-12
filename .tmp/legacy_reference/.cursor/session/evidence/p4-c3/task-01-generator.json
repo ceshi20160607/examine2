@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-07-21T01:12:00+08:00",
+  "verdict": "pass",
+  "module": "examine-module",
+  "tablePrefix": "un_module_",
+  "tables": 30,
+  "generatedFiles": 150,
+  "firstTreeSha256": "c40030b0fbe2f6679b46f27d897917bbfd16fb8293cd4b82c4b353139a60ee59",
+  "secondTreeSha256": "c40030b0fbe2f6679b46f27d897917bbfd16fb8293cd4b82c4b353139a60ee59",
+  "deterministic": true,
+  "reportPath": "backend/generator-reports/examine-module-un_module_.json",
+  "reportSha256": "bda9b931070235bd3615f9ecb071c5e4afd1978582f1cbefb9f02d8ad04a8777"
+}

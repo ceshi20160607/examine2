@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "intakePath": "requirement-intake.json",
+    "intakeSha256": "17ab946608e23b1f0401141ded00dee0d324f8e9825f3cc5d891bbe82d4b3444",
+    "requirementsSha256": "79b0abfa08b1f41c8807164d1c2c48e75a2dcf8092eceed866a86e7758a8c257"
+  },
+  "requirements": [
+    {
+      "id": "REQ-WORK-ORDER-PURPOSE",
+      "title": "登记和跟踪工单",
+      "statement": "系统必须支持登记和跟踪内部工单。",
+      "type": "functional",
+      "priority": "must",
+      "origin": "explicit",
+      "status": "confirmed",
+      "sourceBlocks": ["B0002"],
+      "acceptanceCriteria": ["管理员能够在系统中登记工单并在之后重新找到该工单。"],
+      "decisionIds": []
+    },
+    {
+      "id": "REQ-WORK-ORDER-CRUD",
+      "title": "管理员维护工单",
+      "statement": "管理员可以创建、修改、查看和删除工单。",
+      "type": "functional",
+      "priority": "must",
+      "origin": "explicit",
+      "status": "confirmed",
+      "sourceBlocks": ["B0003"],
+      "acceptanceCriteria": ["管理员可以通过真实页面完成新增、查看、修改和删除。"],
+      "decisionIds": []
+    },
+    {
+      "id": "REQ-WORK-ORDER-FIELDS",
+      "title": "工单字段",
+      "statement": "工单包含编号、标题、说明、优先级、是否紧急和创建时间。",
+      "type": "functional",
+      "priority": "must",
+      "origin": "explicit",
+      "status": "confirmed",
+      "sourceBlocks": ["B0003"],
+      "acceptanceCriteria": ["创建、详情和列表按照各字段的页面配置展示对应数据。"],
+      "decisionIds": []
+    },
+    {
+      "id": "REQ-WORK-ORDER-VALIDATION",
+      "title": "工单唯一性和必填规则",
+      "statement": "工单编号必须唯一，标题必须填写。",
+      "type": "constraint",
+      "priority": "must",
+      "origin": "explicit",
+      "status": "confirmed",
+      "sourceBlocks": ["B0003"],
+      "acceptanceCriteria": ["重复工单编号被拒绝。", "标题为空的提交被拒绝。"],
+      "decisionIds": []
+    },
+    {
+      "id": "REQ-WORK-ORDER-LIST",
+      "title": "工单列表与搜索",
+      "statement": "列表展示指定字段，并支持使用编号或标题快速搜索。",
+      "type": "functional",
+      "priority": "must",
+      "origin": "explicit",
+      "status": "confirmed",
+      "sourceBlocks": ["B0004"],
+      "acceptanceCriteria": ["列表展示编号、标题、优先级、是否紧急和创建时间。", "输入编号或标题可以筛选列表。"],
+      "decisionIds": []
+    },
+    {
+      "id": "REQ-WORK-ORDER-INTERACTION",
+      "title": "列表页交互",
+      "statement": "点击工单行在右侧查看详情，页面右上角仅提供一个新建工单主按钮。",
+      "type": "functional",
+      "priority": "must",
+      "origin": "explicit",
+      "status": "confirmed",
+      "sourceBlocks": ["B0004"],
+      "acceptanceCriteria": ["点击一行后右侧详情抽屉打开。", "页面右上角只有一个新建工单主按钮。"],
+      "decisionIds": []
+    },
+    {
+      "id": "REQ-SAMPLE-NON-GOAL",
+      "title": "样例范围边界",
+      "statement": "该样例只验证 Template Base 的生成、构建和真实读写能力，不代表 examine 产品需求。",
+      "type": "non-goal",
+      "priority": "must",
+      "origin": "explicit",
+      "status": "confirmed",
+      "sourceBlocks": ["B0005"],
+      "acceptanceCriteria": [],
+      "decisionIds": []
+    }
+  ],
+  "decisions": [],
+  "coverage": [
+    {"sourceBlock": "B0002", "classification": "requirement", "requirementIds": ["REQ-WORK-ORDER-PURPOSE"], "rationale": ""},
+    {"sourceBlock": "B0003", "classification": "requirement", "requirementIds": ["REQ-WORK-ORDER-CRUD", "REQ-WORK-ORDER-FIELDS", "REQ-WORK-ORDER-VALIDATION"], "rationale": ""},
+    {"sourceBlock": "B0004", "classification": "requirement", "requirementIds": ["REQ-WORK-ORDER-LIST", "REQ-WORK-ORDER-INTERACTION"], "rationale": ""},
+    {"sourceBlock": "B0005", "classification": "requirement", "requirementIds": ["REQ-SAMPLE-NON-GOAL"], "rationale": ""}
+  ],
+  "contractBindings": [
+    {"target": "project", "requirementIds": ["REQ-WORK-ORDER-PURPOSE"]},
+    {"target": "module:work-order", "requirementIds": ["REQ-WORK-ORDER-PURPOSE", "REQ-WORK-ORDER-CRUD"]},
+    {"target": "action:work-order:list", "requirementIds": ["REQ-WORK-ORDER-LIST"]},
+    {"target": "action:work-order:detail", "requirementIds": ["REQ-WORK-ORDER-CRUD", "REQ-WORK-ORDER-INTERACTION"]},
+    {"target": "action:work-order:create", "requirementIds": ["REQ-WORK-ORDER-CRUD", "REQ-WORK-ORDER-INTERACTION"]},
+    {"target": "action:work-order:update", "requirementIds": ["REQ-WORK-ORDER-CRUD"]},
+    {"target": "action:work-order:delete", "requirementIds": ["REQ-WORK-ORDER-CRUD"]},
+    {"target": "field:work-order:orderNo", "requirementIds": ["REQ-WORK-ORDER-FIELDS", "REQ-WORK-ORDER-VALIDATION", "REQ-WORK-ORDER-LIST"]},
+    {"target": "field:work-order:title", "requirementIds": ["REQ-WORK-ORDER-FIELDS", "REQ-WORK-ORDER-VALIDATION", "REQ-WORK-ORDER-LIST"]},
+    {"target": "field:work-order:description", "requirementIds": ["REQ-WORK-ORDER-FIELDS"]},
+    {"target": "field:work-order:priority", "requirementIds": ["REQ-WORK-ORDER-FIELDS", "REQ-WORK-ORDER-LIST"]},
+    {"target": "field:work-order:urgent", "requirementIds": ["REQ-WORK-ORDER-FIELDS", "REQ-WORK-ORDER-LIST"]},
+    {"target": "field:work-order:createdAt", "requirementIds": ["REQ-WORK-ORDER-FIELDS", "REQ-WORK-ORDER-LIST"]},
+    {"target": "rule:work-order:WORK-ORDER-NO-UNIQUE", "requirementIds": ["REQ-WORK-ORDER-VALIDATION"]}
+  ]
+}

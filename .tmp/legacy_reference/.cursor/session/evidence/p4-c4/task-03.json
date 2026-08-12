@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 2,
+  "taskId": "P4-C4-03",
+  "checkedAt": "2026-07-25T16:26:44+08:00",
+  "verdict": "pass_functional",
+  "qualityStage": "functional",
+  "summary": "Typed derived-field configuration and ordinary-member read-only materialized results are implemented and verified. The exhaustive responsive and negative-state visual matrix is deferred to release hardening.",
+  "checks": {
+    "frontendUnit": {
+      "command": "npm.cmd test",
+      "result": "9 files, 36 tests passed"
+    },
+    "frontendBuild": {
+      "command": "npm.cmd run build",
+      "result": "typecheck and Vite production build passed",
+      "path": ".cursor/session/evidence/p4-c4/task-03-build.json",
+      "sha256": "sha256:f0e2f1faac5ce0668ae231471015a4d22232ed067a00d970c0f97f94ebc058ff"
+    },
+    "backendRegression": {
+      "command": "JAVA_HOME=D:/dev/jdk21; mvn test",
+      "result": "six-module reactor passed; examine-web integration tests passed"
+    },
+    "httpReadback": {
+      "path": ".cursor/session/evidence/p4-c4/task-03-http.json",
+      "sha256": "sha256:d15c2f3ca469ae4466f76303e46862a22efea1a13c563f2a33750d04a7a51f25",
+      "result": "five exact derived declarations, zero legacy property leaks, five readonly READY values"
+    },
+    "manualRealBrowserReadyJourney": {
+      "entryPoint": "http://127.0.0.1:5175/systems/2079248383403778050/workbench?module=work_order",
+      "result": "Work order shows 10 visible fields and materialized values 41.5, 41.5000000000, 42.5, 1, P4-C4 Restart Acme and 8.25 after packaged restart."
+    },
+    "configurationVisual": {
+      "path": ".cursor/session/evidence/p4-c4/task-03-config-desktop.png",
+      "sha256": "sha256:2558d76dfb91acb33f4fb341e26d228010dda75a214984dea53f7fd12166243b"
+    }
+  },
+  "notClaimed": [
+    "The last standalone Playwright run did not pass because the configured browser executable was absent.",
+    "Existing PENDING/FAILED/retry/restricted/stale/restart screenshots do not independently prove the named state matrix.",
+    "Mobile, breakpoint, accessibility and exhaustive negative-state visual verification are deferred to P10-H1-UI-HARDENING."
+  ]
+}

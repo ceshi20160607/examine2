@@ -1,0 +1,47 @@
+{
+  "taskId": "P4-B1-02",
+  "sliceId": "P4-B1-EDIT-AUTOSAVE",
+  "verdict": "pass",
+  "executedAt": "2026-07-17T20:08:57+08:00",
+  "singleOutcome": "DRAFT-only idempotent autosave with structured, authorized CAS conflict feedback.",
+  "contract": {
+    "endpoint": "POST /api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records/{recordId}:autosave",
+    "success": "HTTP 200 with record, lastSavedAt and expiresAt",
+    "conflict": "HTTP 409 RECORD_VERSION_CONFLICT with currentVersion, currentSnapshot and conflictFields",
+    "guards": [
+      "module update permission and effective data scope",
+      "DRAFT state only",
+      "current immutable schema",
+      "expectedVersion CAS under aggregate row lock",
+      "typed field validation",
+      "idempotency replay and same-key body hash"
+    ],
+    "completionBoundary": "This task proves the server autosave and conflict contract. Debounce, single-flight UI and browser recovery are task 03."
+  },
+  "implementation": {
+    "apiResponseSha256": "sha256:78eca5b66dc4af4878e9dc739c5bff6c7a7f0df31bbb4ee79c3e5371bd923623",
+    "businessExceptionSha256": "sha256:287455b0d9d1e8ec09d894f2d6c55755980b9a611d24dcdf357348f3d8cc37ff",
+    "globalExceptionHandlerSha256": "sha256:c28c2202203c5292320e0f8387fa917dc47ed82dcff993214fc4677e142db7b7",
+    "recordRuntimeServiceSha256": "sha256:de6477f7f2978ca7dc48ca87bb03c1b391d4086d0b9d8e7bf9799c3f4a91eae5",
+    "integrationTestSha256": "sha256:28b6acb0a621549cc6fa58f1448d96b7f31b788e7aef97e7cd4b032e9995ed4c"
+  },
+  "verification": {
+    "command": "mvn.cmd -pl examine-web -am -Dtest=Vs3DraftJourneyIntegrationTest#servesPublishedRecordSchemaListAndDetailWithStrictQueryGuards -Dsurefire.failIfNoSpecifiedTests=false test",
+    "result": "BUILD SUCCESS; 1 test, 0 failures, 0 errors, 0 skipped",
+    "api": [
+      "autosave returns version 2 and server timestamps",
+      "same idempotency key replays version 2",
+      "same key with a different body returns IDEMPOTENCY_CONFLICT",
+      "stale version returns current version 2, current typed snapshot and values.title conflict",
+      "ACTIVE autosave returns RECORD_STATE_INVALID"
+    ],
+    "db": [
+      "autosave extends draft_expires_at",
+      "old typed value/index rows are absent",
+      "exactly one DRAFT index remains with the autosaved value"
+    ],
+    "ui": "Not applicable to this backend task; task 03 owns save-state and conflict UI.",
+    "browser": "Not applicable to this backend task; task 03 owns real ordinary-member browser evidence.",
+    "restart": "Persistent MySQL readback is proven; node acceptance still requires process restart readback."
+  }
+}

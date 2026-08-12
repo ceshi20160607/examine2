@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "projectId": "crm-example",
+  "source": {
+    "id": "SRC-001",
+    "path": "skills/compile-project-delivery/references/example-requirements.md",
+    "sha256": "39797c876c84e10104c008e80e43599f4f41eb430cb846da0fc3bac43939fbf5"
+  },
+  "decisions": [],
+  "artifacts": [
+    {
+      "id": "ART-AUTH-API",
+      "status": "accepted",
+      "sha256": "e72946e0986f8d19db12818229fff75a4b5cbafea39889ee6af0eae0fda09878",
+      "path": "skills/compile-project-delivery/references/example-auth-api.json"
+    },
+    {
+      "id": "ART-CUSTOMER-API",
+      "status": "accepted",
+      "sha256": "ac75ef1518a4302a6f5348335428ad1814c18474ef6cb834716fd7f85582da44",
+      "path": "skills/compile-project-delivery/references/example-customer-api.json"
+    }
+  ],
+  "qualityGates": [
+    {
+      "id": "GATE-FEATURE-COMPLETE",
+      "type": "feature_complete",
+      "status": "open",
+      "evidence": null
+    }
+  ],
+  "phases": [
+    {
+      "id": "PHASE-FOUNDATION",
+      "sequence": 1,
+      "planningStatus": "detailed",
+      "outcome": "a sales member can enter the CRM",
+      "dependsOnPhaseIds": [],
+      "requirementIds": ["REQ-LOGIN"],
+      "taskIds": ["TASK-AUTH-API", "TASK-LOGIN-UI"],
+      "cycleIds": ["CYCLE-LOGIN"]
+    },
+    {
+      "id": "PHASE-CRM-CORE",
+      "sequence": 2,
+      "planningStatus": "detailed",
+      "outcome": "a sales member can create a customer",
+      "dependsOnPhaseIds": ["PHASE-FOUNDATION"],
+      "requirementIds": ["REQ-CUSTOMER-CREATE"],
+      "taskIds": ["TASK-CUSTOMER-API", "TASK-CUSTOMER-UI"],
+      "cycleIds": ["CYCLE-CUSTOMER-CREATE"]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "REQ-LOGIN",
+      "phaseId": "PHASE-FOUNDATION",
+      "sourceRefs": [{"locator": "L10-L16", "quote": "销售使用账号密码登录 CRM"}],
+      "actor": "sales_member",
+      "trigger": "submits valid credentials",
+      "action": {"verb": "login", "object": "crm"},
+      "outcome": "the CRM customer list is visible",
+      "placement": {"surface": "form", "location": "public login route", "defaultVisible": true},
+      "constraints": ["invalid credentials do not create a session"],
+      "exclusions": ["does not configure SSO"],
+      "status": "accepted",
+      "decisionIds": [],
+      "dependsOnRequirementIds": [],
+      "acceptanceCaseIds": ["CASE-LOGIN"],
+      "taskIds": ["TASK-AUTH-API", "TASK-LOGIN-UI"]
+    },
+    {
+      "id": "REQ-CUSTOMER-CREATE",
+      "phaseId": "PHASE-CRM-CORE",
+      "sourceRefs": [{"locator": "L40-L47", "quote": "销售可以新建客户并在列表读回"}],
+      "actor": "sales_member",
+      "trigger": "submits the new customer form",
+      "action": {"verb": "create", "object": "customer"},
+      "outcome": "the customer appears in the customer list after reload",
+      "placement": {"surface": "page_header", "location": "customer list title row", "defaultVisible": true},
+      "constraints": ["customer name is required"],
+      "exclusions": ["does not import customers"],
+      "status": "accepted",
+      "decisionIds": [],
+      "dependsOnRequirementIds": ["REQ-LOGIN"],
+      "acceptanceCaseIds": ["CASE-CUSTOMER-CREATE"],
+      "taskIds": ["TASK-CUSTOMER-API", "TASK-CUSTOMER-UI"]
+    }
+  ],
+  "acceptanceCases": [
+    {
+      "id": "CASE-LOGIN",
+      "kind": "journey",
+      "status": "accepted",
+      "required": true,
+      "expectedBusinessOutcome": "achieved",
+      "requirementIds": ["REQ-LOGIN"],
+      "given": ["an active sales account exists"],
+      "when": "the sales member submits valid credentials",
+      "then": ["a session is created", "the customer list is visible"],
+      "taskIds": ["TASK-AUTH-API", "TASK-LOGIN-UI"]
+    },
+    {
+      "id": "CASE-CUSTOMER-CREATE",
+      "kind": "journey",
+      "status": "accepted",
+      "required": true,
+      "expectedBusinessOutcome": "achieved",
+      "requirementIds": ["REQ-CUSTOMER-CREATE"],
+      "given": ["the sales member is logged in", "the member can create customers"],
+      "when": "the member submits a customer with a valid name",
+      "then": ["the create request succeeds", "reload shows the persisted customer"],
+      "taskIds": ["TASK-CUSTOMER-API", "TASK-CUSTOMER-UI"]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "TASK-AUTH-API",
+      "phaseId": "PHASE-FOUNDATION",
+      "result": "authenticate a sales member and return the CRM context",
+      "requirementIds": ["REQ-LOGIN"],
+      "acceptanceCaseIds": ["CASE-LOGIN"],
+      "inputArtifactIds": ["ART-AUTH-API"],
+      "dependsOnTaskIds": [],
+      "estimateMinutes": 90,
+      "moduleScope": "backend/auth",
+      "writeScope": ["backend/auth"],
+      "resourceScope": ["db:auth"],
+      "scheduling": "ready_parallel",
+      "serialReason": null,
+      "allowedChanges": ["authentication API and service"],
+      "forbiddenChanges": ["CRM module navigation"],
+      "baseBindings": [{"assetId": "base.auth", "mode": "extend", "reason": "reuse the Base authentication boundary"}],
+      "newSemanticsAllowed": false,
+      "unresolvedDecisionIds": [],
+      "qualityStage": "functional",
+      "verificationKinds": ["unit", "api"],
+      "acceptanceCommand": "mvn -pl auth test",
+      "status": "planned",
+      "cycleId": "CYCLE-LOGIN",
+      "activationGateId": null
+    },
+    {
+      "id": "TASK-LOGIN-UI",
+      "phaseId": "PHASE-FOUNDATION",
+      "result": "submit login credentials and open the CRM customer list",
+      "requirementIds": ["REQ-LOGIN"],
+      "acceptanceCaseIds": ["CASE-LOGIN"],
+      "inputArtifactIds": ["ART-AUTH-API"],
+      "dependsOnTaskIds": [],
+      "estimateMinutes": 90,
+      "moduleScope": "frontend/auth",
+      "writeScope": ["frontend/src/features/auth"],
+      "resourceScope": ["ui:auth"],
+      "scheduling": "ready_parallel",
+      "serialReason": null,
+      "allowedChanges": ["login form and authenticated redirect"],
+      "forbiddenChanges": ["customer business behavior"],
+      "baseBindings": [{"assetId": "base.login-form", "mode": "reuse", "reason": "reuse the Base login UI contract"}],
+      "newSemanticsAllowed": false,
+      "unresolvedDecisionIds": [],
+      "qualityStage": "functional",
+      "verificationKinds": ["unit", "ui_smoke"],
+      "acceptanceCommand": "npm test -- login",
+      "status": "planned",
+      "cycleId": "CYCLE-LOGIN",
+      "activationGateId": null
+    },
+    {
+      "id": "TASK-CUSTOMER-API",
+      "phaseId": "PHASE-CRM-CORE",
+      "result": "create and read back a customer through the authenticated API",
+      "requirementIds": ["REQ-CUSTOMER-CREATE"],
+      "acceptanceCaseIds": ["CASE-CUSTOMER-CREATE"],
+      "inputArtifactIds": ["ART-CUSTOMER-API"],
+      "dependsOnTaskIds": ["TASK-AUTH-API"],
+      "estimateMinutes": 90,
+      "moduleScope": "backend/customer",
+      "writeScope": ["backend/customer", "db:customer"],
+      "resourceScope": ["db:customer"],
+      "scheduling": "ready_parallel",
+      "serialReason": null,
+      "allowedChanges": ["customer create and read API"],
+      "forbiddenChanges": ["saved views and import"],
+      "baseBindings": [{"assetId": "base.crud", "mode": "extend", "reason": "reuse generated CRUD and add customer rules"}],
+      "newSemanticsAllowed": false,
+      "unresolvedDecisionIds": [],
+      "qualityStage": "functional",
+      "verificationKinds": ["unit", "api", "data", "permission"],
+      "acceptanceCommand": "mvn -pl customer test",
+      "status": "planned",
+      "cycleId": "CYCLE-CUSTOMER-CREATE",
+      "activationGateId": null
+    },
+    {
+      "id": "TASK-CUSTOMER-UI",
+      "phaseId": "PHASE-CRM-CORE",
+      "result": "submit the customer form and show persisted customer data",
+      "requirementIds": ["REQ-CUSTOMER-CREATE"],
+      "acceptanceCaseIds": ["CASE-CUSTOMER-CREATE"],
+      "inputArtifactIds": ["ART-CUSTOMER-API"],
+      "dependsOnTaskIds": ["TASK-LOGIN-UI"],
+      "estimateMinutes": 90,
+      "moduleScope": "frontend/customer",
+      "writeScope": ["frontend/src/features/customer"],
+      "resourceScope": ["ui:customer"],
+      "scheduling": "ready_parallel",
+      "serialReason": null,
+      "allowedChanges": ["customer list and create form"],
+      "forbiddenChanges": ["reports and operations navigation"],
+      "baseBindings": [{"assetId": "base.management-list", "mode": "extend", "reason": "reuse the Base list and form contracts"}],
+      "newSemanticsAllowed": false,
+      "unresolvedDecisionIds": [],
+      "qualityStage": "functional",
+      "verificationKinds": ["unit", "ui_smoke"],
+      "acceptanceCommand": "npm test -- customer-create",
+      "status": "planned",
+      "cycleId": "CYCLE-CUSTOMER-CREATE",
+      "activationGateId": null
+    }
+  ],
+  "cycles": [
+    {
+      "id": "CYCLE-LOGIN",
+      "phaseId": "PHASE-FOUNDATION",
+      "sequence": 1,
+      "timeboxMinutes": 240,
+      "outcome": "a sales member logs in and reaches the CRM customer list",
+      "demo": {"entryPoint": "/login", "acceptanceCaseId": "CASE-LOGIN"},
+      "taskIds": ["TASK-AUTH-API", "TASK-LOGIN-UI"]
+    },
+    {
+      "id": "CYCLE-CUSTOMER-CREATE",
+      "phaseId": "PHASE-CRM-CORE",
+      "sequence": 2,
+      "timeboxMinutes": 240,
+      "outcome": "a sales member creates and reloads one customer",
+      "demo": {"entryPoint": "/crm/customers", "acceptanceCaseId": "CASE-CUSTOMER-CREATE"},
+      "taskIds": ["TASK-CUSTOMER-API", "TASK-CUSTOMER-UI"]
+    }
+  ]
+}

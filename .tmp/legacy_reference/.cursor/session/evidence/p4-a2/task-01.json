@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-A2-01",
+  "sliceId": "P4-A2-CREATE-ACTIVATE",
+  "verdict": "pass",
+  "checkedAt": "2026-07-17T16:40:00+08:00",
+  "contract": {
+    "endpoint": "POST /api/v1/systems/{systemId}/runtime/modules/{moduleCode}/records",
+    "success": "HTTP 201, DRAFT, version 0, server record number and typed values",
+    "fieldTypes": ["TEXT", "TEXTAREA", "NUMBER", "DATE", "DATETIME", "RADIO", "MEMBER", "DEPARTMENT"],
+    "scope": "active published schema, current system/tenant/module, writable field projection and module create permission",
+    "completionBoundary": "Create-draft transaction only; activation is accepted by P4-A2-02 and the browser journey by P4-A2-03."
+  },
+  "implementation": {
+    "businessExceptionSha256": "sha256:1e086e608af004670b78900b758112e2821f015a5985820b4c1ef6fc31321f93",
+    "runtimeReferenceFacadeSha256": "sha256:6690ce24e42800c11998aea72ea2ad4c0eb57d5b075e36b18e3d44d66c106526",
+    "globalExceptionHandlerSha256": "sha256:f2625c85062ce19a7c0d91a43ec60e85be107faf4458ca53a69b7eb9841eb56f",
+    "runtimeReferenceBridgeSha256": "sha256:097311d5d84da1e4b964b35341d3aa0a44cf58fdd5aa8fe216c92ea839c7fc67",
+    "recordMutationSupportSha256": "sha256:3f59b0e51dfae5216b112924bdfd5497b2fab4df5aeb6c99763fa1d5c58729b0",
+    "recordRuntimeViewsSha256": "sha256:fd85745e30eb626055ada4996a8fe6a2b25e60273935ef172f01997086415066",
+    "recordRuntimeServiceSha256": "sha256:0b2a82ced3f6c5318b47bad0cdebe3ad9dab1d93cc6ad3a3f8d4888417142742",
+    "moduleRuntimeControllerSha256": "sha256:90df64155fe0f880d0382bd57d13bb4c7cc958a4deac4a054098519a4e24f227"
+  },
+  "evidence": {
+    "api": {
+      "test": "Vs3DraftJourneyIntegrationTest#servesPublishedRecordSchemaListAndDetailWithStrictQueryGuards",
+      "testSourceSha256": "sha256:63927497a1181ac122dc4691012f0d2a142752f910ade293b396efd595734c31",
+      "passed": 1,
+      "failed": 0,
+      "assertions": [
+        "create returns 201 DRAFT v0",
+        "same idempotency key and body replays the original response",
+        "same idempotency key and different body returns IDEMPOTENCY_CONFLICT",
+        "invalid type, unknown field and stale schema are rejected",
+        "typed value and index rows are transactionally persisted"
+      ]
+    },
+    "db": {
+      "systemId": "2078026635551383554",
+      "schemaVersionId": "2078030249149800449",
+      "schemaVersionNo": 2,
+      "schemaChecksum": "10b0e1f6d13a94c9991619e8ecd79e043cc18c7cb20e4a1ff724ff1b82601b28",
+      "ordinaryMemberRecordIds": ["2078036396263014402", "2078036462642069505"],
+      "valueRowsPerRecord": 8,
+      "indexRowsPerRecord": 8,
+      "remainingDraftCount": 0,
+      "result": "pass"
+    },
+    "ui": {
+      "productionBuild": "pass",
+      "frontendUnitTests": "18/18 pass",
+      "cumulativeConsumer": "P4-A2-03 schema-driven form",
+      "result": "pass"
+    },
+    "browser": {
+      "principal": "non-root ordinary member",
+      "command": "playwright p4-a2 desktop + mobile",
+      "passed": 2,
+      "failed": 0,
+      "result": "pass"
+    },
+    "restart": {
+      "artifact": "backend/examine-web/target/examine-web-1.0.0-SNAPSHOT.jar",
+      "artifactSha256": "sha256:7292c05c1a675476fd01709887bfc4968e3df1616a7716f6147d2b9503e9c24b",
+      "backendPid": 27040,
+      "health": "UP",
+      "readbackScreenshot": ".cursor/session/evidence/p4-a2/restart-readback-desktop.png",
+      "result": "pass"
+    }
+  },
+  "resolvedFindings": [
+    {
+      "code": "P4-A2-UTF8-FIXTURE",
+      "finding": "The first acceptance fixture was created through a shell path that replaced Chinese labels with question marks.",
+      "resolution": "Source resources were updated through versioned config APIs and published as immutable V2; system, tenant and department rows were repaired with UTF-8-safe values while V1 remained intact."
+    }
+  ]
+}

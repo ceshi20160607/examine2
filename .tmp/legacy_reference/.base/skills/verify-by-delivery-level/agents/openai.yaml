@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify by Delivery Level"
+  short_description: "Validate minimal, non-duplicative tests by delivery level"
+  default_prompt: "Use $verify-by-delivery-level to create and validate the smallest correct test plan for this delivery level without confusing test PASS, business achievement, or requirement acceptance."

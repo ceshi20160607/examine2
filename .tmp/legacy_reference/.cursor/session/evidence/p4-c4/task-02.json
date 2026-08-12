@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-C4-02",
+  "sliceId": "P4-C4-DERIVED-FIELD-CONTRACT",
+  "checkedAt": "2026-07-21T23:49:00+08:00",
+  "verdict": "pass",
+  "singleOutcome": "Authorized members receive deterministic server-materialized FORMULA, SUMMARY, CALCULATED, LOOKUP and AGGREGATE results with atomic local evaluation, deduplicated cross-record recalculation, current permission disclosure, typed query/sort, safe failure/retry/concurrency behavior and identical packaged-restart readback.",
+  "contract": {
+    "path": ".cursor/session/current-node.md",
+    "sha256": "sha256:36ea0bb79ae970275d1519583f543d38a61265acc45533386cc0c818e2cc2055",
+    "reviewPath": ".cursor/session/meetings/P4-C4-contract-review.md",
+    "reviewSha256": "sha256:f46916a94d5a67ba19bd7fcb3bfd77c7a4ab30e7be1a40dfeecbc55dfd625755"
+  },
+  "independentReview": {
+    "path": ".cursor/session/meetings/P4-C4-task-02-review.md",
+    "sha256": "sha256:5df201e3bfb6c9c0f0918de5882d8aacf89393837c09e07a2e51f9d6db24caaf",
+    "backendVerdict": "pass",
+    "securityVerdict": "pass",
+    "testVerdict": "pass",
+    "operationsVerdict": "pass"
+  },
+  "implementation": {
+    "runtimeAuthorizationFacadeSha256": "sha256:af6f6e623e4ab2c2800af785ab7076db72bd37dd78fa07407c1f22cfd0115f20",
+    "runtimeAuthorizationBridgeSha256": "sha256:d1c4821bb03bd8839058523c4852857ecdef967e8b391977779c3a7bce8ee62a",
+    "evaluatorSha256": "sha256:a945343f17ad6f7376653ed0bbb0cc943cce974f1156323bc0de18c8c31563ad",
+    "materializerSha256": "sha256:d663f6cd915fda6655e4a3ba3ae9d9b190fbe300d1024fe122b2bd484dea02b5",
+    "runtimeServiceSha256": "sha256:1f414432921d880671dc60204ae684f5131b0ab7a32d19482f044649977936f9",
+    "workerSha256": "sha256:5bf5ba6ae18c97bfb502234d44b1727ceb13f1060b7e8f12fe056ad29a23598a"
+  },
+  "evaluation": {
+    "schemas": ["STRING", "DECIMAL", "INTEGER", "DATE", "DATETIME", "BOOLEAN"],
+    "operators": [
+      "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "CONCAT", "EQ", "NE", "GT", "GTE",
+      "LT", "LTE", "AND", "OR", "NOT", "IF", "ADD_DAYS", "DAYS_BETWEEN"
+    ],
+    "decimalPolicy": "DECIMAL(38,10), HALF_EVEN",
+    "typedNull": "pass",
+    "divisionByZero": "rejected",
+    "lookupBoundary": {"100": "pass", "101": "rejected"},
+    "unitEvidence": {
+      "evaluatorSha256": "sha256:f304fcae55d084ecc9d83e57541ef100b4f09f7aacf5103b6f008b1cf82a5bea",
+      "cardinalitySha256": "sha256:626abe651298b4ace7aa24600d563273e5b418ef776e564e7f4d07e5477ce6a8"
+    }
+  },
+  "runtime": {
+    "integrationPath": "backend/examine-web/src/test/java/com/unique/examine/web/Vs3DraftJourneyIntegrationTest.java",
+    "integrationSha256": "sha256:998f721ce783ddeafba8a632935854149100888aa0dd8fd391cad86042d763a7",
+    "derivedResults": {
+      "formula": "41.5",
+      "calculated": "42.5",
+      "summary": "1",
+      "lookup": "Acme Prime or the concurrent winning value",
+      "aggregate": "8.25"
+    },
+    "states": ["READY", "PENDING", "FAILED"],
+    "lastValidWhilePending": true,
+    "failedResultPreserved": true,
+    "genericRetry": "pass",
+    "duplicateTaskRecordVersionIncrement": 0,
+    "staleTaskRecordVersionIncrement": 0,
+    "inactiveSnapshotRecordVersionIncrement": 0,
+    "permissionEpochRecorded": true,
+    "concurrencyOutcomes": ["HTTP200", "HTTP409"],
+    "outboxFailpoint": {
+      "apiCode": "INTERNAL_ERROR",
+      "recordVersionAfterFailure": 2,
+      "lastValidStateAfterFailure": "READY",
+      "newTaskRows": 0,
+      "partialCommits": 0
+    },
+    "typedQuery": {
+      "formulaFilter": "EQ 41.5",
+      "lookupMembership": "EQ Acme Prime",
+      "calculatedSort": "DESC NULLS LAST",
+      "serverTotal": 1
+    }
+  },
+  "authorization": {
+    "disclosureUnitPath": "backend/examine-module/src/test/java/com/unique/examine/module/runtime/service/DerivedDisclosurePolicyTest.java",
+    "disclosureUnitSha256": "sha256:6863950fea01a734cde45f9fee8006c717b40a7c366d64b5ca31744baa9d464f",
+    "lookupHiddenTarget": "omitted without id or value",
+    "summaryHiddenContributor": "whole result omitted",
+    "scopedTargetQuery": "QUERY_FIELD_UNAVAILABLE",
+    "activeSnapshotFence": "SELECT FOR SHARE until worker transaction commit",
+    "permissionEpochFence": "independent current epoch read before and after derived writes"
+  },
+  "tests": {
+    "fullBackendReactor": {
+      "command": "mvn -q test",
+      "jdk": "21.0.10",
+      "result": "pass",
+      "reports": 20,
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "durationSeconds": 163.8
+    },
+    "exactFiveTypeContainerJourney": {
+      "command": "mvn -q -pl examine-web -am -Dtest=Vs3DraftJourneyIntegrationTest#publishesTypedDerivedSnapshotsAndBlocksDependencyCycles -Dsurefire.failIfNoSpecifiedTests=false test",
+      "mysql": "8.0.44",
+      "redis": "7.4-alpine",
+      "result": "pass",
+      "durationSeconds": 86.8
+    }
+  },
+  "restart": {
+    "prepareScriptPath": ".cursor/session/evidence/p4-c4/prepare-task-02-restart.ps1",
+    "prepareScriptSha256": "sha256:4ef98c9e5b7ba5f009ebbe8fe694f8ba6a637f1451c00fc5fe845db02715e777",
+    "verifyScriptPath": ".cursor/session/evidence/p4-c4/verify-task-02-restart.ps1",
+    "verifyScriptSha256": "sha256:81e2f2a64a6c2d8305a7a88da06d6a16aff2be9382ba8057937b72d3c20aa1c4",
+    "fixturePath": ".cursor/session/evidence/p4-c4/task-02-restart-fixture.json",
+    "fixtureSha256": "sha256:59981fd5a57ea8d11c3a9d1ac00de0f93b9efee62f69f56d16bf2a54f9d184cb",
+    "resultPath": ".cursor/session/evidence/p4-c4/task-02-restart.json",
+    "resultSha256": "sha256:c7ff42282fa4823138461ba5f761f9acba5e1b32644c5bbde6836d5aaf9ce09f",
+    "artifact": "backend/examine-web/target/examine-web-1.0.0-SNAPSHOT.jar",
+    "artifactSha256": "sha256:da6d9b769acb9dc2c6c3ddc0a08c5bd68a7a0ee4be67fa0c037d0a9ab77f8f2b",
+    "preparePid": 35348,
+    "restartPid": 7448,
+    "health": "UP",
+    "flywayVersion": "4.10.0",
+    "derivedDefinitions": 5,
+    "readyDerivedValues": 5,
+    "recordVersion": 3,
+    "queryTotal": 1
+  },
+  "resolvedFindings": [
+    {
+      "code": "P4-C4-AGGREGATE-SNAPSHOT-ID",
+      "resolution": "The declared subtable source field id is resolved through runtime source_field_id to the generated field snapshot before aggregation."
+    },
+    {
+      "code": "P4-C4-DERIVED-DISCLOSURE",
+      "resolution": "Every runtime detail/query read reapplies the current target grant; LOOKUP omits hidden values and SUMMARY never exposes a partial hidden total."
+    },
+    {
+      "code": "P4-C4-WORKER-FENCES",
+      "resolution": "Source version, active snapshot and permission epoch fences prevent stale, inactive or authorization-changing tasks from committing derived writes."
+    },
+    {
+      "code": "P4-C4-OUTBOX-ROLLBACK",
+      "resolution": "A real MySQL outbox trigger failure returns INTERNAL_ERROR and rolls back record/value/index/task/idempotency changes with zero partial commit."
+    },
+    {
+      "code": "P4-C4-RESTART-AUTHZ-EPOCH",
+      "resolution": "Publication invalidated the old session as designed; a fresh login prepared records, and a second packaged JVM reproduced all definitions, results and queries."
+    }
+  ],
+  "evidenceVerdicts": {
+    "api": "pass",
+    "db": "pass",
+    "ui": "pass for task boundary through packaged HTTP; responsive UI remains task 03",
+    "browser": "pass for task boundary through fresh-login packaged HTTP; visual browser evidence remains task 03",
+    "restart": "pass"
+  },
+  "completionBoundary": "P4-C4-02 evaluator, recalculation, authorization, typed query and packaged restart work is complete. P4-C4-03 responsive configuration/runtime browser journeys remain open; this is not P4-C4 or final-system acceptance."
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "planId": "VERIFY-CYCLE-P1-03-REGISTRATION",
+  "level": "cycle",
+  "scopeId": "CYCLE-P1-03-REGISTRATION",
+  "requirementIds": ["REQ-P1-REGISTER-FIRST-SYSTEM"],
+  "acceptanceCaseIds": ["CASE-P1-REGISTER-FIRST-SYSTEM", "CASE-P1-REGISTER-CONFLICT", "CASE-P1-REGISTER-ROLLBACK"],
+  "projectFunctionalComplete": false,
+  "performanceExplicitlyEnabled": false,
+  "separatePerformancePlan": false,
+  "performanceApproval": null,
+  "testVerdict": "planned",
+  "businessOutcome": "not_evaluated",
+  "requirementAcceptance": "pending",
+  "acceptanceAuthority": null,
+  "acceptanceEvidence": null,
+  "fullSuiteRuns": 0,
+  "tests": [
+    {
+      "id": "p1-registration-integration",
+      "category": "cycle_integration",
+      "outcomeClass": "regression",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/scripts/run-maven-focused-test.ps1 -Module examine-web -Tests P1RegistrationCycleIntegrationTest",
+      "executionCount": 1,
+      "result": "planned",
+      "httpStatuses": [200, 409, 500],
+      "actualEvidence": null,
+      "assertions": ["registration commits account/system/tenant/member/role/session atomically", "duplicate username and system code are explicit", "forced failure leaves no partial rows", "same idempotency key returns the original result"]
+    },
+    {
+      "id": "p1-registration-entry",
+      "category": "real_entry",
+      "outcomeClass": "positive_business",
+      "command": "set E2E_MANAGED_WEB_SERVER=true&& npm.cmd --prefix frontend run e2e -- --project=desktop p1-registration-cycle.spec.ts",
+      "executionCount": 1,
+      "result": "planned",
+      "httpStatuses": [200],
+      "actualEvidence": null,
+      "assertions": ["user completes /register", "system onboarding opens", "system and current super-administrator context remain after reload", "failed submit preserves entered values"]
+    }
+  ]
+}

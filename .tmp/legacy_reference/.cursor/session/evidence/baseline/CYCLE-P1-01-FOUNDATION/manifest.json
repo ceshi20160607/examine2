@@ -1,0 +1,27 @@
+{
+    "schemaVersion":  1,
+    "scopeId":  "CYCLE-P1-01-FOUNDATION",
+    "planPath":  ".cursor/session/baseline/test-plans/cycle-p1-01-foundation.json",
+    "planSha256":  "c07bf509bcbd9c5ca0e71f769bc3a83295bffed2ce9247f09a579f33773a1dac",
+    "sourceCommitSha":  "c9fc62da6528b462f321a64771a341a56671f7da",
+    "sourceDirty":  true,
+    "generatedAt":  "2026-08-10T19:47:16.6775344+08:00",
+    "verdict":  "pass",
+    "executedTestCount":  3,
+    "tests":  [
+                  {
+                      "testId":  "p1-foundation-integration",
+                      "evidencePath":  ".cursor/session/evidence/baseline/CYCLE-P1-01-FOUNDATION/01-p1-foundation-integration.json",
+                      "evidenceSha256":  "71fced00044e2748941f1bcc5e252cb8a6a29a538b8c6dfbef8616c81ce6d609",
+                      "verdict":  "pass",
+                      "executedTestCount":  1
+                  },
+                  {
+                      "testId":  "p1-foundation-entry",
+                      "evidencePath":  ".cursor/session/evidence/baseline/CYCLE-P1-01-FOUNDATION/02-p1-foundation-entry.json",
+                      "evidenceSha256":  "8d7f5afd6e669ca4d5b44e7621e3ea1c700c671a962a726542bf61f60a4c9dc7",
+                      "verdict":  "pass",
+                      "executedTestCount":  2
+                  }
+              ]
+}

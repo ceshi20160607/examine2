@@ -1,0 +1,4 @@
+interface:
+  display_name: "Compile Project Delivery"
+  short_description: "Compile requirements into phased, testable delivery work"
+  default_prompt: "Use $compile-project-delivery to turn this requirement source into phases, acceptance cases, and a four-hour task DAG."

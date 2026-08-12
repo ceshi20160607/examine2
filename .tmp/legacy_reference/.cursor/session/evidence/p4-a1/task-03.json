@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-A1-03",
+  "sliceId": "P4-A1-READ-RUNTIME",
+  "verdict": "pass",
+  "checkedAt": "2026-07-17T14:06:00+08:00",
+  "contract": {
+    "route": "/systems/{systemId}/workbench?module={moduleCode}&record={recordId}",
+    "behavior": [
+      "real server-paged list",
+      "published field display values",
+      "URL-preserved detail and reload",
+      "loading, empty, forbidden, request error and direct-id not-found states",
+      "desktop table and mobile record list"
+    ],
+    "completionBoundary": "P4-A1 read-only runtime only; record creation and activation remain P4-A2."
+  },
+  "implementation": {
+    "typesSha256": "sha256:65bf1164481e35ff46034bb5cf14233f6ab9741c7241fdb24152e4e5467de168",
+    "serviceSha256": "sha256:da30b7a38efeb78230c0e0007b79b03c5aa466ddf3cbacc02d388e598f5a1eb6",
+    "workbenchSha256": "sha256:be77114d43ebebbc979a00592a281912c08c2a6de42149d7c75b50a2684e5b5f",
+    "modelSha256": "sha256:1f03c580b48f044b6a25fecc67a29c8f2ce1c5cdc26f85d34ad2d4dfc542d0c7",
+    "unitTestSha256": "sha256:55360046d52a64e381d28484d5309a71f4fa915cb6fc54c6416c26469e08d746",
+    "e2eTestSha256": "sha256:99c5af06481f6617097f88b9fb9b5eabbe44ef059f6836d5d79be306c75458ad"
+  },
+  "evidence": {
+    "api": {
+      "backendManifest": ".cursor/session/evidence/p4-a1/task-02.json",
+      "finalRead": {
+        "health": "UP",
+        "systemId": "2077996667744235522",
+        "moduleCode": "work_order",
+        "total": 2,
+        "recordNo": "WO-002",
+        "fieldCode": "subject",
+        "value": "Inspect backup power",
+        "schemaVersionId": "2077996674803249154"
+      },
+      "result": "pass"
+    },
+    "db": {
+      "activeDemoSystemId": "2077996667744235522",
+      "activeDemoSystemCode": "p4_runtime_365c17bb",
+      "recordIds": ["7100000026798967100", "7100000026798967101"],
+      "recordCount": 2,
+      "duplicateRerunSystemsArchivedAndSoftDeleted": 9,
+      "result": "pass"
+    },
+    "ui": {
+      "unitCommand": "npm.cmd run test -- tests/unit/runtime-record-model.spec.ts",
+      "unitTestsPassed": 2,
+      "buildCommand": "npm.cmd run build",
+      "typecheck": "pass",
+      "productionBuild": "pass",
+      "encodingCheck": "pass"
+    },
+    "browser": {
+      "command": "npx.cmd playwright test tests/e2e/p4-a1.spec.ts",
+      "viewports": ["1440x900", "1280x720", "390x844"],
+      "passed": 3,
+      "failed": 0,
+      "ordinaryMemberRegression": {
+        "command": "npx.cmd playwright test tests/e2e/vs3.spec.ts --project=desktop --grep ordinary member",
+        "passed": 1,
+        "failed": 0
+      },
+      "assertions": [
+        "real list and display value",
+        "detail opens from list",
+        "module and record query survive reload",
+        "archived empty state",
+        "direct-id 404 is understandable",
+        "document width does not exceed 390px viewport",
+        "no unexpected console, page or 5xx errors"
+      ],
+      "screenshots": [
+        {"path": ".cursor/session/evidence/p4-a1/workbench-detail-desktop.png", "sha256": "sha256:19858cc852f5798185e151334370f685247f6f95cda41a846e6872f5c3deb7ea"},
+        {"path": ".cursor/session/evidence/p4-a1/workbench-detail-desktop-compact.png", "sha256": "sha256:0c835497af3f717aac62fffae28569f4d90c91ec9001f8274061f8e1761496b0"},
+        {"path": ".cursor/session/evidence/p4-a1/workbench-list-mobile.png", "sha256": "sha256:4c6bfef77802f4782eefea96f059f273b9f56eabafeeb98f53d59dff5671b7b0"},
+        {"path": ".cursor/session/evidence/p4-a1/workbench-detail-mobile.png", "sha256": "sha256:0685d8bd184895ef2163011195abc4fc2a3b0f85265183d7a36f45c83efba8eb"}
+      ]
+    },
+    "restart": {
+      "backendRestartManifest": ".cursor/session/evidence/p4-a1/task-02.json",
+      "backendHealthAfterRestart": "UP",
+      "freshBrowserContexts": 3,
+      "sameDetailReloaded": true,
+      "frontendHttp": 200,
+      "result": "pass"
+    }
+  }
+}

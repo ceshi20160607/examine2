@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.examine.plat.base.mapper.PlatAccessRequestMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.examine.plat.base.entity.AccessRequest">
+        <id column="id" property="id" />
+        <result column="account_id" property="accountId" />
+        <result column="system_id" property="systemId" />
+        <result column="target_tenant_id" property="targetTenantId" />
+        <result column="requested_role_id" property="requestedRoleId" />
+        <result column="request_reason" property="requestReason" />
+        <result column="status" property="status" />
+        <result column="reviewed_at" property="reviewedAt" />
+        <result column="reviewed_by" property="reviewedBy" />
+        <result column="decision_reason" property="decisionReason" />
+        <result column="resolved_member_id" property="resolvedMemberId" />
+        <result column="expires_at" property="expiresAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, account_id, system_id, target_tenant_id, requested_role_id, request_reason, status, reviewed_at, reviewed_by, decision_reason, resolved_member_id, expires_at, created_at, created_by, updated_at, updated_by, version
+    </sql>
+
+</mapper>

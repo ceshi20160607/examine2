@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-10T23:22:06+08:00",
+  "currentNode": null,
+  "currentOutcomeId": null,
+  "nextOutcomeId": "PHASE-P2-PLATFORM-SYSTEM-CONFIG",
+  "summary": {
+    "counts": {"total": 7, "completed": 1, "inProgress": 0, "remaining": 6, "deferred": 0},
+    "outcomeUnits": {"total": 7, "completed": 1, "inProgress": 0, "remaining": 6, "deferred": 0},
+    "percentage": 14.3
+  },
+  "outcomes": [
+    {"id": "PHASE-P1-FOUNDATION", "title": "Engineering foundation, login, registration and authorized system entry", "phase": "PHASE-P1-FOUNDATION", "weight": 1, "status": "completed", "evidencePath": ".cursor/session/evidence/baseline/PHASE-P1-FOUNDATION/acceptance.md", "blockingReason": null, "dependsOn": []},
+    {"id": "PHASE-P2-PLATFORM-SYSTEM-CONFIG", "title": "Platform, organization, system administration, module modeling and visual dashboard", "phase": "PHASE-P2-PLATFORM-SYSTEM-CONFIG", "weight": 1, "status": "remaining", "evidencePath": null, "blockingReason": null, "dependsOn": ["PHASE-P1-FOUNDATION"]},
+    {"id": "PHASE-P3-RUNTIME-PERMISSION", "title": "Record runtime, management list and detail, and permissions", "phase": "PHASE-P3-RUNTIME-PERMISSION", "weight": 1, "status": "remaining", "evidencePath": null, "blockingReason": null, "dependsOn": ["PHASE-P2-PLATFORM-SYSTEM-CONFIG"]},
+    {"id": "PHASE-P4-FLOW-OPENAPI", "title": "Flow and external application OpenAPI journeys", "phase": "PHASE-P4-FLOW-OPENAPI", "weight": 1, "status": "remaining", "evidencePath": null, "blockingReason": null, "dependsOn": ["PHASE-P3-RUNTIME-PERMISSION"]},
+    {"id": "PHASE-P5-WORK-COLLAB-DATA-TRANSFER", "title": "Work, messages, files, import and export", "phase": "PHASE-P5-WORK-COLLAB-DATA-TRANSFER", "weight": 1, "status": "remaining", "evidencePath": null, "blockingReason": null, "dependsOn": ["PHASE-P4-FLOW-OPENAPI"]},
+    {"id": "PHASE-P6-RICH-CONFIG-AI", "title": "Rich visual configuration and permission-safe AI", "phase": "PHASE-P6-RICH-CONFIG-AI", "weight": 1, "status": "remaining", "evidencePath": null, "blockingReason": null, "dependsOn": ["PHASE-P5-WORK-COLLAB-DATA-TRANSFER"]},
+    {"id": "PHASE-P7-DELIVERY", "title": "Operations, documentation and full project acceptance", "phase": "PHASE-P7-DELIVERY", "weight": 1, "status": "remaining", "evidencePath": null, "blockingReason": null, "dependsOn": ["PHASE-P6-RICH-CONFIG-AI"]}
+  ],
+  "packageCheckpoints": [
+    {
+      "id": "CP1_FUNCTIONAL_BASELINE",
+      "state": "ready",
+      "requiredOutcomeIds": ["PHASE-P1-FOUNDATION"],
+      "verificationCommands": [{"command": "validate Phase P1 through its four frozen cycle plans and phase evidence promotion", "status": "pass", "evidencePath": ".cursor/session/evidence/baseline/PHASE-P1-FOUNDATION/acceptance.md"}],
+      "attempts": []
+    },
+    {
+      "id": "CP2_FEATURE_COMPLETE",
+      "state": "not_ready",
+      "requiredOutcomeIds": ["PHASE-P1-FOUNDATION", "PHASE-P2-PLATFORM-SYSTEM-CONFIG", "PHASE-P3-RUNTIME-PERMISSION", "PHASE-P4-FLOW-OPENAPI", "PHASE-P5-WORK-COLLAB-DATA-TRANSFER", "PHASE-P6-RICH-CONFIG-AI"],
+      "verificationCommands": [{"command": "run one complete functional project suite after all functional phases finish", "status": "pending", "evidencePath": null}],
+      "attempts": []
+    },
+    {
+      "id": "CP3_RELEASE_CANDIDATE",
+      "state": "not_ready",
+      "requiredOutcomeIds": ["PHASE-P1-FOUNDATION", "PHASE-P2-PLATFORM-SYSTEM-CONFIG", "PHASE-P3-RUNTIME-PERMISSION", "PHASE-P4-FLOW-OPENAPI", "PHASE-P5-WORK-COLLAB-DATA-TRANSFER", "PHASE-P6-RICH-CONFIG-AI", "PHASE-P7-DELIVERY"],
+      "verificationCommands": [{"command": "validate installation, upgrade, backup, restore, documentation and real-role acceptance", "status": "pending", "evidencePath": null}],
+      "attempts": []
+    }
+  ]
+}

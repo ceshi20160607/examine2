@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P4-C2-03",
+  "sliceId": "P4-C2-CONTACT-SENSITIVE-STRUCTURED-FIELDS",
+  "verdict": "pass",
+  "checkedAt": "2026-07-20T23:52:04+08:00",
+  "singleOutcome": "Ordinary-member desktop/mobile configuration, domain form/detail/edit/query controls, sensitive-value boundaries and packaged-restart readback for all eleven P4-C2 field types.",
+  "contract": {
+    "path": ".cursor/session/current-node.md",
+    "sha256": "sha256:1c8f4ff05a7165635b5a13ed75018831ff00a3117229b986c0e995cea2f095c5",
+    "reviewPath": ".cursor/session/meetings/P4-C2-contract-review.md",
+    "reviewSha256": "sha256:e12a1faadda6879c4b1e45463b150ecb462b24693ed05c472f7a01769a457a1b",
+    "principal": "p4c2_member_1858efd2",
+    "completionBoundary": "P4-C2 eleven contact, sensitive and structured fields only; P4-C3, later product phases, release and user final acceptance remain open."
+  },
+  "implementation": {
+    "packageJsonSha256": "sha256:f8d03faf4722763f965f61c2662f0f2a344283216d20694bf4a8c23ce5f05338",
+    "packageLockSha256": "sha256:f7e788f91e2f42f26b3ab42d329bd5467947ebc7aa9ba03f30ce1ff6deeb8669",
+    "runtimeTypesSha256": "sha256:e2e2f9491de13483dac0d106facbefffda8989495414575cf3b7ac7bc9424820",
+    "richTextControlSha256": "sha256:6e294e7a557bcd30c59401cc9e47954cce62ab9da2022ee257849fe5fedd493b",
+    "runtimeDisplaySha256": "sha256:03629b615f8462172db05f1f4aeabd7b4c8d960dd1ccd28f2b67427eda73b5ec",
+    "runtimeInputSha256": "sha256:c098c23834215e073e675f85629f55e81407efd3eb78f324c33285580af5a24f",
+    "runtimeFieldModelSha256": "sha256:0e2409c5b0723927232284be951c983df5cc4af3bce4773b0b10f7d43c58335a",
+    "workbenchSha256": "sha256:5b1ae04941251ff684f10afa6ee83ae7aeb0406265a4ba06015b39599ea7a40f",
+    "configModelSha256": "sha256:026393d428c1031d1d109344b4ceed577028dac425c54cc9c25c4dcdbcdfd6b9",
+    "configStudioSha256": "sha256:3a83cb345304e20a2970186776a13d63b894f1139f06823eaf8dae4865ec754e",
+    "runtimeUnitTestSha256": "sha256:c1046fd0e97db42cbf87130bba890496c5e863c7f8f543d967ddf36d8954d96c",
+    "configUnitTestSha256": "sha256:d496ecd33250f475f8a2309eb4509a1681d1898f9fca9fbf9f3da75be8dc7d5a",
+    "e2eTestSha256": "sha256:727adc2a7ccd854b712c8ddb45801d3fe528b85ac89138c8d59b5f081c72b951",
+    "packagedJarSha256": "sha256:565a915dbeb836a858f2c24cc512654175ab10878c601b37897bf6c21e3ee39b"
+  },
+  "checks": [
+    {
+      "name": "frontend unit, strict type and production build",
+      "result": "PASS; 8 files and 29 tests passed, vue-tsc passed, and Vite transformed 4,990 modules into a production build"
+    },
+    {
+      "name": "dependency security audit",
+      "result": "PASS; npm audit reports 0 info, low, moderate, high or critical vulnerabilities across 360 dependencies"
+    },
+    {
+      "name": "real Edge ordinary-member desktop and mobile journeys",
+      "result": "PASS; both viewports create, activate, edit, read and structured-query all eleven types with no HTTP 5xx, page errors, console errors, sensitive URL/storage leakage or horizontal overflow"
+    },
+    {
+      "name": "configuration constraint journey",
+      "result": "PASS; controlled temporary system.admin.access grant verified exact GEO, BARCODE, JSON and SECRET constraints, then revoked and epoch-bumped; no business configuration was saved"
+    },
+    {
+      "name": "packaged cold-restart readback and declared-path query",
+      "result": "PASS; PID 36656 reached health UP at Flyway V4.8.0; a fresh login read desktop record 2079231114548301826 with the same canonical values and queried it through the published JSON pathSnapshotId"
+    },
+    {
+      "name": "reusable framework and project-instance validation",
+      "result": "PASS; .base and .cursor framework validators passed, and VS4 validators passed 49 fields, 42 endpoints, 136 definitions, 73 DTOs, 30 derived fixtures, 20 tables and 23 failpoint operations"
+    }
+  ],
+  "verifiedBehavior": [
+    "PHONE and EMAIL use repeatable controls; URL renders only safe http/https links; ADDRESS, WGS84 GEO and BARCODE use structured controls and canonical objects",
+    "IDENTITY and SECRET never prefill plaintext; SECRET detail exposes only set/unset state and replacement or clear actions",
+    "RICH_TEXT uses Tiptap editing and renders only server-sanitized HTML; JSON uses schema-aware editing and immutable declared query paths",
+    "STATUS exposes only legal transition targets; BARCODE and STATUS are the only sortable P4-C2 fields",
+    "sensitive query predicates are excluded from URL state and saved views and are absent from local/session storage",
+    "desktop and mobile detail views preserve all allowed canonical values after activation, edit, refresh and packaged-backend restart"
+  ],
+  "browser": {
+    "desktop": {
+      "recordId": "2079231114548301826",
+      "path": ".cursor/session/evidence/p4-c2/browser-desktop.json",
+      "sha256": "sha256:894d99320458b5ebd62507688f934d24ea9742d3009b2decb24a5a04349d02f5"
+    },
+    "mobile": {
+      "recordId": "2079231750840995842",
+      "path": ".cursor/session/evidence/p4-c2/browser-mobile.json",
+      "sha256": "sha256:d7c8f49b964d3395f11c8a14794e54e40df24f49fa03635f00a70b62b3510624"
+    },
+    "configuration": {
+      "path": ".cursor/session/evidence/p4-c2/config-secret-desktop.png",
+      "sha256": "sha256:b3a86be42ad672a4502d0fcda2330e7b8c9dc5831d73f4246c728a2cff6c63c4",
+      "temporaryAccessScriptSha256": "sha256:ba1edd9b71854adaaf10a63da902d8ce5ae6d64935ed06855235c51b93599965",
+      "accessAfterCleanup": 0
+    },
+    "screenshots": [
+      { "path": ".cursor/session/evidence/p4-c2/form-desktop-top.png", "sha256": "sha256:1031e65a3832c3804f87701a35a4949487ff7bb7dd0d72f9f5f680d418f8c0cc" },
+      { "path": ".cursor/session/evidence/p4-c2/form-desktop-bottom.png", "sha256": "sha256:f1ea17da36b2d3b64ea63ffe5885957a1256d214bba92c7bddb84337542eacf1" },
+      { "path": ".cursor/session/evidence/p4-c2/form-mobile-top.png", "sha256": "sha256:027c66c59e9fbf73317e23ec4adc31736412d427305812fe452cdd7d3141988e" },
+      { "path": ".cursor/session/evidence/p4-c2/form-mobile-bottom.png", "sha256": "sha256:f0b26eb2cf133a5ebe8b7de6bd329ff7f31029f96c80e13d41e9542dd3510f3c" },
+      { "path": ".cursor/session/evidence/p4-c2/detail-desktop-top.png", "sha256": "sha256:a956d97b2d71af2be5f2c5187e8a3076c278e36c9e030bca2f520e52cd78e19c" },
+      { "path": ".cursor/session/evidence/p4-c2/detail-desktop-bottom.png", "sha256": "sha256:4251cc8cf4d4f7c4d882d94830c80bd2c4e43100dea5d64f97e270de9b5b56f3" },
+      { "path": ".cursor/session/evidence/p4-c2/detail-mobile-top.png", "sha256": "sha256:522bf215fdb61a0310193cd71919f23d22cda58024aa78b4b57c5e6b8c569b60" },
+      { "path": ".cursor/session/evidence/p4-c2/detail-mobile-bottom.png", "sha256": "sha256:98efce89aeb16228bd392654bce92cb567ecfc44cafba98d11ea5dea88ab2c66" },
+      { "path": ".cursor/session/evidence/p4-c2/query-desktop-top.png", "sha256": "sha256:09191238a8cf4bcf3bf70adbbd657e3d1aca851f71a96cc722310795b719fe3e" },
+      { "path": ".cursor/session/evidence/p4-c2/query-desktop-bottom.png", "sha256": "sha256:6ed712b6835d94e211aa5e310154f80cdb2c3ab740071b3875a479042f4a5933" },
+      { "path": ".cursor/session/evidence/p4-c2/query-mobile-top.png", "sha256": "sha256:169d95bdc12e8e0fe26873bfdaa8e7472fe20d78e0c369f8dfa50191ecac8c1f" },
+      { "path": ".cursor/session/evidence/p4-c2/query-mobile-bottom.png", "sha256": "sha256:4388a445ab053c1b26d1e06074029c4f9fcc8389978558073ad6015bfac14151" },
+      { "path": ".cursor/session/evidence/p4-c2/restart-readback-desktop.png", "sha256": "sha256:cf938fe2be950b2722c2576977025467752e8aa2917dbc62ab40190ed6caa911" }
+    ]
+  },
+  "restart": {
+    "oldPid": 45248,
+    "newPid": 36656,
+    "health": "UP",
+    "flywayVersion": "4.8.0",
+    "recordId": "2079231114548301826",
+    "canonicalReadback": "pass",
+    "declaredJsonPathQuery": "pass",
+    "secretPlaintextReturned": false
+  },
+  "resolvedFindings": [
+    {
+      "code": "P4-C2-BARCODE-DEFAULT",
+      "finding": "The visible default CODE128 symbology was not emitted when a user entered only the barcode payload.",
+      "resolution": "The structured model now writes CODE128 with the payload and the API/browser assertion verifies the canonical object."
+    },
+    {
+      "code": "P4-C2-ADDRESS-MAXLENGTH",
+      "finding": "Two country-code inputs passed maxlength as a string and produced Vue prop warnings.",
+      "resolution": "Both controls bind numeric maxlength values; final journeys add no further prop warning."
+    },
+    {
+      "code": "P4-C2-E2E-VIRTUAL-LIST",
+      "finding": "The mobile field selector could leave SECRET outside Ant Design's virtualized DOM.",
+      "resolution": "The acceptance helper emits the holder scroll event and waits for the requested option, making the mobile journey repeatable."
+    },
+    {
+      "code": "P4-C2-E2E-LOGIN-RACE",
+      "finding": "The test switched context while the platform page was still loading systems, producing a test-induced mounted-hook warning.",
+      "resolution": "The login helper waits for platform loading to settle; the final restart run leaves the Vite error log unchanged."
+    },
+    {
+      "code": "P4-C2-AJV-AUDIT",
+      "finding": "The initial exact AJV dependency had a moderate advisory.",
+      "resolution": "AJV is pinned to 8.20.0 and the final audit reports zero vulnerabilities."
+    }
+  ],
+  "deferred": [
+    "The production build still reports a non-blocking main-chunk size warning; code splitting remains a later performance task.",
+    "Relation/subtable, derived fields, files, collaboration, Flow, task center, reports and release acceptance remain later slices.",
+    "P4-C2 does not claim complete P4 or final-system user acceptance."
+  ]
+}

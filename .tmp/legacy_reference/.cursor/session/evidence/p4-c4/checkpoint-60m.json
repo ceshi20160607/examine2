@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "P4-C4-DERIVED-FIELD-CONTRACT",
+  "taskId": "P4-C4-01",
+  "checkpoint": "fact",
+  "occurredAt": "2026-07-21T22:12:34+08:00",
+  "activeSpentMinutes": 60,
+  "decision": "continue_to_task_acceptance",
+  "facts": [
+    "The real API journey published FORMULA, SUMMARY, CALCULATED, LOOKUP and AGGREGATE snapshots with typed metadata and rejected an indirect dependency cycle as SCHEMA_CYCLE.",
+    "The complete backend reactor passed 40 tests with zero failures, errors or skips on JDK 21.",
+    "Flyway V4.10.0 passed populated MySQL 8.4 replay and empty MySQL 8.0 replay while preserving the 30-table runtime boundary.",
+    "Database-first generation covered 30 un_module_ tables and produced the same 150-file tree hash on two consecutive runs.",
+    "Remaining work is bounded to independent DBA/test evidence assembly, task state transition and framework validation."
+  ],
+  "remainingEstimateMinutes": 20,
+  "evidence": [
+    "backend/examine-web/src/test/java/com/unique/examine/web/P4A1SchemaIntegrationTest.java",
+    "backend/examine-web/src/test/java/com/unique/examine/web/Vs3DraftJourneyIntegrationTest.java",
+    "backend/generator-reports/examine-module-un_module_.json"
+  ]
+}
