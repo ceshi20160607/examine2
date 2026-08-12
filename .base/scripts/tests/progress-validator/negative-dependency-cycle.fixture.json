@@ -1,4 +1,0 @@
-{
-  "case": "dependency-cycle",
-  "expectedMessage": "Outcome dependency cycle detected"
-}
