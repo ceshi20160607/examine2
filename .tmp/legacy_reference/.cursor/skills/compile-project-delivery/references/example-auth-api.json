@@ -1,5 +1,0 @@
-{
-  "endpoint": "/api/auth/login",
-  "method": "POST",
-  "result": "authenticated CRM session"
-}

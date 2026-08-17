@@ -1,0 +1,78 @@
+{
+  "projectRoot": "..",
+  "basePackage": "com.unique.unexamine",
+  "sourceRoot": "backend/src/main/java",
+  "mapperXmlRoot": "backend/src/main/resources/mapper",
+  "migrationRoot": "db/migration",
+  "manifestPath": "backend/base-codegen-manifest.json",
+  "database": {
+    "url": "jdbc:mysql://127.0.0.1:33077/unexamine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
+    "username": "unexamine",
+    "password": "unexamine_local"
+  },
+  "modules": [
+    {
+      "name": "platform",
+      "javaPackage": "platform",
+      "tables": [
+        {"name": "plat_account", "entity": "PlatformAccount"},
+        {"name": "plat_account_credential", "entity": "PlatformAccountCredential"},
+        {"name": "plat_department", "entity": "PlatformDepartment"},
+        {"name": "plat_member", "entity": "PlatformMember"},
+        {"name": "plat_role", "entity": "PlatformRole"},
+        {"name": "plat_member_role", "entity": "PlatformMemberRole"},
+        {"name": "plat_role_permission", "entity": "PlatformRolePermission"}
+      ]
+    },
+    {
+      "name": "system",
+      "javaPackage": "system",
+      "tables": [
+        {"name": "sys_system", "entity": "SystemDefinition"},
+        {"name": "sys_tenant", "entity": "SystemTenant", "properties": {"is_main": "main"}},
+        {"name": "sys_department", "entity": "SystemDepartment"},
+        {"name": "sys_member", "entity": "SystemMember"},
+        {"name": "sys_tenant_member", "entity": "SystemTenantMember"},
+        {"name": "sys_role", "entity": "SystemRole"},
+        {"name": "sys_member_role", "entity": "SystemMemberRole"},
+        {"name": "sys_role_permission", "entity": "SystemRolePermission"}
+      ]
+    },
+    {
+      "name": "authentication",
+      "javaPackage": "authentication",
+      "tables": [
+        {"name": "auth_session", "entity": "AuthenticationSession"}
+      ]
+    },
+    {
+      "name": "audit",
+      "javaPackage": "audit",
+      "tables": [
+        {"name": "audit_event", "entity": "AuditEvent", "immutable": true}
+      ]
+    },
+    {
+      "name": "moduleconfig",
+      "javaPackage": "moduleconfig",
+      "tables": [
+        {"name": "cfg_module_group", "entity": "ConfiguredModuleGroup"},
+        {"name": "cfg_module", "entity": "ConfiguredModule"},
+        {"name": "cfg_module_field", "entity": "ConfiguredModuleField"},
+        {"name": "cfg_module_page", "entity": "ConfiguredModulePage"},
+        {"name": "cfg_module_action", "entity": "ConfiguredModuleAction"},
+        {"name": "cfg_module_version", "entity": "ConfiguredModuleVersion"},
+        {"name": "cfg_module_publication", "entity": "ConfiguredModulePublication"}
+      ]
+    },
+    {
+      "name": "runtimedata",
+      "javaPackage": "runtimedata",
+      "tables": [
+        {"name": "biz_record", "entity": "BusinessRecord"},
+        {"name": "biz_record_participant", "entity": "BusinessRecordParticipant"},
+        {"name": "biz_record_value", "entity": "BusinessRecordValue"}
+      ]
+    }
+  ]
+}

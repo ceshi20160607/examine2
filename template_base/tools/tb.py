@@ -5,88 +5,78 @@ import json
 import sys
 from pathlib import Path
 
-from template_base.contract import ContractError, load_contract, require_valid_contract
-from template_base.architecture import (
-    ArchitectureError,
-    load_architecture,
-    require_architecture_ready,
-    validate_architecture,
-)
-from template_base.delivery import delivery_status
-from template_base.generator import GenerationError, check_repeatable, generate_project
+from template_base.database import DatabaseError, prepare_database
+from template_base.generator import GenerationError
 from template_base.requirements import (
     RequirementError,
+    build_analysis_plan,
     build_intake,
     load_analysis,
-    build_analysis_plan,
-    merge_analysis_fragments,
-    promote_contract,
+    collect_analysis_fragments,
     read_source_blocks,
+    validate_analysis_fragment,
     validate_analysis,
 )
-from template_base.workspace import WorkspaceError, load_workspace, workspace_status
+from template_base.starter import (
+    StarterError,
+    check_starter_repeatable,
+    generate_starter,
+    load_starter,
+    require_valid_starter,
+)
+from template_base.workspace import WorkspaceError, computed_project_status, load_workspace, workspace_status
 
 
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(prog="tb", description="Template Base deterministic project tooling")
     commands = root.add_subparsers(dest="command", required=True)
 
-    validate = commands.add_parser("validate", help="validate a project contract and its source hash")
-    validate.add_argument("--contract", required=True, type=Path)
-
-    generate = commands.add_parser("generate", help="generate a project from a validated contract")
-    generate.add_argument("--contract", required=True, type=Path)
-    generate.add_argument("--output", required=True, type=Path)
-
-    check = commands.add_parser("check", help="prove generation is repeatable and idempotent")
-    check.add_argument("--contract", required=True, type=Path)
-
-    for command, help_text in (
-        ("status", "report engineering, user-acceptance and release gates separately"),
-        ("release-check", "fail unless engineering evidence and explicit user acceptance both pass"),
-    ):
-        status = commands.add_parser(command, help=help_text)
-        status.add_argument("--contract", required=True, type=Path)
-        status.add_argument("--output", required=True, type=Path)
-        status.add_argument("--evidence", type=Path)
-        status.add_argument("--acceptance", type=Path)
-
-    intake = commands.add_parser("intake", help="build a deterministic block index for a UTF-8 Markdown requirement")
+    intake = commands.add_parser("intake", help="index every block in a UTF-8 Markdown requirement")
     intake.add_argument("--requirements", required=True, type=Path)
     intake.add_argument("--output", required=True, type=Path)
 
-    requirements_validate = commands.add_parser("requirements-validate", help="validate traceability, coverage and decisions")
+    requirements_validate = commands.add_parser("requirements-validate", help="validate requirement traceability, coverage and decisions")
     requirements_validate.add_argument("--analysis", required=True, type=Path)
 
-    promote = commands.add_parser("contract-promote", help="promote a fully traced and decided contract candidate")
-    promote.add_argument("--analysis", required=True, type=Path)
-    promote.add_argument("--candidate", required=True, type=Path)
-    promote.add_argument("--output", required=True, type=Path)
+    fragment_validate = commands.add_parser("requirements-fragment-validate", help="validate one source-bound requirement work packet result")
+    fragment_validate.add_argument("--fragment", required=True, type=Path)
 
-    source_slice = commands.add_parser("requirements-slice", help="read only selected source blocks from a current intake")
-    source_slice.add_argument("--intake", required=True, type=Path)
-    source_slice.add_argument("--block", required=True, action="append")
+    source_blocks = commands.add_parser("requirements-read-blocks", help="read selected requirement blocks")
+    source_blocks.add_argument("--intake", required=True, type=Path)
+    source_blocks.add_argument("--block", required=True, action="append")
 
-    analysis_plan = commands.add_parser("requirements-plan", help="partition an intake into bounded non-overlapping agent work packets")
+    analysis_plan = commands.add_parser("requirements-plan", help="partition every requirement block into bounded work packets")
     analysis_plan.add_argument("--intake", required=True, type=Path)
     analysis_plan.add_argument("--output", required=True, type=Path)
     analysis_plan.add_argument("--max-blocks", type=int, default=12)
     analysis_plan.add_argument("--max-lines", type=int, default=200)
-    analysis_plan.add_argument("--scope", type=Path)
 
-    merge = commands.add_parser("requirements-merge", help="merge exactly one hash-bound fragment for every analysis packet")
-    merge.add_argument("--plan", required=True, type=Path)
-    merge.add_argument("--fragment", required=True, action="append", type=Path)
-    merge.add_argument("--output", required=True, type=Path)
+    collect = commands.add_parser("requirements-collect", help="validate and index exactly one analysis result for every work packet")
+    collect.add_argument("--plan", required=True, type=Path)
+    collect.add_argument("--fragment", required=True, action="append", type=Path)
+    collect.add_argument("--output", required=True, type=Path)
 
-    architecture_validate = commands.add_parser("architecture-validate", help="validate a source-bound architecture baseline")
-    architecture_validate.add_argument("--baseline", required=True, type=Path)
-
-    architecture_ready = commands.add_parser("architecture-ready", help="fail unless architecture is valid and all decisions are resolved")
-    architecture_ready.add_argument("--baseline", required=True, type=Path)
-
-    workspace_validate = commands.add_parser("workspace-validate", help="validate active project, template and read-only legacy boundaries")
+    workspace_validate = commands.add_parser("workspace-validate", help="validate active project and template boundaries")
     workspace_validate.add_argument("--workspace", required=True, type=Path)
+
+    project_status = commands.add_parser("project-status", help="compute gate, requirement and audit status from repository evidence")
+    project_status.add_argument("--workspace", required=True, type=Path)
+
+    db_prepare = commands.add_parser("db-prepare", help="derive combined SQL and Flyway inputs from versioned database sources")
+    db_prepare.add_argument("--project-root", required=True, type=Path)
+
+    starter_validate = commands.add_parser("starter-validate", help="validate a project starter bound to the requirement source")
+    starter_validate.add_argument("--starter", required=True, type=Path)
+
+    for command, help_text in (
+        ("starter-generate", "generate a new buildable engineering skeleton"),
+        ("starter-check", "prove project starter generation is repeatable"),
+    ):
+        starter_command = commands.add_parser(command, help=help_text)
+        starter_command.add_argument("--starter", required=True, type=Path)
+        if command == "starter-generate":
+            starter_command.add_argument("--output", required=True, type=Path)
+
     return root
 
 
@@ -98,49 +88,35 @@ def main() -> int:
         elif args.command == "requirements-validate":
             analysis_path = args.analysis.resolve()
             result = validate_analysis(load_analysis(analysis_path), analysis_path)
-        elif args.command == "contract-promote":
-            result = promote_contract(args.analysis, args.candidate, args.output)
-        elif args.command == "requirements-slice":
+        elif args.command == "requirements-fragment-validate":
+            result = validate_analysis_fragment(args.fragment)
+        elif args.command == "requirements-read-blocks":
             result = read_source_blocks(args.intake, args.block)
         elif args.command == "requirements-plan":
-            result = build_analysis_plan(args.intake, args.output, args.max_blocks, args.max_lines, args.scope)
-        elif args.command == "requirements-merge":
-            result = merge_analysis_fragments(args.plan, args.fragment, args.output)
-        elif args.command in {"architecture-validate", "architecture-ready"}:
-            baseline_path = args.baseline.resolve()
-            architecture = load_architecture(baseline_path)
-            issues = validate_architecture(architecture, baseline_path)
-            if issues:
-                raise ArchitectureError(issues)
-            if args.command == "architecture-ready":
-                require_architecture_ready(architecture, baseline_path)
-            result = {
-                "valid": True,
-                "ready": not architecture["unresolvedDecisions"],
-                "applicationKind": architecture["application"]["kind"],
-                "businessModuleRealization": architecture["application"]["businessModuleRealization"],
-            }
+            result = build_analysis_plan(args.intake, args.output, args.max_blocks, args.max_lines)
+        elif args.command == "requirements-collect":
+            result = collect_analysis_fragments(args.plan, args.fragment, args.output)
         elif args.command == "workspace-validate":
             workspace_path = args.workspace.resolve()
             result = workspace_status(load_workspace(workspace_path), workspace_path)
-        else:
-            contract_path = args.contract.resolve()
-            contract = load_contract(contract_path)
-            if args.command == "validate":
-                require_valid_contract(contract, contract_path)
-                result = {"valid": True, "projectId": contract["project"]["id"], "modules": len(contract["modules"])}
-            elif args.command == "generate":
-                result = generate_project(contract, contract_path, args.output)
-            elif args.command == "check":
-                result = check_repeatable(contract, contract_path)
-            elif args.command in {"status", "release-check"}:
-                result = delivery_status(contract_path, args.output, args.evidence, args.acceptance)
-                if args.command == "release-check" and not result["releaseReady"]:
-                    print(json.dumps({"ok": False, **result}, ensure_ascii=False, indent=2), file=sys.stderr)
-                    return 3
+        elif args.command == "project-status":
+            workspace_path = args.workspace.resolve()
+            result = computed_project_status(load_workspace(workspace_path), workspace_path)
+        elif args.command == "db-prepare":
+            result = prepare_database(args.project_root)
+        elif args.command in {"starter-validate", "starter-generate", "starter-check"}:
+            starter_path = args.starter.resolve()
+            starter = load_starter(starter_path)
+            if args.command == "starter-validate":
+                require_valid_starter(starter, starter_path)
+                result = {"valid": True, "projectId": starter["project"]["id"]}
+            elif args.command == "starter-generate":
+                result = generate_starter(starter, starter_path, args.output)
             else:
-                raise AssertionError(f"unsupported command: {args.command}")
-    except (ArchitectureError, ContractError, GenerationError, RequirementError, WorkspaceError) as error:
+                result = check_starter_repeatable(starter, starter_path)
+        else:
+            raise AssertionError(f"unsupported command: {args.command}")
+    except (DatabaseError, GenerationError, RequirementError, StarterError, WorkspaceError) as error:
         print(json.dumps({"ok": False, "error": str(error)}, ensure_ascii=False, indent=2), file=sys.stderr)
         return 2
     print(json.dumps({"ok": True, **result}, ensure_ascii=False, indent=2))

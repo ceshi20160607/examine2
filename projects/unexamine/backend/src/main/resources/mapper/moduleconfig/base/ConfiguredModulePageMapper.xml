@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.moduleconfig.base.mapper.ConfiguredModulePageMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.moduleconfig.base.entity.ConfiguredModulePage">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="owner_tenant_id" property="ownerTenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="page_type" property="pageType" />
+        <result column="name" property="name" />
+        <result column="layout_json" property="layoutJson" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, owner_tenant_id, module_id, page_type, name, layout_json, status, created_at, updated_at, version
+    </sql>
+
+</mapper>

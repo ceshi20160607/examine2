@@ -1,6 +1,0 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="16.976962">
-<testsuite name="batch105-http-datasource-preview.spec.ts" timestamp="2026-08-05T07:41:18.994Z" hostname="desktop" tests="1" failures="0" skipped="0" time="10.64" errors="0">
-<testcase name="previews the exact saved HTTP draft safely and clears stale results" classname="batch105-http-datasource-preview.spec.ts" time="10.64">
-</testcase>
-</testsuite>
-</testsuites>

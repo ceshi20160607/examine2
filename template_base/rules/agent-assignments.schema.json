@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/agent-assignments.schema.json",
+  "title": "Project Agent assignments",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "pathBase", "assignments"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "pathBase": {"const": "workspace"},
+    "assignments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "role", "status", "task", "allowedPaths", "inputs", "outputs", "blockedBy"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3,}$"},
+          "role": {"enum": ["lead", "requirements", "architecture", "database", "backend", "frontend", "test", "operations"]},
+          "status": {"enum": ["planned", "in_progress", "blocked", "completed"]},
+          "task": {"type": "string", "minLength": 1},
+          "allowedPaths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "inputs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "outputs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "blockedBy": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3,}$"}}
+        }
+      }
+    }
+  }
+}

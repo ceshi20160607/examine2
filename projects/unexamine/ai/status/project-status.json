@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "asOf": "2026-08-14",
+  "currentGateId": "G01_REQUIREMENTS",
+  "currentGateStatus": "in_progress",
+  "scheduling": {
+    "totalCycles": null,
+    "completedCycles": 0,
+    "overallPercent": null,
+    "unavailableReason": "最终原子需求、任务依赖和现有源码逐项评估尚未完成"
+  },
+  "existingImplementation": {
+    "treatment": "review_before_reuse",
+    "reviewedItems": 0,
+    "completionCredit": false
+  }
+}

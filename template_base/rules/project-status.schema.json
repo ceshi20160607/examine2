@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/project-status.schema.json",
+  "title": "Project declared status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "asOf", "currentGateId", "currentGateStatus", "scheduling", "existingImplementation"],
+  "properties": {
+    "schemaVersion": {"const": 2},
+    "asOf": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "currentGateId": {"type": "string", "pattern": "^G[0-9]{2}_[A-Z0-9_]+$"},
+    "currentGateStatus": {"enum": ["pending", "in_progress", "completed", "blocked"]},
+    "scheduling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["totalCycles", "completedCycles", "overallPercent", "unavailableReason"],
+      "properties": {
+        "totalCycles": {"type": ["integer", "null"], "minimum": 0},
+        "completedCycles": {"type": "integer", "minimum": 0},
+        "overallPercent": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "unavailableReason": {"type": ["string", "null"]}
+      }
+    },
+    "existingImplementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["treatment", "reviewedItems", "completionCredit"],
+      "properties": {
+        "treatment": {"const": "review_before_reuse"},
+        "reviewedItems": {"type": "integer", "minimum": 0},
+        "completionCredit": {"type": "boolean"}
+      }
+    }
+  }
+}

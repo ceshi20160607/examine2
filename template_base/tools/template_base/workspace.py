@@ -5,9 +5,22 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .architecture import load_architecture, require_architecture_ready
-from .contract import sha256_bytes
-from .requirements import load_intake, require_current_intake
+from .common import sha256_bytes
+from .requirements import RequirementError, load_intake, require_current_intake, validate_analysis_fragment
+from .rules import validate_rule
+
+
+CANONICAL_GATE_IDS = [
+    "G01_REQUIREMENTS",
+    "G02_CAPABILITY_OWNERSHIP",
+    "G03_USE_CASES_TASKS",
+    "G04_DEPENDENCY_CODE_ASSESSMENT",
+    "G05_DATABASE_DESIGN",
+    "G06_BASE_GENERATION",
+    "G07_MANAGE_IMPLEMENTATION",
+    "G08_FRONTEND_IMPLEMENTATION",
+    "G09_CYCLE_VERIFICATION",
+]
 
 
 @dataclass(frozen=True)
@@ -67,13 +80,130 @@ def _overlap(first: Path, second: Path) -> bool:
     return first == second or first.is_relative_to(second) or second.is_relative_to(first)
 
 
+def _json_file(path: Path, issue_path: str, issues: list[WorkspaceIssue]) -> dict[str, Any] | None:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError) as error:
+        issues.append(WorkspaceIssue(issue_path, f"cannot read JSON: {path}: {error}"))
+        return None
+    if not isinstance(value, dict):
+        issues.append(WorkspaceIssue(issue_path, "must contain a JSON object"))
+        return None
+    return value
+
+
+def _validate_project_control(
+    active_path: Path,
+    workflow: dict[str, Any] | None,
+    issues: list[WorkspaceIssue],
+) -> None:
+    status_path = active_path / "ai" / "status" / "project-status.json"
+    assignment_path = active_path / "ai" / "agents" / "assignments.json"
+    intake_path = active_path / "ai" / "requirements" / "requirement-intake.json"
+    plan_path = active_path / "ai" / "requirements" / "analysis-plan.json"
+    audit_path = active_path / "ai" / "evidence" / "requirement-fragment-audit.json"
+    for path, rule_name, issue_path in (
+        (status_path, "project-status.schema.json", "$.activeProject.status"),
+        (assignment_path, "agent-assignments.schema.json", "$.activeProject.assignments"),
+    ):
+        value = _json_file(path, issue_path, issues)
+        if value is not None:
+            issues.extend(WorkspaceIssue(issue.path, issue.message) for issue in validate_rule(value, rule_name))
+
+    status = _json_file(status_path, "$.activeProject.status", issues)
+    intake = _json_file(intake_path, "$.requirements.intake", issues)
+    plan = _json_file(plan_path, "$.activeProject.analysisPlan", issues)
+    if status is not None and workflow is not None:
+        gates = workflow.get("gates", [])
+        gate_ids = [gate.get("id") for gate in gates if isinstance(gate, dict)]
+        if gate_ids != CANONICAL_GATE_IDS:
+            issues.append(WorkspaceIssue("$.template.workflow.gates", "must equal the canonical nine-gate sequence"))
+        ordinals = [gate.get("ordinal") for gate in gates if isinstance(gate, dict)]
+        if ordinals != list(range(1, len(gates) + 1)):
+            issues.append(WorkspaceIssue("$.template.workflow.gates", "gate ordinals must be continuous and ordered"))
+        if status.get("currentGateId") not in gate_ids:
+            issues.append(WorkspaceIssue("$.activeProject.status.currentGateId", "must reference a canonical workflow gate"))
+    if status is not None and intake is not None and plan is not None:
+        packets = plan.get("packets", [])
+        planned_ids = {packet.get("id") for packet in packets if isinstance(packet, dict)}
+        fragment_root = active_path / "ai" / "requirements" / "fragments"
+        extracted_ids = {path.stem for path in fragment_root.glob("RWP-*.json")} if fragment_root.is_dir() else set()
+        if fragment_root.is_dir():
+            for fragment_path in sorted(fragment_root.glob("RWP-*.json")):
+                try:
+                    validate_analysis_fragment(fragment_path)
+                except RequirementError as error:
+                    issues.append(WorkspaceIssue("$.activeProject.requirementFragments", str(error)))
+        if not extracted_ids <= planned_ids:
+            issues.append(WorkspaceIssue("$.activeProject.requirementFragments", "fragment directory contains unknown packet ids"))
+
+        if audit_path.is_file():
+            audit = _json_file(audit_path, "$.activeProject.requirementAudit", issues)
+            if audit is not None:
+                issues.extend(
+                    WorkspaceIssue(issue.path, issue.message)
+                    for issue in validate_rule(audit, "requirement-fragment-audit.schema.json")
+                )
+                if audit.get("source", {}).get("planPath") != "../requirements/analysis-plan.json":
+                    issues.append(WorkspaceIssue("$.activeProject.requirementAudit.source.planPath", "must point to the active project's analysis plan"))
+                if audit.get("source", {}).get("planSha256") != sha256_bytes(plan_path.read_bytes()):
+                    issues.append(WorkspaceIssue("$.activeProject.requirementAudit.source.planSha256", "must bind to the current analysis plan"))
+                audit_items = audit.get("audits", [])
+                audit_ids = [item.get("packetId") for item in audit_items if isinstance(item, dict)]
+                if len(audit_ids) != len(set(audit_ids)):
+                    issues.append(WorkspaceIssue("$.activeProject.requirementAudit.audits", "packet ids must be unique"))
+                if not set(audit_ids) <= extracted_ids:
+                    issues.append(WorkspaceIssue("$.activeProject.requirementAudit.audits", "can only audit extracted fragments"))
+                for index, item in enumerate(audit_items):
+                    if not isinstance(item, dict):
+                        continue
+                    outcome = item.get("outcome")
+                    audit_issues = item.get("issues")
+                    if outcome == "accepted" and audit_issues:
+                        issues.append(WorkspaceIssue(f"$.activeProject.requirementAudit.audits[{index}]", "accepted packet cannot contain issues"))
+                    if outcome == "revise" and not audit_issues:
+                        issues.append(WorkspaceIssue(f"$.activeProject.requirementAudit.audits[{index}]", "revise packet must contain at least one issue"))
+                    fragment_path = fragment_root / f"{item.get('packetId')}.json"
+                    fragment = _json_file(fragment_path, f"$.activeProject.requirementAudit.audits[{index}].packetId", issues)
+                    if fragment_path.is_file() and item.get("fragmentSha256") != sha256_bytes(fragment_path.read_bytes()):
+                        issues.append(WorkspaceIssue(
+                            f"$.activeProject.requirementAudit.audits[{index}].fragmentSha256",
+                            "must bind to the current fragment content",
+                        ))
+                    requirement_ids = {
+                        requirement.get("id")
+                        for requirement in fragment.get("requirements", [])
+                        if isinstance(requirement, dict)
+                    } if fragment is not None else set()
+                    for issue_index, audit_issue in enumerate(audit_issues if isinstance(audit_issues, list) else []):
+                        if not isinstance(audit_issue, dict):
+                            continue
+                        unknown = set(audit_issue.get("requirementIds", [])) - requirement_ids
+                        if unknown:
+                            issues.append(WorkspaceIssue(
+                                f"$.activeProject.requirementAudit.audits[{index}].issues[{issue_index}].requirementIds",
+                                f"references unknown requirement ids: {sorted(unknown)}",
+                            ))
+
+    assignments = _json_file(assignment_path, "$.activeProject.assignments", issues)
+    if assignments is not None:
+        items = assignments.get("assignments", [])
+        ids = {item.get("id") for item in items if isinstance(item, dict)}
+        for index, item in enumerate(items):
+            if not isinstance(item, dict):
+                continue
+            unknown = set(item.get("blockedBy", [])) - ids
+            if unknown:
+                issues.append(WorkspaceIssue(f"$.activeProject.assignments[{index}].blockedBy", f"references unknown assignments: {sorted(unknown)}"))
+
+
 def validate_workspace(data: dict[str, Any], workspace_path: Path) -> list[WorkspaceIssue]:
-    issues: list[WorkspaceIssue] = []
+    issues = [WorkspaceIssue(issue.path, issue.message) for issue in validate_rule(data, "workspace.schema.json")]
     root = _object(
         data,
         "$",
-        {"schemaVersion", "workspaceId", "requirements", "template", "legacyRoot", "activeProject", "legacyReferences"},
-        {"schemaVersion", "workspaceId", "requirements", "template", "legacyRoot", "activeProject", "legacyReferences"},
+        {"schemaVersion", "workspaceId", "requirements", "template", "activeProject"},
+        {"schemaVersion", "workspaceId", "requirements", "template", "activeProject"},
         issues,
     )
     if root.get("schemaVersion") != 1:
@@ -103,71 +233,74 @@ def validate_workspace(data: dict[str, Any], workspace_path: Path) -> list[Works
     template = _object(root.get("template"), "$.template", {"path", "versionFile"}, {"path", "versionFile"}, issues)
     template_path = _relative(template.get("path"), "$.template.path", workspace_root, issues)
     version_path = _relative(template.get("versionFile"), "$.template.versionFile", workspace_root, issues)
+    workflow: dict[str, Any] | None = None
     if template_path is not None and not template_path.is_dir():
         issues.append(WorkspaceIssue("$.template.path", f"directory does not exist: {template_path}"))
+    if template_path is not None and template_path.is_dir():
+        if not (template_path / "rules").is_dir():
+            issues.append(WorkspaceIssue("$.template.path", "template must contain rules/ for machine validation rules"))
+        if (template_path / "contracts").exists():
+            issues.append(WorkspaceIssue("$.template.path", "obsolete contracts/ directory must not exist; use rules/"))
+        workflow_path = template_path / "agents" / "workflow.json"
+        workflow = _json_file(workflow_path, "$.template.workflow", issues)
+        if workflow is not None:
+            issues.extend(
+                WorkspaceIssue(issue.path, issue.message)
+                for issue in validate_rule(workflow, "agent-workflow.schema.json")
+            )
+            for role in workflow.get("roles", []):
+                role_id = role.get("id") if isinstance(role, dict) else None
+                if isinstance(role_id, str) and not (template_path / "agents" / f"{role_id}.md").is_file():
+                    issues.append(WorkspaceIssue("$.template.workflow", f"role instruction is missing: agents/{role_id}.md"))
     if version_path is not None and not version_path.is_file():
         issues.append(WorkspaceIssue("$.template.versionFile", f"file does not exist: {version_path}"))
     if template_path is not None and version_path is not None and not version_path.is_relative_to(template_path):
         issues.append(WorkspaceIssue("$.template.versionFile", "must be inside the template directory"))
 
-    legacy_root_config = _object(
-        root.get("legacyRoot"),
-        "$.legacyRoot",
-        {"path", "searchPolicy", "ignoreFile"},
-        {"path", "searchPolicy", "ignoreFile"},
-        issues,
-    )
-    legacy_root = _relative(legacy_root_config.get("path"), "$.legacyRoot.path", workspace_root, issues)
-    if legacy_root_config.get("searchPolicy") != "explicit-only":
-        issues.append(WorkspaceIssue("$.legacyRoot.searchPolicy", "must equal explicit-only"))
-    ignore_file = _relative(legacy_root_config.get("ignoreFile"), "$.legacyRoot.ignoreFile", workspace_root, issues)
-    if legacy_root is not None:
-        if not legacy_root.is_dir():
-            issues.append(WorkspaceIssue("$.legacyRoot.path", f"directory does not exist: {legacy_root}"))
-        relative_legacy_root = legacy_root.relative_to(workspace_root)
-        if not relative_legacy_root.parts or relative_legacy_root.parts[0] != ".tmp":
-            issues.append(WorkspaceIssue("$.legacyRoot.path", "must be under the hidden .tmp directory"))
-        if ignore_file is not None:
-            if not ignore_file.is_file():
-                issues.append(WorkspaceIssue("$.legacyRoot.ignoreFile", f"file does not exist: {ignore_file}"))
-            else:
-                ignored_paths = {
-                    line.strip().rstrip("/").replace("\\", "/")
-                    for line in ignore_file.read_text(encoding="utf-8-sig").splitlines()
-                    if line.strip() and not line.lstrip().startswith("#")
-                }
-                required_ignore = relative_legacy_root.as_posix()
-                if required_ignore not in ignored_paths:
-                    issues.append(WorkspaceIssue("$.legacyRoot.ignoreFile", f"must exclude {required_ignore}/"))
-
     active = _object(
         root.get("activeProject"),
         "$.activeProject",
-        {"path", "architectureBaseline", "implementationPolicy"},
-        {"path", "architectureBaseline", "implementationPolicy"},
+        {"path"},
+        {"path"},
         issues,
     )
     active_path = _relative(active.get("path"), "$.activeProject.path", workspace_root, issues)
-    architecture_path = _relative(active.get("architectureBaseline"), "$.activeProject.architectureBaseline", workspace_root, issues)
-    if active.get("implementationPolicy") != "new-code-only":
-        issues.append(WorkspaceIssue("$.activeProject.implementationPolicy", "must equal new-code-only"))
     if active_path is not None and not active_path.is_dir():
         issues.append(WorkspaceIssue("$.activeProject.path", f"directory does not exist: {active_path}"))
-    if active_path is not None and architecture_path is not None and not architecture_path.is_relative_to(active_path):
-        issues.append(WorkspaceIssue("$.activeProject.architectureBaseline", "must be inside the active project"))
-    if architecture_path is not None:
-        if not architecture_path.is_file():
-            issues.append(WorkspaceIssue("$.activeProject.architectureBaseline", f"file does not exist: {architecture_path}"))
-        else:
-            try:
-                architecture = load_architecture(architecture_path)
-                require_architecture_ready(architecture, architecture_path)
-                architecture_source = (architecture_path.parent / architecture["source"]["path"]).resolve()
-                if requirement_path is not None and architecture_source != requirement_path:
-                    issues.append(WorkspaceIssue("$.activeProject.architectureBaseline", "must bind to the canonical requirements"))
-            except ValueError as error:
-                issues.append(WorkspaceIssue("$.activeProject.architectureBaseline", str(error)))
-
+    if active_path is not None and active_path.is_dir():
+        required_directories = ("backend", "frontend", "db", "deploy", "tools", "ai")
+        for directory in required_directories:
+            if not (active_path / directory).is_dir():
+                issues.append(WorkspaceIssue(
+                    "$.activeProject.path",
+                    f"active project must contain the top-level {directory}/ directory",
+                ))
+        forbidden_obsolete_entries = (
+            "app",
+            "stages",
+            "cycles",
+            "program-plan.json",
+            "architecture-baseline.json",
+            "project-starter.json",
+            "base-codegen.json",
+        )
+        for entry in forbidden_obsolete_entries:
+            if (active_path / entry).exists():
+                issues.append(WorkspaceIssue(
+                    "$.activeProject.path",
+                    f"obsolete project control entry must not exist: {entry}",
+                ))
+        requirement_control_root = active_path / "ai" / "requirements"
+        obsolete_partial_files = (
+            list(requirement_control_root.glob("slice-*.scope.json"))
+            + list(requirement_control_root.glob("slice-*.plan.json"))
+        )
+        for stale in sorted(obsolete_partial_files):
+            issues.append(WorkspaceIssue(
+                "$.activeProject.path",
+                f"obsolete partial requirement slice must not exist: {stale.relative_to(active_path).as_posix()}",
+            ))
+        _validate_project_control(active_path, workflow, issues)
     if intake_path is not None:
         if not intake_path.is_file():
             issues.append(WorkspaceIssue("$.requirements.intake", f"file does not exist: {intake_path}"))
@@ -181,45 +314,8 @@ def validate_workspace(data: dict[str, Any], workspace_path: Path) -> list[Works
     if active_path is not None and intake_path is not None and not intake_path.is_relative_to(active_path):
         issues.append(WorkspaceIssue("$.requirements.intake", "must be stored inside the active project"))
 
-    legacy = root.get("legacyReferences")
-    legacy_paths: list[Path] = []
-    if not isinstance(legacy, list) or not legacy:
-        issues.append(WorkspaceIssue("$.legacyReferences", "must contain at least one reference"))
-    else:
-        seen: set[Path] = set()
-        for index, raw_reference in enumerate(legacy):
-            path = f"$.legacyReferences[{index}]"
-            reference = _object(raw_reference, path, {"path", "purpose", "writePolicy"}, {"path", "purpose", "writePolicy"}, issues)
-            resolved = _relative(reference.get("path"), f"{path}.path", workspace_root, issues)
-            if not isinstance(reference.get("purpose"), str) or not reference.get("purpose", "").strip():
-                issues.append(WorkspaceIssue(f"{path}.purpose", "must be a non-blank string"))
-            if reference.get("writePolicy") != "reference-only":
-                issues.append(WorkspaceIssue(f"{path}.writePolicy", "must equal reference-only"))
-            if resolved is not None:
-                if not resolved.exists():
-                    issues.append(WorkspaceIssue(f"{path}.path", f"path does not exist: {resolved}"))
-                if resolved in seen:
-                    issues.append(WorkspaceIssue(f"{path}.path", "duplicate legacy reference"))
-                seen.add(resolved)
-                legacy_paths.append(resolved)
-
-    if legacy_root is not None:
-        for index, legacy_path in enumerate(legacy_paths):
-            if not legacy_path.is_relative_to(legacy_root):
-                issues.append(WorkspaceIssue(f"$.legacyReferences[{index}].path", "must be inside legacyRoot"))
-
     if active_path is not None and template_path is not None and _overlap(active_path, template_path):
         issues.append(WorkspaceIssue("$.activeProject.path", "must not overlap the template directory"))
-    if legacy_root is not None:
-        if active_path is not None and _overlap(active_path, legacy_root):
-            issues.append(WorkspaceIssue("$.legacyRoot.path", "must not overlap the active project"))
-        if template_path is not None and _overlap(template_path, legacy_root):
-            issues.append(WorkspaceIssue("$.legacyRoot.path", "must not overlap the template directory"))
-    for index, legacy_path in enumerate(legacy_paths):
-        if active_path is not None and _overlap(active_path, legacy_path):
-            issues.append(WorkspaceIssue(f"$.legacyReferences[{index}].path", "must not overlap the active project"))
-        if template_path is not None and _overlap(template_path, legacy_path):
-            issues.append(WorkspaceIssue(f"$.legacyReferences[{index}].path", "must not overlap the template directory"))
     return issues
 
 
@@ -235,6 +331,78 @@ def workspace_status(data: dict[str, Any], workspace_path: Path) -> dict[str, An
         "workspaceId": data["workspaceId"],
         "requirementsSha256": data["requirements"]["sha256"],
         "activeProject": data["activeProject"]["path"],
-        "legacyReferenceCount": len(data["legacyReferences"]),
         "boundariesReady": True,
+    }
+
+
+def computed_project_status(data: dict[str, Any], workspace_path: Path) -> dict[str, Any]:
+    require_valid_workspace(data, workspace_path)
+    workspace_root = workspace_path.resolve().parent
+    active_path = (workspace_root / data["activeProject"]["path"]).resolve()
+    template_path = (workspace_root / data["template"]["path"]).resolve()
+    status = json.loads((active_path / "ai" / "status" / "project-status.json").read_text(encoding="utf-8-sig"))
+    workflow = json.loads((template_path / "agents" / "workflow.json").read_text(encoding="utf-8-sig"))
+    intake = json.loads((active_path / "ai" / "requirements" / "requirement-intake.json").read_text(encoding="utf-8-sig"))
+    plan = json.loads((active_path / "ai" / "requirements" / "analysis-plan.json").read_text(encoding="utf-8-sig"))
+
+    gates = workflow["gates"]
+    current_gate = next(gate for gate in gates if gate["id"] == status["currentGateId"])
+    fragment_paths = sorted((active_path / "ai" / "requirements" / "fragments").glob("RWP-*.json"))
+    candidate_requirements = 0
+    decisions = 0
+    covered_blocks = 0
+    for fragment_path in fragment_paths:
+        fragment = json.loads(fragment_path.read_text(encoding="utf-8-sig"))
+        candidate_requirements += len(fragment.get("requirements", []))
+        decisions += len(fragment.get("decisions", []))
+        covered_blocks += len(fragment.get("coverage", []))
+
+    audit_path = active_path / "ai" / "evidence" / "requirement-fragment-audit.json"
+    audits: list[dict[str, Any]] = []
+    if audit_path.is_file():
+        audit = json.loads(audit_path.read_text(encoding="utf-8-sig"))
+        audits = [item for item in audit.get("audits", []) if isinstance(item, dict)]
+    accepted = sum(1 for item in audits if item.get("outcome") == "accepted")
+    revise = sum(1 for item in audits if item.get("outcome") == "revise")
+    packet_count = plan["packetCount"]
+    coverable_blocks = sum(
+        1 for block in intake.get("blocks", [])
+        if isinstance(block, dict) and block.get("kind") != "heading"
+    )
+
+    return {
+        "asOf": status["asOf"],
+        "workflow": {
+            "source": "template_base/agents/workflow.json",
+            "totalGates": len(gates),
+            "currentGate": {
+                **current_gate,
+                "status": status["currentGateStatus"],
+            },
+        },
+        "requirements": {
+            "source": data["requirements"]["path"],
+            "sourceBlocks": intake["blockCount"],
+            "coverableBlocks": coverable_blocks,
+            "analysisPackets": packet_count,
+            "extractedPackets": len(fragment_paths),
+            "structurallyValidPackets": len(fragment_paths),
+            "remainingExtractionPackets": packet_count - len(fragment_paths),
+            "coveredBlocks": covered_blocks,
+            "candidateRequirements": candidate_requirements,
+            "decisions": decisions,
+            "semanticAudit": {
+                "auditedPackets": len(audits),
+                "acceptedPackets": accepted,
+                "revisePackets": revise,
+                "unauditedExtractedPackets": len(fragment_paths) - len(audits),
+            },
+            "extractionPercent": round(len(fragment_paths) * 100 / packet_count, 1) if packet_count else 0.0,
+            "sourceCoveragePercent": round(covered_blocks * 100 / coverable_blocks, 1) if coverable_blocks else 0.0,
+        },
+        "scheduling": {
+            "maximumCycleMinutes": workflow["cycle"]["maximumMinutes"],
+            **status["scheduling"],
+        },
+        "existingImplementation": status["existingImplementation"],
     }

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/requirement-fragment-index.schema.json",
+  "title": "Validated requirement fragment index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "fragmentCount", "fragments"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planPath", "planSha256", "requirementsSha256"],
+      "properties": {
+        "planPath": {"type": "string", "minLength": 1},
+        "planSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "requirementsSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "fragmentCount": {"type": "integer", "minimum": 1},
+    "fragments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["packetId", "path", "sha256", "candidateRequirementCount", "candidateDecisionCount", "coveredBlockCount"],
+        "properties": {
+          "packetId": {"type": "string", "pattern": "^RWP-[0-9]{4,}$"},
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "candidateRequirementCount": {"type": "integer", "minimum": 0},
+          "candidateDecisionCount": {"type": "integer", "minimum": 0},
+          "coveredBlockCount": {"type": "integer", "minimum": 1}
+        }
+      }
+    }
+  }
+}

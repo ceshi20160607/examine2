@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "requirementsPath": "../../../docs/user_requirement.md",
+    "requirementsSha256": "4d5e127f95a5eb04923b1f7e78c40b688005e93aaf0028374cfafb22ebd3bf1b"
+  },
+  "project": {
+    "id": "unexamine",
+    "name": "Unexamine",
+    "groupId": "com.unique.unexamine",
+    "artifactId": "unexamine-server",
+    "basePackage": "com.unique.unexamine"
+  },
+  "backend": {
+    "java": 21,
+    "springBoot": "3.5.16",
+    "mybatisPlus": "3.5.17",
+    "flyway": "13.0.0",
+    "serverPort": 18080
+  },
+  "frontend": {
+    "node": ">=22.12.0",
+    "vue": "3.5.41",
+    "vite": "8.2.1",
+    "typescript": "5.9.3",
+    "antDesignVue": "4.2.6",
+    "vueRouter": "5.2.0",
+    "pinia": "4.0.2",
+    "vitest": "4.1.10",
+    "vitePluginVue": "6.0.8"
+  },
+  "local": {
+    "databaseName": "unexamine",
+    "databaseUser": "unexamine",
+    "mysqlPort": 33077,
+    "redisPort": 36379
+  }
+}

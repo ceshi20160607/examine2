@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
 from typing import Any
 
-from .contract import canonical_json, require_generation_ready, sha256_bytes
-from .requirements import require_promotion_receipt
-from .render_backend import render_backend
-from .render_frontend import render_deploy, render_frontend
+from .common import canonical_json, sha256_bytes
 
 
 class GenerationError(RuntimeError):
@@ -18,12 +14,12 @@ class GenerationError(RuntimeError):
 def _safe_relative(path: str) -> Path:
     candidate = Path(path)
     if candidate.is_absolute() or ".." in candidate.parts:
-        raise GenerationError(f"renderer produced unsafe path: {path}")
+        raise GenerationError(f"generator produced unsafe path: {path}")
     return candidate
 
 
-def _previous_generated_hashes(output_root: Path) -> dict[str, str]:
-    manifest_path = output_root / "generation-manifest.json"
+def _previous_generated_hashes(output_root: Path, manifest_name: str = "generation-manifest.json") -> dict[str, str]:
+    manifest_path = output_root / _safe_relative(manifest_name)
     if not manifest_path.exists():
         return {}
     try:
@@ -49,29 +45,23 @@ def _assert_safe_to_replace(target: Path, relative_name: str, previous_hashes: d
         return
     previous_hash = previous_hashes.get(relative_name)
     if previous_hash is None:
-        raise GenerationError(f"refusing to overwrite untracked file in generated output: {relative_name}")
+        raise GenerationError(f"refusing to overwrite untracked generated file: {relative_name}")
     actual_hash = sha256_bytes(target.read_bytes())
     if actual_hash != previous_hash:
         raise GenerationError(f"generated file was modified outside the generator: {relative_name}")
 
 
-def render_project(contract: dict[str, Any]) -> dict[str, str]:
-    rendered: dict[str, str] = {}
-    for group in (render_backend(contract), render_frontend(contract), render_deploy(contract)):
-        overlap = rendered.keys() & group.keys()
-        if overlap:
-            raise GenerationError(f"duplicate generated paths: {sorted(overlap)}")
-        rendered.update(group)
-    return dict(sorted(rendered.items()))
-
-
-def generate_project(contract: dict[str, Any], contract_path: Path, output_root: Path) -> dict[str, Any]:
-    require_generation_ready(contract, contract_path)
-    require_promotion_receipt(contract, contract_path)
+def write_generated_tree(
+    rendered: dict[str, str],
+    output_root: Path,
+    manifest_metadata: dict[str, Any],
+    manifest_name: str = "generation-manifest.json",
+) -> dict[str, Any]:
     output_root = output_root.resolve()
     output_root.mkdir(parents=True, exist_ok=True)
-    rendered = render_project(contract)
-    previous_hashes = _previous_generated_hashes(output_root)
+    rendered = dict(sorted(rendered.items()))
+    manifest_relative = _safe_relative(manifest_name)
+    previous_hashes = _previous_generated_hashes(output_root, manifest_name)
     changed: list[str] = []
     removed: list[str] = []
     for relative_name, content in rendered.items():
@@ -97,25 +87,16 @@ def generate_project(contract: dict[str, Any], contract_path: Path, output_root:
         removed.append(relative.as_posix())
 
     file_entries = [
-        {
-            "path": relative_name,
-            "sha256": sha256_bytes(content.encode("utf-8")),
-        }
+        {"path": relative_name, "sha256": sha256_bytes(content.encode("utf-8"))}
         for relative_name, content in rendered.items()
     ]
-    manifest = {
-        "schemaVersion": 1,
-        "generatorVersion": "0.2.0-dev",
-        "projectId": contract["project"]["id"],
-        "sourceSha256": contract["source"]["sha256"],
-        "contractSha256": sha256_bytes(contract_path.read_bytes()),
-        "generatedFiles": file_entries,
-    }
-    manifest_path = output_root / "generation-manifest.json"
+    manifest = {"schemaVersion": 1, **manifest_metadata, "generatedFiles": file_entries}
+    manifest_path = output_root / manifest_relative
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_content = canonical_json(manifest).encode("utf-8")
     if not manifest_path.exists() or manifest_path.read_bytes() != manifest_content:
         manifest_path.write_bytes(manifest_content)
-        changed.append("generation-manifest.json")
+        changed.append(manifest_relative.as_posix())
     return {"output": str(output_root), "changed": changed, "removed": removed, "manifest": manifest}
 
 
@@ -125,27 +106,3 @@ def tree_hashes(root: Path) -> dict[str, str]:
         for path in sorted(root.rglob("*"))
         if path.is_file()
     }
-
-
-def check_repeatable(contract: dict[str, Any], contract_path: Path) -> dict[str, Any]:
-    require_generation_ready(contract, contract_path)
-    require_promotion_receipt(contract, contract_path)
-    with tempfile.TemporaryDirectory(prefix="template-base-a-") as first_dir, tempfile.TemporaryDirectory(prefix="template-base-b-") as second_dir:
-        first = Path(first_dir)
-        second = Path(second_dir)
-        generate_project(contract, contract_path, first)
-        generate_project(contract, contract_path, second)
-        first_hashes = tree_hashes(first)
-        second_hashes = tree_hashes(second)
-        if first_hashes != second_hashes:
-            all_paths = sorted(first_hashes.keys() | second_hashes.keys())
-            differences = [path for path in all_paths if first_hashes.get(path) != second_hashes.get(path)]
-            raise GenerationError(f"generation is not repeatable: {differences}")
-        second_run = generate_project(contract, contract_path, first)
-        if second_run["changed"]:
-            raise GenerationError(f"second generation changed files: {second_run['changed']}")
-        return {
-            "repeatable": True,
-            "fileCount": len(first_hashes),
-            "treeSha256": sha256_bytes(canonical_json(first_hashes).encode("utf-8")),
-        }

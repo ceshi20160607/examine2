@@ -1,4 +1,0 @@
-{
-  "case": "invalid-dependency",
-  "expectedMessage": "has an incomplete dependency"
-}

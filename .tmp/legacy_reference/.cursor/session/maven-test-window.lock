@@ -1,7 +1,0 @@
-{
-    "owner":  "run-maven-focused-test",
-    "processId":  27208,
-    "module":  "examine-web",
-    "tests":  "P1SystemEntryCycleIntegrationTest",
-    "acquiredAt":  "2026-08-10T23:18:24.7529948+08:00"
-}

@@ -1,64 +1,39 @@
 {
-  "schemaVersion": 1,
-  "authorities": {
-    "requirements": "template_base/tools/tb.py requirements-validate",
-    "contract": "template_base/tools/tb.py contract-promote",
-    "delivery": "template_base/tools/tb.py status"
-  },
-  "strategy": "vertical-slice",
+  "schemaVersion": 3,
+  "projectControlRoot": "projects/<project>/ai",
   "roles": [
-    {
-      "id": "requirement-analyst",
-      "writes": ["one requirement fragment for its assigned packet"],
-      "mustNot": ["read unassigned source blocks", "write a project contract", "resolve decisions", "write application code"]
-    },
-    {
-      "id": "product-integrator",
-      "writes": ["requirement-analysis.json", "project.contract.candidate.json"],
-      "mustNot": ["resolve blocking decisions without user evidence", "drop uncovered source blocks", "write application code"]
-    },
-    {
-      "id": "builder",
-      "writes": ["handwritten business logic", "tests"],
-      "mustNot": ["edit generated files", "set user acceptance", "replace real APIs with mocks"]
-    },
-    {
-      "id": "reviewer",
-      "writes": ["review findings"],
-      "mustNot": ["change implementation while reviewing", "set any gate result"]
-    }
+    {"id": "lead", "owns": ["requirements ownership", "dependency graph", "decisions", "cycle schedule", "computed status"]},
+    {"id": "requirements", "owns": ["atomic requirements", "use cases", "acceptance criteria"]},
+    {"id": "architecture", "owns": ["module boundaries", "transaction boundaries", "data and permission boundaries"]},
+    {"id": "database", "owns": ["db/base", "db/update", "db/all.sql", "indexes and constraints"]},
+    {"id": "backend", "owns": ["module manage logic", "backend affected tests"]},
+    {"id": "frontend", "owns": ["real pages", "frontend affected tests"]},
+    {"id": "test", "owns": ["cycle test design", "cycle integration", "real entry journey"]},
+    {"id": "operations", "owns": ["environment", "deployment", "upgrade", "rollback", "observability"]}
   ],
-  "computedPhases": [
-    {
-      "id": "INTAKE",
-      "requires": ["source requirement exists"]
-    },
-    {
-      "id": "CONTRACT_READY",
-      "requires": ["contract schema valid", "source hash matches", "no unresolved decisions"]
-    },
-    {
-      "id": "GENERATED",
-      "requires": ["repeatable generation", "generated tree hashes match"]
-    },
-    {
-      "id": "ENGINEERING_READY",
-      "requires": ["backend tests", "frontend production build", "real browser journey", "MySQL readback"]
-    },
-    {
-      "id": "RELEASE_READY",
-      "requires": ["engineering ready", "hash-bound explicit user acceptance"]
-    }
+  "gates": [
+    {"id": "G01_REQUIREMENTS", "ordinal": 1, "name": "full requirement analysis"},
+    {"id": "G02_CAPABILITY_OWNERSHIP", "ordinal": 2, "name": "exclusive capability ownership"},
+    {"id": "G03_USE_CASES_TASKS", "ordinal": 3, "name": "atomic use cases and tasks"},
+    {"id": "G04_DEPENDENCY_CODE_ASSESSMENT", "ordinal": 4, "name": "dependency and current-code assessment"},
+    {"id": "G05_DATABASE_DESIGN", "ordinal": 5, "name": "database design"},
+    {"id": "G06_BASE_GENERATION", "ordinal": 6, "name": "MyBatis-Plus base generation"},
+    {"id": "G07_MANAGE_IMPLEMENTATION", "ordinal": 7, "name": "manage business implementation"},
+    {"id": "G08_FRONTEND_IMPLEMENTATION", "ordinal": 8, "name": "frontend implementation"},
+    {"id": "G09_CYCLE_VERIFICATION", "ordinal": 9, "name": "cycle integration and real-entry verification"}
   ],
-  "parallelism": {
-    "requirementAnalysis": {
-      "allowedAfter": "INTAKE",
-      "unit": "one generated non-overlapping requirement packet"
-    },
-    "implementation": {
-      "allowedAfter": "CONTRACT_READY",
-      "unit": "independent vertical slice"
-    },
-    "forbidden": ["parallel edits to shared generated files", "frontend/backend completion claims without an integrated journey", "free-form multi-agent requirement discussion"]
-  }
+  "cycle": {
+    "maximumMinutes": 240,
+    "taskMinutes": {"minimum": 10, "maximum": 120},
+    "testParticipatesFromPlanning": true,
+    "endChecks": ["one affected integration suite", "one real entry demonstration"]
+  },
+  "forbidden": [
+    "invent another phase or gate hierarchy",
+    "schedule before atomic tasks exist",
+    "duplicate one capability across foundation and completion phases",
+    "edit generated base code",
+    "use mocks as completion evidence",
+    "allow agents to set their own completion percentage"
+  ]
 }

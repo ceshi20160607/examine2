@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/requirement-fragment-audit.schema.json",
+  "title": "Requirement fragment semantic audit evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "rubric", "source", "audits"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "rubric": {"const": "requirement-fragment-semantic-v1"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planPath", "planSha256"],
+      "properties": {
+        "planPath": {"type": "string", "minLength": 1},
+        "planSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "audits": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["packetId", "fragmentSha256", "outcome", "issues"],
+        "properties": {
+          "packetId": {"type": "string", "pattern": "^RWP-[0-9]{4,}$"},
+          "fragmentSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "outcome": {"enum": ["accepted", "revise"]},
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["severity", "type", "requirementIds", "evidence"],
+              "properties": {
+                "severity": {"enum": ["high", "medium", "low"]},
+                "type": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+                "requirementIds": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+                "evidence": {"type": "string", "minLength": 1}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

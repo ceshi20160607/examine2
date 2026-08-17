@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/project-starter.schema.json",
+  "title": "Project Starter",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "project", "backend", "frontend", "local"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirementsPath", "requirementsSha256"],
+      "properties": {
+        "requirementsPath": { "type": "string", "minLength": 1 },
+        "requirementsSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "groupId", "artifactId", "basePackage"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "groupId": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$" },
+        "artifactId": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "basePackage": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$" }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["java", "springBoot", "mybatisPlus", "flyway", "serverPort"],
+      "properties": {
+        "java": { "const": 21 },
+        "springBoot": { "type": "string", "minLength": 1 },
+        "mybatisPlus": { "type": "string", "minLength": 1 },
+        "flyway": { "type": "string", "minLength": 1 },
+        "serverPort": { "type": "integer", "minimum": 1024, "maximum": 65535 }
+      }
+    },
+    "frontend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "vue", "vite", "typescript", "antDesignVue", "vueRouter", "pinia", "vitest", "vitePluginVue"],
+      "properties": {
+        "node": { "type": "string", "pattern": "^>=.+" },
+        "vue": { "type": "string", "minLength": 1 },
+        "vite": { "type": "string", "minLength": 1 },
+        "typescript": { "type": "string", "minLength": 1 },
+        "antDesignVue": { "type": "string", "minLength": 1 },
+        "vueRouter": { "type": "string", "minLength": 1 },
+        "pinia": { "type": "string", "minLength": 1 },
+        "vitest": { "type": "string", "minLength": 1 },
+        "vitePluginVue": { "type": "string", "minLength": 1 }
+      }
+    },
+    "local": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["databaseName", "databaseUser", "mysqlPort", "redisPort"],
+      "properties": {
+        "databaseName": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "databaseUser": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "mysqlPort": { "type": "integer", "minimum": 1024, "maximum": 65535 },
+        "redisPort": { "type": "integer", "minimum": 1024, "maximum": 65535 }
+      }
+    }
+  }
+}

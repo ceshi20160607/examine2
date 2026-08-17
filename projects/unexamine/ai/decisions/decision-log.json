@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "decisions": [
+    {
+      "id": "DEC-20260813-001",
+      "status": "decided",
+      "subject": "项目目录与 AI 控制面",
+      "decision": "源码按 backend/frontend 分离，数据库独立放 db，项目专属需求任务角色决策状态证据统一放 ai",
+      "basis": "用户在 2026-08-13 明确指定",
+      "supersedes": ["app 包装目录", "stages/cycles 分散控制面", "根目录 requirements"]
+    },
+    {
+      "id": "DEC-20260813-002",
+      "status": "decided",
+      "subject": "上一版排期",
+      "decision": "12 阶段/81 周期全部作废；完成原子任务与依赖前不计算新总周期",
+      "basis": "P01 与后续阶段重复，阶段由旧残留和演示切片反向推导",
+      "supersedes": ["program-plan.json", "C-001", "stage-01", "stage-02"]
+    }
+  ]
+}
