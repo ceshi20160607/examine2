@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 public class AuditQueryService {
     private final AuditEventMapper auditEventMapper;
@@ -24,10 +26,15 @@ public class AuditQueryService {
             int pageNumber,
             int pageSize,
             String traceId,
+            String requestId,
+            Long actorAccountId,
+            Long memberId,
             String eventCode,
             String objectType,
             String objectId,
-            String resultCode) {
+            String resultCode,
+            LocalDateTime occurredFrom,
+            LocalDateTime occurredTo) {
         requireSystemContext(context);
         if (pageNumber < 1 || pageSize < 1 || pageSize > 200) {
             throw new DomainException("PAGINATION_INVALID", "页码必须大于 0，每页数量不能超过 200", HttpStatus.BAD_REQUEST);
@@ -36,10 +43,15 @@ public class AuditQueryService {
                 .eq(AuditEvent::getSystemId, context.systemId())
                 .eq(AuditEvent::getTenantId, context.tenantId())
                 .eq(hasText(traceId), AuditEvent::getTraceId, strip(traceId))
+                .eq(hasText(requestId), AuditEvent::getRequestId, strip(requestId))
+                .eq(actorAccountId != null, AuditEvent::getActorAccountId, actorAccountId)
+                .eq(memberId != null, AuditEvent::getMemberId, memberId)
                 .eq(hasText(eventCode), AuditEvent::getEventCode, strip(eventCode))
                 .eq(hasText(objectType), AuditEvent::getObjectType, strip(objectType))
                 .eq(hasText(objectId), AuditEvent::getObjectId, strip(objectId))
                 .eq(hasText(resultCode), AuditEvent::getResultCode, strip(resultCode))
+                .ge(occurredFrom != null, AuditEvent::getOccurredAt, occurredFrom)
+                .le(occurredTo != null, AuditEvent::getOccurredAt, occurredTo)
                 .orderByDesc(AuditEvent::getOccurredAt, AuditEvent::getId);
         Page<AuditEvent> page = auditEventMapper.selectPage(new Page<>(pageNumber, pageSize), query);
         return new AuditEventList(page.getRecords(), page.getTotal(), pageNumber, pageSize);

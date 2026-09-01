@@ -5,9 +5,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .architecture import ArchitectureError, validate_architecture
 from .common import sha256_bytes
-from .requirements import RequirementError, load_intake, require_current_intake, validate_analysis_fragment
+from .evidence import evaluate_cycle_evidence
+from .requirements import RequirementError, load_analysis, load_intake, require_current_intake, validate_analysis, validate_analysis_fragment
 from .rules import validate_rule
+from .scheduling import ScheduleError, validate_task_graph
+from .tasks import TaskCatalogError, validate_task_catalog
+from .use_cases import UseCaseError, validate_use_case_catalog
 
 
 CANONICAL_GATE_IDS = [
@@ -93,6 +98,7 @@ def _json_file(path: Path, issue_path: str, issues: list[WorkspaceIssue]) -> dic
 
 
 def _validate_project_control(
+    workspace_root: Path,
     active_path: Path,
     workflow: dict[str, Any] | None,
     issues: list[WorkspaceIssue],
@@ -102,6 +108,11 @@ def _validate_project_control(
     intake_path = active_path / "ai" / "requirements" / "requirement-intake.json"
     plan_path = active_path / "ai" / "requirements" / "analysis-plan.json"
     audit_path = active_path / "ai" / "evidence" / "requirement-fragment-audit.json"
+    final_analysis_path = active_path / "ai" / "requirements" / "requirement-analysis.json"
+    architecture_path = active_path / "ai" / "architecture" / "design.json"
+    use_case_path = active_path / "ai" / "requirements" / "use-cases.json"
+    task_catalog_path = active_path / "ai" / "planning" / "task-catalog.json"
+    task_graph_path = active_path / "ai" / "planning" / "task-graph.json"
     for path, rule_name, issue_path in (
         (status_path, "project-status.schema.json", "$.activeProject.status"),
         (assignment_path, "agent-assignments.schema.json", "$.activeProject.assignments"),
@@ -184,6 +195,100 @@ def _validate_project_control(
                                 f"$.activeProject.requirementAudit.audits[{index}].issues[{issue_index}].requirementIds",
                                 f"references unknown requirement ids: {sorted(unknown)}",
                             ))
+
+        if final_analysis_path.is_file():
+            try:
+                validate_analysis(load_analysis(final_analysis_path), final_analysis_path)
+            except RequirementError as error:
+                issues.append(WorkspaceIssue("$.activeProject.requirementAnalysis", str(error)))
+        elif status.get("currentGateId") != "G01_REQUIREMENTS":
+            issues.append(WorkspaceIssue(
+                "$.activeProject.requirementAnalysis",
+                "final requirement analysis is required after G01_REQUIREMENTS",
+            ))
+
+        current_gate_id = status.get("currentGateId")
+        current_gate_ordinal = CANONICAL_GATE_IDS.index(current_gate_id) + 1 if current_gate_id in CANONICAL_GATE_IDS else 0
+        if architecture_path.is_file():
+            try:
+                validate_architecture(architecture_path)
+            except (ArchitectureError, RequirementError) as error:
+                issues.append(WorkspaceIssue("$.activeProject.architecture", str(error)))
+        elif current_gate_ordinal > 2 or (current_gate_id == "G02_CAPABILITY_OWNERSHIP" and status.get("currentGateStatus") == "completed"):
+            issues.append(WorkspaceIssue(
+                "$.activeProject.architecture",
+                "validated architecture design is required after G02_CAPABILITY_OWNERSHIP",
+            ))
+
+        if use_case_path.is_file():
+            try:
+                validate_use_case_catalog(use_case_path)
+            except (ArchitectureError, RequirementError, UseCaseError) as error:
+                issues.append(WorkspaceIssue("$.activeProject.useCases", str(error)))
+        elif current_gate_ordinal > 3 or (current_gate_id == "G03_USE_CASES_TASKS" and status.get("currentGateStatus") == "completed"):
+            issues.append(WorkspaceIssue(
+                "$.activeProject.useCases",
+                "validated use-case catalog is required after G03_USE_CASES_TASKS",
+            ))
+
+        if task_catalog_path.is_file():
+            try:
+                validate_task_catalog(task_catalog_path)
+            except (ArchitectureError, RequirementError, TaskCatalogError, UseCaseError) as error:
+                issues.append(WorkspaceIssue("$.activeProject.tasks", str(error)))
+        elif current_gate_ordinal > 3 or (current_gate_id == "G03_USE_CASES_TASKS" and status.get("currentGateStatus") == "completed"):
+            issues.append(WorkspaceIssue(
+                "$.activeProject.tasks",
+                "validated atomic task catalog is required after G03_USE_CASES_TASKS",
+            ))
+
+        graph_summary: dict[str, object] | None = None
+        if task_graph_path.is_file():
+            try:
+                graph_summary = validate_task_graph(task_graph_path)
+            except (ArchitectureError, RequirementError, ScheduleError, TaskCatalogError, UseCaseError) as error:
+                issues.append(WorkspaceIssue("$.activeProject.taskGraph", str(error)))
+        elif current_gate_ordinal > 4 or (current_gate_id == "G04_DEPENDENCY_CODE_ASSESSMENT" and status.get("currentGateStatus") == "completed"):
+            issues.append(WorkspaceIssue(
+                "$.activeProject.taskGraph",
+                "validated dependency, code assessment and cycle graph is required after G04_DEPENDENCY_CODE_ASSESSMENT",
+            ))
+        if graph_summary is not None:
+            scheduling = status.get("scheduling", {})
+            total_cycles = graph_summary["cycleCount"]
+            completed_cycles = scheduling.get("completedCycles")
+            if scheduling.get("totalCycles") != total_cycles:
+                issues.append(WorkspaceIssue("$.activeProject.status.scheduling.totalCycles", "must equal validated task graph cycle count"))
+            if not isinstance(completed_cycles, int) or completed_cycles < 0 or completed_cycles > total_cycles:
+                issues.append(WorkspaceIssue("$.activeProject.status.scheduling.completedCycles", "must stay within validated cycle count"))
+            else:
+                expected_percent = round(completed_cycles * 100 / total_cycles, 1) if total_cycles else 100.0
+                if scheduling.get("overallPercent") != expected_percent:
+                    issues.append(WorkspaceIssue("$.activeProject.status.scheduling.overallPercent", f"must be computed as {expected_percent}"))
+            if scheduling.get("unavailableReason") is not None:
+                issues.append(WorkspaceIssue("$.activeProject.status.scheduling.unavailableReason", "must be null after a valid task graph exists"))
+            if status.get("existingImplementation", {}).get("reviewedItems") != graph_summary["assessmentCount"]:
+                issues.append(WorkspaceIssue("$.activeProject.status.existingImplementation.reviewedItems", "must equal task graph assessment count"))
+            evidence_summary, evidence_issues = evaluate_cycle_evidence(
+                workspace_root, active_path, task_graph_path, task_catalog_path
+            )
+            issues.extend(WorkspaceIssue(issue.path, issue.message) for issue in evidence_issues)
+            if completed_cycles != evidence_summary["completedCycles"]:
+                issues.append(WorkspaceIssue(
+                    "$.activeProject.status.scheduling.completedCycles",
+                    f"must equal the evidence-backed contiguous cycle count {evidence_summary['completedCycles']}",
+                ))
+            if scheduling.get("overallPercent") != evidence_summary["overallPercent"]:
+                issues.append(WorkspaceIssue(
+                    "$.activeProject.status.scheduling.overallPercent",
+                    f"must equal the evidence-backed percentage {evidence_summary['overallPercent']}",
+                ))
+            latest_evidence_date = evidence_summary["latestExecutedDate"]
+            if latest_evidence_date is not None and status.get("asOf") != latest_evidence_date:
+                issues.append(WorkspaceIssue(
+                    "$.activeProject.status.asOf",
+                    f"must equal the latest completed cycle evidence date {latest_evidence_date}",
+                ))
 
     assignments = _json_file(assignment_path, "$.activeProject.assignments", issues)
     if assignments is not None:
@@ -300,7 +405,7 @@ def validate_workspace(data: dict[str, Any], workspace_path: Path) -> list[Works
                 "$.activeProject.path",
                 f"obsolete partial requirement slice must not exist: {stale.relative_to(active_path).as_posix()}",
             ))
-        _validate_project_control(active_path, workflow, issues)
+        _validate_project_control(workspace_root, active_path, workflow, issues)
     if intake_path is not None:
         if not intake_path.is_file():
             issues.append(WorkspaceIssue("$.requirements.intake", f"file does not exist: {intake_path}"))
@@ -369,9 +474,30 @@ def computed_project_status(data: dict[str, Any], workspace_path: Path) -> dict[
         1 for block in intake.get("blocks", [])
         if isinstance(block, dict) and block.get("kind") != "heading"
     )
+    final_analysis_path = active_path / "ai" / "requirements" / "requirement-analysis.json"
+    final_summary: dict[str, Any] | None = None
+    if final_analysis_path.is_file():
+        final_analysis = load_analysis(final_analysis_path)
+        final_summary = validate_analysis(final_analysis, final_analysis_path)
+    architecture_path = active_path / "ai" / "architecture" / "design.json"
+    architecture_summary = validate_architecture(architecture_path) if architecture_path.is_file() else None
+    use_case_path = active_path / "ai" / "requirements" / "use-cases.json"
+    use_case_summary = validate_use_case_catalog(use_case_path) if use_case_path.is_file() else None
+    task_catalog_path = active_path / "ai" / "planning" / "task-catalog.json"
+    task_summary = validate_task_catalog(task_catalog_path) if task_catalog_path.is_file() else None
+    task_graph_path = active_path / "ai" / "planning" / "task-graph.json"
+    task_graph_summary = validate_task_graph(task_graph_path) if task_graph_path.is_file() else None
+    cycle_summary, _ = evaluate_cycle_evidence(
+        workspace_root, active_path, task_graph_path, task_catalog_path
+    ) if task_graph_path.is_file() and task_catalog_path.is_file() else ({
+        "totalCycles": 0,
+        "completedCycles": 0,
+        "overallPercent": 0.0,
+        "latestExecutedDate": None,
+    }, [])
 
     return {
-        "asOf": status["asOf"],
+        "asOf": cycle_summary["latestExecutedDate"] or status["asOf"],
         "workflow": {
             "source": "template_base/agents/workflow.json",
             "totalGates": len(gates),
@@ -399,10 +525,26 @@ def computed_project_status(data: dict[str, Any], workspace_path: Path) -> dict[
             },
             "extractionPercent": round(len(fragment_paths) * 100 / packet_count, 1) if packet_count else 0.0,
             "sourceCoveragePercent": round(covered_blocks * 100 / coverable_blocks, 1) if coverable_blocks else 0.0,
+            "finalAnalysis": {
+                "path": "projects/unexamine/ai/requirements/requirement-analysis.json",
+                "valid": final_summary is not None,
+                "atomicRequirements": final_summary["requirementCount"] if final_summary else None,
+                "decisions": final_summary["decisionCount"] if final_summary else None,
+                "openDecisions": final_summary["openDecisionCount"] if final_summary else None,
+                "pendingRequirements": final_summary["pendingRequirementCount"] if final_summary else None,
+                "coveredBlocks": final_summary["coveredBlockCount"] if final_summary else None,
+            },
         },
         "scheduling": {
             "maximumCycleMinutes": workflow["cycle"]["maximumMinutes"],
-            **status["scheduling"],
+            "totalCycles": cycle_summary["totalCycles"],
+            "completedCycles": cycle_summary["completedCycles"],
+            "overallPercent": cycle_summary["overallPercent"],
+            "unavailableReason": None if task_graph_summary is not None else status["scheduling"].get("unavailableReason"),
         },
+        "architecture": architecture_summary,
+        "useCases": use_case_summary,
+        "tasks": task_summary,
+        "taskGraph": task_graph_summary,
         "existingImplementation": status["existingImplementation"],
     }

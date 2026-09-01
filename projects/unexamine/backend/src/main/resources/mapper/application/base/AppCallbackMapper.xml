@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.application.base.mapper.AppCallbackMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.application.base.entity.AppCallback">
+        <id column="id" property="id" />
+        <result column="application_id" property="applicationId" />
+        <result column="callback_type" property="callbackType" />
+        <result column="url" property="url" />
+        <result column="event_codes_json" property="eventCodesJson" />
+        <result column="signing_secret_ref" property="signingSecretRef" />
+        <result column="timeout_millis" property="timeoutMillis" />
+        <result column="max_attempts" property="maxAttempts" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, application_id, callback_type, url, event_codes_json, signing_secret_ref, timeout_millis, max_attempts, `status`, created_at, updated_at, version
+    </sql>
+
+</mapper>

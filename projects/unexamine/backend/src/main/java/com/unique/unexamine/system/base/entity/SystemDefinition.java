@@ -22,11 +22,20 @@ public class SystemDefinition {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @TableField("code")
+    @TableField("platform_id")
+    private Long platformId;
+
+    @TableField("`code`")
     private String code;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
+
+    @TableField("`description`")
+    private String description;
+
+    @TableField("logo_file_id")
+    private Long logoFileId;
 
     @TableField("creator_account_id")
     private Long creatorAccountId;
@@ -34,7 +43,7 @@ public class SystemDefinition {
     @TableField("tenant_mode")
     private String tenantMode;
 
-    @TableField("status")
+    @TableField("`status`")
     private String status;
 
     @TableField("deleted")
@@ -58,6 +67,14 @@ public class SystemDefinition {
         this.id = id;
     }
 
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
+    }
+
     public String getCode() {
         return code;
     }
@@ -72,6 +89,22 @@ public class SystemDefinition {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Long getLogoFileId() {
+        return logoFileId;
+    }
+
+    public void setLogoFileId(Long logoFileId) {
+        this.logoFileId = logoFileId;
     }
 
     public Long getCreatorAccountId() {
@@ -134,8 +167,11 @@ public class SystemDefinition {
     public String toString() {
         return "SystemDefinition{" +
             "id = " + id +
+            ", platformId = " + platformId +
             ", code = " + code +
             ", name = " + name +
+            ", description = " + description +
+            ", logoFileId = " + logoFileId +
             ", creatorAccountId = " + creatorAccountId +
             ", tenantMode = " + tenantMode +
             ", status = " + status +

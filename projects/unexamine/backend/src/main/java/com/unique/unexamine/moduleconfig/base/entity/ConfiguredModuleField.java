@@ -31,10 +31,10 @@ public class ConfiguredModuleField {
     @TableField("module_id")
     private Long moduleId;
 
-    @TableField("code")
+    @TableField("`code`")
     private String code;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
 
     @TableField("field_type")
@@ -43,10 +43,22 @@ public class ConfiguredModuleField {
     @TableField("required")
     private Boolean required;
 
+    @TableField("unique_value")
+    private Boolean uniqueValue;
+
+    @TableField("searchable")
+    private Boolean searchable;
+
+    @TableField("dictionary_id")
+    private Long dictionaryId;
+
+    @TableField("reference_module_id")
+    private Long referenceModuleId;
+
     @TableField("sort_order")
     private Integer sortOrder;
 
-    @TableField("status")
+    @TableField("`status`")
     private String status;
 
     @TableField("config_json")
@@ -126,6 +138,38 @@ public class ConfiguredModuleField {
         this.required = required;
     }
 
+    public Boolean getUniqueValue() {
+        return uniqueValue;
+    }
+
+    public void setUniqueValue(Boolean uniqueValue) {
+        this.uniqueValue = uniqueValue;
+    }
+
+    public Boolean getSearchable() {
+        return searchable;
+    }
+
+    public void setSearchable(Boolean searchable) {
+        this.searchable = searchable;
+    }
+
+    public Long getDictionaryId() {
+        return dictionaryId;
+    }
+
+    public void setDictionaryId(Long dictionaryId) {
+        this.dictionaryId = dictionaryId;
+    }
+
+    public Long getReferenceModuleId() {
+        return referenceModuleId;
+    }
+
+    public void setReferenceModuleId(Long referenceModuleId) {
+        this.referenceModuleId = referenceModuleId;
+    }
+
     public Integer getSortOrder() {
         return sortOrder;
     }
@@ -185,6 +229,10 @@ public class ConfiguredModuleField {
             ", name = " + name +
             ", fieldType = " + fieldType +
             ", required = " + required +
+            ", uniqueValue = " + uniqueValue +
+            ", searchable = " + searchable +
+            ", dictionaryId = " + dictionaryId +
+            ", referenceModuleId = " + referenceModuleId +
             ", sortOrder = " + sortOrder +
             ", status = " + status +
             ", configJson = " + configJson +

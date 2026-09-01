@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-047",
+  "executedAt": "2026-08-27T17:42:00+08:00",
+  "taskIds": ["TASK-0141", "TASK-0142", "TASK-0143"],
+  "checks": [
+    {
+      "name": "AI 确认写入前端回归（18 个文件、47 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "AI 创建真实入口、候选刷新恢复、最终状态与目标详情类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "候选不落库、人工确认、业务校验、模型降级、取消、权限快照和跨租户拒绝的真实 MySQL 定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=AiConfirmedWriteHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 33 迁移门禁（48 项）",
+      "command": "docker run --rm -v D:/workspace/01_project/snow/cursor/examine2/projects/unexamine/backend:/workspace -v D:/dev/maven_repository:/root/.m2/repository -v /var/run/docker.sock:/var/run/docker.sock -w /workspace -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal maven:3.9.11-eclipse-temurin-21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、15 个更新片段和 33 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "184 条需求在 20 个能力与 4 个上下文中的唯一架构归属复核",
+      "command": "python template_base/tools/tb.py architecture-validate --design projects/unexamine/ai/architecture/design.json",
+      "result": "passed"
+    },
+    {
+      "name": "60 个用例对 184 条原子需求的完整覆盖复核",
+      "command": "python template_base/tools/tb.py use-cases-validate --catalog projects/unexamine/ai/requirements/use-cases.json",
+      "result": "passed"
+    },
+    {
+      "name": "191 个原子任务的实现与验证归属复核",
+      "command": "python template_base/tools/tb.py tasks-validate --catalog projects/unexamine/ai/planning/task-catalog.json",
+      "result": "passed"
+    },
+    {
+      "name": "56 个周期的依赖、阶段与每周期最多 240 分钟复核",
+      "command": "python template_base/tools/tb.py task-graph-validate --graph projects/unexamine/ai/planning/task-graph.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-AI-CONFIRM-WRITE",
+      "entryUrl": "http://127.0.0.1:15173/systems/10?workspace=runtime&module=customer",
+      "actor": "C47 浏览器验收系统成员账号 #10 / 系统 #10 / 主租户 #12",
+      "result": "passed",
+      "pageAssertions": [
+        "从普通 customer 模块工具栏的“AI 创建”进入 workspace=ai&aiMode=write&module=customer，而不是从管理后台或临时测试页进入；页面明确说明人工确认不能扩大 Agent、CREATE、字段或业务规则权限。",
+        "输入文本及 browser://C47/input/001 后只生成 pendingWrite #1：页面展示可编辑标题、编号、客户名称、95% 置信度和“当前业务写入：未写入”，URL 写入 pendingWriteId=1，整页刷新仍从服务器恢复同一候选。",
+        "用户把客户名称从“银河制造”改为“银河制造（人工确认）”并勾选逐次确认后才创建业务记录 #15；目标 customer 列表第一行出现 C47-BROWSER-AI-001，结果按钮及刷新后的已确认候选都能打开 recordId=15 详情，详情读回人工修订值。",
+        "模型端点不可达时 pendingWrite #3 显示 AI_MODEL_UNAVAILABLE、原始输入引用、完整输入、0% 字段和未识别内容，不生成猜测值且业务未写入；人工补全最终表单后成功创建记录 #17，模型随后恢复可用端点。",
+        "pendingWrite #4 生成候选后执行“取消且不写入”，刷新后仍显示 AI_WRITE_CANCELLED 和未写入；数据库不存在 C47-CANCEL-001。定向真实 MySQL 回归另以必填字段夹具证明业务校验失败返回确认表单、无部分写入，补正后才成功。",
+        "真实验收纠正了两个可用性偏差：带 recordId 的结果路径现在会自动打开详情抽屉；已确认、已取消或校验失败候选刷新后展示最终状态、最终错误和持久化记录链接，而非初始候选文案。最终干净页签控制台无错误或警告。"
+      ],
+      "persistentReads": [
+        "ai_pending_write #1 保存原始结构化候选 customer_name=银河制造、输入引用 browser://C47/input/001、Agent/工具/模块版本及确认要求；result_json 保存 submittedPayload.customer_name=银河制造（人工确认）、candidateChanged=true、confirmedByAccountId=10、recordId=15 和目标详情路径。",
+        "ai_pending_write #3 的 preview_json 保存 outcome=DEGRADED、AI_MODEL_UNAVAILABLE、完整 inputText/sourceReference、modelMode=UNAVAILABLE、retryable=true 和原始文本作为 unknownSegments；人工补全结果保存记录 #17 与最终字段值。",
+        "ai_pending_write #4 最终为 CANCELLED、confirmed_by_account_id 为空、result_json.businessWritten=false；biz_record 对 C47-CANCEL-001 的计数为 0。浏览器探索候选 #2 使用当前发布配置中的可选客户字段，因此是合法记录而非业务校验失败；校验失败断言由 required=true 的定向集成夹具覆盖。",
+        "ai_execution #6/#7/#8/#9 固定保存 system #10、tenant #12、account/member/role、WRITE customer/CREATE、字段范围和工具权限快照，JSON 搜索无 secret；#6/#7 成功、#8 fallback_used=1 且保留 AI_MODEL_UNAVAILABLE 后由人工确认成功、#9 为 CANCELLED。",
+        "ai_execution_step #6 和 #8 都保存 STRUCTURED_RECOGNITION 与 CONFIRMED_WRITE 两步；#9 仅保存 STRUCTURED_RECOGNITION 后取消。审计 #493-#507 依次覆盖候选就绪、业务创建、确认、模型降级、模型恢复、取消，业务记录和 AI 审计可相互关联。",
+        "ai_model #1 验收后恢复 ACTIVE、endpoint=http://host.docker.internal:18080/actuator/health、version=6；模型凭证仍只保存 property:TEST_AI_SECRET 引用，候选、执行快照、消息和证据均无运行密钥。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiConfirmedWriteModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiConfirmedWriteController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiConfirmedWriteService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/ai/manage/AiConfirmedWriteHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/AiWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/views/AiConfirmedWriteView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/ai-write.ts",
+        "projects/unexamine/frontend/src/product/ai-write.test.ts",
+        "projects/unexamine/ai/evidence/CYCLE-047-candidate.png",
+        "projects/unexamine/ai/evidence/CYCLE-047-confirmed.png",
+        "projects/unexamine/ai/evidence/CYCLE-047-detail.png",
+        "projects/unexamine/ai/evidence/CYCLE-047-degraded.png",
+        "projects/unexamine/ai/evidence/CYCLE-047-cancelled.png",
+        "projects/unexamine/ai/evidence/CYCLE-047.json"
+      ]
+    }
+  ]
+}

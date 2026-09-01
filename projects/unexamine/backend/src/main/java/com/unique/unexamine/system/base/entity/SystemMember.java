@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
@@ -27,17 +28,27 @@ public class SystemMember {
     @TableField("account_id")
     private Long accountId;
 
+    @TableField("employee_number")
+    private String employeeNumber;
+
     @TableField("display_name")
     private String displayName;
 
-    @TableField("status")
+    @TableField("`status`")
     private String status;
+
+    @TableField("joined_at")
+    private LocalDateTime joinedAt;
 
     @TableField("created_at")
     private LocalDateTime createdAt;
 
     @TableField("updated_at")
     private LocalDateTime updatedAt;
+
+    @Version
+    @TableField("version")
+    private Integer version;
 
     public Long getId() {
         return id;
@@ -63,6 +74,14 @@ public class SystemMember {
         this.accountId = accountId;
     }
 
+    public String getEmployeeNumber() {
+        return employeeNumber;
+    }
+
+    public void setEmployeeNumber(String employeeNumber) {
+        this.employeeNumber = employeeNumber;
+    }
+
     public String getDisplayName() {
         return displayName;
     }
@@ -77,6 +96,14 @@ public class SystemMember {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public LocalDateTime getJoinedAt() {
+        return joinedAt;
+    }
+
+    public void setJoinedAt(LocalDateTime joinedAt) {
+        this.joinedAt = joinedAt;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -95,16 +122,27 @@ public class SystemMember {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         return "SystemMember{" +
             "id = " + id +
             ", systemId = " + systemId +
             ", accountId = " + accountId +
+            ", employeeNumber = " + employeeNumber +
             ", displayName = " + displayName +
             ", status = " + status +
+            ", joinedAt = " + joinedAt +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
+            ", version = " + version +
             "}";
     }
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { computed, reactive, ref, watch } from 'vue'
+import { GlobalOutlined } from '@ant-design/icons-vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import ProductMark from '../components/ProductMark.vue'
@@ -11,12 +12,14 @@ const router = useRouter()
 const mode = ref(props.initialMode)
 const loading = ref(false)
 const error = ref('')
+const providers = ref<Array<{ code: string; name: string; protocol: string }>>([])
+const startingProvider = ref('')
 const login = reactive({ username: '', password: '' })
 const register = reactive({
   username: '', password: '', displayName: '', email: '', systemName: '', systemCode: '',
 })
 const title = computed(() => mode.value === 'login' ? '欢迎回来' : '创建你的第一个系统')
-const subtitle = computed(() => mode.value === 'login' ? '登录并继续你的工作' : '注册平台账号，同时创建默认主租户')
+const subtitle = computed(() => mode.value === 'login' ? '登录并继续处理你的业务工作' : '注册平台账号，同时创建第一个业务系统')
 
 watch(() => props.initialMode, (value) => {
   mode.value = value
@@ -36,7 +39,7 @@ async function submitLogin() {
     })
     const context = await loadContext(tokens.accessToken)
     setPlatformSession(tokens, context)
-    await router.replace('/platform')
+    await router.replace('/platform/dashboard')
   } catch (reason) {
     error.value = readableError(reason)
   } finally {
@@ -59,12 +62,33 @@ async function submitRegister() {
     const context = await loadContext(result.tokens.accessToken)
     setPlatformSession(result.tokens, context)
     setSystemSession(result.tokens, { ...context, systemName: result.systemName, tenantName: result.tenantName })
-    message.success('系统已创建，正在进入配置引导')
+    message.success('系统已创建，正在进入系统')
     await router.replace(`/systems/${result.systemId}`)
   } catch (reason) {
     error.value = readableError(reason)
   } finally {
     loading.value = false
+  }
+}
+
+async function loadProviders() {
+  try {
+    providers.value = await api<Array<{ code: string; name: string; protocol: string }>>('/api/auth/sso/providers')
+  } catch {
+    providers.value = []
+  }
+}
+
+async function startSso(provider: { code: string; name: string }) {
+  startingProvider.value = provider.code
+  error.value = ''
+  try {
+    const result = await api<{ authorizationUrl: string; expiresAt: string }>(`/api/auth/sso/${provider.code}/start`, { method: 'POST' })
+    sessionStorage.setItem('unexamine.sso.provider', provider.code)
+    window.location.assign(result.authorizationUrl)
+  } catch (reason) {
+    error.value = readableError(reason)
+    startingProvider.value = ''
   }
 }
 
@@ -79,6 +103,8 @@ function switchMode(next: 'login' | 'register') {
   error.value = ''
   void router.push(next === 'login' ? '/login' : '/register')
 }
+
+onMounted(loadProviders)
 </script>
 
 <template>
@@ -88,10 +114,10 @@ function switchMode(next: 'login' | 'register') {
       <div class="auth-story__copy">
         <p class="eyebrow">可配置业务系统平台</p>
         <h1>把复杂的管理流程，<br>变成团队真正会用的系统。</h1>
-        <p>模块、字段、权限和业务数据统一在一个清晰的工作区中。</p>
+        <p>从日常业务处理到系统配置，都在清晰一致的工作区中完成。</p>
       </div>
       <div class="auth-story__status">
-        <span class="status-dot" /> 安全会话·系统与租户隔离·操作可追溯
+        <span class="status-dot" /> 工作空间相互隔离，关键操作全程可追溯
       </div>
     </section>
 
@@ -114,6 +140,14 @@ function switchMode(next: 'login' | 'register') {
             <a-input-password v-model:value="login.password" size="large" autocomplete="current-password" placeholder="请输入密码" />
           </a-form-item>
           <a-button type="primary" size="large" html-type="submit" block :loading="loading">登录</a-button>
+          <template v-if="providers.length">
+            <a-divider plain>或使用企业身份源</a-divider>
+            <div class="sso-provider-list">
+              <a-button v-for="provider in providers" :key="provider.code" size="large" block :loading="startingProvider === provider.code" @click="startSso(provider)">
+                <GlobalOutlined />{{ provider.name }}<small>{{ provider.protocol }}</small>
+              </a-button>
+            </div>
+          </template>
           <p class="auth-switch">还没有账号？<a @click="switchMode('register')">创建系统</a></p>
         </a-form>
 

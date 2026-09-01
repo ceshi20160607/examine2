@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-022",
+  "executedAt": "2026-08-22T14:18:40+08:00",
+  "taskIds": ["TASK-0069", "TASK-0070", "TASK-0071", "TASK-0077"],
+  "checks": [
+    {
+      "name": "字段字典版本与不可变发布回滚组合测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -q -Dtest=ModuleConfigurationHttpTest,DictionaryConfigurationHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "前端 API、权限、路由和运行动作测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "模块配置、版本历史和运行态类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-LOWCODE-FIELDS-DICTIONARY",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统中具备字典、模块设计和发布权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从系统后台的数据字典页面创建树形字典 customer_stage，添加顶层 prospect/潜在客户和子项 contacted/已联系，发布 v1 后级联预览先显示潜在客户，选择后显示已联系。",
+        "从模块配置页面为客户模块添加可搜索手机号字段 phone，并添加绑定已发布 customer_stage v1 的可搜索级联字段 stage；发布后形成不可变模块版本 v2。",
+        "执行回滚时系统生成新的不可变发布版本 v3，页面明确显示回滚自发布版本 v2、草稿来源 4、当前运行版本和发布指针 v3，v1、v2 继续作为历史快照保留。",
+        "业务运行页面立即读取发布版本 v3，并同时显示客户名称、联系电话、客户阶段列，证明回滚版本是可运行快照而不是旧指针覆盖。"
+      ],
+      "persistentReads": [
+        "cfg_dictionary、cfg_dictionary_version 与 cfg_dictionary_publication 读回 system_id=7、owner_tenant_id=8、customer_stage、hierarchical=1、发布 v1 及其稳定 snapshot_hash。",
+        "cfg_dictionary_item 读回 prospect 顶层项以及 parent_id 指向 prospect、path_code=prospect,contacted 的 contacted 子项。",
+        "cfg_module_version 读回 v1、v2、v3 三个独立版本；v3 的 change_summary 为回滚自发布版本 v2，snapshot_json 中 rollbackSourceVersionId=3、rollbackSourceVersionNumber=2。",
+        "cfg_module_publication 读回 current_version_id=4、运行 version_number=3、指针 version=3；information_schema 仍无 customer 专用物理表。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/db/update/V26__module_rollback_version.sql",
+        "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationHttpTest.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-022.json"
+      ]
+    }
+  ]
+}

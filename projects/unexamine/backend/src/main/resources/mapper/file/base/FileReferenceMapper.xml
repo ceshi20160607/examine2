@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.file.base.mapper.FileReferenceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.file.base.entity.FileReference">
+        <id column="id" property="id" />
+        <result column="file_id" property="fileId" />
+        <result column="context_type" property="contextType" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="owner_type" property="ownerType" />
+        <result column="owner_id" property="ownerId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="reference_type" property="referenceType" />
+        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, file_id, context_type, system_id, tenant_id, owner_type, owner_id, field_code, reference_type, created_by_account_id, created_at
+    </sql>
+
+</mapper>

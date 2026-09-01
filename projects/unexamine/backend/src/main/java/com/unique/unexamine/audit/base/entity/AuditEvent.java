@@ -24,8 +24,17 @@ public class AuditEvent {
     @TableField("trace_id")
     private String traceId;
 
+    @TableField("request_id")
+    private String requestId;
+
+    @TableField("context_type")
+    private String contextType;
+
     @TableField("actor_account_id")
     private Long actorAccountId;
+
+    @TableField("platform_id")
+    private Long platformId;
 
     @TableField("system_id")
     private Long systemId;
@@ -35,6 +44,12 @@ public class AuditEvent {
 
     @TableField("member_id")
     private Long memberId;
+
+    @TableField("application_id")
+    private Long applicationId;
+
+    @TableField("event_category")
+    private String eventCategory;
 
     @TableField("event_code")
     private String eventCode;
@@ -47,6 +62,12 @@ public class AuditEvent {
 
     @TableField("result_code")
     private String resultCode;
+
+    @TableField("client_ip")
+    private String clientIp;
+
+    @TableField("user_agent")
+    private String userAgent;
 
     @TableField("permission_snapshot")
     private String permissionSnapshot;
@@ -73,12 +94,36 @@ public class AuditEvent {
         this.traceId = traceId;
     }
 
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
+
+    public String getContextType() {
+        return contextType;
+    }
+
+    public void setContextType(String contextType) {
+        this.contextType = contextType;
+    }
+
     public Long getActorAccountId() {
         return actorAccountId;
     }
 
     public void setActorAccountId(Long actorAccountId) {
         this.actorAccountId = actorAccountId;
+    }
+
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
     }
 
     public Long getSystemId() {
@@ -103,6 +148,22 @@ public class AuditEvent {
 
     public void setMemberId(Long memberId) {
         this.memberId = memberId;
+    }
+
+    public Long getApplicationId() {
+        return applicationId;
+    }
+
+    public void setApplicationId(Long applicationId) {
+        this.applicationId = applicationId;
+    }
+
+    public String getEventCategory() {
+        return eventCategory;
+    }
+
+    public void setEventCategory(String eventCategory) {
+        this.eventCategory = eventCategory;
     }
 
     public String getEventCode() {
@@ -137,6 +198,22 @@ public class AuditEvent {
         this.resultCode = resultCode;
     }
 
+    public String getClientIp() {
+        return clientIp;
+    }
+
+    public void setClientIp(String clientIp) {
+        this.clientIp = clientIp;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
     public String getPermissionSnapshot() {
         return permissionSnapshot;
     }
@@ -166,14 +243,21 @@ public class AuditEvent {
         return "AuditEvent{" +
             "id = " + id +
             ", traceId = " + traceId +
+            ", requestId = " + requestId +
+            ", contextType = " + contextType +
             ", actorAccountId = " + actorAccountId +
+            ", platformId = " + platformId +
             ", systemId = " + systemId +
             ", tenantId = " + tenantId +
             ", memberId = " + memberId +
+            ", applicationId = " + applicationId +
+            ", eventCategory = " + eventCategory +
             ", eventCode = " + eventCode +
             ", objectType = " + objectType +
             ", objectId = " + objectId +
             ", resultCode = " + resultCode +
+            ", clientIp = " + clientIp +
+            ", userAgent = " + userAgent +
             ", permissionSnapshot = " + permissionSnapshot +
             ", detailJson = " + detailJson +
             ", occurredAt = " + occurredAt +

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.work.base.mapper.WorkTaskMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.work.base.entity.WorkTask">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="project_id" property="projectId" />
+        <result column="task_group_id" property="taskGroupId" />
+        <result column="parent_task_id" property="parentTaskId" />
+        <result column="title" property="title" />
+        <result column="description" property="description" />
+        <result column="task_type" property="taskType" />
+        <result column="priority" property="priority" />
+        <result column="status" property="status" />
+        <result column="progress_percent" property="progressPercent" />
+        <result column="owner_account_id" property="ownerAccountId" />
+        <result column="start_at" property="startAt" />
+        <result column="due_at" property="dueAt" />
+        <result column="completed_at" property="completedAt" />
+        <result column="custom_values_json" property="customValuesJson" />
+        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, platform_id, system_id, tenant_id, project_id, task_group_id, parent_task_id, title, `description`, task_type, priority, `status`, progress_percent, owner_account_id, start_at, due_at, completed_at, custom_values_json, created_by_account_id, created_at, updated_at, version
+    </sql>
+
+</mapper>

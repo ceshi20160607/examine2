@@ -1,9 +1,9 @@
 package com.unique.unexamine.shared.manage.foundation;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -24,13 +24,17 @@ class RuntimeMetadataMigrationTest {
 
     @Test
     void runtimeMetadataUsesPublishedSnapshotsAndCannotCrossSystemOrTenantBoundaries() {
-        var dataSource = new DriverManagerDataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword());
+        var dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl(MYSQL.getJdbcUrl());
+        dataSource.setUsername(MYSQL.getUsername());
+        dataSource.setPassword(MYSQL.getPassword());
+        dataSource.setMaximumPoolSize(2);
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
         var jdbc = new JdbcTemplate(dataSource);
 
         assertThat(jdbc.queryForObject(
                 "select count(*) from information_schema.tables where table_schema = database() and table_name not in ('flyway_schema_history')",
-                Integer.class)).isEqualTo(27);
+                Integer.class)).isEqualTo(155);
 
         Context first = createContext(jdbc, "owner-a", "system-a");
         Context second = createContext(jdbc, "owner-b", "system-b");
@@ -46,10 +50,10 @@ class RuntimeMetadataMigrationTest {
         Long fieldId = jdbc.queryForObject("select id from cfg_module_field where module_id = ? and code = 'name'", Long.class, moduleId);
         jdbc.update("insert into cfg_module_page(system_id, owner_tenant_id, module_id, page_type, name, layout_json, status) values (?, ?, ?, 'LIST', '默认列表', cast('{}' as json), 'ACTIVE')",
                 first.systemId(), first.tenantId(), moduleId);
-        jdbc.update("insert into cfg_module_action(system_id, owner_tenant_id, module_id, code, name, location, status, config_json) values (?, ?, ?, 'CREATE', '新建', 'LIST_TOOLBAR', 'ACTIVE', cast('{}' as json))",
+        jdbc.update("insert into cfg_module_action(system_id, owner_tenant_id, module_id, code, name, action_type, location, status, config_json) values (?, ?, ?, 'CREATE', '新建', 'CREATE', 'LIST_TOOLBAR', 'ACTIVE', cast('{}' as json))",
                 first.systemId(), first.tenantId(), moduleId);
-        jdbc.update("insert into cfg_module_version(system_id, owner_tenant_id, module_id, version_number, draft_revision, snapshot_json, published_by_member_id) values (?, ?, ?, 1, 1, cast(? as json), ?)",
-                first.systemId(), first.tenantId(), moduleId, "{\"moduleCode\":\"customer\"}", first.memberId());
+        jdbc.update("insert into cfg_module_version(system_id, owner_tenant_id, module_id, version_number, draft_revision, schema_hash, snapshot_json, change_summary, published_by_member_id) values (?, ?, ?, 1, 1, ?, cast(? as json), 'initial', ?)",
+                first.systemId(), first.tenantId(), moduleId, "0".repeat(64), "{\"moduleCode\":\"customer\"}", first.memberId());
         Long versionId = jdbc.queryForObject("select id from cfg_module_version where module_id = ? and version_number = 1", Long.class, moduleId);
         jdbc.update("insert into cfg_module_publication(system_id, owner_tenant_id, module_id, current_version_id, updated_by_member_id) values (?, ?, ?, ?, ?)",
                 first.systemId(), first.tenantId(), moduleId, versionId, first.memberId());
@@ -77,13 +81,17 @@ class RuntimeMetadataMigrationTest {
                 .hasRootCauseInstanceOf(SQLException.class);
         assertThat(jdbc.queryForObject("select value_text from biz_record_value where record_id = ?", String.class, recordId))
                 .isEqualTo("示例客户");
+        dataSource.close();
     }
 
     private Context createContext(JdbcTemplate jdbc, String username, String systemCode) {
         jdbc.update("insert into plat_account(username, display_name, status) values (?, ?, 'ACTIVE')", username, username);
         Long accountId = jdbc.queryForObject("select id from plat_account where username = ?", Long.class, username);
-        jdbc.update("insert into sys_system(code, name, creator_account_id, tenant_mode, status) values (?, ?, ?, 'SINGLE', 'ACTIVE')",
-                systemCode, systemCode, accountId);
+        jdbc.update("insert into plat_platform(code, name, settings_json, status) values (?, ?, cast('{}' as json), 'ACTIVE')",
+                systemCode, systemCode);
+        Long platformId = jdbc.queryForObject("select id from plat_platform where code = ?", Long.class, systemCode);
+        jdbc.update("insert into sys_system(platform_id, code, name, creator_account_id, tenant_mode, status) values (?, ?, ?, ?, 'SINGLE', 'ACTIVE')",
+                platformId, systemCode, systemCode, accountId);
         Long systemId = jdbc.queryForObject("select id from sys_system where code = ?", Long.class, systemCode);
         jdbc.update("insert into sys_tenant(system_id, code, name, is_main, main_marker, creator_account_id, status) values (?, 'main', '默认主租户', 1, 'MAIN', ?, 'ACTIVE')",
                 systemId, accountId);

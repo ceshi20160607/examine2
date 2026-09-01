@@ -18,6 +18,10 @@ public final class AuthenticationContextHolder {
         return context;
     }
 
+    public static AuthenticatedContext currentOrNull() {
+        return CURRENT.get();
+    }
+
     public static void clear() {
         CURRENT.remove();
     }

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-016",
+  "executedAt": "2026-08-18T22:00:00+08:00",
+  "taskIds": [
+    "TASK-0035",
+    "TASK-0036",
+    "TASK-0038",
+    "TASK-0039",
+    "TASK-0040"
+  ],
+  "checks": [
+    {
+      "name": "后端租户模式迁移、组织角色发布、会话权限版本刷新及 21 个迁移全量测试（22 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "前端统一 API envelope、业务失败和 HTTP 失败契约测试（5 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "租户模式发布、组织成员与角色权限矩阵类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "持续总控循环机器规则及 Template Base 回归（31 项）",
+      "command": "python -m unittest discover -s template_base/tests -p \"test_*.py\"",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、活动项目与模板边界校验",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-SYSTEM-TENANT-MIGRATION",
+      "entryUrl": "http://127.0.0.1:15173/systems/4",
+      "actor": "具备系统配置和专门租户模式迁移权限的系统管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "在已有多租户系统 #3 的周期十五分租户页面运行 MULTI→SINGLE 发布检查，页面逐项显示租户总数 2、其他租户 1、非主租户业务数据 0、有效跨租户共享 0，并以“存在其他租户，必须先执行独立租户合并方案”阻断，系统仍保持多租户。",
+        "通过平台页面新建单租户系统 cycle16_migration 后进入真实系统页面，SINGLE→MULTI 发布检查显示租户总数 1、其他租户/业务冲突/共享均为 0，并列出主租户、数据共享、约束应用、缓存重建四个步骤。",
+        "勾选影响确认后页面生成迁移申请 #1 和 PENDING_APPROVAL；填写审批说明并二次确认后，页面显示迁移作业 #2 已完成，系统现在按多租户模式运行。",
+        "页面重新加载基础设置后单租户单选项取消、多人租户选项选中、可见新建租户入口；历史记录显示 SINGLE→MULTI、COMPLETED 和作业 #2。",
+        "后端测试覆盖专门 MIGRATE_TENANT_MODE 权限、直接设置模式被拒绝、存在其他租户阻断、发布前后旧模式保持及迁移作业四项结果。"
+      ],
+      "persistentReads": [
+        "sys_system #4 读回 cycle16_migration、tenant_mode=MULTI；sys_tenant_migration #1 读回 SINGLE→MULTI、COMPLETED、job_id=2、version=2。",
+        "job_background #2 读回 TENANT_MODE_MIGRATION、SUCCEEDED、4/4，summary 保存 fromMode、toMode、steps=4 与 cacheNamespaces=3。",
+        "job_item_result 读回 MAIN_TENANT、DATA_CONFLICTS、CONSTRAINTS_AND_APPLICATIONS、CACHE_REBUILD 四项 SUCCEEDED 及逐项中文结果。",
+        "core_cache_epoch 读回 system:4 的 AUTHORIZATION、MODULE_CATALOG、SYSTEM_SHELL 均推进到 1，原因均指向 tenant-mode-migration:1。",
+        "audit_event 读回申请 trace 81d1bde53b194d84a627bcb8a1beb66e 与完成 trace 3085adcb70114324b8c90266e4ccaa64。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/SystemSettingsView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/TenantModeMigrationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemAdministrationController.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-016.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-AUTH-ORG-ROLE",
+      "entryUrl": "http://127.0.0.1:15173/systems/4",
+      "actor": "当前租户中具备系统授权管理权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "组织与成员页通过真实表单创建周期十六总部，页面立即读回 cycle16_hq 路径；成员行同时提供部门和多角色选择，草稿角色明确标注且保存说明草稿发布前不进入权限上下文。",
+        "角色权限矩阵逐资源显示系统后台、模板配置、审计日志和对应动作，每个动作有独立数据范围；选择 AUDIT:EVENT:VIEW 后受影响菜单预览只显示审计日志。",
+        "页面保存周期十六审计查看员后明确显示 DRAFT 和尚未影响目标用户；填写发布原因并确认后显示 ACTIVE、权限版本 v1，成功说明目标用户下一次刷新会话只获得新版本权限。",
+        "模块资源存在时页面还逐字段显示 PAGE 渠道可读、可写与脱敏策略；后端集成测试保存 customer_name/PAGE/readable/PARTIAL 并从 auth_field_policy 读回。",
+        "后端真实会话测试验证目标用户发布前访问授权页为 403，v1 发布后同一 token 自动刷新并只获得 CONFIG:SYSTEM:MANAGE；其尝试授予自身没有的 AUDIT 权限返回 AUTHORIZATION_OVERGRANT。",
+        "v2 发布后同一目标 token 才看到 auth_customer 模块并可进入审计接口；组织环、DROP_DATABASE 非法动作、missing 非法字段引用均被服务端拒绝。"
+      ],
+      "persistentReads": [
+        "sys_department #2 读回 system=4、tenant=5、cycle16_hq、周期十六总部、path_code=cycle16_hq、version=0。",
+        "sys_role #6 读回 cycle16_auditor、周期十六审计查看员、ACTIVE、version=1；sys_role_permission 读回 AUDIT/EVENT/VIEW/SELF。",
+        "auth_permission_version 读回 system=4、tenant=5、version_number=1、原因为周期十六页面验收发布、changed_by_account_id=1。",
+        "页面发布审计 trace=2bfa5d4f592e4744acd8647a810f36f4；草稿保存 trace=489b2b3e279542afb3d5fd01fb705b9e；部门保存 trace=57cb35ef82f04d369e735c204165df71。",
+        "集成测试数据库读回 v2 目标 auth_session.permission_version=2、customer_name 字段策略和两条 SYSTEM_AUTHORIZATION_PUBLISHED 审计。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/SystemAuthorizationView.vue",
+        "projects/unexamine/frontend/src/product/components/SystemShell.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/AuthenticationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/PermissionResolver.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-016.json"
+      ]
+    }
+  ]
+}

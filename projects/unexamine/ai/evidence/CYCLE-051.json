@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-051",
+  "executedAt": "2026-08-28T11:49:37+08:00",
+  "taskIds": ["TASK-0166", "TASK-0167", "TASK-0168"],
+  "checks": [
+    {
+      "name": "打印模板设计、发布、记录打印、在线预览和文件动作前端回归（22 个文件、58 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "打印模板后台和运行态记录打印的类型检查及单 Vue 生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "精确模板版本、分页快照、DETAIL+PRINT、PAGE+FILE、无效字段和即时撤权的真实 MySQL 定向回归",
+      "command": "cd projects/unexamine/backend && docker run --rm -v D:/workspace/01_project/snow/cursor/examine2:/workspace -v D:/dev/maven_repository:/root/.m2/repository -v /var/run/docker.sock:/var/run/docker.sock -w /workspace/projects/unexamine/backend -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal -e TZ=Asia/Shanghai maven:3.9.11-eclipse-temurin-21 mvn -q -Dtest=PrintHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "角色分配与角色发布分别推进权限版本、目标会话同步和旧版本冲突的定向回归",
+      "command": "cd projects/unexamine/backend && docker run --rm -v D:/workspace/01_project/snow/cursor/examine2:/workspace -v D:/dev/maven_repository:/root/.m2/repository -v /var/run/docker.sock:/var/run/docker.sock -w /workspace/projects/unexamine/backend -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal -e TZ=Asia/Shanghai maven:3.9.11-eclipse-temurin-21 mvn -q -Dtest=SystemAdministrationHttpTest#organizationRoleDraftPublishRefreshesTargetSessionAndRejectsInvalidAuthorization test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 33 迁移门禁（17 个报告、50 项、0 失败、0 错误、0 跳过）",
+      "command": "cd projects/unexamine/backend && docker run --rm -v D:/workspace/01_project/snow/cursor/examine2:/workspace -v D:/dev/maven_repository:/root/.m2/repository -v /var/run/docker.sock:/var/run/docker.sock -w /workspace/projects/unexamine/backend -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal -e TZ=Asia/Shanghai maven:3.9.11-eclipse-temurin-21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、15 个更新片段和 33 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "184 条需求在 20 个能力与 4 个上下文中的唯一架构归属复核",
+      "command": "python template_base/tools/tb.py architecture-validate --design projects/unexamine/ai/architecture/design.json",
+      "result": "passed"
+    },
+    {
+      "name": "60 个用例对 184 条原子需求的完整覆盖复核",
+      "command": "python template_base/tools/tb.py use-cases-validate --catalog projects/unexamine/ai/requirements/use-cases.json",
+      "result": "passed"
+    },
+    {
+      "name": "191 个原子任务的实现与验证归属复核",
+      "command": "python template_base/tools/tb.py tasks-validate --catalog projects/unexamine/ai/planning/task-catalog.json",
+      "result": "passed"
+    },
+    {
+      "name": "56 个周期的依赖、阶段与每周期最多 240 分钟复核",
+      "command": "python template_base/tools/tb.py task-graph-validate --graph projects/unexamine/ai/planning/task-graph.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-PRINT-RECORD",
+      "entryUrl": "http://127.0.0.1:15173/systems/10/admin?section=print 和 http://127.0.0.1:15173/systems/10?workspace=runtime&module=customer&recordId=17",
+      "actor": "C51 浏览器验收系统所有者账号 #10 / 系统 #10 / 主租户 #12 / 成员 #12",
+      "result": "passed",
+      "pageAssertions": [
+        "系统后台保留固定“打印模板”入口；页面以字段区、打印画布、属性区三列设计模板，不要求用户编辑 JSON 或记忆模块和字段 ID。",
+        "管理员创建模板 #1/code=c51_customer_profile，精确绑定 customer 模块已发布版本 #11/v1 和字段 customer_name，配置 A4 纵向、每页 4 行、页眉页脚与签名区，草稿保存为 r1。",
+        "草稿使用真实记录 #17 预览，页面显示分页结果、可见字段、被省略字段和快照哈希 1d8ec465516d518d3748e1bffdd760e4a46c1d718246dab41810438f2fe6dfd2；发布前预览必须属于当前草稿修订。",
+        "发布生成不可变模板版本 #1/v1 并更新当前发布指针，历史版本仍可回查；运行态只能选择已发布精确版本，不能拿草稿或漂移到模块新版本。",
+        "真实记录详情 #17 在同时拥有 DETAIL 与 PRINT 动作时显示打印入口；打印字段必须同时通过 PAGE 与 FILE 字段通道，不能借打印绕过页面或文件权限。",
+        "打印作业 #2 成功后，页面以同一作业快照直接呈现可读的在线分页预览，并提供“打开原始 PDF”和“下载 PDF”；不再把浏览器内嵌 PDF 的空白框当作在线预览完成。",
+        "定向回归证明模板引用不存在字段时返回 422/PRINT_TEMPLATE_FIELD_INVALID；同一令牌对应成员被撤销打印权限后立即返回 403/PERMISSION_DENIED，不等待重新登录。",
+        "登录、SSO 管理与企业 SSO 的本地会话时钟统一使用部署默认时区，与 API 的 Asia/Shanghai LocalDateTime 契约一致；真实浏览器受保护入口不再因 UTC 与本地 DATETIME 混用提前过期。",
+        "真实浏览器最终页签控制台无错误和警告；模板、版本、作业、文件与审计均来自当前本地服务和真实 MySQL 持久化读回。"
+      ],
+      "persistentReads": [
+        "print_template #1 属于 system #10/tenant #12/module #6，code=c51_customer_profile、paper_size=A4、orientation=PORTRAIT、draft_revision=1、status=PUBLISHED、current_version_number=1，字段快照只包含 customer_name。",
+        "print_template_version #1/v1/r1 固化 moduleVersionId=11、moduleVersionNumber=1、字段 customer_name、rowsPerPage=4 和快照哈希 1d8ec465516d518d3748e1bffdd760e4a46c1d718246dab41810438f2fe6dfd2；print_template_publication.current_version_id=1。",
+        "print_job #2 关联 record #17、模板 v1、status=SUCCEEDED、file_id=5、page_count=1；授权快照固定 requiredActions=[DETAIL,PRINT]、fieldChannels=[PAGE,FILE]、visibleFieldCodes=[customer_name]、记录编号 C47-DEGRADED-001 和记录版本 0。",
+        "file_object #5 名称为 c51_customer_profile-C47-DEGRADED-001-v1.pdf、content_type=application/pdf、size=1694、sha256=fdd78610c02fab0a62dbaa4c55eef4867eab9941babe2e09ceec599a06e8ecdd、scan_status=CLEAN、preview_status=AVAILABLE、status=ACTIVE。",
+        "审计持久化包含 PRINT_TEMPLATE_CREATED、PRINT_TEMPLATE_PREVIEWED、PRINT_TEMPLATE_PUBLISHED 和 BUSINESS_RECORD_PRINTED 成功事件，objectId 可分别关联模板、版本和打印作业。",
+        "真实 MySQL 权限回归证明角色分配和角色发布都会推进 auth_permission_version 并同步现有 auth_session；两次分配和两次发布后版本为 4，旧 expectedPermissionVersion=1 保持 409/AUTHORIZATION_VERSION_EXPIRED。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintPdfRenderer.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/AuthenticationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/SsoProviderAdministrationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/EnterpriseSsoService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/print/manage/PrintHttpTest.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "projects/unexamine/frontend/src/product/print.ts",
+        "projects/unexamine/frontend/src/product/print.test.ts",
+        "projects/unexamine/frontend/src/product/views/PrintTemplateConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-051-print-designer.png",
+        "projects/unexamine/ai/evidence/CYCLE-051-print-preview.png",
+        "projects/unexamine/ai/evidence/CYCLE-051-print-published.png",
+        "projects/unexamine/ai/evidence/CYCLE-051-record-print.png",
+        "projects/unexamine/ai/evidence/CYCLE-051-pdf-preview.png",
+        "projects/unexamine/ai/evidence/CYCLE-051.json"
+      ]
+    }
+  ]
+}

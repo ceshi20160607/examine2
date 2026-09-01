@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.audit.base.mapper.AuditFieldChangeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.audit.base.entity.AuditFieldChange">
+        <id column="id" property="id" />
+        <result column="audit_event_id" property="auditEventId" />
+        <result column="field_code" property="fieldCode" />
+        <result column="value_type" property="valueType" />
+        <result column="before_value_json" property="beforeValueJson" />
+        <result column="after_value_json" property="afterValueJson" />
+        <result column="sensitivity" property="sensitivity" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, audit_event_id, field_code, value_type, before_value_json, after_value_json, sensitivity, created_at
+    </sql>
+
+</mapper>

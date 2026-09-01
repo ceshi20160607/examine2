@@ -12,6 +12,10 @@
         <result column="name" property="name" />
         <result column="field_type" property="fieldType" />
         <result column="required" property="required" />
+        <result column="unique_value" property="uniqueValue" />
+        <result column="searchable" property="searchable" />
+        <result column="dictionary_id" property="dictionaryId" />
+        <result column="reference_module_id" property="referenceModuleId" />
         <result column="sort_order" property="sortOrder" />
         <result column="status" property="status" />
         <result column="config_json" property="configJson" />
@@ -22,7 +26,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, owner_tenant_id, module_id, code, name, field_type, required, sort_order, status, config_json, created_at, updated_at, version
+        id, system_id, owner_tenant_id, module_id, `code`, `name`, field_type, required, unique_value, searchable, dictionary_id, reference_module_id, sort_order, `status`, config_json, created_at, updated_at, version
     </sql>
 
 </mapper>

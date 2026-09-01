@@ -5,17 +5,20 @@ import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleAction;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleField;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleGroup;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModulePage;
+import com.unique.unexamine.moduleconfig.base.entity.CfgModuleMenu;
 import com.unique.unexamine.authentication.manage.AuthenticationContextHolder;
 import com.unique.unexamine.authorization.manage.RequirePermission;
 import com.unique.unexamine.shared.manage.web.TraceIdFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -89,6 +92,36 @@ public class ModuleConfigurationController {
                 AuthenticationContextHolder.require(), moduleId, pageType, request, TraceIdFilter.current(servletRequest)));
     }
 
+    @PostMapping("/modules/{moduleId}/pages")
+    public ApiResult<ConfiguredModulePage> createPage(
+            @PathVariable Long moduleId,
+            @Valid @RequestBody CreateModulePageRequest request,
+            HttpServletRequest servletRequest) {
+        return ApiResult.ok(configurationService.createPage(
+                AuthenticationContextHolder.require(), moduleId, request, TraceIdFilter.current(servletRequest)));
+    }
+
+    @DeleteMapping("/modules/{moduleId}/pages/{pageType}")
+    public ApiResult<ConfiguredModulePage> deletePage(
+            @PathVariable Long moduleId,
+            @PathVariable String pageType,
+            @RequestParam Integer version,
+            HttpServletRequest servletRequest) {
+        return ApiResult.ok(configurationService.deletePage(
+                AuthenticationContextHolder.require(), moduleId, pageType, version,
+                TraceIdFilter.current(servletRequest)));
+    }
+
+    @PutMapping("/modules/{moduleId}/menus/{menuId}")
+    public ApiResult<CfgModuleMenu> updateMenu(
+            @PathVariable Long moduleId,
+            @PathVariable Long menuId,
+            @Valid @RequestBody UpdateModuleMenuRequest request,
+            HttpServletRequest servletRequest) {
+        return ApiResult.ok(configurationService.updateMenu(
+                AuthenticationContextHolder.require(), moduleId, menuId, request, TraceIdFilter.current(servletRequest)));
+    }
+
     @PutMapping("/modules/{moduleId}/actions/{actionCode}")
     public ApiResult<ConfiguredModuleAction> updateAction(
             @PathVariable Long moduleId,
@@ -100,11 +133,13 @@ public class ModuleConfigurationController {
     }
 
     @GetMapping("/modules/{moduleId}/publication-check")
+    @RequirePermission(resourceType = "CONFIG", resourceCode = "MODULE", actionCode = "PREVIEW")
     public ApiResult<PublicationCheckResult> publicationCheck(@PathVariable Long moduleId) {
         return ApiResult.ok(publicationService.check(AuthenticationContextHolder.require(), moduleId));
     }
 
     @PostMapping("/modules/{moduleId}/publish")
+    @RequirePermission(resourceType = "CONFIG", resourceCode = "MODULE", actionCode = "PUBLISH")
     public ApiResult<PublishedModuleResult> publish(
             @PathVariable Long moduleId,
             @Valid @RequestBody PublishModuleRequest request,
@@ -114,11 +149,13 @@ public class ModuleConfigurationController {
     }
 
     @GetMapping("/modules/{moduleId}/versions")
+    @RequirePermission(resourceType = "CONFIG", resourceCode = "MODULE", actionCode = "PREVIEW")
     public ApiResult<List<PublishedVersionSummary>> versions(@PathVariable Long moduleId) {
         return ApiResult.ok(publicationService.versions(AuthenticationContextHolder.require(), moduleId));
     }
 
     @PostMapping("/modules/{moduleId}/rollback")
+    @RequirePermission(resourceType = "CONFIG", resourceCode = "MODULE", actionCode = "ROLLBACK")
     public ApiResult<RuntimeModuleConfiguration> rollback(
             @PathVariable Long moduleId,
             @Valid @RequestBody RollbackModuleRequest request,

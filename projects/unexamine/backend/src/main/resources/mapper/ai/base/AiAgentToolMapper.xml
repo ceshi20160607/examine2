@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.ai.base.mapper.AiAgentToolMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiAgentTool">
+        <id column="id" property="id" />
+        <result column="agent_id" property="agentId" />
+        <result column="tool_type" property="toolType" />
+        <result column="resource_type" property="resourceType" />
+        <result column="resource_id" property="resourceId" />
+        <result column="action_code" property="actionCode" />
+        <result column="field_scope_json" property="fieldScopeJson" />
+        <result column="data_scope_json" property="dataScopeJson" />
+        <result column="requires_confirmation" property="requiresConfirmation" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, agent_id, tool_type, resource_type, resource_id, action_code, field_scope_json, data_scope_json, requires_confirmation, `status`, created_at, updated_at, version
+    </sql>
+
+</mapper>

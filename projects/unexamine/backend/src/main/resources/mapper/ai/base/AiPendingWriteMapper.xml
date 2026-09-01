@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.ai.base.mapper.AiPendingWriteMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiPendingWrite">
+        <id column="id" property="id" />
+        <result column="execution_id" property="executionId" />
+        <result column="step_id" property="stepId" />
+        <result column="target_type" property="targetType" />
+        <result column="target_id" property="targetId" />
+        <result column="proposed_payload_json" property="proposedPayloadJson" />
+        <result column="preview_json" property="previewJson" />
+        <result column="status" property="status" />
+        <result column="confirmed_by_account_id" property="confirmedByAccountId" />
+        <result column="confirmed_at" property="confirmedAt" />
+        <result column="result_json" property="resultJson" />
+        <result column="error_message" property="errorMessage" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, execution_id, step_id, target_type, target_id, proposed_payload_json, preview_json, `status`, confirmed_by_account_id, confirmed_at, result_json, error_message, created_at, updated_at, version
+    </sql>
+
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.runtimedata.base.mapper.BizRecordOwnerHistoryMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.runtimedata.base.entity.BizRecordOwnerHistory">
+        <id column="id" property="id" />
+        <result column="record_id" property="recordId" />
+        <result column="from_owner_member_id" property="fromOwnerMemberId" />
+        <result column="to_owner_member_id" property="toOwnerMemberId" />
+        <result column="from_department_id" property="fromDepartmentId" />
+        <result column="to_department_id" property="toDepartmentId" />
+        <result column="reason" property="reason" />
+        <result column="changed_by_member_id" property="changedByMemberId" />
+        <result column="changed_at" property="changedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, record_id, from_owner_member_id, to_owner_member_id, from_department_id, to_department_id, reason, changed_by_member_id, changed_at
+    </sql>
+
+</mapper>

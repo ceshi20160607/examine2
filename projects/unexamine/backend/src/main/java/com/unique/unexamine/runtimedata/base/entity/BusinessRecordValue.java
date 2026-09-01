@@ -53,8 +53,14 @@ public class BusinessRecordValue {
     @TableField("value_reference_id")
     private Long valueReferenceId;
 
+    @TableField("value_file_id")
+    private Long valueFileId;
+
     @TableField("value_json")
     private String valueJson;
+
+    @TableField("normalized_text")
+    private String normalizedText;
 
     @TableField("created_at")
     private LocalDateTime createdAt;
@@ -150,12 +156,28 @@ public class BusinessRecordValue {
         this.valueReferenceId = valueReferenceId;
     }
 
+    public Long getValueFileId() {
+        return valueFileId;
+    }
+
+    public void setValueFileId(Long valueFileId) {
+        this.valueFileId = valueFileId;
+    }
+
     public String getValueJson() {
         return valueJson;
     }
 
     public void setValueJson(String valueJson) {
         this.valueJson = valueJson;
+    }
+
+    public String getNormalizedText() {
+        return normalizedText;
+    }
+
+    public void setNormalizedText(String normalizedText) {
+        this.normalizedText = normalizedText;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -188,7 +210,9 @@ public class BusinessRecordValue {
             ", valueDatetime = " + valueDatetime +
             ", valueBoolean = " + valueBoolean +
             ", valueReferenceId = " + valueReferenceId +
+            ", valueFileId = " + valueFileId +
             ", valueJson = " + valueJson +
+            ", normalizedText = " + normalizedText +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
             "}";

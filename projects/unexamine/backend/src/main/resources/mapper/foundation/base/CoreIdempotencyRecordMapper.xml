@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.foundation.base.mapper.CoreIdempotencyRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.foundation.base.entity.CoreIdempotencyRecord">
+        <id column="id" property="id" />
+        <result column="context_key" property="contextKey" />
+        <result column="operation_code" property="operationCode" />
+        <result column="idempotency_key" property="idempotencyKey" />
+        <result column="request_hash" property="requestHash" />
+        <result column="status" property="status" />
+        <result column="response_code" property="responseCode" />
+        <result column="response_json" property="responseJson" />
+        <result column="locked_until" property="lockedUntil" />
+        <result column="expires_at" property="expiresAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_key, operation_code, idempotency_key, request_hash, `status`, response_code, response_json, locked_until, expires_at, created_at, updated_at, version
+    </sql>
+
+</mapper>

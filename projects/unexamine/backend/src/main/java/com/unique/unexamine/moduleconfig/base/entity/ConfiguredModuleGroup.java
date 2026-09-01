@@ -28,16 +28,19 @@ public class ConfiguredModuleGroup {
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
-    @TableField("code")
+    @TableField("`code`")
     private String code;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
+
+    @TableField("icon")
+    private String icon;
 
     @TableField("sort_order")
     private Integer sortOrder;
 
-    @TableField("status")
+    @TableField("`status`")
     private String status;
 
     @TableField("created_by_member_id")
@@ -91,6 +94,14 @@ public class ConfiguredModuleGroup {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     public Integer getSortOrder() {
@@ -149,6 +160,7 @@ public class ConfiguredModuleGroup {
             ", ownerTenantId = " + ownerTenantId +
             ", code = " + code +
             ", name = " + name +
+            ", icon = " + icon +
             ", sortOrder = " + sortOrder +
             ", status = " + status +
             ", createdByMemberId = " + createdByMemberId +

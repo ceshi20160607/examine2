@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-012",
+  "executedAt": "2026-08-18T18:36:22+08:00",
+  "taskIds": [
+    "TASK-0019",
+    "TASK-0020",
+    "TASK-0028"
+  ],
+  "checks": [
+    {
+      "name": "后端企业身份源、平台/系统固定配置隔离及 21 个迁移全量测试（19 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "前端类型检查与生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "前端自动化测试（2 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "数据库三份结果与 21 个迁移合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "151 张表、604 个 Base 文件关键字转义后全量重复生成与编译",
+      "command": "powershell -ExecutionPolicy Bypass -File projects/unexamine/tools/regenerate-base.ps1",
+      "result": "passed"
+    },
+    {
+      "name": "Template Base 回归测试（30 项）",
+      "command": "python -m unittest discover -s template_base/tests -p \"test_*.py\" -v",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-IDENTITY-PROVIDER-PUBLISH",
+      "entryUrl": "http://127.0.0.1:15173/platform/admin/identity-providers",
+      "actor": "具备平台身份源管理权限的平台身份管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "平台超级管理员登录后看到平台后台入口；统一认证页面初始明确说明草稿不会进入登录页，按 OIDC 专属字段填写端点、JWKS、回调、域名、属性映射、JIT、MFA 和 SecretRef 后创建 V1 不可变草稿。",
+        "V1 未预检时发布按钮禁用；真实访问本地 JWKS 和健康端点后，页面逐项显示 11 项通过结果、requestId 和“SecretRef 可用，未读取或返回明文”，发布按钮才启用。",
+        "发布 V1 后页面显示“运行态当前版本”，登录页立即出现“周期十二集团 OIDC”；API 和页面只显示 property: SecretRef，不显示密钥明文。",
+        "从 V1 新建 V2 并将允许回调改为错误地址后，页面显示 CALLBACK_MISMATCH 失败原因和逐项报告，发布按钮保持禁用，而 V1 仍标识为已发布运行版本。",
+        "平台身份源管理接口拒绝系统上下文令牌；不支持协议、错误 JWKS、缺失 SecretRef、回调不匹配和未预检发布均由真实 MySQL 集成测试覆盖。"
+      ],
+      "persistentReads": [
+        "真实 MySQL 读回 provider code=cycle12_oidc、status=PUBLISHED、publishedVersionNumber=1、versionCount=2、clientSecretRef=property:app.bootstrap.default-admin.deployment-key。",
+        "V1 读回 PUBLISHED/PASSED；V2 读回 DRAFT/FAILED 且 test_report_json.failureCode=CALLBACK_MISMATCH，失败草稿没有替换发布版本。",
+        "audit_event 依次读回 SSO_PROVIDER_CONFIG_CREATED、V1 预检 SUCCESS、SSO_PROVIDER_PUBLISHED、V2 创建和 V2 CALLBACK_MISMATCH，并与页面报告 requestId 对应。",
+        "固定配置集成测试使用同一 settingKey 分别写入 PLATFORM 与 SYSTEM 上下文，读回不同值；系统版本从 0 更新到 1，过期版本冲突，平台令牌和系统令牌交叉写入均被拒绝。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/PlatformSsoProvidersView.vue",
+        "projects/unexamine/frontend/src/product/components/PlatformShell.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/SsoProviderAdministrationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/configuration/ContextSettingManagementService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/platform/manage/configuration/PlatformConfigurationController.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/authentication/manage/AuthenticationRegistrationHttpTest.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "template_base/mybatis-plus-generator/src/main/java/com/unique/templatebase/codegen/BaseCodeGenerator.java",
+        "projects/unexamine/ai/evidence/CYCLE-012.json"
+      ]
+    }
+  ]
+}

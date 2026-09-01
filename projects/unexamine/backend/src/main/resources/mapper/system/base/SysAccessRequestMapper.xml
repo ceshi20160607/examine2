@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.system.base.mapper.SysAccessRequestMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.system.base.entity.SysAccessRequest">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="account_id" property="accountId" />
+        <result column="identity_provider" property="identityProvider" />
+        <result column="external_user_id" property="externalUserId" />
+        <result column="request_reason" property="requestReason" />
+        <result column="requested_role" property="requestedRole" />
+        <result column="status" property="status" />
+        <result column="decided_by_member_id" property="decidedByMemberId" />
+        <result column="decision_comment" property="decisionComment" />
+        <result column="approved_role_ids_json" property="approvedRoleIdsJson" />
+        <result column="approved_data_scope_json" property="approvedDataScopeJson" />
+        <result column="request_trace_id" property="requestTraceId" />
+        <result column="decision_trace_id" property="decisionTraceId" />
+        <result column="decided_at" property="decidedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, account_id, identity_provider, external_user_id, request_reason, requested_role, `status`, decided_by_member_id, decision_comment, approved_role_ids_json, approved_data_scope_json, request_trace_id, decision_trace_id, decided_at, created_at, updated_at, version
+    </sql>
+
+</mapper>

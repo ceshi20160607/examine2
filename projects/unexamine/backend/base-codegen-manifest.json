@@ -2,48 +2,711 @@
   "schemaVersion" : 1,
   "generator" : "MyBatis-Plus Generator 3.5.17",
   "database" : "jdbc:mysql://127.0.0.1:33077/unexamine",
-  "schemaSha256" : "2ce7221ecaf6a7df41060a186ecec0bffc9e55d75c9f3dcce22ba5384472cf38",
-  "moduleCount" : 6,
-  "tableCount" : 27,
+  "schemaSha256" : "132d4726d68c6f23f04c25c1611314c3456dc30de3c7feb5f9ffa9c4adf6f429",
+  "moduleCount" : 18,
+  "tableCount" : 154,
   "generatedFiles" : [ {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiAgent.java",
+    "sha256" : "a138aa85f0b2d55c4744a9ea4b2552482bc19f21661dd400f0c10996483dd05d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiAgentPublication.java",
+    "sha256" : "c721576561117d145a650054abf2828807c181c13891189e3134e20441a7937c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiAgentTool.java",
+    "sha256" : "c6cebff82df3009fe9e92a3c079dccde23b2262fd8994d8dda8b0c1fd40d9a3a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiAgentVersion.java",
+    "sha256" : "868a493f4dcf6def7ba47bf3b19ba29317ecb7da0af433e519f579fe461ab15e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiConversation.java",
+    "sha256" : "6c728ce1a33e871b4f45ed5d4bdc86520ca1b60abbc32787edc9ce827434f29c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiExecution.java",
+    "sha256" : "5932ae7b39483df6486e76d6bfbaba2ceda1706ae38b9d9496576d1ddc664bda"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiExecutionStep.java",
+    "sha256" : "632f336a4ead1f40d3fa7d326b13abaec81f71413b1b101b8fe6f8e543946911"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiMessage.java",
+    "sha256" : "8ed5687fbbf4d7d6557dfddb958aa0212b58616d7a93a80ee2b804309df2f927"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiModel.java",
+    "sha256" : "1c1d0e301542088a228d6f8d74d76f4b10431cfb5ed2e09cdb7db45cdfc63a23"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiPendingWrite.java",
+    "sha256" : "b3cc13137b8c80ecd699e1b223792130a5d50bb875df3357ac7d4343bce12646"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/entity/AiSystemModelGrant.java",
+    "sha256" : "e9eedebc6d3202d38609299ebd5f1250edd53686b89c5dd6ee25e43d5ef1e9c8"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiAgentMapper.java",
+    "sha256" : "bdb575525db14778b9e5a89868dbcb9a375b17d6c50f0268940b4381dc59d758"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiAgentPublicationMapper.java",
+    "sha256" : "6c8f085f08c99d8d39ff81d6de398a74cad9e0ee7c03eda69258d280c8bf4d3b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiAgentToolMapper.java",
+    "sha256" : "a76b3fb91a0fcbc528c4f02865d4f62eb3e367ac734dc2c540e8a678b557b66f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiAgentVersionMapper.java",
+    "sha256" : "0a03c47722401d163b766d0d9be8577ff1076146388f77afbde0a5b648d06102"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiConversationMapper.java",
+    "sha256" : "07dee26ba4e8ac59f5aa61071db5590b09df86aba8dc00454f71b26442057256"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiExecutionMapper.java",
+    "sha256" : "6da73f1b81c1df72f9e8ef4c7b86b3aed04ab136b7b7b0aae51963976cf75ea2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiExecutionStepMapper.java",
+    "sha256" : "c75d8386a886a82cb3df784665c36729246e0808e075bd4efdd48ec6c1ce96be"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiMessageMapper.java",
+    "sha256" : "1e2584a93344f94c437e9b09cda8b93023511922754a03f933bc9ed16a8a8d1a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiModelMapper.java",
+    "sha256" : "fbe7b6eb8d8563ea5a2ce7ebeeee2cb87fad441b526a363876a93a88396d4a26"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiPendingWriteMapper.java",
+    "sha256" : "c8358f50a01ebd6763bc12e90f8218d1d9023ef8cd3e3d3fb0d9d02be3606494"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/mapper/AiSystemModelGrantMapper.java",
+    "sha256" : "9397ce82409fbfac585e6cfa505fc234e0ddd903d6d7a09bf41abb6d67607556"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiAgentBaseService.java",
+    "sha256" : "38079955ca9f9095fefbda415abd99e22a1751101da21c19392c4b2a1b800817"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiAgentPublicationBaseService.java",
+    "sha256" : "027bfbfbff65343f41d628f71f175ab755853c7d781cd299069d8f67f6795330"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiAgentToolBaseService.java",
+    "sha256" : "ad37409479a5f3cee5a5d615bb867dbf93d47d2f8a81ba2383c5b291958aa3d9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiAgentVersionBaseService.java",
+    "sha256" : "fe5f64d89de31565dbfdbd45fcd2a41623274e12df4686c3835ea7fd9418e9ce"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiConversationBaseService.java",
+    "sha256" : "4909396352dd64a73660b41c8682a275e74f2aa9860c30981990e20a712c6fba"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiExecutionBaseService.java",
+    "sha256" : "d6c463409b79e615689233767b7e0631171bfd3fe970498d144ee637c13f75b8"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiExecutionStepBaseService.java",
+    "sha256" : "c10c915b77e58d00d3ce082ccf25595d4d9240db5f80d3a3320b1fb59014e325"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiMessageBaseService.java",
+    "sha256" : "1c45d94e1e013991e80711479741111948f13a682485eeb188e3e96eaa7bf9ff"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiModelBaseService.java",
+    "sha256" : "2a170db3b6b0af4024b0df5a439f161bfd7599919535f390821314e56f166089"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiPendingWriteBaseService.java",
+    "sha256" : "547f7f9224b6d7fc4ed216a2cf1e383f9b4283c4513898e4a24f497ae76f99a6"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/ai/base/service/AiSystemModelGrantBaseService.java",
+    "sha256" : "d8e4ef520161b07225aee8c5f647f2ccd1a468b4709e9c5e9f5355789bc91d5b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/entity/AnaDashboard.java",
+    "sha256" : "974f73a6bd52ecf135a1d59d197c656c4a08c8316855adc60d7fb753c49aeab9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/entity/AnaDashboardComponent.java",
+    "sha256" : "2734e806d8e1334a25f039ebdd3c8baf5f4b9a387268756fdf050eaac65423ee"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/entity/AnaDashboardPublication.java",
+    "sha256" : "17d6f3121c0dd24e493188805b1b5716dbf982f4c8bb463f391b35ebab5f6f4a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/entity/AnaDashboardVersion.java",
+    "sha256" : "3752739f17b7ca68b73b5884fab706d61dbf11ea3be4519a33e885a11f0542a6"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/entity/AnaDataSource.java",
+    "sha256" : "ebaa3540f2847d854cc66f69556ec04bbe58693a82f0a967ccce6976549cefcc"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/entity/AnaDataSourceVersion.java",
+    "sha256" : "8f7d02ae31c31c999a75dca6da20ea10923337bbdbf66c3972a9efaf04d9e971"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/entity/AnaKpi.java",
+    "sha256" : "61deba757beb61257e43c4018a0c7cf8505d2108c70513bf1f53b885320f242c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/entity/AnaKpiReminder.java",
+    "sha256" : "df06c63319f1fd9f40da36a9998ec9fdd3eac805659eb172c171180959e0f106"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/entity/AnaKpiResult.java",
+    "sha256" : "2f60dd7c85077d2ef3466e09b04c90d8721f4953c2cffad942bc8ab3ccdbe384"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/mapper/AnaDashboardComponentMapper.java",
+    "sha256" : "86ac3fae5503678e2be7f626dd25b900d97b6a95f67011d0e8cbd621d55d5682"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/mapper/AnaDashboardMapper.java",
+    "sha256" : "dac097a76f7d02f571e6ca7e17c5e49b8f5a10a2ba3e1ee18c68c59f2465b8f5"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/mapper/AnaDashboardPublicationMapper.java",
+    "sha256" : "98ecaf865690876c3eec843a98d22f65dd998448a8759fad1601fbf9a5909ca1"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/mapper/AnaDashboardVersionMapper.java",
+    "sha256" : "75e822fb4b7f63bf6c338d027ab8b7c2da12b32382a09cac6d63cf273deeaaae"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/mapper/AnaDataSourceMapper.java",
+    "sha256" : "43bee9047ba9fa3e1da96ffffa9b06e262ea59a87ec3d418376b742a2b17099f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/mapper/AnaDataSourceVersionMapper.java",
+    "sha256" : "95ad47976e7a2ee8eacac8a70f5d2696699abbf956f01b83c0382275cd92b540"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/mapper/AnaKpiMapper.java",
+    "sha256" : "7d971a8839478d7e132f2861e34f6f47443ed67887343f815629988df1a2eabd"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/mapper/AnaKpiReminderMapper.java",
+    "sha256" : "b7483476d2d780c7231d1b1fa4452b14a7ddc9bf7fae70765024049153da0430"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/mapper/AnaKpiResultMapper.java",
+    "sha256" : "3564a6c58db9c80cb84eeaa5fc9299ae471d18f92ff3e20b9614bd0b62530e0e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/service/AnaDashboardBaseService.java",
+    "sha256" : "d477663d9b05bf11c45bc5d1af547bf3279130317a99a326243c4a2b767f8cd2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/service/AnaDashboardComponentBaseService.java",
+    "sha256" : "0fe95e2108066e910d30007f8ad6a18b65bb2d31e0f3bc8a43dc89940d6ac974"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/service/AnaDashboardPublicationBaseService.java",
+    "sha256" : "1cc365881f0a2e5ff7207a0fdae81c66a76a4f6af0fb919f984ba1c955add332"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/service/AnaDashboardVersionBaseService.java",
+    "sha256" : "a550489ed41f979059533a09c1f22266f2b3ec031458e8a936510adbcc841119"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/service/AnaDataSourceBaseService.java",
+    "sha256" : "601388340dd67d9631ed0021a368370a6aaffc881f2412ab4b1fdf6043a5bb85"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/service/AnaDataSourceVersionBaseService.java",
+    "sha256" : "52308bf23ed92cda9dbd81f93bcb5172dd9aaab5804fa17dc64fe3860037a48a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/service/AnaKpiBaseService.java",
+    "sha256" : "f6f769b140a787d920b14b5bc58e5e7921bbfbadc99452048237c8f5c0e622ad"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/service/AnaKpiReminderBaseService.java",
+    "sha256" : "5acb3a64c168da5d643c29f9556a3bd94e015cd44ea5f5c2f45937cb5b86d9b4"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/analytics/base/service/AnaKpiResultBaseService.java",
+    "sha256" : "9fed770c1a78ad839af00a275beba9a2001feca70f8cadd7229ca479b9029616"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppCall.java",
+    "sha256" : "9a2a2c89a97bcb94d81d09042030e441829190173a3ef6bb421e2bb9b500704c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppCallNonce.java",
+    "sha256" : "bce97ba39d86cb5ada22459027638d7209889cdb3e61441cd2640a9895250687"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppCallback.java",
+    "sha256" : "ac24da1b99ef3137c63fb1b174f727a4f433cf6ad3587b01ee45722a4af4365d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppCallbackDelivery.java",
+    "sha256" : "a0087283756b331b1e354a52f7edbdc0b958c91b1976640c64505fe04722518b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppCredential.java",
+    "sha256" : "12320c4a79e6ab8950cc2f86c2a219afdffa29dda742b0daca270be5297df3be"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppDefinition.java",
+    "sha256" : "df41e483bed11cc5a7e76fb7f0b05c3636fc0bc7e6cbf260d50bf18cb87fe7c2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppGrant.java",
+    "sha256" : "b3d79c20e3b6f4ab1aabc1f78a880bf890c64f107025fc23f6c195a8f28dd753"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppGrantField.java",
+    "sha256" : "8184b0083cad06230736dad6dd2e268fb9485247c220427e4c4509e06cdd09da"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppPublication.java",
+    "sha256" : "7ffe7fa73038ca482439ddc7dc26c167d584585d099974dd47c6f7822e2706e3"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/entity/AppVersion.java",
+    "sha256" : "7e1d3759cad376c03dae2871e208509bf2f482f0f09f7a7ea8834b859d89bb54"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppCallMapper.java",
+    "sha256" : "91a99f38a6dbd27e2b5381563c88e8811aaf75b745cf05f5574c0485bb11d330"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppCallNonceMapper.java",
+    "sha256" : "c88a0696c35b3feefcbe2fb1245271e8918891534d88b40d7a2ce1379a56384b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppCallbackDeliveryMapper.java",
+    "sha256" : "c5a1972295848d79932b6171938aff3fc38e92f032391fe6f009f4292abb0442"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppCallbackMapper.java",
+    "sha256" : "e76c3042ce5c175412824d9dcc909741fe689be07c937203ce634c8940e6bf1c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppCredentialMapper.java",
+    "sha256" : "9efdb0e13cbb5df3c475f77a61e49b7503ded69fa01d17302c43e4ea8860e769"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppDefinitionMapper.java",
+    "sha256" : "769e2da5739d2dc3c750e332ea59ee848fe3d0ee877638703427b6a85fc3fdd0"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppGrantFieldMapper.java",
+    "sha256" : "a8db3012df509d7897e41ce80f08dc9c8a50dd6fd5c23f70985197dc5b675c76"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppGrantMapper.java",
+    "sha256" : "3cd9dc7f830515ed68fca00079e49d2095b2748bbc3c23fe75d99017eb93b68f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppPublicationMapper.java",
+    "sha256" : "24a3e91b09856599a0157f8879771a0f45ab46a9a7615ce279dc0c94262ef225"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/mapper/AppVersionMapper.java",
+    "sha256" : "b2c3135859aeb37528e319ffa26b86a2db1659305f6723aa18f2fc0dfc392568"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppCallBaseService.java",
+    "sha256" : "36351b48785910cc70b35160add1de988ba101458250e3adceab448080bab92e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppCallNonceBaseService.java",
+    "sha256" : "7c52930af152e3201989b3274bcc9741edbfddbcaa45cd664a9ea349cac21fbd"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppCallbackBaseService.java",
+    "sha256" : "5aae96e850b92708ccf7a32fb1d9d55a875b7285b311c6ec5529f447057c70f1"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppCallbackDeliveryBaseService.java",
+    "sha256" : "24b43581213ec00d4c3a72f9f302d1542c3cd03b0ae87d6ebac2dcfeb92e03de"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppCredentialBaseService.java",
+    "sha256" : "d11fc420bd728a42a65c6892ac2c883d5a7a8d0c2015babda8c45242fdd18629"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppDefinitionBaseService.java",
+    "sha256" : "9c399642af674de682cfa8e45c8e75b66a6dc6acbde05724bb7a5749ca2727f2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppGrantBaseService.java",
+    "sha256" : "573092011f311ca0fc225e4b5535956d9d3c42f1bad2ad7ad81a1c2f1c9c7787"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppGrantFieldBaseService.java",
+    "sha256" : "a21115c69b0ad07d09787c22b6a88ff75343c65011e3287f0a49364840c9027a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppPublicationBaseService.java",
+    "sha256" : "1a5dc43385daf7fd117bfafd2d51e07721774c7a2d6edd8b3f167737075011a1"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/application/base/service/AppVersionBaseService.java",
+    "sha256" : "065918c05bd57dfb96c8e17beeb0ba892df4319e821d027978d30f7dd35d9ec2"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/audit/base/entity/AuditEvent.java",
-    "sha256" : "b1062926f6fbd70c23b6cf57fce4ea762d8c7973cb6ce985d41aab79cf7cd916"
+    "sha256" : "3189050eea120f1516e0b363d8ac2e2c98b540ad0acbb1ad7d739f6a059536a4"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/audit/base/entity/AuditFieldChange.java",
+    "sha256" : "f87fcdaa95840d8018d67a6c8eb0c78fe31f80f7ba56ed30dd36e2577dfd83fb"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/audit/base/entity/AuditRetentionMarker.java",
+    "sha256" : "0ff646072055fd676aff02e9cf6c1165316d9c1148254003355abbe06aa1ed9b"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/audit/base/mapper/AuditEventMapper.java",
     "sha256" : "0efa15be98aec34c2f5ef4265fdff6e275903cb2372b792612f2c4295892fc14"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/audit/base/mapper/AuditFieldChangeMapper.java",
+    "sha256" : "92655dfe8ab7c0c9d4c35fa839e4e7a8fd8470d69feacb429831c12612143705"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/audit/base/mapper/AuditRetentionMarkerMapper.java",
+    "sha256" : "004e1892c60d1743569dfc7d3df7d593bdfaf64912e0f39524ef9fe46cdd880b"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/audit/base/service/AuditEventBaseService.java",
     "sha256" : "f0bdb9a5758d7d75677199193d2befaa1794a4516226a6c64edd0b576e043e87"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/audit/base/service/AuditFieldChangeBaseService.java",
+    "sha256" : "1a97d430f287700141f93941f5cb7110c43e19b84c26761c3a3d07e8d463897e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/audit/base/service/AuditRetentionMarkerBaseService.java",
+    "sha256" : "2992f9aeaec9121998aa59ec604fc78bc7d5554acc2b53bf1d4087135e470330"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/authentication/base/entity/AuthenticationSession.java",
-    "sha256" : "dd8db7123fdca6228978f2d2055414e44a5ad91419f442d3687a24060f7d1685"
+    "sha256" : "ec4a9f03e8ab2a3280dcc026cfe7ddc244f9e6d47ef99817a6d48d11f6136465"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/authentication/base/entity/AuthorizationFieldPolicy.java",
+    "sha256" : "8236da71336705723c8d184c69518934b2d4a791058886dc7c0f333d2546931c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/authentication/base/entity/AuthorizationPermissionVersion.java",
+    "sha256" : "d5179ff901b4fcdebc696f8d7caf19a6421e474e2d9eeb90c44c42dce97d93e8"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/authentication/base/mapper/AuthenticationSessionMapper.java",
     "sha256" : "b3e5353f4cf10a4c86697c99ca9c921038556bc108aa80881e69379ab9311d64"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/authentication/base/mapper/AuthorizationFieldPolicyMapper.java",
+    "sha256" : "8a1ef534e1edbe36c652c1590c1f9b32b3a61049b3454e2861741275ea2a6717"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/authentication/base/mapper/AuthorizationPermissionVersionMapper.java",
+    "sha256" : "d0c9b47186cf367adc1cf8ccfb15c50cafb5d2f4b0a5a18de5ca6342c3ce6fef"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/authentication/base/service/AuthenticationSessionBaseService.java",
     "sha256" : "69c9ed77c8a9f41bd79185ead5511d7f64e432e4cd569ee1de9ada03eff3d51c"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/authentication/base/service/AuthorizationFieldPolicyBaseService.java",
+    "sha256" : "5917b43e747286a1abef242d1bb9bd4389de8c9f0e75d51f265e17ab230ed643"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/authentication/base/service/AuthorizationPermissionVersionBaseService.java",
+    "sha256" : "de9f085a35f82771b18545133681eef73c743fdc14228ff208f7f0fd1a7badfc"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/backgroundjobs/base/entity/JobAttempt.java",
+    "sha256" : "416ed255817fada88f122a8f679734965e468c7724c84e19cecb5e3756535494"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/backgroundjobs/base/entity/JobBackground.java",
+    "sha256" : "b06efbd048a1307edde6e361ce5f2bf6c570291bd6ecbaf31e74ef47eda3f48e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/backgroundjobs/base/entity/JobItemResult.java",
+    "sha256" : "ba565a69dba65ee41767342bccdf19d5112ccb33983f74059bcd9e96cb3e8a17"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/backgroundjobs/base/mapper/JobAttemptMapper.java",
+    "sha256" : "7f5b211d97c9c384038371c46c1091fd24321de6cd8b1614444ed30c3c7d6924"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/backgroundjobs/base/mapper/JobBackgroundMapper.java",
+    "sha256" : "32cf6a45e32e718025f4f6b7c81cd3b9eab98775fdf8e49389356326dbd1bca1"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/backgroundjobs/base/mapper/JobItemResultMapper.java",
+    "sha256" : "731186b7e2e83644f1adde0db2563488efebcd36e8f49fb0f3c88c5928f434b8"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/backgroundjobs/base/service/JobAttemptBaseService.java",
+    "sha256" : "10823fc8a5eba7d8281f075f7a9efdbb546e0101857a95ec8039f258b6d13e83"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/backgroundjobs/base/service/JobBackgroundBaseService.java",
+    "sha256" : "b9f262a76c9b8a15237c97e4fd304fe3282cccad0ad295a2f2873b133f09bcd1"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/backgroundjobs/base/service/JobItemResultBaseService.java",
+    "sha256" : "bf6cb6fe89c9e9544a0eba34c4859b90b1a8974fec0914ca57894945c305c9d2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/entity/ExchangeExportBatch.java",
+    "sha256" : "eef7fc7bee9e48fbb7c69ba2ba9a80d1a5fe98dd7df85e58d0c2303be243050a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/entity/ExchangeImportBatch.java",
+    "sha256" : "dc1475e238afca31569bc0cc27fd6deda039d3763c1f341dc3f7ec724ce2686f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/entity/ExchangeImportRow.java",
+    "sha256" : "fad1d99c36d394e9377f0e1362c3ab648773affffa8ffbad9d22db2e080e40f2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/entity/ExchangeMapping.java",
+    "sha256" : "82e9ac3a28e3fd9b341ae9627d91890843cff1bd5c2a0beb0c681195a97b9d67"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/mapper/ExchangeExportBatchMapper.java",
+    "sha256" : "65a1c3acef0650d0a6d89bfeba38416d8ef74da39affd039f9ad2b20c751bec7"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/mapper/ExchangeImportBatchMapper.java",
+    "sha256" : "4e011368f38b8b949fb3d890815483c4cd3e8e9f7056be7dd802cd2dce1a9f8c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/mapper/ExchangeImportRowMapper.java",
+    "sha256" : "4a8d53dd98fa5643986b42a3a2426d0bc28dc3809ea49f71c11a8a7fb745a28e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/mapper/ExchangeMappingMapper.java",
+    "sha256" : "8211679e2c74d85e8a6e68b94e2f853f1e8e3d808dcd8bf75c3ce941339d1c44"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/service/ExchangeExportBatchBaseService.java",
+    "sha256" : "380a1bf44ecc3b9f73e865aa9adbdb1be7869073cf1c6e57a258ef762ddbb605"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/service/ExchangeImportBatchBaseService.java",
+    "sha256" : "9c0a593c5a39b6b2e1e3577c8835554b8087f639160a55dc451b965beaf54f3e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/service/ExchangeImportRowBaseService.java",
+    "sha256" : "99242106b7fb04e8b555ddeb1757b3b261a54dd4365a00fba2fd5d3576a4fed3"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/dataexchange/base/service/ExchangeMappingBaseService.java",
+    "sha256" : "e72ef2831ebdd30bb1a94080672432648630a8aed4449aea8f336c3c345b705f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/entity/FileObject.java",
+    "sha256" : "5ea4213dc3cec5a76cd4ce914be54361656da2012d4bf7baafa1e305e419636d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/entity/FileReference.java",
+    "sha256" : "9aecec2d75e92428fae60b0b1d693e95d10aaa80c97684f61c952b034808eb38"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/entity/FileSecurityScan.java",
+    "sha256" : "cf4aa185474d24746ec04ad2849dcbb5bd53a468eb198ec6a9618df336d14e08"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/entity/FileStorageBackend.java",
+    "sha256" : "ba0c616ada09e8fc24cc9d906273bf13172ebcca5898ef8d9e69c1ef019c4124"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/entity/FileUploadSession.java",
+    "sha256" : "040ab6a2ea1c50b74393fd74c6d5af9068f4a7e1f107157f8288beb87acd2e94"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/mapper/FileObjectMapper.java",
+    "sha256" : "b28f43de0862a886a5377872e3e1f610874be8d38f1dbb714c285a0fc2a3bad6"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/mapper/FileReferenceMapper.java",
+    "sha256" : "f0becce4a1e0b9cb80cf2a4ae9265a89cc353deb0738370204e1fcab6c7f7b9d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/mapper/FileSecurityScanMapper.java",
+    "sha256" : "32958ffb5750575dc11c99038d2ed4c0e1947321d99c5c82615f67b709639a3b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/mapper/FileStorageBackendMapper.java",
+    "sha256" : "f30417adbf355b81e11eeaebdcb8af5b1cd39483549d1799adc5bcb5c358b522"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/mapper/FileUploadSessionMapper.java",
+    "sha256" : "21891c75f0b3cfea242f6d305a5dca271cbd4d6a7e9c2cd1ecd5b5a2a994839a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/service/FileObjectBaseService.java",
+    "sha256" : "80d23d4d13f5475e9a5e94eac29c57e6410080a50cc91dd18e5d31070229935e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/service/FileReferenceBaseService.java",
+    "sha256" : "41f0645a1d2175e4ffe682c884076504f91ec8128e944e62c5b7203cbe7a299d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/service/FileSecurityScanBaseService.java",
+    "sha256" : "ad3e6e989cbbf90c77c4698c30b067cb94ccb1da84258371f94a7000c77c34ef"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/service/FileStorageBackendBaseService.java",
+    "sha256" : "637dd0347c1be480bd477430ac1a273f6c5c68db2a5a7ca5e30e04a6d33dba03"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/file/base/service/FileUploadSessionBaseService.java",
+    "sha256" : "a800c1fb58b8f84b4bf1baf3401b545512f7713a0defbd2d5b8b9b83a02b22b2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowAction.java",
+    "sha256" : "dd27b2cd85d56a53d22b289744fe2f4119cb1ceb705a1779ff9ccf027f93f121"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowBindingResolution.java",
+    "sha256" : "e8fbffc8ced88bac30891537f2a5c01968372e85a5c90b6ab0e247216cab9106"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowDefinition.java",
+    "sha256" : "402f4e654f774cd651628a1b3e7f8480a4410b83c8685b6ccba552a82e5ecff4"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowEdge.java",
+    "sha256" : "5a21a7a77757a544a3baa42c5e828159c35ad857977575d8fde63f250d103f20"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowException.java",
+    "sha256" : "05997772bf7cb9b22255b0af7911f4e8748ec4cb8daecc80c26eabc409b9da90"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowInstance.java",
+    "sha256" : "fbbea656a670021dc65c94ddb7e50cb5ef801252d35b71e799f76a0e69460325"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowInstanceVariable.java",
+    "sha256" : "5d4bc5fa4cf071a5d3231983b3b7e37b8e15facb5bf1c1b5637b3dedfe96c5fe"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowNode.java",
+    "sha256" : "b36d06750877ac4aafde89ae03378b72d6988de947ed1cd95385bd5b85208c86"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowPublication.java",
+    "sha256" : "ae6c422afbc1690903f8c586ab5c9824139e0b121ac624ac475ae27b4139a0e4"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowTask.java",
+    "sha256" : "81e143cbd3967b9fb808d13187512ef9379afc5815b5062060cd9dc389c8fdaf"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowTaskCandidate.java",
+    "sha256" : "89b66f1e730771ded1c2e998472343a210a5503e9909e0727456e334caac9b4a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowTriggerBinding.java",
+    "sha256" : "bb4259ff431570846cd29878be33aea744bc6f365fbf133b4f2d670499c9a08a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowVersion.java",
+    "sha256" : "ceccbaa344e228719f76042b9e6d718afc527c5fae404b0109c8875beceb5820"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowActionMapper.java",
+    "sha256" : "b7c43fb6832de4e7bf87970e1e8666c4e03dc3fd31d6f9ab4caecb17bba3cd3f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowBindingResolutionMapper.java",
+    "sha256" : "2fd6a4dbf98b2e6f115b9edf59cab096538b07b7265b771e622ae8a1483f3b9a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowDefinitionMapper.java",
+    "sha256" : "3211229089a4589512f314e262671ca2175a15ac21e2f660ff33cc1c9aed44e0"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowEdgeMapper.java",
+    "sha256" : "2113ef107f816d16a4dd7b177c249654713dd9f1b639f920c47c128ffb37d760"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowExceptionMapper.java",
+    "sha256" : "1f72ec8bf68b31dcc466709b511f80447a5671bced4ea890919f2f2611b76ff5"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowInstanceMapper.java",
+    "sha256" : "dfaccc1e34135ac827427a84bf5032098b653024903d54d8e757a4e91d9e6596"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowInstanceVariableMapper.java",
+    "sha256" : "40de419b79a49a9979a076a933f90103e1c82a1d779d184a2d1433721284daa8"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowNodeMapper.java",
+    "sha256" : "6962fa27ed9a15fe201dc91c35ed32e033e06ac5d8efbf99ff234ce035d40828"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowPublicationMapper.java",
+    "sha256" : "4e81584fae2b6b5a71b26fee319b7787e7529ebcd4ce36e5948761c2713ec756"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowTaskCandidateMapper.java",
+    "sha256" : "f39fb3da48c8692d49ff64e2843f8979eba3bc8b7b267d514d833132c7baadbd"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowTaskMapper.java",
+    "sha256" : "5159c92a0e968d2f6a79f9db8dbadadfb2eb795a05afd7c0981e5a65102595b6"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowTriggerBindingMapper.java",
+    "sha256" : "62f27f54858c4b7191bea8fa659637c2b64bbd45f66b00b482ebe0a4c6b37568"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowVersionMapper.java",
+    "sha256" : "ab93364949262265c81410813de168a38520dcbc5e4216dc9c9d54d4a5cbd75f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowActionBaseService.java",
+    "sha256" : "86e2eb0c4957aa0b6e09be32fee79a6f462334630d3495f2c34baafeff6661b2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowBindingResolutionBaseService.java",
+    "sha256" : "b479448e07581f082eb248cf19c2ade98eeaf39f4330acb99bb514efc1300b48"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowDefinitionBaseService.java",
+    "sha256" : "ab060ec43d9c078368ef03c193f7f92b4a2c53b918e8ffcf0a2f93275c08cd1b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowEdgeBaseService.java",
+    "sha256" : "c6e60ef2dc61693b1aab461acf8747684d38faeda7183d8d6f3939e18f5bd8d5"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowExceptionBaseService.java",
+    "sha256" : "f6c4b9f3dfcf5ad01457b83b33a1480ffe0d0bf8f7d35437494f30bbb4610623"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowInstanceBaseService.java",
+    "sha256" : "f14496f6f3e5e790f4f20b48a0512a8ceb7659dc0e59339977802fa3e2ad44ae"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowInstanceVariableBaseService.java",
+    "sha256" : "583a2c211130bdad5a978fcf9ccfae1aab700714ffbf4dad434efdc69cbbbe2b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowNodeBaseService.java",
+    "sha256" : "8fa09ddb985e03cdcf5767cb342980e3834019024203d5be4e2d20a8d505b2a9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowPublicationBaseService.java",
+    "sha256" : "233bee585239535329aa200bef0cd9e7245cfe777462f03a724475ae52695c65"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowTaskBaseService.java",
+    "sha256" : "0b11fe0f3e01e83db605932d3eca92062c7710e7d50d64842871f7815ed7a2eb"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowTaskCandidateBaseService.java",
+    "sha256" : "4687f5c65c5a5ee8bc91bea0c5e3a22209e10b0871d57e674702c39c95804f24"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowTriggerBindingBaseService.java",
+    "sha256" : "2b73ef9e45fb4fdd42b6ed5cb2739e68e4f942fa550bbb226be98ff950c2b459"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowVersionBaseService.java",
+    "sha256" : "c97c5efa9d5074fe91f000b196bfdff496d4d603c0fd9f62a9ab7952f78e4f8f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/entity/CoreCacheEpoch.java",
+    "sha256" : "dbb395e32383f086240eb0f1a6ce3a59a87f182c70e87c99f1bf77f731bc1718"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/entity/CoreEventOutbox.java",
+    "sha256" : "97ba3d6b6de5685b158cbb19acb6e681cf57739a50af5a91e364d20fe6ccbf39"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/entity/CoreFeatureFlag.java",
+    "sha256" : "31a5082814342c0d4da792d253963de5d5235b2296707dded5e0db136330de54"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/entity/CoreIdempotencyRecord.java",
+    "sha256" : "8b61285d71e984b29e192a8a53d5981e3ac83b3801e9ec6dcc1397790d521656"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/entity/CoreQuotaPolicy.java",
+    "sha256" : "7cc90e2f51a059f9d591731fb3e9ebd32657078d984506926a6e896e13c992c9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/entity/CoreQuotaUsage.java",
+    "sha256" : "0ea7ed45c06a32ec9adf8c01d49916f799a47046a63be9ba103c5277faa188c5"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/entity/CoreSequence.java",
+    "sha256" : "e5751b76a307d5f92da46e8f90c145d0aaa2a6547c41fd418b5260ea3f249b1e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/entity/CoreSetting.java",
+    "sha256" : "3aa1c3e0fa1cdf52c182ad967116431eb511836e93b1daa522bec0b25c5e0211"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/mapper/CoreCacheEpochMapper.java",
+    "sha256" : "3efcb65cf44375c0c7b1d23f612cb88fe7611fcc601c49d39ca5f45d2ecf4cf5"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/mapper/CoreEventOutboxMapper.java",
+    "sha256" : "8a99b3416a0c0a886796ae7bb16d13f040dbbf1f500cc5cf3a560904b7a1213e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/mapper/CoreFeatureFlagMapper.java",
+    "sha256" : "acf8929678c44c743e429a480434e703c3c51bac8bbe98f9fb19bb2c967a254a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/mapper/CoreIdempotencyRecordMapper.java",
+    "sha256" : "c5a53095ff2b95151ef3f64f0cf7f3f355e2ab71f7f7e33e7edac69788b63dcb"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/mapper/CoreQuotaPolicyMapper.java",
+    "sha256" : "e4718bfd18d97a8ae24edb35b018b0be374946b0d6afac674b51955e59437bb4"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/mapper/CoreQuotaUsageMapper.java",
+    "sha256" : "f0891e8a4b369c26d4c0f84fc913f94c06a78e3a753238c534c5d01c694acab1"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/mapper/CoreSequenceMapper.java",
+    "sha256" : "291fe283037a1771820e24dea367cdc6959e67301f586a9a496e53f254be4467"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/mapper/CoreSettingMapper.java",
+    "sha256" : "3e0b166dd7c18437302b7b1cb664cb9e9afab263a95bd7839c06368eb18963a1"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/service/CoreCacheEpochBaseService.java",
+    "sha256" : "d09a5c4125689d9e1b8b4d9ed60a9c3e2fdd21359a2a34692628070f0210d158"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/service/CoreEventOutboxBaseService.java",
+    "sha256" : "b34c1204e5253a740ee2f7e5872d3993e9cd26dd67ef5763c263c0733b3a0a78"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/service/CoreFeatureFlagBaseService.java",
+    "sha256" : "63360cd42d5182f4e1e5b4ff1655ffbf8084fd6bdf0385de2d79251b1d1d1724"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/service/CoreIdempotencyRecordBaseService.java",
+    "sha256" : "4ae3cb1fcf8db3fffaf4e133df4cf81d931742f6b59d94e55e2c36e32912c087"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/service/CoreQuotaPolicyBaseService.java",
+    "sha256" : "038ac79bffe4b1b759e21ef73889b662ec45ec8494d5cc072621f48677625b2c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/service/CoreQuotaUsageBaseService.java",
+    "sha256" : "db247386eefe7c1ccec72cac9e3938176d068572a2f791cd29e329ed062da631"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/service/CoreSequenceBaseService.java",
+    "sha256" : "0d3bd22236fe34fc06b44f301a704a2a707beb0abfc031dbf58615bce77ba86f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/foundation/base/service/CoreSettingBaseService.java",
+    "sha256" : "77f52bd017182493b0933c7e7ae54bdcefbdbbdacbad208694960b4281020927"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgDictionary.java",
+    "sha256" : "449b06287b85851828f41932d75752828f399d4708705ac08282c290d3243cce"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgDictionaryItem.java",
+    "sha256" : "1fab904c8366869a9d7e10bb5cc943bdb03047e1c540c3811cafa881c27492e6"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgDictionaryPublication.java",
+    "sha256" : "6306127bc2dde66ba8e4b9b834140b92512c2d1f273667364c952e1581b6b050"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgDictionaryVersion.java",
+    "sha256" : "0376b1428a1310d2f11f772e52b5adb2ed98849f81dc8038f2b8dd1372fb0611"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgModuleMenu.java",
+    "sha256" : "43f55e63829123ff4aff535749ddcb6cf9773ce71317ccdc95473dccc4b731ff"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgModuleRule.java",
+    "sha256" : "08abc2be63b761ce9e45927002e277280e07018759ff23312bae1b294fafb0a5"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgQueryIndex.java",
+    "sha256" : "42f1d7fa17320b709691558a571a54741566127b3e9fa2a0abc00720e920b731"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgQueryIndexField.java",
+    "sha256" : "2fbc0edc0bd9a8cb23cf82d727c166719b2712ed9b6872f34bbca867454726ca"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgTenantExtension.java",
+    "sha256" : "40dc732f6b7873c8b7abe225c1f9bd177547970981ac406d24ce40098d6a6d1e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/CfgTenantExtensionVersion.java",
+    "sha256" : "920c4c024040dc2a4de2fa92e4de2c77022439a84e225c720fca771a466cc73f"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/ConfiguredModule.java",
-    "sha256" : "73f4e22a06ff19b787347045f1d95bc0c3f3f18be165272819f5f471bcb858c0"
+    "sha256" : "fe2a0793c5fdc5f94311fcc28240944fe012f76dea47527eb1c535ac20594d2b"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/ConfiguredModuleAction.java",
-    "sha256" : "c1ef605f371a510d23e6e1f48b38b5e89c9c989d69eb97db58795b9e6237eebe"
+    "sha256" : "1269c780295a45acdab35928a5cd85889fc44e75c2fa08a3c340225f6457b735"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/ConfiguredModuleField.java",
-    "sha256" : "2f8cf30d6c6c2e287a2ca9fdc074b102f2d73a5ae6f79e22a04c451d2a500c62"
+    "sha256" : "465fb1d4cc8c4fb79ce3026d23bd59d0de079fde768bea925c030b3137459027"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/ConfiguredModuleGroup.java",
-    "sha256" : "0e592e82f27fa157605b8070917864be5356b0f56329252d4f60355471e767a3"
+    "sha256" : "c9ad7c4bc4b3725c3883e41c1b34922f3cc43562c47c1f345882c3b5dee7662b"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/ConfiguredModulePage.java",
-    "sha256" : "614ac207d5014405271c90388b5d080236e501bde2cd0bf8c018107a9437a88d"
+    "sha256" : "e342980cb140f4dcc5a87ad68f7fd3aa3d1becef7f440a43a8b4f127eb67b224"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/ConfiguredModulePublication.java",
     "sha256" : "794a37d908806db5c332fb433dec222674862b071fb566031b318cf447d2cb91"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/ConfiguredModuleVersion.java",
-    "sha256" : "18eeee497a88c3aa9584df46aa9ca44199a31838c0367a9fad6b2a67bea40639"
+    "sha256" : "0954f68aafb604ad2b06bb564f9f6e1f7927a2b91f12a8ae4bbac9df1d4f4a63"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgDictionaryItemMapper.java",
+    "sha256" : "8cbb01b8a0f20d092492f8af09fd8730913c3a6b85469cd3c9c74d7f199f9aa0"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgDictionaryMapper.java",
+    "sha256" : "61fcb785133f2e0087bdae7718d9f1790e676a8ff44ed1694d5fbcd3d995e85f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgDictionaryPublicationMapper.java",
+    "sha256" : "50701af7f516a86ba576f600a2c2478036eef18901b58d24d8c619702b192d7d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgDictionaryVersionMapper.java",
+    "sha256" : "27bf856c40a36602c3c34821fbca7a12e0450fff60f208ea0c3cd4667eb9dac7"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgModuleMenuMapper.java",
+    "sha256" : "08d41e7623da49b04e75536ed98f561fd70adc28ccfc97e5d86cdb8d3497e85d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgModuleRuleMapper.java",
+    "sha256" : "242b936e636ec70a5181b10e94efb2626eb9ee52b758d99082c4196a47e69ca5"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgQueryIndexFieldMapper.java",
+    "sha256" : "a806e72d3564807f5c7cd80f16d6adf133944b952eaff8472297164000e620e9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgQueryIndexMapper.java",
+    "sha256" : "620f32937fa1796adebf33fe699e2967c00b674434c4cc74d21e8fd15ace9a52"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgTenantExtensionMapper.java",
+    "sha256" : "c5363e16a0ee6e75179b834cd90d53943c5710a89666f247b2df26ea2f240cc3"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/CfgTenantExtensionVersionMapper.java",
+    "sha256" : "8f845046136c5ea9ba8b4ee6489b99ce69facd7e407ae6518a6ff64fe080c626"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/ConfiguredModuleActionMapper.java",
     "sha256" : "22d0ea6010737a31c1c0bc6c3e604c17b0e3f10560503742221a58608aa4584b"
@@ -66,6 +729,36 @@
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/mapper/ConfiguredModuleVersionMapper.java",
     "sha256" : "2ca961359e44e15f38327ebcec1bda812add98d362dc446c531a66e5a3a6b227"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgDictionaryBaseService.java",
+    "sha256" : "765b2fd87af046721ba10903f661fa33050838638d82611cd9945c5e43bb7270"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgDictionaryItemBaseService.java",
+    "sha256" : "578aa7ab6caced8ee030934c4b89681be120170544753dbf86f0e64c34a7fa51"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgDictionaryPublicationBaseService.java",
+    "sha256" : "962c122f8b04d9e1616e063ba1732164f30e6a57d33ca099092403d3178b5422"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgDictionaryVersionBaseService.java",
+    "sha256" : "03fa103f69e17a5a92d48255e5a6bf5147de47820444eedbd6d16b47653adf6b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgModuleMenuBaseService.java",
+    "sha256" : "b097ba118c662240141e4470253c118ddab4998c087ed7dfc051553762086a3c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgModuleRuleBaseService.java",
+    "sha256" : "8d81337d7f58d3ff9de3290092411882d2f2164461fa87ee972c59cdca83259c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgQueryIndexBaseService.java",
+    "sha256" : "55604b7cb5aec547a6d634a22a89ceb1e2d4249cc5b04eaa86b51a369bbf5057"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgQueryIndexFieldBaseService.java",
+    "sha256" : "2e2e671b37a97e97ce78ddd493b4d716a09c0dec50edfa63d3c1c72c71848322"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgTenantExtensionBaseService.java",
+    "sha256" : "5aa9d4621ffb2e9cde0d5f71f06a2e721c91231aaaaf71fe4ca84cfe6f8e31e9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/CfgTenantExtensionVersionBaseService.java",
+    "sha256" : "2e93704285c08a811a486d183372bf2fd2475bfdcfd040117ef21ef2dad41a38"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/ConfiguredModuleActionBaseService.java",
     "sha256" : "be29f86622fb65b462e32661f3e405b2e6a14d19dc7b37025fc74fcaf61740bd"
   }, {
@@ -85,34 +778,250 @@
     "sha256" : "bf88c2e70655504813c25a5e47f817551d72c90bc0a66a02ad358ce0a7e84c9b"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/service/ConfiguredModuleVersionBaseService.java",
-    "sha256" : "ae3027c6b5a114dd55a51d5bb46a11042d1afe94dc3ac63a733955b7e5446585"
+    "sha256" : "b8075cb98d796079e9c4907de21d02fb12dbe4fbb22e277b484bcb107904a83a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/entity/MsgDelivery.java",
+    "sha256" : "57a98724ead58c6cce495b16948f7ed392953a696ae2b1123dad84dc588f4dbe"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/entity/MsgMessage.java",
+    "sha256" : "2700f516d3e38895fc9f2d062e24ef6dff26a9cbd9908b0bed2e89718b5f3f7a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/entity/MsgRecipient.java",
+    "sha256" : "6a9ee63d823230fe68184744da45c04d8122fb12a4d191a6ed953ac8d8aa26e7"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/entity/MsgTemplate.java",
+    "sha256" : "2205911626831e63cc5c5130d19f5a25241ef7ff8608ed4723700de1d8053b40"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/entity/MsgTemplateVersion.java",
+    "sha256" : "bbfce0577e3ef25825b897f4c329b64d4f194f24665515ba2ec76d543bc6da9e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/entity/MsgUserPreference.java",
+    "sha256" : "dd5b4732182030a768031d0ef04a2d0a7d67e2f955d963a3f88b68d8c21ea549"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/entity/TodoItem.java",
+    "sha256" : "7c6ac04cd9c5fa0968a462f02b878105650c3f3af441a73453c2ba60ad518669"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/mapper/MsgDeliveryMapper.java",
+    "sha256" : "2cf2f5e348e699ff461cdcf1608f9f2ff914736a43399c72dc0ca2156557ac0b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/mapper/MsgMessageMapper.java",
+    "sha256" : "b0b61a9f4ea3f7bcfbb6e123994a37cde6c8c6438622c86a53248b174e28bbf1"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/mapper/MsgRecipientMapper.java",
+    "sha256" : "ec86430ed32fd2a9ff3fea39c6ff8ec460f23ee62123c5ae953cda37f12ccd73"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/mapper/MsgTemplateMapper.java",
+    "sha256" : "62fcb2737052e4c27107376cb03f62fe27e5157d74ae7da1300b56e1f8b2f4ab"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/mapper/MsgTemplateVersionMapper.java",
+    "sha256" : "f442e2e8bdf9c2f40caaf90691b6b7e604e02898f1d2f7415e8712ef8d439f62"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/mapper/MsgUserPreferenceMapper.java",
+    "sha256" : "d5d53cabbf9b705d62ef953d7bf546d87ae06c59d6e7bf7a22453fc4dd145af6"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/mapper/TodoItemMapper.java",
+    "sha256" : "c80e13158fecebf44c1f8bd8ce89ebdbec838902fa696d8dc4276a296e29c6da"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/service/MsgDeliveryBaseService.java",
+    "sha256" : "86630eeced3948250d0e19721b62e154ab94bcbd813518d6d81bd058d205b8e0"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/service/MsgMessageBaseService.java",
+    "sha256" : "37f1511550f073553da7814b648aeffd80c232013c704cab43d5d124fc0ef130"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/service/MsgRecipientBaseService.java",
+    "sha256" : "376d68bf1bb728b2f4681d3493cc83f18d96457e4572133e8db449c65abdec91"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/service/MsgTemplateBaseService.java",
+    "sha256" : "68cb8893bab555189d2d0afe1d7283344fc9e00f6f3e1cdff0f4f90404bfa1e2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/service/MsgTemplateVersionBaseService.java",
+    "sha256" : "6b156f10a66b850088ed5f8bc8b5d498a1eed1d01597e80dd71cf3d57ff8f0e8"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/service/MsgUserPreferenceBaseService.java",
+    "sha256" : "a36f571ae73b4da9dca5ace54e113d561f5917148a3d74c4ad2bd780ffb366e1"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/notification/base/service/TodoItemBaseService.java",
+    "sha256" : "38bd1d1d9525aba42861161e7a015b6ebb9815bf0fc424282cfc1ce00c0801da"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsBackup.java",
+    "sha256" : "e93bf896690f049d6ec8febe3c61307cac7294335d370db641f0f1461e94746f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsBackupItem.java",
+    "sha256" : "2f4e7f091307b4df227b0aa38b990f975310c602774b6e39954d071ed3964486"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsDeployment.java",
+    "sha256" : "7246d7407989ff7f5baf5a7e419083aa2c5299883ede9e1a4c4b31a77e025901"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsHealthItem.java",
+    "sha256" : "ff8c9d6ef0dae4ac4ba2e1bbfa25430ea6c263faffebda9b1efd4074b6074b57"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsHealthRun.java",
+    "sha256" : "880a7bcb458ee9c2895237c614984c756258115802a35793fd9692e7085fc598"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsRelease.java",
+    "sha256" : "8323d43ef9487ca7d017558f28e960c3dcf091ea1f8db7b3706dc18abaf55b97"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsRestoreDrill.java",
+    "sha256" : "7fc04cd92fb107746a829615d3e8138bc4c113e92742dc5ccbc7f2336668bb7c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsSecretRef.java",
+    "sha256" : "dbdbe56aee934cc319388ef89ee7d4b2c86fdc05f3b76cf666117cbbee87be46"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsSecretRotation.java",
+    "sha256" : "40cd91a7a1b1fe2b275957af58f4788e4c0b2bda1f06670cf295a1be8ee451bd"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsUpgrade.java",
+    "sha256" : "fb44f6e8a02b980dc3b84c30f829a735b4721c4f48a040c0acb27b33cfff62fb"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsUpgradeStep.java",
+    "sha256" : "98c625bf5500f077c48635b3e9b6aa1bb2efcbe1b130714f30f385e1ec1842a2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsVerificationFinding.java",
+    "sha256" : "9931f25510f3a52c635273404d74a292853d2fa2841fd8f17a0a47a07942a112"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/entity/OpsVerificationRun.java",
+    "sha256" : "8016204040724513b41a42c78b7cee0f2c964f0a146f2ec5803be17b505b8ef2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsBackupItemMapper.java",
+    "sha256" : "d73a106af051c7231a114c0166ee06663432535384abc393ee6164277bbb6d8d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsBackupMapper.java",
+    "sha256" : "19b2ea51fb1727b09a440849ea6b0e9e2c78e50803829fc5e9d59a355f9eaa00"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsDeploymentMapper.java",
+    "sha256" : "2756e88cf90edd3e43c9404a5d400617e2f1f3b8867a69fcf2d6925b6b7a2971"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsHealthItemMapper.java",
+    "sha256" : "cde5390b3423fe523233116c89ed13505f9b63a28176ba58ffd651315582e11e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsHealthRunMapper.java",
+    "sha256" : "e4cf603a0ec2c3393d2d82880b443a3a8a3631a2301a187db7b9cdcb1af97f50"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsReleaseMapper.java",
+    "sha256" : "e9a9606fa72c3d2caab04cc1ee774efc5859594763c4e6e22dbd699c4490df79"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsRestoreDrillMapper.java",
+    "sha256" : "745305649a1e0966416adc42e6426f7774e47d7ca5245d00d5b4598a778562a8"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsSecretRefMapper.java",
+    "sha256" : "b88a00d5a0531291855e101169951f7d665ba65ce2492c19dce55a597af91d55"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsSecretRotationMapper.java",
+    "sha256" : "6b823a8fae31324b2fc6091d0c6f27d933f310b0e6c02d1381e6dcc5dcb51092"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsUpgradeMapper.java",
+    "sha256" : "21fe332679bdfbd8bf0b829bf64803e1914ce765b1fe00df6f354bd685232758"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsUpgradeStepMapper.java",
+    "sha256" : "7bf93c48bd9f58a6e777e5e2470bb156cb57ad10f587992e7c32187ca0988d52"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsVerificationFindingMapper.java",
+    "sha256" : "2697d8db0e31bf92bebfaf39a828673637f9af44f78439a87b15a1f074ead620"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/mapper/OpsVerificationRunMapper.java",
+    "sha256" : "db84e3d91481d197f557171fe51a199657d662fc317441a194b60ba16ff4bebb"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsBackupBaseService.java",
+    "sha256" : "23f9fcdbb35f47196c3ba7d28b715798e6c76c47e21559c55a637750bc6f1e22"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsBackupItemBaseService.java",
+    "sha256" : "73f7f7da6f1446747242c96003d5c1c1b222a0e23d25cc1b53b265171bee89c2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsDeploymentBaseService.java",
+    "sha256" : "1d544704aa1b42d6b31cc5063a4cd8e1df74ad9210c9259557f248acdf0be311"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsHealthItemBaseService.java",
+    "sha256" : "b1b77f5225098241b0849147d40a2462aaebfae30b20a3ba2c746f0565925819"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsHealthRunBaseService.java",
+    "sha256" : "ab2533b2f2b2ee791d3f868dc112f0a765fa50e65593d15364275c872402db19"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsReleaseBaseService.java",
+    "sha256" : "63ca3738d3568754cd6292d404cb6c90393daddf6ef2cfeea8012f1d8012341e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsRestoreDrillBaseService.java",
+    "sha256" : "dafe9d3eef86baf4ed59406174694f2e650ed4896d424944104dadf0850cb9de"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsSecretRefBaseService.java",
+    "sha256" : "5451dc2aaa03c63fceca350845bb4efbcb3c988e33f6ae8874bad74e3670b435"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsSecretRotationBaseService.java",
+    "sha256" : "46cfb8af1a9940c61527cdc450318352411dd0a81890f4258d0368d4793b1a4c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsUpgradeBaseService.java",
+    "sha256" : "5b91180c5afb93f0cdb6286ca1a1b588a6ffb57531b70fe1121e6d3081caebd8"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsUpgradeStepBaseService.java",
+    "sha256" : "10e9a7b83698fe467bb9e22972f92fca61f68b1e5c50e48e9024fd347772cb64"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsVerificationFindingBaseService.java",
+    "sha256" : "4732526b3dbb251c9463015a5a9f1e4328cc2723b3857af1c31ffeb04a1665c9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/operations/base/service/OpsVerificationRunBaseService.java",
+    "sha256" : "784db9daeb76c4b324a6c275ae714d170e270716b13f82e93f287e3c0fc8cb25"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatAccountMfa.java",
+    "sha256" : "daaa1383d9498003bf4f387e7ea881bc53be1d948b033b85900f32321107fe71"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatPasswordHistory.java",
+    "sha256" : "0b117c398f3d809a8d4358c18cf40483a43e0185a18e130dcf55638ec8ab5654"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatSsoIdentity.java",
+    "sha256" : "6382e1527568d087377ffbfb62bff8a85a0f66f442beda8e869cb566d3486759"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatSsoProvider.java",
+    "sha256" : "7fc192114481f15e86a285c07e81401a432cd49dfdc6c2e59bfbc62dce69059c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatSsoProviderVersion.java",
+    "sha256" : "78bb96e335c89886ff6d60376578ce343b9f61854caa360b80a2ea77ace602b3"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatformAccount.java",
-    "sha256" : "40e56a82cbce9d913487b7550f3d3768ea7eaceb99e4c41958404fe79d6dfee8"
+    "sha256" : "2be9cc3db2f4ac43cf4969624004486d2ded28bd86a87a0b3ced604119c54621"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatformAccountCredential.java",
-    "sha256" : "c5015def3a33314619d1469f2e61375ec24554815175accdb4380d03977b6e33"
+    "sha256" : "61f0d122104900dc888f2d5b6c3fac910655ebf3b4303f423ebe94adb9743a9c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatformDefinition.java",
+    "sha256" : "4f62e550a809b38541267ac50b610f391e52e9cce6775f229aac616583b0572c"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatformDepartment.java",
-    "sha256" : "72e3086d612702afbd27d5aca7346053983977123ccb764e5fcd7d5bb55e406d"
+    "sha256" : "96c380a7fafaa64e1459d0888ad552b52616ed6f6e7527cad8e87004fe03885b"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatformMember.java",
-    "sha256" : "03f4d3f0293d1fd10a71f681df72a8593601a2ae73974e6ff09ab283279a0f96"
+    "sha256" : "79d90402196482866d10e46a9ed219a0f8b26cbf165b443117df0b643035c249"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatformMemberRole.java",
-    "sha256" : "700959d2ffbbbe3690d9cc4a27121de74c55f3e66d9b129976c8e101b1a0dc33"
+    "sha256" : "8a593113ac2692db5c9f1bb4004e77dfcf03c25d9d72555250e4ce4d52034e47"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatformRole.java",
-    "sha256" : "e87929db116e30bc9b22acfc8cdde28b128b82cb2be44482a76620a7aed091a2"
+    "sha256" : "f72d28b8a73930459694d574a1143228924a4d41e50b6972871e2bd6af9a5c5d"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/entity/PlatformRolePermission.java",
-    "sha256" : "d3eddecff3c4b1fa47f11902203df5149778a7991b33ece201aeeef58f5a5f81"
+    "sha256" : "52944f7b21f6941100f8a9ceb3da7ce15f00f07d22729e21cb3b39feaeb05f1c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatAccountMfaMapper.java",
+    "sha256" : "4d495cfaf93bcc5a0ff0f5f8dda90a5091291811f2f0487cbb2da62b907526fc"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatPasswordHistoryMapper.java",
+    "sha256" : "e0d6ec9463c5edf0fdafc6d91a50ecf6d594a1bfcc01e50b9e96eaaa68f9717d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatSsoIdentityMapper.java",
+    "sha256" : "31d6730c24e6eb764e3ee98ff8a8bbe57f58907cf64c993f495c6ae4dd39ab8d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatSsoProviderMapper.java",
+    "sha256" : "e9acbc09b07edcb683f2755df57311b94254452dbcbae455827c14ea2d5f2e77"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatSsoProviderVersionMapper.java",
+    "sha256" : "0087483e81bb05e8225be3424523dfdce0e9d220bccf49b1d3e174bcb4d47909"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatformAccountCredentialMapper.java",
     "sha256" : "d3ca1db7a560b354ad6963a1d5300fe207dcfc973a1fa235b32e7904a712d371"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatformAccountMapper.java",
     "sha256" : "64fa267ab751aec6386095dfe260f721c86e231ae321675acfeee39b66ec6851"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatformDefinitionMapper.java",
+    "sha256" : "501b4c3bb55ce1654170940fe5fc6cf621427077b71df3ab19ebae4d0492d229"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatformDepartmentMapper.java",
     "sha256" : "9eaa26b64fc947cb220c2f3b84109f4d8a3ce9eb73fadde9911c76d0f91b2569"
@@ -129,11 +1038,29 @@
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/mapper/PlatformRolePermissionMapper.java",
     "sha256" : "ae30ba06ea218933db9a18c52b7f96aafb39d8bee3531ad3662587d0fa0451d4"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatAccountMfaBaseService.java",
+    "sha256" : "6a1773df0104d8f3b7a5c718722d2dc4ccf66ebfbc9635b99ebbf7970cd5e29c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatPasswordHistoryBaseService.java",
+    "sha256" : "dd2b17fc6fc397ea4568852a2e85d54ee59b78c6a257f0e5f065cbfc38f211fa"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatSsoIdentityBaseService.java",
+    "sha256" : "b5dd0614bd2c0d22b990d6d5812cab59705d7010bebda8f60c96b4a0858e5832"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatSsoProviderBaseService.java",
+    "sha256" : "fee71005115ebf80ce4fd69d909cafa4f0b0d32bbfe9ddbabeea83edee6e5546"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatSsoProviderVersionBaseService.java",
+    "sha256" : "8cd759eee707e827175f4db1bd46330f82901d5ee5f56f489738b4b21ecfbfcf"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatformAccountBaseService.java",
     "sha256" : "54c5a3f90b82bcccec047d96f821019780097dfe7b081174794b952ca0511a6c"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatformAccountCredentialBaseService.java",
     "sha256" : "06c04993602113f98b25a581ff059adb4787f9a00a878713c982479b81aad709"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatformDefinitionBaseService.java",
+    "sha256" : "20b009902ee47438b7d66cae37be4d2b46c05a33c76b435b7f622916e2473685"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatformDepartmentBaseService.java",
     "sha256" : "410cfe16b120eeb923965f1842e89ac0079ed97ee31e746261c830d1ead88513"
@@ -150,14 +1077,98 @@
     "path" : "backend/src/main/java/com/unique/unexamine/platform/base/service/PlatformRolePermissionBaseService.java",
     "sha256" : "5d737109ec919ccfef295e0660bfe152cbb75f97d1d26c42a61eca3ecf6e21a4"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/entity/PrintJob.java",
+    "sha256" : "d7241dec58be00cc7122a36a94f17c0c94dd7d6648f204d291e65f7f4a83d7da"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/entity/PrintTemplate.java",
+    "sha256" : "52eb6b6118acfe7df63c22e6820682859958f63fa6ca5e4fa79586c9d5d520ac"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/entity/PrintTemplatePublication.java",
+    "sha256" : "cee595e2660725de75dad9b388bd7eefb7c964b45a884512ea21a38eda1ab153"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/entity/PrintTemplateVersion.java",
+    "sha256" : "f628db3c22d10c297dd58a03b767fd43a5ca0b2ec7792a344f006c677adcc4e5"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/mapper/PrintJobMapper.java",
+    "sha256" : "2d2425145399afea55aea4b8b37781c3fbe27f443bbe538820c62dac7e440a12"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/mapper/PrintTemplateMapper.java",
+    "sha256" : "bb577d18eaaa064133708f771bb24ef7dc5316a5a32c943256f2631cd75a33c3"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/mapper/PrintTemplatePublicationMapper.java",
+    "sha256" : "a00372ee9cb37ad78ac8e1fccd310ba834af20b25c45f0a42c29b724165a9765"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/mapper/PrintTemplateVersionMapper.java",
+    "sha256" : "7eaff7397735daadc6e93f320552d44937fc9760161ad3eafe131bacb334340a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/service/PrintJobBaseService.java",
+    "sha256" : "27ecf831763e3b2e3c6d19f34358ef995ed37290c544c701217f8b59aa935fe4"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/service/PrintTemplateBaseService.java",
+    "sha256" : "a2595eb4404ed487095bd1d2280b9aba672fa02fc81bb17b236091ad2dd9e882"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/service/PrintTemplatePublicationBaseService.java",
+    "sha256" : "dd371b48efc9c9c5ce529a00fa4bb2c4929cd6c6433edf55cb89b5e651e6b037"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/print/base/service/PrintTemplateVersionBaseService.java",
+    "sha256" : "9e391ff4b395afb6ac7dd2badb0cbec125789b31bc13bdd4ea79c91692f97528"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BizRecordConversion.java",
+    "sha256" : "a05e75f8731cdc0552c52bee670858c5fd5e110f73a6aa06269df4240396c69b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BizRecordConversionResult.java",
+    "sha256" : "994dbd7887524700237a23057e6007a4e19291ec0dd992e319f65bb6ca24b7a7"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BizRecordIndex.java",
+    "sha256" : "668a3d02bca95021b1f66cd06fcfd5e45e61a8bb4bd571ee7dc149b297aae0cb"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BizRecordOwnerHistory.java",
+    "sha256" : "fc99f0cb002ca898b5d400d5b3572f10be87b26d6e8b1c7f5a28c94d7d153b9c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BizRecordRelation.java",
+    "sha256" : "9e4004cd0d072142cb386f95b5ceee5c63fbe67cdee426bddd8a1d712e9d56e9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BizRecordStateHistory.java",
+    "sha256" : "5e3aa2d2406c66caec477f33ce6e9c9a27658f9641ea3cb53e5c650f4f708d38"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BizTenantShare.java",
+    "sha256" : "f4a4ccd97e5de789c14fdf8b9d98f878fae3e40417cbf3fec19de37abf35079a"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BizTenantShareUsage.java",
+    "sha256" : "461fc0996860e6d36b2231c8f9d3a7ec98349e2ec48a5efdb8c0099cc885049b"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BusinessRecord.java",
-    "sha256" : "5e73db70a2436173700779acc3712e805528a6fd63a993478e8d6a0b0160b777"
+    "sha256" : "52604cf982955a8f3012d30394539c9be189946973b34d2a5736e2a6e7d5ba54"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BusinessRecordParticipant.java",
-    "sha256" : "f43d460ae9b62bc450aecda32ae447d00ed5205a812070cac1136d7cc79b9d14"
+    "sha256" : "7091855f826c87ef91ca3771b580d21607bf8a1b52f125368caa1a87b9f37ee2"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BusinessRecordValue.java",
-    "sha256" : "fa9135a1b39e4df4a7dcf7c1f0232c06b953076e0eb5dc91ba551e526fd15e79"
+    "sha256" : "5695d23e2d32884c4abb05465913ea98f63cd52b5dfd7e4c68d4c46fb63b4ae0"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BizRecordConversionMapper.java",
+    "sha256" : "d6ac6ec1c0cbe2aa6e8fc6472332308d37c213a6869c181dd9d73c9a8f4e3cee"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BizRecordConversionResultMapper.java",
+    "sha256" : "a110b5f406e6d821aa5ba56df8cd978d1a81b781a886356b85493a3751151f5d"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BizRecordIndexMapper.java",
+    "sha256" : "96ecdbe4b0460a160d006773f6c7c364ad0f6ccf8262ce4eb8d30e6376514232"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BizRecordOwnerHistoryMapper.java",
+    "sha256" : "fe246c9b8638b19dc479f56f218837b79e0562203ebbcc35cda30d153b998001"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BizRecordRelationMapper.java",
+    "sha256" : "9dca8bc4bdfa4941eb9bafcbf69b96b472b7417ccbb72caf90b7dc56698253e4"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BizRecordStateHistoryMapper.java",
+    "sha256" : "396a3cd8c3677f808cfd5d054db0d850b4d4d80f9fbad2060dc519537f1fd600"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BizTenantShareMapper.java",
+    "sha256" : "f91e1c656ad0ba16c8f356559965f944485fb0f3c4f4b7c22ed3049c89e76de9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BizTenantShareUsageMapper.java",
+    "sha256" : "4b57ca105b756abf55bd486c6f676dfa0b4c5a0d9263520202e1510f6e3f5366"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BusinessRecordMapper.java",
     "sha256" : "61bb58b44bb2662b00862ffca441d53cc08f1833ce35cf9b2debfc6c916e3ddd"
@@ -168,6 +1179,30 @@
     "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/mapper/BusinessRecordValueMapper.java",
     "sha256" : "6620937936b1de4b8fd29bcbe792d0f355a14e33b2c8c533f17cb575463e6178"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BizRecordConversionBaseService.java",
+    "sha256" : "2832293dfd5b66e295a1e65ee893149cc0f643d10c478379d2e70368c1475044"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BizRecordConversionResultBaseService.java",
+    "sha256" : "ba3a5a2582628cabb78802c14bee3893aa84cc043f9711ac2e7add9a48566b63"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BizRecordIndexBaseService.java",
+    "sha256" : "286ac423599b00cd47bead703f9ab452c23619950a7d7b37285794f1ea329400"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BizRecordOwnerHistoryBaseService.java",
+    "sha256" : "beea53a568192f3cb424cc1123dae6647bf60991e5f419435ffcbb40e92261a7"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BizRecordRelationBaseService.java",
+    "sha256" : "dd44fd58a57721d3ea7d1ab756aed579bb6fd9f9cac5359f9796cc94841853a9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BizRecordStateHistoryBaseService.java",
+    "sha256" : "b7c435f3f930921c154b2a5772aa52a3f34ab090b4606cf19f75066219f4eb56"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BizTenantShareBaseService.java",
+    "sha256" : "159e6443596cd084090ce21d47345f45afcbbcb0f2bfcce99e8adf57dc01ab35"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BizTenantShareUsageBaseService.java",
+    "sha256" : "8dc187e1ddd238382898cb02affcf5b830de63cde90dd5555ea469eac713686d"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BusinessRecordBaseService.java",
     "sha256" : "dcc83ba6eb0f155c1e19bbd49170ee309c71f23ed50eaa8f0617becda38500d1"
   }, {
@@ -177,29 +1212,47 @@
     "path" : "backend/src/main/java/com/unique/unexamine/runtimedata/base/service/BusinessRecordValueBaseService.java",
     "sha256" : "05f620593bf62f831cdc14b7afc1596db80c952c068bc239898da0f06128997f"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SysAccessRequest.java",
+    "sha256" : "f25232e591e62c85f3fc05272a71febe7dd29c8b638369f8b6146d9e1b096502"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SysSystemDomain.java",
+    "sha256" : "29b3c5919450fbef288247e4c317384b4b6a0fcb088d907934595c883e755840"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SysTenantMigration.java",
+    "sha256" : "af84ebb5dbc4ea2a55569387ddea824ede266d62a06d955cc48a281c0535b4bb"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SystemDefinition.java",
-    "sha256" : "5024d169342be07e6044a49edeedd54ff2df3d38433d99820a4b32c0f341672e"
+    "sha256" : "93b900a09e9f9ee4e6661154a78f181c94592722b7b52ace5d35c13290372424"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SystemDepartment.java",
-    "sha256" : "76b727a09f87fa924cdf72634583f621081e535f83561bf92a3d06ffd1e909a6"
+    "sha256" : "c3c75928dee29bda9935d48054067ae523fadfc1412776610f3ce210bd82e897"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SystemMember.java",
-    "sha256" : "fb10348701ebcd0d33b1022def2b53bf21d2506f74a3c2e11b8c3160f25a6a5d"
+    "sha256" : "2c830ce0fd5263d3b5050d0a1b7d66e70aa9b8e8021e16290cc0f186513bc24e"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SystemMemberRole.java",
     "sha256" : "70c91f60a4cfecbd244c13295b4d29225908ce8e065fe2f55a17266e1680a7e5"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SystemRole.java",
-    "sha256" : "128be51b6a4d7cc93967dd7c8fd1e0003d0597f98b34bad5f28684e896f11161"
+    "sha256" : "5631fb4074c494e2d89400140ffefc9d7321cc5d489252d0906da474afb9efdb"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SystemRolePermission.java",
-    "sha256" : "86c5153cdb465966dc65866d243b7c194744be00d17c584bfaa8954ef05ee1ac"
+    "sha256" : "377ae790d5d68fa5f3664ff39b33fdb880ad8df939482be9d19585d7f7a41784"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SystemTenant.java",
-    "sha256" : "905fa8c25575e450120ae95f459d7caf317a959ba504c142622bea7d9bb3739f"
+    "sha256" : "cfd36079aa9599a9fce6d4b28eaf3f6f890b6da2d6b516d1ab73ae35d1766338"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/entity/SystemTenantMember.java",
-    "sha256" : "baa0774e8a0f6e17c4826276bc9d6a4fd5d9082b3cf878879454833efea55074"
+    "sha256" : "22b5352835154c47eb6323c113d59e829f95514bb2a22b1115e034fbbe586cd6"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/system/base/mapper/SysAccessRequestMapper.java",
+    "sha256" : "35d6b361805f688d9e1d32dad2501aefc8721ae2cf0a70b5a73c85c2bfc1d1cc"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/system/base/mapper/SysSystemDomainMapper.java",
+    "sha256" : "a274f6e191a83332c109f1a28565dc5a7c19e36d936b17726be47233684b4fc9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/system/base/mapper/SysTenantMigrationMapper.java",
+    "sha256" : "7b1dba563befa6593b4e32a31334937a7213ab69c6e62886fe303d5a35363fea"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/mapper/SystemDefinitionMapper.java",
     "sha256" : "edd42de00101ad5adc83d4ed84633e2df773eeefe5885ab3da2a4f96a92c5db8"
@@ -225,6 +1278,15 @@
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/mapper/SystemTenantMemberMapper.java",
     "sha256" : "e791148cc84146f4b1f8e06e26273ac14adf1fdb14b551dd5190de300bb8c672"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/system/base/service/SysAccessRequestBaseService.java",
+    "sha256" : "c84385796f5ffeb4926386c037df77912eceb9578e0c2c0bcbd68362b05f9b29"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/system/base/service/SysSystemDomainBaseService.java",
+    "sha256" : "8289f16f6a2e5e796d08da22d9819a78c137391178703376c79a683b58e0f1ac"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/system/base/service/SysTenantMigrationBaseService.java",
+    "sha256" : "04b5f0f24ebffb36b33f9bc9b12d6c01fc0ac15f9198de7ccd223a811dac6a9c"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/service/SystemDefinitionBaseService.java",
     "sha256" : "2e9d015f7c0bb2e4f9b2cecf400a6174d850bf71c25fe5d5dbbc84e843a51432"
   }, {
@@ -249,85 +1311,547 @@
     "path" : "backend/src/main/java/com/unique/unexamine/system/base/service/SystemTenantMemberBaseService.java",
     "sha256" : "b1e907b31c9443afa95a6093e2d4a7675f210525fcdd9c61f3acba4ec6aecbab"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/entity/WorkFieldConfig.java",
+    "sha256" : "05a1f2a616f0b8e4a906935c9784409e1beb629c5927ba1b54acb322d33e9a15"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/entity/WorkLog.java",
+    "sha256" : "4e9d9311ba9af98337a39afb810ab0c7d399eb8ba810c91a0ff2e67bb8ddb8e7"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/entity/WorkLogRevision.java",
+    "sha256" : "37b00b6e67613b7216535245090471813794774a34779f1a1473df71a8892264"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/entity/WorkProject.java",
+    "sha256" : "f9fd9e0ced878ade222988f99152ee71eb18870b000c12f8cca8846e1a8e2635"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/entity/WorkProjectMember.java",
+    "sha256" : "91e0b0cadae227f49a7d95b777348c89548c6d6f8661382c52a55d36b1abc665"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/entity/WorkTask.java",
+    "sha256" : "055b093f0ea3892c42be306518d6b7b84476cea2ebec678b5de48942452e5568"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/entity/WorkTaskGroup.java",
+    "sha256" : "b003e427248fc28c379d850a7f74ee8585c2c3c1c34789afb3ff928f14d3197b"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/entity/WorkTaskHistory.java",
+    "sha256" : "f8525cf5783f5560421f769cd428f534529925ed6b6aa908259b043857962478"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/entity/WorkTaskMember.java",
+    "sha256" : "328e51578ab883b4db58b95e5df50aefbce0a311b5aade4dee54808faae755db"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkFieldConfigMapper.java",
+    "sha256" : "3517bb2eff80719a5165f93a575f4e827d3334891df774353287ae771b22ceea"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkLogMapper.java",
+    "sha256" : "a0b65a1aa70fe39964424b412e1996f428d413b285572c8cb2d0f35c3e476aca"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkLogRevisionMapper.java",
+    "sha256" : "3b80e2195eac236571d49e0618d97c2562cf6385302ecc6799c036dc98af70a2"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkProjectMapper.java",
+    "sha256" : "0c64eec151bac2b4859b586ff8a36a9158f2c330aac66b8731b2850e65f7e954"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkProjectMemberMapper.java",
+    "sha256" : "2230e841c955544e3df4b832029c3f4836a575ccb720fc4be09096bf9833b21e"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkTaskGroupMapper.java",
+    "sha256" : "1833ec31f6002bbcff7aed75aaf4bcc96e0b9b9abb662f2b64d04174840097df"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkTaskHistoryMapper.java",
+    "sha256" : "57899fc19339926031f848a6af292e3578c72a893b114c3c5de4ba5bc6a027d8"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkTaskMapper.java",
+    "sha256" : "1f67a3a2cff99071a8c0a270d710e98892064fe0eddd3a6242350bc32d1fdde3"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkTaskMemberMapper.java",
+    "sha256" : "d07993ffad5d755ee01aff15a14608e40aa3333ef4a0dbfe3c383779529b5e61"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/service/WorkFieldConfigBaseService.java",
+    "sha256" : "f2a6aaaa880c9a9a04793ae5bedfe0ba4f2e287e7e00ecac784c09d0f8b0a882"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/service/WorkLogBaseService.java",
+    "sha256" : "40dd6cab5c7b0c580f9b9d4a35e1c0295b65e9ab6efff63b9b4e3dd78b037f9f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/service/WorkLogRevisionBaseService.java",
+    "sha256" : "d9cfc323355636a6b8f7d21ad4bb98255a6573011265979d2887a4e6486680b9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/service/WorkProjectBaseService.java",
+    "sha256" : "d0e2ea737a12b2653b072f0e0367be739081c61be983125231b51c6dc3508115"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/service/WorkProjectMemberBaseService.java",
+    "sha256" : "499ecf132fec538cbfd417d5c9e172f4a59d13381917b886a0f8b6536b4af51c"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/service/WorkTaskBaseService.java",
+    "sha256" : "b0bf5e986924ba051b2763735a67e2d2de9d016ea6754faaef15ca90ce0f7f42"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/service/WorkTaskGroupBaseService.java",
+    "sha256" : "2927030110b0b44ffb0f4f21dcbce15696f610d8743d8bfeccf7e11d0963d53f"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/service/WorkTaskHistoryBaseService.java",
+    "sha256" : "a1ae60b75de160924aa28166a5b6e0638d4c3a287d36465af639a15599a75688"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/work/base/service/WorkTaskMemberBaseService.java",
+    "sha256" : "2ab2b83cd4b6e47f581b263466716218cafa0d1d926e1f2e38361598d48dbd89"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiAgentMapper.xml",
+    "sha256" : "7983e6a1de2923a80a522b8881470e2f1474e4bf2e736bcf5d79c6f216ebe6d2"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiAgentPublicationMapper.xml",
+    "sha256" : "3f8dad032cfad572d3c2d68ad990262ee4cefc1989df2e0e3d9751ed68fa2f1b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiAgentToolMapper.xml",
+    "sha256" : "3723069ce35b98233b7118f80b22d000244ce1241d899c5b6e3c627f614c8346"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiAgentVersionMapper.xml",
+    "sha256" : "284d99f85f11706b4f780003929745cbf0d25e5cf023e8376731ab09b1d018bd"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiConversationMapper.xml",
+    "sha256" : "e973b4a7003aa0db10654d1f486ee235c0c94701e81c45001033d20592d14303"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiExecutionMapper.xml",
+    "sha256" : "57816168fd14c0fb9bb50599abef9a54df20a09ee8e3d77175767b7fb6696ace"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiExecutionStepMapper.xml",
+    "sha256" : "645738af67ba092485391e0bbb5de1424a9c0e5f47823ce86860177858f8c9e5"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiMessageMapper.xml",
+    "sha256" : "6f68d84a1af32e323ee2bdbb7aa4423bd66795efb22f87c692468efc9a57b6c0"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiModelMapper.xml",
+    "sha256" : "bde633241502aa15319213d27dda6203e555bbf928644c0560854053d12037bc"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiPendingWriteMapper.xml",
+    "sha256" : "d3cb631f6ea1c7be7f1e268b2bc4c90cc73a9fee41fd22880295e1681a185348"
+  }, {
+    "path" : "backend/src/main/resources/mapper/ai/base/AiSystemModelGrantMapper.xml",
+    "sha256" : "e0ee1ed28ea30ca046be2cc4d84748585e80b46af46a26cf3f572c99a9e2bb8f"
+  }, {
+    "path" : "backend/src/main/resources/mapper/analytics/base/AnaDashboardComponentMapper.xml",
+    "sha256" : "2817aac4678eb1482466b992e141d282defa676f25a01ecfd0d47ba0823bc364"
+  }, {
+    "path" : "backend/src/main/resources/mapper/analytics/base/AnaDashboardMapper.xml",
+    "sha256" : "7394f1b432d3a132752ff344325664cd0243bd8577f7c31cf5abc1b9f1c1426d"
+  }, {
+    "path" : "backend/src/main/resources/mapper/analytics/base/AnaDashboardPublicationMapper.xml",
+    "sha256" : "27d0d8dd1995f7842e4c68931dab255a5391fec04861dad9e74f600ff91f31c2"
+  }, {
+    "path" : "backend/src/main/resources/mapper/analytics/base/AnaDashboardVersionMapper.xml",
+    "sha256" : "c3894912eb685b1e2e6d4aadf4b14c3b4a918bcdc2ad3665ca6380293690ad19"
+  }, {
+    "path" : "backend/src/main/resources/mapper/analytics/base/AnaDataSourceMapper.xml",
+    "sha256" : "93830ec1f7acac948bb2412e4f652f5a28abcc9ce6edcd4cbde0e629953d7509"
+  }, {
+    "path" : "backend/src/main/resources/mapper/analytics/base/AnaDataSourceVersionMapper.xml",
+    "sha256" : "6e41928125b2f0e1104474d166a93931d3fd51d8e0e0a1f77d93135efcdaae97"
+  }, {
+    "path" : "backend/src/main/resources/mapper/analytics/base/AnaKpiMapper.xml",
+    "sha256" : "4181aa382be1631b6c82cbc1d94671b19ec115717df3a16ea616a5f6a4ca7dd9"
+  }, {
+    "path" : "backend/src/main/resources/mapper/analytics/base/AnaKpiReminderMapper.xml",
+    "sha256" : "7c6169eb11c005b7f1ac25910fbb97987eb7cd69d6cd3d109b5879c41add3d9b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/analytics/base/AnaKpiResultMapper.xml",
+    "sha256" : "80e097fb62ca575ae11039d6a489c02348840f401b10ea6dd4dd15141ac86d2a"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppCallMapper.xml",
+    "sha256" : "738ba4403ecc7f1c4a0aa53a2b3107a9877fab2a51fcaa5bcef5fd3b6dec7aae"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppCallNonceMapper.xml",
+    "sha256" : "af92b1d1191204f3a7ee109d0f1a4eadefc21c8e20d14979ca36877e811bd566"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppCallbackDeliveryMapper.xml",
+    "sha256" : "6d57ef379ae8905fcfd4e35ea2dc8ae47e571625d1666cb5f913e5281e0429c7"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppCallbackMapper.xml",
+    "sha256" : "042768abfd563c153b362aac6260af6c9b85234a505dcd3d5e6eb19da0f16595"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppCredentialMapper.xml",
+    "sha256" : "03e27240c367aacdd2b9c9f3b2cf05523046342376036619adc7ce4525077ed8"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppDefinitionMapper.xml",
+    "sha256" : "d98c1574e57211d617384fe4f129974624db308d20e79db7a909c864d87b00b0"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppGrantFieldMapper.xml",
+    "sha256" : "a34cdb4e8741cd91cee24889ba1fe3d0f8fe844c719cadfd22b0be7733b71573"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppGrantMapper.xml",
+    "sha256" : "e8baef31c3b9cb02b1e58d9a8edd5ac3a219a219b8fd962e927a666e2d172f3a"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppPublicationMapper.xml",
+    "sha256" : "2550acb35e2620514b802032f16bbf55345a3561a6cd77ccb4c3ebe88ec14ccd"
+  }, {
+    "path" : "backend/src/main/resources/mapper/application/base/AppVersionMapper.xml",
+    "sha256" : "95ca5caa04f13119a25144a54653fb845c365f41d9eb42e8bdbe72fa970e1868"
+  }, {
     "path" : "backend/src/main/resources/mapper/audit/base/AuditEventMapper.xml",
-    "sha256" : "23a4f4bf94d0b1799cd2045fbfa82a7029019175ff6f0afdc868a5b3780d520c"
+    "sha256" : "bea73332196235929f77fca5ce9e0d7b722aefd812e49e53124e5c9b0dde05bd"
+  }, {
+    "path" : "backend/src/main/resources/mapper/audit/base/AuditFieldChangeMapper.xml",
+    "sha256" : "918e25bce49944ee150b8ba4078133ae929d85e9f9d8f7c250bec9c7f2feef4a"
+  }, {
+    "path" : "backend/src/main/resources/mapper/audit/base/AuditRetentionMarkerMapper.xml",
+    "sha256" : "908199a87251dfff78ae661274c8966a00b2086f1301edb02d516ef010f49851"
   }, {
     "path" : "backend/src/main/resources/mapper/authentication/base/AuthenticationSessionMapper.xml",
-    "sha256" : "b6543962d26b2367468af2dffe4aa13c0586c8284303d6fd7230689e6af49374"
+    "sha256" : "7dd9330096f9ecf6b9054b4c93864509b40d6dd8062954214b561e04f9c148d3"
+  }, {
+    "path" : "backend/src/main/resources/mapper/authentication/base/AuthorizationFieldPolicyMapper.xml",
+    "sha256" : "6a696aa19f60403b49582e0921d559fe04cd18ef9cd02f9c266c9cc53d3034f5"
+  }, {
+    "path" : "backend/src/main/resources/mapper/authentication/base/AuthorizationPermissionVersionMapper.xml",
+    "sha256" : "3247a6aa099450eedf3bbdd3460b24a01b0a415166be949bbd3db0ff86c17405"
+  }, {
+    "path" : "backend/src/main/resources/mapper/backgroundjobs/base/JobAttemptMapper.xml",
+    "sha256" : "7cb9ae5eaffca66b9e5438c1a82ce51463fe2e4fb0e2c8bb6625ba77732e4e8e"
+  }, {
+    "path" : "backend/src/main/resources/mapper/backgroundjobs/base/JobBackgroundMapper.xml",
+    "sha256" : "680024f08428c6a4f4413e4c406aa41bc50547f5abff987fc0aeded1d3324fd2"
+  }, {
+    "path" : "backend/src/main/resources/mapper/backgroundjobs/base/JobItemResultMapper.xml",
+    "sha256" : "63cc081a2cae8f94a7015f40598b07852b123fc93917cd8f5f80643e44210073"
+  }, {
+    "path" : "backend/src/main/resources/mapper/dataexchange/base/ExchangeExportBatchMapper.xml",
+    "sha256" : "0e357d789e5e81af2438e979a4b4c6051ffbe0963e80ebe06060224b43d0f292"
+  }, {
+    "path" : "backend/src/main/resources/mapper/dataexchange/base/ExchangeImportBatchMapper.xml",
+    "sha256" : "42d01cbf39d9e26a547592cb874d5efb166fff27262955f805324466b04cb40f"
+  }, {
+    "path" : "backend/src/main/resources/mapper/dataexchange/base/ExchangeImportRowMapper.xml",
+    "sha256" : "d03a9f0e99a120336c16967530a1312160cb26528f6a695db07b027389d0df9b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/dataexchange/base/ExchangeMappingMapper.xml",
+    "sha256" : "3f3971579cda81f04d94c57731d8e1c3bfb059f55e42ae81ea1a2e2af2e354fd"
+  }, {
+    "path" : "backend/src/main/resources/mapper/file/base/FileObjectMapper.xml",
+    "sha256" : "c1f84b34d9c55b1f6e4c257065b317da529a502d38b195c1c41c65df576407ad"
+  }, {
+    "path" : "backend/src/main/resources/mapper/file/base/FileReferenceMapper.xml",
+    "sha256" : "60ee101232d2605ed49ade9592af5bd058d7441ebd6205ee0d0303ac89cc2e9d"
+  }, {
+    "path" : "backend/src/main/resources/mapper/file/base/FileSecurityScanMapper.xml",
+    "sha256" : "8cca8ddff29ec3b36a3f7725cd43bc2281e8a2e1d3708ed8abc13a3775fd941c"
+  }, {
+    "path" : "backend/src/main/resources/mapper/file/base/FileStorageBackendMapper.xml",
+    "sha256" : "7878c432ff1d6e24ae9c72269760680076dcf2c8b3c40146bb928214d0cc9ac8"
+  }, {
+    "path" : "backend/src/main/resources/mapper/file/base/FileUploadSessionMapper.xml",
+    "sha256" : "58dde0a7970ac52d49d455400b68a4d90a7f1cd3b63c5446f4ef2e1c355554cc"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowActionMapper.xml",
+    "sha256" : "7a05c7d08d28d663df7c86881516c48dc8d37191f5caf824f900273f823b2a00"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowBindingResolutionMapper.xml",
+    "sha256" : "4fd7a3751ccbe60edc2f3f9f94943060df346c9dbab8e22bae62193590df3bd9"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowDefinitionMapper.xml",
+    "sha256" : "55703b28d222f7e4654c8f21a639e156f1dbfa28011d2c6f6dd126b4e928d050"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowEdgeMapper.xml",
+    "sha256" : "3a32391cbf2d98d415caa944dafb36058bbd0b5a7c4c87a131ce17eeebe160ca"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowExceptionMapper.xml",
+    "sha256" : "5c9792b975a924dd13ca77d88e791c790b759e51020763c364d4a27517bd8918"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowInstanceMapper.xml",
+    "sha256" : "ade56919ecf30f31421fd79a389e97b620ac42fcad150ad1f031c5e867739bec"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowInstanceVariableMapper.xml",
+    "sha256" : "d7af665974c04ec38d9d32b71163365fd3e1c3319204b4ed116fca87d6feb9b2"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowNodeMapper.xml",
+    "sha256" : "3a6d20e6a93e0fb0e4ce836a954de7d9eb8391459cd4d7d739e9e69d4771c145"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowPublicationMapper.xml",
+    "sha256" : "094fa5998f1d7c95dbcb5c74a61306e957fec708fd6af61de9c7eab89c71d4c4"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowTaskCandidateMapper.xml",
+    "sha256" : "2a297c0e864f5df44987abb86751a203e31ef6b12816b38d9b2777fd3ed96d69"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowTaskMapper.xml",
+    "sha256" : "21b9bdd8edbe1e481da67d07272194fa6869b8046c73110f8cf102b864de74d2"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowTriggerBindingMapper.xml",
+    "sha256" : "f6b16b115faf18795874d86c702d864bf59fcfe0b2d782e9bae39b13533979db"
+  }, {
+    "path" : "backend/src/main/resources/mapper/flow/base/FlowVersionMapper.xml",
+    "sha256" : "d07be7e56f9fdfeb95c6bfa909536c26d52082368be8995425ca66ec064a683c"
+  }, {
+    "path" : "backend/src/main/resources/mapper/foundation/base/CoreCacheEpochMapper.xml",
+    "sha256" : "157a5c204cfc40e718a813d25a8f2ac0628b4b071af12462fd4014637203cae9"
+  }, {
+    "path" : "backend/src/main/resources/mapper/foundation/base/CoreEventOutboxMapper.xml",
+    "sha256" : "89308627d6892088574f4a25634c6472f1d9679032ced5c116ca72a08938f3fb"
+  }, {
+    "path" : "backend/src/main/resources/mapper/foundation/base/CoreFeatureFlagMapper.xml",
+    "sha256" : "5f57ffba16e196c3e6313e5b7527b428ee384c9763317abd2a1458f61e98b4cb"
+  }, {
+    "path" : "backend/src/main/resources/mapper/foundation/base/CoreIdempotencyRecordMapper.xml",
+    "sha256" : "e9faa899831aefd7eb10b759b786b51461b527d71452f8669dd16ef3ea68616f"
+  }, {
+    "path" : "backend/src/main/resources/mapper/foundation/base/CoreQuotaPolicyMapper.xml",
+    "sha256" : "e72d77e2fe877fa6d59ce188e9ad60acc17150ca83c591e7224946b940964862"
+  }, {
+    "path" : "backend/src/main/resources/mapper/foundation/base/CoreQuotaUsageMapper.xml",
+    "sha256" : "d1e4671e526a14d0144970c591c3461a19aede9b544442cbfe087f700b1bee09"
+  }, {
+    "path" : "backend/src/main/resources/mapper/foundation/base/CoreSequenceMapper.xml",
+    "sha256" : "0947952855648b55376dbba3dd1bb3bcae2d13d176a0210e0815afc9b61f29b7"
+  }, {
+    "path" : "backend/src/main/resources/mapper/foundation/base/CoreSettingMapper.xml",
+    "sha256" : "6e3b95f3284a02697ab11918c27017d961ee928590b7ce9b84facce93fe03ad4"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgDictionaryItemMapper.xml",
+    "sha256" : "6bcaf71379f08c55072e4fe84bbf52a9181b60b58b2512ad6a32d84d4a8af85b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgDictionaryMapper.xml",
+    "sha256" : "c9d172a939951612ee7f0779a62665b1b58162afe3525bcb69b763b5d18ff29b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgDictionaryPublicationMapper.xml",
+    "sha256" : "1ee030ed43342618d2d04517969ed6117b9244c1318adb2a736e2223dbc23325"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgDictionaryVersionMapper.xml",
+    "sha256" : "4484fcc444eedbabc2d6f84232369355ac74aa19e62f8e43e81c0ef15360b494"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgModuleMenuMapper.xml",
+    "sha256" : "9d19ec40779fd6de9871286bfac1c467b20b9f555d626f9338df9faef4ece6a7"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgModuleRuleMapper.xml",
+    "sha256" : "18a996bcd5662563f4d9bee2f44a1e2da5bc9f7e6bea11cf407695c1386a3f15"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgQueryIndexFieldMapper.xml",
+    "sha256" : "b5bee6c363216f83605a0ec9cbad637301db028f517d27b475595c841749d641"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgQueryIndexMapper.xml",
+    "sha256" : "e9d382f8ca5c7c7281688e1a9c0d18e1b94abb0b7df7be12682a48489200621d"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgTenantExtensionMapper.xml",
+    "sha256" : "8f2856a80d60733ff947c04f06f7988d03107db376a8bec28a1d887ac2b560e9"
+  }, {
+    "path" : "backend/src/main/resources/mapper/moduleconfig/base/CfgTenantExtensionVersionMapper.xml",
+    "sha256" : "ee73faeeeb1e3ae8cf690329da0d06a8f4479a404f74c55333de650a49e25e5e"
   }, {
     "path" : "backend/src/main/resources/mapper/moduleconfig/base/ConfiguredModuleActionMapper.xml",
-    "sha256" : "5a01fb412a07a47d5582124a7f493e0e5a7d5937d678062d90d2c58af380484a"
+    "sha256" : "7b99180398b603a49e0a4d5c6d7d412d3f12863e6ba7991118498fd3f71bb9de"
   }, {
     "path" : "backend/src/main/resources/mapper/moduleconfig/base/ConfiguredModuleFieldMapper.xml",
-    "sha256" : "14051bb2ffa8f3a648eeff4b2a0ecefafa6fe443a39e2f17a9e438388da4224f"
+    "sha256" : "0e16fed5e6108934628a41c98015308b49967e78bb3e9b2bb0f43eaa4430c67d"
   }, {
     "path" : "backend/src/main/resources/mapper/moduleconfig/base/ConfiguredModuleGroupMapper.xml",
-    "sha256" : "707da5e3ea74053943437b2ba87a0bb10f76740418b0d7f3b029d6901a3f1518"
+    "sha256" : "c08862639fbbf0fdd7cbfe2f571238686d9fcc6829b955aa8a3bdcff41120a4b"
   }, {
     "path" : "backend/src/main/resources/mapper/moduleconfig/base/ConfiguredModuleMapper.xml",
-    "sha256" : "a678eca6c6ad546572e00c80f4ac984b14d05cdd56e65ce2620e3ce50ae0db84"
+    "sha256" : "c3a5f17cee3850c1be32c1944606d21122deb967a90398936a39e32d7c09064a"
   }, {
     "path" : "backend/src/main/resources/mapper/moduleconfig/base/ConfiguredModulePageMapper.xml",
-    "sha256" : "b7adf1353e8d177638c5e443c414dc7ca819e40b0ff551bf326bc366079af369"
+    "sha256" : "df0b2d74dd1f1c4956f806ce8bc8d4adc9964b4998efbecf14f63e779618567f"
   }, {
     "path" : "backend/src/main/resources/mapper/moduleconfig/base/ConfiguredModulePublicationMapper.xml",
     "sha256" : "01c3b0c83ead1cd30860fe689f5770cdc3bdbe0f559a5cb88bc482590a1f83ec"
   }, {
     "path" : "backend/src/main/resources/mapper/moduleconfig/base/ConfiguredModuleVersionMapper.xml",
-    "sha256" : "6b2ed64750215832faed4a67c64c10a229f5b9dc904af370e726955c2f8aa0dc"
+    "sha256" : "252d861890eb85a0316837e189513d13a8435d904cadbd645bc0092c1f5284d2"
+  }, {
+    "path" : "backend/src/main/resources/mapper/notification/base/MsgDeliveryMapper.xml",
+    "sha256" : "8f0d596d51c8aac6926da613d892e9b035121e67beae6830fa1de39a7834c35a"
+  }, {
+    "path" : "backend/src/main/resources/mapper/notification/base/MsgMessageMapper.xml",
+    "sha256" : "6c1ef47f27c0d95c559aa79363ebec778d6e7e4e423799f5920ad1ec0894f4ae"
+  }, {
+    "path" : "backend/src/main/resources/mapper/notification/base/MsgRecipientMapper.xml",
+    "sha256" : "bbb857274364c045c2da8252bd60fe834d2f4ee226613a0a8787f633a96c3bc3"
+  }, {
+    "path" : "backend/src/main/resources/mapper/notification/base/MsgTemplateMapper.xml",
+    "sha256" : "d6a33c6bee15d437d5c43da27d73e785c5d1f862abd7bd972cdf9eab09313553"
+  }, {
+    "path" : "backend/src/main/resources/mapper/notification/base/MsgTemplateVersionMapper.xml",
+    "sha256" : "08ce645229a8c63ea8fea4077bae9d470a7ad34a3c52619da890c47ae39a6d73"
+  }, {
+    "path" : "backend/src/main/resources/mapper/notification/base/MsgUserPreferenceMapper.xml",
+    "sha256" : "4e52434f6d1daeaac81850d70a1a7329bd319ee95677c0c902de3aaa4d7d1953"
+  }, {
+    "path" : "backend/src/main/resources/mapper/notification/base/TodoItemMapper.xml",
+    "sha256" : "4ca89ff7d502398a06dd850aa072a97d136d6f74dd3f3fb61c0794e5fe6debaa"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsBackupItemMapper.xml",
+    "sha256" : "7c3b2cdb669a3608839f03a4f5f83d9b24545bb07cab59580b46bb64545125dc"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsBackupMapper.xml",
+    "sha256" : "9debe2015fbbb6c65b783b7f314e2b317d4d5091e7e404dd16998d0dce4702d6"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsDeploymentMapper.xml",
+    "sha256" : "400e181f868f98598eadac19893c526559ed7749f1627a9cb12f1ea6001095a3"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsHealthItemMapper.xml",
+    "sha256" : "e0b63aea407e791238860a6c716e55bc2b5b6902c44ee9830590afa0eb6f679b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsHealthRunMapper.xml",
+    "sha256" : "34da49369a0419e93da60a7b3cf4b66a33b7284490244e7b83d0f1a6e98e5797"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsReleaseMapper.xml",
+    "sha256" : "cf070106579444d0b8b4c6241d0b115b689ecee0ce7001235834f92c03bc135a"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsRestoreDrillMapper.xml",
+    "sha256" : "91eb4d6fbb18f591f9a8d1316a5ca14974acce96fed33bc006629b39552ab289"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsSecretRefMapper.xml",
+    "sha256" : "7288924be842e9d171db925264df36330ae927ed4869b3240eb2d64a2376a3e7"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsSecretRotationMapper.xml",
+    "sha256" : "3e4697d99f1a790af88156ef3df6934a1612fae16a88fd7baa017dfd47aae976"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsUpgradeMapper.xml",
+    "sha256" : "34db2a02a182d55723592a943df37bfc7c45e6c2668a0c8e8f909e4d76d7258a"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsUpgradeStepMapper.xml",
+    "sha256" : "dd5a5ecb33b79d61872c01a3d4d1244b49fe33ddcfef506bb7c682dc103e0152"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsVerificationFindingMapper.xml",
+    "sha256" : "5797cbdc958b335e8faf8d3b440581df89c0f7232ae562b134085748b89a9ff5"
+  }, {
+    "path" : "backend/src/main/resources/mapper/operations/base/OpsVerificationRunMapper.xml",
+    "sha256" : "243de1f1b59050f6965c2db1cc2a72813cfc6c948585e9e991957e44eae34549"
+  }, {
+    "path" : "backend/src/main/resources/mapper/platform/base/PlatAccountMfaMapper.xml",
+    "sha256" : "9b796af423120e79e8185e6381b18d10d6df1623d300baf555489574825267d8"
+  }, {
+    "path" : "backend/src/main/resources/mapper/platform/base/PlatPasswordHistoryMapper.xml",
+    "sha256" : "9a754d682cfd477fc4887b50a5b6ee05957f9d434565eaa9162e21a6ed2396eb"
+  }, {
+    "path" : "backend/src/main/resources/mapper/platform/base/PlatSsoIdentityMapper.xml",
+    "sha256" : "3bcc98a973ae3235d5fa7a561c7c4adfedf4b51a515d240d4242c62a5bd7cac4"
+  }, {
+    "path" : "backend/src/main/resources/mapper/platform/base/PlatSsoProviderMapper.xml",
+    "sha256" : "b6a8f9b47da31a2bbab9586d10bde47bfa0d8a9d818e5efb30b64d208ba90ff3"
+  }, {
+    "path" : "backend/src/main/resources/mapper/platform/base/PlatSsoProviderVersionMapper.xml",
+    "sha256" : "66bc7dd844de541d4e7a013a1d830b9e40b448dac2ffd7d164c218633ea93cfa"
   }, {
     "path" : "backend/src/main/resources/mapper/platform/base/PlatformAccountCredentialMapper.xml",
-    "sha256" : "ec47d6361adac40182573371dc9a39592945714f9c72d924d3df333514f5fe1d"
+    "sha256" : "371df96b3176312fb11b97515045524682ef703ff874e9b3e844cc422834615f"
   }, {
     "path" : "backend/src/main/resources/mapper/platform/base/PlatformAccountMapper.xml",
-    "sha256" : "fd3e45ad789c8b7e71739b9e4d09c6dbb35373373fdf6e79e7ec0a1ad586ed82"
+    "sha256" : "c09fef3cd070b2e624ee2a6083cea662153043c6d5927bcc88224d5750456443"
+  }, {
+    "path" : "backend/src/main/resources/mapper/platform/base/PlatformDefinitionMapper.xml",
+    "sha256" : "b6298598cb1c3eb5f40785d55b93d115d34d74a00db7692e5168008ab0cb619e"
   }, {
     "path" : "backend/src/main/resources/mapper/platform/base/PlatformDepartmentMapper.xml",
-    "sha256" : "2e85ba1cdf3ff0e96f30b94b702c425f2db4c845452a8ac7c77bb23910ea0acd"
+    "sha256" : "de40deb61f9b33af6791333ef25029ea5bc6911a09e1e80c2c7bf332549ce2db"
   }, {
     "path" : "backend/src/main/resources/mapper/platform/base/PlatformMemberMapper.xml",
-    "sha256" : "ea4eaea6d89c9f256cf209830c60cb4a853d7e5a5c282f8c74f0bb746c5e9f89"
+    "sha256" : "a30e442641ab6319b844c03f2540f1cd10b8848a48f6f60e652ec51c97375e34"
   }, {
     "path" : "backend/src/main/resources/mapper/platform/base/PlatformMemberRoleMapper.xml",
-    "sha256" : "c2d96a37772d0f5aa265b34c2db621cdb3685a5d4ff5e24a2a3354f3410ec27c"
+    "sha256" : "f073c7a783aac57d69a604aa77b9ee83d43dca06ac697c11edb45d4b393b1c0d"
   }, {
     "path" : "backend/src/main/resources/mapper/platform/base/PlatformRoleMapper.xml",
-    "sha256" : "aa0852e53e0ea1d665d141fc013d44e33cad4609287d87ee558d55d980e5f2c8"
+    "sha256" : "acd6691b3ea3ba05dcc325e9babae306f8c167f8b9b05ed853b765e8bfccbe73"
   }, {
     "path" : "backend/src/main/resources/mapper/platform/base/PlatformRolePermissionMapper.xml",
-    "sha256" : "e6ac0473731e64cc43582e7cb1053a045a923178c2638c8d6d0430ad397544b4"
+    "sha256" : "7ab3d460663c4801c40cdcd9fb9c8f25bea8dcb88fcb24be259466c89671513b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/print/base/PrintJobMapper.xml",
+    "sha256" : "099b0dac134be69c2adb6bb3089883021f9224033450bc16ec4b7da151cd7d98"
+  }, {
+    "path" : "backend/src/main/resources/mapper/print/base/PrintTemplateMapper.xml",
+    "sha256" : "e0c8694e879e3721df1029c4d7a7220cd6007447b2db32c25bc1ddb79bd23b63"
+  }, {
+    "path" : "backend/src/main/resources/mapper/print/base/PrintTemplatePublicationMapper.xml",
+    "sha256" : "b215156f766d6c7a369ae8fb46ef73212c72b0d16ebcdfeef25348d2b2dd735e"
+  }, {
+    "path" : "backend/src/main/resources/mapper/print/base/PrintTemplateVersionMapper.xml",
+    "sha256" : "bdee14cd8e4688c36a651dc78419f8a2d6f04ec8e5549288f0668958c90c80f9"
+  }, {
+    "path" : "backend/src/main/resources/mapper/runtimedata/base/BizRecordConversionMapper.xml",
+    "sha256" : "35b34726a302e41a3c81f26703ce4dcf4b26fb3d84fd48d14e2e49e7b9f69daf"
+  }, {
+    "path" : "backend/src/main/resources/mapper/runtimedata/base/BizRecordConversionResultMapper.xml",
+    "sha256" : "9bcb0dbd30432f8ef3dada5191cb316aa24d84801ffcead59f5fa65e124ba04e"
+  }, {
+    "path" : "backend/src/main/resources/mapper/runtimedata/base/BizRecordIndexMapper.xml",
+    "sha256" : "9c7a0cb773c39985cb817fde418968872e88979c29ea51571f5e006a13ebe28c"
+  }, {
+    "path" : "backend/src/main/resources/mapper/runtimedata/base/BizRecordOwnerHistoryMapper.xml",
+    "sha256" : "cbe7d88c7040791a6117ce0e84fe25fd66de2cfc5e097ae89b702cfbfeb490d4"
+  }, {
+    "path" : "backend/src/main/resources/mapper/runtimedata/base/BizRecordRelationMapper.xml",
+    "sha256" : "a88f76b3305b30affdba64645c6bd5f66c837c06d4815c79dbd08c2e04692a44"
+  }, {
+    "path" : "backend/src/main/resources/mapper/runtimedata/base/BizRecordStateHistoryMapper.xml",
+    "sha256" : "fd8590eb3f011137681345eb8755639f3dd5f3c2973b68ea492a322ba7f5c5a7"
+  }, {
+    "path" : "backend/src/main/resources/mapper/runtimedata/base/BizTenantShareMapper.xml",
+    "sha256" : "8719b228fbbd1f1ad1e6430e10387fffffadec4ca99346c14fa9d8da69c68ac6"
+  }, {
+    "path" : "backend/src/main/resources/mapper/runtimedata/base/BizTenantShareUsageMapper.xml",
+    "sha256" : "6a775739f4f7f9c2bf47235b2aa3c5e2f0977706ff5874f9ef80a31986db7ea7"
   }, {
     "path" : "backend/src/main/resources/mapper/runtimedata/base/BusinessRecordMapper.xml",
-    "sha256" : "1689d43d6cf353a005761c14fad1cf0492a3f1cbee5d6c3e90fd1b023e9cca60"
+    "sha256" : "e9a6ba160450113e64c5314963a2e6aa16ba01b2320c5d58de9ec3965d37d1a3"
   }, {
     "path" : "backend/src/main/resources/mapper/runtimedata/base/BusinessRecordParticipantMapper.xml",
-    "sha256" : "5448013370acfe1a4a4e7f41e17c841f00063b7ac6bbff190f68078c0eb772ca"
+    "sha256" : "f777e28a606aeb94bea1461b44a1830118e2def18beb7b2abc2ea960dd079e82"
   }, {
     "path" : "backend/src/main/resources/mapper/runtimedata/base/BusinessRecordValueMapper.xml",
-    "sha256" : "e6f25e3c037979a662aa33ac1cdfd1dfdd770ac02ff5d0d9d8b849a90cc02ffb"
+    "sha256" : "c34b6fbe6046bcba4c8373f79f25cb1f4f9c1bc66720258a7b53b96c608a608b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/system/base/SysAccessRequestMapper.xml",
+    "sha256" : "f9b6b70898787bdce4cc2ed05bd23d07265125cc56c42bf67fb55e06d572084c"
+  }, {
+    "path" : "backend/src/main/resources/mapper/system/base/SysSystemDomainMapper.xml",
+    "sha256" : "27548bf1f8d60117ccc508fae0910c013dfa8b5fa4c11571cdb7a7c21ad5c5f9"
+  }, {
+    "path" : "backend/src/main/resources/mapper/system/base/SysTenantMigrationMapper.xml",
+    "sha256" : "e8723c68fb862ecfb17f4e36f3a8ec074dace2115163d4192a170a9fc55313be"
   }, {
     "path" : "backend/src/main/resources/mapper/system/base/SystemDefinitionMapper.xml",
-    "sha256" : "14a45fb1f151a5452b3f129e0dfed2ab00e8b9f3338cee4b8b30e7ec9ccd35e7"
+    "sha256" : "49a5fd33e062271ca2427636c66dc47d1648b3d8d82dcdc3abb91969446b9ad5"
   }, {
     "path" : "backend/src/main/resources/mapper/system/base/SystemDepartmentMapper.xml",
-    "sha256" : "326556b4c75ea7517b4fa27ccf343f87a084098e8e55602fbf7bc1d996391c1b"
+    "sha256" : "1901c4ebd0c30632437a41f943406313a80b8a9ff2cd8d8e81116b94e61d3e42"
   }, {
     "path" : "backend/src/main/resources/mapper/system/base/SystemMemberMapper.xml",
-    "sha256" : "07d390f99657e9ef11f61f8823d31f7c76d87c057b21a9f4c3d5a5dcd0dea755"
+    "sha256" : "2bd5f77f0af8f0f4a10a7b301cc092e4212f6dfc8b88435876f0a35ee775ca62"
   }, {
     "path" : "backend/src/main/resources/mapper/system/base/SystemMemberRoleMapper.xml",
     "sha256" : "3274bf87617961de6a9fc8ec59bec6db5aee663e8bb844d2f1edcb5a8a8a131a"
   }, {
     "path" : "backend/src/main/resources/mapper/system/base/SystemRoleMapper.xml",
-    "sha256" : "172ff79cfbe6087d2f4ed968a2e801d0dfd164c2cf7c3c3031f143dd549d9cc0"
+    "sha256" : "4956c47f314680ae809072216902beb7be8663e62fb83bbc33e5a057df3c194b"
   }, {
     "path" : "backend/src/main/resources/mapper/system/base/SystemRolePermissionMapper.xml",
-    "sha256" : "47b0e37ef8ce521079a3030ef7443daaeadb319fa6bfba1d410174f7a990b7ea"
+    "sha256" : "1ffeba6b33af68274454be3c8afa761c38b26e4b3b031f193fac719779218e09"
   }, {
     "path" : "backend/src/main/resources/mapper/system/base/SystemTenantMapper.xml",
-    "sha256" : "e3682e5d454c0062589cccf0a3fd3341e0882cffaa582cc3c813eac6a2b161a1"
+    "sha256" : "e8278066c15b9929314c9868724c369946d0c1eba22376e3ced02637465ffd57"
   }, {
     "path" : "backend/src/main/resources/mapper/system/base/SystemTenantMemberMapper.xml",
-    "sha256" : "cdcd8d9ee7710aec09f3c3b73356a46d490a1b13bd959e0caf981f897b2d569a"
+    "sha256" : "8eda10252aa068212bfbc90035d96ba0865cdd5e5b7efbd0ed4e27c62d2cff9b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/work/base/WorkFieldConfigMapper.xml",
+    "sha256" : "515c1e0d5109bef225152590d3f1bccb6b1cc16644947cb9dd41ebe9eaf1abe4"
+  }, {
+    "path" : "backend/src/main/resources/mapper/work/base/WorkLogMapper.xml",
+    "sha256" : "248b762c996b894b4f53b6362a7cfcb75ff8e9371b675d08ab84b1a0e2356d5d"
+  }, {
+    "path" : "backend/src/main/resources/mapper/work/base/WorkLogRevisionMapper.xml",
+    "sha256" : "5b4126df95ebf02d7a7387051f79bad9ee17f81f2b18c0a9cf34f99fbd5a1d55"
+  }, {
+    "path" : "backend/src/main/resources/mapper/work/base/WorkProjectMapper.xml",
+    "sha256" : "51b5ace11387ed9cbb71242d287b6dab1336a16796e52979b0b3e9787bc298ef"
+  }, {
+    "path" : "backend/src/main/resources/mapper/work/base/WorkProjectMemberMapper.xml",
+    "sha256" : "f8a61eb2842d528c9410da76c58400e00c8f6c4fba1b7028be0022960bd0a3e4"
+  }, {
+    "path" : "backend/src/main/resources/mapper/work/base/WorkTaskGroupMapper.xml",
+    "sha256" : "044d113eba1f0b2809f6bd8319f7f47df174ad104df8fee8533ad9a38977167c"
+  }, {
+    "path" : "backend/src/main/resources/mapper/work/base/WorkTaskHistoryMapper.xml",
+    "sha256" : "4b11d6201b3a02e56e248ba3fa622e6eca92817cc8497061f90df040c2f26470"
+  }, {
+    "path" : "backend/src/main/resources/mapper/work/base/WorkTaskMapper.xml",
+    "sha256" : "7af93a54f1a69baeae29053b2f38b332810fd808b05fcbcb21ff7a1eb27b16b8"
+  }, {
+    "path" : "backend/src/main/resources/mapper/work/base/WorkTaskMemberMapper.xml",
+    "sha256" : "97b5a7e91ca26d660947835f3886edf06937eefe24677ce58dbfe69bca420d18"
   } ]
 }

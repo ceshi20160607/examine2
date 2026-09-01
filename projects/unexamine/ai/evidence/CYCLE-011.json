@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-011",
+  "executedAt": "2026-08-18T15:23:09+08:00",
+  "taskIds": [
+    "TASK-0018",
+    "TASK-0026",
+    "TASK-0027"
+  ],
+  "checks": [
+    {
+      "name": "后端完整业务、企业身份源生命周期、系统创建事务与 21 个迁移测试（18 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "前端类型检查与生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "前端自动化测试（2 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "数据库三份结果与 21 个迁移合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "V21 后 151 张表、604 个 Base 文件全量重复生成与编译",
+      "command": "powershell -ExecutionPolicy Bypass -File projects/unexamine/tools/regenerate-base.ps1",
+      "result": "passed"
+    },
+    {
+      "name": "Template Base 回归测试（30 项）",
+      "command": "python -m unittest discover -s template_base/tests -p \"test_*.py\" -v",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-SYSTEM-CREATE",
+      "entryUrl": "http://127.0.0.1:15173/platform",
+      "actor": "具备平台系统创建权限的平台超级管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "平台超级管理员登录后在平台主页面看到“新建系统”，提交名称、唯一编码和 MULTI 多组织模式后页面显示创建成功。",
+        "列表自动刷新，新系统“周期十一页面验收系统”出现在第一行，同时显示默认主租户和有效状态。",
+        "点击进入后到达 /systems/3，页面显示当前系统、默认主租户、显式系统成员上下文和系统后台入口；浏览器控制台无错误。",
+        "无平台系统创建权限时前端隐藏入口，后端 PLATFORM/IDENTITY_PROVIDER 等平台资源权限也不接受系统上下文通配权限越权。"
+      ],
+      "persistentReads": [
+        "真实 MySQL 读回 sys_system.system_id=3、code=cycle11_ui_system、tenant_mode=MULTI、main_tenant_id=3，默认主租户 main_marker=MAIN。",
+        "创建人读回 sys_member.scope=ALL、sys_role.code=SYSTEM_SUPER_ADMIN、sys_permission.resource/action/object=*:*:*，且 sys_tenant_member.is_tenant_admin=1。",
+        "audit_event 读回 SYSTEM_CREATED SUCCESS（mainTenantId=3、creatorGrantedAdmin=true）和 SYSTEM_ENTER SUCCESS（tenantMode=MULTI、roleIds=[3]）。",
+        "集成测试同时验证系统编码冲突、权限拒绝和强制关联失败时系统、主租户、成员、角色授权整笔回滚。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/PlatformHomeView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/PlatformSystemCreationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemEntryService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/PlatformPermissionResolver.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/authentication/manage/AuthenticationRegistrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-011.json"
+      ]
+    }
+  ]
+}

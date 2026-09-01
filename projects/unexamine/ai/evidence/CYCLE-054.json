@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-054",
+  "executedAt": "2026-08-29T23:34:42+08:00",
+  "taskIds": ["TASK-0183", "TASK-0184", "TASK-0185"],
+  "checks": [
+    {
+      "name": "C54 发布清单、失败阻断、成功步骤、回滚点、专用权限和持久化定向验证",
+      "command": "dockerized Maven: OperationsDeploymentHttpTest with MySQL 8.4 and Redis 7.4",
+      "result": "passed"
+    },
+    {
+      "name": "后端完整 Testcontainers 报告聚合（20 个测试类、54 项，MySQL 8.4 与 Redis 7.4）",
+      "command": "dockerized Maven: mvn test; aggregate projects/unexamine/backend/target/surefire-reports/TEST-*.xml",
+      "result": "passed"
+    },
+    {
+      "name": "C54 发布步骤与状态映射前端定向验证（3 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run src/product/operations-deployment.test.ts",
+      "result": "passed"
+    },
+    {
+      "name": "全量前端回归（25 个文件、66 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "单 Vue 应用类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "稳定发布脚本和包清单语法验证",
+      "command": "PowerShell parser for deploy/scripts/*.ps1 and ConvertFrom-Json for deploy/package-manifest.example.json",
+      "result": "passed"
+    },
+    {
+      "name": "真实生产构建入口、API 反向代理、后端 readiness 和依赖容器验证",
+      "command": "Nginx 15174 + Spring Boot 18080 + MySQL 33077 + Redis 36379 + unexamine-file-storage",
+      "result": "passed"
+    },
+    {
+      "name": "发布失败、发布成功、回滚准备和重新体检真实浏览器验收",
+      "command": "Codex in-app browser against http://127.0.0.1:15174/systems/11/admin?section=operations",
+      "result": "passed"
+    },
+    {
+      "name": "发布、部署、回滚、请求、审计和健康记录真实 MySQL 读回",
+      "command": "select ops_release/ops_deployment/ops_request_log/audit_event/ops_health_run for release #1 and deployments #1-#3",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py -v",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、16 个更新片段和 34 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、活动实现、架构、用例、任务和 56 周期任务图全量门禁",
+      "command": "workspace-validate; architecture-validate; use-cases-validate; tasks-validate; task-graph-validate",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-OPS-DEPLOY-ROLLBACK",
+      "entryUrl": "http://127.0.0.1:15174/systems/11/admin?section=operations",
+      "actor": "C54 运维发布验收管理员（账号 #11 / 系统 #11 / 主租户 #13 / 成员 #15）",
+      "result": "passed",
+      "pageAssertions": [
+        "发布页从后端运行时清单读取 0.1.0-C54、前端 0.1.0-C54、数据库 V34、配置 development-c54、development 环境和完整制品 SHA-256；发布登记只接受与运行时一致的不可变版本、配置和摘要。",
+        "发布 #1 使用审批单 CAB-LOCAL-C54-001；内部真实入口不可达时状态为 FAILED、失败码 FRONTEND_SMOKE_FAILED，仅保存 4 个已执行步骤且没有 COMPLETE，证明 HTTP 调用本身成功也不会把业务发布伪装成成功。",
+        "修正为同一 Docker 网络中的生产 Nginx 入口后，发布 #2 使用审批单 CAB-LOCAL-C54-002 成功；页面逐项显示 MANIFEST、DATABASE、BACKEND_HEALTH、FRONTEND_SMOKE、COMPLETE 共 5/5，包含版本、耗时、健康状态、真实入口 HTTP 200 与证据。",
+        "数据库步骤显示 V34、待执行迁移 0 和 FORWARD_FIX；后端健康步骤显示关键依赖 5/5；前端冒烟步骤由后端访问真实生产静态入口而非前端自报。",
+        "回滚 #3 必须输入审批单 CAB-LOCAL-C54-R01 和精确确认词 ROLLBACK 2，页面状态为 ROLLBACK_READY，逐项保存审批、应用恢复、静态资源恢复、配置恢复、数据库策略和稳定脚本执行点共 6/6。",
+        "稳定脚本使用 manifest.json、固定 JAR 和 frontend 目录，验证环境、审批词、SHA-256、配置兼容和数据库策略；切换静态目录并等待 readiness/真实入口，失败时恢复前一应用与静态版本并写入失败证据。",
+        "版本不一致、不可恢复数据库迁移和真实入口失败在 Testcontainers 集成测试中均落为 FAILED，且无 COMPLETE 步骤；无 OPERATIONS/DEPLOY/MANAGE 专用权限时接口返回 403。",
+        "浏览器最终从 Nginx 生产构建入口登录并进入系统后台，不依赖 Vite 开发入口；同一入口通过 /api 代理读回发布、失败、成功、回滚和健康数据。",
+        "生产入口再次立即重检生成体检 #3，页面显示 0.1.0-C54、READY、关键依赖 5/5、数据库 V34，并读回 Web、后端、数据库和审计四个已观测阶段。",
+        "后端替换后命名文件卷中的 C52 既有文件仍存在，发布与回滚流程没有把持久数据放进不可变应用包。"
+      ],
+      "persistentReads": [
+        "ops_release #1 保存 version=0.1.0-C54、artifact_sha256=e69360173d02...、database_version=34、config_version=development-c54、status=REGISTERED、account_id=11。",
+        "ops_deployment #1 保存 operation=DEPLOY、status=FAILED、approval=CAB-LOCAL-C54-001、failure_code=FRONTEND_SMOKE_FAILED、step_count=4、database_strategy=FORWARD_FIX。",
+        "ops_deployment #2 保存 operation=DEPLOY、status=SUCCESS、approval=CAB-LOCAL-C54-002、step_count=5、database_strategy=FORWARD_FIX；步骤 JSON 包含真实入口 HTTP 200。",
+        "ops_deployment #3 保存 operation=ROLLBACK、status=ROLLBACK_READY、from_release_id=1、approval=CAB-LOCAL-C54-R01、step_count=6、database_strategy=FORWARD_FIX 和 rollback_point_json。",
+        "audit_event #1499/#1500/#1501/#1502 分别保存 OPERATIONS_RELEASE_REGISTERED、失败发布、成功发布与 OPERATIONS_ROLLBACK_PREPARED，actor/system/tenant 均为 11/11/13。",
+        "ops_request_log 保存发布 #1、发布 #2、回滚 #3 的 WEB 请求与 requestId；HTTP 200 与业务 FAILED 分离记录，失败发布不能伪装成成功。",
+        "ops_health_run #3 保存 release_version=0.1.0-C54、status=READY、passed=5、database V34、requestId=f0075caa620f4ef4a1c3b8e7319f48e4。",
+        "information_schema 读回 155 张业务表和 1 张 Flyway 历史表；flyway_schema_history 最新成功版本为 34。",
+        "命名卷 unexamine-file-storage 读回既有文件 system/10/tenant/12/generated/7bdc8f2d-034e-47f6-a315-965deea7afa7，大小 1694 bytes。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsDeploymentModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsDeploymentController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsDeploymentService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsFrontendSmokeProbe.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsDeploymentHttpTest.java",
+        "projects/unexamine/frontend/src/product/operations-deployment.ts",
+        "projects/unexamine/frontend/src/product/operations-deployment.test.ts",
+        "projects/unexamine/frontend/src/product/views/OperationsDeploymentView.vue",
+        "projects/unexamine/frontend/src/product/views/FoundationControlsView.vue",
+        "projects/unexamine/deploy/package-manifest.example.json",
+        "projects/unexamine/deploy/scripts/common.ps1",
+        "projects/unexamine/deploy/scripts/deploy.ps1",
+        "projects/unexamine/deploy/scripts/rollback.ps1",
+        "projects/unexamine/deploy/scripts/start.ps1",
+        "projects/unexamine/deploy/nginx.conf",
+        "projects/unexamine/ai/evidence/CYCLE-054-deployment-blocked.png",
+        "projects/unexamine/ai/evidence/CYCLE-054-deployment-success.png",
+        "projects/unexamine/ai/evidence/CYCLE-054-rollback-ready.png",
+        "projects/unexamine/ai/evidence/CYCLE-054.json"
+      ]
+    }
+  ]
+}

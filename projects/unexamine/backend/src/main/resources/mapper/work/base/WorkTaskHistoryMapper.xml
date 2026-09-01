@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.work.base.mapper.WorkTaskHistoryMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.work.base.entity.WorkTaskHistory">
+        <id column="id" property="id" />
+        <result column="task_id" property="taskId" />
+        <result column="action_code" property="actionCode" />
+        <result column="before_json" property="beforeJson" />
+        <result column="after_json" property="afterJson" />
+        <result column="comment_text" property="commentText" />
+        <result column="changed_by_account_id" property="changedByAccountId" />
+        <result column="changed_at" property="changedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, task_id, action_code, before_json, after_json, comment_text, changed_by_account_id, changed_at
+    </sql>
+
+</mapper>

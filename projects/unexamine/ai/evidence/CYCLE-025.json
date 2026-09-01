@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-025",
+  "executedAt": "2026-08-22T15:12:00+08:00",
+  "taskIds": ["TASK-0081", "TASK-0082", "TASK-0083"],
+  "checks": [
+    {
+      "name": "租户扩展、应用授权边界、发布删除回退及不可变版本回滚定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=ModuleConfigurationHttpTest#secondaryTenantPublishesOwnExtensionBindsOnlyExistingApplicationGrantAndFallsBackToMain test",
+      "result": "passed"
+    },
+    {
+      "name": "前端 API、权限、路由和运行动作测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm run test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "租户扩展编辑器、运行态版本来源标签类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-LOWCODE-TENANT-EXTENSION-BINDING",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统华东分公司中具备租户模板扩展权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "先通过系统与租户页面完成 SINGLE 到 MULTI 的影响检查、审批和迁移作业，再新建并切换进入华东分公司；页面上下文明确显示页面验收系统 / 华东分公司。",
+        "租户模板扩展页面只读展示 MAIN 来源的客户名称、联系电话和客户阶段，其中客户名称标记基础强制项只读；新增 TENANT 来源的 branch_note 分公司备注后，页面同时显示 MAIN 与 TENANT 来源。",
+        "应用绑定页面仅列出已授予当前租户 customer 模块的华东客户桥接应用 CREATE 授权及其字段范围，并明确提示不能新建授权或扩大范围；页面选择该既有授权后保存草稿，运行页仍保持主版本 v5 且没有分公司备注列。",
+        "发布检查通过后生成租户不可变版本 v1；业务列表同时显示主版本 v5和租户扩展 v1，列表出现分公司备注列，模块导航仍是客户经营 / 客户中心。",
+        "通过真实新建客户表单填写客户名称、手机号、潜在客户 / 已联系级联阶段和华东重点跟进，保存后华东首个客户成为列表第一行，租户字段和值均可见。",
+        "删除租户扩展后运行态自动回到主版本 v5，分公司备注列消失；原客户记录和主字段值仍可见，客户中心导航层级不变。",
+        "发布历史仍显示租户 v1及其基础主版本，可回滚恢复；回滚后页面再次显示主版本 v5和租户扩展 v1，最终再次删除并回退主配置。"
+      ],
+      "persistentReads": [
+        "cfg_tenant_extension 读回 system_id=7、tenant_id=9、base_module_id=2、draft_revision=1、status=DELETED、current_version_id=NULL；最终运行指针已回退主配置。",
+        "cfg_tenant_extension_version 仍保存不可变租户 v1、base_module_version_id=6、source=TENANT、稳定 schema_hash、east-customer-bridge 和 CREATE 绑定范围。",
+        "cfg_module_field 读回租户物理字段 __t9_branch_note、owner_tenant_id=9、ACTIVE；字段编码带租户隔离前缀且未修改主字段。",
+        "biz_record #4 仍为 tenant_id=9 的华东首个客户；biz_record_value 读回 name、phone、stage 和 __t9_branch_note=华东重点跟进，删除扩展没有删除业务数据。",
+        "audit_event 依次读回 TENANT_EXTENSION_DRAFT_SAVED、PUBLISHED、REMOVED、ROLLED_BACK、REMOVED，均绑定 tenant_id=9 和真实版本或扩展对象。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/TenantExtensionsView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionRuntimeService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-025.json"
+      ]
+    }
+  ]
+}

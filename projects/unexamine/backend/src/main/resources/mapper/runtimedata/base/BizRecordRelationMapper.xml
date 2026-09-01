@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.runtimedata.base.mapper.BizRecordRelationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.runtimedata.base.entity.BizRecordRelation">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="source_record_id" property="sourceRecordId" />
+        <result column="field_id" property="fieldId" />
+        <result column="target_record_id" property="targetRecordId" />
+        <result column="relation_order" property="relationOrder" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, source_record_id, field_id, target_record_id, relation_order, created_at
+    </sql>
+
+</mapper>

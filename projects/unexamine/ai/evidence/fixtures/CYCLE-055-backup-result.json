@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "releaseId": 1,
+  "approvalReference": "OPS-C55-SCRIPT-ISO-001",
+  "consistencyPoint": "2026-08-31T09:37:58.6283686Z",
+  "encryptionKeyReference": "kms://unexamine/backup/c55-script",
+  "requiredBytes": 1212054,
+  "availableBytes": 79778320384,
+  "items": [
+    {
+      "itemType": "DATABASE",
+      "storageUri": "backup://full-1-20260831T093758628Z/database.sql",
+      "sizeBytes": 1210235,
+      "sha256": "6a2ca3cfcac20ceaf8844e81d2e3ca4705081cceead4013eeb4c60440c3dba94",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "FILE_STORAGE",
+      "storageUri": "backup://full-1-20260831T093758628Z/file-storage.zip",
+      "sizeBytes": 1265,
+      "sha256": "77c4c1cdcd4e01184581b8cdbe49506777ba483d4d6e2092e931ee9bece8fe42",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "CONFIGURATION",
+      "storageUri": "backup://full-1-20260831T093758628Z/configuration.json",
+      "sizeBytes": 314,
+      "sha256": "537dbd862a9a84d4a3d51ac99e7bead6860276a6bec5e2e884042e6436755700",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "SECRET_REFERENCES",
+      "storageUri": "backup://full-1-20260831T093758628Z/secret-references.json",
+      "sizeBytes": 240,
+      "sha256": "1633ba05b6f33604c7a1db58c082ba3f3d3b3abfe37be8855cf75644546ed94c",
+      "verificationStatus": "VERIFIED"
+    }
+  ]
+}

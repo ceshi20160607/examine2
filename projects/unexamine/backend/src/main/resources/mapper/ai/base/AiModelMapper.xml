@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.ai.base.mapper.AiModelMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiModel">
+        <id column="id" property="id" />
+        <result column="platform_id" property="platformId" />
+        <result column="code" property="code" />
+        <result column="name" property="name" />
+        <result column="provider" property="provider" />
+        <result column="model_name" property="modelName" />
+        <result column="endpoint_url" property="endpointUrl" />
+        <result column="credential_ref" property="credentialRef" />
+        <result column="capabilities_json" property="capabilitiesJson" />
+        <result column="limit_policy_json" property="limitPolicyJson" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, platform_id, `code`, `name`, provider, model_name, endpoint_url, credential_ref, capabilities_json, limit_policy_json, `status`, created_at, updated_at, version
+    </sql>
+
+</mapper>

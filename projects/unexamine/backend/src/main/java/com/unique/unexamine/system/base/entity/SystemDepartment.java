@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
@@ -30,13 +31,19 @@ public class SystemDepartment {
     @TableField("parent_id")
     private Long parentId;
 
-    @TableField("code")
+    @TableField("`code`")
     private String code;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
 
-    @TableField("status")
+    @TableField("path_code")
+    private String pathCode;
+
+    @TableField("sort_order")
+    private Integer sortOrder;
+
+    @TableField("`status`")
     private String status;
 
     @TableField("created_at")
@@ -44,6 +51,10 @@ public class SystemDepartment {
 
     @TableField("updated_at")
     private LocalDateTime updatedAt;
+
+    @Version
+    @TableField("version")
+    private Integer version;
 
     public Long getId() {
         return id;
@@ -93,6 +104,22 @@ public class SystemDepartment {
         this.name = name;
     }
 
+    public String getPathCode() {
+        return pathCode;
+    }
+
+    public void setPathCode(String pathCode) {
+        this.pathCode = pathCode;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -117,6 +144,14 @@ public class SystemDepartment {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         return "SystemDepartment{" +
@@ -126,9 +161,12 @@ public class SystemDepartment {
             ", parentId = " + parentId +
             ", code = " + code +
             ", name = " + name +
+            ", pathCode = " + pathCode +
+            ", sortOrder = " + sortOrder +
             ", status = " + status +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
+            ", version = " + version +
             "}";
     }
 }

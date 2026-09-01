@@ -11,6 +11,7 @@ import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticationService;
+import com.unique.unexamine.authentication.manage.AuthenticationContextHolder;
 import com.unique.unexamine.authentication.manage.SessionTokens;
 import com.unique.unexamine.authorization.manage.PermissionResolver;
 import com.unique.unexamine.authorization.manage.ResolvedPermissions;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.LinkedHashMap;
 
 @Service
 public class SystemEntryService {
@@ -52,6 +54,12 @@ public class SystemEntryService {
 
     @Transactional(noRollbackFor = DomainException.class)
     public SystemEntryResult enter(Long accountId, Long systemId, String traceId) {
+        return enter(accountId, systemId, null, null, traceId);
+    }
+
+    @Transactional(noRollbackFor = DomainException.class)
+    public SystemEntryResult enter(
+            Long accountId, Long systemId, Long previousSystemId, Long previousTenantId, String traceId) {
         SystemDefinition system = systemService.selectById(systemId);
         if (system == null || Boolean.TRUE.equals(system.getDeleted()) || !"ACTIVE".equals(system.getStatus())) {
             deny(accountId, system == null ? null : system.getId(), traceId);
@@ -63,11 +71,17 @@ public class SystemEntryService {
         if (tenant == null) {
             throw new DomainException("SYSTEM_CONFIGURATION_INVALID", "系统缺少可用的默认主租户", HttpStatus.CONFLICT);
         }
-        return enterResolved(accountId, system, tenant, traceId);
+        return enterResolved(accountId, system, tenant, previousSystemId, previousTenantId, traceId);
     }
 
     @Transactional(noRollbackFor = DomainException.class)
     public SystemEntryResult enterTenant(Long accountId, Long systemId, Long tenantId, String traceId) {
+        return enterTenant(accountId, systemId, tenantId, null, null, traceId);
+    }
+
+    @Transactional(noRollbackFor = DomainException.class)
+    public SystemEntryResult enterTenant(
+            Long accountId, Long systemId, Long tenantId, Long previousSystemId, Long previousTenantId, String traceId) {
         SystemDefinition system = systemService.selectById(systemId);
         if (system == null || Boolean.TRUE.equals(system.getDeleted()) || !"ACTIVE".equals(system.getStatus())) {
             deny(accountId, system == null ? null : system.getId(), traceId);
@@ -80,10 +94,16 @@ public class SystemEntryService {
             Long auditableTenantId = tenant != null && systemId.equals(tenant.getSystemId()) ? tenantId : null;
             denyTenant(accountId, systemId, auditableTenantId, traceId, "TENANT_NOT_ACTIVE");
         }
-        return enterResolved(accountId, system, tenant, traceId);
+        return enterResolved(accountId, system, tenant, previousSystemId, previousTenantId, traceId);
     }
 
-    private SystemEntryResult enterResolved(Long accountId, SystemDefinition system, SystemTenant tenant, String traceId) {
+    private SystemEntryResult enterResolved(
+            Long accountId,
+            SystemDefinition system,
+            SystemTenant tenant,
+            Long previousSystemId,
+            Long previousTenantId,
+            String traceId) {
         Long systemId = system.getId();
         SystemMember member = first(memberService.selectList(Wrappers.<SystemMember>lambdaQuery()
                 .eq(SystemMember::getSystemId, systemId)
@@ -101,15 +121,29 @@ public class SystemEntryService {
             denyTenant(accountId, systemId, tenant.getId(), traceId, "NO_ACTIVE_TENANT_MEMBERSHIP");
         }
 
-        ResolvedPermissions resolved = permissionResolver.resolve(tenant.getId(), tenantMember.getId());
+        ResolvedPermissions resolved = permissionResolver.resolve(systemId, tenant.getId(), tenantMember.getId());
         SessionTokens tokens = authenticationService.createSystemSession(
-                accountId, systemId, tenant.getId(), member.getId(), resolved);
+                accountId, systemId, tenant.getId(), member.getId(), tenantMember.getId(), resolved,
+                AuthenticationContextHolder.require().mfaLevel());
         auditRecorder.record(traceId, accountId, systemId, tenant.getId(), member.getId(),
                 "SYSTEM_ENTER", "SYSTEM", systemId.toString(), "SUCCESS",
                 Map.of("roleIds", resolved.roleIds(), "tenantMode", system.getTenantMode()));
+        Map<String, Object> switchDetail = new LinkedHashMap<>();
+        switchDetail.put("previousSystemId", previousSystemId);
+        switchDetail.put("previousTenantId", previousTenantId);
+        switchDetail.put("systemId", systemId);
+        switchDetail.put("tenantId", tenant.getId());
+        switchDetail.put("redrawScopes", List.of("NAVIGATION", "DASHBOARD", "MODULES", "TODO", "MESSAGES", "FIELD_PERMISSIONS", "DATA_SCOPE"));
+        auditRecorder.record(traceId, accountId, systemId, tenant.getId(), member.getId(),
+                "SYSTEM_CONTEXT_SWITCHED", "TENANT", tenant.getId().toString(), "SUCCESS", switchDetail);
+        TenantSwitchContext tenantSwitchContext = new TenantSwitchContext(tenant.getId(), resolved.roleIds(),
+                resolved.dataScopes(), "MULTI".equals(system.getTenantMode()),
+                "MULTI".equals(system.getTenantMode()) ? null : "单租户系统不显示租户切换");
         return new SystemEntryResult(systemId, system.getCode(), system.getName(), system.getTenantMode(),
-                tenant.getId(), tenant.getName(), member.getId(), resolved.roleIds(), resolved.permissions(),
-                resolved.dataScopes(), tokens);
+                tenant.getId(), tenant.getName(), member.getId(), tenantMember.getId(), resolved.roleIds(), resolved.permissions(),
+                resolved.dataScopes(), traceId,
+                List.of("NAVIGATION", "DASHBOARD", "MODULES", "TODO", "MESSAGES", "FIELD_PERMISSIONS", "DATA_SCOPE"),
+                tenantSwitchContext, tokens);
     }
 
     private void denyTenant(Long accountId, Long systemId, Long tenantId, String traceId, String reason) {
@@ -135,7 +169,7 @@ public class SystemEntryService {
             result.add(new AccessibleSystem(system.getId(), system.getCode(), system.getName(), system.getTenantMode(),
                     system.getStatus(), tenant == null ? null : tenant.getId(), tenant == null ? null : tenant.getName()));
         }
-        return result.stream().sorted(java.util.Comparator.comparing(AccessibleSystem::systemId)).toList();
+        return result.stream().sorted(java.util.Comparator.comparing(AccessibleSystem::systemId).reversed()).toList();
     }
 
     private void deny(Long accountId, Long systemId, String traceId) {

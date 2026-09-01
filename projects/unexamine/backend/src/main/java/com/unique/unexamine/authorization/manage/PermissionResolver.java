@@ -5,14 +5,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.unique.unexamine.foundation.base.entity.CoreCacheEpoch;
+import com.unique.unexamine.foundation.base.service.CoreCacheEpochBaseService;
+import com.unique.unexamine.foundation.manage.control.FoundationContextKeyFactory;
 import com.unique.unexamine.system.base.entity.SystemMemberRole;
 import com.unique.unexamine.system.base.entity.SystemRole;
 import com.unique.unexamine.system.base.entity.SystemRolePermission;
 import com.unique.unexamine.system.base.service.SystemMemberRoleBaseService;
 import com.unique.unexamine.system.base.service.SystemRoleBaseService;
 import com.unique.unexamine.system.base.service.SystemRolePermissionBaseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -23,23 +30,68 @@ import java.util.Set;
 
 @Service
 public class PermissionResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PermissionResolver.class);
     private final SystemMemberRoleBaseService memberRoleService;
     private final SystemRoleBaseService roleService;
     private final SystemRolePermissionBaseService permissionService;
+    private final CoreCacheEpochBaseService cacheEpochService;
+    private final StringRedisTemplate redis;
+    private final FoundationContextKeyFactory keyFactory;
     private final ObjectMapper objectMapper;
 
     public PermissionResolver(
             SystemMemberRoleBaseService memberRoleService,
             SystemRoleBaseService roleService,
             SystemRolePermissionBaseService permissionService,
+            CoreCacheEpochBaseService cacheEpochService,
+            StringRedisTemplate redis,
+            FoundationContextKeyFactory keyFactory,
             ObjectMapper objectMapper) {
         this.memberRoleService = memberRoleService;
         this.roleService = roleService;
         this.permissionService = permissionService;
+        this.cacheEpochService = cacheEpochService;
+        this.redis = redis;
+        this.keyFactory = keyFactory;
         this.objectMapper = objectMapper;
     }
 
-    public ResolvedPermissions resolve(Long tenantId, Long tenantMemberId) {
+    public ResolvedPermissions resolve(Long systemId, Long tenantId, Long tenantMemberId) {
+        return resolveWithDiagnostics(systemId, tenantId, tenantMemberId).permissions();
+    }
+
+    public PermissionResolutionResult resolveWithDiagnostics(Long systemId, Long tenantId, Long tenantMemberId) {
+        long epoch = currentEpoch(systemId, tenantId);
+        String cacheKey = keyFactory.permissionCacheKey(systemId, tenantId, tenantMemberId, epoch);
+        boolean redisFailed = false;
+        try {
+            String cached = redis.opsForValue().get(cacheKey);
+            if (cached != null && !cached.isBlank()) {
+                ResolvedPermissions value = objectMapper.readValue(cached, ResolvedPermissions.class);
+                if (value.roleIds() != null && value.permissions() != null && value.dataScopes() != null) {
+                    return new PermissionResolutionResult(value, epoch, "REDIS", cacheKey);
+                }
+                redis.delete(cacheKey);
+            }
+        } catch (RuntimeException | JsonProcessingException exception) {
+            redisFailed = true;
+            LOGGER.warn("Permission cache read failed for system {} tenant {}; authoritative storage will be used",
+                    systemId, tenantId);
+        }
+
+        ResolvedPermissions resolved = resolveFromDatabase(tenantId, tenantMemberId);
+        try {
+            redis.opsForValue().set(cacheKey, objectMapper.writeValueAsString(resolved), Duration.ofMinutes(10));
+        } catch (RuntimeException | JsonProcessingException exception) {
+            redisFailed = true;
+            LOGGER.warn("Permission cache write failed for system {} tenant {}; request remains database-authoritative",
+                    systemId, tenantId);
+        }
+        return new PermissionResolutionResult(resolved, epoch,
+                redisFailed ? "DATABASE_FALLBACK" : "DATABASE", cacheKey);
+    }
+
+    private ResolvedPermissions resolveFromDatabase(Long tenantId, Long tenantMemberId) {
         List<Long> assignedRoleIds = memberRoleService.selectList(Wrappers.<SystemMemberRole>lambdaQuery()
                         .eq(SystemMemberRole::getTenantId, tenantId)
                         .eq(SystemMemberRole::getTenantMemberId, tenantMemberId))
@@ -57,7 +109,8 @@ public class PermissionResolver {
         }
 
         List<SystemRolePermission> rows = permissionService.selectList(Wrappers.<SystemRolePermission>lambdaQuery()
-                .in(SystemRolePermission::getRoleId, activeRoleIds));
+                .in(SystemRolePermission::getRoleId, activeRoleIds)
+                .eq(SystemRolePermission::getEffect, "ALLOW"));
         Map<String, MutablePermission> permissions = new LinkedHashMap<>();
         Map<String, List<DataScopeTerm>> scopes = new LinkedHashMap<>();
         rows.stream().sorted(Comparator.comparing(SystemRolePermission::getId)).forEach(row -> {
@@ -78,6 +131,14 @@ public class PermissionResolver {
         scopes.entrySet().stream().sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> mergedScopes.put(entry.getKey(), merge(entry.getValue())));
         return new ResolvedPermissions(activeRoleIds.stream().toList(), grants, mergedScopes);
+    }
+
+    private long currentEpoch(Long systemId, Long tenantId) {
+        String contextKey = "system:" + systemId + ":tenant:" + tenantId;
+        return cacheEpochService.selectList(Wrappers.<CoreCacheEpoch>lambdaQuery()
+                        .eq(CoreCacheEpoch::getContextKey, contextKey)
+                        .eq(CoreCacheEpoch::getCacheNamespace, "AUTHORIZATION"))
+                .stream().map(CoreCacheEpoch::getEpochValue).max(Long::compareTo).orElse(0L);
     }
 
     private DataScopeExpression merge(List<DataScopeTerm> source) {

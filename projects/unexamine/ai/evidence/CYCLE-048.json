@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-048",
+  "executedAt": "2026-08-27T18:50:34+08:00",
+  "taskIds": ["TASK-0156", "TASK-0157", "TASK-0158"],
+  "checks": [
+    {
+      "name": "仪表盘配置、发布版本与运行态前端回归（19 个文件、50 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "平台与系统仪表盘配置、预览、运行态和下钻类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "数据源/仪表盘不可变版本、草稿隔离、权限重检、错误显式化与下钻的真实 MySQL 定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=DashboardHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 33 迁移门禁（49 项）",
+      "command": "docker run --rm -v D:/workspace/01_project/snow/cursor/examine2/projects/unexamine/backend:/workspace -v /var/run/docker.sock:/var/run/docker.sock -w /workspace -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal maven:3.9.11-eclipse-temurin-21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 仪表盘后端编译门禁",
+      "command": "cd projects/unexamine/backend && docker run --rm -v D:/workspace/01_project/snow/cursor/examine2/projects/unexamine/backend:/workspace -w /workspace maven:3.9.11-eclipse-temurin-21 mvn -q -DskipTests compile",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、15 个更新片段和 33 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "184 条需求在 20 个能力与 4 个上下文中的唯一架构归属复核",
+      "command": "python template_base/tools/tb.py architecture-validate --design projects/unexamine/ai/architecture/design.json",
+      "result": "passed"
+    },
+    {
+      "name": "60 个用例对 184 条原子需求的完整覆盖复核",
+      "command": "python template_base/tools/tb.py use-cases-validate --catalog projects/unexamine/ai/requirements/use-cases.json",
+      "result": "passed"
+    },
+    {
+      "name": "191 个原子任务的实现与验证归属复核",
+      "command": "python template_base/tools/tb.py tasks-validate --catalog projects/unexamine/ai/planning/task-catalog.json",
+      "result": "passed"
+    },
+    {
+      "name": "56 个周期的依赖、阶段与每周期最多 240 分钟复核",
+      "command": "python template_base/tools/tb.py task-graph-validate --graph projects/unexamine/ai/planning/task-graph.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-ANALYTICS-DASHBOARD",
+      "entryUrl": "http://127.0.0.1:15173/systems/10/admin?section=dashboard 和 http://127.0.0.1:15173/platform/admin/dashboards",
+      "actor": "系统所有者账号 #10 / 系统 #10 / 主租户 #12，以及默认平台管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "系统首页在尚未发布时明确显示未配置状态，不回退到写死欢迎统计，也不以零值掩盖错误；管理员从系统管理的“仪表盘”分区进入真实配置页。",
+        "系统管理员通过表单创建并发布 MODULE_RECORDS/customer 数据源 #1，再用组件库配置指标、最近客户列表和快捷入口；布局宽度、刷新、颜色、查询数量、排序和下钻都由可视化控件生成，预览 r1 显示真实计数 4、四条授权记录和统计口径。",
+        "仪表盘 #1 发布 v1 后系统首页读回同一不可变版本，整页刷新仍显示指标 4、四条客户记录与快捷入口；点击列表第一项进入 workspace=runtime&module=customer&recordId=17，并自动打开真实记录详情抽屉。",
+        "发布后继续修改数据源草稿和仪表盘草稿不会改变运行态 v1；不存在的模块在预览中返回显式错误、空值和更新时间，发布被 422 阻止，页面不生成伪造零值。",
+        "平台管理员在独立的平台配置入口创建并发布 PLATFORM_SYSTEMS 数据源 #2 和仪表盘 #2；平台运行页显示当前账号有权进入的系统数 2，只暴露平台授权汇总和系统入口，不复用或泄露系统租户数据。",
+        "系统与平台运行态均再次检查组件可见权限、数据源执行权限和下钻权限；最终两个干净页签控制台均无错误或警告。"
+      ],
+      "persistentReads": [
+        "ana_data_source #1 属于 SYSTEM/system #10/tenant #12，code=c48_customer_records、source_type=MODULE_RECORDS、draft_revision=1、status=PUBLISHED；不可变版本 #1 的 definition_hash=529ec307…，发布后草稿修改不改变消费者快照。",
+        "ana_dashboard #1 属于同一系统租户，code=c48_system_home、name=C48 客户经营仪表盘；三个组件按 0/10/20 顺序保存指标、列表和快捷入口，发布指针固定指向版本 #1，snapshot_hash=12aa4564…。",
+        "ana_data_source #2 与 ana_dashboard #2 均属于 PLATFORM 上下文且 system_id/owner_tenant_id 为空；数据源版本 #2 definition_hash=261caf42…，仪表盘版本 #2 snapshot_hash=bc7317cd…，平台和系统记录不能跨上下文读取。",
+        "已发布数据源和仪表盘版本的 UPDATE/DELETE 由数据库不可变触发器拒绝；发布指针单独切换，运行态从指针读版本快照，而不是从后续草稿读定义。",
+        "审计序列覆盖系统与平台两组 DASHBOARD_DATA_SOURCE_CREATED、DASHBOARD_DATA_SOURCE_PUBLISHED、DASHBOARD_DRAFT_CREATED 和 DASHBOARD_PUBLISHED；浏览器产生的来源、组件、版本和发布指针均可由数据库持久化读回。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/analytics/manage/DashboardHttpTest.java",
+        "projects/unexamine/frontend/src/product/dashboard.ts",
+        "projects/unexamine/frontend/src/product/dashboard.test.ts",
+        "projects/unexamine/frontend/src/product/views/DashboardConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+        "projects/unexamine/frontend/src/product/views/PlatformDashboardConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/PlatformDashboardView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-048-preview.png",
+        "projects/unexamine/ai/evidence/CYCLE-048-system-runtime.png",
+        "projects/unexamine/ai/evidence/CYCLE-048-drill.png",
+        "projects/unexamine/ai/evidence/CYCLE-048-platform-runtime.png",
+        "projects/unexamine/ai/evidence/CYCLE-048.json"
+      ]
+    }
+  ]
+}

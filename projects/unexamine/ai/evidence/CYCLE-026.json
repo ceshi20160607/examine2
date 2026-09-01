@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-026",
+  "executedAt": "2026-08-22T15:27:00+08:00",
+  "taskIds": ["TASK-0085", "TASK-0086", "TASK-0087", "TASK-0169"],
+  "checks": [
+    {
+      "name": "业务记录类型值、版本、权限、失败原子性、时间线及更新时间定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=RuntimeDataHttpTest#publishedRuntimeStoresTypedValuesVersionsAndEnforcesActionScopeAndTenantBoundary test",
+      "result": "passed"
+    },
+    {
+      "name": "前端 API、权限、路由和运行动作测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm run test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "业务列表、真实表单、详情和字段语义时间线类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "统一数据库会话时区生成能力、工作区边界和项目骨架重复生成检查",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json && python template_base/tools/tb.py starter-check --starter projects/unexamine/tools/project-starter.json && docker compose -f projects/unexamine/deploy/compose.yaml config --quiet",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-RECORD-CREATE-EDIT",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统华东分公司中具备客户新建、编辑和详情权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从统一系统壳的业务模块入口进入客户经营 / 客户中心，页面显示当前上下文页面验收系统 / 华东分公司、主版本 v5和真实客户列表。",
+        "新建客户时只填写标题并保存，页面返回 name 必填字段不能为空、定位客户名称字段并保留表单草稿；列表仍为原记录数，没有部分写入。",
+        "修正必填项并填写唯一手机号和潜在客户 / 已联系级联阶段后保存，C26 最终验收客户 #6刷新后位于列表第一行，并显示负责人 8、本租户、ACTIVE 和 Asia/Shanghai 创建时间。",
+        "编辑第一行客户名称为 C26 最终重点客户后，页面提示业务数据已更新并自动打开真实详情；详情读回新名称、手机号、业务级联标签、负责人、创建时间和晚于创建时间的更新时间。",
+        "变更时间线按倒序显示编辑记录和新建记录，操作者均为页面验收管理员（成员 8）；编辑项显示 C26 最终验收客户到 C26 最终重点客户，新建项的客户阶段显示潜在客户 / 已联系而不是内部引用 ID。",
+        "实测发现并修复仅字段值更新时 biz_record.updated_at 不推进，以及 MySQL 容器 UTC 与应用 Asia/Shanghai 混用；当前新建时间 15:25:54、更新时间 15:26:06，页面、业务记录和审计时间线同一时区。"
+      ],
+      "persistentReads": [
+        "biz_record #6 读回 system_id=7、tenant_id=9、module_id=2、owner_member_id=8、ACTIVE、created_config_version_id=6、updated_config_version_id=6、version=1；updated_at 大于 created_at。",
+        "biz_record_value 读回 name=C26 最终重点客户、phone=13600000026、stage 的发布字典末级 ID=2；详情和时间线按发布字典展示业务标签。",
+        "biz_record_index 读回 customer_phone_unique 的 query_index_id=1、phone 文本和一致的 index_key_hash / unique_key_hash；字段编辑后索引仍原子存在。",
+        "audit_event 读回必填失败的 BUSINESS_RECORD_CREATE / FIELD_VALIDATION_FAILED，以及 #6 的 BUSINESS_RECORD_CREATED和 BUSINESS_RECORD_UPDATED成功事件、账号 6、成员 8。",
+        "audit_field_change 对新建保存 name、phone、stage 三项，对编辑仅保存 name 一项前后值；无相关人和引用关系时对应关系表计数均为 0。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/backend/src/main/resources/application.yml",
+        "projects/unexamine/deploy/compose.yaml",
+        "template_base/tools/template_base/starter.py",
+        "projects/unexamine/ai/evidence/CYCLE-026.json"
+      ]
+    }
+  ]
+}

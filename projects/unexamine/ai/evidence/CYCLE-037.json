@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-037",
+  "executedAt": "2026-08-22T18:56:00+08:00",
+  "taskIds": ["TASK-0105", "TASK-0106", "TASK-0125", "TASK-0126"],
+  "checks": [
+    {
+      "name": "Flow 运行页、工作配置与日历页及已有前端状态回归（11 个文件、26 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 运行实例、工作配置、日历统计页面类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 运行时和工作配置日历的真实 MySQL HTTP 业务验收",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#flowRuntimeFreezesVersionHandlesApprovalOnceAndPersistsExplainableFailure+workConfigurationPublishesLayeredVersionsAndCalendarHidesUnauthorizedDetails test",
+      "result": "passed"
+    },
+    {
+      "name": "C37 页面操作后的 Flow 实例/任务/动作、工作配置发布版本和工作日志 MySQL 读回",
+      "command": "查询 flow_instance/flow_task/flow_action/work_field_config/work_log",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-FLOW-APPROVE-RUNTIME",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "系统管理员兼发布快照解析出的审批账号 #6",
+      "result": "passed",
+      "pageAssertions": [
+        "从系统主导航 Flow 进入运行实例子页；运行态与设计发布、模块事件触发绑定同属 Flow，不新增错误的同级能力。",
+        "从页面选择已发布的 C33 合同审批 Flow，填写实例标题、customer/C37-001 业务引用和 amount=8000 变量后发起；列表立即出现实例 #1，状态为待审批并固定 Flow #1/V1。",
+        "详情显示定义哈希 b712a6a2348a…、当前节点负责人审批、当前处理人账号 #6、解析依据为发布快照 ACCOUNT 策略，以及下一步为当前账号处理唯一审批任务。",
+        "点击同意并填写“C37 页面验收同意，进入唯一结束状态”后，实例只进入已完成状态；当前节点变为结束、无人工处理人、下一步明确为 Flow 已完成，处理按钮全部消失。",
+        "时间线从真实持久化记录显示 START、网关自动执行、APPROVE、服务/通知自动执行及 AUTO_END 共 6 个动作；刷新页面后实例、冻结版本、变量、动作理由和完成状态全部保留。",
+        "非当前处理人、业务对象权限交集、重复幂等提交、拒绝/退回原因和服务失败显式异常由同一 manage API 的 C36 隔离 MySQL HTTP 验收覆盖。"
+      ],
+      "persistentReads": [
+        "flow_instance #1 固定 flow_id=1、flow_version_id=1，最终 status=COMPLETED、current_node_key=end_mt4606fi_6、version=6。",
+        "flow_task #1 属于实例 #1 和 approval_mt4605gi_3，最终 action/status=APPROVE、assignee_account_id=6、version=1。",
+        "flow_action 对实例 #1 保存 6 行动作，APPROVE 行保留页面处理意见；冻结定义、变量、候选人和业务快照由详情 API 刷新读回。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+        "projects/unexamine/frontend/src/product/flow-runtime.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-037.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-WORK-CALENDAR-CONFIG",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "当前系统与主租户的工作配置管理员 #6",
+      "result": "passed",
+      "pageAssertions": [
+        "从系统主导航任务进入工作配置；普通任务、项目任务、每日日志、日历统计和工作配置保持在任务工作台内部，没有把导入导出或其他模块动作提升为同级模块。",
+        "新建 TASK/c37_acceptance_note 配置草稿，名称为 C37 页面验收说明，TEXT 必填、cardVisible=true；保存后页面明确提示草稿尚未改变生效口径，并显示来源为系统覆盖、草稿行版本 0、未发布。",
+        "填写变更说明并发布后，配置显示当前发布 V1、历史 1 版、行版本 1；当前生效预览明确显示 TASK、字段编码、SYSTEM_OVERRIDE 和发布版 1，刷新页面后仍完整保留。",
+        "切换日历统计后，默认 2026-08-15 至 2026-08-29 范围实时显示完成任务 1、工作日志 1 条/95 分钟；2026-08-22 可下钻到完成的 C33 Flow 页面验收任务和 C35 Flow 绑定与日志页面验收日志。",
+        "平台默认继承、系统覆盖、发布历史/回滚、统计查询定义、项目与人员过滤、上下文隔离，以及无下钻权限只返回汇总且清空明细，由同一 manage API 的 C36 隔离 MySQL HTTP 验收覆盖。"
+      ],
+      "persistentReads": [
+        "work_field_config #1 属于 SYSTEM/system #7/tenant #8，target=TASK、field_code=c37_acceptance_note、status=PUBLISHED、row version=1，config_json 当前发布版为 1 且历史快照数为 1。",
+        "work_log 在 2026-08-22 对作者 #6 仍只有 1 条、合计 95 分钟；日历查询未复制或改写业务明细。",
+        "日历详情从既有 work_task/work_log/work_project 实时聚合，页面刷新后的配置预览仍由发布快照计算。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/WorkConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/WorkHubView.vue",
+        "projects/unexamine/frontend/src/product/work-configuration.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkConfigurationService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-037.json"
+      ]
+    }
+  ]
+}

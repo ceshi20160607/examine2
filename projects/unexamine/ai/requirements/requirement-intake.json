@@ -1,5 +1,5 @@
 {
-  "blockCount": 717,
+  "blockCount": 719,
   "blocks": [
     {
       "headingPath": [
@@ -4131,8 +4131,8 @@
       "kind": "list",
       "lineEnd": 1542,
       "lineStart": 1534,
-      "preview": "- 登录。 - 我的系统。 - 应用菜单。 - 数据列表。 - 数据表单。 - 数据详情。 - 待办审批。 - 抄送查看。 - 附件预览。",
-      "sha256": "38d4b061710e2095955b818aa6b016f65bff7ca35c7ba3de20ce21e87efc226e"
+      "preview": "- 登录。 - 我的系统。 - 模块组和模块菜单。 - 数据列表。 - 数据表单。 - 数据详情。 - 待办审批。 - 抄送查看。 - 附件预览。",
+      "sha256": "1ba4f8ac0924a66669961fb9d1f32bccaf24557b839fe6aec65ab0ccaca15ba8"
     },
     {
       "headingPath": [
@@ -7755,8 +7755,8 @@
       "kind": "paragraph",
       "lineEnd": 2644,
       "lineStart": 2643,
-      "preview": "> 来源：用户多轮设计审阅 + PM 裁决。与正文冲突时，**以本附录 + `docs/design/prototype-brief.md` 为准**。 > 目的：避免当前 brief / 原型 / 开发对「模块组」「应用」理解不一致。",
-      "sha256": "b9dc268e15b6e7c2bcbac6a8c3ce1c6fbc6ed59ba99dd538ed9babd00089fa08"
+      "preview": "> 来源：用户多轮设计审阅 + PM 裁决。与正文冲突时，以本附录中日期更新、优先级更高的澄清为准。 > 目的：避免当前 brief / 原型 / 开发对「模块组」「应用」理解不一致。",
+      "sha256": "06091dbfcd8f0b219a39965931ee3cffa43b7c79cbf11d75b0fbfaa8d56cf421"
     },
     {
       "headingPath": [
@@ -8028,8 +8028,8 @@
       "kind": "paragraph",
       "lineEnd": 2704,
       "lineStart": 2704,
-      "preview": "见 `.cursor/workflows/lifecycle.md` 的 S2 Gate：团队先完成 product/uiux/architect/frontend/test 内部设计闭环和可开发设计包，再进入外部原型工具或用户设计确认；外部原型不能替代内部设计责任。",
-      "sha256": "dd72231dca27b27cc0f74d249cacd884407f756ec9e747142659bdac07c897d4"
+      "preview": "团队先在 Template Base 的需求、架构、前端和测试关口内完成设计闭环及可开发设计包，再进入外部原型工具或用户设计确认；外部原型不能替代内部设计责任。",
+      "sha256": "eee1c3a9f277522dfcf5e0c2c0bc705b50ed482224e8ebae838630b2a5aa4f35"
     },
     {
       "headingPath": [
@@ -8734,12 +8734,38 @@
       "lineStart": 2922,
       "preview": "- **登录后主导航**：仪表盘、系统、Flow、应用、任务、AI、待办、消息、个人中心、系统后台、平台后台。 - **系统入口差异**：平台账号在“系统”中看到有权限的系统；普通系统账号进入系统后看到有权限的模块组和模块。 - **Flow**：展示权限范围内的平台 Flow、系统 Flow 和通过应用开放的 Flow；设计与发布配置进入对应层级后台...",
       "sha256": "7040acf8dc136e5dc9280ce5d9e5b18bd7ca5e56fc9ec91c2050854d9d4b6955"
+    },
+    {
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "附录 A：v2 已确认产品澄清（2026-06-15）",
+        "A.16 低代码数据、移动端与应用桥接最终澄清（2026-08-17，冲突时最终优先）"
+      ],
+      "id": "B0718",
+      "kind": "heading",
+      "lineEnd": 2934,
+      "lineStart": 2934,
+      "preview": "### A.16 低代码数据、移动端与应用桥接最终澄清（2026-08-17，冲突时最终优先）",
+      "sha256": "f735a6b3c1da2b7f89cd63094d335a1e813d880fbbc1136c1a39a05603602bc9"
+    },
+    {
+      "headingPath": [
+        "unexamine 全量重构产品方案",
+        "附录 A：v2 已确认产品澄清（2026-06-15）",
+        "A.16 低代码数据、移动端与应用桥接最终澄清（2026-08-17，冲突时最终优先）"
+      ],
+      "id": "B0719",
+      "kind": "list",
+      "lineEnd": 2942,
+      "lineStart": 2936,
+      "preview": "- **低代码业务数据**：用户在系统后台通过页面创建的自定义模块，统一使用“模块元数据 + 通用业务主记录 + 字段值 + 查询索引 + 独立关联表”的运行时数据模型。创建模块、字段、页面和动作时不得动态生成 Java 代码或业务物理表，也不设置把少数自定义模块升级为独立物理表的产品分支。 - **固定产品能力数据**：账号、系统、租户、组织、权限、...",
+      "sha256": "11c3e204af8bd739316fe17675376f2d15dee83e040ce6ae315ca02e15c6db78"
     }
   ],
   "schemaVersion": 1,
   "source": {
-    "lineCount": 2932,
+    "lineCount": 2942,
     "path": "../../../../docs/user_requirement.md",
-    "sha256": "4d5e127f95a5eb04923b1f7e78c40b688005e93aaf0028374cfafb22ebd3bf1b"
+    "sha256": "b090f848d32b25ae0d36bf3a392fed5ccf5ac90db43088d5e2ed8281b9496316"
   }
 }

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +22,9 @@ public class PlatformRolePermission {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    @TableField("platform_id")
+    private Long platformId;
+
     @TableField("role_id")
     private Long roleId;
 
@@ -33,8 +37,24 @@ public class PlatformRolePermission {
     @TableField("action_code")
     private String actionCode;
 
+    @TableField("data_scope_type")
+    private String dataScopeType;
+
+    @TableField("data_scope_json")
+    private String dataScopeJson;
+
+    @TableField("effect")
+    private String effect;
+
     @TableField("created_at")
     private LocalDateTime createdAt;
+
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
+
+    @Version
+    @TableField("version")
+    private Integer version;
 
     public Long getId() {
         return id;
@@ -42,6 +62,14 @@ public class PlatformRolePermission {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
     }
 
     public Long getRoleId() {
@@ -76,6 +104,30 @@ public class PlatformRolePermission {
         this.actionCode = actionCode;
     }
 
+    public String getDataScopeType() {
+        return dataScopeType;
+    }
+
+    public void setDataScopeType(String dataScopeType) {
+        this.dataScopeType = dataScopeType;
+    }
+
+    public String getDataScopeJson() {
+        return dataScopeJson;
+    }
+
+    public void setDataScopeJson(String dataScopeJson) {
+        this.dataScopeJson = dataScopeJson;
+    }
+
+    public String getEffect() {
+        return effect;
+    }
+
+    public void setEffect(String effect) {
+        this.effect = effect;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -84,15 +136,37 @@ public class PlatformRolePermission {
         this.createdAt = createdAt;
     }
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         return "PlatformRolePermission{" +
             "id = " + id +
+            ", platformId = " + platformId +
             ", roleId = " + roleId +
             ", resourceType = " + resourceType +
             ", resourceCode = " + resourceCode +
             ", actionCode = " + actionCode +
+            ", dataScopeType = " + dataScopeType +
+            ", dataScopeJson = " + dataScopeJson +
+            ", effect = " + effect +
             ", createdAt = " + createdAt +
+            ", updatedAt = " + updatedAt +
+            ", version = " + version +
             "}";
     }
 }

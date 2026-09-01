@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-040",
+  "executedAt": "2026-08-25T16:53:30+08:00",
+  "taskIds": ["TASK-0111", "TASK-0112", "TASK-0113"],
+  "checks": [
+    {
+      "name": "应用管理权限、表单模型、路由和页面状态前端回归（13 个文件、33 项）",
+      "command": "cd projects/unexamine/frontend && npm test",
+      "result": "passed"
+    },
+    {
+      "name": "平台与系统应用配置页面类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "应用草稿、发布快照、一次性凭证、轮换、停用和范围隔离的真实 MySQL 集成回归（8 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "系统应用非法 AI 资源授权在零写入前提下被拒绝",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#applicationDraftPublishesImmutableGrantSnapshotRotatesCredentialAndDisablesWithoutDeletingHistory test",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-APPLICATION-MANAGE",
+      "entryUrl": "http://127.0.0.1:15173/platform/applications",
+      "actor": "平台超级管理员账号 #1",
+      "result": "passed",
+      "pageAssertions": [
+        "从平台主导航应用入口创建平台服务调用应用，创建结果只显示一次首个 client secret；关闭后详情仅保留 clientId、版本、状态和 secret 尾号。",
+        "草稿配置固定 PLATFORM 归属，只能选择平台 Flow/AI 资源；本次授权 platform_contract_approval Flow 的 START 动作、title/variables 可读字段、PLATFORM 数据范围、每分钟 100 次和 127.0.0.1 来源 IP。",
+        "发布检查通过后生成不可变 V1 授权快照和摘要，详情明确标记应用不是模块容器，不生成模块导航或业务运行首页。",
+        "轮换后凭证 V2 有效、V1 撤销且新 secret 只显示一次；停用后 V1/V2 均为 REVOKED、有效凭证为 0，但发布 V1 和完整状态历史仍可读回。",
+        "从系统选择页进入周期十一页面验收系统的系统后台，应用配置是受权限控制的独立入口；页面限定当前系统和默认主租户上下文，不允许把应用配置当成跨系统父容器。"
+      ],
+      "persistentReads": [
+        "平台应用 #2 最终状态为 DISABLED、草稿修订 r2、当前运行版本 #1，V1 快照摘要前缀 3fc7166ab23ebad9。",
+        "凭证版本 V1/V2 均可按引用和状态读回且无明文，停用后当前有效数为 0。",
+        "APPLICATION_DRAFT_CREATED、APPLICATION_DRAFT_SAVED、APPLICATION_VERSION_PUBLISHED、APPLICATION_CREDENTIAL_ROTATED、APPLICATION_DISABLED 共 5 条历史按时间倒序可读回。",
+        "真实 MySQL 集成测试读回系统应用版本、授权、字段、凭证和审计历史，并证明跨系统范围及系统 AI 资源授权失败时 app_grant 保持零写入。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+        "projects/unexamine/frontend/src/product/views/PlatformApplicationView.vue",
+        "projects/unexamine/frontend/src/product/application.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-040.json"
+      ]
+    }
+  ]
+}

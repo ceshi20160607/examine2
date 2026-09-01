@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-024",
+  "executedAt": "2026-08-22T14:51:09+08:00",
+  "taskIds": ["TASK-0078", "TASK-0079", "TASK-0080"],
+  "checks": [
+    {
+      "name": "结构化规则、唯一索引、运行事务及 PHONE/CASCADE 类型闭环定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -q -Dtest=ModuleConfigurationHttpTest#structuredRulesAndUniqueIndexesArePreviewedPublishedAndEnforcedInOneTransaction,RuntimeDataHttpTest#publishedPhoneAndCascadeFieldsNormalizeAgainstThePublishedDictionaryPath test",
+      "result": "passed"
+    },
+    {
+      "name": "前端 API、权限、路由和运行动作测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "规则索引、手机号、级联输入和运行展示类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-LOWCODE-RULES-INDEX",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统中具备规则索引设计、发布和客户新建权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "在结构化业务规则页面创建 customer_name_blocked_word：CREATE 时客户名称 CONTAINS 禁用则 BLOCK，并用样例禁用客户执行预演；页面显示命中 BLOCK、业务错误文案和已预演。",
+        "在查询索引页面创建 customer_phone_unique，选择 phone 并开启唯一规则；页面明确显示 SYSTEM + TENANT + MODULE + NON_DELETED 范围与 biz_record_index(phone) SHA-256 唯一哈希计划。",
+        "发布检查通过并展示同一索引投影计划，确认后生成不可变模块版本 v5；运行页面显示发布版本 v5。",
+        "真实新建禁用客户时页面返回客户名称包含禁用词、不能保存，列表保持 0 条；改为有效客户一后创建成功并成为列表第一行。",
+        "再次新建不同名称但相同手机号的客户时页面返回唯一规则客户手机号唯一规则已存在相同值，列表仍为 1 条。",
+        "验收中发现并修复已发布 PHONE/CASCADE 只能设计不能录入的断链；运行表单现可输入手机号并选择潜在客户到已联系，列表显示潜在客户 / 已联系而不是技术 ID。"
+      ],
+      "persistentReads": [
+        "cfg_module_rule 读回 customer_name_blocked_word、VALIDATION、CREATE、EXECUTED、命中样例、命中条件结果、测试成员 8、ACTIVE。",
+        "cfg_query_index 与 cfg_query_index_field 读回 customer_phone_unique、unique_index=1、phone、SYSTEM + TENANT + MODULE + NON_DELETED 固定范围。",
+        "cfg_module_version 与 cfg_module_publication 读回 v5、draft_revision=16、稳定 schema_hash、规则数 1、索引数 1、当前版本与指针均为 5。",
+        "biz_record 仅有合法的有效客户一；biz_record_value 读回 name、标准化 phone=13900000001、stage 的发布字典末级 ID=2。",
+        "biz_record_index 仅有一条 phone=13900000001 投影，index_key_hash 与 unique_key_hash 相同；重复新建没有产生第二条业务记录或索引。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRuleIndexService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-024.json"
+      ]
+    }
+  ]
+}

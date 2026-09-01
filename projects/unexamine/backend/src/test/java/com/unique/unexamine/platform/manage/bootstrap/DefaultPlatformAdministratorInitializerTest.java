@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
@@ -13,8 +14,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class DefaultPlatformAdministratorInitializerTest {
     @Container
@@ -29,6 +32,7 @@ class DefaultPlatformAdministratorInitializerTest {
         registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
         registry.add("spring.datasource.username", MYSQL::getUsername);
         registry.add("spring.datasource.password", MYSQL::getPassword);
+        registry.add("app.bootstrap.default-admin.deployment-key", () -> "integration-bootstrap-key-2026");
     }
 
     @Autowired
@@ -64,5 +68,15 @@ class DefaultPlatformAdministratorInitializerTest {
         assertThat(passwordHasher.matches("123123aa".toCharArray(), originalHash)).isTrue();
         assertThat(jdbc.queryForObject("select password_hash from plat_account_credential", String.class)).isEqualTo(originalHash);
         assertThat(jdbc.queryForObject("select credential_version from plat_account_credential", Integer.class)).isEqualTo(originalVersion);
+    }
+
+    @Test
+    void rejectsMissingOrShortDeploymentKeysBeforeInitialization() {
+        assertThatThrownBy(() -> DefaultPlatformAdministratorInitializer.validateDeploymentKey(""))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("deployment key");
+        assertThatThrownBy(() -> DefaultPlatformAdministratorInitializer.validateDeploymentKey("too-short"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("deployment key");
     }
 }

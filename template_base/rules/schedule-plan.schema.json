@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/schedule-plan.schema.json",
+  "title": "Reviewed estimates, phase ownership and current-code assessment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "foundationPhaseId", "phases", "defaultEstimates", "capabilityEstimateFactors", "taskEstimateOverrides", "taskPhaseOverrides", "existingImplementationAssessment"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taskCatalogPath", "taskCatalogSha256"],
+      "properties": {
+        "taskCatalogPath": {"type": "string", "minLength": 1},
+        "taskCatalogSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "foundationPhaseId": {"type": "string", "pattern": "^PHASE-[0-9]{2,}$"},
+    "phases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "order", "name", "outcome", "dependsOn", "capabilityIds"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^PHASE-[0-9]{2,}$"},
+          "order": {"type": "integer", "minimum": 1},
+          "name": {"type": "string", "minLength": 1},
+          "outcome": {"type": "string", "minLength": 1},
+          "dependsOn": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^PHASE-[0-9]{2,}$"}},
+          "capabilityIds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^CAP-[A-Z0-9][A-Z0-9-]*$"}}
+        }
+      }
+    },
+    "defaultEstimates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["design", "database", "base-generation", "backend-manage", "frontend", "integration-test", "operations"],
+      "properties": {
+        "design": {"type": "integer", "minimum": 1, "maximum": 240},
+        "database": {"type": "integer", "minimum": 1, "maximum": 240},
+        "base-generation": {"type": "integer", "minimum": 1, "maximum": 240},
+        "backend-manage": {"type": "integer", "minimum": 1, "maximum": 240},
+        "frontend": {"type": "integer", "minimum": 1, "maximum": 240},
+        "integration-test": {"type": "integer", "minimum": 1, "maximum": 240},
+        "operations": {"type": "integer", "minimum": 1, "maximum": 240}
+      }
+    },
+    "capabilityEstimateFactors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capabilityId", "percent"],
+        "properties": {
+          "capabilityId": {"type": "string", "pattern": "^CAP-[A-Z0-9][A-Z0-9-]*$"},
+          "percent": {"type": "integer", "minimum": 10, "maximum": 300}
+        }
+      }
+    },
+    "taskEstimateOverrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["taskId", "estimateMinutes", "basis"],
+        "properties": {
+          "taskId": {"type": "string", "pattern": "^TASK-[0-9]{4,}$"},
+          "estimateMinutes": {"type": "integer", "minimum": 1, "maximum": 240},
+          "basis": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "taskPhaseOverrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["taskId", "phaseId", "basis"],
+        "properties": {
+          "taskId": {"type": "string", "pattern": "^TASK-[0-9]{4,}$"},
+          "phaseId": {"type": "string", "pattern": "^PHASE-[0-9]{2,}$"},
+          "basis": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "existingImplementationAssessment": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "treatment", "taskIds", "rationale"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "treatment": {"enum": ["reuse", "modify", "replace", "delete"]},
+          "taskIds": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^TASK-[0-9]{4,}$"}},
+          "rationale": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

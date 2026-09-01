@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.system.base.mapper.SysTenantMigrationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.system.base.entity.SysTenantMigration">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="from_mode" property="fromMode" />
+        <result column="to_mode" property="toMode" />
+        <result column="impact_snapshot_json" property="impactSnapshotJson" />
+        <result column="status" property="status" />
+        <result column="job_id" property="jobId" />
+        <result column="requested_by_member_id" property="requestedByMemberId" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="rollback_snapshot_json" property="rollbackSnapshotJson" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, from_mode, to_mode, impact_snapshot_json, `status`, job_id, requested_by_member_id, started_at, finished_at, rollback_snapshot_json, created_at, updated_at, version
+    </sql>
+
+</mapper>

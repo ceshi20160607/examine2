@@ -15,14 +15,16 @@
         <result column="value_datetime" property="valueDatetime" />
         <result column="value_boolean" property="valueBoolean" />
         <result column="value_reference_id" property="valueReferenceId" />
+        <result column="value_file_id" property="valueFileId" />
         <result column="value_json" property="valueJson" />
+        <result column="normalized_text" property="normalizedText" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, record_id, field_id, field_code, value_type, value_text, value_number, value_date, value_datetime, value_boolean, value_reference_id, value_json, created_at, updated_at
+        id, record_id, field_id, field_code, value_type, value_text, value_number, value_date, value_datetime, value_boolean, value_reference_id, value_file_id, value_json, normalized_text, created_at, updated_at
     </sql>
 
 </mapper>

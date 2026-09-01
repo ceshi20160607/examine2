@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-015",
+  "executedAt": "2026-08-18T21:36:00+08:00",
+  "taskIds": [
+    "TASK-0031",
+    "TASK-0032",
+    "TASK-0033",
+    "TASK-0034",
+    "TASK-0054"
+  ],
+  "checks": [
+    {
+      "name": "后端系统访问地址、显式上下文、租户迁移准备与统一错误全量测试（21 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "前端统一 API envelope、业务失败和 HTTP 失败契约测试（5 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "系统域名、上下文重绘与租户模式入口类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "持续总控循环机器规则及 Template Base 回归（31 项）",
+      "command": "python -m unittest discover -s template_base/tests -p \"test_*.py\"",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、活动项目与模板边界校验",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-SYSTEM-DOMAIN-SWITCH",
+      "entryUrl": "http://127.0.0.1:15173/systems/3",
+      "actor": "具备系统配置权限并可切换目标租户的系统管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "系统后台访问地址页保存 CUSTOM、127.0.0.1:19090、/cycle15 和 HTTP 后，页面显示唯一证明地址与随机 token，状态为 PENDING_VERIFICATION。",
+        "证明服务不可达时页面显示 VERIFICATION_FAILED，并明确显示未读到正确证明、访问地址不会启用和追踪号 455412ed9e14410996f20272582b5fee；未验证发布由后端以 DOMAIN_NOT_VERIFIED 拒绝。",
+        "真实 HTTP 证明地址返回精确 token 后，页面显示所有权验证通过；随后发布并显示 http://127.0.0.1:19090/cycle15，状态依次变为 VERIFIED 与 PUBLISHED。",
+        "在系统页面创建周期十五分租户后点击切换进入，页头由默认主租户变为周期十五分租户，活动菜单回到系统首页；进入业务模块后显示 0 个模块和没有可见的已发布模块，旧租户页面数据没有残留。",
+        "后端集成测试验证切换响应显式返回 contextRevision、tenantSwitchContext 和 NAVIGATION、DASHBOARD、MODULES、TODO、MESSAGES、FIELD_PERMISSIONS、DATA_SCOPE 全部重绘范围。"
+      ],
+      "persistentReads": [
+        "sys_system_domain #1 读回 system_id=3、CUSTOM、127.0.0.1:19090、/cycle15、PUBLISHED 和 version=4。",
+        "core_setting 读回 SYSTEM/3/SYSTEM_INFO/domain.verification.1，token 为 2d5bcf12-3934-45a0-a950-6953e5e325ee。",
+        "sys_tenant 读回默认主租户 #3 与周期十五分租户 #4；auth_session 最新记录从 system=3/tenant=3 切换到 system=3/tenant=4。",
+        "audit_event 读回 SYSTEM_DOMAIN_SAVED、两次 PROOF_UNREACHABLE、SYSTEM_DOMAIN_VERIFIED、SYSTEM_DOMAIN_PUBLISHED 和 SYSTEM_CONTEXT_SWITCHED；切换审计保存 previousSystemId=3、previousTenantId=3 及全部重绘范围。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/SystemSettingsView.vue",
+        "projects/unexamine/frontend/src/product/views/SystemHomeView.vue",
+        "projects/unexamine/frontend/src/product/session.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemDomainService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemEntryService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-015.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-FOUNDATION-API-ERROR",
+      "entryUrl": "http://127.0.0.1:15173/systems/3",
+      "actor": "在系统后台执行可能失败动作的已认证用户",
+      "result": "passed",
+      "pageAssertions": [
+        "域名证明服务不可达时页面不把 HTTP 200 或请求结束当成成功，而是保持失败告警并显示业务原因和 traceId。",
+        "发布未验证域名时接口返回非 2xx、DOMAIN_NOT_VERIFIED、requestId 与 data.traceId；页面统一 ApiError 保留业务错误信息和追踪号。",
+        "证明失败后页面重新读回 VERIFICATION_FAILED 状态；修复真实依赖后同一页面完成验证和发布，证明失败态不会伪造成功或阻止后续恢复。",
+        "前端契约测试覆盖成功 envelope、HTTP 失败、HTTP 200 业务失败以及 traceId 透传，后端测试覆盖状态码、错误码和请求追踪对应关系。"
+      ],
+      "persistentReads": [
+        "audit_event #51 保存 SYSTEM_DOMAIN_VERIFY、PROOF_UNREACHABLE 和 trace_id=455412ed9e14410996f20272582b5fee，与页面追踪号一致。",
+        "sys_system_domain 在失败时持久化 VERIFICATION_FAILED，真实证明恢复后才持久化 VERIFIED 和 PUBLISHED。",
+        "统一异常处理返回的 requestId 与 data.traceId 相同；失败审计和最终域名状态可以独立从数据库读回。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/api.ts",
+        "projects/unexamine/frontend/src/product/api.test.ts",
+        "projects/unexamine/frontend/src/product/views/SystemSettingsView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/shared/manage/web/ApiExceptionHandler.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemDomainService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-015.json"
+      ]
+    }
+  ]
+}

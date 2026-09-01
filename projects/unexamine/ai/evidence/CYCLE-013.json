@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-013",
+  "executedAt": "2026-08-18T20:58:00+08:00",
+  "taskIds": [
+    "TASK-0021",
+    "TASK-0029"
+  ],
+  "checks": [
+    {
+      "name": "系统身份源继承、预检、同步任务、成员绑定/访问申请及固定配置上下文 MySQL 集成测试（5 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q -Dtest=SystemAdministrationHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "平台后台与系统后台固定配置页面类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "持续总控循环机器规则及 Template Base 回归（31 项）",
+      "command": "python -m unittest discover -s template_base/tests -p \"test_*.py\"",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、活动项目与模板边界校验",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": []
+}

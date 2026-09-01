@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.analytics.base.mapper.AnaDataSourceVersionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.analytics.base.entity.AnaDataSourceVersion">
+        <id column="id" property="id" />
+        <result column="data_source_id" property="dataSourceId" />
+        <result column="version_number" property="versionNumber" />
+        <result column="draft_revision" property="draftRevision" />
+        <result column="definition_hash" property="definitionHash" />
+        <result column="snapshot_json" property="snapshotJson" />
+        <result column="published_by_account_id" property="publishedByAccountId" />
+        <result column="published_at" property="publishedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, data_source_id, version_number, draft_revision, definition_hash, snapshot_json, published_by_account_id, published_at
+    </sql>
+
+</mapper>

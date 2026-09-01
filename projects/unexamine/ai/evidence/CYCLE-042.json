@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-042",
+  "executedAt": "2026-08-25T19:17:04+08:00",
+  "taskIds": ["TASK-0131", "TASK-0132", "TASK-0133", "TASK-0145"],
+  "checks": [
+    {
+      "name": "消息模板、收件箱、发送和路由状态前端回归（14 个文件、36 项）",
+      "command": "cd projects/unexamine/frontend && npm test",
+      "result": "passed"
+    },
+    {
+      "name": "平台与系统消息页面类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "消息版本、变量校验、幂等投递、有限重试、已读归档与跳转权限复核的真实 MySQL 定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#publishedMessageTemplateRendersIdempotentInboxDeliveryAndRechecksTargetPermissionOnOpen test",
+      "result": "passed"
+    },
+    {
+      "name": "一次性上传令牌、摘要校验、安全扫描、隔离、业务引用和受控访问的真实 MySQL 定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#controlledFileUploadScansPersistsReferencesAndProtectsBytesAcrossContexts test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 31 迁移门禁（43 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、13 个更新片段和 31 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-NOTIFICATION-MESSAGE-DELIVERY",
+      "entryUrl": "http://127.0.0.1:15173/platform/messages",
+      "actor": "平台超级管理员账号 #1",
+      "result": "passed",
+      "pageAssertions": [
+        "通过同一 manage 服务保存 C42_PLATFORM_ACCEPTANCE 草稿后，平台消息页面读回模板并发布不可变 V1；缺少模板变量时集成回归证明消息及投递均保持零写入。",
+        "选择发布版本、填写平台接收人和安全目标 /platform/flows 后触发真实发送，收件箱顶部显示渲染后的主题“框架周期 C42 已完成页面验收”、正文、站内投递成功状态和未读计数 1。",
+        "打开消息时重新复核目标与接收成员关系，随后安全进入平台流程页；浏览器验收发现 PLATFORM_ROUTE 空 targetId 导致异常后已修正，并以同一路径和回归用例验证不再复现。",
+        "返回消息页后未读计数由 1 变为 0，归档后活动列表为空、归档筛选显示“已归档”；窄屏底部导航遮挡归档按钮的问题也已修正并重新点击验证。",
+        "外部渠道失败最多尝试 3 次且保留失败回执，站内渠道仍成功；系统流程目标在成员权限撤销后拒绝打开且不泄露目标内容。"
+      ],
+      "persistentReads": [
+        "MESSAGE_TEMPLATE_SAVED 请求 6efa3010e89444f59f4c235a843fe632、MESSAGE_TEMPLATE_PUBLISHED 请求 8e6d604a81a344c281ffa9990718697b 和 MESSAGE_CREATED 请求 c7511dc066534f09b3b301ecba92ee19 均可从审计历史读回。",
+        "消息 #1 的幂等上下文 message-test-1787655164223 唯一保存，模板版本 V1、收件人、投递尝试、回执和 PLATFORM_ROUTE 安全引用均持久化；重复事件由 V31 唯一约束和服务读回阻止重复写入。",
+        "MESSAGE_TARGET_OPENED 请求 14709bc827c845828e925afb6e501116 将收件人状态写为已读，MESSAGE_ARCHIVED 请求 30f1093e252542b382e9495612f8a792 将最终状态写为 ARCHIVED，并保留 read_at 与 archived_at。",
+        "修复前 requestId 4cf7d28c8aec48879d6b5de44ffaaba 的失败审计作为现场缺陷证据保留；修复后同一平台路由已由真实页面和集成回归证明可安全打开。",
+        "受控文件定向回归读回上传会话、SHA-256 摘要、扫描结果、对象元数据和业务引用；摘要不符保持失败且无对象，EICAR 文件被隔离且不可引用或下载，跨系统访问被拒绝。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageTemplateController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/PlatformMessageView.vue",
+        "projects/unexamine/frontend/src/product/views/MessageWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/message.ts",
+        "projects/unexamine/db/update/V31__message_event_deduplication.sql",
+        "projects/unexamine/ai/evidence/CYCLE-042.json"
+      ]
+    }
+  ]
+}

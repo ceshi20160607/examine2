@@ -1,11 +1,12 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 5,
   "projectControlRoot": "projects/<project>/ai",
   "roles": [
-    {"id": "lead", "owns": ["requirements ownership", "dependency graph", "decisions", "cycle schedule", "computed status"]},
+    {"id": "lead", "owns": ["requirements ownership", "dependency graph", "delivery phases", "cycle schedule", "computed status"]},
+    {"id": "pm", "owns": ["question.md", "routine product decisions", "user escalation", "decision closure"]},
     {"id": "requirements", "owns": ["atomic requirements", "use cases", "acceptance criteria"]},
     {"id": "architecture", "owns": ["module boundaries", "transaction boundaries", "data and permission boundaries"]},
-    {"id": "database", "owns": ["db/base", "db/update", "db/all.sql", "indexes and constraints"]},
+    {"id": "database", "owns": ["db/init", "db/update", "db/init.sql", "db/update.sql", "db/final.sql", "indexes and constraints"]},
     {"id": "backend", "owns": ["module manage logic", "backend affected tests"]},
     {"id": "frontend", "owns": ["real pages", "frontend affected tests"]},
     {"id": "test", "owns": ["cycle test design", "cycle integration", "real entry journey"]},
@@ -24,16 +25,46 @@
   ],
   "cycle": {
     "maximumMinutes": 240,
-    "taskMinutes": {"minimum": 10, "maximum": 120},
+    "taskEstimate": {"maximumMinutes": 240, "noArtificialMinimum": true},
     "testParticipatesFromPlanning": true,
-    "endChecks": ["one affected integration suite", "one real entry demonstration"]
+    "endChecks": ["one affected integration suite", "one source-bound page journey", "one real entry demonstration"]
+  },
+  "executionLoop": {
+    "continuous": true,
+    "activationIntents": ["continue development", "start implementation", "finish the project"],
+    "selectNext": "lowest-order incomplete cycle whose dependencies are satisfied",
+    "afterCycle": [
+      "write cycle evidence",
+      "recompute project status",
+      "report progress without yielding control",
+      "start the next eligible cycle"
+    ],
+    "failurePolicy": "fix the implementation or environment and rerun the affected verification",
+    "stopConditions": [
+      "all scheduled cycles are complete and all gates pass",
+      "the user explicitly requests a stop",
+      "a required action exceeds granted authority or is destructive",
+      "question.md contains an unresolved decision that PM cannot close without the user"
+    ],
+    "forbiddenStops": [
+      "one cycle is complete",
+      "a test or page journey fails",
+      "context compaction or token usage",
+      "waiting for another generic continue command"
+    ]
+  },
+  "deliveryPhases": {
+    "separateFromGates": true,
+    "computedAfter": ["atomic tasks", "dependency graph", "existing code assessment"],
+    "purpose": "project-specific dependency milestones from skeleton to usable to complete"
   },
   "forbidden": [
-    "invent another phase or gate hierarchy",
+    "treat project delivery phases as extra quality gates",
     "schedule before atomic tasks exist",
     "duplicate one capability across foundation and completion phases",
     "edit generated base code",
-    "use mocks as completion evidence",
-    "allow agents to set their own completion percentage"
+    "use mocks, compilation or HTTP 200 as completion evidence",
+    "allow agents to set their own completion percentage",
+    "yield control merely because one cycle is complete"
   ]
 }

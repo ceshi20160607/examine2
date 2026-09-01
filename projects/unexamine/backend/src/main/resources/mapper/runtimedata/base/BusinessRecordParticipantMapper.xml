@@ -9,13 +9,14 @@
         <result column="tenant_id" property="tenantId" />
         <result column="record_id" property="recordId" />
         <result column="system_member_id" property="systemMemberId" />
+        <result column="participant_type" property="participantType" />
         <result column="created_by_member_id" property="createdByMemberId" />
         <result column="created_at" property="createdAt" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, record_id, system_member_id, created_by_member_id, created_at
+        id, system_id, tenant_id, record_id, system_member_id, participant_type, created_by_member_id, created_at
     </sql>
 
 </mapper>

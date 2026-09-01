@@ -37,7 +37,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
             return true;
         }
         AuthenticatedContext context = AuthenticationContextHolder.require();
-        if (!checker.allows(context, required.resourceType(), required.resourceCode(), required.actionCode())) {
+        boolean wrongContext = ("PLATFORM".equals(required.resourceType()) && context.systemId() != null)
+                || ("CONFIG".equals(required.resourceType()) && context.systemId() == null);
+        if (wrongContext || !checker.allows(context, required.resourceType(), required.resourceCode(), required.actionCode())) {
             String permissionCode = required.resourceType() + ":" + required.resourceCode() + ":" + required.actionCode();
             auditRecorder.recordPermissionDenied(
                     TraceIdFilter.current(request),

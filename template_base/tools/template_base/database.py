@@ -46,42 +46,42 @@ def _write_if_changed(path: Path, content: str) -> None:
 def prepare_database(project_root: Path) -> dict[str, object]:
     project_root = project_root.resolve()
     db_root = project_root / "db"
-    base_root = db_root / "base"
+    init_root = db_root / "init"
     update_root = db_root / "update"
     migration_root = db_root / "migration"
     if not db_root.is_dir():
         raise DatabaseError(f"project db directory does not exist: {db_root}")
 
-    base_files = _read_sql_files(base_root)
+    init_files = _read_sql_files(init_root)
     update_files = _read_sql_files(update_root)
-    if not base_files:
-        raise DatabaseError("db/base must contain at least one versioned SQL file")
-    base_versions = {int(VERSIONED.fullmatch(path.name).group("version")) for path in base_files}
+    if not init_files:
+        raise DatabaseError("db/init must contain at least one versioned SQL file")
+    init_versions = {int(VERSIONED.fullmatch(path.name).group("version")) for path in init_files}
     update_versions = {int(VERSIONED.fullmatch(path.name).group("version")) for path in update_files}
-    if base_versions & update_versions:
-        raise DatabaseError("base and update SQL versions overlap")
-    if update_versions and min(update_versions) <= max(base_versions):
-        raise DatabaseError("every update SQL version must be newer than the base SQL versions")
+    if init_versions & update_versions:
+        raise DatabaseError("init and update SQL versions overlap")
+    if update_versions and min(update_versions) <= max(init_versions):
+        raise DatabaseError("every update SQL version must be newer than the init SQL versions")
 
-    base_sql = _merge(base_files, db_root, "No base SQL has been designed.")
+    init_sql = _merge(init_files, db_root, "No initial SQL has been designed.")
     update_sql = _merge(update_files, db_root, "No post-baseline database update exists yet.")
-    all_sql = base_sql.rstrip() + "\n\n" + update_sql
-    _write_if_changed(db_root / "base.sql", base_sql)
+    final_sql = init_sql.rstrip() + "\n\n" + update_sql
+    _write_if_changed(db_root / "init.sql", init_sql)
     _write_if_changed(db_root / "update.sql", update_sql)
-    _write_if_changed(db_root / "all.sql", all_sql)
+    _write_if_changed(db_root / "final.sql", final_sql)
 
     migration_root.mkdir(parents=True, exist_ok=True)
-    expected = {path.name for path in base_files + update_files}
+    expected = {path.name for path in init_files + update_files}
     for stale in migration_root.glob("V*.sql"):
         if stale.name not in expected:
             stale.unlink()
-    for source in base_files + update_files:
+    for source in init_files + update_files:
         _write_if_changed(migration_root / source.name, source.read_text(encoding="utf-8-sig"))
 
     return {
         "projectRoot": project_root.as_posix(),
-        "baseFiles": len(base_files),
+        "initFiles": len(init_files),
         "updateFiles": len(update_files),
         "migrationFiles": len(expected),
-        "allSqlSha256": hashlib.sha256(all_sql.encode("utf-8")).hexdigest(),
+        "finalSqlSha256": hashlib.sha256(final_sql.encode("utf-8")).hexdigest(),
     }

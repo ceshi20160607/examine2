@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.dataexchange.base.mapper.ExchangeImportBatchMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.dataexchange.base.entity.ExchangeImportBatch">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
+        <result column="mapping_id" property="mappingId" />
+        <result column="source_file_id" property="sourceFileId" />
+        <result column="job_id" property="jobId" />
+        <result column="mode" property="mode" />
+        <result column="status" property="status" />
+        <result column="total_rows" property="totalRows" />
+        <result column="valid_rows" property="validRows" />
+        <result column="success_rows" property="successRows" />
+        <result column="failed_rows" property="failedRows" />
+        <result column="authorization_snapshot_json" property="authorizationSnapshotJson" />
+        <result column="summary_json" property="summaryJson" />
+        <result column="created_by_member_id" property="createdByMemberId" />
+        <result column="created_at" property="createdAt" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, module_id, mapping_id, source_file_id, job_id, `mode`, `status`, total_rows, valid_rows, success_rows, failed_rows, authorization_snapshot_json, summary_json, created_by_member_id, created_at, started_at, finished_at, version
+    </sql>
+
+</mapper>

@@ -3,6 +3,7 @@ package com.unique.unexamine.platform.manage.registration;
 import com.unique.unexamine.platform.base.entity.PlatformAccount;
 import com.unique.unexamine.platform.base.entity.PlatformAccountCredential;
 import com.unique.unexamine.platform.base.entity.PlatformMember;
+import com.unique.unexamine.platform.base.entity.PlatformDefinition;
 import com.unique.unexamine.system.base.entity.SystemDefinition;
 import com.unique.unexamine.system.base.entity.SystemMember;
 import com.unique.unexamine.system.base.entity.SystemMemberRole;
@@ -21,6 +22,7 @@ import com.unique.unexamine.system.base.service.SystemRolePermissionBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import com.unique.unexamine.audit.manage.AuditRecorder;
+import com.unique.unexamine.platform.manage.foundation.PlatformDefinitionManager;
 import com.unique.unexamine.authentication.manage.AuthenticationService;
 import com.unique.unexamine.authentication.manage.Pbkdf2PasswordHasher;
 import com.unique.unexamine.authentication.manage.SessionTokens;
@@ -52,6 +54,7 @@ public class RegistrationTransactionService {
     private final Pbkdf2PasswordHasher passwordHasher;
     private final AuthenticationService authenticationService;
     private final AuditRecorder auditRecorder;
+    private final PlatformDefinitionManager platformDefinitionManager;
 
     public RegistrationTransactionService(
             PlatformAccountBaseService accountService,
@@ -66,7 +69,8 @@ public class RegistrationTransactionService {
             SystemRolePermissionBaseService rolePermissionService,
             Pbkdf2PasswordHasher passwordHasher,
             AuthenticationService authenticationService,
-            AuditRecorder auditRecorder) {
+            AuditRecorder auditRecorder,
+            PlatformDefinitionManager platformDefinitionManager) {
         this.accountService = accountService;
         this.credentialService = credentialService;
         this.platformMemberService = platformMemberService;
@@ -80,6 +84,7 @@ public class RegistrationTransactionService {
         this.passwordHasher = passwordHasher;
         this.authenticationService = authenticationService;
         this.auditRecorder = auditRecorder;
+        this.platformDefinitionManager = platformDefinitionManager;
     }
 
     @Transactional
@@ -88,6 +93,7 @@ public class RegistrationTransactionService {
         String systemCode = request.systemCode().strip().toLowerCase(Locale.ROOT);
         String displayName = request.displayName().strip();
         String systemName = request.systemName().strip();
+        PlatformDefinition platform = platformDefinitionManager.requireDefaultPlatform();
 
         PlatformAccount account = new PlatformAccount();
         account.setUsername(username);
@@ -103,11 +109,13 @@ public class RegistrationTransactionService {
         credentialService.insert(credential);
 
         PlatformMember platformMember = new PlatformMember();
+        platformMember.setPlatformId(platform.getId());
         platformMember.setAccountId(account.getId());
         platformMember.setStatus("ACTIVE");
         platformMemberService.insert(platformMember);
 
         SystemDefinition system = new SystemDefinition();
+        system.setPlatformId(platform.getId());
         system.setCode(systemCode);
         system.setName(systemName);
         system.setCreatorAccountId(account.getId());
@@ -156,6 +164,8 @@ public class RegistrationTransactionService {
         memberRoleService.insert(memberRole);
 
         SystemRolePermission permission = new SystemRolePermission();
+        permission.setSystemId(system.getId());
+        permission.setTenantId(tenant.getId());
         permission.setRoleId(role.getId());
         permission.setResourceType("*");
         permission.setResourceCode("*");
@@ -164,12 +174,13 @@ public class RegistrationTransactionService {
         rolePermissionService.insert(permission);
 
         SessionTokens tokens = authenticationService.createSystemSession(
-                account.getId(), system.getId(), tenant.getId(), member.getId(),
+                account.getId(), system.getId(), tenant.getId(), member.getId(), tenantMember.getId(),
                 new ResolvedPermissions(
                         List.of(role.getId()),
                         List.of(new PermissionGrant("*", "*", "*", List.of(role.getId()))),
                         Map.of("*:*:*", new DataScopeExpression("ALL",
-                                List.of(new DataScopeTerm("ALL", NullNode.getInstance(), List.of(role.getId())))))));
+                                List.of(new DataScopeTerm("ALL", NullNode.getInstance(), List.of(role.getId())))))),
+                "NONE");
 
         auditRecorder.record(traceId, account.getId(), system.getId(), tenant.getId(), member.getId(),
                 "ACCOUNT_REGISTER_SYSTEM_CREATED", "SYSTEM", system.getId().toString(), "SUCCESS",

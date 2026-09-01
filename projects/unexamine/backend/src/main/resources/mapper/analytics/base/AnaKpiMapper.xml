@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.analytics.base.mapper.AnaKpiMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.analytics.base.entity.AnaKpi">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="owner_tenant_id" property="ownerTenantId" />
+        <result column="code" property="code" />
+        <result column="name" property="name" />
+        <result column="data_source_version_id" property="dataSourceVersionId" />
+        <result column="target_expression" property="targetExpression" />
+        <result column="calculation_schedule" property="calculationSchedule" />
+        <result column="dimension_json" property="dimensionJson" />
+        <result column="reminder_policy_json" property="reminderPolicyJson" />
+        <result column="status" property="status" />
+        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, platform_id, system_id, owner_tenant_id, `code`, `name`, data_source_version_id, target_expression, calculation_schedule, dimension_json, reminder_policy_json, `status`, created_by_account_id, created_at, updated_at, version
+    </sql>
+
+</mapper>

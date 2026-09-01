@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.ai.base.mapper.AiAgentPublicationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiAgentPublication">
+        <id column="id" property="id" />
+        <result column="agent_id" property="agentId" />
+        <result column="current_version_id" property="currentVersionId" />
+        <result column="updated_by_member_id" property="updatedByMemberId" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, agent_id, current_version_id, updated_by_member_id, updated_at, version
+    </sql>
+
+</mapper>

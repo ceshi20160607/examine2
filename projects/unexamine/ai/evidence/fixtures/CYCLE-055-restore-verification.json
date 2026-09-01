@@ -1,0 +1,36 @@
+{
+  "backupId": 3,
+  "environment": "restore-c55-final",
+  "status": "PASSED",
+  "databaseRestore": "READABLE",
+  "fileObjects": "EXTRACTED",
+  "configurationVersion": "development-c54",
+  "secretReferences": "REFERENCE_ONLY_ROTATE_ON_RESTORE",
+  "verifiedAt": "2026-08-31T18:40:17.6167721+08:00",
+  "items": [
+    {
+      "itemType": "DATABASE",
+      "sizeBytes": 1210235,
+      "sha256": "6a2ca3cfcac20ceaf8844e81d2e3ca4705081cceead4013eeb4c60440c3dba94",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "FILE_STORAGE",
+      "sizeBytes": 1265,
+      "sha256": "77c4c1cdcd4e01184581b8cdbe49506777ba483d4d6e2092e931ee9bece8fe42",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "CONFIGURATION",
+      "sizeBytes": 314,
+      "sha256": "537dbd862a9a84d4a3d51ac99e7bead6860276a6bec5e2e884042e6436755700",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "SECRET_REFERENCES",
+      "sizeBytes": 240,
+      "sha256": "1633ba05b6f33604c7a1db58c082ba3f3d3b3abfe37be8855cf75644546ed94c",
+      "verificationStatus": "VERIFIED"
+    }
+  ]
+}

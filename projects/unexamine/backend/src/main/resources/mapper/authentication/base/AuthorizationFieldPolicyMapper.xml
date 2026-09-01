@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.authentication.base.mapper.AuthorizationFieldPolicyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.authentication.base.entity.AuthorizationFieldPolicy">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="role_id" property="roleId" />
+        <result column="resource_code" property="resourceCode" />
+        <result column="field_code" property="fieldCode" />
+        <result column="channel" property="channel" />
+        <result column="readable" property="readable" />
+        <result column="writable" property="writable" />
+        <result column="mask_strategy" property="maskStrategy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, platform_id, system_id, tenant_id, role_id, resource_code, field_code, `channel`, readable, writable, mask_strategy, created_at, updated_at, version
+    </sql>
+
+</mapper>

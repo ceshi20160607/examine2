@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-032",
+  "executedAt": "2026-08-22T17:04:00+08:00",
+  "taskIds": ["TASK-0098", "TASK-0118"],
+  "checks": [
+    {
+      "name": "Flow 草稿校验、路径模拟、分权发布、不可变版本及平台/系统隔离 HTTP 场景测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#flowDraftIsValidatedSimulatedAndPublishedAsImmutableScopedVersions test",
+      "result": "passed"
+    },
+    {
+      "name": "项目、任务组、项目任务、成员、状态机、历史、乐观锁及平台/系统隔离 HTTP 场景测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#projectTaskLifecyclePersistsGroupsMembersHistoryAndRejectsInvalidChanges test",
+      "result": "passed"
+    },
+    {
+      "name": "C32 Flow 与 Work 两条完整业务链整组回归（2 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "Flow/Work manage 层编译并确认未直接写 SQL、未修改生成 Base",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -DskipTests compile",
+      "result": "passed"
+    }
+  ],
+  "journeys": []
+}

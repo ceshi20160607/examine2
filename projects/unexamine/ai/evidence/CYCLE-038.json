@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-038",
+  "executedAt": "2026-08-22T19:15:00+08:00",
+  "taskIds": ["TASK-0107", "TASK-0128"],
+  "checks": [
+    {
+      "name": "手动加签挂起/恢复、映射失败零写入、审计留痕、待办投影、目标权限复核和结果引用 HTTP/MySQL 验收",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#manualFlowNodeSuspendsAndResumesApprovalWhileTodoExecutesRealTarget test",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 手动节点、业务状态联动和跨来源待办 manage 层编译",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -DskipTests compile",
+      "result": "passed"
+    },
+    {
+      "name": "当前系统 customer 记录 ACTIVE→APPROVED→ACTIVE 双向状态映射和原审批恢复完成真实 API 验收",
+      "command": "通过 /api/flow-runtime/instances/{id}/manual-nodes、任务动作和 /api/runtime/modules/customer/records/2 执行并读回",
+      "result": "passed"
+    },
+    {
+      "name": "C38 真实实例、手动任务、动作、业务状态及状态映射审计 MySQL 读回",
+      "command": "查询 flow_instance/flow_task/flow_action/biz_record/audit_event/todo_item",
+      "result": "passed"
+    }
+  ],
+  "journeys": []
+}

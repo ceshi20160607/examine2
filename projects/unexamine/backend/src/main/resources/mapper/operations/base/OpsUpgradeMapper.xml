@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.operations.base.mapper.OpsUpgradeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.operations.base.entity.OpsUpgrade">
+        <id column="id" property="id" />
+        <result column="release_id" property="releaseId" />
+        <result column="backup_id" property="backupId" />
+        <result column="context_type" property="contextType" />
+        <result column="system_id" property="systemId" />
+        <result column="impact_report_json" property="impactReportJson" />
+        <result column="status" property="status" />
+        <result column="rollback_point_json" property="rollbackPointJson" />
+        <result column="requested_by_account_id" property="requestedByAccountId" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, release_id, backup_id, context_type, system_id, impact_report_json, `status`, rollback_point_json, requested_by_account_id, started_at, finished_at, created_at, version
+    </sql>
+
+</mapper>

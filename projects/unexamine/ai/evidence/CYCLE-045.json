@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-045",
+  "executedAt": "2026-08-26T15:39:41+08:00",
+  "taskIds": ["TASK-0135", "TASK-0136", "TASK-0137"],
+  "checks": [
+    {
+      "name": "AI 配置前端回归（16 个文件、42 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "平台模型与系统 Agent 页面类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "模型凭证、系统授权、Agent 权限快照、越权阻断和不可变版本的真实 MySQL/Redis 定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=AiConfigurationHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 33 迁移门禁（46 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、15 个更新片段和 33 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "184 条需求在 20 个能力与 4 个上下文中的唯一架构归属复核",
+      "command": "python template_base/tools/tb.py architecture-validate --design projects/unexamine/ai/architecture/design.json",
+      "result": "passed"
+    },
+    {
+      "name": "60 个用例对 184 条原子需求的完整覆盖复核",
+      "command": "python template_base/tools/tb.py use-cases-validate --catalog projects/unexamine/ai/requirements/use-cases.json",
+      "result": "passed"
+    },
+    {
+      "name": "191 个原子任务的实现与验证归属复核",
+      "command": "python template_base/tools/tb.py tasks-validate --catalog projects/unexamine/ai/planning/task-catalog.json",
+      "result": "passed"
+    },
+    {
+      "name": "56 个周期的依赖、阶段与每周期最多 240 分钟复核",
+      "command": "python template_base/tools/tb.py task-graph-validate --graph projects/unexamine/ai/planning/task-graph.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-AI-MODEL-AGENT",
+      "entryUrl": "http://127.0.0.1:15173/systems/10/admin?section=ai",
+      "actor": "C45 浏览器验收系统所有者账号 #10 / 系统 #10 / 主租户 #12",
+      "result": "passed",
+      "pageAssertions": [
+        "平台超级管理员从固定平台后台导航进入“AI 模型”，接入 C45 浏览器验收模型；保存后页面只读回 PROPERTY 引用类型和“凭证可用”，不回显引用内容或密钥值。",
+        "平台页面将模型分别授权给系统并持久化读回日配额 50000、并发 2；未授权模型不会由系统 Agent 配置接口返回。",
+        "系统所有者从“我的系统”卡片进入系统 #10 的真实客户模块，再从系统顶栏进入系统后台“AI 配置”，只看到当前系统已授权的 C45 模型和已发布 customer 模块。",
+        "Agent 草稿 r1 配置 QUERY customer/LIST 与 WRITE customer/CREATE 两个工具，字段仅 customer_name，数据范围为当前成员范围；写工具的执行前人工确认被服务端和页面共同强制。",
+        "发布预览明确读回最终模型、2 个最终工具、1 个角色权限快照、字段可读/可写状态和服务器收敛的数据范围，页面判定两个工具范围有效。",
+        "发布 v1 后页面显示“已发布”和“v1 · r1 当前”；刷新页面会自动选中已有 Agent，再次预览仍读回相同模型、工具、字段和确认策略，同一 r1 的按钮变为禁用的“当前修订已发布”，浏览器控制台无错误。"
+      ],
+      "persistentReads": [
+        "ai_model #1 以 c45_browser_model/ACTIVE 保存，平台日配额 100000、并发 4、LOCAL_ONLY 且强制日志遮蔽；ai_system_model_grant #2 将其 ACTIVE 授权给系统 #10，日配额 50000、并发 2。",
+        "ai_agent #1 属于 system #10 / tenant #12，c45_customer_agent 草稿修订 r1 状态 PUBLISHED；两个 ai_agent_tool 分别为 QUERY customer/LIST/无需确认和 WRITE customer/CREATE/必须确认，字段均只有 customer_name，请求范围均为 CURRENT。",
+        "ai_agent_version #1 保存 v1/r1 和 SHA-256 1d00ceb078605726d6ab75c2dcc9bfb97e1714f8599a308269a57b09c0be3abe；ai_agent_publication.current_version_id=1。",
+        "版本快照 modelBinding 只保存模型、授权和 credentialReferenceType=PROPERTY；快照不包含 property:test.ai.secret，也不包含实际运行密钥，工具快照保留最终字段权限、有效数据范围和写操作确认。",
+        "数据库同时存在 ai_agent_version 的 BEFORE UPDATE 与 BEFORE DELETE 不可变触发器；定向集成回归实际证明更新和删除均被数据库拒绝。",
+        "审计事件 #449/#450/#460/#465/#466 分别记录模型配置、两次系统授权、Agent 草稿创建和版本发布；越权通配工具的定向回归被 AI_AGENT_PUBLICATION_INVALID 阻断且失败审计独立落库。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiConfigurationModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/PlatformAiConfigurationController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/PlatformAiConfigurationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/SystemAiConfigurationController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/SystemAiConfigurationService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/ai/manage/AiConfigurationHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/PlatformAiConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/AiConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/ai.ts",
+        "projects/unexamine/frontend/src/product/ai.test.ts",
+        "projects/unexamine/ai/evidence/CYCLE-045-platform-ai.png",
+        "projects/unexamine/ai/evidence/CYCLE-045-system-agent.png",
+        "projects/unexamine/ai/evidence/CYCLE-045.json"
+      ]
+    }
+  ]
+}

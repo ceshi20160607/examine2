@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.runtimedata.base.mapper.BizTenantShareMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.runtimedata.base.entity.BizTenantShare">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="source_tenant_id" property="sourceTenantId" />
+        <result column="target_tenant_id" property="targetTenantId" />
+        <result column="record_id" property="recordId" />
+        <result column="permission_json" property="permissionJson" />
+        <result column="status" property="status" />
+        <result column="expires_at" property="expiresAt" />
+        <result column="granted_by_member_id" property="grantedByMemberId" />
+        <result column="granted_at" property="grantedAt" />
+        <result column="revoked_at" property="revokedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, source_tenant_id, target_tenant_id, record_id, permission_json, `status`, expires_at, granted_by_member_id, granted_at, revoked_at, version
+    </sql>
+
+</mapper>

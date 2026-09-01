@@ -30,6 +30,9 @@ public class AuthenticationSession {
     @TableField("account_id")
     private Long accountId;
 
+    @TableField("platform_id")
+    private Long platformId;
+
     @TableField("system_id")
     private Long systemId;
 
@@ -38,6 +41,9 @@ public class AuthenticationSession {
 
     @TableField("member_id")
     private Long memberId;
+
+    @TableField("tenant_member_id")
+    private Long tenantMemberId;
 
     @TableField("role_ids_json")
     private String roleIdsJson;
@@ -48,6 +54,12 @@ public class AuthenticationSession {
     @TableField("data_scopes_json")
     private String dataScopesJson;
 
+    @TableField("permission_version")
+    private Long permissionVersion;
+
+    @TableField("mfa_level")
+    private String mfaLevel;
+
     @TableField("access_expires_at")
     private LocalDateTime accessExpiresAt;
 
@@ -56,6 +68,9 @@ public class AuthenticationSession {
 
     @TableField("revoked")
     private Boolean revoked;
+
+    @TableField("revoked_reason")
+    private String revokedReason;
 
     @TableField("created_at")
     private LocalDateTime createdAt;
@@ -95,6 +110,14 @@ public class AuthenticationSession {
         this.accountId = accountId;
     }
 
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
+    }
+
     public Long getSystemId() {
         return systemId;
     }
@@ -117,6 +140,14 @@ public class AuthenticationSession {
 
     public void setMemberId(Long memberId) {
         this.memberId = memberId;
+    }
+
+    public Long getTenantMemberId() {
+        return tenantMemberId;
+    }
+
+    public void setTenantMemberId(Long tenantMemberId) {
+        this.tenantMemberId = tenantMemberId;
     }
 
     public String getRoleIdsJson() {
@@ -143,6 +174,22 @@ public class AuthenticationSession {
         this.dataScopesJson = dataScopesJson;
     }
 
+    public Long getPermissionVersion() {
+        return permissionVersion;
+    }
+
+    public void setPermissionVersion(Long permissionVersion) {
+        this.permissionVersion = permissionVersion;
+    }
+
+    public String getMfaLevel() {
+        return mfaLevel;
+    }
+
+    public void setMfaLevel(String mfaLevel) {
+        this.mfaLevel = mfaLevel;
+    }
+
     public LocalDateTime getAccessExpiresAt() {
         return accessExpiresAt;
     }
@@ -165,6 +212,14 @@ public class AuthenticationSession {
 
     public void setRevoked(Boolean revoked) {
         this.revoked = revoked;
+    }
+
+    public String getRevokedReason() {
+        return revokedReason;
+    }
+
+    public void setRevokedReason(String revokedReason) {
+        this.revokedReason = revokedReason;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -190,15 +245,20 @@ public class AuthenticationSession {
             ", accessTokenHash = " + accessTokenHash +
             ", refreshTokenHash = " + refreshTokenHash +
             ", accountId = " + accountId +
+            ", platformId = " + platformId +
             ", systemId = " + systemId +
             ", tenantId = " + tenantId +
             ", memberId = " + memberId +
+            ", tenantMemberId = " + tenantMemberId +
             ", roleIdsJson = " + roleIdsJson +
             ", actionPermissionsJson = " + actionPermissionsJson +
             ", dataScopesJson = " + dataScopesJson +
+            ", permissionVersion = " + permissionVersion +
+            ", mfaLevel = " + mfaLevel +
             ", accessExpiresAt = " + accessExpiresAt +
             ", refreshExpiresAt = " + refreshExpiresAt +
             ", revoked = " + revoked +
+            ", revokedReason = " + revokedReason +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
             "}";

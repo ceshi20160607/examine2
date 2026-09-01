@@ -276,6 +276,67 @@ def build_analysis_plan(
     }
 
 
+def extract_literal_fragments(plan_path: Path, output_directory: Path) -> dict[str, Any]:
+    """Create lossless source-bound candidates before semantic analysis.
+
+    The result deliberately uses ``source-literal`` and ``unreviewed`` markers.
+    It proves that every source block reached an analysis packet, but it is not
+    a final requirement analysis and cannot pass ``requirements-validate``.
+    """
+    plan_path = plan_path.resolve()
+    output_directory = output_directory.resolve()
+    plan, intake_path, intake = _load_current_plan(plan_path)
+    source_path = require_current_intake(intake, intake_path)
+    source_lines = source_path.read_text(encoding="utf-8-sig").splitlines()
+    block_by_id = {block["id"]: block for block in intake["blocks"]}
+    output_directory.mkdir(parents=True, exist_ok=True)
+    plan_hash = sha256_bytes(plan_path.read_bytes())
+    expected_names: set[str] = set()
+    for packet in plan["packets"]:
+        name = f"{packet['id']}.json"
+        expected_names.add(name)
+        requirements = []
+        coverage = []
+        for block_id in packet["blockIds"]:
+            block = block_by_id[block_id]
+            text = "\n".join(source_lines[block["lineStart"] - 1:block["lineEnd"]]).strip()
+            candidate_id = f"CAND-{block_id}"
+            requirements.append({
+                "id": candidate_id,
+                "title": block["headingPath"][-1],
+                "statement": text,
+                "type": "source-literal",
+                "sourceBlocks": [block_id],
+            })
+            coverage.append({
+                "sourceBlock": block_id,
+                "classification": "unreviewed",
+                "requirementIds": [candidate_id],
+                "rationale": "Lossless literal candidate; semantic classification is still required.",
+            })
+        fragment = {
+            "schemaVersion": 1,
+            "source": {
+                "planPath": _relative_path(plan_path, output_directory),
+                "planSha256": plan_hash,
+            },
+            "packetId": packet["id"],
+            "requirements": requirements,
+            "decisions": [],
+            "coverage": coverage,
+        }
+        (output_directory / name).write_text(canonical_json(fragment), encoding="utf-8")
+    for stale in output_directory.glob("RWP-*.json"):
+        if stale.name not in expected_names:
+            stale.unlink()
+    return {
+        "outputDirectory": output_directory.as_posix(),
+        "packetCount": len(plan["packets"]),
+        "candidateCount": sum(len(packet["blockIds"]) for packet in plan["packets"]),
+        "semanticStatus": "unreviewed",
+    }
+
+
 def _load_current_plan(plan_path: Path) -> tuple[dict[str, Any], Path, dict[str, Any]]:
     try:
         plan = json.loads(plan_path.read_text(encoding="utf-8-sig"))
@@ -416,6 +477,141 @@ def collect_analysis_fragments(plan_path: Path, fragment_paths: list[Path], outp
         "candidateRequirementCount": candidate_requirement_count,
         "candidateDecisionCount": candidate_decision_count,
         "coveredBlockCount": covered_block_count,
+    }
+
+
+def consolidate_analysis_fragments(fragment_index_path: Path, consolidation_path: Path, output_path: Path) -> dict[str, Any]:
+    fragment_index_path = fragment_index_path.resolve()
+    consolidation_path = consolidation_path.resolve()
+    output_path = output_path.resolve()
+    try:
+        fragment_index = json.loads(fragment_index_path.read_text(encoding="utf-8-sig"))
+        consolidation = json.loads(consolidation_path.read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise RequirementError(f"cannot read consolidation input: {error}") from error
+    index_issues = validate_rule(fragment_index, "requirement-fragment-index.schema.json")
+    alias_issues = validate_rule(consolidation, "requirement-consolidation.schema.json")
+    if index_issues or alias_issues:
+        raise RequirementError("\n".join(str(issue) for issue in [*index_issues, *alias_issues]))
+    source = consolidation["source"]
+    referenced_index = (consolidation_path.parent / source["fragmentIndexPath"]).resolve()
+    if referenced_index != fragment_index_path:
+        raise RequirementError("consolidation references another fragment index")
+    if source["fragmentIndexSha256"] != sha256_bytes(fragment_index_path.read_bytes()):
+        raise RequirementError("consolidation is stale for the current fragment index")
+
+    requirements_by_id: dict[str, dict[str, Any]] = {}
+    requirement_order: list[str] = []
+    decisions_by_id: dict[str, dict[str, Any]] = {}
+    decision_order: list[str] = []
+    source_coverage: list[dict[str, Any]] = []
+    for item in fragment_index["fragments"]:
+        fragment_path = (fragment_index_path.parent / item["path"]).resolve()
+        validate_analysis_fragment(fragment_path)
+        if sha256_bytes(fragment_path.read_bytes()) != item["sha256"]:
+            raise RequirementError(f"fragment index is stale for {item['packetId']}")
+        fragment = json.loads(fragment_path.read_text(encoding="utf-8-sig"))
+        for requirement in fragment["requirements"]:
+            requirement_id = requirement.get("id")
+            if not isinstance(requirement_id, str) or requirement_id in requirements_by_id:
+                raise RequirementError(f"candidate requirement id is missing or duplicated: {requirement_id}")
+            requirements_by_id[requirement_id] = requirement
+            requirement_order.append(requirement_id)
+        for decision in fragment["decisions"]:
+            decision_id = decision.get("id")
+            if not isinstance(decision_id, str):
+                raise RequirementError("candidate decision id is missing")
+            if decision_id in decisions_by_id and decisions_by_id[decision_id] != decision:
+                raise RequirementError(f"candidate decision differs across fragments: {decision_id}")
+            if decision_id not in decisions_by_id:
+                decisions_by_id[decision_id] = decision
+                decision_order.append(decision_id)
+        source_coverage.extend(fragment["coverage"])
+
+    alias_map: dict[str, str] = {}
+    for index, item in enumerate(consolidation["aliases"]):
+        candidate_id = item["candidateId"]
+        final_id = item["finalId"]
+        if candidate_id == final_id:
+            raise RequirementError(f"aliases[{index}] cannot alias a requirement to itself")
+        if candidate_id not in requirements_by_id or final_id not in requirements_by_id:
+            raise RequirementError(f"aliases[{index}] references an unknown candidate requirement")
+        if candidate_id in alias_map:
+            raise RequirementError(f"candidate requirement is aliased more than once: {candidate_id}")
+        alias_map[candidate_id] = final_id
+    alias_targets = set(alias_map.values())
+    chained = sorted(alias_targets & alias_map.keys())
+    if chained:
+        raise RequirementError(f"alias targets cannot themselves be aliases: {chained}")
+
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for requirement_id in requirement_order:
+        final_id = alias_map.get(requirement_id, requirement_id)
+        grouped.setdefault(final_id, []).append(requirements_by_id[requirement_id])
+    final_requirements: list[dict[str, Any]] = []
+    for requirement_id in requirement_order:
+        if requirement_id not in grouped:
+            continue
+        candidates = grouped.pop(requirement_id)
+        primary = dict(requirements_by_id[requirement_id])
+        for field in ("sourceBlocks", "acceptanceCriteria", "decisionIds"):
+            merged: list[str] = []
+            for candidate in candidates:
+                for value in candidate.get(field, []):
+                    if value not in merged:
+                        merged.append(value)
+            primary[field] = merged
+        final_requirements.append(primary)
+    if grouped:
+        raise RequirementError(f"consolidation lost final requirements: {sorted(grouped)}")
+
+    final_coverage: list[dict[str, Any]] = []
+    for item in source_coverage:
+        refs: list[str] = []
+        for requirement_id in item.get("requirementIds", []):
+            final_id = alias_map.get(requirement_id, requirement_id)
+            if final_id not in refs:
+                refs.append(final_id)
+        classification = "requirement" if refs else item.get("classification")
+        if classification == "unreviewed":
+            raise RequirementError(f"source block remains semantically unreviewed: {item.get('sourceBlock')}")
+        final_coverage.append({
+            "sourceBlock": item.get("sourceBlock"),
+            "classification": classification,
+            "requirementIds": refs,
+            "rationale": item.get("rationale", ""),
+        })
+
+    plan_path = (fragment_index_path.parent / fragment_index["source"]["planPath"]).resolve()
+    plan, intake_path, intake = _load_current_plan(plan_path)
+    if fragment_index["source"]["planSha256"] != sha256_bytes(plan_path.read_bytes()):
+        raise RequirementError("fragment index is stale for the current analysis plan")
+    if fragment_index["source"]["requirementsSha256"] != intake["source"]["sha256"]:
+        raise RequirementError("fragment index is stale for the current requirement source")
+    analysis = {
+        "schemaVersion": 1,
+        "source": {
+            "intakePath": _relative_path(intake_path, output_path.parent),
+            "intakeSha256": sha256_bytes(intake_path.read_bytes()),
+            "requirementsSha256": intake["source"]["sha256"],
+            "fragmentIndexPath": _relative_path(fragment_index_path, output_path.parent),
+            "fragmentIndexSha256": sha256_bytes(fragment_index_path.read_bytes()),
+        },
+        "requirements": final_requirements,
+        "decisions": [decisions_by_id[item] for item in decision_order],
+        "coverage": final_coverage,
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(canonical_json(analysis), encoding="utf-8")
+    summary = validate_analysis(analysis, output_path)
+    return {
+        "output": str(output_path),
+        "candidateRequirementCount": len(requirements_by_id),
+        "finalRequirementCount": summary["requirementCount"],
+        "aliasCount": len(alias_map),
+        "decisionCount": summary["decisionCount"],
+        "openDecisionCount": summary["openDecisionCount"],
+        "coveredBlockCount": summary["coveredBlockCount"],
     }
 
 
@@ -594,8 +790,8 @@ def validate_analysis(analysis: dict[str, Any], analysis_path: Path) -> dict[str
         elif status == "resolved":
             if not isinstance(item.get("resolution"), str) or not item["resolution"].strip():
                 errors.append(f"{prefix}.resolution is required")
-            if item.get("resolvedBy") not in {"user", "explicit-source"}:
-                errors.append(f"{prefix}.resolvedBy must be user or explicit-source")
+            if item.get("resolvedBy") not in {"user", "explicit-source", "pm"}:
+                errors.append(f"{prefix}.resolvedBy must be user, explicit-source or pm")
         else:
             errors.append(f"{prefix}.status is invalid")
         decision_states[decision_id] = (str(status), item.get("resolvedBy"))
@@ -608,9 +804,9 @@ def validate_analysis(analysis: dict[str, Any], analysis_path: Path) -> dict[str
         if status == "confirmed" and any(decision_states.get(ref, ("open", None))[0] != "resolved" for ref in refs):
             errors.append(f"{requirement_id} is confirmed but still references an open decision")
         if origin == "proposed" and status == "confirmed" and any(
-            decision_states.get(ref, ("open", None))[1] != "user" for ref in refs
+            decision_states.get(ref, ("open", None))[1] not in {"user", "pm"} for ref in refs
         ):
-            errors.append(f"{requirement_id} was proposed by an Agent and requires a user-resolved decision")
+            errors.append(f"{requirement_id} was proposed and requires a user- or PM-resolved decision")
 
     dispositions = analysis.get("coverage")
     if not isinstance(dispositions, list):

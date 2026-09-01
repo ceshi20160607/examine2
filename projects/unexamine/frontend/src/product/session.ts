@@ -9,16 +9,28 @@ export interface SessionTokens {
 
 export interface CurrentContext {
   accountId: number
+  platformId: number
   systemId: number | null
   tenantId: number | null
   memberId: number | null
+  tenantMemberId: number | null
   username: string
   displayName: string
+  mfaLevel: string
   systemName?: string
   tenantName?: string
   roleIds: number[]
   permissions: Array<{ resourceType: string; resourceCode: string; actionCode: string }>
   dataScopes?: Record<string, { mode: string; terms: Array<{ type: string; roleIds: number[] }> }>
+  contextRevision?: string
+  redrawScopes?: string[]
+  tenantSwitchContext?: {
+    tenantId: number
+    tenantRoleIds: number[]
+    tenantDataScope: Record<string, { mode: string; terms: Array<{ type: string; roleIds: number[] }> }>
+    tenantSwitchable: boolean
+    disabledReason?: string
+  }
 }
 
 const PLATFORM_TOKENS_KEY = 'unexamine.platform.tokens'
@@ -56,6 +68,11 @@ export function setPlatformSession(tokens: SessionTokens, context?: CurrentConte
 }
 
 export function setSystemSession(tokens: SessionTokens, context: CurrentContext) {
+  const changed = systemContext.value?.systemId !== context.systemId || systemContext.value?.tenantId !== context.tenantId
+  if (changed) {
+    Object.keys(sessionStorage).filter((key) => key.startsWith('unexamine.system.cache.'))
+      .forEach((key) => sessionStorage.removeItem(key))
+  }
   systemTokens.value = tokens
   systemContext.value = context
   persist(SYSTEM_TOKENS_KEY, tokens)
@@ -69,4 +86,11 @@ export function clearSession() {
   systemContext.value = null
   ;[PLATFORM_TOKENS_KEY, SYSTEM_TOKENS_KEY, PLATFORM_CONTEXT_KEY, SYSTEM_CONTEXT_KEY]
     .forEach((key) => sessionStorage.removeItem(key))
+}
+
+export function clearSystemSession() {
+  systemTokens.value = null
+  systemContext.value = null
+  sessionStorage.removeItem(SYSTEM_TOKENS_KEY)
+  sessionStorage.removeItem(SYSTEM_CONTEXT_KEY)
 }

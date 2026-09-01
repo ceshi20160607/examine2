@@ -1,0 +1,1 @@
+{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0001","requirements":[],"decisions":[],"coverage":[{"sourceBlock":"B0002","classification":"context","requirementIds":[],"rationale":"说明最终方案不受旧代码限制，是需求解释原则。"}]}

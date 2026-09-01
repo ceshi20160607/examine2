@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowTaskMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowTask">
+        <id column="id" property="id" />
+        <result column="instance_id" property="instanceId" />
+        <result column="node_key" property="nodeKey" />
+        <result column="task_type" property="taskType" />
+        <result column="status" property="status" />
+        <result column="assignee_account_id" property="assigneeAccountId" />
+        <result column="assignee_snapshot_json" property="assigneeSnapshotJson" />
+        <result column="due_at" property="dueAt" />
+        <result column="claimed_at" property="claimedAt" />
+        <result column="completed_at" property="completedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, instance_id, node_key, task_type, `status`, assignee_account_id, assignee_snapshot_json, due_at, claimed_at, completed_at, created_at, updated_at, version
+    </sql>
+
+</mapper>

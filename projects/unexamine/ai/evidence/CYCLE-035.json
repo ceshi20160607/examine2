@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-035",
+  "executedAt": "2026-08-22T18:18:00+08:00",
+  "taskIds": ["TASK-0102", "TASK-0103", "TASK-0122", "TASK-0123"],
+  "checks": [
+    {
+      "name": "Flow 绑定、工作日志、权限导航及已有前端状态回归（9 个文件、22 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 触发绑定页、任务工作台、工作日志页及类型检查生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "已发布模块存在后继续编辑、Flow 绑定主默认/租户覆盖、工作日志权限及版本历史后端回归（4 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "C35 页面联调修复后的后端 manage 层编译",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -DskipTests compile",
+      "result": "passed"
+    },
+    {
+      "name": "C35 Flow 绑定解析与手工日志页面结果对应 MySQL 持久化读回",
+      "command": "查询 flow_trigger_binding/flow_binding_resolution/work_log/work_log_revision/cfg_module_publication",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-FLOW-BIND-RESOLVE",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统默认主租户的系统管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从系统主导航 Flow 进入 Flow 配置，页面明确分为设计与发布、触发绑定两个子页；模块事件是绑定目标，不与模块、Flow 或应用并列。",
+        "选择已有发布版本的客户模块和 C33 合同审批 Flow，发布 CREATE/AFTER_EXECUTION/amount > 10 绑定；页面显示唯一启用的主租户默认绑定 #1、Flow V1 和条件。真实入口发现模块状态并非 PUBLISHED 但已有当前发布版本时被误拒，后端改为以 cfg_module_publication 当前指针判定并补回归。",
+        "以 amount=8000 解析后，页面显示 MAIN_TENANT_DEFAULT、来源租户 #8、当前租户 #8、Flow 版本 #1/V1、六个快照节点及定义哈希 b712a6a2348abe8b4487d8657d89d68f9898cfea347d2b574eb9046ab3ae8a13。",
+        "通过页面新建两节点 C35 客户通知流程，执行保存、发布检查、模拟并发布 V1；再次发布同一客户/CREATE 范围时页面先提示旧绑定将停用且历史不删除，只有明确确认后才替换。",
+        "替换后列表只有绑定 #2 启用，绑定 #1 仍可见且为已停用；再次解析固定使用 Flow 版本 #2/V1、两个快照节点和哈希 be3400b04fec889b4fb4b4557c6f06c33a42fabd53c0623eaa5cc7ab74b399c2。主默认、租户覆盖、无覆盖回退、权限分离和不兼容失败分支由同一真实 manage API 的 C34 HTTP 回归覆盖。"
+      ],
+      "persistentReads": [
+        "cfg_module #2 customer 存在 cfg_module_publication 当前版本 #8；绑定可用性由发布指针而不是草稿/活动状态字符串决定。",
+        "flow_trigger_binding #1 为 DISABLED、flow_id=1、priority_order=1、version=2；#2 为 ACTIVE、flow_id=2、priority_order=0、version=0，同一生效范围只有一个启用绑定。",
+        "flow_binding_resolution #1 固定 flow_version #1，#2 固定 flow_version #2，二者 resolution_reason 均为 MAIN_TENANT_DEFAULT；租户覆盖与回退持久化由 C34 隔离库回归验证。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+        "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+        "projects/unexamine/frontend/src/product/flow-binding.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-035.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-WORK-MANUAL-LOG",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "工作日志作者账号 #6",
+      "result": "passed",
+      "pageAssertions": [
+        "系统主导航统一显示任务，进入后按普通任务、项目任务、每日日志分层；每日日志页明确说明项目任务状态变化不会自动产生日志，初始列表为空。",
+        "从真实页面主动新建 2026-08-22 日志，填写标题、正文、95 分钟并关联 C33 页面交付项目及任务 #1；保存后日志立即出现在列表第一行，详情显示作者、项目、任务、行版本 0 和初始不可变修订。",
+        "真实入口发现项目摘要不含任务导致关联任务下拉为空，页面改为加载每个可见项目详情；还发现修订弹窗被详情抽屉遮挡，修订时先关闭抽屉、保存后重新打开详情。两项均在继续验收前修复。",
+        "把正文补充为包含刷新持久化结论并填写修订原因后，页面显示行版本 1，时间线新增修订 2 且差异为 content，初始修订仍可查看。",
+        "点击提交并锁定后，列表和详情均变为已提交、行版本 2，修订 3 明确记录 status 变化，页面不再提供修订内容按钮；重新加载系统并再次进入每日日志页后，新正文、关联和已提交状态仍在。本人/他人权限、未来日期、乐观锁、提交不可变与任务变化不自动生成日志由同一真实 manage API 的 C34 HTTP 回归覆盖。"
+      ],
+      "persistentReads": [
+        "work_log #1 属于 SYSTEM/system #7/tenant #8、作者 #6、日期 2026-08-22、投入 95 分钟，custom_values_json 关联 projectId=1/taskIds=[1]，最终状态 SUBMITTED、version=2。",
+        "work_log_revision 对日志 #1 保存 3 行不可变快照：修订 1 为 DRAFT 初始版本，修订 2 为 DRAFT 正文补充，修订 3 为 SUBMITTED 状态锁定。",
+        "页面创建日志前列表为空，完成的项目任务未自动插入 work_log；日志只由本次用户主动保存产生。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/WorkHubView.vue",
+        "projects/unexamine/frontend/src/product/views/WorkLogsView.vue",
+        "projects/unexamine/frontend/src/product/work-log.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkLogService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-035.json"
+      ]
+    }
+  ]
+}

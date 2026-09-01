@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowInstanceVariableMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowInstanceVariable">
+        <id column="id" property="id" />
+        <result column="instance_id" property="instanceId" />
+        <result column="variable_key" property="variableKey" />
+        <result column="value_type" property="valueType" />
+        <result column="value_json" property="valueJson" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, instance_id, variable_key, value_type, value_json, updated_at, version
+    </sql>
+
+</mapper>

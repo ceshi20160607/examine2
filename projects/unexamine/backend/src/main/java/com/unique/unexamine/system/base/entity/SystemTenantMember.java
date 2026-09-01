@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
@@ -36,7 +37,7 @@ public class SystemTenantMember {
     @TableField("tenant_admin")
     private Boolean tenantAdmin;
 
-    @TableField("status")
+    @TableField("`status`")
     private String status;
 
     @TableField("created_at")
@@ -44,6 +45,10 @@ public class SystemTenantMember {
 
     @TableField("updated_at")
     private LocalDateTime updatedAt;
+
+    @Version
+    @TableField("version")
+    private Integer version;
 
     public Long getId() {
         return id;
@@ -117,6 +122,14 @@ public class SystemTenantMember {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         return "SystemTenantMember{" +
@@ -129,6 +142,7 @@ public class SystemTenantMember {
             ", status = " + status +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
+            ", version = " + version +
             "}";
     }
 }

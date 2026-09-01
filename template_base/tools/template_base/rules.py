@@ -16,6 +16,10 @@ class RuleIssue:
         return f"{self.path}: {self.message}"
 
 
+class RuleValidationError(ValueError):
+    pass
+
+
 def rules_root() -> Path:
     return Path(__file__).resolve().parents[2] / "rules"
 
@@ -104,3 +108,17 @@ def validate_rule(value: Any, rule_name: str) -> list[RuleIssue]:
     issues: list[RuleIssue] = []
     _validate(value, load_rule(rule_name), "$", issues)
     return issues
+
+
+def validate_artifact(path: Path, rule_name: str) -> dict[str, object]:
+    if Path(rule_name).name != rule_name or not rule_name.endswith(".schema.json"):
+        raise RuleValidationError("rule must be one schema filename from template_base/rules")
+    artifact_path = path.resolve()
+    try:
+        value = json.loads(artifact_path.read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise RuleValidationError(f"cannot read artifact {artifact_path}: {error}") from error
+    issues = validate_rule(value, rule_name)
+    if issues:
+        raise RuleValidationError("\n".join(str(issue) for issue in issues))
+    return {"valid": True, "artifact": artifact_path.as_posix(), "rule": rule_name}

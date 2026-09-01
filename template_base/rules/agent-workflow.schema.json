@@ -4,9 +4,9 @@
   "title": "Reusable Agent workflow",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "projectControlRoot", "roles", "gates", "cycle", "forbidden"],
+  "required": ["schemaVersion", "projectControlRoot", "roles", "gates", "cycle", "executionLoop", "deliveryPhases", "forbidden"],
   "properties": {
-    "schemaVersion": {"const": 3},
+    "schemaVersion": {"const": 5},
     "projectControlRoot": {"const": "projects/<project>/ai"},
     "roles": {
       "type": "array",
@@ -38,20 +38,55 @@
     "cycle": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["maximumMinutes", "taskMinutes", "testParticipatesFromPlanning", "endChecks"],
+      "required": ["maximumMinutes", "taskEstimate", "testParticipatesFromPlanning", "endChecks"],
       "properties": {
         "maximumMinutes": {"const": 240},
-        "taskMinutes": {
+        "taskEstimate": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["minimum", "maximum"],
+          "required": ["maximumMinutes", "noArtificialMinimum"],
           "properties": {
-            "minimum": {"const": 10},
-            "maximum": {"const": 120}
+            "maximumMinutes": {"const": 240},
+            "noArtificialMinimum": {"const": true}
           }
         },
         "testParticipatesFromPlanning": {"const": true},
         "endChecks": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "executionLoop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["continuous", "activationIntents", "selectNext", "afterCycle", "failurePolicy", "stopConditions", "forbiddenStops"],
+      "properties": {
+        "continuous": {"const": true},
+        "activationIntents": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "selectNext": {"const": "lowest-order incomplete cycle whose dependencies are satisfied"},
+        "afterCycle": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "write cycle evidence"},
+            {"const": "recompute project status"},
+            {"const": "report progress without yielding control"},
+            {"const": "start the next eligible cycle"}
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "failurePolicy": {"const": "fix the implementation or environment and rerun the affected verification"},
+        "stopConditions": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "forbiddenStops": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "deliveryPhases": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["separateFromGates", "computedAfter", "purpose"],
+      "properties": {
+        "separateFromGates": {"const": true},
+        "computedAfter": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "purpose": {"type": "string", "minLength": 1}
       }
     },
     "forbidden": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}

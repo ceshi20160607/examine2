@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.notification.base.mapper.MsgTemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.notification.base.entity.MsgTemplate">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="code" property="code" />
+        <result column="name" property="name" />
+        <result column="channel" property="channel" />
+        <result column="draft_revision" property="draftRevision" />
+        <result column="subject_template" property="subjectTemplate" />
+        <result column="content_template" property="contentTemplate" />
+        <result column="variable_schema_json" property="variableSchemaJson" />
+        <result column="status" property="status" />
+        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, platform_id, system_id, tenant_id, `code`, `name`, `channel`, draft_revision, subject_template, content_template, variable_schema_json, `status`, created_by_account_id, created_at, updated_at, version
+    </sql>
+
+</mapper>

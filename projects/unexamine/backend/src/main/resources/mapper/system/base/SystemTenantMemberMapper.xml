@@ -13,11 +13,12 @@
         <result column="status" property="status" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, system_member_id, department_id, tenant_admin, status, created_at, updated_at
+        id, system_id, tenant_id, system_member_id, department_id, tenant_admin, `status`, created_at, updated_at, version
     </sql>
 
 </mapper>

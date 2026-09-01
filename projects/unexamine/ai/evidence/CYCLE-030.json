@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-030",
+  "executedAt": "2026-08-22T16:14:00+08:00",
+  "taskIds": ["TASK-0171", "TASK-0172", "TASK-0173", "TASK-0174"],
+  "checks": [
+    {
+      "name": "高级列表组合筛选、排序、账号级常用视图版本冲突与删除定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=RuntimeDataHttpTest#advancedListFiltersSortsOnServerAndPersistsAccountScopedViews test",
+      "result": "passed"
+    },
+    {
+      "name": "页面 Schema 引用、特殊页阻断、权限过滤发布运行态和回滚定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=ModuleConfigurationHttpTest#visualPageAndMenuDraftsOnlyReachPermissionFilteredRuntimeAfterPublishAndRollback test",
+      "result": "passed"
+    },
+    {
+      "name": "特殊页面草稿删除、默认页面保护、乐观锁与审计定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=ModuleConfigurationHttpTest#administratorBuildsAnIsolatedDraftWithDefaultPagesActionsAndOptimisticLocking test",
+      "result": "passed"
+    },
+    {
+      "name": "高级列表、表单详情、模块页面设计及 API 前端测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm run test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "高级列表、表单详情和页面设计生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-UI-LIST-DETAIL",
+      "entryUrl": "http://127.0.0.1:15173/systems/7/runtime/customer",
+      "actor": "页面验收系统华东分公司的业务管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "在客户模块同时输入全文搜索 C26 和高级条件“客户名称包含重点”，列表头展示共 2 条、搜索与条件摘要，结果只保留匹配记录。",
+        "将当前搜索、筛选、更新时间倒序和列配置保存为账号级视图 C30 华东重点客户；隐藏联系电话、显示更新时间后另存 C30 精简重点客户并设为默认。",
+        "清空条件后列表恢复 4 条；重新选择保存视图后搜索、组合条件、排序和可见列全部恢复，证明不是仅保存名称的空壳。",
+        "勾选首行只显示已选择 1 条而不打开详情，清除选择后在非交互行按 Enter 才打开真实记录详情，复选框和整行入口互不串扰。",
+        "页面离开再进入后默认视图仍生效；查询失败契约由自动化验证保留条件、字段不可访问明确拒绝，常用视图按账号隔离并受版本保护。"
+      ],
+      "persistentReads": [
+        "core_setting #5、#6 以 RUNTIME_LIST_VIEW 保存账号 #6、租户 #9、customer 模块的两个视图，value_json 读回 search=C26、name CONTAINS 重点、updatedAt DESC、默认标记和不同可见列集合。",
+        "自动化定向测试验证服务端组合筛选、排序、分页总量，非法字段拒绝，其他账号不可见，旧版本覆盖失败，删除后即时消失。",
+        "客户记录正文未因列表偏好变化而修改。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeListViewService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-030.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-UI-FORM-DETAIL-DESIGNER",
+      "entryUrl": "http://127.0.0.1:15173/systems/7/runtime/customer",
+      "actor": "页面验收系统业务管理员和默认主租户模块设计管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从客户 #6 详情进入编辑，将客户名称改为 C30 临时未保存名称后取消，页面明确提示当前表单有未提交修改；选择保留草稿并离开后表单关闭且数据库正文仍是 C26 最终重点客户。",
+        "在商机模块创建特殊页 C30 商机专题后，保存和预览均禁用，页面明确显示 CUSTOM 必须配置专属组件，实时预览不以通用表单或空抽屉代替。",
+        "全局发布检查准确定位 pages.CUSTOM.layout.components 并阻止发布，不以接口成功或空占位算通过。",
+        "为无效特殊页增加可恢复入口后，页面点击删除、二次确认，页签消失且草稿修订从 4 增至 5；默认列表、表单、详情不提供删除入口。",
+        "再次检查发布显示配置检查通过；本次取消发布，现有商机 v1 运行版本和不可变历史保持不变。"
+      ],
+      "persistentReads": [
+        "cfg_module_page 的 CUSTOM #10 已删除，只保留商机 LIST、FORM、DETAIL 三个默认页面；cfg_module 商机草稿修订为 5。",
+        "audit_event #263 保存 MODULE_PAGE_DRAFT_DELETED、MODULE_PAGE #10、SUCCESS、模块、页面类型和页面名称。",
+        "biz_record #6 及其 name 值仍为 C26 最终重点客户，证明离开未保存表单不会静默提交。",
+        "自动化验证无效字段引用准确定位组件、未发布草稿不进入运行态、权限过滤菜单与页面、发布后切换版本以及回滚生成新不可变版本。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-030.json"
+      ]
+    }
+  ]
+}

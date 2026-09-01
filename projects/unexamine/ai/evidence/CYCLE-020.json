@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-020",
+  "executedAt": "2026-08-22T13:54:05+08:00",
+  "taskIds": [
+    "TASK-0059",
+    "TASK-0060",
+    "TASK-0062",
+    "TASK-0063",
+    "TASK-0064"
+  ],
+  "checks": [
+    {
+      "name": "特性开关、配额、序列和后台作业受影响集成测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q -Dtest=FoundationControlHttpTest,BackgroundJobHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "前端 API、权限、路由和运行动作测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "运维控制和后台作业页面类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-FOUNDATION-FLAG-QUOTA-SEQUENCE",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统中具备系统配置管理权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从系统后台固定一级菜单进入运维配置，创建特性开关 feature.flag.1787377754590；页面保存后立即读回 v0，并显示最终值为开启、来源 DATABASE、命中已发布配置且权限仍需独立校验。",
+        "创建硬上限为 3 的 SYSTEM_QUOTA_1787377754590，页面前三次原子占用成功并显示 3/3、剩余 0；第四次明确显示 QUOTA_EXCEEDED，读回用量仍为 3/3。",
+        "创建 system_sequence_1787377754590 后连续取号，页面依次生成 SYS-20260822-0001 和 SYS-20260822-0002，并读回当前值 2。",
+        "使用同一幂等键执行两次系统运维命令，两次显示相同结果 foundation-command:7 和同一 outbox #7，第二次标识为复用首次结果，没有重复产生业务结果。"
+      ],
+      "persistentReads": [
+        "core_feature_flag 读回 system_id=7、tenant_id=8、enabled=1、SYSTEM 范围、ACTIVE、version=0。",
+        "core_quota_policy 与 core_quota_usage 联表读回 hard_limit=3、used_value=3、version=3，超限请求未推进用量。",
+        "core_sequence 读回 SYS-{yyyyMMdd}-{seq:4}、current_value=2、version=2。",
+        "FoundationControlHttpTest 使用真实 MySQL 和 Redis 覆盖并发配额、连续编号、范围隔离、冲突和回滚失败分支。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/FoundationControlsView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationPolicyService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/FoundationControlHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-020.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-JOB-RUN",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统中具备来源能力权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从同一运维配置页提交基础依赖健康检查作业 #4，页面从 Redis 队列持续读回到成功，进度为 3/3、尝试次数为 1/3。",
+        "详情显示数据库 reachable=true、Redis PONG、数据库迁移 version=25 三项真实结果，同时显示心跳、队列、工作锁和一次成功尝试。",
+        "页面仅在 RETRY_WAIT 时提供人工检查后重试，永久失败显示尝试次数耗尽，不能无限循环；该失败与有限重试分支由 BackgroundJobHttpTest 验证。"
+      ],
+      "persistentReads": [
+        "job_background 读回作业 #4 类型 SYSTEM_HEALTH_SCAN、状态 SUCCEEDED、进度 3/3、attempt_count=1、max_attempts=3。",
+        "job_item_result 读回 database、database-migration、redis 三项 SUCCEEDED 结果；job_attempt 读回第 1 次 worker-276e1b68 成功尝试。",
+        "BackgroundJobHttpTest 使用真实 MySQL 和 Redis 验证领取、心跳、有限重试、逐项结果、权限继承和永久失败边界。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/BackgroundJobsView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/backgroundjobs/manage/BackgroundJobService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/backgroundjobs/manage/BackgroundJobHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-020.json"
+      ]
+    }
+  ]
+}

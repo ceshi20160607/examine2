@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-052",
+  "executedAt": "2026-08-28T12:42:05+08:00",
+  "taskIds": ["TASK-0177", "TASK-0178"],
+  "checks": [
+    {
+      "name": "响应式帮助函数、状态语义及全部前端回归（23 个文件、61 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "单 Vue 应用类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "390x844 移动端与 1440x900 桌面端真实浏览器矩阵、控制台和同源状态读回",
+      "command": "Codex in-app browser against http://127.0.0.1:15173 and live backend http://127.0.0.1:18080",
+      "result": "passed"
+    },
+    {
+      "name": "C52 Flow、审批动作、待办投影和目标实例真实 MySQL 读回",
+      "command": "select flow_definition/flow_publication/flow_instance/flow_task/flow_action/todo_item for flow #5 and instances #7/#8",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、15 个更新片段和 33 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "184 条需求在 20 个能力与 4 个上下文中的唯一架构归属复核",
+      "command": "python template_base/tools/tb.py architecture-validate --design projects/unexamine/ai/architecture/design.json",
+      "result": "passed"
+    },
+    {
+      "name": "60 个用例对 184 条原子需求的完整覆盖复核",
+      "command": "python template_base/tools/tb.py use-cases-validate --catalog projects/unexamine/ai/requirements/use-cases.json",
+      "result": "passed"
+    },
+    {
+      "name": "191 个原子任务的实现与验证归属复核",
+      "command": "python template_base/tools/tb.py tasks-validate --catalog projects/unexamine/ai/planning/task-catalog.json",
+      "result": "passed"
+    },
+    {
+      "name": "56 个周期的依赖、阶段与每周期最多 240 分钟复核",
+      "command": "python template_base/tools/tb.py task-graph-validate --graph projects/unexamine/ai/planning/task-graph.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-UI-DESIGN-RESPONSIVE",
+      "entryUrl": "http://127.0.0.1:15173/login；/platform；/systems/10；/systems/10/admin?section=templates",
+      "actor": "C52 响应式验收账号 #10 / 系统 #10 / 主租户 #12 / 成员 #12",
+      "result": "passed",
+      "pageAssertions": [
+        "只保留一套 Vue 源码、路由、会话、权限和发布配置；移动断点不是第二套应用，也没有新增原生客户端或移动 API。",
+        "统一设计 Token 固化颜色、状态、间距、圆角、焦点和 48px 触控目标；灰、蓝、橙、绿、红分别表达中性、进行、关注、成功和失败语义。",
+        "390x844 登录、系统进入、模块组、运行菜单、客户列表、详情、单列表单、Flow 审批、待办审批、消息、文件附件和 AI 工作区均从真实入口完成且无页面横向溢出。",
+        "移动客户列表和文件附件列表使用同源卡片替代表格；1440x900 保留高密度表格，同一 customer v1 显示 4 条记录，同一文件源显示 2 个文件。",
+        "底部系统导航明确使用横向单行滚动，固定高度不再覆盖主体；点击业务卡片不再误触任务导航。",
+        "移动顶栏系统名使用可伸缩单行省略，顶栏只保留必要账号入口，不再被长用户名和重复快捷操作撑破。",
+        "移动详情、新建表单、审批、待办、消息、附件和 AI 关键动作均为 48px 触控目标，焦点可见且关键动作不依赖 hover。",
+        "重配置移动入口只显示同账号、同权限、同发布版本的桌面引导；字段、页面、Flow、复杂权限和设计器内容及发布按钮不在移动视口暴露，桌面端保持完整编辑能力。",
+        "Flow #5/v1 在移动端显示实例 #7 的真实待审批状态，提交 APPROVE 后读回 COMPLETED、行版本 3 和审批意见；没有以空态代替审批验收。",
+        "第二个实例 #8 先投影为 FLOW_TASK #11 的真实待办，再从移动待办执行同意；待办读回 COMPLETED、版本 3 和目标引用 FLOW_INSTANCE:8:ACTION:34。",
+        "最终浏览器控制台 0 条 warning、0 条 error；所有截图均来自当前本地 Vue、Spring Boot、MySQL 和 Redis 运行链。"
+      ],
+      "persistentReads": [
+        "flow_definition #5/code=c52_mobile_approval_20260828/status=PUBLISHED/draftRevision=2/version=2；flow_publication.current_version_id=5。",
+        "flow_instance #7 与 #8 均固定 flow_version_id=5，最终 status=COMPLETED、current_node_key=end、version=3。",
+        "flow_task #10 与 #11 均属于账号 #10，最终 status=APPROVE、version=1。",
+        "flow_action #31 保存实例 #7 的 APPROVE，#34 保存实例 #8 从待办触发的 APPROVE；两条实例均同时保留 START 和 AUTO_END 动作。",
+        "todo_item #3/source=FLOW_TASK:11 最终 status=COMPLETED、version=3、target_route=/systems/10?flowInstance=8&actionId=34。",
+        "桌面与移动客户运行态均读回 customer 主版本 v1 和 4 条记录；文件页均读回 2 个扫描通过且可预览的受控文件。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/responsive.ts",
+        "projects/unexamine/frontend/src/product/responsive.test.ts",
+        "projects/unexamine/frontend/src/product/product.css",
+        "projects/unexamine/frontend/src/product/components/SystemAdminShell.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/views/FileWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/RESPONSIVE-MATRIX-052.json",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-login.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-runtime-viewport.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-runtime-list.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-record-detail.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-create-form.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-flow-approval-pending.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-flow-approval-completed.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-todo-pending.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-todo-completed.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-messages.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-files.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-ai.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-mobile-config-guidance.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-desktop-runtime.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-desktop-files.png",
+        "projects/unexamine/ai/evidence/CYCLE-052-desktop-config.png",
+        "projects/unexamine/ai/evidence/CYCLE-052.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,972 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "requirementAnalysisPath": "requirement-analysis.json",
+    "requirementAnalysisSha256": "0dc9c1b1be63ba3863b814a4472bd34acca471593f41b473c3be297cfec1e8e7",
+    "architecturePath": "../architecture/design.json",
+    "architectureSha256": "507f14c04268a360c078c985119eec1124e8d5991fd872ff6596b1f83af14bf7"
+  },
+  "useCases": [
+    {
+      "id": "UC-DELIVERY-SCOPE",
+      "title": "从唯一需求源确认产品范围和能力边界",
+      "capabilityId": "CAP-PRODUCT-DELIVERY",
+      "requirementIds": ["REQ-PRODUCT-POSITION", "REQ-PRODUCT-GOALS", "REQ-PRODUCT-WORKSPACES", "REQ-CAPABILITY-BOUNDARIES", "REQ-PRODUCT-USABILITY-EXTENSIBILITY"],
+      "actor": "Lead 与 PM",
+      "entry": "docs/user_requirement.md 和项目需求分析",
+      "preconditions": ["当前工作区已绑定唯一需求文件哈希。"],
+      "steps": [
+        {"order": 1, "action": "核对产品目标、三个工作空间和能力术语。", "input": "最终原子需求", "visibleResult": "能力目录中模块、Flow、应用、任务、待办和消息各自只有一个含义。"},
+        {"order": 2, "action": "为每条需求指定唯一能力归属并运行校验。", "input": "架构设计", "visibleResult": "校验显示全部需求恰好归属一次且没有依赖环。"}
+      ],
+      "persistentResults": ["保存源哈希、能力归属和架构决策。"],
+      "authorizationResults": ["只有 Lead/PM 可改变范围和决策状态。"],
+      "failureResults": ["缺失、重复或未知需求归属时阻止进入用例拆分。"]
+    },
+    {
+      "id": "UC-DELIVERY-CODE-ASSESSMENT",
+      "title": "逐项评估现有实现后决定复用处理",
+      "capabilityId": "CAP-PRODUCT-DELIVERY",
+      "requirementIds": ["REQ-EXISTING-CODE-ASSESSMENT", "REQ-DESIGN-BEFORE-PROTOTYPE"],
+      "actor": "架构与 Lead",
+      "entry": "现有源码评估清单",
+      "preconditions": ["需求、架构和用例不再依赖现有目录反推。"],
+      "steps": [
+        {"order": 1, "action": "按能力检查现有代码、测试和数据结构。", "input": "具体文件路径", "visibleResult": "每项显示复用、修改、替换或删除及理由。"},
+        {"order": 2, "action": "把处理决定关联到后续原子任务。", "input": "任务 ID", "visibleResult": "未评估文件不获得完成度，评估结果可追踪到任务。"}
+      ],
+      "persistentResults": ["保存逐路径现有实现评估。"],
+      "authorizationResults": ["评估不能修改需求源或自动认可现有实现。"],
+      "failureResults": ["无法证明符合最终设计时默认不复用并进入替换任务。"]
+    },
+    {
+      "id": "UC-DELIVERY-PLAN-VERIFY",
+      "title": "生成依赖阶段、四小时周期和分层验收",
+      "capabilityId": "CAP-PRODUCT-DELIVERY",
+      "requirementIds": ["REQ-ARCH-BACKEND-CAPABILITIES", "REQ-DELIVERY-ARTIFACTS", "REQ-DELIVERY-FULL-CAPABILITIES", "REQ-DELIVERY-IMPLEMENTATION-ORDER", "REQ-ENGINEERING-TEMPLATE-PROJECT-BOUNDARY", "REQ-ENGINEERING-ATOMIC-CYCLES", "REQ-ENGINEERING-DATABASE-LIFECYCLE", "REQ-ENGINEERING-FUNCTION-THEN-HARDEN", "REQ-ENGINEERING-BASE-MANAGE-SQL", "REQ-ENGINEERING-TEST-LAYERS", "REQ-FIXED-CAPABILITY-PHYSICAL-BASE"],
+      "actor": "Lead、架构、数据库、开发与测试角色",
+      "entry": "已验证用例目录",
+      "preconditions": ["全部原子需求已有唯一能力和用例覆盖。"],
+      "steps": [
+        {"order": 1, "action": "按依赖拆任务并按真实分钟装入不超过 240 分钟的周期。", "input": "用例、资源和现有实现评估", "visibleResult": "每个任务有输入、产出、依赖和页面验收，低代码 CRUD 不被虚增工时。"},
+        {"order": 2, "action": "依次生成 init.sql、Base、manage 和真实页面。", "input": "周期任务", "visibleResult": "固定表都有 Base，业务判断只在 manage，前端不直接调用 Base controller。"},
+        {"order": 3, "action": "周期末执行受影响测试和真实入口旅程。", "input": "用例验收步骤", "visibleResult": "证据展示页面业务结果与持久化读回，不以 200 或编译成功代替。"}
+      ],
+      "persistentResults": ["保存任务图、周期证据、init/update/final SQL 和 Base 清单。"],
+      "authorizationResults": ["角色只修改任务允许路径，完成度由仓库证据计算。"],
+      "failureResults": ["任务有歧义、超 240 分钟、缺真实旅程或 Base 被手改时周期不能验收。"]
+    },
+    {
+      "id": "UC-IDENTITY-SIGN-IN",
+      "title": "账号密码或企业 SSO 登录并建立显式上下文",
+      "capabilityId": "CAP-IDENTITY",
+      "requirementIds": ["REQ-IDENTITY-CONTEXT", "REQ-AUTHENTICATION-ACCOUNT", "REQ-ENTERPRISE-SSO"],
+      "actor": "平台用户",
+      "entry": "统一登录页",
+      "preconditions": ["账号有效；密码登录已启用，或企业身份源已测试发布且外部身份已建立账号映射。"],
+      "steps": [
+        {"order": 1, "action": "提交账号密码，或选择已发布企业身份源完成回调和多因素认证。", "input": "密码或企业身份源回调凭证", "visibleResult": "成功后进入平台主页面；锁定、停用、身份源无效或外部身份未映射时显示专属原因。"},
+        {"order": 2, "action": "在平台身份下选择可访问系统和租户。", "input": "系统与租户", "visibleResult": "进入前后分别显示平台账号，以及显式 systemMemberId、tenantMemberId、角色和数据范围。"}
+      ],
+      "persistentResults": ["保存平台会话、安全事件、身份源与外部主体映射使用记录、MFA 级别和最后有效上下文。"],
+      "authorizationResults": ["登录只建立身份，系统成员和角色权限另行解析。"],
+      "failureResults": ["连续失败触发限制；锁定、停用、SSO 映射缺失或无系统成员时不进入系统业务页面。"]
+    },
+    {
+      "id": "UC-IDENTITY-PROFILE",
+      "title": "维护个人资料和账号安全设置",
+      "capabilityId": "CAP-IDENTITY",
+      "requirementIds": ["REQ-PERSONAL-CENTER"],
+      "actor": "已登录用户",
+      "entry": "主页面个人中心",
+      "preconditions": ["用户已建立平台会话。"],
+      "steps": [
+        {"order": 1, "action": "查看并编辑个人资料、密码和多因素设置。", "input": "允许修改的资料", "visibleResult": "保存后页面读回最新资料并显示安全设置状态。"},
+        {"order": 2, "action": "查看自己的会话和安全记录。", "input": null, "visibleResult": "只展示当前用户记录，可撤销其他会话。"}
+      ],
+      "persistentResults": ["更新个人资料、安全凭证版本和会话撤销状态。"],
+      "authorizationResults": ["用户只能维护本人资料，管理员字段另行授权。"],
+      "failureResults": ["旧密码错误、弱密码或并发更新时保留原数据并明确提示。"]
+    },
+    {
+      "id": "UC-IDENTITY-ACCESS-BOOTSTRAP",
+      "title": "初始化平台管理员并处理无成员访问申请",
+      "capabilityId": "CAP-IDENTITY",
+      "requirementIds": ["REQ-NO-MEMBER-ACCESS-REQUEST", "REQ-DEFAULT-PLATFORM-ADMIN"],
+      "actor": "部署管理员或系统管理员",
+      "entry": "首次启动初始化或无成员提示页",
+      "preconditions": ["初始化密钥有效，或用户已登录但不是目标系统成员。"],
+      "steps": [
+        {"order": 1, "action": "幂等创建默认平台超级管理员或提交访问申请。", "input": "初始化配置或申请理由", "visibleResult": "重复初始化不产生第二账号；申请显示待处理状态。"},
+        {"order": 2, "action": "管理员批准或拒绝申请。", "input": "成员与初始角色", "visibleResult": "批准后申请人可进入系统，拒绝后显示原因且仍无访问权。"}
+      ],
+      "persistentResults": ["保存唯一默认管理员标识和访问申请完整状态历史。"],
+      "authorizationResults": ["初始化受部署密钥限制，访问审批只允许目标系统管理员。"],
+      "failureResults": ["重复申请合并到现有未结申请，非法初始化配置阻止启动并提示。"]
+    },
+    {
+      "id": "UC-SYSTEM-CREATE",
+      "title": "创建系统及默认主租户",
+      "capabilityId": "CAP-SYSTEM-TENANCY",
+      "requirementIds": ["REQ-SYSTEM-TENANT-LIFECYCLE", "REQ-TENANT-UNIFIED-ACCOUNT-DEFAULT"],
+      "actor": "有创建系统权限的平台用户",
+      "entry": "主导航系统页的新建系统",
+      "preconditions": ["平台账号有效且未超过系统配额。"],
+      "steps": [
+        {"order": 1, "action": "填写系统名称、编码和租户模式并保存。", "input": "系统基础信息", "visibleResult": "系统列表第一行出现新系统并标记默认主租户。"},
+        {"order": 2, "action": "进入新系统。", "input": null, "visibleResult": "创建人拥有初始管理权且当前租户为默认主租户。"}
+      ],
+      "persistentResults": ["原子创建系统、默认主租户、创建人成员和管理授权。"],
+      "authorizationResults": ["创建权限不自动扩大到其他系统；进入后使用系统成员权限。"],
+      "failureResults": ["任一关联创建失败则整体回滚，列表不出现半成品系统。"]
+    },
+    {
+      "id": "UC-SYSTEM-ADMIN-CONFIG",
+      "title": "在正确后台维护平台或系统固定配置",
+      "capabilityId": "CAP-SYSTEM-TENANCY",
+      "requirementIds": ["REQ-PLATFORM-ADMIN", "REQ-SYSTEM-ADMIN", "REQ-SYSTEM-ADMIN-CAPABILITY-PLACEMENT"],
+      "actor": "平台管理员或系统管理员",
+      "entry": "平台后台或系统后台",
+      "preconditions": ["用户拥有对应后台入口权限。"],
+      "steps": [
+        {"order": 1, "action": "打开后台固定一级菜单。", "input": "平台或系统上下文", "visibleResult": "只显示该上下文允许的组织、权限、字典、Flow、应用、AI、审计和运维配置。"},
+        {"order": 2, "action": "保存一项系统基础或业务参数配置。", "input": "有效配置", "visibleResult": "刷新后读回新版本，运行态使用发布版本。"}
+      ],
+      "persistentResults": ["保存上下文所属配置及版本，不混写平台与系统数据。"],
+      "authorizationResults": ["平台后台权限不等于系统后台权限，系统后台不能改平台资源。"],
+      "failureResults": ["上下文不匹配或缺权限时隐藏入口且后端拒绝写入。"]
+    },
+    {
+      "id": "UC-SYSTEM-DOMAIN-SWITCH",
+      "title": "配置访问地址并切换系统租户上下文",
+      "capabilityId": "CAP-SYSTEM-TENANCY",
+      "requirementIds": ["REQ-SYSTEM-DOMAIN-ADDRESS", "REQ-CONTEXT-SWITCH-REDRAW"],
+      "actor": "系统管理员或多系统用户",
+      "entry": "系统信息页或全局系统租户切换器",
+      "preconditions": ["域名所有权可验证，用户拥有目标上下文成员资格。"],
+      "steps": [
+        {"order": 1, "action": "保存并验证系统访问地址，或选择目标系统租户。", "input": "域名或目标上下文", "visibleResult": "地址显示验证状态；切换器显示新的系统和租户。"},
+        {"order": 2, "action": "等待业务壳重绘。", "input": null, "visibleResult": "导航、仪表盘、模块、待办和消息全部来自新上下文，不残留旧列表。"}
+      ],
+      "persistentResults": ["保存域名验证与发布状态，记录最后上下文和切换审计。"],
+      "authorizationResults": ["只能切换到有效成员上下文，域名发布需要系统管理权限。"],
+      "failureResults": ["验证失败不启用地址；上下文解析失败恢复原页面并清除部分新缓存。"]
+    },
+    {
+      "id": "UC-SYSTEM-TENANT-MIGRATION",
+      "title": "迁移单租户与多租户模式",
+      "capabilityId": "CAP-SYSTEM-TENANCY",
+      "requirementIds": ["REQ-TENANT-MODE-MIGRATION", "REQ-PLATFORM-INDEPENDENT-CONTEXT"],
+      "actor": "平台与目标系统高权限管理员",
+      "entry": "系统后台租户模式发布页",
+      "preconditions": ["已生成影响报告、迁移方案、备份和回滚点。"],
+      "steps": [
+        {"order": 1, "action": "运行成员、数据、索引、应用、Flow、共享和缓存预检。", "input": "目标租户模式", "visibleResult": "页面逐项显示可迁移、冲突和阻断原因。"},
+        {"order": 2, "action": "二次确认并执行迁移。", "input": "审批与确认", "visibleResult": "成功后上下文按新模式运行；失败时旧模式继续可用并展示回滚结果。"}
+      ],
+      "persistentResults": ["保存迁移步骤、审批、结果、冲突和回滚审计。"],
+      "authorizationResults": ["平台身份不能借迁移获得系统业务访问，模式迁移需要专门高危权限。"],
+      "failureResults": ["存在未解决其他租户、共享或数据冲突时禁止关闭多租户。"]
+    },
+    {
+      "id": "UC-AUTH-ORG-ROLE",
+      "title": "维护组织成员角色与分层授权",
+      "capabilityId": "CAP-AUTHORIZATION",
+      "requirementIds": ["REQ-PERMISSION-ISOLATION", "REQ-ORGANIZATION-MEMBER", "REQ-AUTHORIZATION-MODEL", "REQ-TECH-PERMISSION-ENFORCEMENT"],
+      "actor": "平台或系统权限管理员",
+      "entry": "对应后台组织架构或角色权限页",
+      "preconditions": ["当前上下文明确且管理员拥有授权管理权限。"],
+      "steps": [
+        {"order": 1, "action": "维护部门成员并配置角色菜单、动作、字段和数据范围。", "input": "授权配置", "visibleResult": "权限矩阵显示每一层范围且能预览受影响菜单。"},
+        {"order": 2, "action": "发布授权版本。", "input": null, "visibleResult": "目标用户刷新后只看到新权限内入口和数据。"}
+      ],
+      "persistentResults": ["保存组织关系、角色授权版本、数据范围规则和变更审计。"],
+      "authorizationResults": ["默认拒绝，平台、系统、租户、模块、动作和字段边界逐层收紧。"],
+      "failureResults": ["越权授权、组织环或无效字段动作引用时阻止发布。"]
+    },
+    {
+      "id": "UC-AUTH-MULTIROLE-PREVIEW",
+      "title": "预览用户多角色最终权限",
+      "capabilityId": "CAP-AUTHORIZATION",
+      "requirementIds": ["REQ-UI-PERMISSION-CONSOLE", "REQ-PERMISSION-USER-PREVIEW", "REQ-PERMISSION-MULTIROLE-MERGE"],
+      "actor": "权限管理员",
+      "entry": "角色权限页的用户权限预览",
+      "preconditions": ["目标用户在当前租户有至少一个有效角色或明确无角色。"],
+      "steps": [
+        {"order": 1, "action": "选择用户、模块和动作。", "input": "用户与动作", "visibleResult": "页面解释各角色贡献、菜单动作并集和硬限制交集。"},
+        {"order": 2, "action": "切换查看、编辑、删除、转移、转化或导入导出。", "input": "动作", "visibleResult": "每个动作显示独立数据范围和最终允许/拒绝原因。"}
+      ],
+      "persistentResults": ["预览本身不改授权，只记录敏感预览审计。"],
+      "authorizationResults": ["预览结果与后端真实判定使用同一规则版本。"],
+      "failureResults": ["无权限查看目标用户或规则版本失效时不展示权限详情。"]
+    },
+    {
+      "id": "UC-AUTH-GUARD-MASK",
+      "title": "在页面、应用和文件渠道执行权限与脱敏",
+      "capabilityId": "CAP-AUTHORIZATION",
+      "requirementIds": ["REQ-UI-PERMISSION-GUARDS", "REQ-DATA-MASKING", "REQ-DATA-APP-FILE-PERMISSION-MODEL"],
+      "actor": "普通用户或应用调用主体",
+      "entry": "受保护页面、字段、文件或应用资源",
+      "preconditions": ["已解析真实主体和上下文。"],
+      "steps": [
+        {"order": 1, "action": "请求查看或执行受保护资源。", "input": "资源与动作", "visibleResult": "允许项正常显示，隐藏或脱敏字段有一致占位，拒绝项不暴露详情。"},
+        {"order": 2, "action": "直接调用后端重试同一动作。", "input": "相同请求", "visibleResult": "后端得到与页面守卫一致的允许或拒绝结果。"}
+      ],
+      "persistentResults": ["保存权限版本、脱敏策略和拒绝审计。"],
+      "authorizationResults": ["字段、文件和应用授权与主体数据范围取交集，任何渠道不能扩大权限。"],
+      "failureResults": ["权限上下文缺失或缓存不可确认时回源，仍不可确认则默认拒绝。"]
+    },
+    {
+      "id": "UC-AUDIT-QUERY-RETENTION",
+      "title": "查询字段审计并执行受控永久保留",
+      "capabilityId": "CAP-AUDIT",
+      "requirementIds": ["REQ-QUERYABLE-AUDIT-LOG", "REQ-AUDIT-FIELD-CHANGES", "REQ-PERMANENT-AUDIT-RETENTION"],
+      "actor": "审计管理员",
+      "entry": "平台或系统后台审计日志",
+      "preconditions": ["拥有对应上下文审计查询或清理权限。"],
+      "steps": [
+        {"order": 1, "action": "按对象、操作者、动作、时间和 requestId 查询。", "input": "筛选条件", "visibleResult": "列表显示权限快照及允许查看的字段前后值。"},
+        {"order": 2, "action": "提交物理清理影响检查。", "input": "保留策略和对象范围", "visibleResult": "页面列出正文清理范围及永久保留的对象标识、操作和关键快照。"}
+      ],
+      "persistentResults": ["审计不随业务删除级联，清理作业保留不可变摘要和审批。"],
+      "authorizationResults": ["审计查询和清理分权，敏感前后值再次按权限脱敏。"],
+      "failureResults": ["引用影响未确认、审批缺失或范围过宽时阻止物理清理。"]
+    },
+    {
+      "id": "UC-FOUNDATION-API-ERROR",
+      "title": "通过统一 API 契约返回业务结果和错误",
+      "capabilityId": "CAP-PLATFORM-FOUNDATION",
+      "requirementIds": ["REQ-TECH-BACKEND-STACK", "REQ-TECH-SQL-PORTABILITY", "REQ-API-CONTRACT", "REQ-ERROR-TAXONOMY"],
+      "actor": "前端或获权应用客户端",
+      "entry": "版本化产品 API",
+      "preconditions": ["请求携带可解析身份、上下文和 requestId。"],
+      "steps": [
+        {"order": 1, "action": "调用查询或命令端点。", "input": "版本、上下文和业务参数", "visibleResult": "客户端收到稳定数据结构、业务状态与 requestId。"},
+        {"order": 2, "action": "提交一个可预期失败请求。", "input": "非法业务状态", "visibleResult": "返回能力域错误码、用户信息和可诊断信息，不以 200 表示业务成功。"}
+      ],
+      "persistentResults": ["命令端点按目标能力事务保存，错误和 requestId 进入日志。"],
+      "authorizationResults": ["API 层传递上下文并调用目标能力授权，不提供绕过入口。"],
+      "failureResults": ["数据库方言不兼容、上下文缺失或错误未分类时构建或预检失败。"]
+    },
+    {
+      "id": "UC-FOUNDATION-IDEMPOTENCY-CONTROL",
+      "title": "执行幂等、限流和上下文缓存失效",
+      "capabilityId": "CAP-PLATFORM-FOUNDATION",
+      "requirementIds": ["REQ-IDEMPOTENCY", "REQ-REDIS-RATE-LIMIT", "REQ-CACHE-CONTEXT-INVALIDATION"],
+      "actor": "重复提交的用户或应用",
+      "entry": "表单、审批、应用调用或作业提交入口",
+      "preconditions": ["请求包含主体、上下文和幂等键。"],
+      "steps": [
+        {"order": 1, "action": "并发提交相同业务命令。", "input": "相同幂等键", "visibleResult": "只产生一次业务结果，其余请求读回同一结果。"},
+        {"order": 2, "action": "超过主体上下文限额或发布权限配置。", "input": "连续请求或新版本", "visibleResult": "超限显示可重试时间；配置发布后旧缓存立即失效并正确回源。"}
+      ],
+      "persistentResults": ["保存幂等结果引用、限流状态和配置版本失效事件。"],
+      "authorizationResults": ["键空间必须包含主体、系统、租户、应用和动作的适用组合。"],
+      "failureResults": ["Redis 不可用时按能力降级策略明确拒绝或回源，不静默放行高风险请求。"]
+    },
+    {
+      "id": "UC-FOUNDATION-FLAG-QUOTA-SEQUENCE",
+      "title": "应用功能开关、配额和并发安全编号",
+      "capabilityId": "CAP-PLATFORM-FOUNDATION",
+      "requirementIds": ["REQ-ARCH-LOCAL-EVENT-EXTENSIONS", "REQ-FEATURE-FLAGS", "REQ-PLATFORM-QUOTAS", "REQ-DATA-QUERY-SEQUENCE-JOB-DETAIL"],
+      "actor": "平台或系统管理员",
+      "entry": "后台系统配置、功能开关或配额页",
+      "preconditions": ["目标范围和当前版本明确。"],
+      "steps": [
+        {"order": 1, "action": "按系统、应用、模块或角色发布开关和配额。", "input": "范围、值和生效时间", "visibleResult": "页面显示解析后的最终值和来源。"},
+        {"order": 2, "action": "并发创建需要编号的记录并触发提交后扩展。", "input": "编号规则", "visibleResult": "编号唯一连续到规则允许程度，扩展只在成功提交后执行。"}
+      ],
+      "persistentResults": ["保存开关配额版本、序列状态和扩展执行结果。"],
+      "authorizationResults": ["范围管理员只能配置自身范围，业务能力仍执行自身权限。"],
+      "failureResults": ["超过配额、编码冲突或事务回滚时不产生可用编号或提交后事件。"]
+    },
+    {
+      "id": "UC-JOB-RUN",
+      "title": "提交并观察有限重试后台作业",
+      "capabilityId": "CAP-BACKGROUND-JOBS",
+      "requirementIds": ["REQ-TECH-REDIS-BACKGROUND-JOBS", "REQ-TECH-BACKGROUND-JOB-LIFECYCLE"],
+      "actor": "业务能力或获权管理员",
+      "entry": "导入、导出、迁移、统计、清理或通知动作",
+      "preconditions": ["作业类型、上下文、授权快照和重试策略已注册。"],
+      "steps": [
+        {"order": 1, "action": "提交作业并打开进度详情。", "input": "作业参数引用", "visibleResult": "状态从待执行、运行中到成功或失败，显示已处理数量。"},
+        {"order": 2, "action": "查看失败项并在允许时重试。", "input": "失败作业", "visibleResult": "有限重试次数、下次时间和最终结果清晰可见。"}
+      ],
+      "persistentResults": ["保存作业、领取心跳、尝试次数、汇总和逐项结果。"],
+      "authorizationResults": ["查看和重试继承来源能力及上下文权限。"],
+      "failureResults": ["心跳过期可安全重新领取，超过次数进入永久失败且不无限循环。"]
+    },
+    {
+      "id": "UC-LOWCODE-MODULE-LIFECYCLE",
+      "title": "创建模块组和自定义模块并发布运行",
+      "capabilityId": "CAP-LOWCODE-DEFINITION",
+      "requirementIds": ["REQ-CONFIGURABLE-BUSINESS-SCENARIOS", "REQ-ADMIN-NO-CODE-JOURNEY", "REQ-MODULE-GROUP", "REQ-RUNTIME-MODULE", "REQ-MODULE-LIFECYCLE", "REQ-LOWCODE-METADATA-ONLY"],
+      "actor": "系统模板管理员",
+      "entry": "系统后台模板配置的模块信息",
+      "preconditions": ["当前系统租户上下文有效且拥有模块设计权限。"],
+      "steps": [
+        {"order": 1, "action": "创建模块组和模块，配置编码、名称与生命周期。", "input": "模块定义", "visibleResult": "草稿模块出现在模板配置列表，不出现在普通用户导航。"},
+        {"order": 2, "action": "完成校验并发布启用。", "input": null, "visibleResult": "系统运行态出现模块组和模块，能立即使用通用运行时。"}
+      ],
+      "persistentResults": ["只保存模块元数据和版本，不创建模块专用表或动态 Java。"],
+      "authorizationResults": ["设计与发布分权，运行导航仍按菜单和模块权限过滤。"],
+      "failureResults": ["编码冲突、引用缺失或破坏性变化未迁移时阻止发布。"]
+    },
+    {
+      "id": "UC-LOWCODE-FIELDS-DICTIONARY",
+      "title": "配置字段类型、校验和层级字典",
+      "capabilityId": "CAP-LOWCODE-DEFINITION",
+      "requirementIds": ["REQ-MODULE-FIELD-TYPES", "REQ-MODULE-FIELD-CONFIG", "REQ-DATA-DICTIONARY", "REQ-HIERARCHICAL-CASCADE-DICTIONARY"],
+      "actor": "系统模板管理员",
+      "entry": "模板配置的模块字段或数据字典",
+      "preconditions": ["目标模块处于可编辑草稿。"],
+      "steps": [
+        {"order": 1, "action": "添加不同类型字段并配置必填、默认值、显示、权限和数据规则。", "input": "字段定义", "visibleResult": "设计器按类型显示专属配置和即时校验。"},
+        {"order": 2, "action": "绑定版本化树形或级联字典并预览。", "input": "字典节点", "visibleResult": "预览按层级联动且无效节点不能选择。"}
+      ],
+      "persistentResults": ["保存字段与字典草稿、稳定编码、层级关系和发布版本。"],
+      "authorizationResults": ["敏感字段配置和字典发布需要相应模板权限。"],
+      "failureResults": ["类型配置不完整、层级成环或删除被引用节点时明确阻止。"]
+    },
+    {
+      "id": "UC-LOWCODE-PAGE-MENU",
+      "title": "设计列表表单详情页面和运行菜单",
+      "capabilityId": "CAP-LOWCODE-DEFINITION",
+      "requirementIds": ["REQ-MODULE-PAGE-TYPES", "REQ-VISUAL-PAGE-DESIGN", "REQ-MENU-CONFIGURATION", "REQ-SCHEMA-DRIVEN-PAGES"],
+      "actor": "系统模板管理员",
+      "entry": "模板配置的模块页面或菜单配置",
+      "preconditions": ["模块字段草稿有效。"],
+      "steps": [
+        {"order": 1, "action": "拖放配置列表、表单、详情和自定义页面布局。", "input": "页面组件与字段", "visibleResult": "预览从同一 Schema 渲染，字段规则与真实运行一致。"},
+        {"order": 2, "action": "配置菜单位置并发布页面版本。", "input": "模块组、排序与可见规则", "visibleResult": "获权用户刷新后在正确模块组看到入口。"}
+      ],
+      "persistentResults": ["保存页面 Schema、菜单引用和不可变发布版本。"],
+      "authorizationResults": ["后台菜单配置不改变业务权限，运行菜单仍取角色授权。"],
+      "failureResults": ["引用已删除字段、强制字段被隐藏或菜单位置无效时阻止发布。"]
+    },
+    {
+      "id": "UC-LOWCODE-PUBLISH-ROLLBACK",
+      "title": "发布和回滚关键配置版本",
+      "capabilityId": "CAP-LOWCODE-DEFINITION",
+      "requirementIds": ["REQ-CONFIG-VERSION-HISTORY", "REQ-CONFIG-DRAFT-PUBLISH", "REQ-CONFIG-STABLE-CODES", "REQ-DATA-CONFIG-RUNTIME-VERSIONS"],
+      "actor": "配置发布管理员",
+      "entry": "配置版本和发布检查页",
+      "preconditions": ["草稿通过引用、权限、数据和兼容性检查。"],
+      "steps": [
+        {"order": 1, "action": "预览变更影响并发布。", "input": "草稿版本", "visibleResult": "页面显示新发布版本、稳定编码和每项来源。"},
+        {"order": 2, "action": "选择历史版本回滚。", "input": "目标版本", "visibleResult": "运行态切换为新的回滚发布版本，既有运行快照仍引用原版本。"}
+      ],
+      "persistentResults": ["草稿、发布、历史和回滚均生成不可变版本及引用快照。"],
+      "authorizationResults": ["预览、发布和回滚使用独立动作权限。"],
+      "failureResults": ["破坏运行数据或稳定编码语义时阻止发布并列出冲突。"]
+    },
+    {
+      "id": "UC-LOWCODE-RULES-INDEX",
+      "title": "配置并验证业务规则、唯一规则和查询索引",
+      "capabilityId": "CAP-LOWCODE-DEFINITION",
+      "requirementIds": ["REQ-TECH-LOWCODE-QUERY-INDEX", "REQ-MODULE-BUSINESS-RULES", "REQ-MODULE-UNIQUE-RULES"],
+      "actor": "系统模板管理员",
+      "entry": "模块业务规则配置页",
+      "preconditions": ["字段和动作具有稳定编码。"],
+      "steps": [
+        {"order": 1, "action": "用结构化条件配置校验、联动和唯一规则。", "input": "规则条件和动作", "visibleResult": "测试面板用样例数据展示命中分支和错误信息。"},
+        {"order": 2, "action": "发布需要筛选排序和唯一校验的索引配置。", "input": "字段索引策略", "visibleResult": "发布检查显示索引投影计划且运行查询可解释。"}
+      ],
+      "persistentResults": ["保存规则版本、测试结果和查询索引定义。"],
+      "authorizationResults": ["规则不能调用未授权动作或暴露隐藏字段。"],
+      "failureResults": ["表达式不可解析、唯一范围不明确或索引不可支持时阻止发布。"]
+    },
+    {
+      "id": "UC-LOWCODE-TENANT-EXTENSION-BINDING",
+      "title": "发布租户扩展和模块应用绑定",
+      "capabilityId": "CAP-LOWCODE-DEFINITION",
+      "requirementIds": ["REQ-TENANT-EXTENSION-BOUNDARIES", "REQ-MODULE-APPLICATION-BINDING"],
+      "actor": "非主租户模板管理员",
+      "entry": "租户模板扩展或模块应用配置",
+      "preconditions": ["主租户基础版本已发布且当前租户允许扩展。"],
+      "steps": [
+        {"order": 1, "action": "新增本租户字段页面视图规则或应用绑定。", "input": "租户扩展", "visibleResult": "预览标明主配置和租户来源，基础强制项不可编辑。"},
+        {"order": 2, "action": "发布后删除该租户扩展。", "input": null, "visibleResult": "运行态先使用扩展，删除后自动回退主配置且模块导航层级不变。"}
+      ],
+      "persistentResults": ["保存租户来源、版本、发布状态和绑定资源动作范围。"],
+      "authorizationResults": ["租户只能管理自身扩展，应用绑定不能扩大应用和模块权限。"],
+      "failureResults": ["修改基础类型编码、安全语义或强制项时阻止发布。"]
+    },
+    {
+      "id": "UC-RECORD-CREATE-EDIT",
+      "title": "新建编辑并读回通用业务记录",
+      "capabilityId": "CAP-RECORD-RUNTIME",
+      "requirementIds": ["REQ-END-USER-BUSINESS-JOURNEY", "REQ-RUNTIME-BUSINESS-RECORD", "REQ-ROBUST-DATA-INTEGRITY", "REQ-RECORD-STANDARD-OWNERSHIP"],
+      "actor": "有模块新建或编辑权限的系统用户",
+      "entry": "系统运行态模块列表的新建按钮或详情编辑按钮",
+      "preconditions": ["模块 Schema 已发布，当前系统租户和权限已解析。"],
+      "steps": [
+        {"order": 1, "action": "填写字段并保存新记录。", "input": "符合 Schema 的业务数据", "visibleResult": "返回列表后最新记录位于第一行，并显示负责人、状态和创建时间。"},
+        {"order": 2, "action": "打开详情编辑一个字段并保存。", "input": "新字段值和乐观锁版本", "visibleResult": "详情读回新值，时间线显示字段前后值和操作者。"}
+      ],
+      "persistentResults": ["原子保存主记录、字段值、查询索引、关联、标准归属字段、版本和审计。"],
+      "authorizationResults": ["新建、编辑、字段可写和归属数据范围分别校验。"],
+      "failureResults": ["必填、唯一、业务规则或乐观锁冲突时不部分写入并在对应字段显示原因。"]
+    },
+    {
+      "id": "UC-RECORD-ARCHIVE-RESTORE",
+      "title": "归档、逻辑删除和恢复业务记录",
+      "capabilityId": "CAP-RECORD-RUNTIME",
+      "requirementIds": ["REQ-DATA-ARCHIVE-RESTORE"],
+      "actor": "有归档、删除或恢复权限的系统用户",
+      "entry": "模块列表或详情操作区",
+      "preconditions": ["目标记录在当前动作数据范围内。"],
+      "steps": [
+        {"order": 1, "action": "查看影响并确认归档或删除。", "input": "记录与原因", "visibleResult": "记录从默认列表消失，在归档或回收筛选中可见。"},
+        {"order": 2, "action": "执行恢复。", "input": null, "visibleResult": "通过当前唯一、配置和关联校验后记录回到正常列表。"}
+      ],
+      "persistentResults": ["保存逻辑删除或归档标识、快照、原因和恢复历史。"],
+      "authorizationResults": ["归档、删除、恢复各自授权且不因曾有权限永久放行。"],
+      "failureResults": ["恢复产生唯一冲突或缺失必要关联时保持原状态并列出冲突。"]
+    },
+    {
+      "id": "UC-RECORD-TRANSFER-CONVERT",
+      "title": "转移归属并事务化转化记录",
+      "capabilityId": "CAP-RECORD-RUNTIME",
+      "requirementIds": ["REQ-MODULE-ACTION-TRANSFER-CONVERT", "REQ-CONVERSION-PERMANENT-UNIQUENESS"],
+      "actor": "有转移或转化权限的系统用户",
+      "entry": "模块列表批量动作或记录详情操作区",
+      "preconditions": ["源记录、目标模块和映射均有效。"],
+      "steps": [
+        {"order": 1, "action": "转移负责人或选择目标模块预览转化。", "input": "新归属或转化映射", "visibleResult": "页面显示将变化的归属，或目标必填字段和映射结果。"},
+        {"order": 2, "action": "确认执行并打开目标记录。", "input": null, "visibleResult": "转移后列表立即反映新负责人；转化后双向显示来源目标且同目标不能再次转化。"}
+      ],
+      "persistentResults": ["转移保存归属审计；转化原子创建独立目标、永久唯一关系和日志。"],
+      "authorizationResults": ["源动作、目标新建、字段映射和目标系统租户边界全部允许才执行。"],
+      "failureResults": ["重复转化、跨系统直连、映射缺失或任一权限失败时整体不写入。"]
+    },
+    {
+      "id": "UC-RECORD-TENANT-SHARE",
+      "title": "授权、使用和撤销跨租户共享记录",
+      "capabilityId": "CAP-RECORD-RUNTIME",
+      "requirementIds": ["REQ-TENANT-SHARED-RUNTIME"],
+      "actor": "来源租户共享管理员和目标租户用户",
+      "entry": "记录详情共享动作或目标租户模块列表",
+      "preconditions": ["两个租户属于同一系统，目标租户和动作范围有效。"],
+      "steps": [
+        {"order": 1, "action": "配置目标租户、数据范围、允许动作和有效期。", "input": "共享授权", "visibleResult": "目标租户列表显示该记录并标明来源租户和共享状态。"},
+        {"order": 2, "action": "目标用户查看或获权编辑后由来源撤销共享。", "input": null, "visibleResult": "写入按来源规则完成；撤销后目标列表立即不可见但历史和已启动 Flow 保留。"}
+      ],
+      "persistentResults": ["不复制正文，保存来源目标范围动作生失效时间、权限快照和共享审计。"],
+      "authorizationResults": ["共享只读为默认，写入取共享授权、目标角色动作数据范围和来源租户规则交集。"],
+      "failureResults": ["不能再次转共享，不能借共享跨系统，过期或撤销后所有新访问拒绝。"]
+    },
+    {
+      "id": "UC-FLOW-DESIGN-PUBLISH",
+      "title": "设计、模拟并发布不可变 Flow 版本",
+      "capabilityId": "CAP-FLOW",
+      "requirementIds": ["REQ-FLOW-DESIGN-VERSION", "REQ-UI-FLOW-DESIGNER", "REQ-FLOW-SIMULATION", "REQ-FLOW-SPECIALIZED-NODE-PROPERTIES"],
+      "actor": "Flow 设计与发布管理员",
+      "entry": "平台后台或系统后台 Flow 配置",
+      "preconditions": ["当前上下文允许创建 Flow，所需成员字段和应用引用有效。"],
+      "steps": [
+        {"order": 1, "action": "在画布添加开始、条件、审批、服务、通知和结束节点并配置专属属性。", "input": "Flow 图和节点属性", "visibleResult": "画布即时标记断路、未配置审批人和非法条件。"},
+        {"order": 2, "action": "输入样例运行路径与审批人模拟后发布。", "input": "模拟上下文", "visibleResult": "页面展示命中路径和审批人；通过后生成不可变发布版本。"}
+      ],
+      "persistentResults": ["保存草稿图、模拟结果、发布校验和不可变定义版本。"],
+      "authorizationResults": ["设计、模拟、发布分权，平台 Flow 和系统 Flow 分别授权。"],
+      "failureResults": ["不可达节点、审批人为空、引用越权或专属属性缺失时阻止发布。"]
+    },
+    {
+      "id": "UC-FLOW-BIND-RESOLVE",
+      "title": "绑定模块触发点并解析租户唯一生效 Flow",
+      "capabilityId": "CAP-FLOW",
+      "requirementIds": ["REQ-FLOW-TRIGGER", "REQ-MODULE-PUBLISH-FLOW-BINDING", "REQ-TENANT-FLOW-RESOLUTION"],
+      "actor": "系统模板或 Flow 管理员",
+      "entry": "模块 Flow 配置或 Flow 触发绑定页",
+      "preconditions": ["模块动作、触发点和 Flow 版本均已发布。"],
+      "steps": [
+        {"order": 1, "action": "为动作或事件配置执行模式和默认 Flow。", "input": "直接、执行后、审批后或仅发起模式", "visibleResult": "相同生效范围只显示一个启用绑定，启用新绑定会提示停用旧绑定。"},
+        {"order": 2, "action": "在主租户、覆盖租户和无覆盖租户触发动作。", "input": "相同业务动作", "visibleResult": "分别解析主默认、租户覆盖和主默认，实例显示来源与版本。"}
+      ],
+      "persistentResults": ["保存唯一生效绑定、覆盖关系和实例所用定义快照。"],
+      "authorizationResults": ["绑定发布和业务触发分别授权，租户只能管理自身覆盖。"],
+      "failureResults": ["同范围两个启用绑定或版本不兼容时阻止发布。"]
+    },
+    {
+      "id": "UC-FLOW-APPROVE-RUNTIME",
+      "title": "发起、审批并解释 Flow 运行",
+      "capabilityId": "CAP-FLOW",
+      "requirementIds": ["REQ-FLOW-MAIN-ENTRY", "REQ-FLOW-APPROVAL-NODE", "REQ-FLOW-RUNTIME-SNAPSHOT", "REQ-FLOW-RUNTIME-ACTIONS", "REQ-TECH-FLOW-ENGINE-MODEL", "REQ-ROBUST-FLOW-RUNTIME"],
+      "actor": "Flow 发起人、审批人或管理员",
+      "entry": "Flow 主入口、模块动作或待办审批",
+      "preconditions": ["发布版本可用且发起人、业务对象和审批人可解析。"],
+      "steps": [
+        {"order": 1, "action": "发起 Flow 并查看实例路径。", "input": "业务对象和表单", "visibleResult": "实例显示冻结版本、当前节点、已解析审批人和下一步说明。"},
+        {"order": 2, "action": "审批人同意、拒绝、退回或转交。", "input": "审批动作和意见", "visibleResult": "待办完成一次，实例进入唯一下一状态并显示动作理由。"}
+      ],
+      "persistentResults": ["保存实例快照、节点任务、候选人、动作、意见、变量和异常历史。"],
+      "authorizationResults": ["只有当前有效处理人可处理一次，查看范围按实例和业务对象权限交集。"],
+      "failureResults": ["重复提交读回原结果，无法解析审批人或服务失败进入明确异常策略而非静默成功。"]
+    },
+    {
+      "id": "UC-FLOW-MANUAL-STATUS",
+      "title": "审计式手动加节点并联动业务状态",
+      "capabilityId": "CAP-FLOW",
+      "requirementIds": ["REQ-FLOW-MANUAL-NODE", "REQ-FLOW-BUSINESS-STATUS-MAPPING"],
+      "actor": "获权 Flow 管理员或审批人",
+      "entry": "运行实例操作区或发布配置状态映射",
+      "preconditions": ["实例运行中，目标人员和业务状态动作有效。"],
+      "steps": [
+        {"order": 1, "action": "预览并确认手动增加审批节点。", "input": "处理人、位置和原因", "visibleResult": "实例图显示手动节点、操作者和原因，不修改发布定义。"},
+        {"order": 2, "action": "完成节点触发审批结果状态映射。", "input": "审批结果", "visibleResult": "业务详情显示配置后的新状态和对应 Flow 时间线。"}
+      ],
+      "persistentResults": ["保存手动节点快照、审批动作和业务状态变更审计。"],
+      "authorizationResults": ["手动加节点需专门权限，业务状态写入仍校验目标动作权限。"],
+      "failureResults": ["目标人员无效、实例结束或状态映射不兼容时不改变实例和业务数据。"]
+    },
+    {
+      "id": "UC-APPLICATION-MANAGE",
+      "title": "创建、发布、轮换和停用应用",
+      "capabilityId": "CAP-APPLICATION",
+      "requirementIds": ["REQ-APPLICATION-MAIN-ENTRY", "REQ-UI-APPLICATION-DETAIL", "REQ-APPLICATION-NOT-MODULE-CONTAINER"],
+      "actor": "平台或系统应用管理员",
+      "entry": "主导航应用页或对应后台应用配置",
+      "preconditions": ["管理员位于平台或明确系统上下文。"],
+      "steps": [
+        {"order": 1, "action": "创建应用并配置身份、回调、资源动作字段数据范围和调用控制。", "input": "应用配置", "visibleResult": "详情页只展示访问授权结构，不生成模块导航或父容器。"},
+        {"order": 2, "action": "发布后轮换凭证并停用应用。", "input": null, "visibleResult": "明文只显示一次；新版本可用，停用后新调用立即拒绝但历史仍可查。"}
+      ],
+      "persistentResults": ["保存应用草稿发布版本、凭证引用版本、授权和状态历史。"],
+      "authorizationResults": ["平台应用只选平台资源，系统应用固定所属系统并受应用管理权限控制。"],
+      "failureResults": ["身份、凭证、范围或调用控制不完整时阻止发布。"]
+    },
+    {
+      "id": "UC-APPLICATION-BRIDGE-CALL",
+      "title": "通过目标应用执行跨系统或外部调用",
+      "capabilityId": "CAP-APPLICATION",
+      "requirementIds": ["REQ-APPLICATION-BRIDGE-FINAL"],
+      "actor": "系统 A、外部客户端或平台 Flow",
+      "entry": "系统 B 应用或平台应用发布的受控调用地址",
+      "preconditions": ["应用启用，凭证版本有效，目标资源和主体已授权。"],
+      "steps": [
+        {"order": 1, "action": "提交签名、时间戳、幂等键和目标范围内请求。", "input": "应用凭证与业务命令", "visibleResult": "成功返回目标业务结果和 requestId，目标系统页面可读回该结果并标记应用来源。"},
+        {"order": 2, "action": "尝试扩大租户字段范围或重放请求。", "input": "越界参数或旧签名", "visibleResult": "在业务执行前拒绝并返回明确错误、requestId 和可审计原因。"}
+      ],
+      "persistentResults": ["保存应用调用、幂等结果、耗时、权限快照和目标业务来源引用。"],
+      "authorizationResults": ["应用授权与目标系统成员角色权限取允许交集，参数只能缩小固定范围。"],
+      "failureResults": ["无目标应用、签名失败、重放、超限、IP 不符或目标权限失败时不写业务。"]
+    },
+    {
+      "id": "UC-WORK-PROJECT-TASK",
+      "title": "创建项目任务组和项目任务",
+      "capabilityId": "CAP-WORK",
+      "requirementIds": ["REQ-WORK-MAIN-ENTRY", "REQ-WORK-MANAGEMENT-BOUNDARY", "REQ-PROJECT-TASK"],
+      "actor": "项目负责人或任务成员",
+      "entry": "主导航任务的项目任务页",
+      "preconditions": ["用户拥有当前上下文项目或任务权限。"],
+      "steps": [
+        {"order": 1, "action": "创建项目、任务组和任务并分配负责人期限。", "input": "项目任务信息", "visibleResult": "任务按组显示，最新任务可见且状态为待开始。"},
+        {"order": 2, "action": "负责人更新进度和状态。", "input": "进度、状态和说明", "visibleResult": "项目汇总、任务列表和时间线同步显示最新结果。"}
+      ],
+      "persistentResults": ["保存项目、任务组、任务、成员、状态和版本历史。"],
+      "authorizationResults": ["平台和系统任务隔离，项目角色与动作权限共同限制修改。"],
+      "failureResults": ["非法状态跃迁、无效负责人或并发版本冲突时拒绝保存。"]
+    },
+    {
+      "id": "UC-WORK-MANUAL-LOG",
+      "title": "手动创建和修订每日工作日志",
+      "capabilityId": "CAP-WORK",
+      "requirementIds": ["REQ-MANUAL-WORK-LOG"],
+      "actor": "普通用户",
+      "entry": "主导航任务的工作日志页",
+      "preconditions": ["当前日期和上下文有效。"],
+      "steps": [
+        {"order": 1, "action": "手动填写日期、内容、耗时和关联项目任务。", "input": "日志内容", "visibleResult": "保存后当日日志列表第一行显示新日志。"},
+        {"order": 2, "action": "编辑日志并查看历史。", "input": "修订内容", "visibleResult": "当前版本更新，历史版本仍可查看差异。"}
+      ],
+      "persistentResults": ["保存手动日志、关联、当前版本和不可变版本历史。"],
+      "authorizationResults": ["用户默认维护本人日志，查看他人日志需要明确权限。"],
+      "failureResults": ["任务状态变化不自动生成日志，非法日期或版本冲突时不覆盖。"]
+    },
+    {
+      "id": "UC-WORK-CALENDAR-CONFIG",
+      "title": "配置工作字段并查看授权日历统计",
+      "capabilityId": "CAP-WORK",
+      "requirementIds": ["REQ-WORK-CALENDAR-STATISTICS", "REQ-WORK-CONFIGURATION", "REQ-WORK-PERMISSION-ISOLATION"],
+      "actor": "工作管理员或普通用户",
+      "entry": "工作配置页或任务日历统计页",
+      "preconditions": ["平台或系统工作配置和权限已发布。"],
+      "steps": [
+        {"order": 1, "action": "管理员配置任务与日志字段、状态和必填规则。", "input": "分层工作配置", "visibleResult": "预览标明平台默认与系统覆盖来源。"},
+        {"order": 2, "action": "用户按日历和人员项目筛选统计。", "input": "时间和授权筛选", "visibleResult": "只汇总权限内任务日志，并能下钻到允许查看的记录。"}
+      ],
+      "persistentResults": ["保存工作配置版本和统计查询定义，不复制业务明细。"],
+      "authorizationResults": ["配置、任务、日志和统计按平台系统上下文及数据范围隔离。"],
+      "failureResults": ["无下钻权限时只显示允许汇总或隐藏组件，不能从统计推断敏感明细。"]
+    },
+    {
+      "id": "UC-NOTIFICATION-TODO",
+      "title": "查看并处理跨来源待办",
+      "capabilityId": "CAP-NOTIFICATION",
+      "requirementIds": ["REQ-TODO-MAIN-ENTRY", "REQ-ACTION-RESULT-CHAIN"],
+      "actor": "有待处理事项的用户",
+      "entry": "主导航待办或页面待办卡片",
+      "preconditions": ["当前平台或系统上下文已建立。"],
+      "steps": [
+        {"order": 1, "action": "按审批、今日联系和其他来源筛选待办。", "input": "待办类型", "visibleResult": "列表显示真实来源对象、截止时间和可执行动作。"},
+        {"order": 2, "action": "打开待办并完成目标动作。", "input": "审批或业务处理结果", "visibleResult": "返回后该项从未完成列表消失，目标对象显示新状态而非只提示成功。"}
+      ],
+      "persistentResults": ["保存待办投影状态、目标引用和处理结果引用。"],
+      "authorizationResults": ["待办可见和目标动作分别校验，平台与系统待办隔离。"],
+      "failureResults": ["目标已处理、权限失效或对象不存在时刷新待办状态并显示真实原因。"]
+    },
+    {
+      "id": "UC-NOTIFICATION-MESSAGE-DELIVERY",
+      "title": "发送、接收和跳转消息通知",
+      "capabilityId": "CAP-NOTIFICATION",
+      "requirementIds": ["REQ-MESSAGE-MAIN-ENTRY", "REQ-MESSAGE-NOTIFICATION", "REQ-MESSAGE-TEMPLATE-DELIVERY"],
+      "actor": "业务能力、消息管理员或接收用户",
+      "entry": "消息模板配置、业务事件或主导航消息",
+      "preconditions": ["模板版本、渠道和接收人有效。"],
+      "steps": [
+        {"order": 1, "action": "业务事件按模板生成站内及外部渠道通知。", "input": "模板变量和目标引用", "visibleResult": "消息列表顶部出现新消息，渠道详情显示发送或失败回执。"},
+        {"order": 2, "action": "用户点击消息跳转目标。", "input": null, "visibleResult": "有权限时打开真实详情，无权限时显示不可访问且不泄露内容。"}
+      ],
+      "persistentResults": ["保存模板版本、消息、投递尝试、回执、已读和安全目标引用。"],
+      "authorizationResults": ["平台与系统消息隔离，跳转实时复核目标权限。"],
+      "failureResults": ["渠道失败有限重试且站内消息不丢失，模板变量缺失时不发送错误内容。"]
+    },
+    {
+      "id": "UC-AI-MODEL-AGENT",
+      "title": "授权模型并发布系统 Agent 策略",
+      "capabilityId": "CAP-AI",
+      "requirementIds": ["REQ-AI-MODEL-AUTHORIZATION", "REQ-AI-AGENT-POLICY-SCOPE"],
+      "actor": "平台 AI 管理员或系统 AI 管理员",
+      "entry": "平台后台或系统后台 AI 配置",
+      "preconditions": ["模型密钥引用有效且目标系统获得模型授权。"],
+      "steps": [
+        {"order": 1, "action": "平台配置模型并授权给系统。", "input": "模型、限制和密钥引用", "visibleResult": "目标系统能选择获权模型，未授权模型不可见。"},
+        {"order": 2, "action": "系统配置 Agent 提示、工具、数据范围和确认策略并发布。", "input": "Agent 策略", "visibleResult": "预览列明最终模型、工具、权限和需要人工确认的动作。"}
+      ],
+      "persistentResults": ["保存模型引用、系统授权和不可变 Agent 策略版本。"],
+      "authorizationResults": ["平台只授权模型范围，系统 Agent 不能超出系统成员和字段数据权限。"],
+      "failureResults": ["密钥无效、模型未授权或工具范围过大时阻止发布。"]
+    },
+    {
+      "id": "UC-AI-CONTEXT-QUERY",
+      "title": "从上下文 AI 入口进行权限内查询",
+      "capabilityId": "CAP-AI",
+      "requirementIds": ["REQ-AI-MAIN-ENTRY", "REQ-AI-CONTEXT-ENTRIES", "REQ-AI-PERMISSIONED-QUERY", "REQ-AI-RIGHT-ASSISTANT"],
+      "actor": "获权平台或系统用户",
+      "entry": "主导航 AI、右侧助手、配置页、记录详情或工作页",
+      "preconditions": ["当前 Agent 和页面上下文已解析。"],
+      "steps": [
+        {"order": 1, "action": "提出与当前页面或记录相关的问题。", "input": "自然语言问题", "visibleResult": "回答标明使用的上下文范围、口径和可打开的获权来源。"},
+        {"order": 2, "action": "询问无权限字段或其他租户数据。", "input": "越权问题", "visibleResult": "助手拒绝或只返回脱敏允许信息，不暗示敏感值。"}
+      ],
+      "persistentResults": ["保存模型、Agent、上下文、检索范围、权限快照和响应审计。"],
+      "authorizationResults": ["AI 检索与普通页面查询使用同一系统租户字段和数据范围。"],
+      "failureResults": ["模型不可用时显示降级原因和可重试方式，不编造业务结果。"]
+    },
+    {
+      "id": "UC-AI-CONFIRM-WRITE",
+      "title": "确认 AI 结构化结果后写入真实业务",
+      "capabilityId": "CAP-AI",
+      "requirementIds": ["REQ-AI-CONFIRMED-WRITE", "REQ-AI-AUDIT-DEGRADE"],
+      "actor": "有目标业务写权限的用户",
+      "entry": "AI 对话或目标模块 AI 创建入口",
+      "preconditions": ["Agent 允许识别目标类型且用户可查看确认表单。"],
+      "steps": [
+        {"order": 1, "action": "提交文本或文件让 AI 识别结构化字段。", "input": "非结构化内容", "visibleResult": "页面显示可编辑确认表单、置信提示和未识别字段，不直接保存。"},
+        {"order": 2, "action": "用户修改并确认写入。", "input": "确认后的字段", "visibleResult": "目标模块列表第一行出现新记录并可打开详情读回。"}
+      ],
+      "persistentResults": ["目标能力保存业务数据；AI 保存输入引用、结构化候选、用户修订、权限和调用审计。"],
+      "authorizationResults": ["确认不替代目标模块新建和字段权限，跨系统仍需应用桥梁。"],
+      "failureResults": ["模型失败保留输入并允许人工填写；业务校验失败回到确认表单且不部分写入。"]
+    },
+    {
+      "id": "UC-FILE-UPLOAD-ACCESS",
+      "title": "上传、引用、预览和下载受控文件",
+      "capabilityId": "CAP-FILE",
+      "requirementIds": ["REQ-FILE-STORAGE"],
+      "actor": "有目标字段或业务对象权限的用户",
+      "entry": "表单文件字段、详情附件区或文件管理入口",
+      "preconditions": ["文件类型大小策略和对象存储可用。"],
+      "steps": [
+        {"order": 1, "action": "选择文件上传并等待安全扫描。", "input": "文件", "visibleResult": "进度完成后显示文件名、大小和扫描状态，未通过文件不可引用。"},
+        {"order": 2, "action": "保存业务引用后预览或下载。", "input": null, "visibleResult": "获权用户通过短期地址访问，详情刷新仍显示同一附件。"}
+      ],
+      "persistentResults": ["保存上传会话、文件元数据、对象键、校验摘要、扫描结果和业务引用。"],
+      "authorizationResults": ["上传、引用、预览、下载和删除分别执行对象及字段权限。"],
+      "failureResults": ["上传中断可恢复或明确失败，扫描不通过、引用越权时不发布对象。"]
+    },
+    {
+      "id": "UC-EXCHANGE-IMPORT",
+      "title": "预演并批次导入模块数据",
+      "capabilityId": "CAP-DATA-EXCHANGE",
+      "requirementIds": ["REQ-MODULE-IMPORT", "REQ-IMPORT-DRYRUN-BATCH-ROLLBACK", "REQ-IMPORT-EXPORT-FULL-JOURNEY"],
+      "actor": "有模块导入权限的用户",
+      "entry": "模块列表导入动作",
+      "preconditions": ["模块已发布且导入模板与字段映射有效。"],
+      "steps": [
+        {"order": 1, "action": "下载模板、上传文件并配置字段映射后预演。", "input": "导入文件", "visibleResult": "页面逐行显示新增、更新、跳过和错误，预演不改变列表。"},
+        {"order": 2, "action": "确认后台执行并查看结果或安全回滚。", "input": null, "visibleResult": "完成后列表显示导入数据；结果页可下载错误行，允许时回滚只撤销该批次。"}
+      ],
+      "persistentResults": ["保存文件引用、映射、预演、批次、逐行结果、创建对象和回滚状态。"],
+      "authorizationResults": ["导入动作、新建编辑、字段可写和数据归属规则逐行执行。"],
+      "failureResults": ["唯一冲突、并发修改或回滚不安全时逐行说明且不误删他人后续修改。"]
+    },
+    {
+      "id": "UC-EXCHANGE-EXPORT",
+      "title": "按当前权限异步导出模块数据",
+      "capabilityId": "CAP-DATA-EXCHANGE",
+      "requirementIds": ["REQ-MODULE-EXPORT"],
+      "actor": "有模块导出权限的用户",
+      "entry": "模块列表导出动作",
+      "preconditions": ["当前筛选、字段视图和数据范围已确定。"],
+      "steps": [
+        {"order": 1, "action": "选择导出当前筛选或选中记录。", "input": "导出范围与字段", "visibleResult": "页面显示预计数量、脱敏字段和后台作业入口。"},
+        {"order": 2, "action": "作业完成后下载文件。", "input": null, "visibleResult": "文件只包含提交时权限内记录和字段，下载记录可追踪。"}
+      ],
+      "persistentResults": ["保存筛选权限快照、作业、文件引用、数量和下载审计。"],
+      "authorizationResults": ["导出动作、列表数据范围、字段权限和脱敏共同限制结果。"],
+      "failureResults": ["权限在执行前失效或数据量超过配额时作业失败并不生成可下载文件。"]
+    },
+    {
+      "id": "UC-ANALYTICS-DASHBOARD",
+      "title": "配置并使用平台或系统仪表盘",
+      "capabilityId": "CAP-ANALYTICS",
+      "requirementIds": ["REQ-DASHBOARD-ENTRY", "REQ-CONFIGURABLE-DASHBOARD", "REQ-DASHBOARD-DATA-COMPONENTS", "REQ-UI-PLATFORM-DASHBOARD", "REQ-UI-SYSTEM-DASHBOARD"],
+      "actor": "仪表盘管理员或普通用户",
+      "entry": "主导航仪表盘或后台仪表盘配置",
+      "preconditions": ["组件数据源已发布且用户拥有对应范围。"],
+      "steps": [
+        {"order": 1, "action": "管理员拖放指标、图表、列表和快捷入口并发布。", "input": "布局、组件和数据源", "visibleResult": "预览标明数据口径和下钻目标，发布后生成新版本。"},
+        {"order": 2, "action": "用户登录或切换系统租户查看。", "input": null, "visibleResult": "平台页只显示平台汇总与系统入口；系统页显示当前租户获权业务数据。"}
+      ],
+      "persistentResults": ["保存布局、组件参数、数据源引用和不可变发布版本。"],
+      "authorizationResults": ["组件可见、数据源执行和下钻目标分别按当前上下文授权。"],
+      "failureResults": ["数据源失效时组件显示明确错误和更新时间，不用伪造零值。"]
+    },
+    {
+      "id": "UC-ANALYTICS-DATASOURCE-REPORT",
+      "title": "定义版本化数据源并执行权限内聚合",
+      "capabilityId": "CAP-ANALYTICS",
+      "requirementIds": ["REQ-CONFIGURABLE-DATA-SOURCE", "REQ-DATA-SOURCE-CAPABILITIES", "REQ-REPORT-AGGREGATION"],
+      "actor": "统计配置管理员或获权用户",
+      "entry": "后台数据源配置或模块统计入口",
+      "preconditions": ["模块字段关系稳定且查询范围可约束。"],
+      "steps": [
+        {"order": 1, "action": "选择单模块或多模块关系、维度、指标、筛选和排序并预览 SQL 计划说明。", "input": "结构化数据源定义", "visibleResult": "样例结果展示口径、来源字段和权限过滤，不允许任意 SQL。"},
+        {"order": 2, "action": "发布并在统计组件执行下钻。", "input": "数据源版本", "visibleResult": "汇总数与权限内列表一致，下钻只出现允许记录。"}
+      ],
+      "persistentResults": ["保存数据源草稿、发布版本、关系、指标和查询解释。"],
+      "authorizationResults": ["字段、模块和数据范围在聚合前过滤，不能从聚合反推无权明细。"],
+      "failureResults": ["关系歧义、不可索引查询、越权字段或成本超限时阻止发布或执行。"]
+    },
+    {
+      "id": "UC-ANALYTICS-KPI",
+      "title": "配置 KPI、计算结果并闭环提醒",
+      "capabilityId": "CAP-ANALYTICS",
+      "requirementIds": ["REQ-KPI-CLOSED-LOOP", "REQ-DATA-KPI-DASHBOARD-EXPLAIN"],
+      "actor": "KPI 管理员或负责人",
+      "entry": "KPI 配置、仪表盘指标或提醒消息",
+      "preconditions": ["目标周期、数据源版本和负责人有效。"],
+      "steps": [
+        {"order": 1, "action": "配置目标值、周期、口径和未达标提醒。", "input": "KPI 定义", "visibleResult": "预览解释目标、实际值来源和计算时间。"},
+        {"order": 2, "action": "运行统计并从提醒打开 KPI。", "input": null, "visibleResult": "仪表盘显示达成率，未达标负责人收到可跳转消息并可下钻获权明细。"}
+      ],
+      "persistentResults": ["保存 KPI 版本、周期目标、计算快照、来源版本和提醒引用。"],
+      "authorizationResults": ["KPI 可见与下钻数据权限分别计算。"],
+      "failureResults": ["数据源失败时保留上次快照并标记过期，不发送错误达标结论。"]
+    },
+    {
+      "id": "UC-PRINT-RECORD",
+      "title": "设计模板并打印获权记录",
+      "capabilityId": "CAP-PRINT",
+      "requirementIds": ["REQ-PRINT-TEMPLATE"],
+      "actor": "模板管理员或有打印权限的用户",
+      "entry": "模块打印模板配置或记录详情打印动作",
+      "preconditions": ["模块字段和目标记录可访问。"],
+      "steps": [
+        {"order": 1, "action": "设计模板并用样例记录预览后发布。", "input": "布局和字段", "visibleResult": "预览与发布版本一致并标记分页结果。"},
+        {"order": 2, "action": "在真实记录详情执行打印。", "input": null, "visibleResult": "生成文件只包含获权和脱敏后的字段，可在线预览下载。"}
+      ],
+      "persistentResults": ["保存模板版本、打印任务、记录权限快照和生成文件引用。"],
+      "authorizationResults": ["模板管理、记录查看、字段可见和打印动作共同限制输出。"],
+      "failureResults": ["模板引用失效字段或记录权限变化时阻止生成并说明。"]
+    },
+    {
+      "id": "UC-UI-SHELL-NAVIGATION",
+      "title": "在统一主壳和系统模块壳中导航",
+      "capabilityId": "CAP-UI-RUNTIME",
+      "requirementIds": ["REQ-MAIN-NAVIGATION", "REQ-SYSTEM-ENTRY", "REQ-SYSTEM-RUNTIME-SHELL", "REQ-UI-PLATFORM-SHELL", "REQ-UI-ADMIN-SHELL"],
+      "actor": "已登录平台或系统用户",
+      "entry": "登录成功后的平台主页面",
+      "preconditions": ["后端已返回当前身份、上下文和菜单权限。"],
+      "steps": [
+        {"order": 1, "action": "从仪表盘、系统、Flow、应用、任务、AI、待办、消息或个人中心进入功能。", "input": "导航项", "visibleResult": "固定主导航只显示获权入口，内容区保留统一壳。"},
+        {"order": 2, "action": "进入系统并选择模块组与模块，或进入对应后台。", "input": "系统或模块", "visibleResult": "普通系统用户看到模块，不把系统列表、应用或 Flow 变成模块父级。"}
+      ],
+      "persistentResults": ["只保存用户允许的导航偏好和最后有效上下文。"],
+      "authorizationResults": ["隐藏入口和路由守卫使用后端权限，直接访问仍由后端拒绝。"],
+      "failureResults": ["上下文或菜单版本失效时刷新权限并回到最近允许入口。"]
+    },
+    {
+      "id": "UC-UI-LIST-DETAIL",
+      "title": "在高级列表筛选并通过整行打开详情",
+      "capabilityId": "CAP-UI-RUNTIME",
+      "requirementIds": ["REQ-UI-LIST-CAPABILITIES", "REQ-UI-LIST-ROW-DETAIL", "REQ-ADVANCED-TABLE-RUNTIME", "REQ-UI-CONSOLIDATED-MODULE-PAGES"],
+      "actor": "模块普通用户",
+      "entry": "任一发布模块列表",
+      "preconditions": ["列表 Schema 和数据权限已加载。"],
+      "steps": [
+        {"order": 1, "action": "搜索、组合筛选、排序、调整列、保存视图并分页或虚拟滚动。", "input": "列表条件", "visibleResult": "紧凑列表头显示条件摘要、总量和可解释加载状态，结果与筛选一致。"},
+        {"order": 2, "action": "点击非交互列的整行。", "input": "目标记录", "visibleResult": "右侧详情打开真实记录；勾选框和行内按钮只执行自身动作不误开详情。"}
+      ],
+      "persistentResults": ["保存用户视图、列偏好和筛选；业务数据由记录能力读取。"],
+      "authorizationResults": ["列、行、批量动作和详情分别按字段数据动作权限展示。"],
+      "failureResults": ["查询失败保留条件并给出重试，记录已无权限时关闭详情并刷新列表。"]
+    },
+    {
+      "id": "UC-UI-FORM-DETAIL-DESIGNER",
+      "title": "使用真实表单详情和字段页面设计器",
+      "capabilityId": "CAP-UI-RUNTIME",
+      "requirementIds": ["REQ-UI-FORM-INTERACTION", "REQ-UI-DETAIL-INTERACTION", "REQ-UI-FIELD-DESIGNER", "REQ-UI-PAGE-DESIGNER", "REQ-NO-GENERIC-DESIGN-FALLBACK"],
+      "actor": "普通用户或模板管理员",
+      "entry": "模块新建编辑详情或字段页面设计器",
+      "preconditions": ["真实 Schema 和动作配置可用。"],
+      "steps": [
+        {"order": 1, "action": "普通用户填写分组表单并处理字段级错误，保存后查看详情分区、关联和时间线。", "input": "业务字段", "visibleResult": "错误定位到字段，保存后详情显示真实读回和可执行动作。"},
+        {"order": 2, "action": "管理员拖放字段或组件、配置属性并预览桌面页面。", "input": "设计配置", "visibleResult": "预览使用真实组件和 Schema；未设计的特殊页显示阻断态而非通用占位抽屉。"}
+      ],
+      "persistentResults": ["保存用户提交由目标能力处理，设计器保存页面草稿和预览状态。"],
+      "authorizationResults": ["字段读写、详情动作和设计发布分别授权。"],
+      "failureResults": ["离开未保存表单提示确认；设计引用无效时明确定位组件并阻止发布。"]
+    },
+    {
+      "id": "UC-UI-COMMAND-DAILY",
+      "title": "使用全局命令、收藏和快捷创建",
+      "capabilityId": "CAP-UI-RUNTIME",
+      "requirementIds": ["REQ-COMMAND-CENTER", "REQ-UI-DAILY-PRODUCTIVITY", "REQ-UI-RISK-CONFIRMATION"],
+      "actor": "高频使用平台的普通用户",
+      "entry": "全局快捷键、搜索框或收藏区",
+      "preconditions": ["当前上下文和快捷动作权限已加载。"],
+      "steps": [
+        {"order": 1, "action": "搜索模块记录动作或打开收藏并执行快捷创建。", "input": "关键词或命令", "visibleResult": "结果按类型分组且只含获权项，执行后打开真实页面或表单。"},
+        {"order": 2, "action": "执行删除、停用、迁移等危险动作。", "input": null, "visibleResult": "确认框展示影响对象、不可逆部分和替代方案，完成后页面展示真实新状态。"}
+      ],
+      "persistentResults": ["保存用户收藏、最近命令和允许的页面状态偏好。"],
+      "authorizationResults": ["命令发现与最终执行双重校验，危险动作需要专门权限。"],
+      "failureResults": ["权限变化或目标失效时移除候选并显示不可执行原因。"]
+    },
+    {
+      "id": "UC-UI-DESIGN-RESPONSIVE",
+      "title": "统一设计系统并完成单 Vue 应用响应式验收",
+      "capabilityId": "CAP-UI-RUNTIME",
+      "requirementIds": ["REQ-UI-ENTERPRISE-STYLE", "REQ-UI-STATUS-COLOR", "REQ-UI-MOBILE-USAGE", "REQ-UI-MOBILE-NO-HEAVY-CONFIG", "REQ-TECH-FRONTEND-CORE", "REQ-TECH-FRONTEND-COMPONENTS", "REQ-UI-DESIGN-SYSTEM", "REQ-UI-ACCESSIBLE-RESPONSIVE", "REQ-RESPONSIVE-SINGLE-VUE"],
+      "actor": "前端与测试角色",
+      "entry": "同一 Vue 构建的桌面和移动断点测试矩阵",
+      "preconditions": ["全部桌面功能旅程已完成，进入统一响应式 hardening。"],
+      "steps": [
+        {"order": 1, "action": "核对设计 Token、状态色、组件状态、键盘焦点和企业界面一致性。", "input": "桌面核心页面", "visibleResult": "相同语义在列表表单详情 Flow 和后台使用一致颜色间距与反馈。"},
+        {"order": 2, "action": "在移动断点执行登录、导航、列表详情、新建、审批、待办消息和 AI 核心旅程。", "input": "触控和屏幕阅读操作", "visibleResult": "布局可读可触控且不依赖悬停，重配置入口明确引导到桌面而非残缺实现。"}
+      ],
+      "persistentResults": ["保存响应式矩阵、可访问性和核心旅程证据；仅产出一套前端构建。"],
+      "authorizationResults": ["移动与桌面使用同一权限和发布配置。"],
+      "failureResults": ["任一核心移动旅程无法完成或产生第二套业务实现时 hardening 不通过。"]
+    },
+    {
+      "id": "UC-OPS-HEALTH-OBSERVE",
+      "title": "启动预检并查看系统体检和全链路观测",
+      "capabilityId": "CAP-OPERATIONS-SECURITY",
+      "requirementIds": ["REQ-AUDIT-OPERATIONS", "REQ-TECH-OBSERVABILITY", "REQ-ROBUST-STARTUP-PREFLIGHT", "REQ-OPS-SYSTEM-HEALTH"],
+      "actor": "运维管理员",
+      "entry": "服务启动日志或后台系统体检",
+      "preconditions": ["环境配置已装载。"],
+      "steps": [
+        {"order": 1, "action": "启动服务并检查数据库、Redis、对象存储、密钥和迁移状态。", "input": "环境配置", "visibleResult": "依赖逐项显示通过或明确失败原因，关键依赖失败时服务不伪装就绪。"},
+        {"order": 2, "action": "从页面 requestId 跳查日志、指标、作业和审计。", "input": "requestId", "visibleResult": "能关联前端请求、后端调用、数据库、应用、Flow 和作业结果。"}
+      ],
+      "persistentResults": ["保存健康检查结果、结构化日志、指标、追踪和运维审计。"],
+      "authorizationResults": ["运维详情和敏感配置状态只对专门管理员开放。"],
+      "failureResults": ["不可观测或依赖失败原因不明确时阻止宣告环境就绪。"]
+    },
+    {
+      "id": "UC-OPS-DEPLOY-ROLLBACK",
+      "title": "隔离环境部署并回滚完整交付包",
+      "capabilityId": "CAP-OPERATIONS-SECURITY",
+      "requirementIds": ["REQ-ROBUST-DEPLOYMENT-PACKAGE", "REQ-OPS-ENVIRONMENT-SEPARATION", "REQ-OPS-DEPLOYMENT-ROLLBACK"],
+      "actor": "发布管理员",
+      "entry": "部署流水线或运维发布页",
+      "preconditions": ["应用、静态资源、配置、SQL 和回滚计划版本一致。"],
+      "steps": [
+        {"order": 1, "action": "在目标环境执行预检、数据库迁移、后端和前端发布。", "input": "不可变发布包", "visibleResult": "发布页显示每步版本、耗时、健康检查和真实入口冒烟结果。"},
+        {"order": 2, "action": "模拟失败或选择回滚。", "input": "回滚点", "visibleResult": "应用静态配置按兼容计划恢复，数据库使用明确前向修复或可逆步骤。"}
+      ],
+      "persistentResults": ["保存环境、发布包摘要、步骤、审批、结果和回滚证据。"],
+      "authorizationResults": ["环境凭证隔离，发布和回滚需要专门权限及审批。"],
+      "failureResults": ["版本不一致、迁移不可恢复或真实入口失败时发布不标记成功。"]
+    },
+    {
+      "id": "UC-OPS-UPGRADE-BACKUP",
+      "title": "备份后执行数据库与配置升级恢复",
+      "capabilityId": "CAP-OPERATIONS-SECURITY",
+      "requirementIds": ["REQ-UPGRADE-DATA-CONFIG-MIGRATION", "REQ-OPS-BACKUP-RESTORE"],
+      "actor": "数据与运维管理员",
+      "entry": "运维配置的备份恢复或升级任务",
+      "preconditions": ["影响报告、兼容版本、容量和恢复验证环境就绪。"],
+      "steps": [
+        {"order": 1, "action": "备份数据库、文件、配置和密钥引用并执行恢复演练。", "input": "备份策略", "visibleResult": "页面显示四类数据的校验摘要和演练可读结果。"},
+        {"order": 2, "action": "执行数据库及配置版本迁移。", "input": "升级版本", "visibleResult": "每步状态可见，完成后运行数据引用新版本且旧快照仍可解释。"}
+      ],
+      "persistentResults": ["保存备份清单摘要、恢复演练、迁移步骤、配置映射和回滚点。"],
+      "authorizationResults": ["备份下载、恢复和升级分权并全程审计。"],
+      "failureResults": ["备份不可验证、空间不足或迁移冲突时不开始；中途失败保持明确可恢复状态。"]
+    },
+    {
+      "id": "UC-OPS-SECURITY-PERFORMANCE",
+      "title": "轮换密钥并验证安全与关键数据路径性能",
+      "capabilityId": "CAP-OPERATIONS-SECURITY",
+      "requirementIds": ["REQ-SECURITY-BASELINE", "REQ-PERFORMANCE-DATA-PATHS", "REQ-SECRET-REFERENCE-ROTATION", "REQ-NO-OPERATIONS-REPORT-NAV"],
+      "actor": "安全或运维管理员",
+      "entry": "后台运维配置、安全检查或密钥引用页",
+      "preconditions": ["目标密钥使用方、轮换窗口和性能基线明确。"],
+      "steps": [
+        {"order": 1, "action": "创建新密钥版本并灰度验证后切换。", "input": "密钥引用和新版本", "visibleResult": "页面只显示引用版本状态，验证失败时旧版本继续服务。"},
+        {"order": 2, "action": "运行列表查询、文件、作业和统计的有界性能检查。", "input": "真实规模样本", "visibleResult": "展示索引、分页、超时、队列和资源结果，不新增运营或报表主导航。"}
+      ],
+      "persistentResults": ["保存密钥轮换版本审计、安全检查和性能基线结果。"],
+      "authorizationResults": ["密钥明文只在创建轮换瞬间向专门管理员显示一次。"],
+      "failureResults": ["安全检查失败阻止切换，性能超界形成明确优化任务而非忽略。"]
+    },
+    {
+      "id": "UC-IDENTITY-PROVIDER-PUBLISH",
+      "title": "配置、测试并发布平台企业身份源",
+      "capabilityId": "CAP-IDENTITY",
+      "requirementIds": ["REQ-ENTERPRISE-SSO"],
+      "actor": "平台身份管理员",
+      "entry": "平台后台统一认证配置",
+      "preconditions": ["管理员拥有平台身份源配置权限，密钥存储和回调域名已就绪。"],
+      "steps": [
+        {"order": 1, "action": "创建 OIDC、SAML2、OAuth2、LDAP/AD、企业微信或钉钉身份源草稿，配置端点、回调、证书/JWKS、域名、属性映射、JIT、MFA 和 SecretRef。", "input": "身份源协议配置与密钥引用", "visibleResult": "页面按协议展示专属字段，只显示密钥引用和版本，不回显明文。"},
+        {"order": 2, "action": "执行连接、签名、属性和回调预检，确认测试报告后发布。", "input": "测试账号或协议探测参数", "visibleResult": "报告逐项显示结果、requestId 和失败原因；只有通过的版本可以发布并出现在登录页。"}
+      ],
+      "persistentResults": ["保存不可变发布版本、协议配置、SecretRef、测试报告、允许域名、属性与 MFA 策略及审计。"],
+      "authorizationResults": ["只有平台身份管理员可查看配置状态、测试和发布，任何接口都不返回密钥明文。"],
+      "failureResults": ["协议不支持、回调不匹配、证书/JWKS 无效、密钥引用不可用或测试未通过时阻止发布。"]
+    },
+    {
+      "id": "UC-IDENTITY-SYSTEM-MAPPING",
+      "title": "继承平台身份源并映射系统组织成员",
+      "capabilityId": "CAP-IDENTITY",
+      "requirementIds": ["REQ-ENTERPRISE-SSO", "REQ-NO-MEMBER-ACCESS-REQUEST"],
+      "actor": "系统身份管理员",
+      "entry": "系统后台统一认证配置",
+      "preconditions": ["平台身份源已发布，管理员拥有目标系统和租户的统一认证配置权限。"],
+      "steps": [
+        {"order": 1, "action": "选择允许的已发布身份源并配置租户域名、外部部门到系统部门、externalUserId/email/mobile/employeeNo 到账号员工和 systemMemberId 的映射及 JIT 策略。", "input": "身份源范围与组织成员映射", "visibleResult": "草稿显示每项映射目标、冲突、缺失成员和预期 JIT 或申请处理方式。"},
+        {"order": 2, "action": "运行预检并人工确认同步，随后查看登录映射日志。", "input": "预检样本与确认决定", "visibleResult": "同步任务显示部门、员工、账号、成员绑定结果；日志可按 identityProvider、externalUserId、MFA、设备、requestId、traceId 和失败原因追踪。"}
+      ],
+      "persistentResults": ["保存系统身份源继承版本、域名和映射规则、预检报告、同步任务、人工确认、成员绑定及登录日志。"],
+      "authorizationResults": ["系统只能选择平台允许的已发布身份源；未得到 systemMemberId 前只能形成访问申请，不能建立系统业务上下文。"],
+      "failureResults": ["未匹配部门、未绑定员工、映射冲突或无成员时明确列出原因并进入人工确认或访问申请。"]
+    }
+  ]
+}

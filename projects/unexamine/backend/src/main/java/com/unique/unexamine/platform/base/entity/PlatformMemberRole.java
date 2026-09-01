@@ -21,6 +21,9 @@ public class PlatformMemberRole {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    @TableField("platform_id")
+    private Long platformId;
+
     @TableField("member_id")
     private Long memberId;
 
@@ -36,6 +39,14 @@ public class PlatformMemberRole {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
     }
 
     public Long getMemberId() {
@@ -66,6 +77,7 @@ public class PlatformMemberRole {
     public String toString() {
         return "PlatformMemberRole{" +
             "id = " + id +
+            ", platformId = " + platformId +
             ", memberId = " + memberId +
             ", roleId = " + roleId +
             ", createdAt = " + createdAt +

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.runtimedata.base.mapper.BizRecordConversionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.runtimedata.base.entity.BizRecordConversion">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="source_record_id" property="sourceRecordId" />
+        <result column="action_id" property="actionId" />
+        <result column="status" property="status" />
+        <result column="mapping_snapshot_json" property="mappingSnapshotJson" />
+        <result column="idempotency_key" property="idempotencyKey" />
+        <result column="created_by_member_id" property="createdByMemberId" />
+        <result column="created_at" property="createdAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, source_record_id, action_id, `status`, mapping_snapshot_json, idempotency_key, created_by_member_id, created_at, finished_at, version
+    </sql>
+
+</mapper>

@@ -10,6 +10,10 @@ import jakarta.validation.constraints.Size;
 public record UpdateModuleFieldRequest(
         @NotBlank @Size(max = 200) String name,
         @NotNull Boolean required,
+        Boolean uniqueValue,
+        Boolean searchable,
+        Long dictionaryId,
+        Long referenceModuleId,
         @Min(0) Integer sortOrder,
         @NotBlank @Pattern(regexp = "ACTIVE|DISABLED") String status,
         @NotNull JsonNode config,

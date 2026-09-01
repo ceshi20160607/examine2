@@ -27,6 +27,18 @@ public class PlatformAccountCredential {
     @TableField("password_hash")
     private String passwordHash;
 
+    @TableField("password_algorithm")
+    private String passwordAlgorithm;
+
+    @TableField("must_change_password")
+    private Boolean mustChangePassword;
+
+    @TableField("failed_attempts")
+    private Integer failedAttempts;
+
+    @TableField("locked_until")
+    private LocalDateTime lockedUntil;
+
     @TableField("credential_version")
     private Integer credentialVersion;
 
@@ -57,6 +69,38 @@ public class PlatformAccountCredential {
         this.passwordHash = passwordHash;
     }
 
+    public String getPasswordAlgorithm() {
+        return passwordAlgorithm;
+    }
+
+    public void setPasswordAlgorithm(String passwordAlgorithm) {
+        this.passwordAlgorithm = passwordAlgorithm;
+    }
+
+    public Boolean getMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public void setMustChangePassword(Boolean mustChangePassword) {
+        this.mustChangePassword = mustChangePassword;
+    }
+
+    public Integer getFailedAttempts() {
+        return failedAttempts;
+    }
+
+    public void setFailedAttempts(Integer failedAttempts) {
+        this.failedAttempts = failedAttempts;
+    }
+
+    public LocalDateTime getLockedUntil() {
+        return lockedUntil;
+    }
+
+    public void setLockedUntil(LocalDateTime lockedUntil) {
+        this.lockedUntil = lockedUntil;
+    }
+
     public Integer getCredentialVersion() {
         return credentialVersion;
     }
@@ -79,6 +123,10 @@ public class PlatformAccountCredential {
             "id = " + id +
             ", accountId = " + accountId +
             ", passwordHash = " + passwordHash +
+            ", passwordAlgorithm = " + passwordAlgorithm +
+            ", mustChangePassword = " + mustChangePassword +
+            ", failedAttempts = " + failedAttempts +
+            ", lockedUntil = " + lockedUntil +
             ", credentialVersion = " + credentialVersion +
             ", changedAt = " + changedAt +
             "}";

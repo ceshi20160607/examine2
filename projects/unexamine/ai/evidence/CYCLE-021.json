@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-021",
+  "executedAt": "2026-08-22T14:01:47+08:00",
+  "taskIds": ["TASK-0066", "TASK-0067", "TASK-0068", "TASK-0075", "TASK-0076"],
+  "checks": [
+    {
+      "name": "低代码模块草稿、发布、运行目录与版本受影响集成测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q -Dtest=ModuleConfigurationHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "前端 API、权限、路由和运行动作测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "模块配置与通用运行页类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-LOWCODE-MODULE-LIFECYCLE",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统中具备模块设计和发布权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从模块配置真实页面创建客户经营模块组和稳定编码 customer 的客户模块草稿；配置页显示仅草稿、尚未发布，切换到业务模块页时目录仍为 0 个模块。",
+        "为草稿添加必填、可搜索、唯一的客户名称字段 name，发布检查通过后确认发布，页面显示不可变版本 v1 和当前运行版本。",
+        "再次进入业务模块页后立即显示客户经营分组下的客户模块、发布版本 v1、客户名称列和新建客户入口，证明运行态读取真实发布目录。",
+        "ModuleConfigurationHttpTest 覆盖编码冲突、引用缺失、破坏性变化和设计/发布权限分离失败分支。"
+      ],
+      "persistentReads": [
+        "cfg_module_group 与 cfg_module 读回 system_id=7、owner_tenant_id=8、customer_ops/customer、ACTIVE、draft_revision=2。",
+        "cfg_module_version 读回 v1、草稿修订 2 和稳定 schema_hash；cfg_module_publication 指向该不可变版本。",
+        "cfg_module_field 读回 name/TEXT、required=1、unique_value=1、searchable=1、ACTIVE。",
+        "information_schema 对 unexamine 中表名包含 customer 的查询结果为 0，模块发布只保存通用元数据，没有创建模块专用物理表或动态 Java。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-021.json"
+      ]
+    }
+  ]
+}

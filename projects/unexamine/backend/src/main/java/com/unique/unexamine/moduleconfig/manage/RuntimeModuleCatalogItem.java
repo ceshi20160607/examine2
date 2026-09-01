@@ -7,5 +7,12 @@ public record RuntimeModuleCatalogItem(
         Integer groupSortOrder,
         Long moduleId,
         String moduleCode,
-        String moduleName) {
+        String moduleName,
+        Long menuId,
+        Long menuParentId,
+        String menuCode,
+        String menuName,
+        String menuIcon,
+        String menuRoutePath,
+        Integer menuSortOrder) {
 }

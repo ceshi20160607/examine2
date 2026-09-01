@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-028",
+  "executedAt": "2026-08-22T15:47:00+08:00",
+  "taskIds": ["TASK-0091", "TASK-0092", "TASK-0093"],
+  "checks": [
+    {
+      "name": "负责人转交、事务化模块转化、永久唯一关系、权限拒绝和失败原子性定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=RuntimeDataHttpTest#publishedRuntimeStoresTypedValuesVersionsAndEnforcesActionScopeAndTenantBoundary test",
+      "result": "passed"
+    },
+    {
+      "name": "转交转化运行动作、API、权限和路由测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm run test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "转交预览、转化映射、双向关联详情和失败阻断类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-RECORD-TRANSFER-CONVERT",
+      "entryUrl": "http://127.0.0.1:15173/systems/7/runtime/customer",
+      "actor": "页面验收系统默认主租户中具备客户转交、转化以及客户和商机读写权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "通过系统后台低代码页面新建 opportunity 商机模块，添加必填商机名称和来源电话字段；发布后商机作为客户经营模块组中的同级模块出现，没有成为客户动作或独立平台能力。",
+        "客户转化动作先只配置来源电话映射，发布检查在页面准确阻断并指出目标必填字段 opportunity_name 未配置来源；补齐 opportunity_name=name、source_phone=phone 后检查通过并发布客户 v6。",
+        "从客户列表对有效客户一 #2 打开负责人转交，页面预览页面验收管理员到 C28 商机跟进人、无部门到无部门、相关人无到无；确认后列表刷新为负责人 9，详情更新时间推进且业务字段保持不变。",
+        "从客户详情选择商机并预览转化，页面逐行显示商机名称←name=有效客户一、来源电话←phone=13900000001，两项均为映射有效且目标必填校验通过。",
+        "确认转化后页面切到商机模块，新生成有效客户一 #8 位于列表第一行，负责人继承成员 9，详情读回商机名称和来源电话；目标关联数据显示来源·客户·有效客户一，点击可返回客户详情。",
+        "客户关联数据反向显示目标·商机·有效客户一，时间线显示转交负责人和转化记录及操作者成员 8；再次预览同一客户到商机时页面提示永久唯一关系禁止再次转化并禁用执行按钮。"
+      ],
+      "persistentReads": [
+        "cfg_module 读回 customer #2 和 opportunity #3 均为 ACTIVE；商机发布 v1 包含两个字段，客户发布 v6 的 CONVERT 动作保存两个目标字段映射。",
+        "biz_record #2 最终 owner_member_id=9、version=1、updated_config_version_id=6；biz_record_owner_history 唯一保存 8→9、页面填写的转交原因、操作成员 8 和真实时间。",
+        "biz_record #8 属于 module_id=3、tenant_id=8、owner_member_id=9、created_config_version_id=7；biz_record_value 读回 opportunity_name=有效客户一、source_phone=13900000001。",
+        "biz_record_conversion #1 保存 action_id=13、SUCCEEDED、sourceVersion=1、两项 READY 映射快照和永久幂等键 convert:2:3；biz_record_conversion_result 唯一指向目标模块 3、记录 8。",
+        "audit_event 保存 BUSINESS_RECORD_TRANSFERRED 和 BUSINESS_RECORD_CONVERTED 成功事件及负责人变化预览、转交原因、目标模块/记录；自动化直接重复执行、缺少映射、跨系统目标和无权限转回均整体不写入。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/runtime-actions.ts",
+        "projects/unexamine/ai/evidence/CYCLE-028.json"
+      ]
+    }
+  ]
+}

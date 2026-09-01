@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.operations.base.mapper.OpsVerificationRunMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.operations.base.entity.OpsVerificationRun">
+        <id column="id" property="id" />
+        <result column="verification_type" property="verificationType" />
+        <result column="context_type" property="contextType" />
+        <result column="system_id" property="systemId" />
+        <result column="release_id" property="releaseId" />
+        <result column="scenario_code" property="scenarioCode" />
+        <result column="status" property="status" />
+        <result column="input_json" property="inputJson" />
+        <result column="result_json" property="resultJson" />
+        <result column="threshold_json" property="thresholdJson" />
+        <result column="started_by_account_id" property="startedByAccountId" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, verification_type, context_type, system_id, release_id, scenario_code, `status`, input_json, result_json, threshold_json, started_by_account_id, started_at, finished_at
+    </sql>
+
+</mapper>

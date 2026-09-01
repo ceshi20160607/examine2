@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-033",
+  "executedAt": "2026-08-22T17:30:00+08:00",
+  "taskIds": ["TASK-0099", "TASK-0100", "TASK-0119", "TASK-0120"],
+  "checks": [
+    {
+      "name": "Flow/Work 前端状态、校验与交互单元测试（7 个文件、18 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 设计器、项目任务页、系统/平台入口与类型检查生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 节点顺序、校验模拟发布及 Work 状态机隔离整组 HTTP 回归（2 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "C33 页面结果对应 MySQL 持久化读回",
+      "command": "在本地验收 MySQL 查询 flow_definition/flow_node/flow_publication/flow_version/work_project/work_task/work_task_history",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-FLOW-DESIGN-PUBLISH",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统默认主租户的系统管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "系统工作区按最终信息架构显示 Flow 独立入口；进入后新建 C33 合同审批流程，并按开始、条件、审批、服务、通知、结束顺序建立六节点画布。",
+        "审批人和服务地址为空时，页面即时显示 APPROVER_MISSING 与 SPECIAL_PROPERTY_MISSING，发布按钮不可用；填写当前系统成员账号和服务地址后问题消失。",
+        "保存草稿后页面仍按业务画布位置显示 START→GATEWAY→APPROVAL→WEBHOOK→NOTIFICATION→END；页面验收发现并修复了后端按 nodeKey 重排导致的可见顺序错乱。",
+        "发布检查明确提示通过；以 amount=8000 模拟后页面展示六个命中节点的完整路径，随后发布 V1 并显示当前运行指针、变更摘要和 64 位定义哈希。",
+        "发布 V1 后把通知节点改为下一版草稿并保存为 r5；刷新页面后仍显示新草稿内容，而当前运行指针仍固定指向基于 r4 的 V1，哈希 b712a6a2348abe8b4487d8657d89d68f9898cfea347d2b574eb9046ab3ae8a13 未变化。"
+      ],
+      "persistentReads": [
+        "flow_definition #1 为 SYSTEM/system #7/tenant #8，code=c33_contract_approval，当前草稿 r5；flow_publication 仍指向 flow_version #1 的 V1。",
+        "flow_version #1 基于草稿 r4，definition_hash 前缀为 b712a6a2348abe8b；后续草稿保存未重写该不可变版本。",
+        "flow_node 共 6 行，按 position_x 读回顺序为 START→GATEWAY→APPROVAL→WEBHOOK→NOTIFICATION→END。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+        "projects/unexamine/frontend/src/product/flow-designer.ts",
+        "projects/unexamine/frontend/src/product/flow-designer.test.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-033.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-WORK-PROJECT-TASK",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "C33 页面交付项目 OWNER 兼任务负责人",
+      "result": "passed",
+      "pageAssertions": [
+        "从系统主导航项目任务入口新建 C33 页面交付项目和 Flow 页面验收任务组，再创建高优先级任务“完成 C33 Flow 页面验收”，负责人为当前账号 #6。",
+        "创建成功后任务按组显示为最新一项，状态待开始、进度 0%、版本 0；详情时间线立即显示 CREATED。",
+        "点击开始任务后，项目汇总、组内任务和详情同时变为进行中，平均进度 10%、版本 1，时间线新增 TODO→IN_PROGRESS；页面提示文案验收发现并修复“任务已开始任务”为“任务已开始”。",
+        "点击完成任务后，项目汇总显示全部 1、进行中 0、已完成 1、平均进度 100%；列表和详情均显示已完成、版本 2，时间线完整展示 CREATED、开始、完成三步。",
+        "重新加载系统并再次进入项目任务页后，项目、任务组、已完成任务和 100% 汇总仍在，证明页面读回真实持久化结果而非组件临时状态。"
+      ],
+      "persistentReads": [
+        "work_project #1 为 SYSTEM/system #7/tenant #8，code=c33_ui_delivery，并关联 1 个任务组和 1 个任务。",
+        "work_task #1 为负责人 #6，最终状态 COMPLETED、progress_percent=100.00、version=2。",
+        "work_task_history 共 3 行，按顺序为 CREATED→STATUS_CHANGED→STATUS_CHANGED，对应待开始、进行中、已完成。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/WorkProjectsView.vue",
+        "projects/unexamine/frontend/src/product/work-management.ts",
+        "projects/unexamine/frontend/src/product/work-management.test.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkManagementService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-033.json"
+      ]
+    }
+  ]
+}

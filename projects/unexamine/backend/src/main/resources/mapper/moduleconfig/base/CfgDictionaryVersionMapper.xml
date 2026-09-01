@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.moduleconfig.base.mapper.CfgDictionaryVersionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.moduleconfig.base.entity.CfgDictionaryVersion">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="owner_tenant_id" property="ownerTenantId" />
+        <result column="dictionary_id" property="dictionaryId" />
+        <result column="version_number" property="versionNumber" />
+        <result column="draft_revision" property="draftRevision" />
+        <result column="snapshot_json" property="snapshotJson" />
+        <result column="snapshot_hash" property="snapshotHash" />
+        <result column="published_by_member_id" property="publishedByMemberId" />
+        <result column="published_at" property="publishedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, owner_tenant_id, dictionary_id, version_number, draft_revision, snapshot_json, snapshot_hash, published_by_member_id, published_at
+    </sql>
+
+</mapper>

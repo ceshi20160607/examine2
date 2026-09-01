@@ -33,6 +33,9 @@ public class BusinessRecordParticipant {
     @TableField("system_member_id")
     private Long systemMemberId;
 
+    @TableField("participant_type")
+    private String participantType;
+
     @TableField("created_by_member_id")
     private Long createdByMemberId;
 
@@ -79,6 +82,14 @@ public class BusinessRecordParticipant {
         this.systemMemberId = systemMemberId;
     }
 
+    public String getParticipantType() {
+        return participantType;
+    }
+
+    public void setParticipantType(String participantType) {
+        this.participantType = participantType;
+    }
+
     public Long getCreatedByMemberId() {
         return createdByMemberId;
     }
@@ -103,6 +114,7 @@ public class BusinessRecordParticipant {
             ", tenantId = " + tenantId +
             ", recordId = " + recordId +
             ", systemMemberId = " + systemMemberId +
+            ", participantType = " + participantType +
             ", createdByMemberId = " + createdByMemberId +
             ", createdAt = " + createdAt +
             "}";

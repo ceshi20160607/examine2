@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.operations.base.mapper.OpsVerificationFindingMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.operations.base.entity.OpsVerificationFinding">
+        <id column="id" property="id" />
+        <result column="verification_run_id" property="verificationRunId" />
+        <result column="severity" property="severity" />
+        <result column="finding_code" property="findingCode" />
+        <result column="title" property="title" />
+        <result column="detail_text" property="detailText" />
+        <result column="evidence_json" property="evidenceJson" />
+        <result column="status" property="status" />
+        <result column="resolved_by_account_id" property="resolvedByAccountId" />
+        <result column="resolved_at" property="resolvedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, verification_run_id, severity, finding_code, title, detail_text, evidence_json, `status`, resolved_by_account_id, resolved_at, created_at, version
+    </sql>
+
+</mapper>

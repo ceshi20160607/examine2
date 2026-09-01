@@ -1,30 +1,99 @@
 <script setup lang="ts">
-import { DatabaseOutlined, SettingOutlined } from '@ant-design/icons-vue'
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import SystemShell from '../components/SystemShell.vue'
 import { clearSession, systemContext, systemTokens } from '../session'
-import ModuleConfigurationView from './ModuleConfigurationView.vue'
 import RuntimeWorkspaceView from './RuntimeWorkspaceView.vue'
-import AuditEventsView from './AuditEventsView.vue'
-import SystemSettingsView from './SystemSettingsView.vue'
-import { allowsPermission, hasRuntimeModuleAccess } from '../permissions'
+import FlowRuntimeView from './FlowRuntimeView.vue'
+import WorkHubView from './WorkHubView.vue'
+import TodoWorkspaceView from './TodoWorkspaceView.vue'
+import MessageWorkspaceView from './MessageWorkspaceView.vue'
+import FileWorkspaceView from './FileWorkspaceView.vue'
+import AiWorkspaceView from './AiWorkspaceView.vue'
+import WorkspaceHomeView from './WorkspaceHomeView.vue'
+import KpiWorkspaceView from './KpiWorkspaceView.vue'
+import { allowsPermission, hasResourceAccess, hasRuntimeModuleAccess } from '../permissions'
+import type { CommandCenterItem } from '../types'
 
 const router = useRouter()
-const active = ref('home')
+const route = useRoute()
+const initialWorkspace = String(route.query.workspace || '')
+const workspaceKeys = new Set(['runtime', 'flow', 'tasks', 'todos', 'messages', 'files', 'ai', 'kpi'])
+const active = ref(workspaceKeys.has(initialWorkspace) ? initialWorkspace : 'home')
 const runtimeRefreshKey = ref(0)
+const runtimeWorkspace = ref<{ executeCommand: (command: CommandCenterItem) => Promise<void> }>()
+const shellKey = computed(() => systemContext.value?.contextRevision ?? `${systemContext.value?.systemId}:${systemContext.value?.tenantId}`)
 const showRuntime = computed(() => hasRuntimeModuleAccess(systemContext.value?.permissions))
+const showFlow = computed(() => hasResourceAccess(systemContext.value?.permissions, 'FLOW'))
+const showTasks = computed(() => hasResourceAccess(systemContext.value?.permissions, 'WORK'))
+const showTodos = computed(() => hasResourceAccess(systemContext.value?.permissions, 'TODO'))
+const showMessages = computed(() => hasResourceAccess(systemContext.value?.permissions, 'MESSAGE'))
+const showFiles = computed(() => hasResourceAccess(systemContext.value?.permissions, 'FILE'))
+const showAi = computed(() => hasResourceAccess(systemContext.value?.permissions, 'AI'))
+const showKpi = computed(() => systemContext.value?.systemId !== undefined)
+const initialModuleCode = computed(() => String(route.query.module || ''))
+const flowTarget = ref<{ taskId?: number; instanceId?: number }>({})
 const showConfig = computed(() => allowsPermission(systemContext.value?.permissions, 'CONFIG', 'MODULE', 'MANAGE'))
 const showAudit = computed(() => allowsPermission(systemContext.value?.permissions, 'AUDIT', 'EVENT', 'VIEW'))
 const showSystemSettings = computed(() => allowsPermission(systemContext.value?.permissions, 'CONFIG', 'SYSTEM', 'MANAGE'))
+const showAdmin = computed(() => showConfig.value || showAudit.value || showSystemSettings.value
+  || allowsPermission(systemContext.value?.permissions, 'FLOW', 'SYSTEM', 'DESIGN')
+  || allowsPermission(systemContext.value?.permissions, 'FLOW', 'SYSTEM', 'PUBLISH')
+  || allowsPermission(systemContext.value?.permissions, 'APPLICATION', 'SYSTEM', 'VIEW')
+  || allowsPermission(systemContext.value?.permissions, 'APPLICATION', 'SYSTEM', 'MANAGE')
+  || allowsPermission(systemContext.value?.permissions, 'APPLICATION', '*', 'VIEW')
+  || allowsPermission(systemContext.value?.permissions, 'APPLICATION', '*', 'MANAGE'))
 
-function modulePublished() {
-  runtimeRefreshKey.value += 1
+async function openAdmin(section: string) {
+  await router.push({ path: `/systems/${systemContext.value?.systemId}/admin`, query: { section } })
 }
 
-function contextChanged() {
-  active.value = 'home'
-  runtimeRefreshKey.value += 1
+function navigate(key: string) {
+  active.value = key
+  if (key !== 'flow') flowTarget.value = {}
+  const query = { ...route.query }
+  if (key !== 'home') query.workspace = key
+  else delete query.workspace
+  void router.replace({ path: route.path, query })
+}
+
+watch(() => route.query.workspace, (workspace) => {
+  active.value = workspaceKeys.has(String(workspace || '')) ? String(workspace) : 'home'
+})
+
+function openFlowTarget(target: { taskId?: number; instanceId?: number }) {
+  flowTarget.value = target
+  active.value = 'flow'
+}
+
+function openMessageTarget(target: { route: string; targetType: string; targetId: string }) {
+  if (target.targetType === 'FLOW_INSTANCE' && Number(target.targetId)) {
+    openFlowTarget({ instanceId: Number(target.targetId) })
+    return
+  }
+  void router.push(target.route)
+}
+
+async function executeCommand(command: CommandCenterItem) {
+  if (command.target === 'HOME') {
+    active.value = 'home'
+    return
+  }
+  if (command.target === 'MODULE_CONFIG') {
+    await openAdmin('templates')
+    return
+  }
+  if (command.target === 'AUDIT') {
+    await openAdmin('audit')
+    return
+  }
+  if (command.target === 'SYSTEM_SETTINGS') {
+    await openAdmin('system-info')
+    return
+  }
+  active.value = 'runtime'
+  await nextTick()
+  await runtimeWorkspace.value?.executeCommand(command)
 }
 
 if (!systemTokens.value?.accessToken || !systemContext.value?.systemId) {
@@ -35,32 +104,32 @@ if (!systemTokens.value?.accessToken || !systemContext.value?.systemId) {
 
 <template>
   <SystemShell
+    :key="shellKey"
     :system-name="systemContext?.systemName"
     :tenant-name="systemContext?.tenantName"
     :active-key="active"
     :show-runtime="showRuntime"
-    :show-config="showConfig"
-    :show-audit="showAudit"
-    :show-system-settings="showSystemSettings"
-    @navigate="active = $event"
+    :show-flow="showFlow"
+    :show-tasks="showTasks"
+    :show-todos="showTodos"
+    :show-messages="showMessages"
+    :show-files="showFiles"
+    :show-ai="showAi"
+    :show-kpi="showKpi"
+    :show-admin="showAdmin"
+    @navigate="navigate"
+    @command="executeCommand"
   >
     <template v-if="active === 'home'">
-      <div class="page-heading system-heading">
-        <div><p class="eyebrow">系统工作区</p><h1>下午好，{{ systemContext?.displayName }}</h1><p>当前已进入系统成员上下文，所有操作按当前租户和合并后权限执行。</p></div>
-      </div>
-      <div class="welcome-grid">
-        <button v-if="showSystemSettings" class="welcome-action" @click="active = 'settings'"><span><SettingOutlined /></span><strong>系统与租户</strong><small>维护系统信息、启用多租户并切换当前租户</small></button>
-        <button v-if="showConfig" class="welcome-action" @click="active = 'config'"><span><SettingOutlined /></span><strong>配置业务模块</strong><small>创建模块组、字段和发布版本</small></button>
-        <button v-if="showRuntime" class="welcome-action" @click="active = 'runtime'"><span><DatabaseOutlined /></span><strong>进入业务运行页</strong><small>查看已发布模块和权限范围内数据</small></button>
-      </div>
-      <section v-if="showConfig" class="onboarding-panel">
-        <div><p class="eyebrow">首次配置</p><h2>从模块组开始搭建</h2><p>创建模块组 → 创建模块 → 添加字段 → 发布，发布前的草稿不会进入运行页。</p></div>
-        <a-button type="primary" @click="active = 'config'">开始配置</a-button>
-      </section>
+      <WorkspaceHomeView context="system" />
     </template>
-    <ModuleConfigurationView v-else-if="active === 'config'" @published="modulePublished" />
-    <RuntimeWorkspaceView v-else-if="active === 'runtime'" :key="runtimeRefreshKey" :refresh-key="runtimeRefreshKey" />
-    <AuditEventsView v-else-if="active === 'audit' && showAudit" />
-    <SystemSettingsView v-else-if="active === 'settings' && showSystemSettings" @context-changed="contextChanged" />
+    <RuntimeWorkspaceView v-else-if="active === 'runtime'" ref="runtimeWorkspace" :key="`${runtimeRefreshKey}:${initialModuleCode}`" :refresh-key="runtimeRefreshKey" :initial-module-code="initialModuleCode" />
+    <FlowRuntimeView v-else-if="active === 'flow' && showFlow" context="system" :initial-task-id="flowTarget.taskId" :initial-instance-id="flowTarget.instanceId" />
+    <WorkHubView v-else-if="active === 'tasks' && showTasks" context="system" />
+    <TodoWorkspaceView v-else-if="active === 'todos' && showTodos" context="system" @open-flow="openFlowTarget" />
+    <MessageWorkspaceView v-else-if="active === 'messages' && showMessages" context="system" @open-target="openMessageTarget" />
+    <FileWorkspaceView v-else-if="active === 'files' && showFiles" />
+    <AiWorkspaceView v-else-if="active === 'ai' && showAi" :initial-module-code="initialModuleCode" />
+    <KpiWorkspaceView v-else-if="active === 'kpi' && showKpi" />
   </SystemShell>
 </template>

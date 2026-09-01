@@ -10,6 +10,7 @@
         <result column="module_id" property="moduleId" />
         <result column="code" property="code" />
         <result column="name" property="name" />
+        <result column="action_type" property="actionType" />
         <result column="location" property="location" />
         <result column="sort_order" property="sortOrder" />
         <result column="status" property="status" />
@@ -21,7 +22,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, owner_tenant_id, module_id, code, name, location, sort_order, status, config_json, created_at, updated_at, version
+        id, system_id, owner_tenant_id, module_id, `code`, `name`, action_type, location, sort_order, `status`, config_json, created_at, updated_at, version
     </sql>
 
 </mapper>

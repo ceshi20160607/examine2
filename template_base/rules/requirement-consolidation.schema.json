@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/requirement-consolidation.schema.json",
+  "title": "Semantic alias map for final atomic requirements",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "aliases"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fragmentIndexPath", "fragmentIndexSha256"],
+      "properties": {
+        "fragmentIndexPath": {"type": "string", "minLength": 1},
+        "fragmentIndexSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidateId", "finalId", "rationale"],
+        "properties": {
+          "candidateId": {"type": "string", "pattern": "^REQ-[A-Z0-9][A-Z0-9-]*$"},
+          "finalId": {"type": "string", "pattern": "^REQ-[A-Z0-9][A-Z0-9-]*$"},
+          "rationale": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

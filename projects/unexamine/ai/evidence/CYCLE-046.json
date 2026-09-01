@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-046",
+  "executedAt": "2026-08-26T19:55:00+08:00",
+  "taskIds": ["TASK-0138", "TASK-0139", "TASK-0140"],
+  "checks": [
+    {
+      "name": "AI 上下文查询前端回归（17 个文件、44 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "AI 主入口、右侧助手、会话与来源页面类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "普通查询同权、权限快照、来源、越权字段和跨租户拒绝、模型降级及审计的真实 MySQL 定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=AiContextQueryHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 33 迁移门禁（47 项）",
+      "command": "docker run --rm -v D:/workspace/01_project/snow/cursor/examine2/projects/unexamine/backend:/workspace -v D:/dev/maven_repository:/root/.m2/repository -v /var/run/docker.sock:/var/run/docker.sock -w /workspace -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal maven:3.9.11-eclipse-temurin-21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、15 个更新片段和 33 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "184 条需求在 20 个能力与 4 个上下文中的唯一架构归属复核",
+      "command": "python template_base/tools/tb.py architecture-validate --design projects/unexamine/ai/architecture/design.json",
+      "result": "passed"
+    },
+    {
+      "name": "60 个用例对 184 条原子需求的完整覆盖复核",
+      "command": "python template_base/tools/tb.py use-cases-validate --catalog projects/unexamine/ai/requirements/use-cases.json",
+      "result": "passed"
+    },
+    {
+      "name": "191 个原子任务的实现与验证归属复核",
+      "command": "python template_base/tools/tb.py tasks-validate --catalog projects/unexamine/ai/planning/task-catalog.json",
+      "result": "passed"
+    },
+    {
+      "name": "56 个周期的依赖、阶段与每周期最多 240 分钟复核",
+      "command": "python template_base/tools/tb.py task-graph-validate --graph projects/unexamine/ai/planning/task-graph.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-AI-CONTEXT-QUERY",
+      "entryUrl": "http://127.0.0.1:15173/systems/10?workspace=ai&module=customer&recordId=14",
+      "actor": "C46 浏览器验收系统成员账号 #10 / 系统 #10 / 主租户 #12",
+      "result": "passed",
+      "pageAssertions": [
+        "系统左侧固定 AI 入口和页面右侧 AI 助手入口都进入同一获权上下文工作区；workspace=ai 与当前 customer 模块写入 URL，刷新后仍回到 AI 工作区并重新读取持久化历史。",
+        "普通 customer 业务页显示 1 条可见记录；AI 在系统 #10、租户 #12、customer/LIST、ACTIVE、无组合筛选、字段 customer_name 的同一范围内也回答 1 条，并明确展示普通业务列表同口径的指标定义。",
+        "正常回答展示获权来源 C46-BROWSER-001/北辰实业；点击来源打开普通业务页 /systems/10?workspace=runtime&module=customer&recordId=14，页面仍显示共 1 条和同一记录。",
+        "请求未授权字段 customer_secret 时返回 AI_QUERY_SCOPE_DENIED，明确说明不会提示字段值或推断敏感信息，来源为 0；跨租户请求也在定向回归中由服务器拒绝。",
+        "模型端点不可达时返回 AI_MODEL_UNAVAILABLE/可重试，明确本次未生成或猜测任何业务结果，业务查询未执行、来源为 0；验收后模型端点恢复为可用配置。",
+        "正常、降级、拒绝结果均形成会话和消息回读；正常查询刷新后从历史重新打开仍显示执行 #3、Agent 版本 #1、用户消息和 AI 消息，浏览器控制台无错误或警告。"
+      ],
+      "persistentReads": [
+        "biz_record #14 属于 system #10 / tenant #12 / customer，状态 ACTIVE、未归档且未删除；普通业务查询持久层计数为 1，与 AI 正常回答一致。",
+        "ai_conversation #3/#4/#5 固定保存 system #10、tenant #12、agent_version #1、account #10 和 customer 页面上下文；创建时间分别为 19:44:57、19:47:13、19:47:49。",
+        "ai_execution #3 为 SUCCEEDED 且 sourceCount=1；#4 为 FAILED/AI_MODEL_UNAVAILABLE/fallback_used=1 且 sourceCount=0、fabricated=false；#5 为 REFUSED/AI_QUERY_SCOPE_DENIED 且 sourceCount=0、fabricated=false。",
+        "三次 execution 的 authorization_snapshot_json 均保存 account/member/role、系统 #10、租户 #12、普通权限与数据范围、customer/LIST 检索范围、生命周期和来源路径；正常范围仅含 customer_name，拒绝请求快照保留 customer_secret 作为被判定输入。",
+        "ai_message #5-#10 分别保存三组 USER/ASSISTANT 消息；ai_execution_step #3/#4/#5 均保存 AUTHORIZED_QUERY 步骤及 SUCCEEDED/DEGRADED/REFUSED 输出，所有输出均为 fabricated=false。",
+        "审计事件 #480/#486/#489 分别记录 AI_CONTEXT_QUERY_SUCCEEDED、AI_CONTEXT_QUERY_DEGRADED、AI_CONTEXT_QUERY_REFUSED，含 conversationId、agentVersionId、moduleCode、actionCode、sourceCount 与 retryable；ai_model #1 最终恢复 ACTIVE、凭证可用端点且版本为 4。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiContextQueryModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiContextQueryController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiContextQueryService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/ai/manage/AiContextQueryHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/AiContextQueryView.vue",
+        "projects/unexamine/frontend/src/product/ai-context.ts",
+        "projects/unexamine/frontend/src/product/ai-context.test.ts",
+        "projects/unexamine/frontend/src/product/components/SystemShell.vue",
+        "projects/unexamine/frontend/src/product/views/SystemHomeView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-046-query.png",
+        "projects/unexamine/ai/evidence/CYCLE-046-degraded.png",
+        "projects/unexamine/ai/evidence/CYCLE-046-refused.png",
+        "projects/unexamine/ai/evidence/CYCLE-046.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.backgroundjobs.base.mapper.JobItemResultMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.backgroundjobs.base.entity.JobItemResult">
+        <id column="id" property="id" />
+        <result column="job_id" property="jobId" />
+        <result column="item_key" property="itemKey" />
+        <result column="row_number" property="rowNumber" />
+        <result column="status" property="status" />
+        <result column="result_json" property="resultJson" />
+        <result column="error_code" property="errorCode" />
+        <result column="error_message" property="errorMessage" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, job_id, item_key, `row_number`, `status`, result_json, error_code, error_message, created_at, updated_at
+    </sql>
+
+</mapper>

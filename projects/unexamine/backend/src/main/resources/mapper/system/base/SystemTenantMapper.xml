@@ -19,7 +19,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, code, name, is_main, main_marker, creator_account_id, status, created_at, updated_at, version
+        id, system_id, `code`, `name`, is_main, main_marker, creator_account_id, `status`, created_at, updated_at, version
     </sql>
 
 </mapper>

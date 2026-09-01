@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-053",
+  "executedAt": "2026-08-29T22:39:30+08:00",
+  "taskIds": ["TASK-0180", "TASK-0181", "TASK-0182"],
+  "checks": [
+    {
+      "name": "后端完整 Testcontainers 报告聚合（19 个测试类、53 项，MySQL 8.4 与 Redis 7.4）",
+      "command": "aggregate projects/unexamine/backend/target/surefire-reports/TEST-*.xml after mvn test and same-revision continuation",
+      "result": "passed"
+    },
+    {
+      "name": "C53 健康预检、观测链路与认证回归定向验证",
+      "command": "dockerized Maven: AuthenticationRegistrationHttpTest, StartupPreflightChecksTest, OperationsHealthHttpTest",
+      "result": "passed"
+    },
+    {
+      "name": "全量前端回归（24 个文件、63 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "单 Vue 应用类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "真实本地启动预检、Actuator readiness 和持久文件卷",
+      "command": "Spring Boot 18080 + MySQL 33077 + Redis 36379 + unexamine-file-storage",
+      "result": "passed"
+    },
+    {
+      "name": "系统后台体检、立即重检和 requestId 观测真实浏览器验收",
+      "command": "Codex in-app browser against http://127.0.0.1:15173/systems/11/admin?section=operations",
+      "result": "passed"
+    },
+    {
+      "name": "C53 体检运行、逐项结果、结构化请求日志和运维审计真实 MySQL 读回",
+      "command": "select ops_health_run/ops_health_item/ops_request_log/audit_event for health run #2 and requestId 28d4da61f4b248888347f6113665968a",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、16 个更新片段和 34 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "184 条需求在 20 个能力与 4 个上下文中的唯一架构归属复核",
+      "command": "python template_base/tools/tb.py architecture-validate --design projects/unexamine/ai/architecture/design.json",
+      "result": "passed"
+    },
+    {
+      "name": "60 个用例对 184 条原子需求的完整覆盖复核",
+      "command": "python template_base/tools/tb.py use-cases-validate --catalog projects/unexamine/ai/requirements/use-cases.json",
+      "result": "passed"
+    },
+    {
+      "name": "191 个原子任务的实现与验证归属复核",
+      "command": "python template_base/tools/tb.py tasks-validate --catalog projects/unexamine/ai/planning/task-catalog.json",
+      "result": "passed"
+    },
+    {
+      "name": "56 个周期的依赖、阶段与每周期最多 240 分钟复核",
+      "command": "python template_base/tools/tb.py task-graph-validate --graph projects/unexamine/ai/planning/task-graph.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-OPS-HEALTH-OBSERVE",
+      "entryUrl": "http://127.0.0.1:15173/systems/11/admin?section=operations",
+      "actor": "C53 运维验收管理员（账号 #11 / 系统 #11 / 主租户 #13 / 成员 #15）",
+      "result": "passed",
+      "pageAssertions": [
+        "应用启动前真实连接 MySQL、Redis，探测文件目录可创建、写入和清理，检查应用密钥配置与 Flyway 当前/待执行状态；日志逐项显示 DATABASE、REDIS、FILE_STORAGE、APPLICATION_SECRET、DATABASE_MIGRATION 均 PASSED，最终 READY checks=5。",
+        "关键依赖在 Flyway 或预检阶段失败时应用不会伪装就绪；跨日依赖停止时真实启动以连接拒绝退出，恢复项目 MySQL/Redis 后才进入 READY。",
+        "Actuator readiness 返回 UP；页面显示可接收业务流量、READY、关键依赖 5/5、运行版本 0.1.0-C53 和数据库 V34。",
+        "页面只显示应用签名密钥已配置且长度合规，不读取或展示密钥内容；结构化日志也没有泄漏数据库、Redis、AI 或签名密钥值。",
+        "点击“立即重检并读回”后显示成功提示，体检编号从 #1 推进到 #2，并显示 5 项关键依赖全部通过。",
+        "体检 #2 的 requestId 为 28d4da61f4b248888347f6113665968a；页面同一入口读回 HEALTH、AUDIT、HTTP 三类结构化阶段。",
+        "观测阶段明确标记前端请求、后端请求、数据库持久化和运维审计已观测；应用调用、Flow 和后台作业为 0 时显示未观测，不伪造链路。",
+        "页面读回请求日志 1、服务耗时 312ms、审计事件 1、依赖检查 5，并显示最近错误为空。",
+        "系统 #10 的非成员平台账号访问入口被路由守卫退回平台页；使用系统 #11 自有管理员建立系统上下文后才允许进入运维详情。",
+        "前端 API 发送 X-Client-Source=WEB；后台结构化日志同时带 requestId、traceId、systemId、tenantId 和 userId。",
+        "C52 已上传文件在后端替换后仍保存在命名卷 /data/system/10/tenant/12/generated 下，启动预检使用同一持久卷完成写入和清理探测。",
+        "最终浏览器控制台 0 条 warning、0 条 error；截图来自当前 Vue、Spring Boot、MySQL、Redis 和持久文件卷运行链。"
+      ],
+      "persistentReads": [
+        "information_schema 读回 155 张业务表；flyway_schema_history 最新成功版本为 34 / operations observability。",
+        "ops_health_run #2/status=READY/run_type=MANUAL_RECHECK/release_version=0.1.0-C53/system_id=11/started_by_account_id=11。",
+        "ops_health_run #2 summary_json 保存 ready=true、passed=5、failed=0、migrationVersion=34、systemId=11、tenantId=13、accountId=11 和同一 requestId/traceId。",
+        "ops_health_item 对 run #2 保存 5 项结果且 5 项 status=PASSED。",
+        "ops_request_log #33 保存 POST /api/admin/system/operations/health/recheck、status=200、duration=312、client_source=WEB、system/tenant/account=11/13/11。",
+        "audit_event #1486 保存 OPERATIONS_HEALTH_RECHECKED/READY、trace_id=28d4da61f4b248888347f6113665968a、system/tenant/actor=11/13/11。",
+        "命名卷 unexamine-file-storage 读回既有文件 system/10/tenant/12/generated/7bdc8f2d-034e-47f6-a315-965deea7afa7，大小 1694 bytes。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/StartupPreflightChecks.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/StartupPreflightRunner.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsReadinessHealthIndicator.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/RequestObservationFilter.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsHealthController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsHealthService.java",
+        "projects/unexamine/backend/src/main/resources/logback-spring.xml",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsHealthHttpTest.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/StartupPreflightChecksTest.java",
+        "projects/unexamine/db/migration/V34__operations_observability.sql",
+        "projects/unexamine/frontend/src/product/operations-health.ts",
+        "projects/unexamine/frontend/src/product/operations-health.test.ts",
+        "projects/unexamine/frontend/src/product/views/OperationsHealthView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-053-health-ready.png",
+        "projects/unexamine/ai/evidence/CYCLE-053-observability.png",
+        "projects/unexamine/ai/evidence/CYCLE-053.json"
+      ]
+    }
+  ]
+}

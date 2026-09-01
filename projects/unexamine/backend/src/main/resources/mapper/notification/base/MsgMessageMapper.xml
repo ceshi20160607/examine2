@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.notification.base.mapper.MsgMessageMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.notification.base.entity.MsgMessage">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="template_version_id" property="templateVersionId" />
+        <result column="source_type" property="sourceType" />
+        <result column="source_id" property="sourceId" />
+        <result column="subject" property="subject" />
+        <result column="content_text" property="contentText" />
+        <result column="target_type" property="targetType" />
+        <result column="target_id" property="targetId" />
+        <result column="target_route" property="targetRoute" />
+        <result column="sensitivity" property="sensitivity" />
+        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, platform_id, system_id, tenant_id, template_version_id, source_type, source_id, `subject`, content_text, target_type, target_id, target_route, sensitivity, created_by_account_id, created_at
+    </sql>
+
+</mapper>

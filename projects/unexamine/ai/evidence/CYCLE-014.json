@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-014",
+  "executedAt": "2026-08-18T21:11:00+08:00",
+  "taskIds": [
+    "TASK-0022",
+    "TASK-0023",
+    "TASK-0030",
+    "TASK-0053"
+  ],
+  "checks": [
+    {
+      "name": "后端身份映射、固定配置隔离、统一 API 错误及 21 个迁移全量测试（20 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "前端统一 API envelope、业务失败和 HTTP 失败契约测试（5 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "统一认证与固定配置页面类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "持续总控循环机器规则及 Template Base 回归（31 项）",
+      "command": "python -m unittest discover -s template_base/tests -p \"test_*.py\"",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、活动项目与模板边界校验",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-IDENTITY-SYSTEM-MAPPING",
+      "entryUrl": "http://127.0.0.1:15173/systems/3",
+      "actor": "具备当前系统统一认证配置权限的系统身份管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从系统后台统一认证入口只能选择平台已发布的周期十二集团 OIDC V1；保存 team.cycle12.example.com、HQ 到总部部门映射和无成员转访问申请策略后，页面读回草稿 v2。",
+        "页面提交管理员、无成员申请人和未映射部门三个真实样本，预检报告精确显示 READY 1、ACCESS_REQUEST 1、MANUAL_REVIEW 1，并逐项列出账号、systemMemberId、目标部门、确认动作和 DEPARTMENT_UNMAPPED 原因。",
+        "人工确认后页面显示同步任务 #1、SUCCEEDED_WITH_WARNINGS、3/3 和访问申请 1；管理员绑定成功，无成员账号只生成访问申请，缺失部门样本保持人工处理。",
+        "登录映射日志显示 MFA、设备、requestId、traceId、结果和 systemMemberId；按 cycle12_oidc、cycle14-applicant-ext、cycle14-applicant-request 筛选后只读回 ACCESS_REQUEST_PENDING。",
+        "系统后台入口受 CONFIG/SYSTEM/MANAGE 权限控制；后端集成测试同时覆盖未发布身份源、非法域名、部门冲突和无成员不得直接建立系统上下文。"
+      ],
+      "persistentReads": [
+        "core_setting 读回 SYSTEM/3/3/ORGANIZATION/identity.inheritance v3，包含 providerVersionId=1、租户域名、HQ=1、完整预检报告、confirmedJobId=1 和确认时间。",
+        "job_background #1 读回 SUCCEEDED_WITH_WARNINGS、3/3；result_summary_json 为 completed=2、skipped=1、accessRequests=1。",
+        "plat_sso_identity 读回 cycle14-admin-ext→account 1 与 cycle14-applicant-ext→account 3；无成员申请人未创建 sys_member，只生成 sys_access_request #2 PENDING。",
+        "audit_event 读回 SUCCESS、ACCESS_REQUEST_PENDING、MANUAL_REVIEW 三条 SYSTEM_IDENTITY_LOGIN_MAPPING，requestId、traceId、设备、MFA 和 DEPARTMENT_UNMAPPED 与页面逐项对应。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/SystemIdentityMappingView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemIdentityMappingService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemAdministrationController.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-014.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-SYSTEM-ADMIN-CONFIG",
+      "entryUrl": "http://127.0.0.1:15173/systems/3",
+      "actor": "分别进入平台后台与系统后台的获权管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "平台后台固定一级菜单只显示平台信息、组织架构、角色权限、数据字典、系统配置、其他业务参数、Flow、应用、AI、审计日志和运维配置。",
+        "系统后台固定一级菜单只显示系统信息、组织架构、角色权限、数据字典、模板配置（模块信息、模块字段、模块动作、模块 Flow、模块应用）、其他业务参数、Flow、应用、AI、审计日志和运维配置。",
+        "平台页面保存 cycle14.platform.follow-up={days:14,source:page-journey} 后显示保存成功并读回 v0；系统页面保存 cycle14.system.follow-up={days:3,source:system-page-journey} 后同样读回 v0。",
+        "平台与系统入口分别按平台管理员和 CONFIG/SYSTEM/MANAGE 权限显示；交叉上下文写入由后端拒绝，不以隐藏菜单代替服务端授权。"
+      ],
+      "persistentReads": [
+        "core_setting 读回 PLATFORM/NULL/NULL/BUSINESS_PARAMETER/cycle14.platform.follow-up v0，值为 days=14。",
+        "core_setting 另行读回 SYSTEM/3/NULL/BUSINESS_PARAMETER/cycle14.system.follow-up v0，值为 days=3；两个上下文没有混写。",
+        "SystemAdministrationHttpTest 验证同一 settingKey 在平台与系统上下文形成独立记录、系统版本更新到 v1、过期版本冲突且双向跨上下文写入均被拒绝。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/FixedConfigurationsView.vue",
+        "projects/unexamine/frontend/src/product/views/PlatformConfigurationsView.vue",
+        "projects/unexamine/frontend/src/product/components/PlatformAdminNav.vue",
+        "projects/unexamine/frontend/src/product/views/SystemHomeView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/configuration/ContextSettingManagementService.java",
+        "projects/unexamine/ai/evidence/CYCLE-014.json"
+      ]
+    }
+  ]
+}

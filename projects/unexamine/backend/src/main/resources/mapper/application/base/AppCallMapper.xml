@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.application.base.mapper.AppCallMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.application.base.entity.AppCall">
+        <id column="id" property="id" />
+        <result column="application_id" property="applicationId" />
+        <result column="credential_version" property="credentialVersion" />
+        <result column="grant_id" property="grantId" />
+        <result column="request_id" property="requestId" />
+        <result column="trace_id" property="traceId" />
+        <result column="request_timestamp" property="requestTimestamp" />
+        <result column="nonce" property="nonce" />
+        <result column="idempotency_key" property="idempotencyKey" />
+        <result column="source_address" property="sourceAddress" />
+        <result column="target_system_id" property="targetSystemId" />
+        <result column="target_tenant_id" property="targetTenantId" />
+        <result column="resource_type" property="resourceType" />
+        <result column="resource_id" property="resourceId" />
+        <result column="action_code" property="actionCode" />
+        <result column="request_hash" property="requestHash" />
+        <result column="permission_snapshot_json" property="permissionSnapshotJson" />
+        <result column="status" property="status" />
+        <result column="response_code" property="responseCode" />
+        <result column="response_json" property="responseJson" />
+        <result column="target_reference" property="targetReference" />
+        <result column="replay_count" property="replayCount" />
+        <result column="duration_millis" property="durationMillis" />
+        <result column="error_message" property="errorMessage" />
+        <result column="called_at" property="calledAt" />
+        <result column="finished_at" property="finishedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, application_id, credential_version, grant_id, request_id, trace_id, request_timestamp, nonce, idempotency_key, source_address, target_system_id, target_tenant_id, resource_type, resource_id, action_code, request_hash, permission_snapshot_json, `status`, response_code, response_json, target_reference, replay_count, duration_millis, error_message, called_at, finished_at
+    </sql>
+
+</mapper>

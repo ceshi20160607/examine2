@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.operations.base.mapper.OpsUpgradeStepMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.operations.base.entity.OpsUpgradeStep">
+        <id column="id" property="id" />
+        <result column="upgrade_id" property="upgradeId" />
+        <result column="step_number" property="stepNumber" />
+        <result column="step_type" property="stepType" />
+        <result column="source_version" property="sourceVersion" />
+        <result column="target_version" property="targetVersion" />
+        <result column="mapping_json" property="mappingJson" />
+        <result column="status" property="status" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="error_message" property="errorMessage" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, upgrade_id, step_number, step_type, source_version, target_version, mapping_json, `status`, started_at, finished_at, error_message
+    </sql>
+
+</mapper>

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "fragmentIndexPath": "fragment-index.json",
+    "fragmentIndexSha256": "15285412ddacc04f1e337a1953b7351be9b9aa8f9590bfa967e2e01e209dfa95"
+  },
+  "aliases": [
+    {"candidateId":"REQ-PLATFORM-MAIN-NAV-FINAL","finalId":"REQ-MAIN-NAVIGATION","rationale":"最终附录重复确认同一固定主导航与系统入口。"},
+    {"candidateId":"REQ-MODULE-GROUP-RUNTIME-NAV","finalId":"REQ-MODULE-GROUP","rationale":"两者描述同一模块组顶栏和组内模块导航。"},
+    {"candidateId":"REQ-APPLICATION-BRIDGE","finalId":"REQ-APPLICATION-BRIDGE-FINAL","rationale":"最终澄清完整覆盖应用桥接和授权链。"},
+    {"candidateId":"REQ-APPLICATION-CONTROLLED-ACCESS","finalId":"REQ-APPLICATION-BRIDGE-FINAL","rationale":"应用受控入口是最终桥接需求的组成。"},
+    {"candidateId":"REQ-APPLICATION-SECURE-CONFIG","finalId":"REQ-APPLICATION-BRIDGE-FINAL","rationale":"应用配置目录并入最终应用授权链。"},
+    {"candidateId":"REQ-APPLICATION-FIXED-SCOPE-SECURITY","finalId":"REQ-APPLICATION-BRIDGE-FINAL","rationale":"最终应用桥接要求已包含固定系统租户和安全控制。"},
+    {"candidateId":"REQ-APPLICATION-RUNTIME-ACCESS","finalId":"REQ-APPLICATION-BRIDGE-FINAL","rationale":"运行调用是最终应用桥接的执行面。"},
+    {"candidateId":"REQ-NO-SEPARATE-INTERFACE-CENTER","finalId":"REQ-APPLICATION-NOT-MODULE-CONTAINER","rationale":"同一应用边界非目标：既非业务容器，也无并列接口中心。"},
+    {"candidateId":"REQ-TECH-LOWCODE-RECORD-STORAGE","finalId":"REQ-LOWCODE-METADATA-ONLY","rationale":"最终澄清固定采用通用记录模型且禁止动态物理表。"},
+    {"candidateId":"REQ-WORKLOG-MANUAL-ONLY","finalId":"REQ-MANUAL-WORK-LOG","rationale":"两者均要求工作日志由用户手动创建并人工确认。"},
+    {"candidateId":"REQ-SYSTEM-SWITCH-CONTEXT","finalId":"REQ-CONTEXT-SWITCH-REDRAW","rationale":"最终上下文需求同时覆盖系统切换、租户切换和业务壳刷新。"},
+    {"candidateId":"REQ-TENANT-BASE-EXTENSION-MERGE","finalId":"REQ-TENANT-EXTENSION-BOUNDARIES","rationale":"最终租户扩展边界细化主租户基础配置合并规则。"},
+    {"candidateId":"REQ-TENANT-EXPLICIT-SHARING","finalId":"REQ-TENANT-SHARED-RUNTIME","rationale":"共享授权定义和共享记录运行行为属于同一闭环。"},
+    {"candidateId":"REQ-DICTIONARY-OPTION-SOURCE-FINAL","finalId":"REQ-DATA-DICTIONARY","rationale":"最终附录重复并补充统一数据字典来源。"},
+    {"candidateId":"REQ-DASHBOARD-CONFIG-DATASOURCE-FINAL","finalId":"REQ-DASHBOARD-DATA-COMPONENTS","rationale":"后台发布仪表盘和绑定数据源已属于仪表盘数据组件需求。"},
+    {"candidateId":"REQ-PLATFORM-FLOW-APPLICATION-LAYER","finalId":"REQ-PLATFORM-INDEPENDENT-CONTEXT","rationale":"平台独立能力最终要求完整包含平台 Flow 与平台应用。"},
+    {"candidateId":"REQ-LIST-MODELING-FINAL","finalId":"REQ-UI-LIST-CAPABILITIES","rationale":"最终列表场景、表头和批量规则补充通用高级列表。"},
+    {"candidateId":"REQ-PRINT-TEMPLATE-DESIGNER","finalId":"REQ-PRINT-TEMPLATE","rationale":"可视化设计器是打印模板完整能力的一部分。"},
+    {"candidateId":"REQ-PRINT-VERSION-OVERLAY","finalId":"REQ-PRINT-TEMPLATE","rationale":"版本套打、分页和 PDF 并入打印模板闭环。"},
+    {"candidateId":"REQ-KPI-TARGET","finalId":"REQ-KPI-CLOSED-LOOP","rationale":"最终 KPI 闭环细化早期目标定义。"},
+    {"candidateId":"REQ-TECH-FLOW-TRANSACTION-SAFETY","finalId":"REQ-ROBUST-FLOW-RUNTIME","rationale":"Flow 事务、幂等、子流程和异常策略属于同一运行健壮性。"},
+    {"candidateId":"REQ-ARCH-BASE-GENERATED","finalId":"REQ-ENGINEERING-BASE-MANAGE-SQL","rationale":"最终工程边界完整覆盖 Base 生成规则。"},
+    {"candidateId":"REQ-ARCH-MANAGE-BUSINESS","finalId":"REQ-ENGINEERING-BASE-MANAGE-SQL","rationale":"最终工程边界完整覆盖 Manage 业务编排规则。"},
+    {"candidateId":"REQ-AUTHORIZATION-ENFORCEMENT","finalId":"REQ-TECH-PERMISSION-ENFORCEMENT","rationale":"前后端授权执行与后端兜底属于同一全链路权限约束。"},
+    {"candidateId":"REQ-ROBUST-PERMISSION-RUNTIME","finalId":"REQ-TECH-PERMISSION-ENFORCEMENT","rationale":"验签、查询过滤和缓存刷新补充全链路权限执行。"},
+    {"candidateId":"REQ-UI-SYSTEM-SHELL","finalId":"REQ-SYSTEM-RUNTIME-SHELL","rationale":"两者描述同一系统运行态模块组、模块和内容区。"},
+    {"candidateId":"REQ-IA-FINAL-BOUNDARIES","finalId":"REQ-CAPABILITY-BOUNDARIES","rationale":"最终信息架构是既有能力边界的优先级确认和细化。"}
+  ]
+}

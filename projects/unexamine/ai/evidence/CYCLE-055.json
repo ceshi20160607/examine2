@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-055",
+  "executedAt": "2026-08-31T19:29:40+08:00",
+  "taskIds": ["TASK-0186", "TASK-0187", "TASK-0188"],
+  "checks": [
+    {
+      "name": "C55 四类备份、物理恢复证据、升级回滚、分权审计和持久化定向验证",
+      "command": "dockerized Maven: OperationsContinuityHttpTest with MySQL 8.4 and Redis 7.4",
+      "result": "passed"
+    },
+    {
+      "name": "后端完整 Testcontainers 新鲜报告聚合（21 个测试类、55 项，MySQL 8.4 与 Redis 7.4）",
+      "command": "dockerized Maven: mvn test; aggregate 21 fresh projects/unexamine/backend/target/surefire-reports/TEST-*.xml",
+      "result": "passed"
+    },
+    {
+      "name": "C55 前端请求、四类摘要和步骤映射定向验证（3 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run src/product/operations-continuity.test.ts",
+      "result": "passed"
+    },
+    {
+      "name": "全量前端回归（26 个文件、69 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "单 Vue 应用类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "真实 MySQL 与命名文件卷四类备份脚本执行",
+      "command": "deploy/scripts/backup.ps1 against local MySQL 8.4 and unexamine-file-storage; persist ISO-8601 consistency point, non-zero capacity, four sizes and SHA-256 values",
+      "result": "passed"
+    },
+    {
+      "name": "隔离恢复脚本与后端逐项证据比对",
+      "command": "deploy/scripts/restore-drill.ps1 for backup #3 in restore-c55-final; backend compares backup id, environment, source config, four sizes/hashes and verified timestamp",
+      "result": "passed"
+    },
+    {
+      "name": "备份恢复脚本与包清单语法验证",
+      "command": "PowerShell parser for backup.ps1, restore-drill.ps1 and common.ps1; ConvertFrom-Json for package-manifest.example.json",
+      "result": "passed"
+    },
+    {
+      "name": "最终不可变后端制品和稳定四容器入口验证",
+      "command": "JAR 53533597 bytes / SHA-256 5a3ab4eff4b7843cdb4f848db5d55cc5e128447dec6d9b941a0441e27d92d65e; Nginx 15174 + Spring Boot 18080 + MySQL 33077 + Redis 36379",
+      "result": "passed"
+    },
+    {
+      "name": "容量、备份、恢复、冲突、可恢复失败和成功升级真实 Edge 页面验收",
+      "command": "Microsoft Edge via bundled Playwright against http://127.0.0.1:15174/systems/11/admin?section=operations",
+      "result": "passed"
+    },
+    {
+      "name": "备份、恢复演练、升级步骤、回滚点和成功下载审计真实 MySQL 读回",
+      "command": "select ops_backup/ops_backup_item/ops_restore_drill/ops_upgrade/ops_upgrade_step/audit_event for backup #3, drill #3 and upgrades #5/#6",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py -v",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、16 个更新片段和 34 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、活动实现、架构、用例、任务和 56 周期任务图全量门禁",
+      "command": "workspace-validate; architecture-validate; use-cases-validate; tasks-validate; task-graph-validate",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-OPS-UPGRADE-BACKUP",
+      "entryUrl": "http://127.0.0.1:15174/systems/11/admin?section=operations",
+      "actor": "C55 数据与运维验收管理员（账号 #11 / 系统 #11 / 主租户 #13 / 成员 #15）",
+      "result": "passed",
+      "pageAssertions": [
+        "backup.ps1 对真实 MySQL 8.4 和命名文件卷生成 DATABASE、FILE_STORAGE、CONFIGURATION、SECRET_REFERENCES 四类制品；结果保存 1212054 required bytes、79778320384 available bytes、四个非零大小和独立 SHA-256，不含密钥明文。",
+        "脚本一致性时间点 2026-08-31T09:37:58.6283686Z 经后端校验后以运行时 Asia/Shanghai 的同一时刻 2026-08-31T17:37:58.628 持久化和读回，不再用登记请求时间冒充备份时间。",
+        "可用空间小于 required bytes 时页面返回 BACKUP_INSUFFICIENT_SPACE 和 requestId 23dd38aa318040fe9d4ad351e8d0a858，未创建备份；空间满足后备份 #3 才保存为 VERIFIED 并显示 4/4。",
+        "备份清单按 OPERATIONS:BACKUP:DOWNLOAD 专用权限读取，页面展开显示一致性点、范围、四类大小与摘要、KMS 引用和恢复结果；成功读取新增 OPERATIONS_BACKUP_MANIFEST_READ 审计，清单明确不回显数据库密码或应用密钥。",
+        "restore-drill.ps1 在 restore-c55-final 隔离目录重新计算四类大小与 SHA-256、解压文件、校验数据库转储可读、配置版本和仅引用密钥策略；页面提交其 verification.json，后端与 backup #3 逐项一致后才保存 drill #3 PASSED。",
+        "当前 development 环境演练被 RESTORE_DRILL_ISOLATION_REQUIRED 和 requestId d028d7e17bb64143a5962ccbe3b8b7c9 阻断；不匹配的物理证据在集成测试中被 RESTORE_DRILL_EVIDENCE_INVALID 阻断。",
+        "配置映射包含 CONFLICT 时六项预检显示目标/映射阻断且未创建升级记录；合法映射才允许执行精确确认词 UPGRADE 1 WITH BACKUP 3。",
+        "升级 #5 在配置写入阶段模拟中途失败，页面明确显示 RECOVERABLE_FAILED、2 个完成步骤、失败步骤和 AUTOMATIC_ROLLBACK；旧配置 development-c54 与待人工处理项仍可解释。",
+        "升级 #6 成功读回 BACKUP_GATE、DATABASE_MIGRATION、CONFIGURATION_MIGRATION、REFERENCE_VALIDATION、COMPLETE 五步，数据库 34 与配置 development-c54 到 development-c55 的映射、影响报告及旧快照解释均可展开。",
+        "备份管理、清单下载、恢复演练和升级分别要求 OPERATIONS:BACKUP:MANAGE、OPERATIONS:BACKUP:DOWNLOAD、OPERATIONS:RESTORE:MANAGE、OPERATIONS:UPGRADE:MANAGE；无权限返回 403，成功和失败分支均有对应审计。"
+      ],
+      "persistentReads": [
+        "ops_backup #3 保存 context=SYSTEM、system_id=11、FULL:R:1、VERIFIED、consistency_point=2026-08-31 17:37:58.628、manifest_hash=106593f0e283... 和 kms://unexamine/backup/c55-script。",
+        "ops_backup_item 对 backup #3 保存 CONFIGURATION=314 B、DATABASE=1210235 B、FILE_STORAGE=1265 B、SECRET_REFERENCES=240 B；四个完整 SHA-256 与脚本证据一致且状态均为 VERIFIED。",
+        "ops_restore_drill #3 保存 backup_id=3、environment=restore-c55-final、PASSED、source=restore-drill.ps1、database=READABLE、files=EXTRACTED、item_count=4 和逐项证据。",
+        "ops_upgrade #5 保存 RECOVERABLE_FAILED；ops_upgrade_step 保存 BACKUP_GATE/PASSED、DATABASE_MIGRATION/PASSED、CONFIGURATION_MIGRATION/FAILED、AUTOMATIC_ROLLBACK/ROLLED_BACK，rollback_point_json 的 oldSnapshotInterpretable=true。",
+        "ops_upgrade #6 保存 SUCCESS；五个 ops_upgrade_step 全部 PASSED，impact_report_json 保存审批、六项预检与配置映射，rollback_point_json 保存五个 completedSteps 和 oldSnapshotInterpretable=true。",
+        "audit_event #1544/#1545/#1549/#1550/#1551/#1552 分别保存空间不足、备份 VERIFIED、当前环境演练阻断、物理演练 PASSED、可恢复失败升级和成功升级。",
+        "audit_event #1559 保存 OPERATIONS_BACKUP_MANIFEST_READ、OPS_BACKUP #3、SUCCESS、requestId=21339773af3345e0af531dad66a98174、相同 manifestHash 和 itemCount=4。",
+        "稳定运行环境读回 backend=UP、frontend HTTP 200、MySQL/Redis healthy；最终 JAR SHA-256 为 5a3ab4eff4b7843cdb4f848db5d55cc5e128447dec6d9b941a0441e27d92d65e。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsContinuityModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsContinuityController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsContinuityService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsContinuityHttpTest.java",
+        "projects/unexamine/frontend/src/product/operations-continuity.ts",
+        "projects/unexamine/frontend/src/product/operations-continuity.test.ts",
+        "projects/unexamine/frontend/src/product/views/OperationsContinuityView.vue",
+        "projects/unexamine/frontend/src/product/views/FoundationControlsView.vue",
+        "projects/unexamine/deploy/scripts/backup.ps1",
+        "projects/unexamine/deploy/scripts/restore-drill.ps1",
+        "projects/unexamine/deploy/README.md",
+        "projects/unexamine/ai/evidence/fixtures/CYCLE-055-backup-result.json",
+        "projects/unexamine/ai/evidence/fixtures/CYCLE-055-restore-verification.json",
+        "projects/unexamine/ai/evidence/CYCLE-055-backup-verified.png",
+        "projects/unexamine/ai/evidence/CYCLE-055-backup-manifest.png",
+        "projects/unexamine/ai/evidence/CYCLE-055-restore-drill.png",
+        "projects/unexamine/ai/evidence/CYCLE-055-upgrade-recoverable-detail.png",
+        "projects/unexamine/ai/evidence/CYCLE-055-upgrade-success-detail.png",
+        "projects/unexamine/ai/evidence/CYCLE-055.json"
+      ]
+    }
+  ]
+}

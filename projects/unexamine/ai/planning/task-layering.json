@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "architecturePath": "../architecture/design.json",
+    "architectureSha256": "507f14c04268a360c078c985119eec1124e8d5991fd872ff6596b1f83af14bf7",
+    "useCaseCatalogPath": "../requirements/use-cases.json",
+    "useCaseCatalogSha256": "c6e99e285ee9b411b4dc47ad2800b599b2eaadc88d5e80f1ea4c320ae478d5cc"
+  },
+  "capabilityPlans": [
+    {"capabilityId": "CAP-PRODUCT-DELIVERY", "bootstrapKinds": [], "defaultImplementationKinds": ["design"], "useCaseOverrides": [{"useCaseId": "UC-DELIVERY-PLAN-VERIFY", "implementationKinds": ["design", "base-generation"]}]},
+    {"capabilityId": "CAP-IDENTITY", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-SYSTEM-TENANCY", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-AUTHORIZATION", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-AUDIT", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-PLATFORM-FOUNDATION", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-BACKGROUND-JOBS", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-LOWCODE-DEFINITION", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-RECORD-RUNTIME", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-FLOW", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-APPLICATION", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-WORK", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-NOTIFICATION", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-AI", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-FILE", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-DATA-EXCHANGE", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-ANALYTICS", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-PRINT", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["backend-manage", "frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-UI-RUNTIME", "bootstrapKinds": [], "defaultImplementationKinds": ["frontend"], "useCaseOverrides": []},
+    {"capabilityId": "CAP-OPERATIONS-SECURITY", "bootstrapKinds": ["database"], "defaultImplementationKinds": ["operations", "frontend"], "useCaseOverrides": []}
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-052",
+  "executedAt": "2026-08-28T12:42:05+08:00",
+  "application": {
+    "frontend": "one Vue application",
+    "entry": "http://127.0.0.1:15173",
+    "backendHealth": "UP",
+    "systemId": 10,
+    "tenantId": 12,
+    "accountId": 10
+  },
+  "designSystem": {
+    "mobileBreakpointPx": 900,
+    "minimumTouchTargetPx": 48,
+    "statusTones": {
+      "neutral": "gray / draft / neutral",
+      "processing": "blue / processing / current",
+      "attention": "orange / waiting / warning",
+      "positive": "green / success / valid / published",
+      "critical": "red / failed / rejected / paused"
+    },
+    "keyboardFocus": "global :focus-visible outline",
+    "hoverDependency": "critical actions remain visible when hover is unavailable",
+    "reducedMotion": "prefers-reduced-motion disables transitions and animations"
+  },
+  "viewports": [
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "checks": [
+        { "journey": "login", "result": "passed", "horizontalOverflow": false, "evidence": "CYCLE-052-mobile-login.png" },
+        { "journey": "system and module navigation", "result": "passed", "bottomNavigationDirection": "row", "bottomNavigationScrollable": true, "evidence": "CYCLE-052-mobile-runtime-viewport.png" },
+        { "journey": "runtime list", "result": "passed", "horizontalOverflow": false, "desktopTableVisible": false, "mobileCardsVisible": true, "recordCount": 4, "publishedVersion": 1, "touchTargetsPx": 48, "evidence": "CYCLE-052-mobile-runtime-list.png" },
+        { "journey": "record detail", "result": "passed", "horizontalOverflow": false, "drawerWidthPx": 390, "touchTargetsPx": 48, "evidence": "CYCLE-052-mobile-record-detail.png" },
+        { "journey": "create form without persistence", "result": "passed", "horizontalOverflow": false, "formColumns": 1, "touchTargetsPx": 48, "evidence": "CYCLE-052-mobile-create-form.png" },
+        { "journey": "Flow approval", "result": "passed", "instanceId": 7, "taskId": 10, "beforeStatus": "WAITING", "afterStatus": "COMPLETED", "action": "APPROVE", "horizontalOverflow": false, "touchTargetsPx": 48, "evidence": "CYCLE-052-mobile-flow-approval-completed.png" },
+        { "journey": "todo approval projection", "result": "passed", "instanceId": 8, "taskId": 11, "todoId": 3, "afterStatus": "COMPLETED", "resultReference": "FLOW_INSTANCE:8:ACTION:34", "horizontalOverflow": false, "touchTargetsPx": 48, "evidence": "CYCLE-052-mobile-todo-completed.png" },
+        { "journey": "messages", "result": "passed", "horizontalOverflow": false, "visibleMessages": 1, "touchTargetsPx": 48, "evidence": "CYCLE-052-mobile-messages.png" },
+        { "journey": "controlled files and attachments", "result": "passed", "horizontalOverflow": false, "desktopTableVisible": false, "mobileCardsVisible": true, "fileCount": 2, "uploadAndActionTargetsPx": 48, "evidence": "CYCLE-052-mobile-files.png" },
+        { "journey": "AI workspace", "result": "passed", "horizontalOverflow": false, "queryActionTargetsPx": 48, "evidence": "CYCLE-052-mobile-ai.png" },
+        { "journey": "heavy configuration boundary", "result": "passed", "horizontalOverflow": false, "guidanceVisible": true, "heavyEditorVisible": false, "publishActionVisible": false, "evidence": "CYCLE-052-mobile-config-guidance.png" }
+      ]
+    },
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "checks": [
+        { "journey": "runtime list", "result": "passed", "horizontalOverflow": false, "desktopTableVisible": true, "mobileCardsVisible": false, "systemName": "C45 AI Agent 验收系统", "recordCount": 4, "publishedVersion": 1, "evidence": "CYCLE-052-desktop-runtime.png" },
+        { "journey": "controlled files", "result": "passed", "horizontalOverflow": false, "desktopTableVisible": true, "mobileCardsVisible": false, "fileCount": 2, "evidence": "CYCLE-052-desktop-files.png" },
+        { "journey": "heavy configuration", "result": "passed", "horizontalOverflow": false, "guidanceVisible": false, "heavyEditorVisible": true, "publishActionVisible": true, "evidence": "CYCLE-052-desktop-config.png" }
+      ]
+    }
+  ],
+  "sharedStateAssertions": [
+    "Mobile and desktop use the same Vue source tree and the same production build command.",
+    "Both viewports use system #10, tenant #12, the same account permissions and customer publication v1.",
+    "Both runtime list variants read the same four customer records; only the presentation changes from cards to table.",
+    "Both file list variants read the same two controlled files; only the presentation changes from cards to table.",
+    "No second mobile implementation, route family, API or native client was introduced."
+  ],
+  "browserConsole": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "result": "passed"
+}

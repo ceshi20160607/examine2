@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public record UpdateActionConfigurationRequest(
-        @NotBlank @Pattern(regexp = "MODULE_ENTRY|LIST_TOOLBAR|BATCH|ROW|DETAIL_HEADER") String location,
+        @NotBlank @Pattern(regexp = "MODULE_ENTRY|LIST_TOOLBAR|BATCH|ROW|DETAIL_HEADER|DETAIL_MORE") String location,
         @NotNull JsonNode config,
         @NotNull @Min(0) Integer version) {
 }

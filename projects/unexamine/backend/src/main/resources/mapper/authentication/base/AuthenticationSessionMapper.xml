@@ -8,22 +8,27 @@
         <result column="access_token_hash" property="accessTokenHash" />
         <result column="refresh_token_hash" property="refreshTokenHash" />
         <result column="account_id" property="accountId" />
+        <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
         <result column="member_id" property="memberId" />
+        <result column="tenant_member_id" property="tenantMemberId" />
         <result column="role_ids_json" property="roleIdsJson" />
         <result column="action_permissions_json" property="actionPermissionsJson" />
         <result column="data_scopes_json" property="dataScopesJson" />
+        <result column="permission_version" property="permissionVersion" />
+        <result column="mfa_level" property="mfaLevel" />
         <result column="access_expires_at" property="accessExpiresAt" />
         <result column="refresh_expires_at" property="refreshExpiresAt" />
         <result column="revoked" property="revoked" />
+        <result column="revoked_reason" property="revokedReason" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, access_token_hash, refresh_token_hash, account_id, system_id, tenant_id, member_id, role_ids_json, action_permissions_json, data_scopes_json, access_expires_at, refresh_expires_at, revoked, created_at, updated_at
+        id, access_token_hash, refresh_token_hash, account_id, platform_id, system_id, tenant_id, member_id, tenant_member_id, role_ids_json, action_permissions_json, data_scopes_json, permission_version, mfa_level, access_expires_at, refresh_expires_at, revoked, revoked_reason, created_at, updated_at
     </sql>
 
 </mapper>

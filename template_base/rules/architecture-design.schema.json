@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/architecture-design.schema.json",
+  "title": "Project architecture and exclusive capability ownership",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "contexts", "capabilities", "decisions"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirementAnalysisPath", "requirementAnalysisSha256"],
+      "properties": {
+        "requirementAnalysisPath": {"type": "string", "minLength": 1},
+        "requirementAnalysisSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "contexts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "isolationKeys", "entryRules"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^CTX-[A-Z0-9][A-Z0-9-]*$"},
+          "name": {"type": "string", "minLength": 1},
+          "isolationKeys": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "entryRules": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "ownerModule", "contextIds", "storageModel", "requirementIds", "responsibilities", "dependsOnCapabilityIds", "transactionBoundaries", "dataBoundaries", "authorizationBoundaries", "boundaries"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^CAP-[A-Z0-9][A-Z0-9-]*$"},
+          "name": {"type": "string", "minLength": 1},
+          "ownerModule": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "contextIds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^CTX-[A-Z0-9][A-Z0-9-]*$"}},
+          "storageModel": {"enum": ["physical-tables", "runtime-metadata", "none"]},
+          "requirementIds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^REQ-[A-Z0-9][A-Z0-9-]*$"}},
+          "responsibilities": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "dependsOnCapabilityIds": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^CAP-[A-Z0-9][A-Z0-9-]*$"}},
+          "transactionBoundaries": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "dataBoundaries": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "authorizationBoundaries": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "boundaries": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "decision", "basis"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^ADR-[A-Z0-9][A-Z0-9-]*$"},
+          "decision": {"type": "string", "minLength": 1},
+          "basis": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

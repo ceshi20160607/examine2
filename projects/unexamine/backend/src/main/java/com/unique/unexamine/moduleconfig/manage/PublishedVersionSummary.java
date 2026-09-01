@@ -6,6 +6,7 @@ public record PublishedVersionSummary(
         Long versionId,
         Integer versionNumber,
         Integer draftRevision,
+        String changeSummary,
         LocalDateTime publishedAt,
         boolean current,
         Integer publicationVersion) {

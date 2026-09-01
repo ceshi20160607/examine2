@@ -71,8 +71,9 @@ public class SystemAdministrationService {
         SystemDefinition system = requireSystem(context);
         String previousName = system.getName();
         String previousMode = system.getTenantMode();
-        if ("MULTI".equals(previousMode) && "SINGLE".equals(request.tenantMode()) && hasSecondaryTenant(system.getId())) {
-            throw new DomainException("TENANT_MODE_CHANGE_BLOCKED", "存在其他租户，不能切回单租户模式", HttpStatus.CONFLICT);
+        if (!previousMode.equals(request.tenantMode())) {
+            throw new DomainException("TENANT_MODE_MIGRATION_REQUIRED",
+                    "租户模式不能直接修改，请先执行发布检查、审批和后台迁移任务", HttpStatus.CONFLICT);
         }
         system.setName(request.name().strip());
         system.setTenantMode(request.tenantMode());
@@ -132,6 +133,8 @@ public class SystemAdministrationService {
         roleService.insert(role);
 
         SystemRolePermission permission = new SystemRolePermission();
+        permission.setSystemId(context.systemId());
+        permission.setTenantId(tenant.getId());
         permission.setRoleId(role.getId());
         permission.setResourceType("*");
         permission.setResourceCode("*");
@@ -202,13 +205,6 @@ public class SystemAdministrationService {
             throw new DomainException("TENANT_NOT_FOUND", "租户不存在", HttpStatus.NOT_FOUND);
         }
         return tenant;
-    }
-
-    private boolean hasSecondaryTenant(Long systemId) {
-        return tenantService.selectList(Wrappers.<SystemTenant>lambdaQuery()
-                        .eq(SystemTenant::getSystemId, systemId)
-                        .eq(SystemTenant::getMain, false))
-                .stream().findAny().isPresent();
     }
 
     private SystemSettingsView view(SystemDefinition system) {

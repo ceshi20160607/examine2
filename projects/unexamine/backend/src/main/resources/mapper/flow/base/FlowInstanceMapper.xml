@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowInstanceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowInstance">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="flow_id" property="flowId" />
+        <result column="flow_version_id" property="flowVersionId" />
+        <result column="business_type" property="businessType" />
+        <result column="business_id" property="businessId" />
+        <result column="business_snapshot_json" property="businessSnapshotJson" />
+        <result column="title" property="title" />
+        <result column="current_node_key" property="currentNodeKey" />
+        <result column="status" property="status" />
+        <result column="started_by_account_id" property="startedByAccountId" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="error_code" property="errorCode" />
+        <result column="error_message" property="errorMessage" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, platform_id, system_id, tenant_id, flow_id, flow_version_id, business_type, business_id, business_snapshot_json, title, current_node_key, `status`, started_by_account_id, started_at, finished_at, error_code, error_message, created_at, updated_at, version
+    </sql>
+
+</mapper>

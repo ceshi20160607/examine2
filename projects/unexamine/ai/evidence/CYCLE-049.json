@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-049",
+  "executedAt": "2026-08-27T19:44:01+08:00",
+  "taskIds": ["TASK-0159", "TASK-0160", "TASK-0161"],
+  "checks": [
+    {
+      "name": "结构化数据源定义、字段限定与查询计划前端回归（20 个文件、52 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "可视化报表配置、草稿预览、已发布执行和仪表盘复用的类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "单/多模块、关系树、聚合一致性、版本隔离和四类阻断分支的真实 MySQL 定向回归",
+      "command": "cd projects/unexamine/backend && docker run --rm -v D:/workspace/01_project/snow/cursor/examine2/projects/unexamine/backend:/workspace -v D:/dev/maven_repository:/root/.m2/repository -v /var/run/docker.sock:/var/run/docker.sock -w /workspace -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal maven:3.9.11-eclipse-temurin-21 mvn -q -Dtest=DashboardHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 33 迁移门禁（49 项）",
+      "command": "cd projects/unexamine/backend && docker run --rm -v D:/workspace/01_project/snow/cursor/examine2/projects/unexamine/backend:/workspace -v D:/dev/maven_repository:/root/.m2/repository -v /var/run/docker.sock:/var/run/docker.sock -w /workspace -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal maven:3.9.11-eclipse-temurin-21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、15 个更新片段和 33 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "184 条需求在 20 个能力与 4 个上下文中的唯一架构归属复核",
+      "command": "python template_base/tools/tb.py architecture-validate --design projects/unexamine/ai/architecture/design.json",
+      "result": "passed"
+    },
+    {
+      "name": "60 个用例对 184 条原子需求的完整覆盖复核",
+      "command": "python template_base/tools/tb.py use-cases-validate --catalog projects/unexamine/ai/requirements/use-cases.json",
+      "result": "passed"
+    },
+    {
+      "name": "191 个原子任务的实现与验证归属复核",
+      "command": "python template_base/tools/tb.py tasks-validate --catalog projects/unexamine/ai/planning/task-catalog.json",
+      "result": "passed"
+    },
+    {
+      "name": "56 个周期的依赖、阶段与每周期最多 240 分钟复核",
+      "command": "python template_base/tools/tb.py task-graph-validate --graph projects/unexamine/ai/planning/task-graph.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-ANALYTICS-DATASOURCE-REPORT",
+      "entryUrl": "http://127.0.0.1:15173/systems/10/admin?section=dashboard 和 http://127.0.0.1:15173/systems/10",
+      "actor": "C49 浏览器验收系统所有者账号 #10 / 系统 #10 / 主租户 #12",
+      "result": "passed",
+      "pageAssertions": [
+        "管理员从系统后台现有“仪表盘 → 数据源”入口选择“结构化模块报表”；页面只提供已发布模块、显式输出字段、关系、指标、维度、固定筛选、索引排序、时间和成本上限控件，明确不提供任意 SQL 输入。",
+        "真实页面读取 customer 模块发布 v1 与当前字段权限，配置主模块、recordNumber 输出、STATUS/status 维度、status=ACTIVE 固定筛选、updatedAt DESC 和最大授权扫描 500 行；草稿 #3/r1 预览返回 COUNT=4、权限内下钻 4 条、预计聚合 4 行和逐步查询解释。",
+        "预览说明先执行模块 LIST、系统、租户、共享、数据范围与字段可读权限，再执行聚合；发布后数据源 v1 读回相同聚合值 4、下钻数 4 和定义哈希 0892b8e8…，没有从草稿或页面本地重新计算。",
+        "管理员把已发布数据源 #3 绑定到 C48 仪表盘的 CHART 组件 c49_customer_status_chart；仪表盘草稿 r2 预览四个组件全部 READY，报表组件口径与数据源一致，随后发布不可变仪表盘 v2。",
+        "系统首页运行态读取仪表盘 v2，报表组件按聚合分组显示 ACTIVE=4 行授权记录，而不是把无权数据或明细伪装成统计；点击组件只进入 /systems/10?workspace=runtime&module=customer 的授权列表，列表总数仍为 4。",
+        "真实 MySQL 定向回归另以 customer/orders 两个已发布模块和 REFERENCE 关系验证多模块关系树：两条授权关联行的 COUNT=2、状态分组=2、下钻列表=2，输出严格只有 customer.title 与 orders.amount；发布后草稿修改不影响版本 v1 和已发布仪表盘消费者。",
+        "同一回归逐项证明任意 SQL、歧义关系、不可索引 notes 字段、未知/越权字段和 maxScanRows=1 成本超限分别阻止保存、预览、发布或执行；最终干净浏览器页签控制台无错误和警告。"
+      ],
+      "persistentReads": [
+        "ana_data_source #3 属于 SYSTEM/system #10/tenant #12，code=c49_customer_status_report、source_type=MODULE_REPORT、draft_revision=1、status=PUBLISHED；它没有进入普通业务模块导航。",
+        "ana_data_source_version #3 固化 v1/r1、definition_hash=0892b8e82027227fac8c9547d5a666d99a00764baf8d8a44e387ae7be16f4b02、queryExplanation.mode=SINGLE_MODULE、arbitrarySqlAllowed=false 和一个显式输出字段；版本 JSON 中任意 SELECT 文本计数为 0。",
+        "ana_dashboard_version #3 是 dashboard #1 的 v2/r2，snapshot_hash=dd8595be5d1d685d7dddd1f9afaae0f0428c185aa7fcde651dd10bed4f3b0c10，发布指针 current_version_id=3，快照固定四个组件；旧 v1/r1/hash=12aa4564…仍保留且未被覆盖。",
+        "ana_dashboard_component 保存 c49_customer_status_chart/CHART/data_source_id=3/sort_order=30；组件快照固定引用数据源发布版本 #3，而不是后续数据源草稿。",
+        "审计最近序列包含 ANALYTICS_REPORT_PREVIEWED、DASHBOARD_DATA_SOURCE_PUBLISHED、ANALYTICS_REPORT_EXECUTED 和 DASHBOARD_PUBLISHED，objectId 可关联数据源 #3 与仪表盘版本 #3，结果均为 SUCCESS。",
+        "定向 Testcontainers MySQL 回归保存单模块与多模块定义、模块发布版本、关系、指标、维度、筛选、排序、时间和查询解释，并验证数据库不可变版本触发器拒绝 UPDATE/DELETE；manage 层只调用生成 Base service、模块发布服务和运行态权限查询，没有直接 SQL。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/ReportModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/ReportService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/analytics/manage/DashboardHttpTest.java",
+        "projects/unexamine/frontend/src/product/report.ts",
+        "projects/unexamine/frontend/src/product/report.test.ts",
+        "projects/unexamine/frontend/src/product/views/ReportSourceEditor.vue",
+        "projects/unexamine/frontend/src/product/views/DashboardConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-049-report-preview.png",
+        "projects/unexamine/ai/evidence/CYCLE-049-report-published.png",
+        "projects/unexamine/ai/evidence/CYCLE-049-dashboard-preview.png",
+        "projects/unexamine/ai/evidence/CYCLE-049-dashboard-runtime.png",
+        "projects/unexamine/ai/evidence/CYCLE-049-dashboard-drill.png",
+        "projects/unexamine/ai/evidence/CYCLE-049.json"
+      ]
+    }
+  ]
+}

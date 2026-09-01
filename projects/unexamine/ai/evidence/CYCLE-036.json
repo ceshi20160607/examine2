@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-036",
+  "executedAt": "2026-08-22T18:43:00+08:00",
+  "taskIds": ["TASK-0104", "TASK-0124"],
+  "checks": [
+    {
+      "name": "Flow 运行冻结版本、审批唯一处理、权限交集、幂等重放和显式异常策略 HTTP/MySQL 验收",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#flowRuntimeFreezesVersionHandlesApprovalOnceAndPersistsExplainableFailure test",
+      "result": "passed"
+    },
+    {
+      "name": "工作配置分层发布回滚、统计定义和授权日历汇总/下钻隔离 HTTP/MySQL 验收",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#workConfigurationPublishesLayeredVersionsAndCalendarHidesUnauthorizedDetails test",
+      "result": "passed"
+    },
+    {
+      "name": "Flow runtime 与 Work configuration/calendar manage 层编译",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -DskipTests compile",
+      "result": "passed"
+    }
+  ],
+  "journeys": []
+}

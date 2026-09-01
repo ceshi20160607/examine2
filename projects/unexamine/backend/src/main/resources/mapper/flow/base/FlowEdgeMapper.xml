@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowEdgeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowEdge">
+        <id column="id" property="id" />
+        <result column="flow_id" property="flowId" />
+        <result column="edge_key" property="edgeKey" />
+        <result column="source_node_key" property="sourceNodeKey" />
+        <result column="target_node_key" property="targetNodeKey" />
+        <result column="condition_expression" property="conditionExpression" />
+        <result column="priority_order" property="priorityOrder" />
+        <result column="config_json" property="configJson" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, flow_id, edge_key, source_node_key, target_node_key, condition_expression, priority_order, config_json, created_at, updated_at, version
+    </sql>
+
+</mapper>

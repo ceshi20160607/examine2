@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-043",
+  "executedAt": "2026-08-25T20:47:50+08:00",
+  "taskIds": ["TASK-0146", "TASK-0147", "TASK-0149", "TASK-0150", "TASK-0151"],
+  "checks": [
+    {
+      "name": "受控文件与模块导入前端回归（15 个文件、39 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "文件工作区与模块导入抽屉类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "导入预演零写入、后台执行、错误明细、创建回滚和更新冲突保护的真实 MySQL/Redis 定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=RuntimeDataHttpTest#moduleImportPreviewsWithoutWritesExecutesInBackgroundAndRollsBackWithoutOverwritingLaterChanges test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 32 迁移门禁（44 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、14 个更新片段和 32 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-FILE-UPLOAD-ACCESS",
+      "entryUrl": "http://127.0.0.1:15173/system/files",
+      "actor": "C43 浏览器验收系统所有者账号 #8",
+      "result": "passed",
+      "pageAssertions": [
+        "真实系统侧边栏提供文件入口，页面明确展示一次性上传凭证、SHA-256、安全扫描、引用复核和有引用禁止删除的完整策略。",
+        "安全 CSV 文件 #1 显示扫描通过、可在线预览和 ACCOUNT:8 业务引用，并提供引用、预览、下载和删除操作；有引用时点击删除，页面明确拒绝并提示必须先解除引用。",
+        "EICAR 测试文件 #2 显示已隔离、仅允许删除且无业务引用，页面没有预览、下载或引用入口，证明危险内容不会进入业务链路。",
+        "浏览器安全策略阻止自动化打开 blob 预览新页；预览和下载字节授权由全量文件集成回归验证，页面入口、可用状态和服务端权限路径均已读回。"
+      ],
+      "persistentReads": [
+        "FILE_UPLOAD_COMPLETED 请求 72fa099f188b42e281d6f415c288439c 将文件 #1 持久化为 ACTIVE/CLEAN，FILE_REFERENCE_ADDED 请求 d74700f94e9b48c99fca4cacc1855277 保存唯一账号引用。",
+        "FILE_UPLOAD_QUARANTINED 请求 98829293853e4384976cef8a177a41b9 将文件 #2 持久化为 QUARANTINED/BLOCKED，引用数保持 0。",
+        "本地数据库最终读回文件 #1 为 CLEAN/ACTIVE/1 个引用，文件 #2 为 BLOCKED/QUARANTINED/0 个引用；真实页面与持久状态一致。",
+        "后端全量回归继续覆盖摘要不一致零对象、隔离文件不可引用或下载、跨系统访问拒绝和受控字节读取。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+        "projects/unexamine/frontend/src/product/views/FileWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/file.ts",
+        "projects/unexamine/frontend/src/product/file.test.ts",
+        "projects/unexamine/ai/evidence/fixtures/C43_BROWSER_IMPORT.csv",
+        "projects/unexamine/ai/evidence/fixtures/C43_BROWSER_EICAR.txt",
+        "projects/unexamine/ai/evidence/CYCLE-043.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-EXCHANGE-IMPORT",
+      "entryUrl": "http://127.0.0.1:15173/system/modules/customer",
+      "actor": "C43 浏览器验收系统所有者账号 #8",
+      "result": "passed",
+      "pageAssertions": [
+        "通过真实模板配置页面创建客户管理分组、customer 模块和必填 customer_name 字段；发布 V1 后运行页出现“导入客户”动作。",
+        "导入抽屉展示下载上传、映射预演、后台执行或回滚三段流程；批次 #1 预演读回 2 行，其中 1 行 CREATE 可执行，1 行因 customer_name 必填校验显示预演错误，预演阶段业务列表保持 0 条。",
+        "从页面点击确认后台执行后，批次变为 COMPLETED，成功行关联目标记录 #10，错误行保持 FIELD_VALIDATION_FAILED，同时业务列表真实出现 C43-BROWSER-001。",
+        "从页面二次确认安全回滚后，批次变为 ROLLED_BACK、成功行变为已回滚、业务列表恢复 0 条；更新导入后的人工修改冲突保护由定向集成回归证明不会被覆盖。"
+      ],
+      "persistentReads": [
+        "MODULE_IMPORT_PREVIEWED 请求 aab4666222e64549a5df6c83ead1266d 保存批次 #1、映射和逐行计划，预演前后没有业务记录写入。",
+        "BACKGROUND_JOB_SUBMITTED 请求 35bb381c8f3046de909d481ecc794211 生成 MODULE_IMPORT 作业 #6；作业以 1/1 进度、1 次尝试和 SUCCEEDED 状态完成。",
+        "MODULE_IMPORT_COMPLETED 追踪 import-job-6 读回 COMPLETED：行 #1 为 CREATE/ROLLED_BACK 且目标记录 #10，行 #2 保持 ERROR/FIELD_VALIDATION_FAILED。",
+        "MODULE_IMPORT_ROLLED_BACK 请求 9d1b294c845b42b2b6af052f20d4ba00 将批次 #1 持久化为 ROLLED_BACK；C43-BROWSER-001 最终 deleted=1，未覆盖任何后续业务修改。",
+        "定向集成回归额外覆盖 UPDATE 冲突策略、字段可写范围和数据权限重检、错误 CSV，以及导入完成后人工修改导致 ROLLBACK_PARTIAL 的保护分支。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportBackgroundJobHandler.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ImportModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeImportValidation.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/components/ModuleImportDrawer.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/db/update/V32__module_import_action.sql",
+        "projects/unexamine/ai/evidence/CYCLE-043.json"
+      ]
+    }
+  ]
+}

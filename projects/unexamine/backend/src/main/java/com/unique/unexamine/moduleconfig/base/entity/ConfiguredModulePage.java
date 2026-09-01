@@ -34,13 +34,13 @@ public class ConfiguredModulePage {
     @TableField("page_type")
     private String pageType;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
 
     @TableField("layout_json")
     private String layoutJson;
 
-    @TableField("status")
+    @TableField("`status`")
     private String status;
 
     @TableField("created_at")

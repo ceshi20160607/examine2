@@ -28,11 +28,26 @@ public class PlatformAccount {
     @TableField("email")
     private String email;
 
+    @TableField("mobile")
+    private String mobile;
+
     @TableField("display_name")
     private String displayName;
 
-    @TableField("status")
+    @TableField("avatar_file_id")
+    private Long avatarFileId;
+
+    @TableField("locale")
+    private String locale;
+
+    @TableField("timezone")
+    private String timezone;
+
+    @TableField("`status`")
     private String status;
+
+    @TableField("last_login_at")
+    private LocalDateTime lastLoginAt;
 
     @TableField("created_at")
     private LocalDateTime createdAt;
@@ -68,6 +83,14 @@ public class PlatformAccount {
         this.email = email;
     }
 
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+
     public String getDisplayName() {
         return displayName;
     }
@@ -76,12 +99,44 @@ public class PlatformAccount {
         this.displayName = displayName;
     }
 
+    public Long getAvatarFileId() {
+        return avatarFileId;
+    }
+
+    public void setAvatarFileId(Long avatarFileId) {
+        this.avatarFileId = avatarFileId;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public LocalDateTime getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -114,8 +169,13 @@ public class PlatformAccount {
             "id = " + id +
             ", username = " + username +
             ", email = " + email +
+            ", mobile = " + mobile +
             ", displayName = " + displayName +
+            ", avatarFileId = " + avatarFileId +
+            ", locale = " + locale +
+            ", timezone = " + timezone +
             ", status = " + status +
+            ", lastLoginAt = " + lastLoginAt +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
             ", version = " + version +

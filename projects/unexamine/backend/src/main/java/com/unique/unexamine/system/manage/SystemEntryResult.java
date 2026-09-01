@@ -15,8 +15,12 @@ public record SystemEntryResult(
         Long tenantId,
         String tenantName,
         Long systemMemberId,
+        Long tenantMemberId,
         List<Long> roleIds,
         List<PermissionGrant> permissions,
         Map<String, DataScopeExpression> dataScopes,
+        String contextRevision,
+        List<String> redrawScopes,
+        TenantSwitchContext tenantSwitchContext,
         SessionTokens tokens) {
 }

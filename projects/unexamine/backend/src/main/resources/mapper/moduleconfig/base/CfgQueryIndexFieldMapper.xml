@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.moduleconfig.base.mapper.CfgQueryIndexFieldMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.moduleconfig.base.entity.CfgQueryIndexField">
+        <id column="id" property="id" />
+        <result column="query_index_id" property="queryIndexId" />
+        <result column="field_id" property="fieldId" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="sort_direction" property="sortDirection" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, query_index_id, field_id, sort_order, sort_direction, created_at
+    </sql>
+
+</mapper>

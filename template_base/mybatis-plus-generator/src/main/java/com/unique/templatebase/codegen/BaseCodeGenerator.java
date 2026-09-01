@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.generator.config.rules.DateType;
 import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
+import com.baomidou.mybatisplus.generator.keywords.MySqlKeyWordsHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.flywaydb.core.Flyway;
 
@@ -110,12 +111,14 @@ public final class BaseCodeGenerator {
         String parentPackage = basePackage + "." + module.javaPackage() + ".base";
         Path moduleXmlRoot = mapperXmlRoot.resolve(module.name()).resolve("base").normalize();
         FastAutoGenerator.create(url, username, password)
-                .dataSourceConfig(builder -> builder.typeConvertHandler((global, registry, metaInfo) -> {
-                    if ("tinyint".equalsIgnoreCase(metaInfo.getTypeName())) {
-                        return DbColumnType.BOOLEAN;
-                    }
-                    return registry.getColumnType(metaInfo);
-                }))
+                .dataSourceConfig(builder -> builder
+                        .keyWordsHandler(new MySqlKeyWordsHandler())
+                        .typeConvertHandler((global, registry, metaInfo) -> {
+                            if ("tinyint".equalsIgnoreCase(metaInfo.getTypeName())) {
+                                return DbColumnType.BOOLEAN;
+                            }
+                            return registry.getColumnType(metaInfo);
+                        }))
                 .globalConfig(builder -> builder
                         .author("Template Base")
                         .disableOpenDir()

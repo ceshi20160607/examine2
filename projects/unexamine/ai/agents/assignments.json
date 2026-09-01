@@ -5,8 +5,8 @@
     {
       "id": "LEAD-001",
       "role": "lead",
-      "status": "in_progress",
-      "task": "维护唯一需求源、任务依赖、决策、当前事实状态和后续周期排期",
+      "status": "completed",
+      "task": "维护唯一需求源、任务依赖、交付阶段、当前事实状态和后续周期排期",
       "allowedPaths": [
         "projects/unexamine/ai"
       ],
@@ -20,9 +20,28 @@
       "blockedBy": []
     },
     {
+      "id": "PM-001",
+      "role": "pm",
+      "status": "completed",
+      "task": "维护 question.md，按需求和主流工程实践关闭常规歧义，仅把产品边界和不可逆数据问题升级给用户",
+      "allowedPaths": [
+        "projects/unexamine/question.md",
+        "projects/unexamine/ai/decisions"
+      ],
+      "inputs": [
+        "docs/user_requirement.md",
+        "projects/unexamine/question.md"
+      ],
+      "outputs": [
+        "projects/unexamine/question.md",
+        "projects/unexamine/ai/decisions/decision-log.json"
+      ],
+      "blockedBy": []
+    },
+    {
       "id": "REQ-001",
       "role": "requirements",
-      "status": "in_progress",
+      "status": "completed",
       "task": "完整分析 117 个互斥需求包，合并为无重复的原子需求、验收条件、待决问题和任务输入",
       "allowedPaths": [
         "projects/unexamine/ai/requirements",
@@ -42,8 +61,8 @@
     {
       "id": "ARCH-001",
       "role": "architecture",
-      "status": "blocked",
-      "task": "依据完整原子需求确定能力归属、模块边界、事务边界和技术约束",
+      "status": "completed",
+      "task": "依据完整原子需求确定唯一能力归属、模块边界、事务边界和技术约束",
       "allowedPaths": [
         "projects/unexamine/ai/architecture",
         "projects/unexamine/ai/planning",
@@ -53,15 +72,72 @@
         "projects/unexamine/ai/requirements/requirement-analysis.json"
       ],
       "outputs": [
-        "projects/unexamine/ai/architecture/design.json",
+        "projects/unexamine/ai/architecture/design.json"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "REQ-002",
+      "role": "requirements",
+      "status": "completed",
+      "task": "把 184 条最终原子需求按唯一能力整理为具备页面步骤、持久化、授权和失败结果的原子用例",
+      "allowedPaths": [
+        "projects/unexamine/ai/requirements"
+      ],
+      "inputs": [
+        "projects/unexamine/ai/requirements/requirement-analysis.json",
+        "projects/unexamine/ai/architecture/design.json"
+      ],
+      "outputs": [
+        "projects/unexamine/ai/requirements/use-cases.json"
+      ],
+      "blockedBy": ["ARCH-001"]
+    },
+    {
+      "id": "LEAD-002",
+      "role": "lead",
+      "status": "completed",
+      "task": "依据已验证用例和人工确认的技术分层展开无歧义原子任务，不在任务目录内预填工时和周期",
+      "allowedPaths": [
+        "projects/unexamine/ai/planning",
+        "projects/unexamine/ai/status",
+        "projects/unexamine/ai/agents"
+      ],
+      "inputs": [
+        "projects/unexamine/ai/requirements/use-cases.json",
+        "projects/unexamine/ai/architecture/design.json"
+      ],
+      "outputs": [
+        "projects/unexamine/ai/planning/task-catalog.json"
+      ],
+      "blockedBy": ["REQ-002"]
+    },
+    {
+      "id": "LEAD-003",
+      "role": "lead",
+      "status": "completed",
+      "task": "逐项评估现有源码，确定最终依赖和实际分钟，把 191 个任务按依赖里程碑装入最多 240 分钟周期",
+      "allowedPaths": [
+        "projects/unexamine/ai/planning",
+        "projects/unexamine/ai/status",
+        "projects/unexamine/ai/agents"
+      ],
+      "inputs": [
+        "projects/unexamine/ai/planning/task-catalog.json",
+        "projects/unexamine/backend",
+        "projects/unexamine/frontend",
+        "projects/unexamine/db",
+        "projects/unexamine/deploy"
+      ],
+      "outputs": [
         "projects/unexamine/ai/planning/task-graph.json"
       ],
-      "blockedBy": ["REQ-001"]
+      "blockedBy": ["LEAD-002"]
     },
     {
       "id": "DB-001",
       "role": "database",
-      "status": "blocked",
+      "status": "completed",
       "task": "按任务和设计完成首版表结构，运行真实 MySQL 后调用 MyBatis-Plus Generator 全量生成 base",
       "allowedPaths": [
         "projects/unexamine/db",
@@ -74,18 +150,18 @@
         "projects/unexamine/ai/planning/task-graph.json"
       ],
       "outputs": [
-        "projects/unexamine/db/base.sql",
+        "projects/unexamine/db/init.sql",
         "projects/unexamine/db/update.sql",
-        "projects/unexamine/db/all.sql",
+        "projects/unexamine/db/final.sql",
         "projects/unexamine/db/migration",
         "projects/unexamine/backend/base-codegen-manifest.json"
       ],
-      "blockedBy": ["ARCH-001"]
+      "blockedBy": []
     },
     {
       "id": "BACKEND-001",
       "role": "backend",
-      "status": "blocked",
+      "status": "completed",
       "task": "按周期任务在各模块 manage 包实现业务逻辑，不修改生成的 base",
       "allowedPaths": [
         "projects/unexamine/backend",
@@ -96,22 +172,22 @@
         "projects/unexamine/backend/base-codegen-manifest.json"
       ],
       "outputs": ["projects/unexamine/backend", "projects/unexamine/ai/evidence"],
-      "blockedBy": ["DB-001"]
+      "blockedBy": []
     },
     {
       "id": "FRONTEND-001",
       "role": "frontend",
-      "status": "blocked",
+      "status": "completed",
       "task": "按同一周期任务实现真实页面、交互和前端测试",
       "allowedPaths": ["projects/unexamine/frontend", "projects/unexamine/ai/evidence"],
       "inputs": ["projects/unexamine/ai/planning/task-graph.json"],
       "outputs": ["projects/unexamine/frontend", "projects/unexamine/ai/evidence"],
-      "blockedBy": ["ARCH-001"]
+      "blockedBy": ["BACKEND-001"]
     },
     {
       "id": "TEST-001",
       "role": "test",
-      "status": "blocked",
+      "status": "completed",
       "task": "从每个周期规划时介入，验证受影响测试、组合结果和真实入口",
       "allowedPaths": [
         "projects/unexamine/backend/src/test",
@@ -120,17 +196,17 @@
       ],
       "inputs": ["projects/unexamine/ai/planning/task-graph.json"],
       "outputs": ["projects/unexamine/ai/evidence"],
-      "blockedBy": ["ARCH-001"]
+      "blockedBy": ["BACKEND-001", "FRONTEND-001"]
     },
     {
       "id": "OPS-001",
       "role": "operations",
-      "status": "blocked",
+      "status": "completed",
       "task": "按任务实现环境、部署、升级、回滚和可观测性",
       "allowedPaths": ["projects/unexamine/deploy", "projects/unexamine/ai/evidence"],
       "inputs": ["projects/unexamine/ai/architecture/design.json", "projects/unexamine/ai/planning/task-graph.json"],
       "outputs": ["projects/unexamine/deploy", "projects/unexamine/ai/evidence"],
-      "blockedBy": ["DB-001"]
+      "blockedBy": ["BACKEND-001"]
     }
   ]
 }

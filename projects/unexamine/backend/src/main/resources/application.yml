@@ -9,6 +9,8 @@ spring:
     url: ${APP_DB_URL:jdbc:mysql://127.0.0.1:33077/unexamine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
     username: ${APP_DB_USERNAME:unexamine}
     password: ${APP_DB_PASSWORD:unexamine_local}
+    hikari:
+      connection-init-sql: SET time_zone = '+08:00'
   data:
     redis:
       host: ${APP_REDIS_HOST:127.0.0.1}
@@ -19,6 +21,21 @@ spring:
     locations: classpath:db/migration
   lifecycle:
     timeout-per-shutdown-phase: 20s
+app:
+  release-version: ${APP_RELEASE_VERSION:0.1.0-SNAPSHOT}
+  deployment:
+    environment-code: ${APP_ENVIRONMENT_CODE:development}
+    frontend-version: ${APP_FRONTEND_VERSION:${APP_RELEASE_VERSION:0.1.0-SNAPSHOT}}
+    config-version: ${APP_CONFIG_VERSION:local-v1}
+    artifact-sha256: ${APP_ARTIFACT_SHA256:}
+    frontend-smoke-url: ${APP_FRONTEND_SMOKE_URL:http://127.0.0.1:15173/}
+  file:
+    storage-root: ${APP_FILE_STORAGE_ROOT:./data/files}
+  security:
+    application-secret-master-key: ${APP_APPLICATION_SECRET_MASTER_KEY:unexamine-local-application-secret-master-key-change-in-production}
+  preflight:
+    startup-enabled: ${APP_PREFLIGHT_STARTUP_ENABLED:true}
+    allow-development-defaults: ${APP_PREFLIGHT_ALLOW_DEVELOPMENT_DEFAULTS:true}
 management:
   endpoints:
     web:
@@ -28,3 +45,11 @@ management:
     health:
       probes:
         enabled: true
+      group:
+        readiness:
+          include: readinessState,operationsReadiness
+springdoc:
+  api-docs:
+    enabled: ${APP_API_DOCS_ENABLED:false}
+  swagger-ui:
+    enabled: ${APP_API_DOCS_ENABLED:false}

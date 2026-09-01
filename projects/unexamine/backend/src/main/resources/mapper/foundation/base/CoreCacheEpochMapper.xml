@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.foundation.base.mapper.CoreCacheEpochMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.foundation.base.entity.CoreCacheEpoch">
+        <id column="id" property="id" />
+        <result column="context_key" property="contextKey" />
+        <result column="cache_namespace" property="cacheNamespace" />
+        <result column="epoch_value" property="epochValue" />
+        <result column="reason" property="reason" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_key, cache_namespace, epoch_value, reason, updated_at, version
+    </sql>
+
+</mapper>

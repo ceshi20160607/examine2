@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-056",
+  "executedAt": "2026-08-31T22:56:06+08:00",
+  "taskIds": ["TASK-0189", "TASK-0190", "TASK-0191"],
+  "checks": [
+    {
+      "name": "C56 两阶段密钥轮换、安全阻断、性能超界、分权和持久化定向验证",
+      "command": "dockerized Maven: OperationsSecurityHttpTest with MySQL 8.4 and Redis 7.4; real API acceptance through Nginx 15174",
+      "result": "passed"
+    },
+    {
+      "name": "后端完整 Testcontainers 新鲜报告聚合（22 个测试类、56 项，MySQL 8.4 与 Redis 7.4）",
+      "command": "dockerized JDK 21 Maven: mvn test; aggregate 22 fresh projects/unexamine/backend/target/surefire-reports/TEST-*.xml",
+      "result": "passed"
+    },
+    {
+      "name": "C56 前端确认词、一次性密钥、轮换结果和性能路径定向验证（4 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run src/product/operations-security.test.ts",
+      "result": "passed"
+    },
+    {
+      "name": "全量前端回归（27 个文件、73 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "单 Vue 应用类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "真实 MySQL、Redis、文件和统计路径 API 验收",
+      "command": "Nginx 15174 -> Spring Boot 18080; execute security passed/failed/passed, canary failed, security blocked, rotation success, performance passed/exceeded and permission revoke",
+      "result": "passed"
+    },
+    {
+      "name": "系统后台运维配置真实 Edge 页面验收",
+      "command": "Microsoft Edge via Playwright against http://127.0.0.1:15174/systems/17/admin?section=operations",
+      "result": "passed"
+    },
+    {
+      "name": "密钥引用、轮换、检查、优化任务和审计真实 MySQL 读回",
+      "command": "select ops_secret_ref/ops_secret_rotation/ops_verification_run/ops_verification_finding/audit_event for systems 15 and 17",
+      "result": "passed"
+    },
+    {
+      "name": "运维脚本、稳定入口和最终不可变后端制品验证",
+      "command": "PowerShell parser for security-performance.ps1; nginx -t; backend readiness UP; frontend HTTP 200; JAR 53588106 bytes / SHA-256 9e0d55f971cc00091b2df84bde605e6a0c7bdebdc17ff763d908224f14dd22e7",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py -v",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、184 条需求、60 个用例、191 个任务、56 周期任务图和 34 个迁移全量门禁",
+      "command": "workspace-validate; requirements-validate; architecture-validate; use-cases-validate; tasks-validate; task-graph-validate; db-prepare",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-OPS-SECURITY-PERFORMANCE",
+      "entryUrl": "http://127.0.0.1:15174/systems/17/admin?section=operations",
+      "actor": "C56 安全与性能验收管理员（API 系统 #15；页面系统 #17）",
+      "result": "passed",
+      "pageAssertions": [
+        "安全与性能能力嵌在系统后台的运维配置页；浏览器检查没有发现独立 operations、report 或 reports 路由链接，运行态主导航未新增运营或报表入口。",
+        "安全基线对真实数据库、Redis、文件、主密钥、迁移、密码摘要、应用凭证引用和系统租户边界执行检查；页面显示 #9 PASSED，失败密码摘要分支保存 FAILED 并阻止轮换切换。",
+        "创建和准备轮换时明文只在一次性警告区显示；用户清除后刷新页面不会再次返回，截图证据均在明文清除后生成。",
+        "灰度中 crm-webhook 失败时轮换保存 FAILED_CANARY、v1 继续 ACTIVE；绑定失败安全运行时保存 BLOCKED_SECURITY、v1 继续 ACTIVE；全部使用方通过且安全运行通过后才切换 v2 ACTIVE 并停用 v1。",
+        "列表查询展示 idx_job_background_context、服务端分页和超时；文件流展示流式读写及 65536 B 资源；作业队列展示 Redis PONG 和队列状态；统计展示数据库聚合与系统租户缓存隔离。",
+        "零毫秒阈值分支明确显示四个 THRESHOLD_EXCEEDED 路径和四条以“优化任务：”开头的 OPEN 任务，没有吞掉超界结果。",
+        "撤销专门权限并推进会话权限版本后，安全与性能总览返回 403/PERMISSION_DENIED；成功、失败和阻断分支均写入不可删除审计。"
+      ],
+      "persistentReads": [
+        "ops_secret_ref #1（system #15）和 #3（system #17）均读回 current_version=v2、status=ACTIVE，路径为 ops-secret:// 引用而非明文。",
+        "system #15 的 rotation #2 保存 FAILED_CANARY、activeVersion=v1、oldVersionStatus=ACTIVE、CONSUMER_CANARY_FAILED 和 materialDestroyed=true；rotation #3 保存 BLOCKED_SECURITY、v1 继续 ACTIVE 和 SECURITY_BASELINE_NOT_PASSED。",
+        "system #15 的 rotation #4 与 system #17 的 rotation #7 保存 ACTIVE、activeVersion=v2、oldVersionStatus=DISABLED；初始 v1 记录同步读回 DISABLED。",
+        "system #15 保存 5 次验证运行：SECURITY PASSED/FAILED/PASSED、PERFORMANCE PASSED/THRESHOLD_EXCEEDED，并保存 5 条 OPEN finding；system #17 的页面旅程保存 1 次 PASSED 安全运行、1 次超界性能运行和 4 条优化任务。",
+        "system #15 保存 12 条密钥、安全和性能操作审计；权限撤销后另有 PERMISSION_CHECK 拒绝审计，读回总览不含 oneTimeSecret、materialReference 或 ops-aesgcm 载荷。",
+        "稳定入口读回 backend readiness=UP、frontend=200、MySQL/Redis healthy；最终 JAR SHA-256 为 9e0d55f971cc00091b2df84bde605e6a0c7bdebdc17ff763d908224f14dd22e7。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsSecurityModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsSecretCipher.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsSecurityService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsSecurityController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/repository/OperationsSecurityProbeRepository.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/shared/manage/OutboundHttpClientConfiguration.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsSecurityHttpTest.java",
+        "projects/unexamine/frontend/src/product/operations-security.ts",
+        "projects/unexamine/frontend/src/product/operations-security.test.ts",
+        "projects/unexamine/frontend/src/product/views/OperationsSecurityPerformanceView.vue",
+        "projects/unexamine/frontend/src/product/views/FoundationControlsView.vue",
+        "projects/unexamine/deploy/scripts/security-performance.ps1",
+        "projects/unexamine/deploy/nginx.stable.conf",
+        "projects/unexamine/ai/evidence/CYCLE-056-security-overview.png",
+        "projects/unexamine/ai/evidence/CYCLE-056-security-baseline.png",
+        "projects/unexamine/ai/evidence/CYCLE-056-performance-optimization.png",
+        "projects/unexamine/ai/evidence/CYCLE-056-secret-rotation.png",
+        "projects/unexamine/ai/evidence/CYCLE-056.json"
+      ]
+    }
+  ]
+}

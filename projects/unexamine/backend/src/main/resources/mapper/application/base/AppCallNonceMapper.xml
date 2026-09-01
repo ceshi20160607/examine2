@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.application.base.mapper.AppCallNonceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.application.base.entity.AppCallNonce">
+        <id column="id" property="id" />
+        <result column="application_id" property="applicationId" />
+        <result column="credential_version" property="credentialVersion" />
+        <result column="nonce" property="nonce" />
+        <result column="request_id" property="requestId" />
+        <result column="request_timestamp" property="requestTimestamp" />
+        <result column="expires_at" property="expiresAt" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, application_id, credential_version, nonce, request_id, request_timestamp, expires_at, created_at
+    </sql>
+
+</mapper>

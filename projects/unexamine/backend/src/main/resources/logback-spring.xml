@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <property name="STRUCTURED_PATTERN"
+            value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} level=%level logger=%logger{36} requestId=%X{requestId:-none} traceId=%X{traceId:-none} systemId=%X{systemId:-none} tenantId=%X{tenantId:-none} userId=%X{userId:-none} message=%msg%n%ex"/>
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${STRUCTURED_PATTERN}</pattern>
+      <charset>UTF-8</charset>
+    </encoder>
+  </appender>
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>

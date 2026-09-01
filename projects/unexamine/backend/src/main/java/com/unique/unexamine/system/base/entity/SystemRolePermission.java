@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +21,12 @@ public class SystemRolePermission {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
+
+    @TableField("system_id")
+    private Long systemId;
+
+    @TableField("tenant_id")
+    private Long tenantId;
 
     @TableField("role_id")
     private Long roleId;
@@ -39,11 +46,18 @@ public class SystemRolePermission {
     @TableField("data_scope_json")
     private String dataScopeJson;
 
+    @TableField("effect")
+    private String effect;
+
     @TableField("created_at")
     private LocalDateTime createdAt;
 
     @TableField("updated_at")
     private LocalDateTime updatedAt;
+
+    @Version
+    @TableField("version")
+    private Integer version;
 
     public Long getId() {
         return id;
@@ -51,6 +65,22 @@ public class SystemRolePermission {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(Long systemId) {
+        this.systemId = systemId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     public Long getRoleId() {
@@ -101,6 +131,14 @@ public class SystemRolePermission {
         this.dataScopeJson = dataScopeJson;
     }
 
+    public String getEffect() {
+        return effect;
+    }
+
+    public void setEffect(String effect) {
+        this.effect = effect;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -117,18 +155,30 @@ public class SystemRolePermission {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         return "SystemRolePermission{" +
             "id = " + id +
+            ", systemId = " + systemId +
+            ", tenantId = " + tenantId +
             ", roleId = " + roleId +
             ", resourceType = " + resourceType +
             ", resourceCode = " + resourceCode +
             ", actionCode = " + actionCode +
             ", dataScopeType = " + dataScopeType +
             ", dataScopeJson = " + dataScopeJson +
+            ", effect = " + effect +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
+            ", version = " + version +
             "}";
     }
 }

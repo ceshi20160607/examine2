@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.ai.base.mapper.AiExecutionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiExecution">
+        <id column="id" property="id" />
+        <result column="conversation_id" property="conversationId" />
+        <result column="request_message_id" property="requestMessageId" />
+        <result column="agent_version_id" property="agentVersionId" />
+        <result column="authorization_snapshot_json" property="authorizationSnapshotJson" />
+        <result column="status" property="status" />
+        <result column="fallback_used" property="fallbackUsed" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="error_code" property="errorCode" />
+        <result column="error_message" property="errorMessage" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, conversation_id, request_message_id, agent_version_id, authorization_snapshot_json, `status`, fallback_used, started_at, finished_at, error_code, error_message, version
+    </sql>
+
+</mapper>

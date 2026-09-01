@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
@@ -21,16 +22,25 @@ public class PlatformDepartment {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    @TableField("platform_id")
+    private Long platformId;
+
     @TableField("parent_id")
     private Long parentId;
 
-    @TableField("code")
+    @TableField("`code`")
     private String code;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
 
-    @TableField("status")
+    @TableField("path_code")
+    private String pathCode;
+
+    @TableField("sort_order")
+    private Integer sortOrder;
+
+    @TableField("`status`")
     private String status;
 
     @TableField("created_at")
@@ -39,12 +49,24 @@ public class PlatformDepartment {
     @TableField("updated_at")
     private LocalDateTime updatedAt;
 
+    @Version
+    @TableField("version")
+    private Integer version;
+
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
     }
 
     public Long getParentId() {
@@ -71,6 +93,22 @@ public class PlatformDepartment {
         this.name = name;
     }
 
+    public String getPathCode() {
+        return pathCode;
+    }
+
+    public void setPathCode(String pathCode) {
+        this.pathCode = pathCode;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -95,16 +133,28 @@ public class PlatformDepartment {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         return "PlatformDepartment{" +
             "id = " + id +
+            ", platformId = " + platformId +
             ", parentId = " + parentId +
             ", code = " + code +
             ", name = " + name +
+            ", pathCode = " + pathCode +
+            ", sortOrder = " + sortOrder +
             ", status = " + status +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
+            ", version = " + version +
             "}";
     }
 }

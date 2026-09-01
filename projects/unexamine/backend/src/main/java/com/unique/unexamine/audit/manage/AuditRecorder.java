@@ -51,10 +51,13 @@ public class AuditRecorder {
             Map<String, ?> permissionSnapshot) {
         AuditEvent event = new AuditEvent();
         event.setTraceId(traceId);
+        event.setRequestId(traceId);
+        event.setContextType(systemId == null ? "PLATFORM" : "SYSTEM");
         event.setActorAccountId(actorAccountId);
         event.setSystemId(systemId);
         event.setTenantId(tenantId);
         event.setMemberId(memberId);
+        event.setEventCategory("AUTHORIZATION");
         event.setEventCode("PERMISSION_CHECK");
         event.setObjectType("PERMISSION");
         event.setObjectId(permissionCode);
@@ -64,7 +67,7 @@ public class AuditRecorder {
         auditService.insert(event);
     }
 
-    public void record(
+    public Long record(
             String traceId,
             Long actorAccountId,
             Long systemId,
@@ -75,18 +78,57 @@ public class AuditRecorder {
             String objectId,
             String resultCode,
             Map<String, ?> detail) {
+        return recordWithPermissionSnapshot(traceId, actorAccountId, systemId, tenantId, memberId, eventCode,
+                objectType, objectId, resultCode, null, detail);
+    }
+
+    public Long recordWithPermissionSnapshot(
+            String traceId,
+            Long actorAccountId,
+            Long systemId,
+            Long tenantId,
+            Long memberId,
+            String eventCode,
+            String objectType,
+            String objectId,
+            String resultCode,
+            Map<String, ?> permissionSnapshot,
+            Map<String, ?> detail) {
         AuditEvent event = new AuditEvent();
         event.setTraceId(traceId);
+        event.setRequestId(traceId);
+        event.setContextType(systemId == null ? "PLATFORM" : "SYSTEM");
         event.setActorAccountId(actorAccountId);
         event.setSystemId(systemId);
         event.setTenantId(tenantId);
         event.setMemberId(memberId);
+        event.setEventCategory(categoryOf(eventCode));
         event.setEventCode(eventCode);
         event.setObjectType(objectType);
         event.setObjectId(objectId);
         event.setResultCode(resultCode);
+        if (permissionSnapshot != null) {
+            event.setPermissionSnapshot(toJson(permissionSnapshot));
+        }
         event.setDetailJson(toJson(detail));
         auditService.insert(event);
+        return event.getId();
+    }
+
+    private String categoryOf(String eventCode) {
+        if (eventCode == null) {
+            return "BUSINESS";
+        }
+        if (eventCode.contains("LOGIN") || eventCode.contains("SESSION") || eventCode.contains("PASSWORD")) {
+            return "SECURITY";
+        }
+        if (eventCode.contains("PERMISSION") || eventCode.contains("ROLE")) {
+            return "AUTHORIZATION";
+        }
+        if (eventCode.contains("CONFIG") || eventCode.contains("MODULE") || eventCode.contains("PUBLISH")) {
+            return "CONFIGURATION";
+        }
+        return "BUSINESS";
     }
 
     private String toJson(Map<String, ?> detail) {

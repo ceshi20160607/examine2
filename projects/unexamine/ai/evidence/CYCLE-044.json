@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-044",
+  "executedAt": "2026-08-25T22:55:08+08:00",
+  "taskIds": ["TASK-0152", "TASK-0153", "TASK-0154"],
+  "checks": [
+    {
+      "name": "模块导出前端回归（15 个文件、40 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "模块导出抽屉类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "筛选与权限快照、后台文件、脱敏、配额和执行前权限失效的真实 MySQL/Redis 定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=RuntimeDataHttpTest#moduleExportFreezesSelectionRunsInBackgroundStoresControlledFileAndRejectsOverQuota test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 33 迁移门禁（45 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、15 个更新片段和 33 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-EXCHANGE-EXPORT",
+      "entryUrl": "http://127.0.0.1:15173/systems/9?module=customer",
+      "actor": "C44 浏览器验收系统所有者账号 #9",
+      "result": "passed",
+      "pageAssertions": [
+        "通过真实 customer 模块 V1 运行页读回独立“导出客户”动作；列表初始为 3 条，搜索“浏览器客户1”后只显示 1 条并勾选记录 #11。",
+        "导出抽屉明确展示冻结当前范围、收紧文件字段、后台生成受控文件三段边界，并读回“当前勾选记录 · 浏览器客户1 · 0 项高级筛选”和 1/5000 行预估。",
+        "勾选记录编号并取消状态字段后，“创建后台导出”立即禁用；点击重新预估后恢复可用，证明字段变更不能沿用旧预估。",
+        "页面提交批次 #1 后先显示“等待执行 0/1 行”，刷新后显示“可下载 1/1 行”、下载 CSV 和最近导出记录。",
+        "点击下载 CSV 后页面无错误；消息中心真实读回未读消息“customer 导出已完成”，内容关联批次 #1、1 行受控文件和系统内回跳地址。"
+      ],
+      "persistentReads": [
+        "MODULE_EXPORT_QUEUED 请求 3f801b2d4f48408cb529fa026914a5c8 保存批次 #1：system #9、tenant #11、module #5、SELECTED 范围、search=浏览器客户1、selectedRecordIds=[11]、authorizedRecordIds=[11] 和 6 个最终字段。",
+        "后台作业 #7 以 1 次尝试、1/1 进度和 SUCCEEDED 完成；批次 #1 持久化为 COMPLETED、exportedRows=1、resultFileId=3。",
+        "受控文件 #3 为 upload_session_id=NULL、CLEAN/ACTIVE、183 字节、SHA-256 22cb34f67864dcaab8a993f5dbef2aaba3c2418b865d7660def14f56626c1f71，并保存 ACCOUNT:9 的 RESULT 引用。",
+        "CSV 实体表头为记录编号、标题、负责人、数据归属、创建时间、客户名称，只包含 C44-B-001/浏览器客户1，不包含同模块另外两条记录。",
+        "下载点击产生 FILE_DOWNLOADED 审计 #446 和 MODULE_EXPORT_DOWNLOADED 审计 #447，请求 c82e81179dd147caba7cb90f0266a99a；生成和完成分别由 export-job-7 记录审计 #442/#443。",
+        "消息 #2 以 MODULE_EXPORT/batch-1-completed 保存，账号 #9 收件状态 UNREAD，IN_APP 投递 1 次后为 DELIVERED。",
+        "定向集成回归额外证明 LIST 与 EXPORT 动作、PAGE 与 FILE 字段交集和最强脱敏共同收紧结果；超过配额不会建批次/作业/文件，排队后撤销 EXPORT 会永久失败且不生成结果文件。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ExportModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleExportController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleExportService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleExportBackgroundJobHandler.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/components/ModuleExportDrawer.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/file.ts",
+        "projects/unexamine/frontend/src/product/file.test.ts",
+        "projects/unexamine/db/update/V33__module_export_action.sql",
+        "projects/unexamine/ai/evidence/CYCLE-044.json"
+      ]
+    }
+  ]
+}

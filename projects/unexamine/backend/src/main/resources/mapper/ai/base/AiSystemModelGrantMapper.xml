@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.ai.base.mapper.AiSystemModelGrantMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiSystemModelGrant">
+        <id column="id" property="id" />
+        <result column="model_id" property="modelId" />
+        <result column="system_id" property="systemId" />
+        <result column="usage_limit_json" property="usageLimitJson" />
+        <result column="status" property="status" />
+        <result column="granted_by_account_id" property="grantedByAccountId" />
+        <result column="granted_at" property="grantedAt" />
+        <result column="revoked_at" property="revokedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, model_id, system_id, usage_limit_json, `status`, granted_by_account_id, granted_at, revoked_at, version
+    </sql>
+
+</mapper>

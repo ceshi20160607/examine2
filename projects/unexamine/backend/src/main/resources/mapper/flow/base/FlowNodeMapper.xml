@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowNodeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowNode">
+        <id column="id" property="id" />
+        <result column="flow_id" property="flowId" />
+        <result column="node_key" property="nodeKey" />
+        <result column="node_type" property="nodeType" />
+        <result column="name" property="name" />
+        <result column="position_x" property="positionX" />
+        <result column="position_y" property="positionY" />
+        <result column="assignee_policy_json" property="assigneePolicyJson" />
+        <result column="form_policy_json" property="formPolicyJson" />
+        <result column="timeout_policy_json" property="timeoutPolicyJson" />
+        <result column="exception_policy_json" property="exceptionPolicyJson" />
+        <result column="config_json" property="configJson" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, flow_id, node_key, node_type, `name`, position_x, position_y, assignee_policy_json, form_policy_json, timeout_policy_json, exception_policy_json, config_json, created_at, updated_at, version
+    </sql>
+
+</mapper>

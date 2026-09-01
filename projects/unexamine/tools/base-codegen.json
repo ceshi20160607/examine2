@@ -15,63 +15,744 @@
       "name": "platform",
       "javaPackage": "platform",
       "tables": [
-        {"name": "plat_account", "entity": "PlatformAccount"},
-        {"name": "plat_account_credential", "entity": "PlatformAccountCredential"},
-        {"name": "plat_department", "entity": "PlatformDepartment"},
-        {"name": "plat_member", "entity": "PlatformMember"},
-        {"name": "plat_role", "entity": "PlatformRole"},
-        {"name": "plat_member_role", "entity": "PlatformMemberRole"},
-        {"name": "plat_role_permission", "entity": "PlatformRolePermission"}
+        {
+          "name": "plat_account",
+          "entity": "PlatformAccount"
+        },
+        {
+          "name": "plat_account_credential",
+          "entity": "PlatformAccountCredential"
+        },
+        {
+          "name": "plat_account_mfa",
+          "entity": "PlatAccountMfa"
+        },
+        {
+          "name": "plat_sso_provider",
+          "entity": "PlatSsoProvider"
+        },
+        {
+          "name": "plat_sso_provider_version",
+          "entity": "PlatSsoProviderVersion"
+        },
+        {
+          "name": "plat_sso_identity",
+          "entity": "PlatSsoIdentity"
+        },
+        {
+          "name": "plat_password_history",
+          "entity": "PlatPasswordHistory",
+          "immutable": true
+        },
+        {
+          "name": "plat_platform",
+          "entity": "PlatformDefinition"
+        },
+        {
+          "name": "plat_department",
+          "entity": "PlatformDepartment"
+        },
+        {
+          "name": "plat_member",
+          "entity": "PlatformMember"
+        },
+        {
+          "name": "plat_role",
+          "entity": "PlatformRole"
+        },
+        {
+          "name": "plat_member_role",
+          "entity": "PlatformMemberRole"
+        },
+        {
+          "name": "plat_role_permission",
+          "entity": "PlatformRolePermission"
+        }
       ]
     },
     {
       "name": "system",
       "javaPackage": "system",
       "tables": [
-        {"name": "sys_system", "entity": "SystemDefinition"},
-        {"name": "sys_tenant", "entity": "SystemTenant", "properties": {"is_main": "main"}},
-        {"name": "sys_department", "entity": "SystemDepartment"},
-        {"name": "sys_member", "entity": "SystemMember"},
-        {"name": "sys_tenant_member", "entity": "SystemTenantMember"},
-        {"name": "sys_role", "entity": "SystemRole"},
-        {"name": "sys_member_role", "entity": "SystemMemberRole"},
-        {"name": "sys_role_permission", "entity": "SystemRolePermission"}
+        {
+          "name": "sys_system",
+          "entity": "SystemDefinition"
+        },
+        {
+          "name": "sys_system_domain",
+          "entity": "SysSystemDomain"
+        },
+        {
+          "name": "sys_tenant",
+          "entity": "SystemTenant",
+          "properties": {
+            "is_main": "main"
+          }
+        },
+        {
+          "name": "sys_member",
+          "entity": "SystemMember"
+        },
+        {
+          "name": "sys_access_request",
+          "entity": "SysAccessRequest"
+        },
+        {
+          "name": "sys_tenant_migration",
+          "entity": "SysTenantMigration"
+        },
+        {
+          "name": "sys_department",
+          "entity": "SystemDepartment"
+        },
+        {
+          "name": "sys_tenant_member",
+          "entity": "SystemTenantMember"
+        },
+        {
+          "name": "sys_role",
+          "entity": "SystemRole"
+        },
+        {
+          "name": "sys_member_role",
+          "entity": "SystemMemberRole"
+        },
+        {
+          "name": "sys_role_permission",
+          "entity": "SystemRolePermission"
+        }
       ]
     },
     {
       "name": "authentication",
       "javaPackage": "authentication",
       "tables": [
-        {"name": "auth_session", "entity": "AuthenticationSession"}
+        {
+          "name": "auth_field_policy",
+          "entity": "AuthorizationFieldPolicy"
+        },
+        {
+          "name": "auth_permission_version",
+          "entity": "AuthorizationPermissionVersion"
+        },
+        {
+          "name": "auth_session",
+          "entity": "AuthenticationSession"
+        }
       ]
     },
     {
       "name": "audit",
       "javaPackage": "audit",
       "tables": [
-        {"name": "audit_event", "entity": "AuditEvent", "immutable": true}
+        {
+          "name": "audit_event",
+          "entity": "AuditEvent",
+          "immutable": true
+        },
+        {
+          "name": "audit_field_change",
+          "entity": "AuditFieldChange",
+          "immutable": true
+        },
+        {
+          "name": "audit_retention_marker",
+          "entity": "AuditRetentionMarker",
+          "immutable": true
+        }
       ]
     },
     {
       "name": "moduleconfig",
       "javaPackage": "moduleconfig",
       "tables": [
-        {"name": "cfg_module_group", "entity": "ConfiguredModuleGroup"},
-        {"name": "cfg_module", "entity": "ConfiguredModule"},
-        {"name": "cfg_module_field", "entity": "ConfiguredModuleField"},
-        {"name": "cfg_module_page", "entity": "ConfiguredModulePage"},
-        {"name": "cfg_module_action", "entity": "ConfiguredModuleAction"},
-        {"name": "cfg_module_version", "entity": "ConfiguredModuleVersion"},
-        {"name": "cfg_module_publication", "entity": "ConfiguredModulePublication"}
+        {
+          "name": "cfg_module_group",
+          "entity": "ConfiguredModuleGroup"
+        },
+        {
+          "name": "cfg_module",
+          "entity": "ConfiguredModule"
+        },
+        {
+          "name": "cfg_dictionary",
+          "entity": "CfgDictionary"
+        },
+        {
+          "name": "cfg_dictionary_item",
+          "entity": "CfgDictionaryItem"
+        },
+        {
+          "name": "cfg_dictionary_version",
+          "entity": "CfgDictionaryVersion",
+          "immutable": true
+        },
+        {
+          "name": "cfg_dictionary_publication",
+          "entity": "CfgDictionaryPublication"
+        },
+        {
+          "name": "cfg_module_field",
+          "entity": "ConfiguredModuleField"
+        },
+        {
+          "name": "cfg_module_page",
+          "entity": "ConfiguredModulePage"
+        },
+        {
+          "name": "cfg_module_menu",
+          "entity": "CfgModuleMenu"
+        },
+        {
+          "name": "cfg_module_action",
+          "entity": "ConfiguredModuleAction"
+        },
+        {
+          "name": "cfg_module_rule",
+          "entity": "CfgModuleRule"
+        },
+        {
+          "name": "cfg_query_index",
+          "entity": "CfgQueryIndex"
+        },
+        {
+          "name": "cfg_query_index_field",
+          "entity": "CfgQueryIndexField"
+        },
+        {
+          "name": "cfg_module_version",
+          "entity": "ConfiguredModuleVersion",
+          "immutable": true
+        },
+        {
+          "name": "cfg_module_publication",
+          "entity": "ConfiguredModulePublication"
+        },
+        {
+          "name": "cfg_tenant_extension",
+          "entity": "CfgTenantExtension"
+        },
+        {
+          "name": "cfg_tenant_extension_version",
+          "entity": "CfgTenantExtensionVersion",
+          "immutable": true
+        }
       ]
     },
     {
       "name": "runtimedata",
       "javaPackage": "runtimedata",
       "tables": [
-        {"name": "biz_record", "entity": "BusinessRecord"},
-        {"name": "biz_record_participant", "entity": "BusinessRecordParticipant"},
-        {"name": "biz_record_value", "entity": "BusinessRecordValue"}
+        {
+          "name": "biz_record",
+          "entity": "BusinessRecord"
+        },
+        {
+          "name": "biz_record_value",
+          "entity": "BusinessRecordValue"
+        },
+        {
+          "name": "biz_record_index",
+          "entity": "BizRecordIndex"
+        },
+        {
+          "name": "biz_record_relation",
+          "entity": "BizRecordRelation"
+        },
+        {
+          "name": "biz_record_participant",
+          "entity": "BusinessRecordParticipant"
+        },
+        {
+          "name": "biz_record_state_history",
+          "entity": "BizRecordStateHistory"
+        },
+        {
+          "name": "biz_record_owner_history",
+          "entity": "BizRecordOwnerHistory"
+        },
+        {
+          "name": "biz_record_conversion",
+          "entity": "BizRecordConversion"
+        },
+        {
+          "name": "biz_record_conversion_result",
+          "entity": "BizRecordConversionResult"
+        },
+        {
+          "name": "biz_tenant_share",
+          "entity": "BizTenantShare"
+        },
+        {
+          "name": "biz_tenant_share_usage",
+          "entity": "BizTenantShareUsage"
+        }
+      ]
+    },
+    {
+      "name": "foundation",
+      "javaPackage": "foundation",
+      "tables": [
+        {
+          "name": "core_setting",
+          "entity": "CoreSetting"
+        },
+        {
+          "name": "core_feature_flag",
+          "entity": "CoreFeatureFlag"
+        },
+        {
+          "name": "core_quota_policy",
+          "entity": "CoreQuotaPolicy"
+        },
+        {
+          "name": "core_quota_usage",
+          "entity": "CoreQuotaUsage"
+        },
+        {
+          "name": "core_idempotency_record",
+          "entity": "CoreIdempotencyRecord"
+        },
+        {
+          "name": "core_sequence",
+          "entity": "CoreSequence"
+        },
+        {
+          "name": "core_event_outbox",
+          "entity": "CoreEventOutbox"
+        },
+        {
+          "name": "core_cache_epoch",
+          "entity": "CoreCacheEpoch"
+        }
+      ]
+    },
+    {
+      "name": "backgroundjobs",
+      "javaPackage": "backgroundjobs",
+      "tables": [
+        {
+          "name": "job_background",
+          "entity": "JobBackground"
+        },
+        {
+          "name": "job_attempt",
+          "entity": "JobAttempt"
+        },
+        {
+          "name": "job_item_result",
+          "entity": "JobItemResult"
+        }
+      ]
+    },
+    {
+      "name": "flow",
+      "javaPackage": "flow",
+      "tables": [
+        {
+          "name": "flow_definition",
+          "entity": "FlowDefinition"
+        },
+        {
+          "name": "flow_node",
+          "entity": "FlowNode"
+        },
+        {
+          "name": "flow_edge",
+          "entity": "FlowEdge"
+        },
+        {
+          "name": "flow_version",
+          "entity": "FlowVersion",
+          "immutable": true
+        },
+        {
+          "name": "flow_publication",
+          "entity": "FlowPublication"
+        },
+        {
+          "name": "flow_trigger_binding",
+          "entity": "FlowTriggerBinding"
+        },
+        {
+          "name": "flow_binding_resolution",
+          "entity": "FlowBindingResolution"
+        },
+        {
+          "name": "flow_instance",
+          "entity": "FlowInstance"
+        },
+        {
+          "name": "flow_instance_variable",
+          "entity": "FlowInstanceVariable"
+        },
+        {
+          "name": "flow_task",
+          "entity": "FlowTask"
+        },
+        {
+          "name": "flow_task_candidate",
+          "entity": "FlowTaskCandidate"
+        },
+        {
+          "name": "flow_action",
+          "entity": "FlowAction"
+        },
+        {
+          "name": "flow_exception",
+          "entity": "FlowException"
+        }
+      ]
+    },
+    {
+      "name": "application",
+      "javaPackage": "application",
+      "tables": [
+        {
+          "name": "app_definition",
+          "entity": "AppDefinition"
+        },
+        {
+          "name": "app_callback",
+          "entity": "AppCallback"
+        },
+        {
+          "name": "app_grant",
+          "entity": "AppGrant"
+        },
+        {
+          "name": "app_grant_field",
+          "entity": "AppGrantField"
+        },
+        {
+          "name": "app_version",
+          "entity": "AppVersion",
+          "immutable": true
+        },
+        {
+          "name": "app_publication",
+          "entity": "AppPublication"
+        },
+        {
+          "name": "app_credential",
+          "entity": "AppCredential"
+        },
+        {
+          "name": "app_call",
+          "entity": "AppCall"
+        },
+        {
+          "name": "app_call_nonce",
+          "entity": "AppCallNonce",
+          "immutable": true
+        },
+        {
+          "name": "app_callback_delivery",
+          "entity": "AppCallbackDelivery"
+        }
+      ]
+    },
+    {
+      "name": "work",
+      "javaPackage": "work",
+      "tables": [
+        {
+          "name": "work_project",
+          "entity": "WorkProject"
+        },
+        {
+          "name": "work_project_member",
+          "entity": "WorkProjectMember"
+        },
+        {
+          "name": "work_task_group",
+          "entity": "WorkTaskGroup"
+        },
+        {
+          "name": "work_task",
+          "entity": "WorkTask"
+        },
+        {
+          "name": "work_task_member",
+          "entity": "WorkTaskMember"
+        },
+        {
+          "name": "work_task_history",
+          "entity": "WorkTaskHistory",
+          "immutable": true
+        },
+        {
+          "name": "work_log",
+          "entity": "WorkLog"
+        },
+        {
+          "name": "work_log_revision",
+          "entity": "WorkLogRevision",
+          "immutable": true
+        },
+        {
+          "name": "work_field_config",
+          "entity": "WorkFieldConfig"
+        }
+      ]
+    },
+    {
+      "name": "notification",
+      "javaPackage": "notification",
+      "tables": [
+        {
+          "name": "todo_item",
+          "entity": "TodoItem"
+        },
+        {
+          "name": "msg_template",
+          "entity": "MsgTemplate"
+        },
+        {
+          "name": "msg_template_version",
+          "entity": "MsgTemplateVersion",
+          "immutable": true
+        },
+        {
+          "name": "msg_message",
+          "entity": "MsgMessage"
+        },
+        {
+          "name": "msg_recipient",
+          "entity": "MsgRecipient"
+        },
+        {
+          "name": "msg_delivery",
+          "entity": "MsgDelivery"
+        },
+        {
+          "name": "msg_user_preference",
+          "entity": "MsgUserPreference"
+        }
+      ]
+    },
+    {
+      "name": "ai",
+      "javaPackage": "ai",
+      "tables": [
+        {
+          "name": "ai_model",
+          "entity": "AiModel"
+        },
+        {
+          "name": "ai_system_model_grant",
+          "entity": "AiSystemModelGrant"
+        },
+        {
+          "name": "ai_agent",
+          "entity": "AiAgent"
+        },
+        {
+          "name": "ai_agent_tool",
+          "entity": "AiAgentTool"
+        },
+        {
+          "name": "ai_agent_version",
+          "entity": "AiAgentVersion",
+          "immutable": true
+        },
+        {
+          "name": "ai_agent_publication",
+          "entity": "AiAgentPublication"
+        },
+        {
+          "name": "ai_conversation",
+          "entity": "AiConversation"
+        },
+        {
+          "name": "ai_message",
+          "entity": "AiMessage"
+        },
+        {
+          "name": "ai_execution",
+          "entity": "AiExecution"
+        },
+        {
+          "name": "ai_execution_step",
+          "entity": "AiExecutionStep"
+        },
+        {
+          "name": "ai_pending_write",
+          "entity": "AiPendingWrite"
+        }
+      ]
+    },
+    {
+      "name": "file",
+      "javaPackage": "file",
+      "tables": [
+        {
+          "name": "file_storage_backend",
+          "entity": "FileStorageBackend"
+        },
+        {
+          "name": "file_upload_session",
+          "entity": "FileUploadSession"
+        },
+        {
+          "name": "file_object",
+          "entity": "FileObject"
+        },
+        {
+          "name": "file_reference",
+          "entity": "FileReference"
+        },
+        {
+          "name": "file_security_scan",
+          "entity": "FileSecurityScan"
+        }
+      ]
+    },
+    {
+      "name": "dataexchange",
+      "javaPackage": "dataexchange",
+      "tables": [
+        {
+          "name": "exchange_mapping",
+          "entity": "ExchangeMapping"
+        },
+        {
+          "name": "exchange_import_batch",
+          "entity": "ExchangeImportBatch"
+        },
+        {
+          "name": "exchange_import_row",
+          "entity": "ExchangeImportRow"
+        },
+        {
+          "name": "exchange_export_batch",
+          "entity": "ExchangeExportBatch"
+        }
+      ]
+    },
+    {
+      "name": "analytics",
+      "javaPackage": "analytics",
+      "tables": [
+        {
+          "name": "ana_data_source",
+          "entity": "AnaDataSource"
+        },
+        {
+          "name": "ana_data_source_version",
+          "entity": "AnaDataSourceVersion",
+          "immutable": true
+        },
+        {
+          "name": "ana_dashboard",
+          "entity": "AnaDashboard"
+        },
+        {
+          "name": "ana_dashboard_component",
+          "entity": "AnaDashboardComponent"
+        },
+        {
+          "name": "ana_dashboard_version",
+          "entity": "AnaDashboardVersion",
+          "immutable": true
+        },
+        {
+          "name": "ana_dashboard_publication",
+          "entity": "AnaDashboardPublication"
+        },
+        {
+          "name": "ana_kpi",
+          "entity": "AnaKpi"
+        },
+        {
+          "name": "ana_kpi_result",
+          "entity": "AnaKpiResult"
+        },
+        {
+          "name": "ana_kpi_reminder",
+          "entity": "AnaKpiReminder"
+        }
+      ]
+    },
+    {
+      "name": "print",
+      "javaPackage": "print",
+      "tables": [
+        {
+          "name": "print_template",
+          "entity": "PrintTemplate"
+        },
+        {
+          "name": "print_template_version",
+          "entity": "PrintTemplateVersion",
+          "immutable": true
+        },
+        {
+          "name": "print_template_publication",
+          "entity": "PrintTemplatePublication"
+        },
+        {
+          "name": "print_job",
+          "entity": "PrintJob"
+        }
+      ]
+    },
+    {
+      "name": "operations",
+      "javaPackage": "operations",
+      "tables": [
+        {
+          "name": "ops_secret_ref",
+          "entity": "OpsSecretRef"
+        },
+        {
+          "name": "ops_secret_rotation",
+          "entity": "OpsSecretRotation"
+        },
+        {
+          "name": "ops_health_run",
+          "entity": "OpsHealthRun"
+        },
+        {
+          "name": "ops_health_item",
+          "entity": "OpsHealthItem"
+        },
+        {
+          "name": "ops_release",
+          "entity": "OpsRelease"
+        },
+        {
+          "name": "ops_deployment",
+          "entity": "OpsDeployment"
+        },
+        {
+          "name": "ops_backup",
+          "entity": "OpsBackup"
+        },
+        {
+          "name": "ops_backup_item",
+          "entity": "OpsBackupItem"
+        },
+        {
+          "name": "ops_restore_drill",
+          "entity": "OpsRestoreDrill"
+        },
+        {
+          "name": "ops_upgrade",
+          "entity": "OpsUpgrade"
+        },
+        {
+          "name": "ops_upgrade_step",
+          "entity": "OpsUpgradeStep"
+        },
+        {
+          "name": "ops_verification_run",
+          "entity": "OpsVerificationRun"
+        },
+        {
+          "name": "ops_verification_finding",
+          "entity": "OpsVerificationFinding"
+        }
       ]
     }
   ]

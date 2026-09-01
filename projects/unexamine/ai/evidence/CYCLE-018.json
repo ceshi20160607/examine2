@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-018",
+  "executedAt": "2026-08-18T23:03:00+08:00",
+  "taskIds": [
+    "TASK-0044",
+    "TASK-0045",
+    "TASK-0046",
+    "TASK-0049",
+    "TASK-0050"
+  ],
+  "checks": [
+    {
+      "name": "后端页面、应用、文件字段守卫与字段审计保留全量集成测试（22 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "字段渠道契约与组织授权发布定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q -Dtest=SystemAdministrationHttpTest#organizationRoleDraftPublishRefreshesTargetSessionAndRejectsInvalidAuthorization test",
+      "result": "passed"
+    },
+    {
+      "name": "前端统一 API 契约测试（5 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "权限守卫与审计页面类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "持续执行环和 Template Base 回归（31 项）",
+      "command": "python -m unittest discover -s template_base/tests -p \"test_*.py\"",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、活动项目与模板边界校验",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-AUTH-GUARD-MASK",
+      "entryUrl": "http://127.0.0.1:15173/systems/4/runtime",
+      "actor": "同时具备系统超级管理员、审计查看员和渠道查看员角色的当前租户管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "在模块配置真实页面依次创建周期十八权限业务分组、guard_customer 模块、客户名称/敏感备注/是否有效三个字段并发布运行版本 v1；随后在业务运行页新建 C18-001 并把客户名称和敏感备注修改为新值。",
+        "在角色权限矩阵真实页面创建 cycle18_guard_viewer，只授予 guard_customer 的 LIST 与 DETAIL 全部数据；PAGE 允许 customer_name 和 enabled 且 customer_name 使用 PARTIAL，APPLICATION 允许 customer_name 和 enabled，FILE 只允许 enabled，未配置 secret_note。",
+        "第一次保存由真实页面发现后端仍残留旧 API/IMPORT/EXPORT 渠道契约并明确返回字段渠道无效；修正为 PAGE/APPLICATION/FILE 后同一页面草稿保存、成员分配和授权发布成功，权限版本从 v1 变为 v2。",
+        "授权发布使目标会话失效；重新登录进入同一系统后，业务列表客户名称显示为上***户，敏感备注列完全消失，详情仍只显示脱敏客户名称和是否有效，没有通过页面组件泄露原值。",
+        "后端集成测试直接调用 APPLICATION 与 FILE 渠道：应用只能得到页面与应用交集的 customer_name/ enabled，文件只能得到 enabled；非法渠道、越权新建和越权修改均拒绝，任何渠道都不能扩大页面主体权限。"
+      ],
+      "persistentReads": [
+        "sys_role #7 读回 cycle18_guard_viewer、ACTIVE、version=1；auth_permission_version 读回系统 4/租户 5 的最新版本 2，sys_member_role 读回目标成员同时关联角色 5、6、7。",
+        "auth_field_policy 读回 PAGE(customer_name PARTIAL、enabled)、APPLICATION(customer_name PARTIAL、enabled)、FILE(enabled) 共 5 条有效策略，secret_note 无策略并按默认拒绝隐藏。",
+        "biz_record #1 读回 record_number=C18-001、version=1，biz_record_value 读回 customer_name、secret_note 和 enabled 的更新后值。",
+        "RuntimeDataHttpTest 读回两条 AUTHORIZATION_CHANNEL_VIEWED 审计、更新操作的 3 条字段变化、权限快照与敏感字段标识，并验证缺失策略和直接后端请求默认拒绝。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/views/SystemAuthorizationView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/ChannelFieldPolicyResolver.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-018.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-AUDIT-QUERY-RETENTION",
+      "entryUrl": "http://127.0.0.1:15173/systems/4/admin/audit",
+      "actor": "具备审计查询、敏感值查看和永久保留权限的当前租户管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "操作审计真实页面按 BUSINESS_RECORD_UPDATED、BUSINESS_RECORD 和对象 1 查询后只返回目标更新事件，列表同时展示操作者、requestId 与 traceId。",
+        "详情抽屉显示 UPDATE/PAGE 权限快照、MODULE:guard_customer、角色与 ALL 数据范围，并显示 customer_name 和 secret_note 两项真实前后值；敏感值是否显示由 VIEW_SENSITIVE 二次鉴权决定。",
+        "精确对象保留预检显示审计正文 2、字段变化 5、已有标记否；填入业务标识 C18-001、审批引用和原因并确认影响后生成不可变摘要 #1 及 SHA-256。",
+        "创建摘要后再次执行同一对象预检，页面显示已有标记是并明确阻断重复永久保留；宽范围、无审批、未确认影响和无 PURGE 权限分支由集成测试验证拒绝。"
+      ],
+      "persistentReads": [
+        "audit_event #78/#79 读回 BUSINESS_RECORD_CREATED 与 BUSINESS_RECORD_UPDATED，requestId 分别持久化，关联 audit_field_change 数量分别为 3 和 2。",
+        "audit_retention_marker #1 读回 BUSINESS_RECORD/1、business_key=C18-001、approvalReference=APPROVAL-C18-001 和 snapshot_hash=5143cc3522356a8873f5e53b9098b2e84b71e6cb47901b95e3049dbba100168c。",
+        "永久保留只新增不可变标记和摘要；原两条审计正文与五条字段变化仍在，未发生把 HTTP 成功误当物理清理完成的情况。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/AuditEventsView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/audit/manage/AuditGovernanceService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/audit/manage/AuditQueryController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/audit/manage/AuditQueryService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/audit/manage/AuditRecorder.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-018.json"
+      ]
+    }
+  ]
+}

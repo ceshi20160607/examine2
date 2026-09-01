@@ -1,0 +1,184 @@
+package com.unique.unexamine.flow.base.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
+
+import java.time.LocalDateTime;
+
+/**
+ * <p>
+ * 
+ * </p>
+ *
+ * @author Template Base
+ * @since generated
+ */
+@TableName("flow_trigger_binding")
+public class FlowTriggerBinding {
+
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
+
+    @TableField("system_id")
+    private Long systemId;
+
+    @TableField("owner_tenant_id")
+    private Long ownerTenantId;
+
+    @TableField("module_id")
+    private Long moduleId;
+
+    @TableField("action_id")
+    private Long actionId;
+
+    @TableField("trigger_event")
+    private String triggerEvent;
+
+    @TableField("flow_id")
+    private Long flowId;
+
+    @TableField("priority_order")
+    private Integer priorityOrder;
+
+    @TableField("condition_expression")
+    private String conditionExpression;
+
+    @TableField("`status`")
+    private String status;
+
+    @TableField("created_at")
+    private LocalDateTime createdAt;
+
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
+
+    @Version
+    @TableField("version")
+    private Integer version;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(Long systemId) {
+        this.systemId = systemId;
+    }
+
+    public Long getOwnerTenantId() {
+        return ownerTenantId;
+    }
+
+    public void setOwnerTenantId(Long ownerTenantId) {
+        this.ownerTenantId = ownerTenantId;
+    }
+
+    public Long getModuleId() {
+        return moduleId;
+    }
+
+    public void setModuleId(Long moduleId) {
+        this.moduleId = moduleId;
+    }
+
+    public Long getActionId() {
+        return actionId;
+    }
+
+    public void setActionId(Long actionId) {
+        this.actionId = actionId;
+    }
+
+    public String getTriggerEvent() {
+        return triggerEvent;
+    }
+
+    public void setTriggerEvent(String triggerEvent) {
+        this.triggerEvent = triggerEvent;
+    }
+
+    public Long getFlowId() {
+        return flowId;
+    }
+
+    public void setFlowId(Long flowId) {
+        this.flowId = flowId;
+    }
+
+    public Integer getPriorityOrder() {
+        return priorityOrder;
+    }
+
+    public void setPriorityOrder(Integer priorityOrder) {
+        this.priorityOrder = priorityOrder;
+    }
+
+    public String getConditionExpression() {
+        return conditionExpression;
+    }
+
+    public void setConditionExpression(String conditionExpression) {
+        this.conditionExpression = conditionExpression;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    @Override
+    public String toString() {
+        return "FlowTriggerBinding{" +
+            "id = " + id +
+            ", systemId = " + systemId +
+            ", ownerTenantId = " + ownerTenantId +
+            ", moduleId = " + moduleId +
+            ", actionId = " + actionId +
+            ", triggerEvent = " + triggerEvent +
+            ", flowId = " + flowId +
+            ", priorityOrder = " + priorityOrder +
+            ", conditionExpression = " + conditionExpression +
+            ", status = " + status +
+            ", createdAt = " + createdAt +
+            ", updatedAt = " + updatedAt +
+            ", version = " + version +
+            "}";
+    }
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-009",
+  "executedAt": "2026-08-17T21:33:00+08:00",
+  "taskIds": [
+    "TASK-0009",
+    "TASK-0010",
+    "TASK-0011",
+    "TASK-0012",
+    "TASK-0052"
+  ],
+  "checks": [
+    {
+      "name": "后端完整业务与迁移测试",
+      "command": "cd projects/unexamine/backend && mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "前端类型检查与生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "前端自动化测试",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "数据库三份结果与 19 个迁移合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "Template Base 回归测试",
+      "command": "python -m unittest discover -s template_base/tests -p \"test_*.py\" -v",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-IDENTITY-SIGN-IN",
+      "entryUrl": "http://127.0.0.1:15173/login",
+      "actor": "可访问周期九验收系统的平台账号（账号密码与企业身份源两种入口）",
+      "result": "passed",
+      "pageAssertions": [
+        "账号密码登录后进入平台主页面，并显示周期九验收系统卡片。",
+        "点击系统卡片的进入动作后到达 /systems/1，页面显示系统、默认主租户、系统成员、租户成员、角色权限、数据范围和 MFA 级别的显式上下文。",
+        "选择已发布企业身份源后，浏览器完成授权重定向、回调和身份映射，再返回平台主页面。",
+        "连续错误密码会触发账号临时锁定；身份源无效、外部主体未映射和系统成员缺失均不能进入系统业务页面。"
+      ],
+      "persistentReads": [
+        "auth_session 保存 PLATFORM 与 SYSTEM 会话，以及 system_member_id、tenant_member_id、角色权限和 MFA 级别。",
+        "plat_sso_identity 保存外部主体映射并更新 last_login_at 与 attributes_json。",
+        "audit_event 保存密码登录、企业 SSO 登录、映射缺失、进入系统拒绝与 requestId。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/AuthView.vue",
+        "projects/unexamine/frontend/src/product/views/SsoCallbackView.vue",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/authentication/manage/AuthenticationRegistrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-009.json"
+      ]
+    }
+  ]
+}

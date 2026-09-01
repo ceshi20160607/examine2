@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-041",
+  "executedAt": "2026-08-25T18:18:00+08:00",
+  "taskIds": ["TASK-0114", "TASK-0115", "TASK-0116"],
+  "checks": [
+    {
+      "name": "应用签名工具、调用台和应用管理页面前端回归（13 个文件、34 项）",
+      "command": "cd projects/unexamine/frontend && npm test",
+      "result": "passed"
+    },
+    {
+      "name": "应用调用台类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "签名调用、权限交集、幂等、重放拒绝、数据范围隔离和历史保留的真实 MySQL 定向回归",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -Dtest=FlowAndWorkManagementHttpTest#signedApplicationCallIntersectsTargetMemberPermissionsAndPersistsIdempotentResultWithoutReplayWrites test",
+      "result": "passed"
+    },
+    {
+      "name": "权限边界、运行时审计和 154 表迁移基线修正定向回归（5 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -Dtest=ModuleConfigurationHttpTest#administratorBuildsAnIsolatedDraftWithDefaultPagesActionsAndOptimisticLocking,SystemAdministrationHttpTest#platformAndSystemFixedConfigurationsStayInTheirAuthorizedContexts,RuntimeDataHttpTest#publishedRuntimeStoresTypedValuesVersionsAndEnforcesActionScopeAndTenantBoundary,PlatformFoundationMigrationTest#migrationEnforcesTenantIdentityAndPermanentAuditAtTheDatabaseBoundary,RuntimeMetadataMigrationTest#runtimeMetadataUsesPublishedSnapshotsAndCannotCrossSystemOrTenantBoundaries test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与迁移门禁（41 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、12 个更新片段和 30 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-APPLICATION-BRIDGE-CALL",
+      "entryUrl": "http://127.0.0.1:15173/platform/applications",
+      "actor": "平台超级管理员账号 #1 与平台服务调用应用 #3",
+      "result": "passed",
+      "pageAssertions": [
+        "平台应用发布前实时验证 Flow 或模块目标存在且已经发布；指向不存在流程的草稿不能再生成可调用版本。",
+        "从真实流程设计入口创建并发布 c41_platform_signed_flow V1，再把应用授权固定到该已发布目标；调用台只在本地内存短暂使用一次性 Secret，关闭时清空页面输入。",
+        "使用 clientId、时间戳、nonce 和请求体摘要生成 HMAC-SHA256 签名后，真实调用生成 FLOW_INSTANCE:5；流程实例页读回冻结的 V1 定义和 APPLICATION_CALL 业务来源。",
+        "新 nonce 配合同一幂等键读回原结果且不新增流程实例；复用同一 nonce 被 APPLICATION_REPLAY_DETECTED 拒绝。",
+        "请求 PLATFORM 应用扩大到 ALL 数据范围被 APPLICATION_DATA_SCOPE_EXPANSION 拒绝，拒绝后流程实例数量不增加。",
+        "调用日志显示签名校验、来源 IP、幂等键、请求 ID、结果和拒绝原因；修改后续草稿不会删除或阻断已有调用历史。"
+      ],
+      "persistentReads": [
+        "成功请求 requestId 1ea14f22e1ae423986ed99fe66e40e4d 读回 FLOW_INSTANCE:5，同幂等键再次调用仍返回同一实例。",
+        "数据范围扩大请求 requestId 645d418f19004092adb2c0638c36b1ca 被拒绝，页面复核时没有新增流程实例。",
+        "修复前浏览器验收暴露出的流程实例 #6 作为审计历史保留；修复后同一路径已由真实页面和集成回归证明无法再次越权创建。",
+        "app_call_nonce 持久化防重放，app_call 保留成功与失败记录；草稿替换授权后历史记录的 grant_id 可置空但调用证据仍完整可读。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationSecretCipher.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/PermissionInterceptor.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+        "projects/unexamine/frontend/src/product/application.ts",
+        "projects/unexamine/db/update/V27__application_call_contract.sql",
+        "projects/unexamine/db/update/V28__application_signing_secret_and_nonce.sql",
+        "projects/unexamine/db/update/V29__application_call_rejection_log.sql",
+        "projects/unexamine/db/update/V30__application_grant_history_link.sql",
+        "projects/unexamine/ai/evidence/CYCLE-041.json"
+      ]
+    }
+  ]
+}

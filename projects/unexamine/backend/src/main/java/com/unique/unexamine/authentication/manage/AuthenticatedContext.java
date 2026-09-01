@@ -9,11 +9,14 @@ import java.util.Map;
 public record AuthenticatedContext(
         Long sessionId,
         Long accountId,
+        Long platformId,
         Long systemId,
         Long tenantId,
         Long memberId,
+        Long tenantMemberId,
         String username,
         String displayName,
+        String mfaLevel,
         List<Long> roleIds,
         List<PermissionGrant> permissions,
         Map<String, DataScopeExpression> dataScopes) {

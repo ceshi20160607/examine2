@@ -28,12 +28,4 @@ public class ConfiguredModuleVersionBaseService {
     public List<ConfiguredModuleVersion> selectList(Wrapper<ConfiguredModuleVersion> query) {
         return mapper.selectList(query);
     }
-
-    public int updateById(ConfiguredModuleVersion entity) {
-        return mapper.updateById(entity);
-    }
-
-    public int deleteById(Serializable id) {
-        return mapper.deleteById(id);
-    }
 }

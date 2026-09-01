@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-001",
+  "executedAt": "2026-08-17T20:17:00+08:00",
+  "taskIds": [
+    "TASK-0001",
+    "TASK-0002",
+    "TASK-0003",
+    "TASK-0004",
+    "TASK-0005",
+    "TASK-0008",
+    "TASK-0047"
+  ],
+  "checks": [
+    {
+      "name": "工作区和来源边界",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "MySQL 8.4 空库全量迁移",
+      "command": "docker mysql:8.4 execute projects/unexamine/db/init.sql on empty unexamine schema",
+      "result": "passed"
+    }
+  ],
+  "journeys": []
+}

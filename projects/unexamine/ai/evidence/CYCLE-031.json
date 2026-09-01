@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-031",
+  "executedAt": "2026-08-22T16:38:00+08:00",
+  "taskIds": ["TASK-0175", "TASK-0176"],
+  "checks": [
+    {
+      "name": "命令发现、收藏最近状态、乐观锁、执行再鉴权和失效目标清理定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=RuntimeDataHttpTest#commandCenterDiscoversAuthorizedTargetsPersistsStateAndRechecksBeforeExecution test",
+      "result": "passed"
+    },
+    {
+      "name": "命令分组、Ctrl/Cmd K 输入保护及既有权限路由前端测试（14 项）",
+      "command": "cd projects/unexamine/frontend && npm run test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "平台与系统命令中心、真实快捷创建和危险动作影响确认生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-UI-COMMAND-DAILY",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统默认主租户的高频业务管理员，以及同账号的平台成员上下文",
+      "result": "passed",
+      "pageAssertions": [
+        "在系统首页非输入按钮上按 Ctrl+K 打开全局命令中心，搜索框自动聚焦；结果按页面与菜单、快捷创建、业务模块、业务数据分组，只出现当前上下文有权项，支持上下键、Enter 和 Esc 提示。",
+        "搜索并收藏“新建客户”，执行命令后关闭命令层并打开客户模块真实新建表单；填写 C31 命令中心临时客户、C31-CMD-001 和手机号后保存，列表第一行立即读回新记录。",
+        "再次 Ctrl+K 搜索 C31 命令中心，只返回业务数据结果；收藏并执行该记录命令后直接打开真实详情，读回客户名称、电话、阶段、负责人和时间。",
+        "刷新页面后命令中心仍展示收藏和最近使用，证明不是组件内临时数组；平台上下文使用独立状态，收藏并执行仪表盘后实际跳转 /platform/dashboard。",
+        "从命令打开的记录执行删除时，确认框明确显示“C31 命令中心临时客户”#9、进入可恢复回收站、出入向关联和相关人数；取消不会修改，填写原因确认后页面提示已移入回收站。",
+        "删除后再次打开命令中心，页面明确提示 record:customer:9 已删除、停用或不再有权，该记录同时从收藏和最近使用移除；可用的新建客户收藏保持不变。"
+      ],
+      "persistentReads": [
+        "core_setting #7 以 TENANT/system #7/tenant #8/category UI_COMMAND_CENTER/账号键 6:command-center 保存系统收藏和最近命令，最终只保留 create:customer，version=5。",
+        "core_setting #8 以 PLATFORM 且 system_id、tenant_id 均为空保存平台仪表盘收藏与最近命令，和系统状态严格分离，version=1。",
+        "biz_record #9 保存命令快捷创建的标题、编号和字段值，确认删除后 deleted_at 有值且正文与历史仍保留，可从回收站恢复。",
+        "COMMAND_CENTER_STATE_SAVED 和 COMMAND_CENTER_EXECUTED 审计分别保存平台/系统上下文、命令 ID、目标、模块和记录；BUSINESS_RECORD_DELETED 保存删除原因、前后状态、完整快照和数据租户。",
+        "自动化验证发现与最终执行两次解析权限，保存状态受 expectedVersion 保护；不存在或已删除记录自动从收藏/最近命令移除，失效命令不能执行。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/productivity/CommandCenterController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/productivity/CommandCenterService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/components/CommandCenter.vue",
+        "projects/unexamine/frontend/src/product/components/PlatformShell.vue",
+        "projects/unexamine/frontend/src/product/components/SystemShell.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-031.json"
+      ]
+    }
+  ]
+}

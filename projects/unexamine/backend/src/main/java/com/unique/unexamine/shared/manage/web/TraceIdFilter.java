@@ -8,6 +8,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class TraceIdFilter extends OncePerRequestFilter {
     public static final String ATTRIBUTE = TraceIdFilter.class.getName() + ".traceId";
     public static final String HEADER = "X-Trace-Id";
+    private static final ThreadLocal<String> CURRENT = new ThreadLocal<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -27,11 +29,25 @@ public class TraceIdFilter extends OncePerRequestFilter {
                 : UUID.randomUUID().toString().replace("-", "");
         request.setAttribute(ATTRIBUTE, traceId);
         response.setHeader(HEADER, traceId);
-        filterChain.doFilter(request, response);
+        CURRENT.set(traceId);
+        MDC.put("requestId", traceId);
+        MDC.put("traceId", traceId);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            MDC.remove("requestId");
+            MDC.remove("traceId");
+            CURRENT.remove();
+        }
     }
 
     public static String current(HttpServletRequest request) {
         Object value = request.getAttribute(ATTRIBUTE);
         return value == null ? "unknown" : value.toString();
+    }
+
+    public static String current() {
+        String value = CURRENT.get();
+        return value == null ? "unknown" : value;
     }
 }

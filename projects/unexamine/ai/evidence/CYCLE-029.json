@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-029",
+  "executedAt": "2026-08-22T15:55:00+08:00",
+  "taskIds": ["TASK-0094", "TASK-0095", "TASK-0096"],
+  "checks": [
+    {
+      "name": "同系统跨租户共享、权限交集、受控写入、再共享/跨系统阻断和撤销即时失效定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=RuntimeDataHttpTest#sameSystemTenantShareKeepsOneSourceRecordIntersectsPermissionsAndRevokesImmediately test",
+      "result": "passed"
+    },
+    {
+      "name": "共享运行动作、租户来源展示、权限和 API 测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm run test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "共享授权、目标租户列表/详情、受控编辑和撤销后空列表类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-RECORD-TENANT-SHARE",
+      "entryUrl": "http://127.0.0.1:15173/systems/7/runtime/customer",
+      "actor": "页面验收系统默认主租户的共享授权管理员，以及华东分公司的目标租户管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "默认主租户从有效客户一 #2 详情打开共享，页面明确说明不复制正文、不改变数据归属、查看为默认以及写动作必须通过共享授权、目标角色权限和数据范围交集。",
+        "首次不勾选额外动作授权华东分公司，授权记录显示 LIST、DETAIL、ACTIVE、长期有效；切换到华东分公司后该记录出现在客户列表第一行，标记默认主租户共享，详情标记共享 ACTIVE。",
+        "只读共享下目标租户的共享行没有编辑、转交、转化、归档、删除或再次共享按钮，详情页只保留关闭，证明来源记录不会因目标租户管理员身份而自动获得写权限。",
+        "来源撤销只读共享后重新授权 LIST、DETAIL、UPDATE；目标租户列表仅增加编辑按钮，编辑客户名称为有效客户一（华东协作）后详情立即读回新值，其他未授权动作仍不出现。",
+        "来源租户最终确认撤销可编辑共享后，华东分公司选择共享给我筛选显示共 0 条和空列表，不能再打开来源详情；来源数据和此前商机关系均未删除。"
+      ],
+      "persistentReads": [
+        "biz_tenant_share #1 最终 source_tenant_id=8、target_tenant_id=9、record_id=2、REVOKED、version=3；权限快照保留模块、LIST/DETAIL/UPDATE、来源与目标租户以及授权人角色和数据范围。",
+        "biz_tenant_share_usage 保存目标租户成员 #10 的 DETAIL、UPDATE、DETAIL 三次成功使用，证明共享访问按动作记录而非复制一份目标正文。",
+        "biz_record 仍只有来源租户 #8 的记录 #2，目标租户 #9 不存在标题为有效客户一的副本；来源记录 version=2，name 已由目标租户受控更新为有效客户一（华东协作）。",
+        "BUSINESS_RECORD_UPDATED 审计保存 shareId=1、actorTenantId=9、dataTenantId=8 和字段前后值；四条共享审计依次保存只读授权、撤销、带 UPDATE 再授权、最终撤销。",
+        "自动化验证默认只读直接写入拒绝且正文不变、获权 UPDATE/CONVERT 取权限交集、转化目标落在目标租户、共享记录不能再次共享、外系统租户不能作为目标、撤销后列表和详情均立即拒绝。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-029.json"
+      ]
+    }
+  ]
+}

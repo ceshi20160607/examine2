@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowActionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowAction">
+        <id column="id" property="id" />
+        <result column="instance_id" property="instanceId" />
+        <result column="task_id" property="taskId" />
+        <result column="node_key" property="nodeKey" />
+        <result column="action_code" property="actionCode" />
+        <result column="comment_text" property="commentText" />
+        <result column="input_json" property="inputJson" />
+        <result column="result_json" property="resultJson" />
+        <result column="idempotency_key" property="idempotencyKey" />
+        <result column="acted_by_account_id" property="actedByAccountId" />
+        <result column="acted_at" property="actedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, instance_id, task_id, node_key, action_code, comment_text, input_json, result_json, idempotency_key, acted_by_account_id, acted_at
+    </sql>
+
+</mapper>

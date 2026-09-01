@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowTaskCandidateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowTaskCandidate">
+        <id column="id" property="id" />
+        <result column="task_id" property="taskId" />
+        <result column="candidate_type" property="candidateType" />
+        <result column="candidate_id" property="candidateId" />
+        <result column="resolution_reason" property="resolutionReason" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, task_id, candidate_type, candidate_id, resolution_reason, created_at
+    </sql>
+
+</mapper>

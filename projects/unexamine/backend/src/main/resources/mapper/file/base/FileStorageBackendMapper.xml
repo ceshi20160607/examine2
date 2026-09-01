@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.file.base.mapper.FileStorageBackendMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.file.base.entity.FileStorageBackend">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="code" property="code" />
+        <result column="name" property="name" />
+        <result column="backend_type" property="backendType" />
+        <result column="endpoint" property="endpoint" />
+        <result column="bucket_name" property="bucketName" />
+        <result column="credential_ref" property="credentialRef" />
+        <result column="config_json" property="configJson" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, platform_id, system_id, `code`, `name`, backend_type, endpoint, bucket_name, credential_ref, config_json, `status`, created_at, updated_at, version
+    </sql>
+
+</mapper>

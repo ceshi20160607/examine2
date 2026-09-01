@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.ai.base.mapper.AiExecutionStepMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiExecutionStep">
+        <id column="id" property="id" />
+        <result column="execution_id" property="executionId" />
+        <result column="step_number" property="stepNumber" />
+        <result column="step_type" property="stepType" />
+        <result column="tool_id" property="toolId" />
+        <result column="input_json" property="inputJson" />
+        <result column="output_json" property="outputJson" />
+        <result column="status" property="status" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="error_message" property="errorMessage" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, execution_id, step_number, step_type, tool_id, input_json, output_json, `status`, started_at, finished_at, error_message
+    </sql>
+
+</mapper>

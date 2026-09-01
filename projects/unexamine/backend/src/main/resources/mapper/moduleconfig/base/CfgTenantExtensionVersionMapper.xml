@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.moduleconfig.base.mapper.CfgTenantExtensionVersionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.moduleconfig.base.entity.CfgTenantExtensionVersion">
+        <id column="id" property="id" />
+        <result column="extension_id" property="extensionId" />
+        <result column="version_number" property="versionNumber" />
+        <result column="base_module_version_id" property="baseModuleVersionId" />
+        <result column="snapshot_json" property="snapshotJson" />
+        <result column="schema_hash" property="schemaHash" />
+        <result column="published_by_member_id" property="publishedByMemberId" />
+        <result column="published_at" property="publishedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, extension_id, version_number, base_module_version_id, snapshot_json, schema_hash, published_by_member_id, published_at
+    </sql>
+
+</mapper>

@@ -25,10 +25,10 @@ public class SystemTenant {
     @TableField("system_id")
     private Long systemId;
 
-    @TableField("code")
+    @TableField("`code`")
     private String code;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
 
     @TableField("is_main")
@@ -40,7 +40,7 @@ public class SystemTenant {
     @TableField("creator_account_id")
     private Long creatorAccountId;
 
-    @TableField("status")
+    @TableField("`status`")
     private String status;
 
     @TableField("created_at")

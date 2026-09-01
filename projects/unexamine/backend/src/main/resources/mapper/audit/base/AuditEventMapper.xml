@@ -6,14 +6,21 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.audit.base.entity.AuditEvent">
         <id column="id" property="id" />
         <result column="trace_id" property="traceId" />
+        <result column="request_id" property="requestId" />
+        <result column="context_type" property="contextType" />
         <result column="actor_account_id" property="actorAccountId" />
+        <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
         <result column="member_id" property="memberId" />
+        <result column="application_id" property="applicationId" />
+        <result column="event_category" property="eventCategory" />
         <result column="event_code" property="eventCode" />
         <result column="object_type" property="objectType" />
         <result column="object_id" property="objectId" />
         <result column="result_code" property="resultCode" />
+        <result column="client_ip" property="clientIp" />
+        <result column="user_agent" property="userAgent" />
         <result column="permission_snapshot" property="permissionSnapshot" />
         <result column="detail_json" property="detailJson" />
         <result column="occurred_at" property="occurredAt" />
@@ -21,7 +28,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, trace_id, actor_account_id, system_id, tenant_id, member_id, event_code, object_type, object_id, result_code, permission_snapshot, detail_json, occurred_at
+        id, trace_id, request_id, context_type, actor_account_id, platform_id, system_id, tenant_id, member_id, application_id, event_category, event_code, object_type, object_id, result_code, client_ip, user_agent, permission_snapshot, detail_json, occurred_at
     </sql>
 
 </mapper>

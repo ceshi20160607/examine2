@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.work.base.mapper.WorkLogRevisionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.work.base.entity.WorkLogRevision">
+        <id column="id" property="id" />
+        <result column="work_log_id" property="workLogId" />
+        <result column="revision_number" property="revisionNumber" />
+        <result column="snapshot_json" property="snapshotJson" />
+        <result column="revision_reason" property="revisionReason" />
+        <result column="revised_by_account_id" property="revisedByAccountId" />
+        <result column="revised_at" property="revisedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, work_log_id, revision_number, snapshot_json, revision_reason, revised_by_account_id, revised_at
+    </sql>
+
+</mapper>

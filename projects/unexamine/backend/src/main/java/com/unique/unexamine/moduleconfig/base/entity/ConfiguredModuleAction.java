@@ -31,11 +31,14 @@ public class ConfiguredModuleAction {
     @TableField("module_id")
     private Long moduleId;
 
-    @TableField("code")
+    @TableField("`code`")
     private String code;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
+
+    @TableField("action_type")
+    private String actionType;
 
     @TableField("location")
     private String location;
@@ -43,7 +46,7 @@ public class ConfiguredModuleAction {
     @TableField("sort_order")
     private Integer sortOrder;
 
-    @TableField("status")
+    @TableField("`status`")
     private String status;
 
     @TableField("config_json")
@@ -105,6 +108,14 @@ public class ConfiguredModuleAction {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(String actionType) {
+        this.actionType = actionType;
     }
 
     public String getLocation() {
@@ -172,6 +183,7 @@ public class ConfiguredModuleAction {
             ", moduleId = " + moduleId +
             ", code = " + code +
             ", name = " + name +
+            ", actionType = " + actionType +
             ", location = " + location +
             ", sortOrder = " + sortOrder +
             ", status = " + status +

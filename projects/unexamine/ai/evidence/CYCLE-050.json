@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-050",
+  "executedAt": "2026-08-27T21:27:00+08:00",
+  "taskIds": ["TASK-0162", "TASK-0163", "TASK-0164"],
+  "checks": [
+    {
+      "name": "KPI 配置、精确报表版本、期间规则和运行态展示前端回归（21 个文件、55 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "KPI 后台配置、仪表盘绑定、消息跳转和运行态下钻的类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "精确报表版本计算、过期保值、提醒去重、独立可见/下钻和仪表盘版本漂移的真实 MySQL 定向回归",
+      "command": "cd projects/unexamine/backend && docker run --rm -v D:/workspace/01_project/snow/cursor/examine2/projects/unexamine/backend:/workspace -v D:/dev/maven_repository:/root/.m2/repository -v /var/run/docker.sock:/var/run/docker.sock -w /workspace -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal maven:3.9.11-eclipse-temurin-21 mvn -q -Dtest=DashboardHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 后端全量领域与 33 迁移门禁（49 项）",
+      "command": "cd projects/unexamine/backend && docker run --rm -v D:/workspace/01_project/snow/cursor/examine2:/workspace -v D:/dev/maven_repository:/root/.m2/repository -v /var/run/docker.sock:/var/run/docker.sock -w /workspace/projects/unexamine/backend -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal maven:3.9.11-eclipse-temurin-21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "模板框架状态和工作区契约单元回归（32 项）",
+      "command": "python -m unittest discover -s template_base/tests -p test_*.py",
+      "result": "passed"
+    },
+    {
+      "name": "18 个初始片段、15 个更新片段和 33 个迁移的确定性数据库合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、唯一活动实现和模板能力边界复核",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "184 条需求在 20 个能力与 4 个上下文中的唯一架构归属复核",
+      "command": "python template_base/tools/tb.py architecture-validate --design projects/unexamine/ai/architecture/design.json",
+      "result": "passed"
+    },
+    {
+      "name": "60 个用例对 184 条原子需求的完整覆盖复核",
+      "command": "python template_base/tools/tb.py use-cases-validate --catalog projects/unexamine/ai/requirements/use-cases.json",
+      "result": "passed"
+    },
+    {
+      "name": "191 个原子任务的实现与验证归属复核",
+      "command": "python template_base/tools/tb.py tasks-validate --catalog projects/unexamine/ai/planning/task-catalog.json",
+      "result": "passed"
+    },
+    {
+      "name": "56 个周期的依赖、阶段与每周期最多 240 分钟复核",
+      "command": "python template_base/tools/tb.py task-graph-validate --graph projects/unexamine/ai/planning/task-graph.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-ANALYTICS-KPI",
+      "entryUrl": "http://127.0.0.1:15173/systems/10/admin?section=dashboard、http://127.0.0.1:15173/systems/10?workspace=kpi 和 http://127.0.0.1:15173/messages",
+      "actor": "C50 浏览器验收系统所有者账号 #10 / 系统 #10 / 主租户 #12",
+      "result": "passed",
+      "pageAssertions": [
+        "管理员从系统后台现有“仪表盘 → KPI 目标”入口选择已发布结构化报表 c49_customer_status_report 的精确发布版本 #3/v1；页面配置 MONTH 期间 2026-08、GTE 目标值 5、PERSON 责任人 #10、独立可见和下钻账号 #10、提醒接收人 #10，不接受草稿或任意 SQL。",
+        "保存后 KPI #1/code=c50_customer_active_kpi/configVersion=0 的预览直接执行报表版本 #3，页面读回实际值 4、目标值 5、达成率 80%、UNDER_TARGET、报表哈希 0892b8e8…、计算时间和 4 条权限内来源记录；期间与报表时间边界不一致会被明确阻止。",
+        "执行计算后同一结果持久化 KPI 配置版本 0、报表版本 #3/v1、完整报表哈希、字段口径、权限过滤、来源记录 #17/#16/#15/#14、实际值 4、目标值 5 和计算时间；未达标只创建一条可追踪提醒 #1 与消息 #3。",
+        "系统首页 KPI 工作台显示实际/目标/达成率、状态、精确数据源版本和最近计算时间；当前账号同时满足可见与下钻策略，因此可展开 4 条来源记录并确认提醒。",
+        "消息中心显示真实 KPI 未达标消息，点击消息整体按保存的 route=/systems/10?workspace=kpi&kpiId=1 回到 KPI 工作台并重新读取当前授权，而不是展示消息内缓存的业务数据。",
+        "管理员把 KPI #1/configVersion=0 绑定到仪表盘 KPI 组件 c50_customer_active_kpi_card，同时固定报表版本 #3；仪表盘草稿 r3 预览五个组件全部 READY，KPI 组件读回 4/5/80% 和数据源版本 #3，发布为不可变仪表盘 v3 后系统首页显示同一口径并可跳转 KPI 工作台。",
+        "真实 MySQL 定向回归把数据源临时改为不可执行状态后重新计算，既有结果转为 STALE 且保留实际值、目标值和原计算时间，不新增虚假提醒；恢复后可重新计算。独立下钻白名单排除当前账号时 KPI 仍可见但 drillAllowed=false；仪表盘引用旧 KPI 配置版本时返回 DASHBOARD_KPI_VERSION_CHANGED 且不伪造零值。",
+        "浏览器验收页签控制台无错误和警告；所有预览、计算、提醒、消息和仪表盘数据均来自当前本地服务及真实 MySQL 持久化读回。"
+      ],
+      "persistentReads": [
+        "ana_kpi #1 属于 system #10/tenant #12，code=c50_customer_active_kpi、source_version_id=3、period_type=MONTH、status=ACTIVE、version=0；可见账号和下钻账号分别固化在独立策略中。",
+        "ana_kpi_result #1 固化 actual_value=4、target_value=5、achievement_rate=80、status=UNDER_TARGET、kpiVersion=0、sourceVersionId=3、sourceVersionNumber=1、sourceHash=0892b8e82027227fac8c9547d5a666d99a00764baf8d8a44e387ae7be16f4b02 和来源记录 #17/#16/#15/#14。",
+        "ana_kpi_reminder #1 关联 result #1、message #3、recipient account #10、delivery_status=SENT；msg_message #3/type=KPI_ALERT/object=KPI_RESULT:1 保存精确 KPI 工作台 route，点击后已读状态可回查。",
+        "ana_dashboard_version #4 是 dashboard #1 的 v3/r3，snapshot_hash=b6dcf4a9e054b2e96c77b1c612e3aa77994d1d907f09832329e51547fe99b0f9，发布指针 current_version_id=4；快照固定 KPI #1/configVersion=0 和报表版本 #3。",
+        "审计持久化包含 KPI_CREATED、KPI_CALCULATED、MESSAGE_CREATED、DASHBOARD_PUBLISHED 等 SUCCESS 事件，objectId 可分别关联 KPI、结果、消息和仪表盘版本。",
+        "定向 Testcontainers MySQL 回归证明来源失败只把既有结果标为 STALE 并保存失败解释，不写新的成功时间、不归零且不创建提醒；显式账号白名单优先于所有者通配授权，使可见策略与下钻策略可以独立收紧。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/KpiModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/KpiService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/KpiController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/ReportService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/analytics/manage/DashboardHttpTest.java",
+        "projects/unexamine/frontend/src/product/kpi.ts",
+        "projects/unexamine/frontend/src/product/kpi.test.ts",
+        "projects/unexamine/frontend/src/product/views/KpiConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/KpiWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/views/DashboardConfigurationView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-050-kpi-preview.png",
+        "projects/unexamine/ai/evidence/CYCLE-050-kpi-calculated.png",
+        "projects/unexamine/ai/evidence/CYCLE-050-kpi-runtime.png",
+        "projects/unexamine/ai/evidence/CYCLE-050-message.png",
+        "projects/unexamine/ai/evidence/CYCLE-050-dashboard-preview.png",
+        "projects/unexamine/ai/evidence/CYCLE-050-dashboard-runtime.png",
+        "projects/unexamine/ai/evidence/CYCLE-050.json"
+      ]
+    }
+  ]
+}

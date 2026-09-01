@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.0-C54",
+  "frontendVersion": "0.1.0-C54",
+  "environment": "development",
+  "databaseVersion": "34",
+  "databaseStrategy": "FORWARD_FIX",
+  "configVersion": "development-v1",
+  "artifactSha256": "replace-with-the-lowercase-sha256-of-unexamine-server.jar",
+  "backendReadinessUrl": "http://127.0.0.1:18080/actuator/health/readiness",
+  "frontendSmokeUrl": "http://127.0.0.1:15174/"
+}

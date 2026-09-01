@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-008",
+  "executedAt": "2026-08-17T20:17:00+08:00",
+  "taskIds": [
+    "TASK-0165",
+    "TASK-0179",
+    "TASK-0006",
+    "TASK-0007"
+  ],
+  "checks": [
+    {
+      "name": "工作区和来源边界",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    },
+    {
+      "name": "MySQL 8.4 空库全量迁移",
+      "command": "docker mysql:8.4 execute projects/unexamine/db/init.sql on empty unexamine schema",
+      "result": "passed"
+    },
+    {
+      "name": "数据库三份结果合成",
+      "command": "python template_base/tools/tb.py db-prepare --project-root projects/unexamine",
+      "result": "passed"
+    },
+    {
+      "name": "Base 全量重复生成与编译",
+      "command": "powershell -File projects/unexamine/tools/regenerate-base.ps1",
+      "result": "passed"
+    }
+  ],
+  "journeys": []
+}

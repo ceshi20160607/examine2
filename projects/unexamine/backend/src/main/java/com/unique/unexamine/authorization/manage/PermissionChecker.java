@@ -9,7 +9,11 @@ public class PermissionChecker {
         return context.permissions().stream().anyMatch(grant ->
                 matches(grant.resourceType(), resourceType)
                         && matches(grant.resourceCode(), resourceCode)
-                        && matches(grant.actionCode(), actionCode));
+                        && matches(grant.actionCode(), actionCode))
+                || context.systemId() == null && context.permissions().stream().anyMatch(grant ->
+                "PLATFORM".equals(grant.resourceType())
+                        && "*".equals(grant.resourceCode())
+                        && "*".equals(grant.actionCode()));
     }
 
     private boolean matches(String granted, String required) {

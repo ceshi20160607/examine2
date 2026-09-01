@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/task-layering.schema.json",
+  "title": "Reviewed capability and use-case implementation layer plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "capabilityPlans"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["architecturePath", "architectureSha256", "useCaseCatalogPath", "useCaseCatalogSha256"],
+      "properties": {
+        "architecturePath": {"type": "string", "minLength": 1},
+        "architectureSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "useCaseCatalogPath": {"type": "string", "minLength": 1},
+        "useCaseCatalogSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "capabilityPlans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capabilityId", "bootstrapKinds", "defaultImplementationKinds", "useCaseOverrides"],
+        "properties": {
+          "capabilityId": {"type": "string", "pattern": "^CAP-[A-Z0-9][A-Z0-9-]*$"},
+          "bootstrapKinds": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"enum": ["database", "base-generation"]}
+          },
+          "defaultImplementationKinds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"enum": ["design", "base-generation", "backend-manage", "frontend", "operations"]}
+          },
+          "useCaseOverrides": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["useCaseId", "implementationKinds"],
+              "properties": {
+                "useCaseId": {"type": "string", "pattern": "^UC-[A-Z0-9][A-Z0-9-]*$"},
+                "implementationKinds": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {"enum": ["design", "base-generation", "backend-manage", "frontend", "operations"]}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

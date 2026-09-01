@@ -36,8 +36,14 @@ public class ConfiguredModuleVersion {
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    @TableField("schema_hash")
+    private String schemaHash;
+
     @TableField("snapshot_json")
     private String snapshotJson;
+
+    @TableField("change_summary")
+    private String changeSummary;
 
     @TableField("published_by_member_id")
     private Long publishedByMemberId;
@@ -93,12 +99,28 @@ public class ConfiguredModuleVersion {
         this.draftRevision = draftRevision;
     }
 
+    public String getSchemaHash() {
+        return schemaHash;
+    }
+
+    public void setSchemaHash(String schemaHash) {
+        this.schemaHash = schemaHash;
+    }
+
     public String getSnapshotJson() {
         return snapshotJson;
     }
 
     public void setSnapshotJson(String snapshotJson) {
         this.snapshotJson = snapshotJson;
+    }
+
+    public String getChangeSummary() {
+        return changeSummary;
+    }
+
+    public void setChangeSummary(String changeSummary) {
+        this.changeSummary = changeSummary;
     }
 
     public Long getPublishedByMemberId() {
@@ -126,7 +148,9 @@ public class ConfiguredModuleVersion {
             ", moduleId = " + moduleId +
             ", versionNumber = " + versionNumber +
             ", draftRevision = " + draftRevision +
+            ", schemaHash = " + schemaHash +
             ", snapshotJson = " + snapshotJson +
+            ", changeSummary = " + changeSummary +
             ", publishedByMemberId = " + publishedByMemberId +
             ", publishedAt = " + publishedAt +
             "}";

@@ -1,8 +1,8 @@
 {
   "intake": {
     "path": "requirement-intake.json",
-    "requirementsSha256": "4d5e127f95a5eb04923b1f7e78c40b688005e93aaf0028374cfafb22ebd3bf1b",
-    "sha256": "46c771b9619d1e1501a52c49775cfdf912867a6a13383e72bf07b12b0b4b49c2"
+    "requirementsSha256": "b090f848d32b25ae0d36bf3a392fed5ccf5ac90db43088d5e2ed8281b9496316",
+    "sha256": "ce6ba0a28d3392d4bcfd9f625d9ed790015520033d441e411bedad95a8cfd3ed"
   },
   "packetCount": 117,
   "packets": [
@@ -1848,7 +1848,8 @@
         "B0712",
         "B0714",
         "B0716",
-        "B0717"
+        "B0717",
+        "B0719"
       ],
       "headingPath": [
         "unexamine 全量重构产品方案",
@@ -1857,7 +1858,7 @@
         "A.14.8 自建应用安全与标准数据归属"
       ],
       "id": "RWP-0117",
-      "lineEnd": 2932,
+      "lineEnd": 2942,
       "lineStart": 2862
     }
   ],

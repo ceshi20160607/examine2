@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-019",
+  "executedAt": "2026-08-20T11:15:45+08:00",
+  "taskIds": [
+    "TASK-0055",
+    "TASK-0056",
+    "TASK-0057",
+    "TASK-0058"
+  ],
+  "checks": [
+    {
+      "name": "后端幂等、限流、缓存、开关、配额和编号全量集成测试（23 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "并发幂等、Redis 限流与缓存、并发配额和编号定向集成测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q -Dtest=FoundationControlHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "前端统一 API 契约测试（5 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "运维控制页面类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "持续执行环和 Template Base 回归（31 项）",
+      "command": "cd template_base && python -m unittest discover -s tests -p \"test_*.py\"",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、活动项目与模板边界校验",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-FOUNDATION-IDEMPOTENCY-CONTROL",
+      "entryUrl": "http://127.0.0.1:15173/systems/4/admin/operations",
+      "actor": "具备当前系统运维管理权限的租户管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "在系统后台运维配置真实页面用同一幂等键连续执行两次 foundation-command，两次均读回同一个业务结果 foundation-command:1；第一次提交生成待发布 outbox，第二次重放显示已发布结果，页面未重复执行业务。",
+        "并发相同幂等键由数据库原子认领且只产生一条结果和一条 outbox；相同键改变请求内容明确返回冲突，失败或回滚不留下可重放成功结果。",
+        "连续触发限流后页面明确显示 RATE_LIMIT_EXCEEDED 和 29 秒后重试，不把普通 HTTP 状态当作验收；已完成幂等结果在限流期间仍可重放，不同系统上下文的额度相互隔离。",
+        "权限缓存页先显示 Redis、epoch=2，执行失效后变为 epoch=3 且首次从 DATABASE 权威读回，再次刷新恢复为 Redis；缓存异常或损坏时只回退数据库，不扩大权限。",
+        "同一页面创建功能开关 cycle19.flag.1787067436529、硬配额 CYCLE19_1787067436529 和编号规则 cycle19_1787067436529；开关显示最终值及范围来源，配额前三次占用成功、第四次明确拒绝并保持 3/3，编号连续得到 C19-20260818-0001 与 0002。"
+      ],
+      "persistentReads": [
+        "core_idempotency_record 读回复合账号、系统、租户、应用和操作上下文中的唯一完成记录及响应；并发同键只有一条记录，core_event_outbox 对应事件最终为 PUBLISHED。",
+        "core_cache_epoch 读回 AUTHORIZATION epoch=3 和 FEATURE_FLAG epoch=1；权限缓存值携带 epoch，旧版本不能重新生效。",
+        "core_feature_flag 读回 SYSTEM 范围启用开关及结构化 rollout JSON；core_quota_usage 读回 current_value=3、version=3；core_sequence_state 读回 current_value=2、version=2。",
+        "FoundationControlHttpTest 使用真实 MySQL 与 Redis 验证 6 路并发配额恰好 3 成功/3 拒绝、8 路并发编号全部唯一连续、限流剩余额与 retryAfterSeconds、缓存失效重建及审计事件。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/FoundationControlsView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationPolicyService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RedisRateLimiter.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/PermissionResolver.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/FoundationControlHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-019.json"
+      ]
+    }
+  ]
+}

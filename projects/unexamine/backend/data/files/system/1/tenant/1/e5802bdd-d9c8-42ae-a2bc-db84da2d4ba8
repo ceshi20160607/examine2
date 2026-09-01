@@ -1,0 +1,3 @@
+title,recordNumber,customer_name,level,amount,enabled
+上海新客户,C43-NEW-001,上海新客户,A,800.50,true
+缺少必填名称,C43-BAD-001,,A,10,true

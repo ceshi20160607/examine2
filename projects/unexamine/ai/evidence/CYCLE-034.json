@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-034",
+  "executedAt": "2026-08-22T17:54:00+08:00",
+  "taskIds": ["TASK-0101", "TASK-0121"],
+  "checks": [
+    {
+      "name": "Flow 绑定唯一发布、替换保护、权限分离、主默认/租户覆盖/无覆盖回退及不可变版本快照 HTTP 测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#flowBindingPublishesOneActiveScopeAndResolvesTenantOverrideOrMainDefaultSnapshot test",
+      "result": "passed"
+    },
+    {
+      "name": "手动日志创建、项目任务关联、提交撤回、不可变修订、乐观锁、本人/他人权限及不自动产生日志 HTTP 测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest#manualWorkLogKeepsImmutableRevisionsLinksAndExplicitOtherAuthorPermission test",
+      "result": "passed"
+    },
+    {
+      "name": "C32-C34 Flow 与 Work 后端四条业务链整组回归（4 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "Flow binding 与 Work log manage 层编译并确认未直接写 SQL、未修改生成 Base",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -DskipTests compile",
+      "result": "passed"
+    }
+  ],
+  "journeys": []
+}

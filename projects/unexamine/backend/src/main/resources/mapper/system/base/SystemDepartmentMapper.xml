@@ -10,14 +10,17 @@
         <result column="parent_id" property="parentId" />
         <result column="code" property="code" />
         <result column="name" property="name" />
+        <result column="path_code" property="pathCode" />
+        <result column="sort_order" property="sortOrder" />
         <result column="status" property="status" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, parent_id, code, name, status, created_at, updated_at
+        id, system_id, tenant_id, parent_id, `code`, `name`, path_code, sort_order, `status`, created_at, updated_at, version
     </sql>
 
 </mapper>

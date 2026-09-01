@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.moduleconfig.base.mapper.CfgTenantExtensionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.moduleconfig.base.entity.CfgTenantExtension">
+        <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="base_module_id" property="baseModuleId" />
+        <result column="draft_revision" property="draftRevision" />
+        <result column="extension_json" property="extensionJson" />
+        <result column="status" property="status" />
+        <result column="current_version_id" property="currentVersionId" />
+        <result column="updated_by_member_id" property="updatedByMemberId" />
+        <result column="created_by_member_id" property="createdByMemberId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, system_id, tenant_id, base_module_id, draft_revision, extension_json, `status`, current_version_id, updated_by_member_id, created_by_member_id, created_at, updated_at, version
+    </sql>
+
+</mapper>

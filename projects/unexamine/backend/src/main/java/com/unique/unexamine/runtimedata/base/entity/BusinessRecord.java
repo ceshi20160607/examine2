@@ -43,7 +43,7 @@ public class BusinessRecord {
     @TableField("title")
     private String title;
 
-    @TableField("status")
+    @TableField("`status`")
     private String status;
 
     @TableField("owner_member_id")
@@ -61,8 +61,14 @@ public class BusinessRecord {
     @TableField("archived")
     private Boolean archived;
 
+    @TableField("archived_at")
+    private LocalDateTime archivedAt;
+
     @TableField("deleted")
     private Boolean deleted;
+
+    @TableField("deleted_at")
+    private LocalDateTime deletedAt;
 
     @TableField("created_at")
     private LocalDateTime createdAt;
@@ -186,12 +192,28 @@ public class BusinessRecord {
         this.archived = archived;
     }
 
+    public LocalDateTime getArchivedAt() {
+        return archivedAt;
+    }
+
+    public void setArchivedAt(LocalDateTime archivedAt) {
+        this.archivedAt = archivedAt;
+    }
+
     public Boolean getDeleted() {
         return deleted;
     }
 
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -235,7 +257,9 @@ public class BusinessRecord {
             ", createdByMemberId = " + createdByMemberId +
             ", updatedByMemberId = " + updatedByMemberId +
             ", archived = " + archived +
+            ", archivedAt = " + archivedAt +
             ", deleted = " + deleted +
+            ", deletedAt = " + deletedAt +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
             ", version = " + version +

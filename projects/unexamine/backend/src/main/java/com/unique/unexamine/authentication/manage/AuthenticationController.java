@@ -14,16 +14,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final RegistrationService registrationService;
+    private final EnterpriseSsoService enterpriseSsoService;
 
-    public AuthenticationController(AuthenticationService authenticationService, RegistrationService registrationService) {
+    public AuthenticationController(
+            AuthenticationService authenticationService,
+            RegistrationService registrationService,
+            EnterpriseSsoService enterpriseSsoService) {
         this.authenticationService = authenticationService;
         this.registrationService = registrationService;
+        this.enterpriseSsoService = enterpriseSsoService;
     }
 
     @PostMapping("/login")
@@ -44,6 +52,31 @@ public class AuthenticationController {
             @Valid @RequestBody RefreshRequest request,
             HttpServletRequest servletRequest) {
         return ApiResult.ok(authenticationService.refresh(request.refreshToken(), TraceIdFilter.current(servletRequest)));
+    }
+
+    @GetMapping("/sso/providers")
+    public ApiResult<List<SsoProviderView>> ssoProviders() {
+        return ApiResult.ok(enterpriseSsoService.publishedProviders());
+    }
+
+    @PostMapping("/sso/{providerCode}/start")
+    public ApiResult<SsoStartResult> startSso(
+            @PathVariable String providerCode,
+            HttpServletRequest servletRequest) {
+        return ApiResult.ok(enterpriseSsoService.start(providerCode, TraceIdFilter.current(servletRequest)));
+    }
+
+    @PostMapping("/sso/{providerCode}/complete")
+    public ApiResult<SessionTokens> completeSso(
+            @PathVariable String providerCode,
+            @Valid @RequestBody SsoCompleteRequest request,
+            HttpServletRequest servletRequest) {
+        return ApiResult.ok(enterpriseSsoService.complete(
+                providerCode,
+                request,
+                TraceIdFilter.current(servletRequest),
+                servletRequest.getRemoteAddr(),
+                servletRequest.getHeader("User-Agent")));
     }
 
     @GetMapping("/me")

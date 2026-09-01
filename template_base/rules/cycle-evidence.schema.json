@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://template-base.local/rules/cycle-evidence.schema.json",
+  "title": "Cycle checks and applicable real-page journey evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "cycleId", "executedAt", "taskIds", "checks", "journeys"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "cycleId": {"type": "string", "pattern": "^CYCLE-[0-9]{3,}$"},
+    "executedAt": {"type": "string", "minLength": 1},
+    "taskIds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^TASK-[0-9]{4,}$"}},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "command", "result"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "command": {"type": "string", "minLength": 1},
+          "result": {"enum": ["passed", "failed", "blocked"]}
+        }
+      }
+    },
+    "journeys": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["useCaseId", "entryUrl", "actor", "result", "pageAssertions", "persistentReads", "evidencePaths"],
+        "properties": {
+          "useCaseId": {"type": "string", "pattern": "^UC-[A-Z0-9][A-Z0-9-]*$"},
+          "entryUrl": {"type": "string", "minLength": 1},
+          "actor": {"type": "string", "minLength": 1},
+          "result": {"enum": ["passed", "failed", "blocked"]},
+          "pageAssertions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "persistentReads": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "evidencePaths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    }
+  }
+}

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
@@ -21,13 +22,22 @@ public class PlatformRole {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @TableField("code")
+    @TableField("platform_id")
+    private Long platformId;
+
+    @TableField("`code`")
     private String code;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
 
-    @TableField("status")
+    @TableField("`description`")
+    private String description;
+
+    @TableField("built_in")
+    private Boolean builtIn;
+
+    @TableField("`status`")
     private String status;
 
     @TableField("created_at")
@@ -36,12 +46,24 @@ public class PlatformRole {
     @TableField("updated_at")
     private LocalDateTime updatedAt;
 
+    @Version
+    @TableField("version")
+    private Integer version;
+
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
     }
 
     public String getCode() {
@@ -58,6 +80,22 @@ public class PlatformRole {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Boolean getBuiltIn() {
+        return builtIn;
+    }
+
+    public void setBuiltIn(Boolean builtIn) {
+        this.builtIn = builtIn;
     }
 
     public String getStatus() {
@@ -84,15 +122,27 @@ public class PlatformRole {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         return "PlatformRole{" +
             "id = " + id +
+            ", platformId = " + platformId +
             ", code = " + code +
             ", name = " + name +
+            ", description = " + description +
+            ", builtIn = " + builtIn +
             ", status = " + status +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
+            ", version = " + version +
             "}";
     }
 }

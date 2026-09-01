@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.file.base.mapper.FileSecurityScanMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.file.base.entity.FileSecurityScan">
+        <id column="id" property="id" />
+        <result column="file_id" property="fileId" />
+        <result column="scanner" property="scanner" />
+        <result column="scan_version" property="scanVersion" />
+        <result column="status" property="status" />
+        <result column="result_code" property="resultCode" />
+        <result column="result_detail_json" property="resultDetailJson" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, file_id, scanner, scan_version, `status`, result_code, result_detail_json, started_at, finished_at, created_at
+    </sql>
+
+</mapper>

@@ -263,6 +263,8 @@ def _render_backend(data: dict[str, Any]) -> dict[str, str]:
             url: ${{APP_DB_URL:jdbc:mysql://127.0.0.1:{local['mysqlPort']}/{local['databaseName']}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}}
             username: ${{APP_DB_USERNAME:{local['databaseUser']}}}
             password: ${{APP_DB_PASSWORD:{database_password}}}
+            hikari:
+              connection-init-sql: SET time_zone = '+08:00'
           data:
             redis:
               host: ${{APP_REDIS_HOST:127.0.0.1}}
@@ -463,6 +465,7 @@ def _render_local(data: dict[str, Any]) -> dict[str, str]:
             image: mysql:8.4
             command: ["--log-bin-trust-function-creators=1"]
             environment:
+              TZ: Asia/Shanghai
               MYSQL_DATABASE: {local['databaseName']}
               MYSQL_USER: {local['databaseUser']}
               MYSQL_PASSWORD: {database_password}
@@ -512,7 +515,7 @@ def _render_control_plane(data: dict[str, Any]) -> dict[str, str]:
 
             This directory holds project-specific Agent inputs and outputs. Product source code belongs in `backend/` and `frontend/`; reusable deterministic capabilities belong in `template_base/`.
 
-            The lead Agent owns overall status, dependency coordination and decision closure. Role Agents only work from assignments recorded under `agents/`. A test Agent joins every development cycle, and each cycle is limited to four hours.
+            The lead Agent owns overall status, dependency coordination, delivery phases and cycle planning. The PM owns `question.md`, routine decision closure and user escalation. Role Agents only work from assignments recorded under `agents/`. A test Agent joins every development cycle, and each cycle is limited to four hours without an artificial minimum task duration.
             """),
         "ai/requirements/README.md": "# Requirements\n\nKeep the canonical-source intake, complete analysis plan, traceability and atomic use cases here.\n",
         "ai/architecture/README.md": "# Architecture\n\nKeep source-bound architecture decisions and capability ownership here.\n",
@@ -521,8 +524,9 @@ def _render_control_plane(data: dict[str, Any]) -> dict[str, str]:
         "ai/decisions/README.md": "# Decisions\n\nRecord consequential project decisions, evidence, owner and supersession relationships here.\n",
         "ai/status/README.md": "# Status\n\nThe lead Agent keeps the single authoritative project status here. Unknown totals remain unknown; they are never guessed.\n",
         "ai/evidence/README.md": "# Evidence\n\nStore cycle-scoped build, test and acceptance evidence here.\n",
-        "db/README.md": "# Database\n\nDesign versioned SQL under `base/` and `update/`. Use Template Base `db-prepare` to produce `base.sql`, `update.sql`, `all.sql` and Flyway inputs under `migration/`.\n",
-        "db/base/README.md": "# Baseline SQL\n\nKeep the versioned baseline table design here.\n",
+        "question.md": "# PM question log\n\nKeep every ambiguity, recommendation, status and final answer here. PM resolves routine engineering questions; only product-boundary or irreversible-data decisions are escalated to the user.\n",
+        "db/README.md": "# Database\n\nDesign versioned initial SQL under `init/` and later changes under `update/`. Use Template Base `db-prepare` to produce `init.sql`, `update.sql`, `final.sql` and Flyway inputs under `migration/`.\n",
+        "db/init/README.md": "# Initial SQL\n\nKeep the complete versioned initial table design here.\n",
         "db/update/README.md": "# Update SQL\n\nKeep post-baseline versioned changes here.\n",
         "db/migration/README.md": "# Flyway inputs\n\nThis directory is derived by Template Base `db-prepare`; do not edit generated migrations directly.\n",
         "tools/README.md": "# Project inputs\n\nKeep project-specific generator configuration and thin command wrappers here. Reusable executable logic belongs in `template_base/`.\n",
@@ -546,7 +550,7 @@ def generate_starter(data: dict[str, Any], starter_path: Path, output_root: Path
         rendered,
         output_root,
         {
-            "generatorVersion": "0.4.0-dev",
+            "generatorVersion": "0.5.0-dev",
             "generatorKind": "project-starter",
             "projectId": data["project"]["id"],
             "starterSha256": sha256_bytes(starter_path.read_bytes()),

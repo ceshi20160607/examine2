@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.audit.base.mapper.AuditRetentionMarkerMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.audit.base.entity.AuditRetentionMarker">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="object_type" property="objectType" />
+        <result column="object_id" property="objectId" />
+        <result column="business_key" property="businessKey" />
+        <result column="snapshot_hash" property="snapshotHash" />
+        <result column="snapshot_json" property="snapshotJson" />
+        <result column="purge_reason" property="purgeReason" />
+        <result column="purged_by_account_id" property="purgedByAccountId" />
+        <result column="purged_at" property="purgedAt" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, system_id, tenant_id, object_type, object_id, business_key, snapshot_hash, snapshot_json, purge_reason, purged_by_account_id, purged_at, created_at
+    </sql>
+
+</mapper>

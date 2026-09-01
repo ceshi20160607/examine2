@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-039",
+  "executedAt": "2026-08-25T16:09:49+08:00",
+  "taskIds": ["TASK-0108", "TASK-0109", "TASK-0129", "TASK-0130"],
+  "checks": [
+    {
+      "name": "Flow 手动加签、待办权限路由及交互状态前端回归（12 个文件、30 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 运行实例和平台/系统待办真实页面类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "手动加签挂起恢复、业务状态映射、待办投影、目标动作权限和结果引用后端回归（7 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=FlowAndWorkManagementHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "C39 页面操作后的实例、原审批任务、手动任务、动作和待办状态真实读回",
+      "command": "通过 Flow 实例详情和 /api/todos 读回 flow_instance #4、flow_task #8/#9、flow_action #24 及恢复后的待办版本 2",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-FLOW-MANUAL-STATUS",
+      "entryUrl": "http://127.0.0.1:5173/systems/3",
+      "actor": "周期十一页面验收系统默认主租户的系统管理员账号 #1",
+      "result": "passed",
+      "pageAssertions": [
+        "从系统 Flow 运行实例入口打开实例 #4，实例在唯一主审批任务 #8 等待时提供手动加签入口；加签弹窗明确说明只写运行实例快照、不修改已发布定义。",
+        "填写目标账号 #1 和原因“合同风险需要增加页面复核”后先执行预检查；页面读回将暂停任务 #8、目标处理人 #1、等待节点唯一和成员有效等检查，预检查通过前确认按钮不可用。",
+        "确认后实例节点快照新增手动审批任务 #9，并显示运行快照新增标记、加签原因、处理人和待处理状态；原审批任务 #8 同时显示已暂停，时间线出现 MANUAL_NODE_ADDED。",
+        "从同一系统待办处理手动任务 #9 并填写“页面验收复核通过”后重新打开目标结果，手动任务显示已同意，原审批任务 #8 恢复待处理且实例仍停在原审批节点。",
+        "业务状态映射 JSON 的解析、目标模块动作权限、映射不兼容零写入和 APPROVE 后真实业务状态写入由同一 FlowAndWorkManagementHttpTest 的真实 MySQL 集成回归覆盖，未伪装成本次无业务对象页面实例的可见结果。"
+      ],
+      "persistentReads": [
+        "flow_instance #4 保持 WAITING 并回到原审批节点 approve；已发布 Flow 定义未因加签发生修改。",
+        "flow_task #9 为 MANUAL_APPROVAL 且最终 action/status=APPROVE；flow_task #8 从 SUSPENDED 恢复为 PENDING。",
+        "flow_action #24 保存页面处理意见，实例时间线可刷新读回手动节点新增和审批动作。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+        "projects/unexamine/frontend/src/product/flow-runtime.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-039.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-NOTIFICATION-TODO",
+      "entryUrl": "http://127.0.0.1:5173/systems/3",
+      "actor": "拥有系统 TODO VIEW/HANDLE 与 Flow 目标动作权限的系统管理员账号 #1",
+      "result": "passed",
+      "pageAssertions": [
+        "系统顶部待办入口保持在当前 SYSTEM/system #3/tenant 上下文，工作台显示真实来源 FLOW_TASK、来源编号、版本、优先级、状态和目标可执行动作，没有跳转到平台待办或平台消息页。",
+        "加签后的手动任务 #9 出现在未完成列表；通过待办同意并填写处理意见后，该项从未完成列表消失，页面显示真实结果引用 FLOW_INSTANCE:4:ACTION:24。",
+        "点击查看目标结果返回 Flow 实例而非只显示成功提示；实例中手动任务 #9 已同意、原审批任务 #8 已恢复待处理。",
+        "更新后的后端重新启动后再次从系统顶部进入待办，原审批任务 #8 以版本 2 显示为待处理，证明恢复状态来自持久化投影而非组件临时状态。",
+        "待办查看权限、处理权限、Flow 目标动作权限、目标已处理刷新和平台/系统路由隔离由前端权限测试与 FlowAndWorkManagementHttpTest 的真实目标回归共同覆盖。"
+      ],
+      "persistentReads": [
+        "todo_item 对手动任务 #9 保存处理结果引用并离开 PENDING；对应 Flow 动作 #24 可从目标实例读回。",
+        "原审批任务 #8 的 todo_item 在任务恢复后重新变为 PENDING、版本 2，来源仍为 FLOW_TASK #8。",
+        "后端服务重启和页面刷新后，系统待办列表仍读回同一待办状态和目标动作集合。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/views/SystemHomeView.vue",
+        "projects/unexamine/frontend/src/product/todo.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-039.json"
+      ]
+    }
+  ]
+}

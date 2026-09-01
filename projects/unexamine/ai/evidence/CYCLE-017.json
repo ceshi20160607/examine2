@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-017",
+  "executedAt": "2026-08-18T22:24:00+08:00",
+  "taskIds": [
+    "TASK-0041",
+    "TASK-0042",
+    "TASK-0043",
+    "TASK-0048"
+  ],
+  "checks": [
+    {
+      "name": "后端多角色真实规则预览、旧版本拒绝、字段审计脱敏与永久保留全量测试（22 项）",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21 mvn -q test",
+      "result": "passed"
+    },
+    {
+      "name": "前端统一 API 契约测试（5 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "最终权限预览页面类型检查和生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "持续执行环和 Template Base 回归（31 项）",
+      "command": "python -m unittest discover -s template_base/tests -p \"test_*.py\"",
+      "result": "passed"
+    },
+    {
+      "name": "唯一需求源、活动项目与模板边界校验",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-AUTH-MULTIROLE-PREVIEW",
+      "entryUrl": "http://127.0.0.1:15173/systems/4",
+      "actor": "当前租户中具备授权管理权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "在组织与成员真实页面为平台超级管理员同时保存 SYSTEM_SUPER_ADMIN 与 cycle16_auditor 两个有效角色，页面成功读回两个角色；权限版本保持 v1。",
+        "用户最终权限预览页选择平台超级管理员、审计日志和 VIEW 后，页面显示有效角色 2、系统超级管理员通配贡献、周期十六审计查看员 EVENT/VIEW/SELF 贡献，最终允许、数据范围 ALL、贡献角色 5 和 6。",
+        "把动作切换为 PURGE 后重新执行，页面仍按真实 v1 计算，但明确显示审计查看员在当前筛选无贡献，最终仅由角色 5 授予；证明动作分别计算而非复用 VIEW 结果。",
+        "每次成功预览均提示只写审计、不修改授权，并显示菜单动作按并集、字段和渠道硬限制按交集、缺失默认拒绝。",
+        "后端定向测试覆盖发布前无权查看、v2 多角色 VIEW/SINGLE 合并、字段可读不可写、旧 v1 预览返回 AUTHORIZATION_VERSION_EXPIRED，且不返回权限详情。"
+      ],
+      "persistentReads": [
+        "sys_member_role 读回 tenant_member_id=6 同时关联 SYSTEM_SUPER_ADMIN 与 cycle16_auditor；auth_permission_version 仍为 1，预览没有推进或改变授权版本。",
+        "audit_event 读回 object_id=6 的两条 AUTHORIZATION_PERMISSION_PREVIEW 敏感预览审计，首末记录为 #66 与 #71。",
+        "集成测试对预览审计补入一条 SENSITIVE audit_field_change；无 VIEW_SENSITIVE 的目标用户读取到 ***，通配管理员读取到真实前后值。",
+        "集成测试的宽范围永久保留检查被阻断，精确对象检查读回 3 条审计与 1 条字段变化；无 PURGE 用户返回 403，管理员创建不可变摘要且原审计仍存在。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/SystemAuthorizationView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/audit/manage/AuditGovernanceService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/audit/manage/AuditQueryController.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemAdministrationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-017.json"
+      ]
+    }
+  ]
+}

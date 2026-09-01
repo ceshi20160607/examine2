@@ -7,8 +7,13 @@
         <id column="id" property="id" />
         <result column="username" property="username" />
         <result column="email" property="email" />
+        <result column="mobile" property="mobile" />
         <result column="display_name" property="displayName" />
+        <result column="avatar_file_id" property="avatarFileId" />
+        <result column="locale" property="locale" />
+        <result column="timezone" property="timezone" />
         <result column="status" property="status" />
+        <result column="last_login_at" property="lastLoginAt" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
         <result column="version" property="version" />
@@ -16,7 +21,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, username, email, display_name, status, created_at, updated_at, version
+        id, username, email, mobile, display_name, avatar_file_id, locale, timezone, `status`, last_login_at, created_at, updated_at, version
     </sql>
 
 </mapper>

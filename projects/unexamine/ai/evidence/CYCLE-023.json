@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-023",
+  "executedAt": "2026-08-22T14:27:07+08:00",
+  "taskIds": ["TASK-0072", "TASK-0073", "TASK-0074"],
+  "checks": [
+    {
+      "name": "页面 Schema、菜单草稿隔离、失败分支、发布与回滚定向集成测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -q -Dtest=ModuleConfigurationHttpTest#visualPageAndMenuDraftsOnlyReachPermissionFilteredRuntimeAfterPublishAndRollback test",
+      "result": "passed"
+    },
+    {
+      "name": "前端 API、权限、路由和运行动作测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "可视化页面设计、菜单配置与运行页面类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-LOWCODE-PAGE-MENU",
+      "entryUrl": "http://127.0.0.1:15173/systems/7",
+      "actor": "页面验收系统中具备模块设计、菜单配置和发布权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "在默认列表可视化 Schema 中选择三个有效字段并把列表顺序调整为客户名称、客户阶段、联系电话，实时预览同步按该顺序渲染；区块标题保存为客户清单、内容密度保存为紧凑。",
+        "默认表单保存客户基本信息、桌面三列和紧凑密度；默认详情保存客户详情、桌面一列；三个页面都显示 Schema 引用有效和三个有效字段。",
+        "运行菜单草稿改为客户中心、team 图标、组内排序 5 后，切换到业务运行页仍显示旧客户菜单和发布版本 v3，证明草稿不污染运行导航。",
+        "发布检查通过并生成不可变版本 v4 后，业务运行页才显示客户经营分组下的客户中心菜单、发布版本 v4，以及客户名称、客户阶段、联系电话顺序一致的列表列。",
+        "定向集成测试同时覆盖特殊页面仅用通用组件、后台路由、菜单自引用、已删除字段引用和必填字段未进入表单等发布阻断分支。"
+      ],
+      "persistentReads": [
+        "cfg_module_page 读回 LIST 字段顺序 [name,stage,phone]、标题客户清单、compact；FORM 读回三列与 compact；DETAIL 读回一列与 comfortable，三个页面均为 ACTIVE。",
+        "cfg_module_menu 读回稳定编码 customer、名称客户中心、图标 team、入口 /runtime/customer、排序 5、visible=1、ACTIVE，菜单保存没有写入任何角色授权表。",
+        "cfg_module_version 读回独立 v4、draft_revision=14 和稳定 schema_hash；cfg_module_publication 指向 v4 且指针版本为 4，快照内同时固化 pages 与 menus。",
+        "RuntimeModuleCatalogService 仍以 MODULE:<moduleCode>:LIST 权限过滤目录；菜单配置只参与过滤后的导航展示，不产生权限贡献。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/RuntimeModuleCatalogService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationHttpTest.java",
+        "projects/unexamine/ai/evidence/CYCLE-023.json"
+      ]
+    }
+  ]
+}

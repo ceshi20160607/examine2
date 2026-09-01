@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.analytics.base.mapper.AnaKpiReminderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.analytics.base.entity.AnaKpiReminder">
+        <id column="id" property="id" />
+        <result column="kpi_result_id" property="kpiResultId" />
+        <result column="todo_id" property="todoId" />
+        <result column="message_id" property="messageId" />
+        <result column="recipient_account_id" property="recipientAccountId" />
+        <result column="status" property="status" />
+        <result column="sent_at" property="sentAt" />
+        <result column="acknowledged_at" property="acknowledgedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, kpi_result_id, todo_id, message_id, recipient_account_id, `status`, sent_at, acknowledged_at, created_at, updated_at, version
+    </sql>
+
+</mapper>

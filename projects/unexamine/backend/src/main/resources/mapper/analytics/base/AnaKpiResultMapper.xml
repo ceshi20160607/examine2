@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.analytics.base.mapper.AnaKpiResultMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.analytics.base.entity.AnaKpiResult">
+        <id column="id" property="id" />
+        <result column="kpi_id" property="kpiId" />
+        <result column="period_key" property="periodKey" />
+        <result column="dimension_key" property="dimensionKey" />
+        <result column="actual_value" property="actualValue" />
+        <result column="target_value" property="targetValue" />
+        <result column="achievement_rate" property="achievementRate" />
+        <result column="status" property="status" />
+        <result column="explanation_json" property="explanationJson" />
+        <result column="calculated_at" property="calculatedAt" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, kpi_id, period_key, dimension_key, actual_value, target_value, achievement_rate, `status`, explanation_json, calculated_at, created_at
+    </sql>
+
+</mapper>

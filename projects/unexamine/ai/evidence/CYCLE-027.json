@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-027",
+  "executedAt": "2026-08-22T15:38:00+08:00",
+  "taskIds": ["TASK-0088", "TASK-0089", "TASK-0090", "TASK-0170"],
+  "checks": [
+    {
+      "name": "业务记录归档、逻辑删除、当前规则恢复、唯一冲突原子失败及生命周期审计定向测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=RuntimeDataHttpTest#publishedRuntimeStoresTypedValuesVersionsAndEnforcesActionScopeAndTenantBoundary test",
+      "result": "passed"
+    },
+    {
+      "name": "统一壳路由、权限、API 和运行动作测试（12 项）",
+      "command": "cd projects/unexamine/frontend && npm run test -- --run",
+      "result": "passed"
+    },
+    {
+      "name": "归档/回收筛选、恢复交互、详情时间线和统一导航壳类型检查及生产构建",
+      "command": "cd projects/unexamine/frontend && npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-RECORD-ARCHIVE-RESTORE",
+      "entryUrl": "http://127.0.0.1:15173/systems/7/runtime/customer",
+      "actor": "页面验收系统华东分公司中具备客户查看、新建、编辑、归档、删除和恢复权限的管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从客户列表对 C26 最终验收客户 #6 查看影响，页面明确显示出向关联 0 条、入向关联 0 条和相关人 0 人；填写业务原因后归档，记录从正常列表消失并只在已归档筛选中可见。",
+        "归档记录释放当前唯一索引后，以相同手机号创建 C27 手机号占用客户 #7；恢复 #6 时页面返回客户手机号唯一规则冲突，确认框保持可修正状态，#6 仍留在已归档列表且没有部分恢复。",
+        "将 #7 手机号改为 13500000027 后再次恢复 #6，页面提示记录已恢复，已归档筛选归零且 #6 回到正常列表第一行，手机号和级联阶段保持原业务值。",
+        "对 #6 查看影响并填写原因后删除，记录从正常列表消失并出现在回收站；从回收站填写新的恢复原因，页面提示记录已恢复且 #6 再次回到正常列表。",
+        "详情变更时间线倒序显示回收站恢复、删除、归档恢复、归档、编辑和新建，生命周期动作均显示页面验收管理员（成员 8）及真实发生时间。"
+      ],
+      "persistentReads": [
+        "biz_record #6 最终 archived=0、deleted=0、ACTIVE、version=5，created_at=15:25:54、updated_at=15:34:00；#7 最终使用 13500000027，不再占用 #6 的唯一值。",
+        "biz_record_state_history #6 顺序保存 ACTIVE→ARCHIVED、ARCHIVED→ACTIVE、ACTIVE→DELETED、DELETED→ACTIVE 四条状态历史，逐条读回页面填写的原因、成员 8、PAGE 来源和时间。",
+        "audit_event 保存 #6 的归档、两次成功恢复和删除完整字段快照；第一次恢复失败保存 BUSINESS_RECORD_RESTORE / UNIQUE_RULE_VIOLATION 和可读冲突信息，失败期间没有生成状态历史。",
+        "biz_record_index 最终重新生成 #6 phone=13600000026 和 #7 phone=13500000027 两条不同唯一哈希，证明恢复通过当前发布规则重建索引而非绕过校验。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/CYCLE-027.json"
+      ]
+    },
+    {
+      "useCaseId": "UC-UI-SHELL-NAVIGATION",
+      "entryUrl": "http://127.0.0.1:15173/platform",
+      "actor": "只有当前已发布权限入口的页面验收管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "登录后的平台统一壳固定展示仪表盘、系统、任务、待办、消息和个人中心；当前未获权的 Flow、应用和 AI 没有混入导航，但顶部待办、消息和个人入口在内容切换时保持不变。",
+        "从我的系统进入页面验收系统后，平台系统列表被替换为系统成员和租户上下文；系统壳把客户中心放在业务模块组下，没有把系统、Flow、应用或导入导出当成模块父级。",
+        "系统后台保持系统后台、组织与权限、统一认证、系统与租户、模块配置、租户模板扩展、操作审计固定入口；首页明确说明 Flow、应用、AI 属于系统后台配置类别。",
+        "从华东分公司系统壳返回平台后，平台壳和获权入口恢复；旧登录会话过期时页面明确提示登录状态无效，重新登录后回到最近允许的平台系统入口，并可再次进入默认主租户系统壳。"
+      ],
+      "persistentReads": [
+        "系统重入由后端重新签发并校验平台会话、系统成员、默认主租户和合并权限上下文，没有依赖前端缓存伪造入口。",
+        "页面只保留最后有效上下文；过期会话不能直接进入系统，重新认证后按当前系统成员和租户权限重新建立上下文。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/components/PlatformShell.vue",
+        "projects/unexamine/frontend/src/product/components/SystemShell.vue",
+        "projects/unexamine/frontend/src/product/routes.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemEntryService.java",
+        "projects/unexamine/ai/evidence/CYCLE-027.json"
+      ]
+    }
+  ]
+}

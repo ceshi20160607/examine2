@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.backgroundjobs.base.mapper.JobBackgroundMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.backgroundjobs.base.entity.JobBackground">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="job_type" property="jobType" />
+        <result column="source_type" property="sourceType" />
+        <result column="source_id" property="sourceId" />
+        <result column="parameter_json" property="parameterJson" />
+        <result column="authorization_snapshot_json" property="authorizationSnapshotJson" />
+        <result column="status" property="status" />
+        <result column="progress_current" property="progressCurrent" />
+        <result column="progress_total" property="progressTotal" />
+        <result column="max_attempts" property="maxAttempts" />
+        <result column="attempt_count" property="attemptCount" />
+        <result column="next_run_at" property="nextRunAt" />
+        <result column="heartbeat_at" property="heartbeatAt" />
+        <result column="result_summary_json" property="resultSummaryJson" />
+        <result column="error_code" property="errorCode" />
+        <result column="error_message" property="errorMessage" />
+        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="created_at" property="createdAt" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, platform_id, system_id, tenant_id, job_type, source_type, source_id, parameter_json, authorization_snapshot_json, `status`, progress_current, progress_total, max_attempts, attempt_count, next_run_at, heartbeat_at, result_summary_json, error_code, error_message, created_by_account_id, created_at, started_at, finished_at, updated_at, version
+    </sql>
+
+</mapper>

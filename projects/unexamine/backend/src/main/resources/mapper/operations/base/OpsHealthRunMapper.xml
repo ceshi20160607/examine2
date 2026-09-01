@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.operations.base.mapper.OpsHealthRunMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.operations.base.entity.OpsHealthRun">
+        <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="run_type" property="runType" />
+        <result column="release_version" property="releaseVersion" />
+        <result column="status" property="status" />
+        <result column="summary_json" property="summaryJson" />
+        <result column="started_by_account_id" property="startedByAccountId" />
+        <result column="started_at" property="startedAt" />
+        <result column="finished_at" property="finishedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, context_type, platform_id, system_id, run_type, release_version, `status`, summary_json, started_by_account_id, started_at, finished_at
+    </sql>
+
+</mapper>

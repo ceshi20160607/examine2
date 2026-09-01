@@ -31,13 +31,25 @@ public class ConfiguredModule {
     @TableField("group_id")
     private Long groupId;
 
-    @TableField("code")
+    @TableField("`code`")
     private String code;
 
-    @TableField("name")
+    @TableField("`name`")
     private String name;
 
-    @TableField("status")
+    @TableField("`description`")
+    private String description;
+
+    @TableField("title_field_code")
+    private String titleFieldCode;
+
+    @TableField("number_sequence_code")
+    private String numberSequenceCode;
+
+    @TableField("status_field_code")
+    private String statusFieldCode;
+
+    @TableField("`status`")
     private String status;
 
     @TableField("draft_revision")
@@ -104,6 +116,38 @@ public class ConfiguredModule {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTitleFieldCode() {
+        return titleFieldCode;
+    }
+
+    public void setTitleFieldCode(String titleFieldCode) {
+        this.titleFieldCode = titleFieldCode;
+    }
+
+    public String getNumberSequenceCode() {
+        return numberSequenceCode;
+    }
+
+    public void setNumberSequenceCode(String numberSequenceCode) {
+        this.numberSequenceCode = numberSequenceCode;
+    }
+
+    public String getStatusFieldCode() {
+        return statusFieldCode;
+    }
+
+    public void setStatusFieldCode(String statusFieldCode) {
+        this.statusFieldCode = statusFieldCode;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -161,6 +205,10 @@ public class ConfiguredModule {
             ", groupId = " + groupId +
             ", code = " + code +
             ", name = " + name +
+            ", description = " + description +
+            ", titleFieldCode = " + titleFieldCode +
+            ", numberSequenceCode = " + numberSequenceCode +
+            ", statusFieldCode = " + statusFieldCode +
             ", status = " + status +
             ", draftRevision = " + draftRevision +
             ", createdByMemberId = " + createdByMemberId +

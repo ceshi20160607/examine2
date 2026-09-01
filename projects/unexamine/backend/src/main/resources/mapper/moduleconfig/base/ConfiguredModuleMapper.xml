@@ -10,6 +10,10 @@
         <result column="group_id" property="groupId" />
         <result column="code" property="code" />
         <result column="name" property="name" />
+        <result column="description" property="description" />
+        <result column="title_field_code" property="titleFieldCode" />
+        <result column="number_sequence_code" property="numberSequenceCode" />
+        <result column="status_field_code" property="statusFieldCode" />
         <result column="status" property="status" />
         <result column="draft_revision" property="draftRevision" />
         <result column="created_by_member_id" property="createdByMemberId" />
@@ -20,7 +24,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, owner_tenant_id, group_id, code, name, status, draft_revision, created_by_member_id, created_at, updated_at, version
+        id, system_id, owner_tenant_id, group_id, `code`, `name`, `description`, title_field_code, number_sequence_code, status_field_code, `status`, draft_revision, created_by_member_id, created_at, updated_at, version
     </sql>
 
 </mapper>
