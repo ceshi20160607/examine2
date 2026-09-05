@@ -27,8 +27,10 @@ public final class SystemAuthorizationModels {
     }
 
     public record MemberView(Long tenantMemberId, Long systemMemberId, Long accountId, String displayName,
-                             String employeeNumber, Long departmentId, boolean tenantAdmin, String status,
-                             List<Long> roleIds, Integer version) {
+                             String employeeNumber, Long departmentId, String departmentName,
+                             Long managerTenantMemberId, String managerName, String positionTitle,
+                             boolean tenantAdmin, String status, List<Long> roleIds, List<String> roleNames,
+                             Integer version) {
     }
 
     public record RoleView(Long id, String code, String name, String description, boolean builtIn, String status,
@@ -37,13 +39,14 @@ public final class SystemAuthorizationModels {
     }
 
     public record ResourceView(String resourceType, String resourceCode, String name,
-                               List<String> actions, List<String> fields) {
+                               List<String> actions, List<String> fields,
+                               Map<String, String> actionNames, Map<String, String> fieldNames) {
     }
 
     public record DepartmentRequest(
             Long id,
             Long parentId,
-            @NotBlank @Pattern(regexp = "[a-z][a-z0-9_-]{1,99}") String code,
+            @Pattern(regexp = "[a-z][a-z0-9_-]{1,99}") String code,
             @NotBlank @Size(max = 200) String name,
             Integer sortOrder,
             Integer expectedVersion) {
@@ -51,8 +54,19 @@ public final class SystemAuthorizationModels {
 
     public record MemberAssignmentRequest(
             Long departmentId,
+            Long managerTenantMemberId,
+            @Size(max = 100) String positionTitle,
             @NotNull List<Long> roleIds,
             @NotNull Integer expectedVersion) {
+    }
+
+    public record AddMemberRequest(
+            @NotBlank @Size(max = 200) String account,
+            @Size(max = 100) String employeeNumber,
+            Long departmentId,
+            Long managerTenantMemberId,
+            @Size(max = 100) String positionTitle,
+            @NotNull List<Long> roleIds) {
     }
 
     public record PermissionInput(
@@ -74,7 +88,7 @@ public final class SystemAuthorizationModels {
 
     public record SaveRoleRequest(
             Long id,
-            @NotBlank @Pattern(regexp = "[a-z][a-z0-9_-]{1,99}") String code,
+            @Pattern(regexp = "[a-z][a-z0-9_-]{1,99}") String code,
             @NotBlank @Size(max = 200) String name,
             @Size(max = 1000) String description,
             @NotEmpty List<@Valid PermissionInput> permissions,

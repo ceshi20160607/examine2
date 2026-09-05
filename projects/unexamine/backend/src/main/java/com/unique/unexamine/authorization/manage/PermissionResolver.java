@@ -156,6 +156,9 @@ public class PermissionResolver {
         } else if (containsType(unique, "DEPARTMENT")) {
             unique.entrySet().removeIf(entry -> "SELF".equals(entry.getValue().type));
         }
+        if (containsType(unique, "SELF_AND_SUBORDINATES")) {
+            unique.entrySet().removeIf(entry -> "SELF".equals(entry.getValue().type));
+        }
         List<DataScopeTerm> terms = unique.values().stream()
                 .map(term -> new DataScopeTerm(term.type, term.condition, term.roleIds.stream().sorted().toList()))
                 .sorted(Comparator.comparing(DataScopeTerm::type).thenComparing(term -> term.condition().toString()))

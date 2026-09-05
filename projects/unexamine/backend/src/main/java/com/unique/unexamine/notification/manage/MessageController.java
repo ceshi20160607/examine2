@@ -74,4 +74,9 @@ public class MessageController {
         return ApiResult.ok(service.retryDelivery(AuthenticationContextHolder.require(), deliveryId,
                 TraceIdFilter.current(request)));
     }
+
+    @GetMapping("/diagnostics/{messageId}/deliveries")
+    public ApiResult<MessageModels.DeliveryDiagnosticsView> diagnostics(@PathVariable Long messageId) {
+        return ApiResult.ok(service.deliveryDiagnostics(AuthenticationContextHolder.require(), messageId));
+    }
 }

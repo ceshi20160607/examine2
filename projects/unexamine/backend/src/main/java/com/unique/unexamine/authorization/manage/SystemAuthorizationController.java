@@ -44,6 +44,14 @@ public class SystemAuthorizationController {
                 TraceIdFilter.current(request)));
     }
 
+    @PostMapping("/members")
+    public ApiResult<SystemAuthorizationModels.MemberView> addMember(
+            @Valid @RequestBody SystemAuthorizationModels.AddMemberRequest input,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.addMember(AuthenticationContextHolder.require(), input,
+                TraceIdFilter.current(request)));
+    }
+
     @PostMapping("/roles")
     public ApiResult<SystemAuthorizationModels.RoleView> saveRole(
             @Valid @RequestBody SystemAuthorizationModels.SaveRoleRequest input,

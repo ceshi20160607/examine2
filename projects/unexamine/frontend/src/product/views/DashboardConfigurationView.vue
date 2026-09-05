@@ -2,12 +2,13 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ApiError, api } from '../api'
 import { dashboardSourceLabels, moveDashboardComponent, sourceDefinition } from '../dashboard'
+import { dashboardComponentLabel, productStatus, versionLabel } from '../presentation'
 import { platformTokens, systemContext, systemTokens } from '../session'
 import ReportSourceEditor from './ReportSourceEditor.vue'
 import KpiConfigurationView from './KpiConfigurationView.vue'
 import type {
   DashboardAdminOverview, DashboardComponentInput, DashboardComponentType, DashboardDataSource,
-  DashboardDefinition, DashboardPreview, DashboardSourceType, KpiOverview,
+  DashboardDefinition, DashboardPreview, DashboardSourceType, KpiOverview, ReportMetadata,
 } from '../types'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'system' })
@@ -15,6 +16,7 @@ const token = computed(() => props.context === 'platform'
   ? platformTokens.value?.accessToken : systemTokens.value?.accessToken)
 const overview = ref<DashboardAdminOverview>()
 const kpiOverview = ref<KpiOverview>({ kpis: [] })
+const metadata = ref<ReportMetadata>()
 const preview = ref<DashboardPreview>()
 const loading = ref(false)
 const saving = ref(false)
@@ -26,10 +28,11 @@ const dragIndex = ref<number>()
 
 const sourceTypes = computed<DashboardSourceType[]>(() => props.context === 'platform'
   ? ['PLATFORM_SYSTEMS', 'TODO_ITEMS', 'MESSAGE_ITEMS', 'WORK_PROJECTS']
-  : ['MODULE_RECORDS', 'MODULE_REPORT', 'TODO_ITEMS', 'MESSAGE_ITEMS', 'WORK_PROJECTS'])
+  : ['MODULE_RECORDS', 'MODULE_REPORT', 'TODO_ITEMS', 'MESSAGE_ITEMS', 'WORK_PROJECTS', 'EXTERNAL_API', 'DATABASE_CONNECTION'])
 const sourceForm = reactive({
   code: '', name: '', sourceType: (props.context === 'platform' ? 'PLATFORM_SYSTEMS' : 'MODULE_RECORDS') as DashboardSourceType,
   moduleCode: '', limit: 5, reportDefinition: {} as Record<string, unknown>, expectedVersion: undefined as number | undefined,
+  connectionReference: '', operationCode: '', method: 'GET' as 'GET' | 'POST', responseSelector: '$', timeoutMillis: 5000,
 })
 const dashboardForm = reactive({
   code: '', name: '', description: '', expectedVersion: undefined as number | undefined,
@@ -40,7 +43,38 @@ const componentForm = reactive({
   dataSourceId: undefined as number | undefined, width: 1, refreshSeconds: 60,
   accentColor: '#315efb', drillRoute: '', drillModuleCode: '',
   kpiId: undefined as number | undefined,
+  chartType: 'BAR' as 'BAR' | 'LINE' | 'PIE',
 })
+
+const componentTypes: { value: DashboardComponentType; label: string }[] = [
+  { value: 'METRIC', label: '核心数字' }, { value: 'CHART', label: '统计图表' },
+  { value: 'RANKING', label: '业务排行' }, { value: 'LIST', label: '业务列表' },
+  { value: 'TODO', label: '待办列表' }, { value: 'KPI', label: 'KPI 指标' },
+  { value: 'PROGRESS', label: '进度指标' }, { value: 'QUICK_ENTRY', label: '快捷入口' },
+]
+const widthOptions = [
+  { value: 1, label: '1/4 行' }, { value: 2, label: '1/2 行' },
+  { value: 3, label: '3/4 行' }, { value: 4, label: '整行' },
+]
+
+function generatedCode(prefix: string, name: string) {
+  const latin = name.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '')
+  return `${prefix}_${latin || Date.now().toString(36)}`.slice(0, 96)
+}
+
+function sourceDefinitionFromForm(): Record<string, unknown> {
+  if (sourceForm.sourceType === 'MODULE_REPORT') return sourceForm.reportDefinition
+  if (sourceForm.sourceType === 'EXTERNAL_API') return {
+    connectionReference: sourceForm.connectionReference.trim(), requestCode: sourceForm.operationCode.trim(),
+    method: sourceForm.method, responseSelector: sourceForm.responseSelector.trim() || '$',
+    queryParameters: {}, limit: Math.max(1, Math.min(1000, sourceForm.limit)), timeoutMillis: sourceForm.timeoutMillis,
+  }
+  if (sourceForm.sourceType === 'DATABASE_CONNECTION') return {
+    connectionReference: sourceForm.connectionReference.trim(), queryCode: sourceForm.operationCode.trim(),
+    parameters: {}, outputFields: [], limit: Math.max(1, Math.min(1000, sourceForm.limit)), timeoutMillis: sourceForm.timeoutMillis,
+  }
+  return sourceDefinition(sourceForm.sourceType, sourceForm.moduleCode, sourceForm.limit)
+}
 
 function message(cause: unknown) {
   return cause instanceof ApiError ? `${cause.code}：${cause.message}` : '操作失败，请稍后重试'
@@ -54,6 +88,8 @@ async function load() {
     overview.value = await api<DashboardAdminOverview>('/api/analytics/admin', {}, token.value)
     kpiOverview.value = props.context === 'system'
       ? await api<KpiOverview>('/api/analytics/admin/kpis', {}, token.value) : { kpis: [] }
+    metadata.value = props.context === 'system'
+      ? await api<ReportMetadata>('/api/analytics/admin/report-metadata', {}, token.value) : undefined
     if (selectedSourceId.value) {
       const current = overview.value.dataSources.find(item => item.id === selectedSourceId.value)
       if (current) fillSource(current)
@@ -67,7 +103,7 @@ async function load() {
 
 function resetSource() {
   selectedSourceId.value = undefined
-  Object.assign(sourceForm, { code: '', name: '', sourceType: props.context === 'platform' ? 'PLATFORM_SYSTEMS' : 'MODULE_RECORDS', moduleCode: '', limit: 5, reportDefinition: {}, expectedVersion: undefined })
+  Object.assign(sourceForm, { code: '', name: '', sourceType: props.context === 'platform' ? 'PLATFORM_SYSTEMS' : 'MODULE_RECORDS', moduleCode: '', limit: 5, reportDefinition: {}, connectionReference: '', operationCode: '', method: 'GET', responseSelector: '$', timeoutMillis: 5000, expectedVersion: undefined })
 }
 
 function fillSource(source: DashboardDataSource) {
@@ -76,6 +112,11 @@ function fillSource(source: DashboardDataSource) {
     code: source.code, name: source.name, sourceType: source.sourceType,
     moduleCode: String(source.definition.moduleCode || ''), limit: Number(source.definition.limit || 5),
     reportDefinition: source.sourceType === 'MODULE_REPORT' ? source.definition : {},
+    connectionReference: String(source.definition.connectionReference || ''),
+    operationCode: String(source.definition.requestCode || source.definition.queryCode || ''),
+    method: String(source.definition.method || 'GET') as 'GET' | 'POST',
+    responseSelector: String(source.definition.responseSelector || '$'),
+    timeoutMillis: Number(source.definition.timeoutMillis || 5000),
     expectedVersion: source.version,
   })
 }
@@ -84,10 +125,11 @@ async function saveSource() {
   if (!token.value) return
   saving.value = true; error.value = ''; success.value = ''
   try {
+    if (!sourceForm.name.trim()) { error.value = '请填写数据源名称。'; return }
+    sourceForm.code ||= generatedCode('source', sourceForm.name)
     const body = {
       code: sourceForm.code, name: sourceForm.name, sourceType: sourceForm.sourceType,
-      definition: sourceForm.sourceType === 'MODULE_REPORT' ? sourceForm.reportDefinition
-        : sourceDefinition(sourceForm.sourceType, sourceForm.moduleCode, sourceForm.limit),
+      definition: sourceDefinitionFromForm(),
       permissionPolicy: ['MODULE_RECORDS', 'MODULE_REPORT'].includes(sourceForm.sourceType)
         ? { resourceType: 'MODULE', resourceCode: sourceForm.sourceType === 'MODULE_REPORT'
           ? String((sourceForm.reportDefinition.modules as Record<string, unknown>[] | undefined)?.[0]?.moduleCode || '')
@@ -136,9 +178,10 @@ function fillDashboard(dashboard: DashboardDefinition) {
 }
 
 function addComponent() {
-  if (!componentForm.componentKey.trim() || !componentForm.title.trim()) {
-    error.value = '组件编码和标题不能为空。'; return
+  if (!componentForm.title.trim()) {
+    error.value = '请填写组件标题。'; return
   }
+  componentForm.componentKey ||= generatedCode('component', componentForm.title)
   const selectedKpi = componentForm.componentType === 'KPI'
     ? kpiOverview.value.kpis.find(item => item.id === componentForm.kpiId) : undefined
   const kpiSource = selectedKpi ? overview.value?.dataSources.find(source => source.versions
@@ -165,10 +208,11 @@ function addComponent() {
       : selectedKpi ? kpiSource?.id : componentForm.dataSourceId,
     layout: { width: componentForm.width }, queryParameters: selectedKpi
       ? { kpiId: selectedKpi.id, kpiVersion: selectedKpi.version } : {},
-    displayConfig: { accentColor: componentForm.accentColor, refreshSeconds: componentForm.refreshSeconds },
+    displayConfig: { accentColor: componentForm.accentColor, refreshSeconds: componentForm.refreshSeconds,
+      chartType: componentForm.chartType },
     drillTarget, sortOrder: dashboardForm.components.length * 10,
   })
-  Object.assign(componentForm, { componentKey: '', title: '', dataSourceId: undefined, drillRoute: '', drillModuleCode: '', kpiId: undefined })
+  Object.assign(componentForm, { componentKey: '', title: '', dataSourceId: undefined, drillRoute: '', drillModuleCode: '', kpiId: undefined, chartType: 'BAR' })
   error.value = ''
 }
 
@@ -185,6 +229,8 @@ async function saveDashboard() {
   if (!token.value) return
   saving.value = true; error.value = ''; success.value = ''; preview.value = undefined
   try {
+    if (!dashboardForm.name.trim()) { error.value = '请填写仪表盘名称。'; return }
+    dashboardForm.code ||= generatedCode('dashboard', dashboardForm.name)
     const body = { code: dashboardForm.code, name: dashboardForm.name, description: dashboardForm.description,
       components: dashboardForm.components, expectedVersion: dashboardForm.expectedVersion }
     const path = selectedDashboardId.value
@@ -237,19 +283,26 @@ watch(() => props.context, () => { resetSource(); resetDashboard(); void load() 
           <aside class="panel-card dashboard-config-list">
             <div class="panel-title"><strong>当前上下文数据源</strong><a-button size="small" @click="resetSource">新建</a-button></div>
             <button v-for="source in overview?.dataSources" :key="source.id" type="button" :class="{ active: selectedSourceId === source.id }" @click="fillSource(source)">
-              <span><strong>{{ source.name }}</strong><small>{{ dashboardSourceLabels[source.sourceType] }} · r{{ source.draftRevision }}</small></span><a-tag :color="source.status === 'PUBLISHED' ? 'green' : 'orange'">{{ source.status }}</a-tag>
+              <span><strong>{{ source.name }}</strong><small>{{ dashboardSourceLabels[source.sourceType] }}</small></span><a-tag :color="source.boundary.runtimeReady ? source.status === 'PUBLISHED' ? 'green' : 'orange' : 'default'">{{ source.boundary.runtimeReady ? productStatus(source.status).label : '待绑定' }}</a-tag>
             </button>
             <a-empty v-if="!overview?.dataSources.length" :image="false" description="尚未配置数据源" />
           </aside>
           <div class="panel-card dashboard-config-form">
             <div class="panel-title"><strong>{{ selectedSourceId ? '编辑数据源草稿' : '新建数据源' }}</strong><span>发布版本与后续草稿互不覆盖</span></div>
             <a-form layout="vertical">
-              <div class="form-grid form-grid--three"><a-form-item label="编码"><a-input v-model:value="sourceForm.code" placeholder="customer_records" /></a-form-item><a-form-item label="名称"><a-input v-model:value="sourceForm.name" placeholder="客户记录" /></a-form-item><a-form-item label="类型"><a-select v-model:value="sourceForm.sourceType" :options="sourceTypes.map(value => ({ value, label: dashboardSourceLabels[value] }))" /></a-form-item></div>
+              <div class="form-grid"><a-form-item label="数据源名称" required><a-input v-model:value="sourceForm.name" placeholder="例如：客户阶段分布" /></a-form-item><a-form-item label="数据来自哪里"><a-select v-model:value="sourceForm.sourceType" :options="sourceTypes.map(value => ({ value, label: dashboardSourceLabels[value] }))" /></a-form-item></div>
               <ReportSourceEditor v-if="sourceForm.sourceType === 'MODULE_REPORT'" :key="selectedSourceId || 'new-report'" :token="token" :source-id="selectedSourceId" :initial-definition="sourceForm.reportDefinition" @definition="sourceForm.reportDefinition = $event" />
-              <div v-else class="form-grid"><a-form-item v-if="sourceForm.sourceType === 'MODULE_RECORDS'" label="模块编码"><a-input v-model:value="sourceForm.moduleCode" placeholder="customer" /></a-form-item><a-form-item label="返回条数（1-20）"><a-input-number v-model:value="sourceForm.limit" :min="1" :max="20" /></a-form-item></div>
+              <a-form-item v-else-if="sourceForm.sourceType === 'MODULE_RECORDS'" label="选择业务模块" required><a-select v-model:value="sourceForm.moduleCode" show-search option-filter-prop="label" placeholder="按模块名称搜索" :options="metadata?.modules.map(item => ({ value: item.moduleCode, label: `${item.moduleName} · ${versionLabel(item.versionNumber)}` }))" /></a-form-item>
+              <section v-else-if="sourceForm.sourceType === 'EXTERNAL_API' || sourceForm.sourceType === 'DATABASE_CONNECTION'" class="dashboard-boundary-editor">
+                <a-alert type="info" show-icon message="仅引用平台受管连接" :description="sourceForm.sourceType === 'EXTERNAL_API' ? '这里不会保存地址、令牌或密码；部署侧绑定连接后才会执行已批准请求。' : '这里不会保存数据库地址、凭据或任意 SQL；部署侧绑定只读连接和批准查询后才会执行。'" />
+                <div class="form-grid"><a-form-item label="受管连接引用" required><a-input v-model:value="sourceForm.connectionReference" placeholder="例如：crm_readonly" /></a-form-item><a-form-item :label="sourceForm.sourceType === 'EXTERNAL_API' ? '已批准请求' : '已批准查询'" required><a-input v-model:value="sourceForm.operationCode" placeholder="例如：customer_summary_v1" /></a-form-item></div>
+                <div v-if="sourceForm.sourceType === 'EXTERNAL_API'" class="form-grid"><a-form-item label="请求方式"><a-segmented v-model:value="sourceForm.method" :options="['GET', 'POST']" /></a-form-item><a-form-item label="响应数据位置"><a-input v-model:value="sourceForm.responseSelector" placeholder="$" /></a-form-item></div>
+              </section>
+              <a-collapse ghost class="dashboard-advanced"><a-collapse-panel key="advanced" header="高级设置（通常无需修改）"><div class="form-grid form-grid--three"><a-form-item label="稳定标识"><a-input v-model:value="sourceForm.code" placeholder="留空自动生成" /></a-form-item><a-form-item label="最多返回"><a-input-number v-model:value="sourceForm.limit" :min="1" :max="sourceForm.sourceType === 'EXTERNAL_API' || sourceForm.sourceType === 'DATABASE_CONNECTION' ? 1000 : 20" /></a-form-item><a-form-item v-if="sourceForm.sourceType === 'EXTERNAL_API' || sourceForm.sourceType === 'DATABASE_CONNECTION'" label="超时毫秒"><a-input-number v-model:value="sourceForm.timeoutMillis" :min="500" :max="30000" /></a-form-item></div></a-collapse-panel></a-collapse>
+              <a-alert v-if="selectedSourceId" type="info" show-icon :message="overview?.dataSources.find(item => item.id === selectedSourceId)?.boundary.explanation" />
               <div class="form-actions"><a-button type="primary" :loading="saving" @click="saveSource">保存草稿</a-button><a-button v-if="selectedSourceId" :loading="saving" @click="publishSource(overview!.dataSources.find(item => item.id === selectedSourceId)!)">发布数据源</a-button></div>
             </a-form>
-            <div v-if="selectedSourceId" class="dashboard-version-strip"><span v-for="version in overview?.dataSources.find(item => item.id === selectedSourceId)?.versions" :key="version.id">v{{ version.versionNumber }} · r{{ version.draftRevision }} · {{ version.definitionHash.slice(0, 8) }}</span></div>
+            <div v-if="selectedSourceId" class="dashboard-version-strip"><span v-for="version in overview?.dataSources.find(item => item.id === selectedSourceId)?.versions" :key="version.id">{{ versionLabel(version.versionNumber) }}</span></div>
           </div>
         </div>
       </a-tab-pane>
@@ -258,27 +311,29 @@ watch(() => props.context, () => { resetSource(); resetDashboard(); void load() 
         <div class="dashboard-config-layout">
           <aside class="panel-card dashboard-config-list">
             <div class="panel-title"><strong>仪表盘草稿</strong><a-button size="small" @click="resetDashboard">新建</a-button></div>
-            <button v-for="item in overview?.dashboards" :key="item.id" type="button" :class="{ active: selectedDashboardId === item.id }" @click="fillDashboard(item)"><span><strong>{{ item.name }}</strong><small>{{ item.components.length }} 组件 · r{{ item.draftRevision }}</small></span><a-tag :color="item.status === 'PUBLISHED' ? 'green' : 'orange'">{{ item.status }}</a-tag></button>
+            <button v-for="item in overview?.dashboards" :key="item.id" type="button" :class="{ active: selectedDashboardId === item.id }" @click="fillDashboard(item)"><span><strong>{{ item.name }}</strong><small>{{ item.components.length }} 个组件</small></span><a-tag :color="productStatus(item.status).color">{{ productStatus(item.status).label }}</a-tag></button>
             <a-empty v-if="!overview?.dashboards.length" :image="false" description="尚未配置仪表盘" />
           </aside>
           <div class="dashboard-builder">
             <section class="panel-card dashboard-config-form">
-              <div class="form-grid form-grid--three"><a-form-item label="编码"><a-input v-model:value="dashboardForm.code" placeholder="system_home" /></a-form-item><a-form-item label="名称"><a-input v-model:value="dashboardForm.name" placeholder="经营工作台" /></a-form-item><a-form-item label="说明"><a-input v-model:value="dashboardForm.description" placeholder="说明统计范围与用途" /></a-form-item></div>
+              <div class="form-grid"><a-form-item label="仪表盘名称" required><a-input v-model:value="dashboardForm.name" placeholder="经营工作台" /></a-form-item><a-form-item label="使用说明"><a-input v-model:value="dashboardForm.description" placeholder="例如：客户经营、待办和重点目标总览" /></a-form-item></div>
+              <a-collapse ghost class="dashboard-advanced"><a-collapse-panel key="advanced" header="高级标识"><a-form-item label="稳定标识"><a-input v-model:value="dashboardForm.code" placeholder="留空自动生成" /></a-form-item></a-collapse-panel></a-collapse>
             </section>
             <section class="panel-card dashboard-component-editor">
-              <div class="panel-title"><strong>组件库</strong><span>拖动卡片调整顺序；宽度控制一至四列</span></div>
-              <div class="form-grid form-grid--three"><a-form-item label="组件编码"><a-input v-model:value="componentForm.componentKey" placeholder="customer_count" /></a-form-item><a-form-item label="标题"><a-input v-model:value="componentForm.title" placeholder="客户总数" /></a-form-item><a-form-item label="类型"><a-select v-model:value="componentForm.componentType" :options="['METRIC','CHART','LIST','TODO','QUICK_ENTRY','KPI','PROGRESS','RANKING'].map(value => ({ value, label: value }))" /></a-form-item></div>
-              <div class="form-grid form-grid--three"><a-form-item :label="componentForm.componentType === 'KPI' ? '绑定 KPI 配置版本' : '绑定数据源'"><a-select v-if="componentForm.componentType === 'KPI'" v-model:value="componentForm.kpiId" allow-clear :options="kpiOverview.kpis.map(item => ({ value: item.id, label: `${item.name} · 配置 v${item.version}` }))" /><a-select v-else v-model:value="componentForm.dataSourceId" allow-clear :disabled="componentForm.componentType === 'QUICK_ENTRY'" :options="overview?.dataSources.map(item => ({ value: item.id, label: `${item.name} · ${item.status}` }))" /></a-form-item><a-form-item label="卡片宽度"><a-input-number v-model:value="componentForm.width" :min="1" :max="4" /></a-form-item><a-form-item label="刷新秒数"><a-input-number v-model:value="componentForm.refreshSeconds" :min="15" :max="3600" /></a-form-item></div>
-              <div class="form-grid form-grid--three"><a-form-item label="强调色"><a-input v-model:value="componentForm.accentColor" type="color" /></a-form-item><a-form-item label="下钻模块"><a-input v-model:value="componentForm.drillModuleCode" placeholder="customer" /></a-form-item><a-form-item label="或下钻路由"><a-input v-model:value="componentForm.drillRoute" placeholder="/platform/tasks" /></a-form-item></div>
+              <div class="panel-title"><strong>添加一个业务组件</strong><span>选择内容和展现方式，加入后可拖动排序</span></div>
+              <div class="form-grid"><a-form-item label="组件标题" required><a-input v-model:value="componentForm.title" placeholder="例如：客户阶段分布" /></a-form-item><a-form-item label="展现方式"><a-select v-model:value="componentForm.componentType" :options="componentTypes" /></a-form-item></div>
+              <div class="form-grid"><a-form-item :label="componentForm.componentType === 'KPI' ? '选择 KPI' : '选择数据内容'"><a-select v-if="componentForm.componentType === 'KPI'" v-model:value="componentForm.kpiId" allow-clear :options="kpiOverview.kpis.map(item => ({ value: item.id, label: item.name }))" /><a-select v-else v-model:value="componentForm.dataSourceId" allow-clear :disabled="componentForm.componentType === 'QUICK_ENTRY'" :options="overview?.dataSources.filter(item => item.status === 'PUBLISHED').map(item => ({ value: item.id, label: `${item.name} · ${dashboardSourceLabels[item.sourceType]}` }))" /></a-form-item><a-form-item label="占用宽度"><a-segmented v-model:value="componentForm.width" :options="widthOptions" block /></a-form-item></div>
+              <div class="form-grid form-grid--three"><a-form-item v-if="componentForm.componentType === 'CHART' || componentForm.componentType === 'RANKING'" label="图表样式"><a-select v-model:value="componentForm.chartType" :options="[{ value: 'BAR', label: '柱状图' }, { value: 'LINE', label: '折线图' }, { value: 'PIE', label: '环形图' }]" /></a-form-item><a-form-item label="点击后打开"><a-select v-model:value="componentForm.drillModuleCode" allow-clear show-search option-filter-prop="label" placeholder="可选业务模块" :options="metadata?.modules.map(item => ({ value: item.moduleCode, label: item.moduleName }))" /></a-form-item><a-form-item label="强调色"><a-input v-model:value="componentForm.accentColor" type="color" /></a-form-item></div>
+              <a-collapse ghost class="dashboard-advanced"><a-collapse-panel key="advanced" header="高级设置（刷新、标识与内部路由）"><div class="form-grid form-grid--three"><a-form-item label="刷新间隔（秒）"><a-input-number v-model:value="componentForm.refreshSeconds" :min="15" :max="3600" /></a-form-item><a-form-item label="组件标识"><a-input v-model:value="componentForm.componentKey" placeholder="留空自动生成" /></a-form-item><a-form-item label="内部路由"><a-input v-model:value="componentForm.drillRoute" placeholder="仅高级场景使用" /></a-form-item></div></a-collapse-panel></a-collapse>
               <a-button type="dashed" block @click="addComponent">加入布局</a-button>
             </section>
             <section class="dashboard-draft-grid">
-              <article v-for="(component, index) in dashboardForm.components" :key="component.componentKey" class="dashboard-draft-card" draggable="true" @dragstart="dragIndex = index" @dragover.prevent @drop="drop(index)"><span class="dashboard-drag-handle">⋮⋮</span><div><small>{{ component.componentType }} · {{ component.componentKey }}</small><strong>{{ component.title }}</strong><em>{{ overview?.dataSources.find(item => item.id === component.dataSourceId)?.name || '无数据源快捷入口' }}</em></div><div><a-button size="small" :disabled="index === 0" @click="move(index, index - 1)">↑</a-button><a-button size="small" :disabled="index === dashboardForm.components.length - 1" @click="move(index, index + 1)">↓</a-button><a-button size="small" danger @click="dashboardForm.components.splice(index, 1); dashboardForm.components = moveDashboardComponent(dashboardForm.components, -1, -1)">删除</a-button></div></article>
+              <article v-for="(component, index) in dashboardForm.components" :key="component.componentKey" class="dashboard-draft-card" :style="{ '--draft-span': String(component.layout.width || 1) }" draggable="true" @dragstart="dragIndex = index" @dragover.prevent @drop="drop(index)"><span class="dashboard-drag-handle">⋮⋮</span><div><small>{{ componentTypes.find(item => item.value === component.componentType)?.label }} · {{ widthOptions.find(item => item.value === component.layout.width)?.label }}</small><strong>{{ component.title }}</strong><em>{{ overview?.dataSources.find(item => item.id === component.dataSourceId)?.name || '无数据源快捷入口' }}</em></div><div><a-button size="small" :disabled="index === 0" @click="move(index, index - 1)">↑</a-button><a-button size="small" :disabled="index === dashboardForm.components.length - 1" @click="move(index, index + 1)">↓</a-button><a-button size="small" danger @click="dashboardForm.components.splice(index, 1); dashboardForm.components = moveDashboardComponent(dashboardForm.components, -1, -1)">删除</a-button></div></article>
               <a-empty v-if="!dashboardForm.components.length" description="从组件库加入至少一个组件" />
             </section>
             <div class="form-actions dashboard-publish-actions"><a-button type="primary" :loading="saving" @click="saveDashboard">保存草稿</a-button><a-button :disabled="!selectedDashboardId" :loading="loading" @click="previewDashboard">执行预览</a-button><a-button :disabled="!selectedDashboardId || preview?.valid === false" :loading="saving" danger @click="publishDashboard">发布新版本</a-button></div>
-            <section v-if="preview" class="panel-card dashboard-preview-panel"><div class="panel-title"><strong>真实数据预览 · r{{ preview.draftRevision }}</strong><a-tag :color="preview.valid ? 'green' : 'red'">{{ preview.valid ? '可发布' : '不可发布' }}</a-tag></div><a-alert v-for="issue in preview.issues" :key="`${issue.componentKey}:${issue.code}`" type="error" show-icon :message="`${issue.componentKey} · ${issue.code}`" :description="issue.message" /><div class="dashboard-preview-grid"><article v-for="component in preview.components" :key="component.componentKey" :class="{ error: component.outcome === 'ERROR' }"><small>{{ component.componentType }} · {{ component.outcome }}</small><strong>{{ component.title }}</strong><b v-if="component.outcome === 'READY'">{{ component.value ?? `${component.items.length} 项` }}</b><p>{{ component.metricDefinition }}</p><em>{{ component.errorCode || (component.drillAvailable ? '下钻已授权' : '无下钻') }}</em></article></div></section>
-            <div v-if="selectedDashboardId" class="dashboard-version-strip"><span v-for="version in overview?.dashboards.find(item => item.id === selectedDashboardId)?.versions" :key="version.id" :class="{ current: version.current }">v{{ version.versionNumber }} · r{{ version.draftRevision }} · {{ version.snapshotHash.slice(0, 8) }} <b v-if="version.current">当前</b></span></div>
+            <section v-if="preview" class="panel-card dashboard-preview-panel"><div class="panel-title"><strong>真实数据预览</strong><a-tag :color="preview.valid ? 'green' : 'red'">{{ preview.valid ? '可发布' : '不可发布' }}</a-tag></div><a-alert v-for="issue in preview.issues" :key="`${issue.componentKey}:${issue.code}`" type="error" show-icon :message="issue.message" /><div class="dashboard-preview-grid"><article v-for="component in preview.components" :key="component.componentKey" :class="{ error: component.outcome === 'ERROR' }"><small>{{ dashboardComponentLabel(component.componentType) }} · {{ productStatus(component.outcome).label }}</small><strong>{{ component.title }}</strong><b v-if="component.outcome === 'READY'">{{ component.value ?? `${component.items.length} 项` }}</b><p>{{ component.metricDefinition }}</p><em>{{ component.outcome === 'ERROR' ? '当前组件暂不可用' : component.drillAvailable ? '可点击查看明细' : '仅展示汇总' }}</em></article></div></section>
+            <div v-if="selectedDashboardId" class="dashboard-version-strip"><span v-for="version in overview?.dashboards.find(item => item.id === selectedDashboardId)?.versions" :key="version.id" :class="{ current: version.current }">{{ versionLabel(version.versionNumber) }} <b v-if="version.current">当前使用</b></span></div>
           </div>
         </div>
       </a-tab-pane>

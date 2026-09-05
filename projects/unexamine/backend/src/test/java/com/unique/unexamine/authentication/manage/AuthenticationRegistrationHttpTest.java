@@ -54,6 +54,7 @@ class AuthenticationRegistrationHttpTest {
         registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
         registry.add("spring.datasource.username", MYSQL::getUsername);
         registry.add("spring.datasource.password", MYSQL::getPassword);
+        registry.add("spring.http.client.factory", () -> "simple");
         registry.add("test.sso.secret", () -> "local-oidc-secret");
         registry.add("springdoc.api-docs.enabled", () -> "true");
     }
@@ -135,8 +136,10 @@ class AuthenticationRegistrationHttpTest {
         assertThat(count("plat_account", "username = 'owner_one'")).isOne();
         assertThat(count("sys_system", "code = 'customer_ops'")).isOne();
         assertThat(count("sys_tenant", "system_id = " + systemId + " and is_main = 1 and main_marker = 'MAIN'")).isOne();
+        assertThat(count("sys_department", "tenant_id = " + tenantId + " and parent_id is null and code = 'root' and name = '全公司'")).isOne();
         assertThat(count("sys_member", "system_id = " + systemId + " and status = 'ACTIVE'")).isOne();
-        assertThat(count("sys_tenant_member", "tenant_id = " + tenantId + " and tenant_admin = 1")).isOne();
+        assertThat(count("sys_tenant_member", "tenant_id = " + tenantId + " and tenant_admin = 1 and department_id in "
+                + "(select id from sys_department where tenant_id = " + tenantId + " and code = 'root')")).isOne();
         assertThat(count("sys_member_role", "tenant_id = " + tenantId)).isOne();
         assertThat(jdbc.queryForObject(
                 "select count(*) from sys_role_permission p join sys_role r on r.id = p.role_id where r.tenant_id = ? and p.data_scope_type = 'ALL'",
@@ -572,18 +575,19 @@ class AuthenticationRegistrationHttpTest {
         assertThat(count("sys_tenant", "system_id in (select id from sys_system where code = 'rollback_target')")).isZero();
 
         ResponseEntity<Map> createdSystem = exchangeWithBearer("/api/systems", HttpMethod.POST, adminToken, Map.of(
-                "code", "access_target",
-                "name", "访问审批目标系统",
-                "tenantMode", "SINGLE"));
+                "name", "访问审批目标系统"));
         assertThat(createdSystem.getStatusCode())
                 .withFailMessage("创建系统失败：%s", createdSystem.getBody())
                 .isEqualTo(HttpStatus.OK);
         Map<String, Object> target = data(createdSystem);
         long systemId = ((Number) target.get("systemId")).longValue();
         long tenantId = ((Number) target.get("defaultTenantId")).longValue();
-        assertThat(count("sys_system", "code = 'access_target'")).isOne();
+        assertThat(count("sys_system", "id = " + systemId + " and code like 'system\\_%'")).isOne();
         assertThat(count("sys_tenant", "system_id = " + systemId + " and is_main = 1")).isOne();
+        assertThat(count("sys_department", "tenant_id = " + tenantId + " and code = 'root' and parent_id is null")).isOne();
         assertThat(count("sys_member", "system_id = " + systemId + " and account_id = (select id from plat_account where username = 'admin')")).isOne();
+        assertThat(count("sys_tenant_member", "tenant_id = " + tenantId + " and tenant_admin = 1 and department_id in "
+                + "(select id from sys_department where tenant_id = " + tenantId + " and code = 'root')")).isOne();
         ResponseEntity<Map> latestSystems = exchangeWithBearer("/api/systems", HttpMethod.GET, adminToken, null);
         Map<?, ?> firstSystem = (Map<?, ?>) ((List<?>) latestSystems.getBody().get("data")).getFirst();
         assertThat(((Number) firstSystem.get("systemId")).longValue()).isEqualTo(systemId);

@@ -35,8 +35,14 @@ public class WorkLog {
     @TableField("tenant_id")
     private Long tenantId;
 
+    @TableField("project_id")
+    private Long projectId;
+
     @TableField("author_account_id")
     private Long authorAccountId;
+
+    @TableField("author_tenant_member_id")
+    private Long authorTenantMemberId;
 
     @TableField("work_date")
     private LocalDate workDate;
@@ -55,6 +61,15 @@ public class WorkLog {
 
     @TableField("custom_values_json")
     private String customValuesJson;
+
+    @TableField("business_type")
+    private String businessType;
+
+    @TableField("business_id")
+    private String businessId;
+
+    @TableField("business_title")
+    private String businessTitle;
 
     @TableField("created_at")
     private LocalDateTime createdAt;
@@ -106,12 +121,28 @@ public class WorkLog {
         this.tenantId = tenantId;
     }
 
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
     public Long getAuthorAccountId() {
         return authorAccountId;
     }
 
     public void setAuthorAccountId(Long authorAccountId) {
         this.authorAccountId = authorAccountId;
+    }
+
+    public Long getAuthorTenantMemberId() {
+        return authorTenantMemberId;
+    }
+
+    public void setAuthorTenantMemberId(Long authorTenantMemberId) {
+        this.authorTenantMemberId = authorTenantMemberId;
     }
 
     public LocalDate getWorkDate() {
@@ -162,6 +193,30 @@ public class WorkLog {
         this.customValuesJson = customValuesJson;
     }
 
+    public String getBusinessType() {
+        return businessType;
+    }
+
+    public void setBusinessType(String businessType) {
+        this.businessType = businessType;
+    }
+
+    public String getBusinessId() {
+        return businessId;
+    }
+
+    public void setBusinessId(String businessId) {
+        this.businessId = businessId;
+    }
+
+    public String getBusinessTitle() {
+        return businessTitle;
+    }
+
+    public void setBusinessTitle(String businessTitle) {
+        this.businessTitle = businessTitle;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -194,13 +249,18 @@ public class WorkLog {
             ", platformId = " + platformId +
             ", systemId = " + systemId +
             ", tenantId = " + tenantId +
+            ", projectId = " + projectId +
             ", authorAccountId = " + authorAccountId +
+            ", authorTenantMemberId = " + authorTenantMemberId +
             ", workDate = " + workDate +
             ", title = " + title +
             ", contentText = " + contentText +
             ", durationMinutes = " + durationMinutes +
             ", status = " + status +
             ", customValuesJson = " + customValuesJson +
+            ", businessType = " + businessType +
+            ", businessId = " + businessId +
+            ", businessTitle = " + businessTitle +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
             ", version = " + version +

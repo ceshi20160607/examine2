@@ -21,7 +21,7 @@ import java.util.Set;
 
 @Service
 public class ChannelFieldPolicyResolver {
-    private static final Set<String> CHANNELS = Set.of("PAGE", "APPLICATION", "FILE");
+    private static final Set<String> CHANNELS = Set.of("PAGE", "APPLICATION", "FILE", "FLOW");
     private final SystemRolePermissionBaseService permissionService;
     private final AuthorizationFieldPolicyBaseService fieldPolicyService;
 
@@ -138,7 +138,7 @@ public class ChannelFieldPolicyResolver {
     private String normalizeChannel(String channel) {
         String value = channel == null ? "" : channel.strip().toUpperCase();
         if (!CHANNELS.contains(value)) {
-            throw new DomainException("AUTHORIZATION_CHANNEL_INVALID", "渠道仅支持 PAGE、APPLICATION 或 FILE",
+            throw new DomainException("AUTHORIZATION_CHANNEL_INVALID", "渠道仅支持 PAGE、APPLICATION、FILE 或 FLOW",
                     HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return value;

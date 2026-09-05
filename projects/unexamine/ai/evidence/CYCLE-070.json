@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-070",
+  "executedAt": "2026-09-02T01:47:00+08:00",
+  "taskIds": [
+    "TASK-0195",
+    "TASK-0196"
+  ],
+  "checks": [
+    {
+      "name": "平台、系统运行态、平台管理与系统管理壳层组件回归",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (30 files / 86 tests)",
+      "result": "passed"
+    },
+    {
+      "name": "工作空间上下文、作用域导航与单一返回路径生产构建",
+      "command": "cd projects/unexamine/frontend; npm run build (3942 modules)",
+      "result": "passed"
+    },
+    {
+      "name": "普通用户、系统管理员和平台管理员真实登录导航验收",
+      "command": "Browser QA at 1280x720 using 陈晨、周明、平台超级管理员",
+      "result": "passed"
+    },
+    {
+      "name": "无权后台直达与内容隔离",
+      "command": "普通用户直达 /platform/admin/configurations 被回退到 /platform 且后台内容未加载",
+      "result": "passed"
+    },
+    {
+      "name": "桌面导航溢出、内部状态与主动作门禁",
+      "command": "Browser DOM audit: zero page overflow, zero internal states/cycle markers, one visible system-admin primary action",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-UI-SHELL-NAVIGATION",
+      "entryUrl": "http://127.0.0.1:15174/login",
+      "actor": "普通业务成员、系统管理员、平台超级管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "平台工作区顶部明确显示全部工作和跨系统汇总范围，侧栏只承载平台导航；待办、消息只保留顶部全局入口。",
+        "进入北辰客户协作中心后，顶部持续显示系统、主工作空间和切换系统入口；侧栏显示当前系统业务与协作入口，顶部的全部待办和全部消息明确为跨系统范围。",
+        "系统管理顶部显示北辰客户协作中心、主工作空间和仅当前系统，只有一个返回系统按钮；平台管理显示配置作用于全部系统，只有一个返回工作区按钮。",
+        "普通成员看不到管理入口，直达平台管理路由自动回到最近允许的平台系统页且不泄漏后台内容。"
+      ],
+      "persistentReads": [
+        "陈晨进入系统 #44 后读取系统工作区与客户模块，返回系统目录后上下文同步变为平台全部工作。",
+        "周明从系统 #44 进入 /systems/44/admin 并从唯一返回系统动作回到 /systems/44。",
+        "平台超级管理员进入 /platform/admin/configurations，平台管理六项一级目录与唯一返回工作区动作可见。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/components/WorkspaceContext.vue",
+        "projects/unexamine/frontend/src/product/components/PlatformShell.vue",
+        "projects/unexamine/frontend/src/product/components/SystemShell.vue",
+        "projects/unexamine/frontend/src/product/components/PlatformAdminShell.vue",
+        "projects/unexamine/frontend/src/product/components/SystemAdminShell.vue",
+        "projects/unexamine/ai/evidence/CYCLE-070-system-runtime.png",
+        "projects/unexamine/ai/evidence/CYCLE-070-system-admin.png",
+        "projects/unexamine/ai/evidence/CYCLE-070-platform-admin.png"
+      ]
+    }
+  ]
+}

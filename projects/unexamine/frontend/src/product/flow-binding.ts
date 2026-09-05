@@ -5,7 +5,7 @@ export function activeBinding(bindings: FlowBindingView[]) {
 }
 
 export function bindingSourceLabel(source: 'DEFAULT' | 'TENANT_OVERRIDE') {
-  return source === 'TENANT_OVERRIDE' ? '当前租户覆盖' : '主租户默认'
+  return source === 'TENANT_OVERRIDE' ? '当前工作空间配置' : '系统公共配置'
 }
 
 export function publishedBindingPayload(input: {

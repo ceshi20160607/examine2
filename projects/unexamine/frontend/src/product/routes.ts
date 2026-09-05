@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import './product.css'
+import './design-system.css'
 import AuthView from './views/AuthView.vue'
 import PlatformHomeView from './views/PlatformHomeView.vue'
 import PersonalCenterView from './views/PersonalCenterView.vue'
@@ -18,6 +19,8 @@ import PlatformApplicationView from './views/PlatformApplicationView.vue'
 import PlatformMessageView from './views/PlatformMessageView.vue'
 import PlatformDashboardView from './views/PlatformDashboardView.vue'
 import PlatformDashboardConfigurationView from './views/PlatformDashboardConfigurationView.vue'
+import PlatformMessageConfigurationView from './views/PlatformMessageConfigurationView.vue'
+import PlatformApplicationConfigurationView from './views/PlatformApplicationConfigurationView.vue'
 import { platformContext, platformTokens, systemContext, systemTokens } from './session'
 import { allowsPermission, hasResourceAccess } from './permissions'
 
@@ -41,6 +44,8 @@ function requirePlatformAdmin() {
     || allowsPermission(platformContext.value?.permissions, 'FLOW', 'PLATFORM', 'DESIGN')
     || allowsPermission(platformContext.value?.permissions, 'FLOW', 'PLATFORM', 'PUBLISH')
     || allowsPermission(platformContext.value?.permissions, 'PLATFORM', 'AI', 'MANAGE')
+    || allowsPermission(platformContext.value?.permissions, 'MESSAGE', 'PLATFORM', 'MANAGE')
+    || allowsPermission(platformContext.value?.permissions, 'MESSAGE', '*', 'MANAGE')
     ? true : { path: '/platform' }
 }
 
@@ -67,6 +72,8 @@ function requireSystemAdmin(to: { params: Record<string, string | string[]> }) {
     || allowsPermission(permissions, 'AI', 'SYSTEM', 'VIEW')
     || allowsPermission(permissions, 'AI', 'SYSTEM', 'MANAGE')
     || allowsPermission(permissions, 'AI', 'SYSTEM', 'PUBLISH')
+    || allowsPermission(permissions, 'MESSAGE', 'SYSTEM', 'MANAGE')
+    || allowsPermission(permissions, 'MESSAGE', '*', 'MANAGE')
   return allowed ? true : { path: `/systems/${to.params.systemId}` }
 }
 
@@ -93,8 +100,10 @@ export const productRoutes: RouteRecordRaw[] = [
   { path: '/platform/admin/configurations', name: 'platform-configurations', component: PlatformConfigurationsView, beforeEnter: requirePlatformAdmin },
   { path: '/platform/admin/identity-providers', name: 'platform-identity-providers', component: PlatformSsoProvidersView, beforeEnter: requirePlatformAdmin },
   { path: '/platform/admin/flows', name: 'platform-flow-configurations', component: PlatformFlowAdminView, beforeEnter: requirePlatformAdmin },
+  { path: '/platform/admin/applications', name: 'platform-application-configurations', component: PlatformApplicationConfigurationView, beforeEnter: requirePlatformAdmin },
   { path: '/platform/admin/ai', name: 'platform-ai-configurations', component: PlatformAiConfigurationView, beforeEnter: requirePlatformAdmin },
   { path: '/platform/admin/dashboards', name: 'platform-dashboard-configurations', component: PlatformDashboardConfigurationView, beforeEnter: requirePlatformAdmin },
+  { path: '/platform/admin/messages', name: 'platform-message-configurations', component: PlatformMessageConfigurationView, beforeEnter: requirePlatformAdmin },
   { path: '/profile', name: 'profile', component: PersonalCenterView, beforeEnter: requirePlatform },
   { path: '/systems/:systemId', name: 'system-home', component: SystemHomeView, beforeEnter: requireSystem },
   { path: '/systems/:systemId/admin', name: 'system-admin', component: SystemAdminHomeView, beforeEnter: requireSystemAdmin },

@@ -3,6 +3,7 @@ import { ApartmentOutlined, CloudUploadOutlined, PlusOutlined, ReloadOutlined } 
 import { Empty, message } from 'ant-design-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api, ApiError } from '../api'
+import { productDateTime, versionLabel } from '../presentation'
 import { systemTokens } from '../session'
 import type {
   ConfiguredDictionaryItem,
@@ -32,7 +33,12 @@ const itemForm = reactive({ parentId: undefined as number | undefined, code: '',
 
 const itemOptions = computed(() => selected.value?.items
   .filter(item => item.id !== editingItem.value?.id && !item.pathCode.startsWith(`${editingItem.value?.pathCode || '#'},`))
-  .map(item => ({ value: item.id, label: `${'　'.repeat(Math.max(item.pathCode.split(',').length - 1, 0))}${item.label}（${item.code}）` })) || [])
+  .map(item => ({ value: item.id, label: `${'　'.repeat(Math.max(item.pathCode.split(',').length - 1, 0))}${item.label}` })) || [])
+
+function generatedCode(prefix: string, name: string) {
+  const latin = name.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '')
+  return `${prefix}_${latin || Date.now().toString(36)}`.slice(0, 96)
+}
 
 async function load(preferred?: number) {
   if (!token.value) return
@@ -61,6 +67,8 @@ async function select(id: number) {
 }
 
 async function createDictionary() {
+  if (!dictionaryForm.name.trim()) return message.warning('请填写字典名称')
+  if (!dictionaryForm.code) dictionaryForm.code = generatedCode('dictionary', dictionaryForm.name)
   saving.value = true
   try {
     const created = await api<DictionaryDraft>('/api/admin/dictionaries', {
@@ -87,6 +95,8 @@ function editItem(item: ConfiguredDictionaryItem) {
 
 async function saveItem() {
   if (!selected.value) return
+  if (!itemForm.label.trim()) return message.warning('请填写选项名称')
+  if (!editingItem.value && !itemForm.code) itemForm.code = generatedCode('option', itemForm.label)
   saving.value = true
   try {
     const base = `/api/admin/dictionaries/${selected.value.dictionary.id}/items`
@@ -124,7 +134,7 @@ async function publish() {
       method: 'POST', body: JSON.stringify({ expectedDraftRevision: publication.value.draftRevision }),
     }, token.value)
     publicationModal.value = false
-    message.success(`字典 v${result.versionNumber} 已发布，运行预览只读取该不可变版本`)
+    message.success(`字典${versionLabel(result.versionNumber)}已发布，业务页面已切换到新版本`)
     await load(selected.value.dictionary.id)
   } catch (cause) { message.error(explain(cause)) } finally { saving.value = false }
 }
@@ -155,8 +165,8 @@ onMounted(load)
     <div class="dictionary-layout">
       <aside class="dictionary-list">
         <button v-for="entry in dictionaries" :key="entry.dictionary.id" :class="{ active: selectedId === entry.dictionary.id }" @click="select(entry.dictionary.id)">
-          <ApartmentOutlined /><span><strong>{{ entry.dictionary.name }}</strong><small>{{ entry.dictionary.code }} · 草稿修订 {{ entry.dictionary.version }}</small></span>
-          <a-tag :color="entry.currentVersionId ? 'green' : 'default'">{{ entry.currentVersionId ? `v${entry.currentVersionNumber}` : '未发布' }}</a-tag>
+          <ApartmentOutlined /><span><strong>{{ entry.dictionary.name }}</strong><small>{{ entry.dictionary.hierarchical ? '树形选项' : '普通选项' }}</small></span>
+          <a-tag :color="entry.currentVersionId ? 'green' : 'default'">{{ versionLabel(entry.currentVersionNumber) }}</a-tag>
         </button>
         <a-empty v-if="!dictionaries.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="还没有数据字典" />
       </aside>
@@ -165,18 +175,18 @@ onMounted(load)
           <span><a-button @click="beginItem()"><PlusOutlined />添加顶级项</a-button><a-button type="primary" :loading="saving" @click="checkPublication"><CloudUploadOutlined />检查并发布</a-button></span></div>
         <div class="dictionary-item-list">
           <button v-for="item in selected.items" :key="item.id" :style="{ paddingLeft: `${18 + (item.pathCode.split(',').length - 1) * 24}px` }" @click="editItem(item)">
-            <span class="dictionary-color" :style="{ background: item.color || '#dbe4f0' }" /><span><strong>{{ item.label }}</strong><small>{{ item.pathCode }}</small></span>
+            <span class="dictionary-color" :style="{ background: item.color || '#dbe4f0' }" /><span><strong>{{ item.label }}</strong><small>{{ item.parentId ? '下级选项' : '顶级选项' }}</small></span>
             <a-tag :color="item.status === 'ACTIVE' ? 'blue' : 'default'">{{ item.status === 'ACTIVE' ? '可选' : '仅历史可解释' }}</a-tag>
             <a-button v-if="selected.dictionary.hierarchical" type="link" size="small" @click.stop="beginItem(item.id)">添加子项</a-button>
           </button>
           <a-empty v-if="!selected.items.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="添加至少一个启用项后才能发布" />
         </div>
         <section class="dictionary-preview">
-          <div class="panel-title"><strong>运行态逐级预览</strong><span v-if="preview">发布 v{{ preview.versionNumber }} · 指针 v{{ preview.publicationVersion }}</span></div>
+          <div class="panel-title"><strong>业务页面预览</strong><span v-if="preview">{{ versionLabel(preview.versionNumber) }}</span></div>
           <div v-if="preview" class="preview-options">
             <a-button v-if="previewParentId" size="small" @click="loadPreview()">返回顶级</a-button>
             <button v-for="item in preview.items" :key="item.id" @click="selected.dictionary.hierarchical && loadPreview(item.id)">
-              <span class="dictionary-color" :style="{ background: item.color || '#dbe4f0' }" />{{ item.label }}<small>{{ item.code }}</small>
+              <span class="dictionary-color" :style="{ background: item.color || '#dbe4f0' }" />{{ item.label }}
             </button>
             <a-empty v-if="!preview.items.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="当前层级没有可选项" />
           </div>
@@ -184,7 +194,7 @@ onMounted(load)
         </section>
         <section class="dictionary-versions">
           <div class="panel-title"><strong>发布历史</strong><span>{{ versions.length }} 个不可变版本</span></div>
-          <div v-for="version in versions" :key="version.versionId"><span><strong>v{{ version.versionNumber }}</strong><small>草稿修订 {{ version.draftRevision }} · {{ version.publishedAt }}</small></span><a-tag :color="version.current ? 'green' : 'default'">{{ version.current ? '当前运行版本' : '历史快照' }}</a-tag></div>
+          <div v-for="version in versions" :key="version.versionId"><span><strong>{{ versionLabel(version.versionNumber) }}</strong><small>{{ productDateTime(version.publishedAt) }}发布</small></span><a-tag :color="version.current ? 'green' : 'default'">{{ version.current ? '当前使用' : '历史版本' }}</a-tag></div>
         </section>
       </main>
       <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="选择或新建一个字典" class="dictionary-editor" />
@@ -193,19 +203,17 @@ onMounted(load)
 
   <a-modal v-model:open="dictionaryModal" title="新建数据字典" :confirm-loading="saving" @ok="createDictionary">
     <a-form layout="vertical"><a-form-item label="名称" required><a-input v-model:value="dictionaryForm.name" placeholder="例如：行政区划" /></a-form-item>
-      <a-form-item label="稳定编码" required><a-input v-model:value="dictionaryForm.code" placeholder="例如：region" /></a-form-item>
       <a-form-item label="类型"><a-radio-group v-model:value="dictionaryForm.hierarchical"><a-radio :value="false">普通列表</a-radio><a-radio :value="true">树形/级联</a-radio></a-radio-group></a-form-item></a-form>
   </a-modal>
   <a-drawer v-model:open="itemDrawer" :title="editingItem ? '编辑字典项草稿' : '添加字典项'" width="430">
     <a-form layout="vertical"><a-form-item v-if="selected?.dictionary.hierarchical" label="父级"><a-select v-model:value="itemForm.parentId" allow-clear :options="itemOptions" /></a-form-item>
       <a-form-item label="显示名称" required><a-input v-model:value="itemForm.label" /></a-form-item>
-      <a-form-item label="稳定编码" required extra="创建后不可修改，历史值按编码解释"><a-input v-model:value="itemForm.code" :disabled="Boolean(editingItem)" /></a-form-item>
       <div class="form-grid"><a-form-item label="颜色"><a-input v-model:value="itemForm.color" placeholder="#1677ff" /></a-form-item><a-form-item label="排序"><a-input-number v-model:value="itemForm.sortOrder" :min="0" /></a-form-item></div>
       <a-form-item v-if="editingItem" label="状态"><a-radio-group v-model:value="itemForm.status"><a-radio value="ACTIVE">启用</a-radio><a-radio value="DISABLED">停用</a-radio></a-radio-group></a-form-item></a-form>
     <template #footer><div class="drawer-footer"><a-button @click="itemDrawer = false">取消</a-button><a-button type="primary" :loading="saving" @click="saveItem">保存草稿</a-button></div></template>
   </a-drawer>
   <a-modal v-model:open="publicationModal" title="字典发布检查" :confirm-loading="saving" :ok-text="publication?.valid ? '确认发布' : '返回修改'" @ok="publication?.valid ? publish() : (publicationModal = false)">
     <a-result v-if="publication?.valid" status="success" title="检查通过" sub-title="将生成不可修改的发布快照，运行端随即切换到新版本。" />
-    <a-result v-else status="error" title="存在发布冲突"><template #subTitle><ul class="publication-issues"><li v-for="issue in publication?.issues" :key="`${issue.path}-${issue.code}`"><strong>{{ issue.code }}</strong>：{{ issue.message }}</li></ul></template></a-result>
+    <a-result v-else status="error" title="存在发布冲突"><template #subTitle><ul class="publication-issues"><li v-for="issue in publication?.issues" :key="`${issue.path}-${issue.code}`">{{ issue.message }}</li></ul></template></a-result>
   </a-modal>
 </template>

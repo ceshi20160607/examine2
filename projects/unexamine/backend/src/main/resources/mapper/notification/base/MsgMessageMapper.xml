@@ -20,11 +20,12 @@
         <result column="sensitivity" property="sensitivity" />
         <result column="created_by_account_id" property="createdByAccountId" />
         <result column="created_at" property="createdAt" />
+        <result column="dedup_context_key" property="dedupContextKey" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, template_version_id, source_type, source_id, `subject`, content_text, target_type, target_id, target_route, sensitivity, created_by_account_id, created_at
+        id, context_type, platform_id, system_id, tenant_id, template_version_id, source_type, source_id, `subject`, content_text, target_type, target_id, target_route, sensitivity, created_by_account_id, created_at, dedup_context_key
     </sql>
 
 </mapper>

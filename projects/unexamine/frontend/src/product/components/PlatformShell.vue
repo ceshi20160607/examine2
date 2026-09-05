@@ -2,6 +2,7 @@
 import { ApartmentOutlined, AppstoreOutlined, BellOutlined, CheckSquareOutlined, DashboardOutlined, LogoutOutlined, ProjectOutlined, RobotOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductMark from './ProductMark.vue'
+import WorkspaceContext from './WorkspaceContext.vue'
 import { api } from '../api'
 import { clearSession, platformContext, platformTokens } from '../session'
 import { computed } from 'vue'
@@ -13,6 +14,7 @@ const router = useRouter()
 const route = useRoute()
 const navigation = computed(() => buildPlatformNavigation(platformContext.value?.permissions))
 const showTodos = computed(() => hasResourceAccess(platformContext.value?.permissions, 'TODO'))
+const showMessages = computed(() => hasResourceAccess(platformContext.value?.permissions, 'MESSAGE'))
 const showManagement = computed(() => hasPlatformManagementAccess(platformContext.value?.permissions))
 const navigationIcons = {
   home: DashboardOutlined,
@@ -47,12 +49,13 @@ function executeCommand(command: CommandCenterItem) {
 
 <template>
   <div class="platform-shell">
-    <header class="topbar">
+    <header class="topbar topbar--platform">
       <ProductMark />
+      <WorkspaceContext scope="platform" name="全部工作" subtitle="跨系统汇总与协作" />
       <div class="topbar__actions">
         <CommandCenter context="platform" @execute="executeCommand" />
         <a-button v-if="showTodos" type="text" class="topbar-action" @click="router.push('/platform/todos')"><CheckSquareOutlined /><span>待办</span></a-button>
-        <a-button type="text" class="topbar-action" @click="router.push('/platform/messages')"><BellOutlined /><span>消息</span></a-button>
+        <a-button v-if="showMessages" type="text" class="topbar-action" @click="router.push('/platform/messages')"><BellOutlined /><span>消息</span></a-button>
         <a-dropdown>
           <a-button type="text" class="user-trigger"><a-avatar size="small"><UserOutlined /></a-avatar>{{ platformContext?.displayName || platformContext?.username }}</a-button>
           <template #overlay>

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-075",
+  "executedAt": "2026-09-02T03:34:00+08:00",
+  "taskIds": [
+    "TASK-0205",
+    "TASK-0194"
+  ],
+  "checks": [
+    {
+      "name": "全路由产品语言、状态与响应式静态契约",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (34 files / 100 tests)",
+      "result": "passed"
+    },
+    {
+      "name": "前端类型检查与生产构建",
+      "command": "cd projects/unexamine/frontend; npm run build (3945 modules)",
+      "result": "passed"
+    },
+    {
+      "name": "智能助手业务字段名称输出与后端可执行包构建",
+      "command": "cd projects/unexamine/backend; mvn -DskipTests package",
+      "result": "passed"
+    },
+    {
+      "name": "三角色全路由与桌面平板移动浏览器检查",
+      "command": "node projects/unexamine/tools/c75-route-visual-acceptance.cjs",
+      "result": "passed"
+    },
+    {
+      "name": "键盘焦点与移动触控目标检查",
+      "command": "c75-route-visual-acceptance.cjs focus and touch assertions",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-UI-DESIGN-RESPONSIVE",
+      "entryUrl": "http://127.0.0.1:15174/login",
+      "actor": "普通业务成员陈晨、系统管理员周明、平台超级管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "普通成员在桌面首页、平板业务列表和手机待办入口均可直接判断当前位置、当前任务和下一步操作，页面宽度与视口完全一致。",
+        "系统后台 11 个一级入口逐页加载成功；模块配置和角色权限在桌面和平板保持清楚的任务层级，手机重配置明确引导到桌面端且不再加载复杂设计器。",
+        "平台首页和 7 类后台能力逐页加载成功；平台流程、应用、AI、首页和统一认证等重配置在手机端统一降级，不再被底部导航遮挡。",
+        "核心配置页不再把草稿修订号、版本哈希、字段编码、原始 JSON 和英文内部状态作为主要内容。",
+        "智能助手、仪表盘、打印、字典、工作空间扩展、报表、导入导出和工作配置统一显示业务名称、中文动作、中文字段类型和产品化版本名称。",
+        "所有代表页面可由键盘进入可见控件，手机底部导航触控目标不小于 44 像素。"
+      ],
+      "persistentReads": [
+        "普通成员首页重新读回 3 个可用业务模块，以及总部打印机报修、北辰科技和北辰科技电话跟进三条最近业务记录。",
+        "平板运行页重新读回售后工单记录、工单主题、问题描述、正常状态和可用操作。",
+        "系统管理员重新读回客户、跟进记录、售后工单三个发布模块及客户销售等四个已发布角色。",
+        "平台管理员重新读回平台信息、企业身份源、流程、应用、AI、首页和消息配置页面。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/presentation.ts",
+        "projects/unexamine/frontend/src/product/all-routes-experience.test.ts",
+        "projects/unexamine/frontend/src/product/components/PlatformAdminShell.vue",
+        "projects/unexamine/frontend/src/product/views/AiConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/DashboardConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/DictionaryConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+        "projects/unexamine/frontend/src/product/views/PrintTemplateConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/TenantExtensionsView.vue",
+        "projects/unexamine/frontend/src/product/views/WorkConfigurationView.vue",
+        "projects/unexamine/tools/c75-route-visual-acceptance.cjs",
+        "projects/unexamine/ai/evidence/CYCLE-075-ordinary-desktop.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-ordinary-tablet.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-ordinary-mobile.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-system-admin-desktop.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-system-admin-tablet.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-system-admin-mobile.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-platform-admin-desktop.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-platform-admin-tablet.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-platform-admin-mobile.png"
+      ]
+    }
+  ]
+}

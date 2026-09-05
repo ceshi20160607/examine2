@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dashboardComponentLabel, isVerificationArtifactName, productDateTime, productStatus, tenantModeLabel, userFacingDateTime, userFacingWorkspaceName } from './presentation'
+import { dashboardComponentLabel, isVerificationArtifactName, productDateTime, productStatus, tenantModeLabel, userFacingDateTime, userFacingRecordNumber, userFacingWorkspaceName } from './presentation'
 
 describe('Cycle 58 product presentation contract', () => {
   it('presents internal statuses as stable user language', () => {
@@ -17,8 +17,8 @@ describe('Cycle 58 product presentation contract', () => {
   })
 
   it('presents system modes as product language', () => {
-    expect(tenantModeLabel('SINGLE')).toBe('单组织')
-    expect(tenantModeLabel('MULTI')).toBe('多组织')
+    expect(tenantModeLabel('SINGLE')).toBe('单工作空间')
+    expect(tenantModeLabel('MULTI')).toBe('多工作空间')
   })
 
   it('keeps verification fixtures and tenant implementation terms out of the default workspace', () => {
@@ -27,6 +27,8 @@ describe('Cycle 58 product presentation contract', () => {
     expect(isVerificationArtifactName('客户运营中心')).toBe(false)
     expect(userFacingWorkspaceName('默认主租户')).toBe('主工作空间')
     expect(userFacingWorkspaceName('华东团队')).toBe('华东团队')
+    expect(userFacingRecordNumber('C68-SELL-227384')).toBe('业务记录')
+    expect(userFacingRecordNumber('KH-2026-001')).toBe('KH-2026-001')
   })
 
   it('does not render invalid timestamps as invalid date', () => {

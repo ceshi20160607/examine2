@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-074",
+  "executedAt": "2026-09-02T03:05:00+08:00",
+  "taskIds": [
+    "TASK-0203",
+    "TASK-0204"
+  ],
+  "checks": [
+    {
+      "name": "低代码五任务主线、内部编码隐藏与业务选择器回归",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (33 files / 96 tests)",
+      "result": "passed"
+    },
+    {
+      "name": "前端类型检查与生产构建",
+      "command": "cd projects/unexamine/frontend; npm run build (3945 modules)",
+      "result": "passed"
+    },
+    {
+      "name": "后端 Java 21 编译与可执行包构建",
+      "command": "cd projects/unexamine/backend; mvn -DskipTests package",
+      "result": "passed"
+    },
+    {
+      "name": "已发布模块、自动编码、普通成员授权与运行目录持久化读回",
+      "command": "pwsh -NoProfile -File projects/unexamine/tools/c74-live-acceptance.ps1",
+      "result": "passed"
+    },
+    {
+      "name": "管理员发布到普通成员创建、编辑和详情读回浏览器旅程",
+      "command": "in-app Browser · 1280px desktop",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-LOWCODE-MODULE-LIFECYCLE",
+      "entryUrl": "http://127.0.0.1:15174/systems/44/admin?section=templates",
+      "actor": "系统管理员周明与普通业务成员陈晨",
+      "result": "passed",
+      "pageAssertions": [
+        "模板配置只使用模块信息、模块字段、模块动作、模块 Flow、模块应用五个一级任务；页面、菜单、发布和版本均归入所属任务。",
+        "模块信息当前只显示概览或发布与版本中的一个二级任务，模块树、字段编辑器和页面画布不会在首屏互相争抢。",
+        "规则类型、触发时机、条件运算符、AI 模型、转化来源字段和目标字段均使用业务名称选择，规则和索引不要求填写稳定编码。",
+        "售后工单按模块骨架、三个业务字段、列表/表单/详情、查询规则、发布检查和发布顺序完成，没有 JSON、内部编号或投影计划暴露给管理员。",
+        "发布后普通成员首页直接显示服务管理下的售后工单，运行列表、表单和详情使用已发布字段名称。",
+        "普通成员完成总部打印机报修的创建与编辑，详情立即读回工单主题、问题描述、负责人及创建更新时间。"
+      ],
+      "persistentReads": [
+        "模块 27 以 ACTIVE 状态读回，运行编码 module_98af3d0ea2 由系统生成，发布版本为 1。",
+        "工单主题、问题描述和期望完成日期三个字段从模块草稿及发布运行态重新读回。",
+        "工单主题快速查询规则的稳定编码 index_2f7b116a3b 由后端生成，管理员页面只显示业务名称和作用。",
+        "客户销售角色重新发布 LIST、DETAIL、CREATE、UPDATE、ARCHIVE 五项本人范围能力及三个页面字段策略。",
+        "总部打印机报修以业务编号 SH-20260902-001 创建；编辑后详情读回“现场工程师已接单”。"
+      ],
+      "evidencePaths": [
+        "docs/user_requirement.md",
+        "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/product.css",
+        "projects/unexamine/frontend/src/product/lowcode-workflow.test.ts",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleRuleModels.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleRuleConfigurationService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationHttpTest.java",
+        "projects/unexamine/tools/c74-live-acceptance.ps1",
+        "projects/unexamine/ai/evidence/CYCLE-074-module-publish.png",
+        "projects/unexamine/ai/evidence/CYCLE-074-runtime.png",
+        "projects/unexamine/ai/evidence/CYCLE-074-runtime-detail.png"
+      ]
+    }
+  ]
+}

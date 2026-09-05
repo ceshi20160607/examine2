@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-076",
+  "executedAt": "2026-09-02T03:43:00+08:00",
+  "taskIds": [
+    "TASK-0206"
+  ],
+  "checks": [
+    {
+      "name": "前端全量产品与交互契约回归",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (34 files / 100 tests)",
+      "result": "passed"
+    },
+    {
+      "name": "前端类型检查与生产构建",
+      "command": "cd projects/unexamine/frontend; npm run build (3945 modules)",
+      "result": "passed"
+    },
+    {
+      "name": "后端 Java 21 可执行包构建",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21; mvn -DskipTests package",
+      "result": "passed"
+    },
+    {
+      "name": "三角色核心业务持久化只读回读",
+      "command": "projects/unexamine/tools/c76-final-readback.ps1",
+      "result": "passed"
+    },
+    {
+      "name": "全路由桌面、平板、手机最终视觉验收",
+      "command": "node projects/unexamine/tools/c75-route-visual-acceptance.cjs (28 pages / 9 screenshots)",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-UI-DESIGN-RESPONSIVE",
+      "entryUrl": "http://127.0.0.1:15174/login",
+      "actor": "普通业务成员、系统管理员、平台超级管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "普通成员无需开发解释即可从系统首页进入客户、跟进记录和售后工单，并完成售后工单查询、新建、编辑与归档任务判断。",
+        "系统管理员无需识别内部编码即可完成模块、组织、角色、字典、模板、参数、流程、应用、智能助手、审计和运维入口判断。",
+        "平台管理员无需识别内部状态即可完成系统目录、平台信息、统一认证、流程、应用、智能助手、首页和消息配置入口判断。",
+        "28 个核心页面在桌面路由中全部成功加载，桌面、平板和手机 9 个代表场景的页面宽度均与视口一致。",
+        "手机端底部导航不遮挡正文，普通成员 4 个、系统管理员 11 个、平台管理员 11 个导航触控目标均不小于 44 像素。",
+        "核心页面不以测试标识、修订号、版本哈希、字段编码、原始 JSON 或英文内部状态作为主要内容。"
+      ],
+      "persistentReads": [
+        "平台管理员通过系统目录重新读回北辰客户协作中心。",
+        "系统管理员重新读回客户、跟进记录、售后工单 3 个已发布模块和 4 个已发布角色。",
+        "智能助手配置重新读回工单主题、期望完成日期、问题描述三个业务字段名称。",
+        "普通成员重新读回客户、跟进记录、售后工单三个业务模块，以及总部打印机报修和业务单号 SH-20260902-001。",
+        "普通成员对售后工单的列表、详情、新建、编辑和归档权限从当前系统上下文重新读回。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/tools/c76-final-readback.ps1",
+        "projects/unexamine/tools/c75-route-visual-acceptance.cjs",
+        "projects/unexamine/frontend/src/product/all-routes-experience.test.ts",
+        "projects/unexamine/ai/evidence/CYCLE-075-ordinary-desktop.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-ordinary-tablet.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-ordinary-mobile.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-system-admin-desktop.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-system-admin-tablet.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-system-admin-mobile.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-platform-admin-desktop.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-platform-admin-tablet.png",
+        "projects/unexamine/ai/evidence/CYCLE-075-platform-admin-mobile.png"
+      ]
+    }
+  ]
+}

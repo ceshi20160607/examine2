@@ -215,6 +215,23 @@ def generate_task_graph(plan_path: Path, output_path: Path) -> dict[str, object]
     tasks = catalog["tasks"]
     task_by_id = {item["id"]: item for item in tasks}
     capability_ids = {item["id"] for item in architecture["capabilities"]}
+    rework_task_stages = {task_id: 1 for task_id in plan.get("reworkTaskIds", [])}
+    stage_overrides = plan.get("reworkTaskStages", [])
+    stage_override_ids = [item["taskId"] for item in stage_overrides]
+    if _duplicates(stage_override_ids):
+        raise ScheduleError(f"duplicate reworkTaskStages: {', '.join(_duplicates(stage_override_ids))}")
+    rework_task_stages.update({item["taskId"]: item["stage"] for item in stage_overrides})
+    rework_task_ids = set(rework_task_stages)
+    unknown_rework_tasks = sorted(rework_task_ids - task_by_id.keys())
+    if unknown_rework_tasks:
+        raise ScheduleError(f"reworkTaskIds references unknown tasks: {', '.join(unknown_rework_tasks)}")
+
+    def dependency_candidate_visible(task_id: str, candidate_id: str) -> bool:
+        task_stage = rework_task_stages.get(task_id)
+        candidate_stage = rework_task_stages.get(candidate_id)
+        if task_stage is None:
+            return candidate_stage is None
+        return candidate_stage is None or candidate_stage <= task_stage
 
     phases = plan["phases"]
     phase_ids = [item["id"] for item in phases]
@@ -298,7 +315,9 @@ def generate_task_graph(plan_path: Path, output_path: Path) -> dict[str, object]
             dependency_ids.update(database_task_ids)
             dependency_ids.update(
                 item["id"] for item in tasks
-                if item["kind"] == "design" and set(item["useCaseIds"]) & set(task["useCaseIds"])
+                if item["kind"] == "design"
+                and item["id"] not in rework_task_ids
+                and set(item["useCaseIds"]) & set(task["useCaseIds"])
             )
         elif task["kind"] in {"backend-manage", "operations"}:
             dependency_ids.add(base_task_id)
@@ -307,6 +326,7 @@ def generate_task_graph(plan_path: Path, output_path: Path) -> dict[str, object]
                 dependency_ids.update(
                     candidate_id for candidate_id in task_ids_by_use_case[use_case_id]
                     if task_by_id[candidate_id]["kind"] in {"backend-manage", "operations", "design"}
+                    and dependency_candidate_visible(task_id, candidate_id)
                 )
             if not dependency_ids:
                 dependency_ids.add(base_task_id)
@@ -315,6 +335,7 @@ def generate_task_graph(plan_path: Path, output_path: Path) -> dict[str, object]
                 dependency_ids.update(
                     candidate_id for candidate_id in task_ids_by_use_case[use_case_id]
                     if task_by_id[candidate_id]["kind"] != "integration-test"
+                    and dependency_candidate_visible(task_id, candidate_id)
                 )
         dependencies[task_id] = sorted(dependency_ids)
         for dependency_id in dependencies[task_id]:

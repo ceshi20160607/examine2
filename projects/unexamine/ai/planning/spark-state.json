@@ -1,0 +1,338 @@
+{
+  "schema_version": 1,
+  "phase": "planned_not_implemented",
+  "plan": "projects/unexamine/ai/planning/spark-execution-plan.md",
+  "requirement_source": "docs/user_requirement.md",
+  "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
+  "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
+  "next_step": "B00.1",
+  "current_step": null,
+  "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
+  "branch_at_planning": "cursor",
+  "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
+  "environment_note": "Audit containers were stopped after inspection. Verify current status; never start/stop unrelated containers. Java21 required; default Java may be 8. Existing Windows full-test startup failures are not established business defects.",
+  "architecture_choices": {
+    "strategy": "modify_existing_shared_core_no_stack_replacement",
+    "action_executor_path": "to_confirm_in_B00.2",
+    "custom_module_storage": "metadata_generic_records_values_indexes_relations",
+    "frontend": "shared_shells_and_schema_renderers"
+  },
+  "current_scope": {
+    "source_rows": [],
+    "files": [],
+    "acceptance": []
+  },
+  "last_result": {
+    "kind": "planning_handoff",
+    "status": "ready_with_explicit_baseline_sync_step",
+    "changed_scope": "AGENTS, requirement clarification A.17, execution planning/index/state and old-plan entry notices only",
+    "implementation_started": false
+  },
+  "blockers": [
+    {
+      "id": "BASELINE-A17",
+      "kind": "engineering_metadata",
+      "status": "open",
+      "owner_step": "B00.3",
+      "summary": "Appending the user-confirmed A.17 made workspace requirement SHA and old intake/downstream bindings stale. New Spark ledger matches current source.",
+      "resolution": "Incrementally refresh intake and affected traceability as specified in B00.3; verify unchanged old blocks before rebinding. Do not bulk replace hashes or rerun old scheduling.",
+      "blocks": "Workspace validation and generator-dependent implementation until corrected."
+    }
+  ],
+  "evidence": [],
+  "step_record_contract": {
+    "required": [
+      "step",
+      "source_rows",
+      "changed_files",
+      "checks_actual_results",
+      "readback",
+      "permission_or_failure_result",
+      "tested_file_hashes",
+      "remaining",
+      "next_step"
+    ],
+    "note": "Write concise completed-step records in the existing evidence area; state links to them. No full command dumps or secrets."
+  },
+  "dependency_rule": "Proceed when dependencies complete internal implementation/verification. External blockers remain open; unrelated local work continues. Final completion requires all effective requirements and external validations.",
+  "packages": [
+    {
+      "id": "B00",
+      "name": "接手基线与核心落点",
+      "depends_on": [],
+      "steps": {
+        "B00.1": "unverified",
+        "B00.2": "unverified",
+        "B00.3": "unverified"
+      }
+    },
+    {
+      "id": "B01",
+      "name": "公共动作核心",
+      "depends_on": [
+        "B00"
+      ],
+      "steps": {
+        "B01.1": "unverified",
+        "B01.2": "unverified",
+        "B01.3": "unverified",
+        "B01.4": "unverified"
+      }
+    },
+    {
+      "id": "B02",
+      "name": "统一页面骨架",
+      "depends_on": [
+        "B01"
+      ],
+      "steps": {
+        "B02.1": "unverified",
+        "B02.2": "unverified",
+        "B02.3": "unverified"
+      }
+    },
+    {
+      "id": "B03",
+      "name": "身份组织租户权限",
+      "depends_on": [
+        "B01",
+        "B02"
+      ],
+      "steps": {
+        "B03.1": "unverified",
+        "B03.2": "unverified",
+        "B03.3": "unverified",
+        "B03.4": "unverified"
+      }
+    },
+    {
+      "id": "B04",
+      "name": "模块字典与发布",
+      "depends_on": [
+        "B03"
+      ],
+      "steps": {
+        "B04.1": "unverified",
+        "B04.2": "unverified",
+        "B04.3": "unverified",
+        "B04.4": "unverified"
+      }
+    },
+    {
+      "id": "B05",
+      "name": "全量字段运行链",
+      "depends_on": [
+        "B04"
+      ],
+      "steps": {
+        "B05.1": "unverified",
+        "B05.2": "unverified",
+        "B05.3": "unverified",
+        "B05.4": "unverified",
+        "B05.5": "unverified",
+        "B05.6": "unverified"
+      }
+    },
+    {
+      "id": "B06",
+      "name": "页面设计与通用运行页",
+      "depends_on": [
+        "B05"
+      ],
+      "steps": {
+        "B06.1": "unverified",
+        "B06.2": "unverified",
+        "B06.3": "unverified"
+      }
+    },
+    {
+      "id": "B07",
+      "name": "模块动作转移转化共享",
+      "depends_on": [
+        "B06"
+      ],
+      "steps": {
+        "B07.1": "unverified",
+        "B07.2": "unverified",
+        "B07.3": "unverified",
+        "B07.4": "unverified"
+      }
+    },
+    {
+      "id": "B08",
+      "name": "Flow定义条件与发布",
+      "depends_on": [
+        "B07"
+      ],
+      "steps": {
+        "B08.1": "unverified",
+        "B08.2": "unverified",
+        "B08.3": "unverified"
+      }
+    },
+    {
+      "id": "B09",
+      "name": "审批运行与业务生效",
+      "depends_on": [
+        "B08"
+      ],
+      "steps": {
+        "B09.1": "unverified",
+        "B09.2": "unverified",
+        "B09.3": "unverified",
+        "B09.4": "unverified",
+        "B09.5": "unverified"
+      }
+    },
+    {
+      "id": "B10",
+      "name": "Flow自动化完整节点",
+      "depends_on": [
+        "B09"
+      ],
+      "steps": {
+        "B10.1": "unverified",
+        "B10.2": "unverified",
+        "B10.3": "unverified"
+      }
+    },
+    {
+      "id": "B11",
+      "name": "应用受控开放",
+      "depends_on": [
+        "B10"
+      ],
+      "steps": {
+        "B11.1": "unverified",
+        "B11.2": "unverified",
+        "B11.3": "unverified"
+      }
+    },
+    {
+      "id": "B12",
+      "name": "四渠道接入",
+      "depends_on": [
+        "B11"
+      ],
+      "steps": {
+        "B12.1": "unverified",
+        "B12.2": "unverified",
+        "B12.3": "unverified"
+      }
+    },
+    {
+      "id": "B13",
+      "name": "文件导入导出打印",
+      "depends_on": [
+        "B07",
+        "B10"
+      ],
+      "steps": {
+        "B13.1": "unverified",
+        "B13.2": "unverified",
+        "B13.3": "unverified"
+      }
+    },
+    {
+      "id": "B14",
+      "name": "工作待办消息",
+      "depends_on": [
+        "B09",
+        "B13"
+      ],
+      "steps": {
+        "B14.1": "unverified",
+        "B14.2": "unverified",
+        "B14.3": "unverified"
+      }
+    },
+    {
+      "id": "B15",
+      "name": "仪表盘统计KPI",
+      "depends_on": [
+        "B14"
+      ],
+      "steps": {
+        "B15.1": "unverified",
+        "B15.2": "unverified",
+        "B15.3": "unverified"
+      }
+    },
+    {
+      "id": "B16",
+      "name": "AI与上下文助手",
+      "depends_on": [
+        "B15"
+      ],
+      "steps": {
+        "B16.1": "unverified",
+        "B16.2": "unverified",
+        "B16.3": "unverified"
+      }
+    },
+    {
+      "id": "B17",
+      "name": "平台服务审计运维",
+      "depends_on": [
+        "B16"
+      ],
+      "steps": {
+        "B17.1": "unverified",
+        "B17.2": "unverified",
+        "B17.3": "unverified"
+      }
+    },
+    {
+      "id": "B18",
+      "name": "生成器与工程验收",
+      "depends_on": [
+        "B17"
+      ],
+      "steps": {
+        "B18.1": "unverified",
+        "B18.2": "unverified",
+        "B18.3": "unverified"
+      }
+    },
+    {
+      "id": "B19",
+      "name": "全量收口交付",
+      "depends_on": [
+        "B00",
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10",
+        "B11",
+        "B12",
+        "B13",
+        "B14",
+        "B15",
+        "B16",
+        "B17",
+        "B18"
+      ],
+      "steps": {
+        "B19.1": "unverified",
+        "B19.2": "unverified",
+        "B19.3": "unverified",
+        "B19.4": "unverified",
+        "B19.5": "unverified"
+      }
+    }
+  ],
+  "planning_validation": {
+    "json_and_source_line_coverage": "passed",
+    "source_and_clause_hashes": "passed",
+    "package_step_counts_and_dependencies": "passed",
+    "referenced_entry_files": "passed",
+    "workspace_validate": "failed_stale_requirement_baseline_after_A17",
+    "product_tests": "not_run_planning_only"
+  }
+}

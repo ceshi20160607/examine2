@@ -427,9 +427,15 @@ class SystemAdministrationHttpTest {
         assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST,
                 owner.systemToken(), Map.of("expectedDraftRevision", draftRevision)).getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        List<Map<String, Object>> managerPermissions = List.of(Map.of(
-                "resourceType", "CONFIG", "resourceCode", "SYSTEM", "actionCode", "MANAGE",
-                "dataScopeType", "SELF"));
+        List<Map<String, Object>> managerPermissions = List.of(
+                Map.of("resourceType", "CONFIG", "resourceCode", "SYSTEM", "actionCode", "MANAGE",
+                        "dataScopeType", "SELF"),
+                Map.of("resourceType", "TODO", "resourceCode", "SYSTEM", "actionCode", "VIEW",
+                        "dataScopeType", "SELF"),
+                Map.of("resourceType", "MESSAGE", "resourceCode", "SYSTEM", "actionCode", "VIEW",
+                        "dataScopeType", "SELF"),
+                Map.of("resourceType", "AI", "resourceCode", "SYSTEM", "actionCode", "VIEW",
+                        "dataScopeType", "SELF"));
         ResponseEntity<Map> managerDraft = exchange("/api/admin/system/authorization/roles", HttpMethod.POST,
                 owner.systemToken(), Map.of("code", "limited_manager", "name", "有限权限管理员",
                         "description", "只维护组织角色", "permissions", managerPermissions, "fieldPolicies", List.of()));

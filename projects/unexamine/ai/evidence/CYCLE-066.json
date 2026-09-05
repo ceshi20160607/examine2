@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-066",
+  "executedAt": "2026-09-02T00:00:09+08:00",
+  "taskIds": [
+    "TASK-0234",
+    "TASK-0235",
+    "TASK-0236"
+  ],
+  "checks": [
+    {
+      "name": "客户记录、任务和 Flow 业务附件真实运行验收",
+      "command": "pwsh -NoProfile -File projects/unexamine/tools/c66-live-acceptance.ps1 against Spring Boot 18080, MySQL 33077 and Redis 36379",
+      "result": "passed"
+    },
+    {
+      "name": "附件对象权限、字段类型、时间线、跨组织不可发现和失败零孤儿验收",
+      "command": "c66-live-acceptance.ps1; system #34 / tenant #36 / record #25 / task #12 / flow instance #34",
+      "result": "passed"
+    },
+    {
+      "name": "系统模块报表、不可变发布版本、KPI 组织成员提醒和外部连接边界后端集成测试",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -Dtest=DashboardHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "外部 API 与数据库数据源受管引用、批准操作和敏感连接材料拒绝真实验收",
+      "command": "c66-live-acceptance.ps1; external source version 1; raw SQL rejected with DASHBOARD_CONNECTION_SECRET_FORBIDDEN",
+      "result": "passed"
+    },
+    {
+      "name": "前端业务附件与分析类型全量回归和生产构建",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (28 files / 80 tests); npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "后端编译打包与工作区边界",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -DskipTests package; python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-FILE-UPLOAD-ACCESS",
+      "entryUrl": "http://127.0.0.1:15174/systems/34?workspace=runtime&module=customer_c66_395225&recordId=25",
+      "actor": "处理客户、任务和审批材料的工作空间成员",
+      "result": "passed",
+      "pageAssertions": [
+        "客户详情附件页只让用户选择业务附件字段和文件，复用上传进度、失败重试、预览、下载与移除交互，不显示 ownerType、ownerId 或存储提供方参数。",
+        "任务详情和 Flow 实例详情使用同一业务附件组件，写权限由 FILE 上传与引用权限和对象当前可写状态共同决定。",
+        "客户附件叠加记录 DETAIL/UPDATE 数据范围与 PAGE∩FILE 字段权限；没有字段读取权限时附件页和时间线事件都不可见。",
+        "附件成功添加或移除后，客户时间线、任务历史和 Flow 历史记录真实业务事件。"
+      ],
+      "persistentReads": [
+        "系统 #34 客户记录 #25 的附件 #12 添加和移除后，时间线依次读回 BUSINESS_RECORD_ATTACHMENT_ADDED 与 BUSINESS_RECORD_ATTACHMENT_REMOVED。",
+        "任务 #12 的附件 #13 读回 ATTACHMENT_ADDED 历史；Flow 实例 #34 的附件 #14 读回 ATTACHMENT_ADDED 流程历史。",
+        "向普通文本字段上传返回 ATTACHMENT_FIELD_TYPE_INVALID，file_object 数量增量为 0；跨组织下载附件返回 BUSINESS_ATTACHMENT_NOT_FOUND。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/frontend/src/product/components/BusinessAttachmentsPanel.vue",
+        "projects/unexamine/tools/c66-live-acceptance.ps1"
+      ]
+    }
+  ]
+}

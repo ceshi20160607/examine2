@@ -3,6 +3,7 @@ package com.unique.unexamine.application.manage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.application.base.entity.AppCallback;
 import com.unique.unexamine.application.base.entity.AppCall;
@@ -28,12 +29,16 @@ import com.unique.unexamine.authentication.manage.Pbkdf2PasswordHasher;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
 import com.unique.unexamine.flow.base.entity.FlowDefinition;
 import com.unique.unexamine.flow.base.entity.FlowPublication;
+import com.unique.unexamine.flow.base.entity.FlowVersion;
 import com.unique.unexamine.flow.base.service.FlowDefinitionBaseService;
 import com.unique.unexamine.flow.base.service.FlowPublicationBaseService;
+import com.unique.unexamine.flow.base.service.FlowVersionBaseService;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModule;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModulePublication;
+import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleVersion;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModulePublicationBaseService;
+import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleVersionBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -74,8 +79,10 @@ public class ApplicationManagementService {
     private final AuditEventBaseService auditEventService;
     private final FlowDefinitionBaseService flowDefinitionService;
     private final FlowPublicationBaseService flowPublicationService;
+    private final FlowVersionBaseService flowVersionService;
     private final ConfiguredModuleBaseService moduleService;
     private final ConfiguredModulePublicationBaseService modulePublicationService;
+    private final ConfiguredModuleVersionBaseService moduleVersionService;
     private final PermissionChecker permissionChecker;
     private final Pbkdf2PasswordHasher secretHasher;
     private final ApplicationSecretCipher secretCipher;
@@ -95,8 +102,10 @@ public class ApplicationManagementService {
             AuditEventBaseService auditEventService,
             FlowDefinitionBaseService flowDefinitionService,
             FlowPublicationBaseService flowPublicationService,
+            FlowVersionBaseService flowVersionService,
             ConfiguredModuleBaseService moduleService,
             ConfiguredModulePublicationBaseService modulePublicationService,
+            ConfiguredModuleVersionBaseService moduleVersionService,
             PermissionChecker permissionChecker,
             Pbkdf2PasswordHasher secretHasher,
             ApplicationSecretCipher secretCipher,
@@ -113,8 +122,10 @@ public class ApplicationManagementService {
         this.auditEventService = auditEventService;
         this.flowDefinitionService = flowDefinitionService;
         this.flowPublicationService = flowPublicationService;
+        this.flowVersionService = flowVersionService;
         this.moduleService = moduleService;
         this.modulePublicationService = modulePublicationService;
+        this.moduleVersionService = moduleVersionService;
         this.permissionChecker = permissionChecker;
         this.secretHasher = secretHasher;
         this.secretCipher = secretCipher;
@@ -128,6 +139,65 @@ public class ApplicationManagementService {
         return scopedDefinitions(context).stream()
                 .sorted(Comparator.comparing(AppDefinition::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(application -> view(application, false)).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApplicationModels.ResourceOption> resources(AuthenticatedContext context) {
+        requireAction(context, "VIEW");
+        List<ApplicationModels.ResourceOption> resources = new ArrayList<>();
+        for (FlowDefinition flow : flowDefinitionService.selectList(Wrappers.<FlowDefinition>lambdaQuery()
+                .eq(FlowDefinition::getContextType, context.systemId() == null ? "PLATFORM" : "SYSTEM")
+                .eq(FlowDefinition::getPlatformId, context.platformId())
+                .eq(context.systemId() != null, FlowDefinition::getSystemId, context.systemId())
+                .isNull(context.systemId() == null, FlowDefinition::getSystemId)
+                .eq(context.tenantId() != null, FlowDefinition::getOwnerTenantId, context.tenantId())
+                .isNull(context.tenantId() == null, FlowDefinition::getOwnerTenantId)
+                .eq(FlowDefinition::getStatus, "PUBLISHED")
+                .orderByAsc(FlowDefinition::getName, FlowDefinition::getId))) {
+            FlowPublication publication = flowPublicationService.selectList(Wrappers.<FlowPublication>lambdaQuery()
+                            .eq(FlowPublication::getFlowId, flow.getId()).isNotNull(FlowPublication::getCurrentVersionId))
+                    .stream().findFirst().orElse(null);
+            if (publication == null) continue;
+            resources.add(new ApplicationModels.ResourceOption("FLOW", flow.getCode(), flow.getName(),
+                    flow.getDescription(), publication.getCurrentVersionId(), currentFlowVersion(publication.getCurrentVersionId()),
+                    List.of(new ApplicationModels.ResourceAction("START", "发起流程")), List.of()));
+        }
+        if (context.systemId() != null) {
+            for (ConfiguredModulePublication publication : modulePublicationService.selectList(
+                    Wrappers.<ConfiguredModulePublication>lambdaQuery()
+                            .eq(ConfiguredModulePublication::getSystemId, context.systemId())
+                            .eq(ConfiguredModulePublication::getOwnerTenantId, context.tenantId())
+                            .isNotNull(ConfiguredModulePublication::getCurrentVersionId))) {
+                ConfiguredModuleVersion version = moduleVersionService.selectById(publication.getCurrentVersionId());
+                ConfiguredModule module = moduleService.selectById(publication.getModuleId());
+                if (version == null || module == null || version.getSnapshotJson() == null) continue;
+                try {
+                    JsonNode snapshot = objectMapper.readTree(version.getSnapshotJson());
+                    List<ApplicationModels.ResourceAction> actions = new ArrayList<>();
+                    for (JsonNode action : snapshot.path("actions")) {
+                        String code = action.path("code").asText().toUpperCase(Locale.ROOT);
+                        if (Set.of("LIST", "DETAIL", "CREATE", "UPDATE").contains(code)
+                                && "ACTIVE".equals(action.path("status").asText("ACTIVE"))) {
+                            actions.add(new ApplicationModels.ResourceAction(code,
+                                    action.path("name").asText(applicationActionName(code))));
+                        }
+                    }
+                    List<ApplicationModels.ResourceField> fields = new ArrayList<>();
+                    for (JsonNode field : snapshot.path("fields")) {
+                        if (!"ACTIVE".equals(field.path("status").asText("ACTIVE"))) continue;
+                        fields.add(new ApplicationModels.ResourceField(field.path("code").asText(),
+                                field.path("name").asText(field.path("code").asText()),
+                                field.path("fieldType").asText("TEXT"), field.path("required").asBoolean(false)));
+                    }
+                    resources.add(new ApplicationModels.ResourceOption("MODULE", module.getCode(), module.getName(),
+                            module.getDescription(), version.getId(), version.getVersionNumber(), actions, fields));
+                } catch (JsonProcessingException exception) {
+                    throw new IllegalStateException("Cannot read published module resource " + module.getId(), exception);
+                }
+            }
+        }
+        return resources.stream().sorted(Comparator.comparing(ApplicationModels.ResourceOption::resourceType)
+                .thenComparing(ApplicationModels.ResourceOption::name)).toList();
     }
 
     @Transactional
@@ -158,6 +228,28 @@ public class ApplicationManagementService {
         return new ApplicationModels.CreateResult(view(application, true), issued);
     }
 
+    @Transactional
+    public ApplicationModels.CreateResult importConfiguration(
+            AuthenticatedContext context, ApplicationModels.ImportRequest input, String traceId) {
+        requireAction(context, "MANAGE");
+        ApplicationModels.CreateResult created = create(context, new ApplicationModels.CreateRequest(
+                input.code(), input.name(), input.description(), input.applicationType()), traceId);
+        List<ApplicationModels.GrantInput> scopedGrants = input.grants().stream().map(grant ->
+                new ApplicationModels.GrantInput(context.systemId() == null ? "PLATFORM" : "SYSTEM",
+                        context.systemId(), context.systemId() == null ? null : context.tenantId(),
+                        grant.resourceType(), grant.resourceId(), grant.actionCode(), grant.dataScope(),
+                        grant.rateLimit(), grant.fields())).toList();
+        ApplicationModels.ApplicationView imported = saveDraft(context, created.application().id(),
+                new ApplicationModels.SaveDraftRequest(created.application().version(), input.name(),
+                        input.description(), input.applicationType(), input.callbacks(), scopedGrants), traceId);
+        audit(context, traceId, "APPLICATION_CONFIGURATION_IMPORTED", imported.id(), Map.of(
+                "schemaVersion", 1,
+                "grantCount", input.grants().size(),
+                "callbackCount", input.callbacks() == null ? 0 : input.callbacks().size(),
+                "requiresPublication", true));
+        return new ApplicationModels.CreateResult(imported, created.issuedCredential());
+    }
+
     @Transactional(readOnly = true)
     public ApplicationModels.ApplicationView detail(AuthenticatedContext context, Long applicationId) {
         requireAction(context, "VIEW");
@@ -172,12 +264,32 @@ public class ApplicationManagementService {
                         .eq(AppCall::getApplicationId, applicationId)
                         .orderByDesc(AppCall::getCalledAt, AppCall::getId))
                 .stream().map(call -> new ApplicationBridgeModels.CallLogView(
-                        call.getId(), call.getRequestId(), call.getTraceId(), call.getCredentialVersion(),
+                        call.getId(), call.getRequestId(), call.getTraceId(), call.getApplicationVersionId(), call.getCredentialVersion(),
                         call.getGrantId(), call.getSourceAddress(), call.getTargetSystemId(), call.getTargetTenantId(),
                         call.getResourceType(), call.getResourceId(), call.getActionCode(), call.getStatus(),
                         call.getResponseCode(), call.getDurationMillis(), call.getErrorMessage(),
                         call.getTargetReference(), call.getReplayCount(), readMap(call.getPermissionSnapshotJson()),
                         readObject(call.getResponseJson()), call.getCalledAt(), call.getFinishedAt())).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationModels.ConfigurationExport exportConfiguration(
+            AuthenticatedContext context, Long applicationId) {
+        requireAction(context, "VIEW");
+        AppDefinition application = requireOwned(context, applicationId);
+        List<ApplicationModels.CallbackInput> callbacks = callbacks(applicationId).stream().map(callback ->
+                new ApplicationModels.CallbackInput(callback.getCallbackType(), callback.getUrl(),
+                        readStringList(callback.getEventCodesJson()), callback.getSigningSecretRef(),
+                        callback.getTimeoutMillis(), callback.getMaxAttempts())).toList();
+        List<ApplicationModels.GrantInput> grants = grants(applicationId).stream().map(grant ->
+                new ApplicationModels.GrantInput(grant.getTargetType(), grant.getTargetSystemId(),
+                        grant.getTargetTenantId(), grant.getResourceType(), grant.getResourceId(), grant.getActionCode(),
+                        readMap(grant.getDataScopeJson()), readMap(grant.getRateLimitJson()),
+                        fields(grant.getId()).stream().map(field -> new ApplicationModels.FieldInput(
+                                field.getFieldCode(), Boolean.TRUE.equals(field.getReadable()),
+                                Boolean.TRUE.equals(field.getWritable()), field.getMaskStrategy())).toList())).toList();
+        return new ApplicationModels.ConfigurationExport(1, application.getCode(), application.getName(),
+                application.getDescription(), application.getApplicationType(), callbacks, grants, LocalDateTime.now());
     }
 
     @Transactional
@@ -342,6 +454,136 @@ public class ApplicationManagementService {
         return view(requireOwned(context, applicationId), true);
     }
 
+    @Transactional
+    public ApplicationModels.CreateResult copy(
+            AuthenticatedContext context, Long applicationId, ApplicationModels.CopyRequest input, String traceId) {
+        requireAction(context, "MANAGE");
+        AppDefinition source = requireOwned(context, applicationId);
+        ApplicationModels.CreateResult created = create(context, new ApplicationModels.CreateRequest(
+                input.code(), input.name(), source.getDescription(), source.getApplicationType()), traceId);
+        List<ApplicationModels.CallbackInput> copiedCallbacks = callbacks(applicationId).stream().map(callback ->
+                new ApplicationModels.CallbackInput(callback.getCallbackType(), callback.getUrl(),
+                        readStringList(callback.getEventCodesJson()), callback.getSigningSecretRef(),
+                        callback.getTimeoutMillis(), callback.getMaxAttempts())).toList();
+        List<ApplicationModels.GrantInput> copiedGrants = grants(applicationId).stream().map(grant ->
+                new ApplicationModels.GrantInput(grant.getTargetType(), grant.getTargetSystemId(),
+                        grant.getTargetTenantId(), grant.getResourceType(), grant.getResourceId(), grant.getActionCode(),
+                        readMap(grant.getDataScopeJson()), readMap(grant.getRateLimitJson()),
+                        fields(grant.getId()).stream().map(field -> new ApplicationModels.FieldInput(
+                                field.getFieldCode(), Boolean.TRUE.equals(field.getReadable()),
+                                Boolean.TRUE.equals(field.getWritable()), field.getMaskStrategy())).toList())).toList();
+        ApplicationModels.ApplicationView copied = saveDraft(context, created.application().id(),
+                new ApplicationModels.SaveDraftRequest(created.application().version(), input.name(),
+                        source.getDescription(), source.getApplicationType(), copiedCallbacks, copiedGrants), traceId);
+        audit(context, traceId, "APPLICATION_COPIED", copied.id(), Map.of("sourceApplicationId", applicationId));
+        return new ApplicationModels.CreateResult(copied, created.issuedCredential());
+    }
+
+    @Transactional
+    public ApplicationModels.RotateResult enable(
+            AuthenticatedContext context, Long applicationId, String traceId) {
+        requireAction(context, "MANAGE");
+        AppDefinition application = requireOwned(context, applicationId);
+        if (!"DISABLED".equals(application.getStatus())) {
+            throw conflict("APPLICATION_NOT_DISABLED", "只有已停用应用可以重新启用");
+        }
+        if (publication(applicationId) == null) {
+            throw conflict("APPLICATION_PUBLICATION_REQUIRED", "应用没有可恢复的发布版本");
+        }
+        application.setStatus("ACTIVE");
+        if (definitionService.updateById(application) != 1) {
+            throw conflict("APPLICATION_VERSION_CONFLICT", "应用状态已变化，请刷新后重试");
+        }
+        int nextVersion = credentials(applicationId).stream().map(AppCredential::getCredentialVersion)
+                .max(Integer::compareTo).orElse(0) + 1;
+        ApplicationModels.CredentialSecret issued = issueCredential(application, context.accountId(), nextVersion);
+        audit(context, traceId, "APPLICATION_ENABLED", applicationId, Map.of(
+                "credentialVersion", nextVersion, "restoredVersionId", publication(applicationId).getCurrentVersionId()));
+        return new ApplicationModels.RotateResult(view(application, true), issued);
+    }
+
+    @Transactional
+    public ApplicationModels.PublishResult rollback(
+            AuthenticatedContext context, Long applicationId, ApplicationModels.RollbackRequest input, String traceId) {
+        requireAction(context, "PUBLISH");
+        AppDefinition application = requireOwned(context, applicationId);
+        if ("DISABLED".equals(application.getStatus())) {
+            throw conflict("APPLICATION_DISABLED", "请先启用应用再回滚运行版本");
+        }
+        AppPublication publication = publication(applicationId);
+        if (publication == null || !Objects.equals(publication.getVersion(), input.expectedPublicationVersion())) {
+            throw conflict("APPLICATION_PUBLICATION_CONFLICT", "应用运行版本已变化，请刷新后重试");
+        }
+        AppVersion target = versionService.selectById(input.targetVersionId());
+        if (target == null || !Objects.equals(target.getApplicationId(), applicationId)) {
+            throw new DomainException("APPLICATION_VERSION_NOT_FOUND", "目标应用版本不存在", HttpStatus.NOT_FOUND);
+        }
+        if (Objects.equals(target.getId(), publication.getCurrentVersionId())) {
+            throw conflict("APPLICATION_VERSION_ALREADY_CURRENT", "目标版本已经是当前运行版本");
+        }
+        Long previousVersionId = publication.getCurrentVersionId();
+        int nextVersion = versions(applicationId).stream().map(AppVersion::getVersionNumber)
+                .max(Integer::compareTo).orElse(0) + 1;
+        application.setDraftRevision(application.getDraftRevision() + 1);
+        if (definitionService.updateById(application) != 1) {
+            throw conflict("APPLICATION_VERSION_CONFLICT", "应用草稿已变化，请刷新后重试");
+        }
+        AppVersion rollback = new AppVersion();
+        rollback.setApplicationId(applicationId);
+        rollback.setVersionNumber(nextVersion);
+        rollback.setDraftRevision(application.getDraftRevision());
+        rollback.setSnapshotJson(target.getSnapshotJson());
+        rollback.setSnapshotHash(target.getSnapshotHash());
+        rollback.setPublishedByAccountId(context.accountId());
+        versionService.insert(rollback);
+        publication.setCurrentVersionId(rollback.getId());
+        publication.setUpdatedByAccountId(context.accountId());
+        if (publicationService.updateById(publication) != 1) {
+            throw conflict("APPLICATION_PUBLICATION_CONFLICT", "应用运行版本已变化，请重试");
+        }
+        audit(context, traceId, "APPLICATION_VERSION_ROLLED_BACK", applicationId, Map.of(
+                "targetVersionId", target.getId(), "targetVersionNumber", target.getVersionNumber(),
+                "newVersionId", rollback.getId(), "newVersionNumber", nextVersion, "reason", input.reason().strip()));
+        return new ApplicationModels.PublishResult(view(application, true), rollback.getId(), nextVersion,
+                rollback.getSnapshotHash(), previousVersionId);
+    }
+
+    @Transactional
+    public void delete(AuthenticatedContext context, Long applicationId, ApplicationModels.DeleteRequest input, String traceId) {
+        requireAction(context, "MANAGE");
+        AppDefinition application = requireOwned(context, applicationId);
+        application.setStatus("DELETED");
+        if (definitionService.updateById(application) != 1) {
+            throw conflict("APPLICATION_VERSION_CONFLICT", "应用状态已变化，请刷新后重试");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        for (AppCredential credential : credentials(applicationId)) {
+            if ("ACTIVE".equals(credential.getStatus())) {
+                credential.setStatus("REVOKED");
+                credential.setRevokedAt(now);
+                credentialService.updateById(credential);
+            }
+        }
+        audit(context, traceId, "APPLICATION_DELETED", applicationId, Map.of(
+                "reason", input.reason().strip(), "historyPreserved", true));
+    }
+
+    private Integer currentFlowVersion(Long versionId) {
+        FlowVersion version = flowVersionService.selectById(versionId);
+        return version == null ? null : version.getVersionNumber();
+    }
+
+    private String applicationActionName(String code) {
+        return switch (code) {
+            case "LIST" -> "查询列表";
+            case "DETAIL" -> "查看详情";
+            case "CREATE" -> "新建记录";
+            case "UPDATE" -> "编辑记录";
+            case "START" -> "发起流程";
+            default -> code;
+        };
+    }
+
     private void validateDraftInputs(
             AuthenticatedContext context,
             List<ApplicationModels.CallbackInput> callbacks,
@@ -361,7 +603,19 @@ public class ApplicationManagementService {
             if (maxRequests == null || maxRequests.longValue() < 1 || windowSeconds == null || windowSeconds.longValue() < 1) {
                 throw invalid("APPLICATION_CALL_CONTROL_REQUIRED", "每项授权必须配置正数限流次数和时间窗口");
             }
-            if (!(grant.rateLimit().get("allowedIps") instanceof List<?> allowedIps) || allowedIps.isEmpty()) {
+            Number failureThreshold = number(grant.rateLimit().get("failureDisableThreshold"));
+            Number failureWindow = number(grant.rateLimit().get("failureWindowSeconds"));
+            if (failureThreshold != null && (failureThreshold.longValue() < 1 || failureThreshold.longValue() > 1000)
+                    || failureWindow != null && (failureWindow.longValue() < 10 || failureWindow.longValue() > 604800)) {
+                throw invalid("APPLICATION_FAILURE_POLICY_INVALID", "失败停用阈值需为 1-1000 次，统计窗口需为 10 秒到 7 天");
+            }
+            List<String> accessChannels = accessChannels(grant.rateLimit());
+            if (accessChannels.isEmpty() || accessChannels.stream().anyMatch(channel ->
+                    !Set.of("EXTERNAL", "INTERNAL").contains(channel))) {
+                throw invalid("APPLICATION_ACCESS_CHANNEL_INVALID", "每项授权至少选择系统内访问或外部访问，并且只能使用已支持的访问方式");
+            }
+            if (accessChannels.contains("EXTERNAL")
+                    && (!(grant.rateLimit().get("allowedIps") instanceof List<?> allowedIps) || allowedIps.isEmpty())) {
                 throw invalid("APPLICATION_IP_ALLOWLIST_REQUIRED", "每项授权必须配置至少一个来源 IP 白名单");
             }
         }
@@ -430,7 +684,13 @@ public class ApplicationManagementService {
         if (number(rateLimit.get("maxRequests")) == null || number(rateLimit.get("windowSeconds")) == null) {
             throw invalid("APPLICATION_CALL_CONTROL_REQUIRED", "每项授权必须配置调用控制");
         }
-        if (!(rateLimit.get("allowedIps") instanceof List<?> allowedIps) || allowedIps.isEmpty()) {
+        List<String> accessChannels = accessChannels(rateLimit);
+        if (accessChannels.isEmpty() || accessChannels.stream().anyMatch(channel ->
+                !Set.of("EXTERNAL", "INTERNAL").contains(channel))) {
+            throw invalid("APPLICATION_ACCESS_CHANNEL_INVALID", "授权访问方式不完整");
+        }
+        if (accessChannels.contains("EXTERNAL")
+                && (!(rateLimit.get("allowedIps") instanceof List<?> allowedIps) || allowedIps.isEmpty())) {
             throw invalid("APPLICATION_IP_ALLOWLIST_REQUIRED", "授权来源 IP 白名单不完整");
         }
         validatePublishedTarget(context, grant);
@@ -456,6 +716,14 @@ public class ApplicationManagementService {
                 throw invalid("APPLICATION_TARGET_RESOURCE_NOT_PUBLISHED",
                         "应用授权引用的 Flow 不存在或尚未发布：" + grant.getResourceId());
             }
+            if (!"START".equals(grant.getActionCode())) {
+                throw invalid("APPLICATION_TARGET_ACTION_INVALID", "Flow 只允许配置发起流程动作");
+            }
+            Set<String> invalidFields = fields(grant.getId()).stream().map(AppGrantField::getFieldCode)
+                    .filter(code -> !Set.of("title", "variables").contains(code)).collect(java.util.stream.Collectors.toSet());
+            if (!invalidFields.isEmpty()) {
+                throw invalid("APPLICATION_TARGET_FIELD_INVALID", "Flow 授权包含不存在的输入项：" + String.join("、", invalidFields));
+            }
             return;
         }
         if ("MODULE".equals(resourceType)) {
@@ -473,6 +741,46 @@ public class ApplicationManagementService {
             if (!published) {
                 throw invalid("APPLICATION_TARGET_RESOURCE_NOT_PUBLISHED",
                         "应用授权引用的模块不存在或尚未发布：" + grant.getResourceId());
+            }
+            ConfiguredModulePublication publication = modulePublicationService.selectList(
+                            Wrappers.<ConfiguredModulePublication>lambdaQuery()
+                                    .eq(ConfiguredModulePublication::getModuleId, module.getId())
+                                    .isNotNull(ConfiguredModulePublication::getCurrentVersionId))
+                    .stream().findFirst().orElseThrow();
+            ConfiguredModuleVersion version = moduleVersionService.selectById(publication.getCurrentVersionId());
+            try {
+                JsonNode snapshot = objectMapper.readTree(version.getSnapshotJson());
+                Set<String> actionCodes = new java.util.HashSet<>();
+                snapshot.path("actions").forEach(action -> {
+                    if ("ACTIVE".equals(action.path("status").asText("ACTIVE"))) {
+                        actionCodes.add(action.path("code").asText().toUpperCase(Locale.ROOT));
+                    }
+                });
+                if (!Set.of("LIST", "DETAIL", "CREATE", "UPDATE").contains(grant.getActionCode())
+                        || !actionCodes.contains(grant.getActionCode())) {
+                    throw invalid("APPLICATION_TARGET_ACTION_INVALID", "应用授权动作不在模块当前发布版本中：" + grant.getActionCode());
+                }
+                Set<String> fieldCodes = new java.util.HashSet<>();
+                snapshot.path("fields").forEach(field -> {
+                    if ("ACTIVE".equals(field.path("status").asText("ACTIVE"))) {
+                        fieldCodes.add(field.path("code").asText());
+                    }
+                });
+                Set<String> invalidFields = fields(grant.getId()).stream().map(AppGrantField::getFieldCode)
+                        .filter(code -> !fieldCodes.contains(code)).collect(java.util.stream.Collectors.toSet());
+                if (!invalidFields.isEmpty()) {
+                    throw invalid("APPLICATION_TARGET_FIELD_INVALID", "应用授权字段不在模块当前发布版本中：" + String.join("、", invalidFields));
+                }
+                List<AppGrantField> grantedFields = fields(grant.getId());
+                if (grantedFields.stream().noneMatch(field -> Boolean.TRUE.equals(field.getReadable()))) {
+                    throw invalid("APPLICATION_READABLE_FIELD_REQUIRED", "模块授权至少选择一个可返回字段");
+                }
+                if (Set.of("CREATE", "UPDATE").contains(grant.getActionCode())
+                        && grantedFields.stream().noneMatch(field -> Boolean.TRUE.equals(field.getWritable()))) {
+                    throw invalid("APPLICATION_WRITABLE_FIELD_REQUIRED", "新建或编辑授权至少选择一个可填写字段");
+                }
+            } catch (JsonProcessingException exception) {
+                throw invalid("APPLICATION_TARGET_RESOURCE_INVALID", "无法读取模块当前发布版本");
             }
             return;
         }
@@ -516,7 +824,11 @@ public class ApplicationManagementService {
             grant.setResourceId(input.resourceId().strip());
             grant.setActionCode(input.actionCode().strip().toUpperCase(Locale.ROOT));
             grant.setDataScopeJson(writeJson(input.dataScope()));
-            grant.setRateLimitJson(writeJson(input.rateLimit()));
+            Map<String, Object> callControl = new LinkedHashMap<>(input.rateLimit());
+            callControl.putIfAbsent("failureDisableThreshold", 5);
+            callControl.putIfAbsent("failureWindowSeconds", 300);
+            callControl.putIfAbsent("accessChannels", List.of("EXTERNAL"));
+            grant.setRateLimitJson(writeJson(callControl));
             grant.setStatus("ACTIVE");
             grant.setVersion(0);
             grantService.insert(grant);
@@ -581,6 +893,7 @@ public class ApplicationManagementService {
 
     private Map<String, Object> callbackSnapshot(AppCallback callback) {
         Map<String, Object> value = new LinkedHashMap<>();
+        value.put("callbackId", callback.getId());
         value.put("callbackType", callback.getCallbackType());
         value.put("url", callback.getUrl());
         value.put("eventCodes", readStringList(callback.getEventCodesJson()));
@@ -592,6 +905,7 @@ public class ApplicationManagementService {
 
     private Map<String, Object> grantSnapshot(AppGrant grant) {
         Map<String, Object> value = new LinkedHashMap<>();
+        value.put("grantId", grant.getId());
         value.put("targetType", grant.getTargetType());
         value.put("targetSystemId", grant.getTargetSystemId());
         value.put("targetTenantId", grant.getTargetTenantId());
@@ -608,9 +922,40 @@ public class ApplicationManagementService {
         return value;
     }
 
+    private List<ApplicationModels.GrantView> publishedGrantViews(AppPublication publication) {
+        if (publication == null || publication.getCurrentVersionId() == null) return List.of();
+        AppVersion version = versionService.selectById(publication.getCurrentVersionId());
+        if (version == null || version.getSnapshotJson() == null) return List.of();
+        Object raw = readMap(version.getSnapshotJson()).get("grants");
+        if (!(raw instanceof List<?> values)) return List.of();
+        List<ApplicationModels.GrantView> result = new ArrayList<>();
+        for (int index = 0; index < values.size(); index++) {
+            if (!(values.get(index) instanceof Map<?, ?> source)) continue;
+            Map<String, Object> grant = new LinkedHashMap<>();
+            source.forEach((key, value) -> grant.put(String.valueOf(key), value));
+            List<ApplicationModels.FieldView> fields = new ArrayList<>();
+            if (grant.get("fields") instanceof List<?> fieldValues) {
+                for (Object fieldValue : fieldValues) {
+                    if (!(fieldValue instanceof Map<?, ?> field)) continue;
+                    fields.add(new ApplicationModels.FieldView(null, String.valueOf(field.get("fieldCode")),
+                            Boolean.TRUE.equals(field.get("readable")), Boolean.TRUE.equals(field.get("writable")),
+                            field.get("maskStrategy") == null ? null : String.valueOf(field.get("maskStrategy"))));
+                }
+            }
+            Long grantId = grant.get("grantId") instanceof Number number ? number.longValue()
+                    : -(version.getId() * 1000 + index + 1);
+            result.add(new ApplicationModels.GrantView(grantId, string(grant.get("targetType")),
+                    asLong(grant.get("targetSystemId")), asLong(grant.get("targetTenantId")),
+                    string(grant.get("resourceType")), string(grant.get("resourceId")),
+                    string(grant.get("actionCode")), map(grant.get("dataScope")), map(grant.get("rateLimit")),
+                    "PUBLISHED", version.getVersionNumber(), fields));
+        }
+        return result;
+    }
+
     private ApplicationModels.ApplicationView view(AppDefinition application, boolean includeHistory) {
         AppPublication publication = publication(application.getId());
-        List<ApplicationModels.GrantView> grants = grants(application.getId()).stream().map(grant ->
+        List<ApplicationModels.GrantView> draftGrants = grants(application.getId()).stream().map(grant ->
                 new ApplicationModels.GrantView(grant.getId(), grant.getTargetType(), grant.getTargetSystemId(),
                         grant.getTargetTenantId(), grant.getResourceType(), grant.getResourceId(), grant.getActionCode(),
                         readMap(grant.getDataScopeJson()), readMap(grant.getRateLimitJson()), grant.getStatus(), grant.getVersion(),
@@ -629,11 +974,13 @@ public class ApplicationManagementService {
                 application.getName(), application.getDescription(), application.getApplicationType(),
                 application.getDraftRevision(), application.getStatus(), application.getVersion(),
                 publication == null ? null : publication.getCurrentVersionId(),
+                publication == null ? null : publication.getVersion(),
                 callbacks(application.getId()).stream().map(callback -> new ApplicationModels.CallbackView(
                         callback.getId(), callback.getCallbackType(), callback.getUrl(),
                         readStringList(callback.getEventCodesJson()), callback.getSigningSecretRef(),
                         callback.getTimeoutMillis(), callback.getMaxAttempts(), callback.getStatus(), callback.getVersion())).toList(),
-                grants,
+                draftGrants,
+                publishedGrantViews(publication),
                 credentials(application.getId()).stream().sorted(Comparator.comparing(AppCredential::getCredentialVersion).reversed())
                         .map(credential -> new ApplicationModels.CredentialView(
                                 credential.getId(), credential.getCredentialVersion(), credential.getClientId(),
@@ -657,7 +1004,8 @@ public class ApplicationManagementService {
     private List<AppDefinition> scopedDefinitions(AuthenticatedContext context) {
         var query = Wrappers.<AppDefinition>lambdaQuery()
                 .eq(AppDefinition::getContextType, context.systemId() == null ? "PLATFORM" : "SYSTEM")
-                .eq(AppDefinition::getPlatformId, context.platformId());
+                .eq(AppDefinition::getPlatformId, context.platformId())
+                .ne(AppDefinition::getStatus, "DELETED");
         if (context.systemId() == null) {
             query.isNull(AppDefinition::getOwnerSystemId).isNull(AppDefinition::getOwnerTenantId);
         } else {
@@ -669,7 +1017,7 @@ public class ApplicationManagementService {
 
     private AppDefinition requireOwned(AuthenticatedContext context, Long applicationId) {
         AppDefinition application = definitionService.selectById(applicationId);
-        if (application == null || !owned(context, application)) {
+        if (application == null || "DELETED".equals(application.getStatus()) || !owned(context, application)) {
             throw new DomainException("APPLICATION_NOT_FOUND", "应用不存在或不在当前上下文", HttpStatus.NOT_FOUND);
         }
         return application;
@@ -733,6 +1081,26 @@ public class ApplicationManagementService {
 
     private Number number(Object value) {
         return value instanceof Number number ? number : null;
+    }
+
+    private List<String> accessChannels(Map<String, Object> callControl) {
+        Object configured = callControl.get("accessChannels");
+        if (!(configured instanceof List<?> values) || values.isEmpty()) return List.of("EXTERNAL");
+        return values.stream().map(String::valueOf).map(value -> value.strip().toUpperCase(Locale.ROOT))
+                .filter(value -> !value.isBlank()).distinct().toList();
+    }
+
+    private Long asLong(Object value) {
+        return value instanceof Number number ? number.longValue() : null;
+    }
+
+    private String string(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> map(Object value) {
+        return value instanceof Map<?, ?> source ? (Map<String, Object>) source : Map.of();
     }
 
     private String blankToNull(String value) {

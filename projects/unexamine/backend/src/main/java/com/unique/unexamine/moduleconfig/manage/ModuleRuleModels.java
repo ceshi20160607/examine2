@@ -19,7 +19,7 @@ public final class ModuleRuleModels {
     }
 
     public record CreateRuleRequest(
-            @NotBlank @Pattern(regexp = "[A-Za-z][A-Za-z0-9_]{1,99}") String code,
+            @Pattern(regexp = "[A-Za-z][A-Za-z0-9_]{1,99}") String code,
             @NotBlank @Size(max = 200) String name,
             @NotBlank @Pattern(regexp = "VALIDATION|VISIBILITY|REQUIRED|EDITABLE|APPROVAL|DELETE_ROLE") String ruleType,
             @NotBlank @Pattern(regexp = "CREATE|UPDATE|DELETE|ALWAYS") String triggerEvent,
@@ -60,7 +60,7 @@ public final class ModuleRuleModels {
     }
 
     public record CreateIndexRequest(
-            @NotBlank @Pattern(regexp = "[A-Za-z][A-Za-z0-9_]{1,99}") String code,
+            @Pattern(regexp = "[A-Za-z][A-Za-z0-9_]{1,99}") String code,
             @NotBlank @Size(max = 200) String name,
             @NotNull Boolean uniqueIndex,
             @NotEmpty List<@Valid IndexFieldRequest> fields) {

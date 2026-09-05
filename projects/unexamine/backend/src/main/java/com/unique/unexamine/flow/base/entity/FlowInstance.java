@@ -61,6 +61,9 @@ public class FlowInstance {
     @TableField("started_by_account_id")
     private Long startedByAccountId;
 
+    @TableField("started_by_tenant_member_id")
+    private Long startedByTenantMemberId;
+
     @TableField("started_at")
     private LocalDateTime startedAt;
 
@@ -195,6 +198,14 @@ public class FlowInstance {
         this.startedByAccountId = startedByAccountId;
     }
 
+    public Long getStartedByTenantMemberId() {
+        return startedByTenantMemberId;
+    }
+
+    public void setStartedByTenantMemberId(Long startedByTenantMemberId) {
+        this.startedByTenantMemberId = startedByTenantMemberId;
+    }
+
     public LocalDateTime getStartedAt() {
         return startedAt;
     }
@@ -268,6 +279,7 @@ public class FlowInstance {
             ", currentNodeKey = " + currentNodeKey +
             ", status = " + status +
             ", startedByAccountId = " + startedByAccountId +
+            ", startedByTenantMemberId = " + startedByTenantMemberId +
             ", startedAt = " + startedAt +
             ", finishedAt = " + finishedAt +
             ", errorCode = " + errorCode +

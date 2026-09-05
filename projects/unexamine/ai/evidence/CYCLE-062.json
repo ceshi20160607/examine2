@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-062",
+  "executedAt": "2026-09-01T19:21:00+08:00",
+  "taskIds": [
+    "TASK-0221",
+    "TASK-0227"
+  ],
+  "checks": [
+    {
+      "name": "Flow 与 Work 后端主代码及测试源码使用 JDK 21 完整编译并生成可运行包",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -DskipTests package",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 定义版本、运行实例、任务动作、手动节点、超时作业、异常和重试恢复真实接口验收",
+      "command": "Spring Boot 18080 real API against system #18; MySQL targeted elapsed-time fixture for flow_job #5",
+      "result": "passed"
+    },
+    {
+      "name": "项目任务、统一组织成员、结构化配置、待办消息、工作日志和业务记录时间线真实接口验收",
+      "command": "Spring Boot 18080 real API against system #18, project #3, task #7, log #3 and business record #20",
+      "result": "passed"
+    },
+    {
+      "name": "部署包重启后固定后端入口健康检查",
+      "command": "Docker unexamine-backend restart; GET http://127.0.0.1:18080/actuator/health/readiness",
+      "result": "passed"
+    }
+  ],
+  "journeys": []
+}

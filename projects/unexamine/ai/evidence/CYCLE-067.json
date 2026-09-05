@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-067",
+  "executedAt": "2026-09-02T00:42:31+08:00",
+  "taskIds": [
+    "TASK-0237",
+    "TASK-0238",
+    "TASK-0239"
+  ],
+  "checks": [
+    {
+      "name": "真实客户经营看板、数据范围、下钻和 KPI 提醒闭环",
+      "command": "pwsh -NoProfile -File projects/unexamine/tools/c67-live-acceptance.ps1 against Spring Boot 18080, MySQL 33077 and Redis 36379",
+      "result": "passed"
+    },
+    {
+      "name": "结构化报表、不可变数据源版本、KPI 解释和图表安全过滤后端回归",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -Dtest=DashboardHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "AI 权限上下文查询、来源解释、工具失败降级和证据持久化",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -Dtest=AiContextQueryHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "AI 结构化候选、取消零写入、人工确认写入和幂等审计",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -Dtest=AiConfirmedWriteHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "前端分析配置、真实图表和下钻路由全量回归与生产构建",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (28 files / 80 tests); npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "后端 Java 21 编译打包、运行健康与工作区边界",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -DskipTests package; docker restart unexamine-backend; GET /actuator/health; python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-ANALYTICS-DASHBOARD",
+      "entryUrl": "http://127.0.0.1:15174/systems/42?workspace=dashboard",
+      "actor": "管理员与只拥有本人客户数据范围的销售成员",
+      "result": "passed",
+      "pageAssertions": [
+        "管理员客户列表和客户总量组件均为 3；销售客户列表和同一看板组件均为 2，统计严格复用普通列表的数据范围。",
+        "客户阶段组件由真实 ECharts 柱状图渲染；点击 LEAD 后生成受控 EQ 过滤并打开同一客户模块列表，不暴露任意查询表达式。",
+        "创建客户和修改客户阶段后重新读取看板，销售总量由 2 更新为 3，LEAD 分组由 1 更新为 2。"
+      ],
+      "persistentReads": [
+        "系统 #42、租户 #44 的客户模块 customer_c67_500586 持久化 4 条验收客户，其中销售数据范围可见 3 条。",
+        "LEAD 下钻命中客户记录 #37；更新记录 #38 并创建记录 #40 后，实时聚合读回总量 3、LEAD 2。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/components/DashboardChart.vue",
+        "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/tools/c67-live-acceptance.ps1"
+      ]
+    },
+    {
+      "useCaseId": "UC-ANALYTICS-KPI",
+      "entryUrl": "http://127.0.0.1:15174/systems/42?workspace=kpi&kpiId=5",
+      "actor": "负责逾期客户跟进的销售成员",
+      "result": "passed",
+      "pageAssertions": [
+        "逾期跟进 KPI 读回 UNDER_TARGET，显示目标、实际值、授权过滤后的统计口径、计算时间和一条可下钻客户。",
+        "未达标提醒进入销售消息中心，消息目标回到当前系统 KPI 页面，不把提醒伪装成审批待办。",
+        "KPI、责任人、可见范围和提醒接收人均通过真实人员、部门、角色和模块选择器配置，不要求业务用户填写内部 ID。"
+      ],
+      "persistentReads": [
+        "KPI #5 的最新结果下钻到客户记录 #38，口径为对系统、租户、共享、数据范围和字段权限过滤后的 1 行授权结果计数。",
+        "消息 #64 的来源为 KPI_ALERT，持久化目标路由为 /systems/42?workspace=kpi&kpiId=5。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/KpiConfigurationView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/KpiService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+        "projects/unexamine/tools/c67-live-acceptance.ps1"
+      ]
+    }
+  ]
+}

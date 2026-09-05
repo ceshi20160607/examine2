@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/work")
@@ -29,6 +30,11 @@ public class WorkConfigurationController {
     @GetMapping("/configuration")
     public ApiResult<WorkConfigurationModels.ConfigurationView> configuration() {
         return ApiResult.ok(service.configuration(AuthenticationContextHolder.require()));
+    }
+
+    @GetMapping("/configuration/effective/{targetType}")
+    public ApiResult<List<WorkConfigurationModels.FieldView>> effectiveFields(@PathVariable String targetType) {
+        return ApiResult.ok(service.effectiveFields(AuthenticationContextHolder.require(), targetType));
     }
 
     @PutMapping("/configuration/fields/{targetType}/{fieldCode}")
@@ -63,7 +69,9 @@ public class WorkConfigurationController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(required = false) Long projectId,
+            @RequestParam(required = false) Long tenantMemberId,
             @RequestParam(required = false) Long accountId) {
-        return ApiResult.ok(service.calendar(AuthenticationContextHolder.require(), from, to, projectId, accountId));
+        return ApiResult.ok(service.calendar(AuthenticationContextHolder.require(), from, to, projectId,
+                tenantMemberId, accountId));
     }
 }

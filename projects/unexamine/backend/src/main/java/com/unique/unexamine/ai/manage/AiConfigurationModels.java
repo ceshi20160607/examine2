@@ -149,7 +149,15 @@ public final class AiConfigurationModels {
             List<VersionView> versions) {
     }
 
-    public record ModuleOption(String code, String name, List<String> actions, List<String> fields) {
+    public record FieldOption(String code, String name) {
+    }
+
+    public record ModuleOption(
+            String code,
+            String name,
+            List<String> actions,
+            List<String> fields,
+            List<FieldOption> fieldOptions) {
     }
 
     public record SystemOverview(

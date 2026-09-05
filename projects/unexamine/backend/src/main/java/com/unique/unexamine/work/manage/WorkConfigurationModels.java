@@ -71,11 +71,12 @@ public final class WorkConfigurationModels {
     }
 
     public record TaskCalendarItem(Long id, String title, String status, String priority,
-                                   Long projectId, Long ownerAccountId, LocalDateTime dueAt,
-                                   LocalDateTime completedAt) {
+                                   Long projectId, WorkManagementModels.PersonView owner,
+                                   String businessType, String businessId, String businessTitle,
+                                   LocalDateTime dueAt, LocalDateTime completedAt) {
     }
 
-    public record LogCalendarItem(Long id, String title, String status, Long authorAccountId,
+    public record LogCalendarItem(Long id, String title, String status, WorkManagementModels.PersonView author,
                                   int durationMinutes, LocalDate workDate) {
     }
 
@@ -108,7 +109,8 @@ public final class WorkConfigurationModels {
             LocalDate from,
             LocalDate to,
             Long projectId,
-            Long accountId,
+            Long tenantMemberId,
+            String personName,
             boolean detailAvailable,
             CalendarSummary summary,
             List<CalendarDay> days) {

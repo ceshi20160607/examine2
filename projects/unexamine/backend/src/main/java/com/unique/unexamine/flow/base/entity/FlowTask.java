@@ -37,6 +37,9 @@ public class FlowTask {
     @TableField("assignee_account_id")
     private Long assigneeAccountId;
 
+    @TableField("assignee_tenant_member_id")
+    private Long assigneeTenantMemberId;
+
     @TableField("assignee_snapshot_json")
     private String assigneeSnapshotJson;
 
@@ -107,6 +110,14 @@ public class FlowTask {
         this.assigneeAccountId = assigneeAccountId;
     }
 
+    public Long getAssigneeTenantMemberId() {
+        return assigneeTenantMemberId;
+    }
+
+    public void setAssigneeTenantMemberId(Long assigneeTenantMemberId) {
+        this.assigneeTenantMemberId = assigneeTenantMemberId;
+    }
+
     public String getAssigneeSnapshotJson() {
         return assigneeSnapshotJson;
     }
@@ -172,6 +183,7 @@ public class FlowTask {
             ", taskType = " + taskType +
             ", status = " + status +
             ", assigneeAccountId = " + assigneeAccountId +
+            ", assigneeTenantMemberId = " + assigneeTenantMemberId +
             ", assigneeSnapshotJson = " + assigneeSnapshotJson +
             ", dueAt = " + dueAt +
             ", claimedAt = " + claimedAt +

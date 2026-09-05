@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dashboardComponentSpan, moveDashboardComponent, sourceDefinition } from './dashboard'
+import { dashboardComponentSpan, isCoreWorkspaceSummary, moveDashboardComponent, sourceDefinition } from './dashboard'
 import type { DashboardComponentInput } from './types'
 
 const component = (key: string, order: number): DashboardComponentInput => ({
@@ -21,5 +21,10 @@ describe('Cycle 48 dashboard configuration rules', () => {
   it('bounds layout spans so malformed configuration cannot break the grid', () => {
     expect(dashboardComponentSpan({ width: 8 })).toBe(4)
     expect(dashboardComponentSpan({ width: 'bad' })).toBe(1)
+  })
+
+  it('does not repeat the workspace summary as a technical dashboard card', () => {
+    expect(isCoreWorkspaceSummary('可进入系统')).toBe(true)
+    expect(isCoreWorkspaceSummary('本月新增客户')).toBe(false)
   })
 })

@@ -53,7 +53,10 @@ import java.util.regex.Pattern;
 public class DashboardService {
     private static final Pattern MODULE_CODE = Pattern.compile("[a-z][a-z0-9_-]{1,99}");
     private static final Set<String> OPEN_SOURCE_TYPES = Set.of(
-            "PLATFORM_SYSTEMS", "MODULE_RECORDS", "MODULE_REPORT", "TODO_ITEMS", "MESSAGE_ITEMS", "WORK_PROJECTS");
+            "PLATFORM_SYSTEMS", "MODULE_RECORDS", "MODULE_REPORT", "EXTERNAL_API", "DATABASE_CONNECTION",
+            "TODO_ITEMS", "MESSAGE_ITEMS", "WORK_PROJECTS");
+    private static final Pattern CONNECTION_REFERENCE = Pattern.compile("[a-z][a-z0-9_-]{1,99}");
+    private static final Pattern APPROVED_OPERATION = Pattern.compile("[A-Z][A-Z0-9_]{1,99}");
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() { };
     private static final TypeReference<List<Map<String, Object>>> MAP_LIST_TYPE = new TypeReference<>() { };
 
@@ -534,6 +537,12 @@ public class DashboardService {
         }
         if ("MODULE_REPORT".equals(sourceType)) {
             ReportModels.Result report = reportService.executeSnapshot(context, sourceSnapshot, traceId);
+            Map<String, Object> dimension = readMapValue(definition.get("dimension"));
+            String dimensionAlias = stringOrNull(dimension.get("alias"));
+            String dimensionFieldCode = stringOrNull(dimension.get("fieldCode"));
+            Object modulesValue = definition.get("modules");
+            String primaryAlias = modulesValue instanceof List<?> modules && !modules.isEmpty()
+                    ? stringOrNull(readMapValue(modules.getFirst()).get("alias")) : null;
             List<Map<String, Object>> items = report.groups().isEmpty() ? report.items()
                     : report.groups().stream().map(group -> {
                         LinkedHashMap<String, Object> item = new LinkedHashMap<>();
@@ -541,9 +550,27 @@ public class DashboardService {
                         item.put("title", group.label());
                         item.put("value", group.value());
                         item.put("status", group.rowCount() + " 行授权记录");
+                        // A primary-module grouping can be carried into the ordinary record list as a
+                        // permission-checked filter. Related-module groupings remain chart-only because
+                        // flattening them into another module's list would change the report semantics.
+                        if (dimensionFieldCode != null
+                                && (dimensionAlias == null || Objects.equals(primaryAlias, dimensionAlias))) {
+                            item.put("filter", Map.of(
+                                    "fieldCode", dimensionFieldCode,
+                                    "operator", "EQ",
+                                    "value", group.key()));
+                        }
                         return (Map<String, Object>) item;
                     }).toList();
             return new SourceResult(report.value(), items, report.metricDefinition());
+        }
+        if ("EXTERNAL_API".equals(sourceType)) {
+            throw invalid("DASHBOARD_EXTERNAL_CONNECTION_UNAVAILABLE",
+                    "外部 API 数据源只保存连接引用和已批准请求编码；当前部署尚未绑定该连接，未执行任意网络请求");
+        }
+        if ("DATABASE_CONNECTION".equals(sourceType)) {
+            throw invalid("DASHBOARD_DATABASE_CONNECTION_UNAVAILABLE",
+                    "数据库数据源只保存连接引用和已批准查询编码；当前部署尚未绑定只读连接，未执行任意 SQL");
         }
         if ("TODO_ITEMS".equals(sourceType)) {
             List<TodoModels.TodoView> todos = todoService.list(context, "PENDING", "ALL");
@@ -753,11 +780,94 @@ public class DashboardService {
             }
             return reportService.prepareDefinition(context, definition, traceId);
         }
+        if ("EXTERNAL_API".equals(sourceType)) {
+            requireSystemSourceContext(context, "外部 API");
+            rejectSensitiveConnectionMaterial(definition);
+            requireOnlyKeys(definition, Set.of("connectionReference", "requestCode", "method",
+                    "queryParameters", "responseSelector", "limit", "timeoutMillis"));
+            String connectionReference = string(definition.get("connectionReference"));
+            String requestCode = string(definition.get("requestCode"));
+            String method = stringOrDefault(definition.get("method"), "GET").toUpperCase(java.util.Locale.ROOT);
+            if (!CONNECTION_REFERENCE.matcher(connectionReference).matches()
+                    || !APPROVED_OPERATION.matcher(requestCode).matches()
+                    || !Set.of("GET", "POST").contains(method)) {
+                throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID",
+                        "外部 API 数据源必须选择连接引用、已批准请求编码和 GET/POST 方法");
+            }
+            LinkedHashMap<String, Object> normalized = new LinkedHashMap<>(definition);
+            normalized.put("method", method);
+            normalized.put("queryParameters", readMapValue(definition.get("queryParameters")));
+            normalized.put("responseSelector", stringOrDefault(definition.get("responseSelector"), "$"));
+            normalized.put("limit", validatedConnectionLimit(definition));
+            normalized.put("timeoutMillis", validatedTimeout(definition));
+            return normalized;
+        }
+        if ("DATABASE_CONNECTION".equals(sourceType)) {
+            requireSystemSourceContext(context, "数据库连接");
+            rejectSensitiveConnectionMaterial(definition);
+            requireOnlyKeys(definition, Set.of("connectionReference", "queryCode", "parameters",
+                    "outputFields", "limit", "timeoutMillis"));
+            String connectionReference = string(definition.get("connectionReference"));
+            String queryCode = string(definition.get("queryCode"));
+            if (!CONNECTION_REFERENCE.matcher(connectionReference).matches()
+                    || !APPROVED_OPERATION.matcher(queryCode).matches()) {
+                throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID",
+                        "数据库数据源必须选择连接引用和已批准查询编码");
+            }
+            LinkedHashMap<String, Object> normalized = new LinkedHashMap<>(definition);
+            normalized.put("parameters", readMapValue(definition.get("parameters")));
+            Object outputFields = definition.get("outputFields");
+            normalized.put("outputFields", outputFields instanceof List<?> values
+                    ? values.stream().map(this::string).distinct().toList() : List.of());
+            normalized.put("limit", validatedConnectionLimit(definition));
+            normalized.put("timeoutMillis", validatedTimeout(definition));
+            return normalized;
+        }
         int limit = intValue(definition.get("limit"), 5);
         if (limit < 1 || limit > 20) {
             throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID", "组件列表数量必须在 1 到 20 之间");
         }
         return definition;
+    }
+
+    private void requireSystemSourceContext(AuthenticatedContext context, String label) {
+        if (context.systemId() == null || context.tenantId() == null) {
+            throw invalid("DASHBOARD_SOURCE_CONTEXT_MISMATCH", label + "数据源只能配置在系统上下文");
+        }
+    }
+
+    private void rejectSensitiveConnectionMaterial(Map<String, Object> definition) {
+        Set<String> forbidden = Set.of("url", "baseurl", "endpointurl", "jdbcurl", "host", "password",
+                "secret", "token", "apikey", "authorization", "sql", "query");
+        List<String> exposed = definition.keySet().stream()
+                .filter(key -> forbidden.contains(key.replace("_", "").toLowerCase(java.util.Locale.ROOT))).toList();
+        if (!exposed.isEmpty()) {
+            throw invalid("DASHBOARD_CONNECTION_SECRET_FORBIDDEN",
+                    "数据源不能保存地址、凭据或任意查询，只能引用受管连接和已批准操作");
+        }
+    }
+
+    private void requireOnlyKeys(Map<String, Object> definition, Set<String> allowed) {
+        List<String> unknown = definition.keySet().stream().filter(key -> !allowed.contains(key)).toList();
+        if (!unknown.isEmpty()) {
+            throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID", "数据源包含不受支持的配置项：" + String.join("、", unknown));
+        }
+    }
+
+    private int validatedConnectionLimit(Map<String, Object> definition) {
+        int limit = intValue(definition.get("limit"), 100);
+        if (limit < 1 || limit > 1000) {
+            throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID", "外部连接单次返回数量必须在 1 到 1000 之间");
+        }
+        return limit;
+    }
+
+    private int validatedTimeout(Map<String, Object> definition) {
+        int timeout = intValue(definition.get("timeoutMillis"), 5000);
+        if (timeout < 500 || timeout > 30000) {
+            throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID", "外部连接超时时间必须在 500 到 30000 毫秒之间");
+        }
+        return timeout;
     }
 
     private List<AnaDataSource> ownedSources(AuthenticatedContext context) {
@@ -868,7 +978,28 @@ public class DashboardService {
         return new DashboardModels.DataSourceView(source.getId(), source.getContextType(), source.getCode(),
                 source.getName(), source.getSourceType(), source.getDraftRevision(),
                 readMap(source.getDefinitionJson()), readMap(source.getPermissionPolicyJson()), source.getStatus(),
-                source.getVersion(), source.getUpdatedAt(), versions);
+                source.getVersion(), source.getUpdatedAt(), sourceBoundary(source), versions);
+    }
+
+    private DashboardModels.DataSourceBoundary sourceBoundary(AnaDataSource source) {
+        return switch (source.getSourceType()) {
+            case "MODULE_RECORDS", "MODULE_REPORT" -> new DashboardModels.DataSourceBoundary(
+                    "SYSTEM_MODULE", "CURRENT_SYSTEM", "PUBLISHED_BUSINESS_SCHEMA",
+                    "CURRENT_USER_DATA_SCOPE", true,
+                    "查询使用已发布模块字段，并在每次执行时重新应用当前用户权限和数据范围。");
+            case "EXTERNAL_API" -> new DashboardModels.DataSourceBoundary(
+                    "EXTERNAL_API", "MANAGED_REFERENCE", "APPROVED_REQUEST_CODE",
+                    "SOURCE_POLICY_AND_CONNECTION_POLICY", false,
+                    "草稿和发布版本不保存地址或凭据；部署绑定受管连接后才允许执行。");
+            case "DATABASE_CONNECTION" -> new DashboardModels.DataSourceBoundary(
+                    "DATABASE", "MANAGED_READ_ONLY_REFERENCE", "APPROVED_QUERY_CODE",
+                    "SOURCE_POLICY_AND_ROW_SCOPE", false,
+                    "禁止任意 SQL 和直存凭据；部署绑定只读连接与批准查询后才允许执行。");
+            default -> new DashboardModels.DataSourceBoundary(
+                    "SYSTEM_CAPABILITY", "CURRENT_CONTEXT", "BUILT_IN_QUERY",
+                    "CURRENT_USER_PERMISSION", true,
+                    "查询使用当前上下文中的业务服务，并执行当前用户权限。");
+        };
     }
 
     private DashboardModels.DashboardView dashboardView(AnaDashboard dashboard) {

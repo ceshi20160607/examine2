@@ -6,7 +6,10 @@ export function sortWorkLogs(logs: WorkLog[]) {
 
 export function revisionDifference(current: WorkLogRevision, previous?: WorkLogRevision) {
   if (!previous) return '初始版本'
-  const fields = ['workDate', 'title', 'content', 'durationMinutes', 'status', 'customValues']
+  const fields = [
+    'workDate', 'title', 'content', 'durationMinutes', 'status',
+    'projectId', 'taskIds', 'businessType', 'businessId', 'businessTitle', 'configuredValues',
+  ]
     .filter(field => JSON.stringify(current.snapshot[field]) !== JSON.stringify(previous.snapshot[field]))
   return fields.length ? `变更：${fields.join('、')}` : '仅记录状态操作'
 }

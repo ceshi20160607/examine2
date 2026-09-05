@@ -16,7 +16,7 @@ public final class FlowDesignModels {
     }
 
     public record CreateFlowRequest(
-            @NotBlank @Size(max = 100) String code,
+            @Size(max = 100) String code,
             @NotBlank @Size(max = 200) String name,
             @Size(max = 1000) String description) {
     }

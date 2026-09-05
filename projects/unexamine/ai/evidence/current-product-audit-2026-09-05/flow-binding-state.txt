@@ -1,0 +1,124 @@
+Browser tab: 1, Title: "Unexamine", URL: "http://127.0.0.1:15174/systems/44/admin?section=flow".
+0 AXWebArea Unexamine, URL: 127.0.0.1:15174/systems/44/admin?section=flow
+	1 container app
+		2 container
+			3 container Unexamine
+				4 text U unexamine
+			5 text 系统管理 北辰客户协作中心 主工作空间 · 仅当前系统
+			6 button arrow-left 返回系统
+				7 image arrow-left
+				8 text 返回系统
+			9 button user 周明
+				10 image user
+				11 text 周明
+		12 container 系统后台导航
+			13 text 系统管理
+			14 text 配置只作用于当前系统和工作空间
+			15 button 系 系统信息 系统资料、空间与统一认证
+				16 text 系
+				17 text 系统信息
+				18 text 系统资料、空间与统一认证
+			19 button 组 组织架构 部门、成员、岗位与上下级
+				20 text 组
+				21 text 组织架构
+				22 text 部门、成员、岗位与上下级
+			23 button 角 角色权限 菜单、动作、字段与数据范围
+				24 text 角
+				25 text 角色权限
+				26 text 菜单、动作、字段与数据范围
+			27 button 数 数据字典 字典草稿、发布与版本
+				28 text 数
+				29 text 数据字典
+				30 text 字典草稿、发布与版本
+			31 button 模 模板配置 模块信息、字段、动作、流程与应用
+				32 text 模
+				33 text 模板配置
+				34 text 模块信息、字段、动作、流程与应用
+			35 button 其 其他业务参数 编号、首页、打印、消息与任务字段
+				36 text 其
+				37 text 其他业务参数
+				38 text 编号、首页、打印、消息与任务字段
+			39 button 流 流程配置 设计、模拟、绑定与发布
+				40 text 流
+				41 text 流程配置
+				42 text 设计、模拟、绑定与发布
+			43 button 应 应用配置 受控访问、授权与调用策略
+				44 text 应
+				45 text 应用配置
+				46 text 受控访问、授权与调用策略
+			47 button 智 智能助手配置 模型授权、助手与使用范围
+				48 text 智
+				49 text 智能助手配置
+				50 text 模型授权、助手与使用范围
+			51 button 审 审计日志 当前系统不可删除的操作记录
+				52 text 审
+				53 text 审计日志
+				54 text 当前系统不可删除的操作记录
+			55 button 运 运维配置 作业、配额、开关与健康状态
+				56 text 运
+				57 text 运维配置
+				58 text 作业、配额、开关与健康状态
+		59 container
+			60 text 系统后台 · 流程
+			61 heading 流程触发绑定, Value: 1
+				72 text 流程触发绑定
+			73 text 把系统内已发布模块的业务事件连接到已发布流程；工作空间覆盖优先于系统默认。
+			65 container
+				66 radio button (settable, integer) Description: 设计与发布, Value: 0
+				67 text 设计与发布
+				68 radio button (settable, integer) Description: 触发绑定, Value: 1
+				69 text 触发绑定
+				70 radio button (settable, integer) Description: 运行实例, Value: 0
+				71 text 运行实例
+			74 container
+				75 text 业务触发点
+				76 text 选择已发布模块和流程，不改变两者的配置层级
+				77 container
+					78 container
+						124 text * 已发布模块
+					80 container
+						81 combo box (settable) rc_select_5
+						82 text 客户
+					83 container
+						125 text * 触发事件
+					85 container
+						86 combo box (settable) rc_select_6
+						87 text 新建后
+					88 container
+						126 text * 已发布流程
+					90 container
+						91 combo box (settable) rc_select_7
+						92 text 选择流程
+					93 text 执行方式
+					94 container
+						95 combo box (settable) rc_select_8
+						96 text 业务成功后执行
+					97 text 优先级
+					98 container
+						99 button Increase Value
+							100 image up
+						101 button (disabled) Decrease Value
+							102 image down
+						103 stepper (settable, integer) 0
+					104 text 命中条件
+					105 text field (settable) amount > 10
+					106 text 示例：amount > 10；留空表示始终命中
+					107 checkbox (settable, integer) Description: 命中后不再寻找其他绑定  , Value: 1
+					108 text 命中后不再寻找其他绑定
+					109 button (disabled) 发布触发绑定
+				110 container
+					111 text 当前生效范围 当前工作空间配置优先；没有专属配置时使用系统公共配置 0 个启用
+					112 image
+					113 text 当前触发点尚未发布绑定
+				114 container
+					115 text 真实解析验证 按当前工作空间、触发点和业务条件验证最终流程
+					116 text 测试金额
+					117 container
+						118 button Increase Value
+							119 image up
+						120 button Decrease Value
+							121 image down
+						122 stepper (settable, integer) 8000
+					123 button 验证最终流程
+
+The focused UI element is 68 radio button (settable, integer) Description: 触发绑定, Value: 1

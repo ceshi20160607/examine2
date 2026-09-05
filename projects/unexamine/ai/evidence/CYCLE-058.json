@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-058",
+  "executedAt": "2026-09-01T15:31:36+08:00",
+  "taskIds": [
+    "TASK-0207",
+    "TASK-0208",
+    "TASK-0209",
+    "TASK-0210",
+    "TASK-0211"
+  ],
+  "checks": [
+    {
+      "name": "先骨架后血肉的重构顺序与失败回退门禁",
+      "command": "review current-system-reassessment.md and system-reconstruction-sequence.md; validate rework tasks and stages in the 76-cycle task graph",
+      "result": "passed"
+    },
+    {
+      "name": "系统、主租户、根部门、管理员、内置角色与通配权限原子初始化",
+      "command": "Temurin 21 Maven: SystemBootstrapServiceIntegrationTest with fresh MySQL 8.4 Testcontainer",
+      "result": "passed"
+    },
+    {
+      "name": "登录、创建系统和直接进入系统的前端回归",
+      "command": "npm test -- --run (28 files / 78 tests); npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "真实浏览器与 MySQL 初始化读回",
+      "command": "Microsoft Edge via in-app Playwright against Nginx 15174; MySQL readback for system #19 aggregate",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-SYSTEM-CREATE",
+      "entryUrl": "http://127.0.0.1:15174/platform",
+      "actor": "已登录的平台超级管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "新建系统只填写业务名称，系统标识和单组织初始化由平台处理。",
+        "创建客户运营验收中心后直接进入系统首页，当前系统、主工作空间、业务模块和系统管理入口均清楚可见。",
+        "系统首页没有显示系统 ID、租户 ID、状态码或技术初始化参数。",
+        "系统后台组织页读回根部门全公司、一个管理员成员和系统超级管理员角色。"
+      ],
+      "persistentReads": [
+        "MySQL 中 system #19 读回 1 个主租户、1 个根部门、1 个租户成员和 1 条成员角色关系。",
+        "SystemBootstrapServiceIntegrationTest 证明注册与平台创建共用同一聚合，并证明初始化中途失败时整笔回滚。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/ai/planning/current-system-reassessment.md",
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemBootstrapService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemBootstrapServiceIntegrationTest.java",
+        "projects/unexamine/frontend/src/product/views/PlatformHomeView.vue"
+      ]
+    }
+  ]
+}

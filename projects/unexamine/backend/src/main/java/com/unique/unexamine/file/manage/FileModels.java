@@ -53,6 +53,12 @@ public final class FileModels {
             Integer version, List<ReferenceView> references, List<ScanView> scans) {
     }
 
+    public record BusinessAttachmentView(
+            Long attachmentId, Long fileId, String originalName, String contentType, Long sizeBytes,
+            String scanStatus, String previewStatus, String status, String purpose,
+            LocalDateTime createdAt, boolean previewable, boolean downloadable, boolean removable) {
+    }
+
     public record DeleteResult(Long fileId, String status, boolean bytesRemoved) {
     }
 

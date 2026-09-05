@@ -1,5 +1,6 @@
 package com.unique.unexamine.work.manage;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -20,7 +21,12 @@ public final class WorkLogModels {
             @NotBlank @Size(max = 500) String title,
             @NotBlank @Size(max = 20000) String content,
             @Min(1) @Max(1440) Integer durationMinutes,
-            Map<String, Object> customValues) {
+            Long projectId,
+            List<Long> taskIds,
+            String businessType,
+            String businessId,
+            @Size(max = 500) String businessTitle,
+            @JsonAlias("customValues") Map<String, Object> configuredValues) {
     }
 
     public record UpdateLogRequest(
@@ -30,7 +36,12 @@ public final class WorkLogModels {
             @NotBlank @Size(max = 20000) String content,
             @Min(1) @Max(1440) Integer durationMinutes,
             @NotBlank @Size(max = 32) String status,
-            Map<String, Object> customValues,
+            Long projectId,
+            List<Long> taskIds,
+            String businessType,
+            String businessId,
+            @Size(max = 500) String businessTitle,
+            @JsonAlias("customValues") Map<String, Object> configuredValues,
             @NotBlank @Size(max = 1000) String revisionReason) {
     }
 
@@ -39,8 +50,11 @@ public final class WorkLogModels {
             Integer revisionNumber,
             Map<String, Object> snapshot,
             String revisionReason,
-            Long revisedByAccountId,
+            String revisedByName,
             LocalDateTime revisedAt) {
+    }
+
+    public record TaskReference(Long id, String title, String status) {
     }
 
     public record LogView(
@@ -49,13 +63,19 @@ public final class WorkLogModels {
             Long platformId,
             Long systemId,
             Long tenantId,
-            Long authorAccountId,
+            WorkManagementModels.PersonView author,
             LocalDate workDate,
             String title,
             String content,
             Integer durationMinutes,
             String status,
-            Map<String, Object> customValues,
+            Long projectId,
+            String projectName,
+            List<TaskReference> tasks,
+            String businessType,
+            String businessId,
+            String businessTitle,
+            Map<String, Object> configuredValues,
             Integer version,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,

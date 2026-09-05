@@ -20,7 +20,9 @@ import com.unique.unexamine.notification.base.service.MsgRecipientBaseService;
 import com.unique.unexamine.notification.base.service.MsgTemplateBaseService;
 import com.unique.unexamine.notification.base.service.MsgTemplateVersionBaseService;
 import com.unique.unexamine.platform.base.entity.PlatformAccount;
+import com.unique.unexamine.platform.base.entity.PlatformMember;
 import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
+import com.unique.unexamine.platform.base.service.PlatformMemberBaseService;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SystemMember;
@@ -55,6 +57,7 @@ public class MessageService {
     private final MsgRecipientBaseService recipientService;
     private final MsgDeliveryBaseService deliveryService;
     private final PlatformAccountBaseService accountService;
+    private final PlatformMemberBaseService platformMemberService;
     private final SystemMemberBaseService memberService;
     private final SystemTenantMemberBaseService tenantMemberService;
     private final FlowInstanceBaseService flowInstanceService;
@@ -71,6 +74,7 @@ public class MessageService {
             MsgRecipientBaseService recipientService,
             MsgDeliveryBaseService deliveryService,
             PlatformAccountBaseService accountService,
+            PlatformMemberBaseService platformMemberService,
             SystemMemberBaseService memberService,
             SystemTenantMemberBaseService tenantMemberService,
             FlowInstanceBaseService flowInstanceService,
@@ -85,6 +89,7 @@ public class MessageService {
         this.recipientService = recipientService;
         this.deliveryService = deliveryService;
         this.accountService = accountService;
+        this.platformMemberService = platformMemberService;
         this.memberService = memberService;
         this.tenantMemberService = tenantMemberService;
         this.flowInstanceService = flowInstanceService;
@@ -229,8 +234,7 @@ public class MessageService {
                     "MESSAGE_TEMPLATE_VARIABLE_MISSING", Map.of("missingVariables", missing));
             throw invalid("MESSAGE_TEMPLATE_VARIABLE_MISSING", "缺少模板变量：" + String.join("、", missing));
         }
-        List<Long> recipientIds = distinctRecipients(input.recipientAccountIds());
-        List<PlatformAccount> accounts = recipientIds.stream().map(id -> requireRecipient(context, id)).toList();
+        List<PlatformAccount> accounts = resolveRecipients(context, input.recipients());
         validateTarget(context, input.targetType(), input.targetId(), input.targetRoute(), traceId);
         MsgMessage existing = findEvent(context, input.sourceType(), input.dedupKey());
         if (existing != null) {
@@ -272,6 +276,86 @@ public class MessageService {
                 Map.of("templateVersionId", version.getId(), "recipientCount", accounts.size(),
                         "channel", snapshot.channel(), "sourceType", input.sourceType()));
         return messageView(context, message, Objects.requireNonNull(first), traceId);
+    }
+
+    /**
+     * Creates an idempotent in-app Flow notification without requiring a user-maintained template.
+     * Flow owns the event transaction; the message center owns read/archive state and target access checks.
+     */
+    @Transactional
+    public void notifyFlowEvent(
+            AuthenticatedContext context, Long instanceId, String eventKey,
+            String subject, String content, List<Long> recipientAccountIds) {
+        if (context == null || instanceId == null || eventKey == null || eventKey.isBlank()) return;
+        if (recipientAccountIds == null || recipientAccountIds.isEmpty()) return;
+        List<Long> ids = distinctRecipients(recipientAccountIds);
+        if (findEvent(context, "FLOW", eventKey) != null) return;
+        List<PlatformAccount> accounts = ids.stream().map(id -> requireRecipient(context, id)).toList();
+        MsgMessage message = new MsgMessage();
+        message.setContextType(contextType(context));
+        message.setPlatformId(context.platformId());
+        message.setSystemId(context.systemId());
+        message.setTenantId(context.tenantId());
+        message.setTemplateVersionId(null);
+        message.setSourceType("FLOW");
+        message.setSourceId(eventKey);
+        message.setSubject(subject);
+        message.setContentText(content);
+        message.setTargetType("FLOW_INSTANCE");
+        message.setTargetId(instanceId.toString());
+        message.setTargetRoute(context.systemId() == null
+                ? "/platform/flows?instanceId=" + instanceId
+                : "/systems/" + context.systemId() + "?workspace=flow&instanceId=" + instanceId);
+        message.setSensitivity("NORMAL");
+        message.setCreatedByAccountId(context.accountId());
+        messageService.insert(message);
+        for (PlatformAccount account : accounts) {
+            MsgRecipient recipient = new MsgRecipient();
+            recipient.setMessageId(message.getId());
+            recipient.setAccountId(account.getId());
+            recipient.setStatus("UNREAD");
+            recipient.setVersion(0);
+            recipientService.insert(recipient);
+            insertInAppDelivery(message, account);
+        }
+    }
+
+    @Transactional
+    public void notifyWorkTaskEvent(
+            AuthenticatedContext context, WorkTask task, String eventKey,
+            String subject, String content, List<Long> recipientAccountIds) {
+        if (context == null || task == null || eventKey == null || eventKey.isBlank()
+                || recipientAccountIds == null || recipientAccountIds.isEmpty()) return;
+        if (findEvent(context, "WORK_TASK", eventKey) != null) return;
+        List<PlatformAccount> accounts = distinctRecipients(recipientAccountIds).stream()
+                .map(id -> requireRecipient(context, id)).toList();
+        MsgMessage message = new MsgMessage();
+        message.setContextType(contextType(context));
+        message.setPlatformId(context.platformId());
+        message.setSystemId(context.systemId());
+        message.setTenantId(context.tenantId());
+        message.setTemplateVersionId(null);
+        message.setSourceType("WORK_TASK");
+        message.setSourceId(eventKey);
+        message.setSubject(subject);
+        message.setContentText(content);
+        message.setTargetType("WORK_TASK");
+        message.setTargetId(task.getId().toString());
+        message.setTargetRoute(context.systemId() == null
+                ? "/platform/tasks?taskId=" + task.getId()
+                : "/systems/" + context.systemId() + "?workspace=tasks&taskId=" + task.getId());
+        message.setSensitivity("NORMAL");
+        message.setCreatedByAccountId(context.accountId());
+        messageService.insert(message);
+        for (PlatformAccount account : accounts) {
+            MsgRecipient recipient = new MsgRecipient();
+            recipient.setMessageId(message.getId());
+            recipient.setAccountId(account.getId());
+            recipient.setStatus("UNREAD");
+            recipient.setVersion(0);
+            recipientService.insert(recipient);
+            insertInAppDelivery(message, account);
+        }
     }
 
     @Transactional
@@ -352,7 +436,7 @@ public class MessageService {
     public MessageModels.MessageView notifyKpiUnderTarget(
             AuthenticatedContext context, Long kpiId, Long resultId, String kpiName,
             String actualValue, String targetValue, String achievementRate,
-            List<Long> recipientAccountIds, String traceId) {
+            List<MessageModels.RecipientRef> recipients, String traceId) {
         String sourceId = "result-" + resultId;
         MsgMessage existing = findEvent(context, "KPI_ALERT", sourceId);
         if (existing != null) {
@@ -361,8 +445,7 @@ public class MessageService {
                     .orElseThrow(() -> conflict("MESSAGE_EVENT_INCOMPLETE", "已有 KPI 提醒缺少接收人记录"));
             return messageView(context, existing, first, traceId);
         }
-        List<Long> recipientIds = distinctRecipients(recipientAccountIds);
-        List<PlatformAccount> accounts = recipientIds.stream().map(id -> requireRecipient(context, id)).toList();
+        List<PlatformAccount> accounts = resolveRecipients(context, recipients);
         MsgMessage message = new MsgMessage();
         message.setContextType(contextType(context));
         message.setPlatformId(context.platformId());
@@ -505,6 +588,21 @@ public class MessageService {
         return messageView(context, message, recipient, traceId);
     }
 
+    @Transactional(readOnly = true)
+    public MessageModels.DeliveryDiagnosticsView deliveryDiagnostics(
+            AuthenticatedContext context, Long messageId) {
+        require(context, "MANAGE");
+        MsgMessage message = messageService.selectById(messageId);
+        if (message == null || !inContext(message, context)) {
+            throw notFound("MESSAGE_NOT_FOUND", "消息不存在");
+        }
+        List<MessageModels.DeliveryView> deliveries = deliveryService.selectList(
+                        Wrappers.<MsgDelivery>lambdaQuery().eq(MsgDelivery::getMessageId, messageId)
+                                .orderByAsc(MsgDelivery::getId))
+                .stream().map(this::deliveryView).toList();
+        return new MessageModels.DeliveryDiagnosticsView(messageId, message.getSubject(), deliveries);
+    }
+
     private MsgTemplate publishedTemplate(AuthenticatedContext context, String code) {
         List<MsgTemplate> matches = templateService.selectList(Wrappers.<MsgTemplate>lambdaQuery()
                         .eq(MsgTemplate::getPlatformId, context.platformId())
@@ -593,6 +691,48 @@ public class MessageService {
             if (!tenantActive) throw invalid("MESSAGE_RECIPIENT_CONTEXT_INVALID", "接收人不属于当前租户");
         }
         return account;
+    }
+
+    private List<PlatformAccount> resolveRecipients(
+            AuthenticatedContext context, List<MessageModels.RecipientRef> recipients) {
+        if (recipients == null || recipients.isEmpty() || recipients.size() > 100) {
+            throw invalid("MESSAGE_RECIPIENT_INVALID", "单次消息必须包含 1 到 100 个组织成员");
+        }
+        LinkedHashSet<Long> accountIds = new LinkedHashSet<>();
+        for (MessageModels.RecipientRef recipient : recipients) {
+            if (recipient == null || recipient.id() == null || recipient.id() <= 0) {
+                throw invalid("MESSAGE_RECIPIENT_INVALID", "消息接收成员无效");
+            }
+            if (context.systemId() == null) {
+                if (!"PLATFORM_MEMBER".equals(recipient.type())) {
+                    throw invalid("MESSAGE_RECIPIENT_CONTEXT_INVALID", "平台消息只能选择平台组织成员");
+                }
+                PlatformMember member = platformMemberService.selectById(recipient.id());
+                if (member == null || !Objects.equals(member.getPlatformId(), context.platformId())
+                        || !"ACTIVE".equals(member.getStatus())) {
+                    throw invalid("MESSAGE_RECIPIENT_CONTEXT_INVALID", "接收人不属于当前平台组织");
+                }
+                accountIds.add(member.getAccountId());
+                continue;
+            }
+            if (!"TENANT_MEMBER".equals(recipient.type())) {
+                throw invalid("MESSAGE_RECIPIENT_CONTEXT_INVALID", "系统消息只能选择当前工作空间成员");
+            }
+            SystemTenantMember tenantMember = tenantMemberService.selectById(recipient.id());
+            if (tenantMember == null || !Objects.equals(tenantMember.getSystemId(), context.systemId())
+                    || !Objects.equals(tenantMember.getTenantId(), context.tenantId())
+                    || !"ACTIVE".equals(tenantMember.getStatus())) {
+                throw invalid("MESSAGE_RECIPIENT_CONTEXT_INVALID", "接收人不属于当前工作空间");
+            }
+            SystemMember member = memberService.selectById(tenantMember.getSystemMemberId());
+            if (member == null || !Objects.equals(member.getSystemId(), context.systemId())
+                    || !"ACTIVE".equals(member.getStatus())) {
+                throw invalid("MESSAGE_RECIPIENT_CONTEXT_INVALID", "接收人的系统成员身份已失效");
+            }
+            accountIds.add(member.getAccountId());
+        }
+        return distinctRecipients(new ArrayList<>(accountIds)).stream()
+                .map(id -> requireRecipient(context, id)).toList();
     }
 
     private void insertInAppDelivery(MsgMessage message, PlatformAccount account) {
@@ -732,11 +872,6 @@ public class MessageService {
 
     private MessageModels.MessageView messageView(
             AuthenticatedContext context, MsgMessage message, MsgRecipient recipient, String traceId) {
-        List<MessageModels.DeliveryView> deliveries = deliveryService.selectList(Wrappers.<MsgDelivery>lambdaQuery()
-                        .eq(MsgDelivery::getMessageId, message.getId())
-                        .eq(MsgDelivery::getAccountId, recipient.getAccountId())
-                        .orderByAsc(MsgDelivery::getId))
-                .stream().map(this::deliveryView).toList();
         boolean targetAccessible;
         try {
             targetAccessible = validateTarget(context, message.getTargetType(), message.getTargetId(),
@@ -749,7 +884,15 @@ public class MessageService {
                 message.getSourceId(), message.getSubject(), message.getContentText(), message.getTargetType(),
                 message.getTargetId(), message.getTargetRoute(), message.getSensitivity(), recipient.getStatus(),
                 recipient.getReadAt(), recipient.getArchivedAt(), recipient.getVersion(), message.getCreatedAt(),
-                targetAccessible, deliveries);
+                actorName(message.getCreatedByAccountId()), targetAccessible);
+    }
+
+    private String actorName(Long accountId) {
+        if (accountId == null) return "系统";
+        PlatformAccount account = accountService.selectById(accountId);
+        if (account == null) return "系统";
+        return account.getDisplayName() == null || account.getDisplayName().isBlank()
+                ? account.getUsername() : account.getDisplayName();
     }
 
     private MessageModels.DeliveryView deliveryView(MsgDelivery delivery) {

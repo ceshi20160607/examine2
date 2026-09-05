@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-063",
+  "executedAt": "2026-09-01T19:22:00+08:00",
+  "taskIds": [
+    "TASK-0222",
+    "TASK-0223",
+    "TASK-0228",
+    "TASK-0229"
+  ],
+  "checks": [
+    {
+      "name": "真正 Vue Flow 画布与工作界面全量前端回归和生产构建",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (28 files / 80 tests); npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "流程画布新增节点、三条连线、撤销重做、自动布局、人员配置、发布检查、模拟和 V1 发布真实页面验收",
+      "command": "Codex in-app browser against Nginx 15174 and Spring Boot 18080, system #19",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 版本固定及审批、驳回、退回、转交、撤回、终止、手动加签、超时和幂等重放分支矩阵",
+      "command": "Spring Boot 18080 real API against flows #11/#12 and instances #21-#29 in system #18",
+      "result": "passed"
+    },
+    {
+      "name": "Flow 回写状态不兼容、人工修复、重试作业、事故解决和业务字段时间线恢复",
+      "command": "Spring Boot 18080 real API against flow #13, instance #30 and customer record #20",
+      "result": "passed"
+    },
+    {
+      "name": "任务、日志、日历和客户时间线连续业务闭环",
+      "command": "Spring Boot 18080 real API against project #3, task #7, log #3 and customer record #20",
+      "result": "passed"
+    },
+    {
+      "name": "工作区唯一需求源、活动实现和复用模板边界",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-FLOW-DESIGN-PUBLISH",
+      "entryUrl": "http://127.0.0.1:15174/systems/19/admin?section=flow",
+      "actor": "客户运营验收中心系统管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "管理员从业务节点库添加开始、审批、通知和结束节点，真实 Vue Flow 画布显示小地图、缩放控件、业务名称和即时问题，不再显示节点内部键。",
+        "管理员通过画布端点或结构化的下一步选择建立三条连线；撤销后连线从 3 条变 2 条，重做恢复 3 条，自动布局保持业务顺序。",
+        "审批人和通知接收人使用当前系统人员选择器配置，发布检查与样例模拟均通过，最终发布不可变 V1。",
+        "流程列表、节点属性和模拟路径使用中文业务名称，不暴露 BPMN XML、节点 ID、账号 ID或配置 JSON。"
+      ],
+      "persistentReads": [
+        "系统 #19 保存客户建档审批验收流程草稿 r5、四个业务节点、三条连线和当前发布版本 V1。",
+        "发布版本摘要为 C63 真实画布与运行链路验收版，运行定义保存独立快照和哈希。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/components/FlowGraphCanvas.vue",
+        "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java"
+      ]
+    },
+    {
+      "useCaseId": "UC-FLOW-APPROVE-RUNTIME",
+      "entryUrl": "http://127.0.0.1:15174/systems/19/admin?section=flow",
+      "actor": "流程发起人与审批人平台超级管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "从运行实例入口发起客户建档审批 V1 后立即生成待我处理任务，页面显示当前节点、当前处理人、下一步和固定版本。",
+        "审批同意填写业务意见后流程自动执行通知节点并到达已完成，待我处理数量从 1 回到 0。",
+        "系统 #18 的 V1 运行中实例在 V2 发布后仍显示原节点名称和原定义哈希，新实例才使用 V2 节点名称和新哈希。"
+      ],
+      "persistentReads": [
+        "Flow #11 保存 V1/V2 两个不可变版本；实例 #21 固定 V1 和原哈希，实例 #22 固定 V2 和新哈希。",
+        "流程历史保存发起、任务创建、审批、自动通知和结束，人员均读回业务姓名。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java"
+      ]
+    },
+    {
+      "useCaseId": "UC-FLOW-MANUAL-STATUS",
+      "entryUrl": "http://127.0.0.1:18080/api/flow-runtime/instances",
+      "actor": "客户运营中心流程管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "真实接口分别读回 REJECTED、RETURNED、WITHDRAWN 和 TERMINATED，重复驳回使用同一幂等键只返回原动作。",
+        "转交后实例保持待处理，当前处理人变为销售部的 C28 商机跟进人；手动加签预检查通过，加签处理后恢复原任务并完成实例。",
+        "审批超时作业在到期后自动拒绝实例并标记作业完成；回写前置状态不兼容形成可处理事故，修复后重试一次即完成。"
+      ],
+      "persistentReads": [
+        "Flow #12 的实例 #29 保存审批超时自动拒绝历史，任务为 REJECT、TASK_TIMEOUT 作业为 COMPLETED。",
+        "Flow #13 的实例 #30 从 FLOW_STATUS_MAPPING_INCOMPATIBLE 恢复为 COMPLETED，事故 RESOLVED、重试作业 COMPLETED 且实例错误已清空。",
+        "客户记录 #20 最终状态 APPROVED，联系主题为 C63 Flow 重试回写通过，时间线显示发布字段名联系主题及前后值。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowJobWorker.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java"
+      ]
+    },
+    {
+      "useCaseId": "UC-WORK-PROJECT-TASK",
+      "entryUrl": "http://127.0.0.1:15174/systems/18?workspace=work",
+      "actor": "客户运营中心任务负责人",
+      "result": "passed",
+      "pageAssertions": [
+        "项目、任务组和任务按业务层级呈现，负责人使用组织人员选择器，任务关联电话跟进华北制造客户。",
+        "任务进入执行阶段后生成真实待办和消息，任务详情返回业务名称、负责人姓名、截止时间及关联工作日志。",
+        "任务表单只渲染已发布结构化字段，不接受任意配置 JSON。"
+      ],
+      "persistentReads": [
+        "项目 #3、任务组 #2 和任务 #7 持久化在系统 #18/租户 #20，任务状态 IN_PROGRESS、负责人为平台超级管理员。",
+        "任务 #7 关联 MODULE:module_087b31a589 的客户记录 #20，并保存任务创建和状态变更业务时间线。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkManagementService.java",
+        "projects/unexamine/frontend/src/product/views/WorkProjectsView.vue",
+        "projects/unexamine/frontend/src/product/components/WorkConfiguredFields.vue"
+      ]
+    },
+    {
+      "useCaseId": "UC-WORK-MANUAL-LOG",
+      "entryUrl": "http://127.0.0.1:15174/systems/18?workspace=work",
+      "actor": "客户运营中心任务负责人",
+      "result": "passed",
+      "pageAssertions": [
+        "负责人填写华北客户回访日志并关联任务和客户，提交后详情显示两版修订、业务内容、45 分钟和人员姓名。",
+        "任务详情的关联工作日志区域直接显示标题、内容、作者、日期、时长和已提交状态。",
+        "客户时间线显示填写关联日志与修订关联日志，摘要不出现配置 JSON或账号编号。"
+      ],
+      "persistentReads": [
+        "工作日志 #3 保存 DRAFT 创建版和 SUBMITTED 修订版，关联项目 #3、任务 #7及客户记录 #20。",
+        "客户时间线读回 BUSINESS_RECORD_LOG_CREATED/UPDATED，目标类型 WORK_LOG、目标编号 #3。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkLogService.java",
+        "projects/unexamine/frontend/src/product/views/WorkLogsView.vue",
+        "projects/unexamine/frontend/src/product/views/WorkProjectsView.vue"
+      ]
+    },
+    {
+      "useCaseId": "UC-WORK-CALENDAR-CONFIG",
+      "entryUrl": "http://127.0.0.1:15174/systems/18?workspace=work",
+      "actor": "客户运营中心任务负责人",
+      "result": "passed",
+      "pageAssertions": [
+        "工作日历在 2026-09-01 至 2026-09-02 范围同时汇总 1 个到期任务、1 条日志和 45 分钟工时。",
+        "日历明细返回任务业务标题、负责人姓名、关联客户和截止时间，日志返回业务标题、作者姓名及已提交状态。",
+        "工作配置生效接口只返回已发布字段；未发布字段、缺少必填值和任意未知字段均由后端拒绝。"
+      ],
+      "persistentReads": [
+        "日历 summary 保存 tasksDue=1、logCount=1、logMinutes=45；2026-09-02 明细包含任务 #7。",
+        "TASK 配置 acceptance_note 的发布版本和严格入库校验已经由真实接口验证，历史已有值在后续可选版本下保持兼容。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkConfigurationService.java",
+        "projects/unexamine/frontend/src/product/views/WorkConfigurationView.vue"
+      ]
+    }
+  ]
+}

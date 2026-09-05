@@ -42,7 +42,9 @@ const showAdmin = computed(() => showConfig.value || showAudit.value || showSyst
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', 'SYSTEM', 'VIEW')
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', 'SYSTEM', 'MANAGE')
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', '*', 'VIEW')
-  || allowsPermission(systemContext.value?.permissions, 'APPLICATION', '*', 'MANAGE'))
+  || allowsPermission(systemContext.value?.permissions, 'APPLICATION', '*', 'MANAGE')
+  || allowsPermission(systemContext.value?.permissions, 'MESSAGE', 'SYSTEM', 'MANAGE')
+  || allowsPermission(systemContext.value?.permissions, 'MESSAGE', '*', 'MANAGE'))
 
 async function openAdmin(section: string) {
   await router.push({ path: `/systems/${systemContext.value?.systemId}/admin`, query: { section } })
@@ -64,6 +66,10 @@ watch(() => route.query.workspace, (workspace) => {
 function openFlowTarget(target: { taskId?: number; instanceId?: number }) {
   flowTarget.value = target
   active.value = 'flow'
+}
+
+function openWorkTarget() {
+  navigate('tasks')
 }
 
 function openMessageTarget(target: { route: string; targetType: string; targetId: string }) {
@@ -126,7 +132,7 @@ if (!systemTokens.value?.accessToken || !systemContext.value?.systemId) {
     <RuntimeWorkspaceView v-else-if="active === 'runtime'" ref="runtimeWorkspace" :key="`${runtimeRefreshKey}:${initialModuleCode}`" :refresh-key="runtimeRefreshKey" :initial-module-code="initialModuleCode" />
     <FlowRuntimeView v-else-if="active === 'flow' && showFlow" context="system" :initial-task-id="flowTarget.taskId" :initial-instance-id="flowTarget.instanceId" />
     <WorkHubView v-else-if="active === 'tasks' && showTasks" context="system" />
-    <TodoWorkspaceView v-else-if="active === 'todos' && showTodos" context="system" @open-flow="openFlowTarget" />
+    <TodoWorkspaceView v-else-if="active === 'todos' && showTodos" context="system" @open-flow="openFlowTarget" @open-work="openWorkTarget" />
     <MessageWorkspaceView v-else-if="active === 'messages' && showMessages" context="system" @open-target="openMessageTarget" />
     <FileWorkspaceView v-else-if="active === 'files' && showFiles" />
     <AiWorkspaceView v-else-if="active === 'ai' && showAi" :initial-module-code="initialModuleCode" />

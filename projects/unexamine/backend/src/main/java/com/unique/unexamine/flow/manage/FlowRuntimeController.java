@@ -69,4 +69,12 @@ public class FlowRuntimeController {
         return ApiResult.ok(service.addManualNode(AuthenticationContextHolder.require(), instanceId, body,
                 TraceIdFilter.current(request)));
     }
+
+    @PostMapping("/incidents/{incidentId}/actions")
+    public ApiResult<FlowRuntimeModels.ActionResult> handleIncident(
+            @PathVariable Long incidentId, @Valid @RequestBody FlowRuntimeModels.IncidentActionRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.handleIncident(AuthenticationContextHolder.require(), incidentId, body,
+                TraceIdFilter.current(request)));
+    }
 }

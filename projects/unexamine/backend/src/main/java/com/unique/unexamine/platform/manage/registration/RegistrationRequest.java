@@ -11,5 +11,5 @@ public record RegistrationRequest(
         @NotBlank @Size(max = 100) String displayName,
         @Email @Size(max = 255) String email,
         @NotBlank @Size(max = 200) String systemName,
-        @NotBlank @Pattern(regexp = "[A-Za-z][A-Za-z0-9_-]{2,49}") String systemCode) {
+        @Size(max = 50) @Pattern(regexp = "[A-Za-z][A-Za-z0-9_-]{1,49}") String systemCode) {
 }

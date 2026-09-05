@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ApiError, api } from '../api'
-import { defaultKpiPeriod, kpiStatusLabel, parseKpiIds } from '../kpi'
-import type { DashboardDataSource, KpiDefinition, KpiOverview, KpiPreview } from '../types'
+import { defaultKpiPeriod, kpiStatusLabel } from '../kpi'
+import PersonSelect from '../components/PersonSelect.vue'
+import type { DashboardDataSource, KpiDefinition, KpiOverview, KpiPreview, ReportMetadata,
+  SystemAuthorizationOverview, SystemPeopleDirectory } from '../types'
 
 const props = defineProps<{ token?: string; dataSources: DashboardDataSource[] }>()
 const overview = ref<KpiOverview>({ kpis: [] })
+const directory = ref<SystemPeopleDirectory>({ departments: [], people: [], permissionVersion: 0 })
+const authorization = ref<SystemAuthorizationOverview>()
+const metadata = ref<ReportMetadata>()
 const selectedId = ref<number>()
 const preview = ref<KpiPreview>()
 const loading = ref(false)
@@ -15,9 +20,9 @@ const success = ref('')
 const form = reactive({
   code: '', name: '', dataSourceVersionId: undefined as number | undefined,
   targetValue: 1, targetOperator: 'GTE' as 'GTE' | 'LTE', periodType: 'MONTH' as 'MONTH' | 'QUARTER' | 'YEAR',
-  responsibleType: 'PERSON' as 'PERSON' | 'DEPARTMENT' | 'ROLE', responsibleIds: '',
-  visibilityModuleCode: '', drillModuleCode: '', visibilityAccountIds: '', drillAccountIds: '', reminderEnabled: true,
-  reminderRecipientAccountIds: '', reminderBelowPercent: 100, status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE',
+  responsibleType: 'PERSON' as 'PERSON' | 'DEPARTMENT' | 'ROLE', responsibleIds: [] as number[],
+  visibilityModuleCode: '', drillModuleCode: '', visibilityTenantMemberIds: [] as number[], drillTenantMemberIds: [] as number[], reminderEnabled: true,
+  reminderRecipientTenantMemberIds: [] as number[], reminderBelowPercent: 100, status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE',
   expectedVersion: undefined as number | undefined, periodKey: defaultKpiPeriod('MONTH'),
 })
 
@@ -33,9 +38,8 @@ function causeMessage(cause: unknown) {
   return cause instanceof ApiError ? `${cause.code}：${cause.message}` : '操作失败，请稍后重试'
 }
 
-function permission(moduleCode: string, accountIds: string): Record<string, unknown> {
-  const accounts = parseKpiIds(accountIds)
-  if (accounts.length) return { accountIds: accounts }
+function permission(moduleCode: string, members: number[]): Record<string, unknown> {
+  if (members.length) return { tenantMemberIds: members }
   return moduleCode.trim()
     ? { resourceType: 'MODULE', resourceCode: moduleCode.trim(), actionCode: 'LIST' }
     : {}
@@ -45,15 +49,29 @@ function permissionCode(policy: Record<string, unknown>) {
   return String(policy.resourceType === 'MODULE' ? policy.resourceCode || '' : '')
 }
 
-function policyAccounts(policy: Record<string, unknown>) {
-  return Array.isArray(policy.accountIds) ? policy.accountIds.join(', ') : ''
+function policyMembers(policy: Record<string, unknown>) {
+  return Array.isArray(policy.tenantMemberIds) ? policy.tenantMemberIds.map(Number).filter(Number.isFinite) : []
+}
+
+function generatedCode(name: string) {
+  const latin = name.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '')
+  return `kpi_${latin || Date.now().toString(36)}`.slice(0, 96)
 }
 
 async function load() {
   if (!props.token) return
   loading.value = true; error.value = ''
   try {
-    overview.value = await api<KpiOverview>('/api/analytics/admin/kpis', {}, props.token)
+    const [kpis, people, auth, reportMetadata] = await Promise.all([
+      api<KpiOverview>('/api/analytics/admin/kpis', {}, props.token),
+      api<SystemPeopleDirectory>('/api/system-directory', {}, props.token),
+      api<SystemAuthorizationOverview>('/api/admin/system/authorization', {}, props.token),
+      api<ReportMetadata>('/api/analytics/admin/report-metadata', {}, props.token),
+    ])
+    overview.value = kpis
+    directory.value = people
+    authorization.value = auth
+    metadata.value = reportMetadata
     if (selectedId.value) {
       const selected = overview.value.kpis.find(item => item.id === selectedId.value)
       if (selected) fill(selected)
@@ -65,8 +83,8 @@ function reset() {
   selectedId.value = undefined; preview.value = undefined
   Object.assign(form, {
     code: '', name: '', dataSourceVersionId: undefined, targetValue: 1, targetOperator: 'GTE',
-    periodType: 'MONTH', responsibleType: 'PERSON', responsibleIds: '', visibilityModuleCode: '',
-    drillModuleCode: '', visibilityAccountIds: '', drillAccountIds: '', reminderEnabled: true, reminderRecipientAccountIds: '',
+    periodType: 'MONTH', responsibleType: 'PERSON', responsibleIds: [], visibilityModuleCode: '',
+    drillModuleCode: '', visibilityTenantMemberIds: [], drillTenantMemberIds: [], reminderEnabled: true, reminderRecipientTenantMemberIds: [],
     reminderBelowPercent: 100, status: 'ACTIVE', expectedVersion: undefined,
     periodKey: defaultKpiPeriod('MONTH'),
   })
@@ -77,12 +95,12 @@ function fill(kpi: KpiDefinition) {
   Object.assign(form, {
     code: kpi.code, name: kpi.name, dataSourceVersionId: kpi.dataSourceVersionId,
     targetValue: Number(kpi.targetValue), targetOperator: kpi.targetOperator, periodType: kpi.periodType,
-    responsibleType: kpi.responsibleType, responsibleIds: kpi.responsibleIds.join(', '),
+    responsibleType: kpi.responsibleType, responsibleIds: [...kpi.responsibleIds],
     visibilityModuleCode: permissionCode(kpi.visibilityPermission),
     drillModuleCode: permissionCode(kpi.drillPermission),
-    visibilityAccountIds: policyAccounts(kpi.visibilityPermission), drillAccountIds: policyAccounts(kpi.drillPermission),
+    visibilityTenantMemberIds: policyMembers(kpi.visibilityPermission), drillTenantMemberIds: policyMembers(kpi.drillPermission),
     reminderEnabled: kpi.reminderEnabled,
-    reminderRecipientAccountIds: kpi.reminderRecipientAccountIds.join(', '),
+    reminderRecipientTenantMemberIds: [...kpi.reminderRecipientTenantMemberIds],
     reminderBelowPercent: Number(kpi.reminderBelowPercent), status: kpi.status,
     expectedVersion: kpi.version, periodKey: kpi.latestResult?.periodKey || defaultKpiPeriod(kpi.periodType),
   })
@@ -90,19 +108,21 @@ function fill(kpi: KpiDefinition) {
 
 async function save() {
   if (!props.token || !form.dataSourceVersionId) { error.value = '请选择一个已发布的结构化报表版本。'; return }
-  const responsibleIds = parseKpiIds(form.responsibleIds)
-  if (!responsibleIds.length) { error.value = '至少填写一个责任对象 ID。'; return }
-  const recipients = parseKpiIds(form.reminderRecipientAccountIds)
-  if (form.reminderEnabled && !recipients.length) { error.value = '启用提醒后至少填写一个接收账号 ID。'; return }
+  const responsibleIds = [...new Set(form.responsibleIds)]
+  if (!responsibleIds.length) { error.value = '请选择至少一个责任人、责任部门或责任角色。'; return }
+  const recipients = [...new Set(form.reminderRecipientTenantMemberIds)]
+  if (form.reminderEnabled && !recipients.length) { error.value = '启用提醒后至少选择一个工作空间成员。'; return }
   saving.value = true; error.value = ''; success.value = ''
   try {
+    if (!form.name.trim()) { error.value = '请填写 KPI 名称。'; return }
+    form.code ||= generatedCode(form.name)
     const body = {
       code: form.code, name: form.name, dataSourceVersionId: form.dataSourceVersionId,
       targetValue: form.targetValue, targetOperator: form.targetOperator, periodType: form.periodType,
       responsibleType: form.responsibleType, responsibleIds,
-      visibilityPermission: permission(form.visibilityModuleCode, form.visibilityAccountIds),
-      drillPermission: permission(form.drillModuleCode, form.drillAccountIds),
-      reminderEnabled: form.reminderEnabled, reminderRecipientAccountIds: recipients,
+      visibilityPermission: permission(form.visibilityModuleCode, form.visibilityTenantMemberIds),
+      drillPermission: permission(form.drillModuleCode, form.drillTenantMemberIds),
+      reminderEnabled: form.reminderEnabled, reminderRecipientTenantMemberIds: recipients,
       reminderBelowPercent: form.reminderBelowPercent, status: form.status, expectedVersion: form.expectedVersion,
     }
     const path = selectedId.value ? `/api/analytics/admin/kpis/${selectedId.value}` : '/api/analytics/admin/kpis'
@@ -134,6 +154,12 @@ async function execute(mode: 'preview' | 'calculate') {
 }
 
 watch(() => form.periodType, value => { form.periodKey = defaultKpiPeriod(value) })
+
+function changeResponsibleType(value: 'PERSON' | 'DEPARTMENT' | 'ROLE') {
+  if (value === form.responsibleType) return
+  form.responsibleType = value
+  form.responsibleIds = []
+}
 onMounted(load)
 </script>
 
@@ -155,12 +181,15 @@ onMounted(load)
         <section class="panel-card dashboard-config-form">
           <div class="panel-title"><strong>{{ selectedId ? '编辑 KPI 配置' : '新建 KPI' }}</strong><span>实际值只读取不可变报表发布版本</span></div>
           <a-form layout="vertical">
-            <div class="form-grid form-grid--three"><a-form-item label="编码"><a-input v-model:value="form.code" placeholder="customer_monthly" /></a-form-item><a-form-item label="名称"><a-input v-model:value="form.name" placeholder="月度有效客户" /></a-form-item><a-form-item label="结构化报表发布版本"><a-select v-model:value="form.dataSourceVersionId" show-search :options="sourceOptions" placeholder="选择精确版本" /></a-form-item></div>
+            <div class="form-grid"><a-form-item label="KPI 名称" required><a-input v-model:value="form.name" placeholder="月度有效客户" /></a-form-item><a-form-item label="统计口径" required><a-select v-model:value="form.dataSourceVersionId" show-search :options="sourceOptions" placeholder="选择已发布业务报表" /></a-form-item></div>
             <div class="form-grid form-grid--three"><a-form-item label="目标值"><a-input-number v-model:value="form.targetValue" :min="0" /></a-form-item><a-form-item label="达标规则"><a-select v-model:value="form.targetOperator" :options="[{ value: 'GTE', label: '实际值 ≥ 目标' }, { value: 'LTE', label: '实际值 ≤ 目标' }]" /></a-form-item><a-form-item label="周期"><a-select v-model:value="form.periodType" :options="[{ value: 'MONTH', label: '月' }, { value: 'QUARTER', label: '季度' }, { value: 'YEAR', label: '年' }]" /></a-form-item></div>
-            <div class="form-grid form-grid--three"><a-form-item label="责任类型"><a-select v-model:value="form.responsibleType" :options="[{ value: 'PERSON', label: '人员' }, { value: 'DEPARTMENT', label: '部门' }, { value: 'ROLE', label: '角色' }]" /></a-form-item><a-form-item label="责任对象 ID"><a-input v-model:value="form.responsibleIds" placeholder="10, 20" /></a-form-item><a-form-item label="状态"><a-select v-model:value="form.status" :options="[{ value: 'ACTIVE', label: '启用' }, { value: 'INACTIVE', label: '停用' }]" /></a-form-item></div>
-            <div class="form-grid"><a-form-item label="看板可见账号 ID（优先；留空使用模块权限）"><a-input v-model:value="form.visibilityAccountIds" placeholder="10, 20" /></a-form-item><a-form-item label="明细下钻账号 ID（独立校验）"><a-input v-model:value="form.drillAccountIds" placeholder="10" /></a-form-item></div>
-            <div class="form-grid"><a-form-item label="看板可见模块权限（账号留空时生效；全留空表示当前系统租户成员可见）"><a-input v-model:value="form.visibilityModuleCode" placeholder="customer" /></a-form-item><a-form-item label="明细下钻模块权限（账号留空时生效）"><a-input v-model:value="form.drillModuleCode" placeholder="customer" /></a-form-item></div>
-            <div class="form-grid form-grid--three"><a-form-item label="未达标提醒"><a-switch v-model:checked="form.reminderEnabled" /></a-form-item><a-form-item label="接收账号 ID"><a-input v-model:value="form.reminderRecipientAccountIds" :disabled="!form.reminderEnabled" placeholder="10, 20" /></a-form-item><a-form-item label="低于达成率（%）"><a-input-number v-model:value="form.reminderBelowPercent" :disabled="!form.reminderEnabled" :min="0" /></a-form-item></div>
+            <div class="form-grid form-grid--three"><a-form-item label="责任归属"><a-select :value="form.responsibleType" :options="[{ value: 'PERSON', label: '具体成员' }, { value: 'DEPARTMENT', label: '部门' }, { value: 'ROLE', label: '角色' }]" @change="changeResponsibleType" /></a-form-item><a-form-item label="选择责任对象" required><PersonSelect v-if="form.responsibleType === 'PERSON'" v-model="form.responsibleIds" multiple value-key="tenantMemberId" :people="directory.people" /><a-select v-else-if="form.responsibleType === 'DEPARTMENT'" v-model:value="form.responsibleIds" mode="multiple" show-search option-filter-prop="label" :options="directory.departments.map(item => ({ value: item.id, label: item.fullName }))" /><a-select v-else v-model:value="form.responsibleIds" mode="multiple" show-search option-filter-prop="label" :options="authorization?.roles.filter(item => item.status === 'ACTIVE').map(item => ({ value: item.id, label: item.name }))" /></a-form-item><a-form-item label="状态"><a-select v-model:value="form.status" :options="[{ value: 'ACTIVE', label: '启用' }, { value: 'INACTIVE', label: '停用' }]" /></a-form-item></div>
+            <a-divider>查看与下钻范围</a-divider>
+            <div class="form-grid"><a-form-item label="仅这些成员可在看板看到（留空按模块权限）"><PersonSelect v-model="form.visibilityTenantMemberIds" multiple value-key="tenantMemberId" :people="directory.people" placeholder="留空：使用模块权限" /></a-form-item><a-form-item label="仅这些成员可打开明细（留空按模块权限）"><PersonSelect v-model="form.drillTenantMemberIds" multiple value-key="tenantMemberId" :people="directory.people" placeholder="留空：使用模块权限" /></a-form-item></div>
+            <div class="form-grid"><a-form-item label="看板查看所需模块"><a-select v-model:value="form.visibilityModuleCode" allow-clear show-search option-filter-prop="label" :disabled="form.visibilityTenantMemberIds.length > 0" :options="metadata?.modules.map(item => ({ value: item.moduleCode, label: item.moduleName }))" placeholder="留空：当前系统成员可见" /></a-form-item><a-form-item label="明细下钻所需模块"><a-select v-model:value="form.drillModuleCode" allow-clear show-search option-filter-prop="label" :disabled="form.drillTenantMemberIds.length > 0" :options="metadata?.modules.map(item => ({ value: item.moduleCode, label: item.moduleName }))" placeholder="选择对应业务模块" /></a-form-item></div>
+            <a-divider>未达标处理</a-divider>
+            <div class="form-grid form-grid--three"><a-form-item label="发送提醒"><a-switch v-model:checked="form.reminderEnabled" /></a-form-item><a-form-item label="提醒给谁"><PersonSelect v-model="form.reminderRecipientTenantMemberIds" multiple value-key="tenantMemberId" :people="directory.people" :disabled="!form.reminderEnabled" placeholder="选择接收成员" /></a-form-item><a-form-item label="低于达成率（%）"><a-input-number v-model:value="form.reminderBelowPercent" :disabled="!form.reminderEnabled" :min="0" /></a-form-item></div>
+            <a-collapse ghost class="dashboard-advanced"><a-collapse-panel key="advanced" header="高级标识"><a-form-item label="稳定标识"><a-input v-model:value="form.code" placeholder="留空自动生成" /></a-form-item></a-collapse-panel></a-collapse>
             <div class="form-actions"><a-button type="primary" :loading="saving" @click="save">保存配置版本</a-button><a-input v-model:value="form.periodKey" class="kpi-period-input" placeholder="2026-08" /><a-button :disabled="!selectedId" :loading="loading" @click="execute('preview')">预览目标与数据源</a-button><a-button :disabled="!selectedId" :loading="loading" danger @click="execute('calculate')">计算并闭环提醒</a-button></div>
           </a-form>
         </section>

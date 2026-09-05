@@ -3145,3 +3145,11 @@ CREATE TABLE `ops_verification_finding` (
   CONSTRAINT `fk_ops_finding_run` FOREIGN KEY (`verification_run_id`) REFERENCES `ops_verification_run` (`id`),
   CONSTRAINT `fk_ops_finding_resolver` FOREIGN KEY (`resolved_by_account_id`) REFERENCES `plat_account` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- source: update/V39__application_call_immutable_version.sql
+-- Application calls execute the immutable published version, never mutable draft grant rows.
+ALTER TABLE `app_call`
+  ADD COLUMN `application_version_id` BIGINT NULL AFTER `application_id`,
+  ADD KEY `idx_app_call_version` (`application_id`, `application_version_id`),
+  ADD CONSTRAINT `fk_app_call_version`
+    FOREIGN KEY (`application_id`, `application_version_id`)
+    REFERENCES `app_version` (`application_id`, `id`);

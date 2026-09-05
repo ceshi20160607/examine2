@@ -27,6 +27,9 @@ public class WorkProjectMember {
     @TableField("account_id")
     private Long accountId;
 
+    @TableField("tenant_member_id")
+    private Long tenantMemberId;
+
     @TableField("project_role")
     private String projectRole;
 
@@ -60,6 +63,14 @@ public class WorkProjectMember {
         this.accountId = accountId;
     }
 
+    public Long getTenantMemberId() {
+        return tenantMemberId;
+    }
+
+    public void setTenantMemberId(Long tenantMemberId) {
+        this.tenantMemberId = tenantMemberId;
+    }
+
     public String getProjectRole() {
         return projectRole;
     }
@@ -90,6 +101,7 @@ public class WorkProjectMember {
             "id = " + id +
             ", projectId = " + projectId +
             ", accountId = " + accountId +
+            ", tenantMemberId = " + tenantMemberId +
             ", projectRole = " + projectRole +
             ", status = " + status +
             ", joinedAt = " + joinedAt +

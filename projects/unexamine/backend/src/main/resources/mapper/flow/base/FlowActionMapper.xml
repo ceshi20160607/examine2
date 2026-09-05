@@ -14,12 +14,13 @@
         <result column="result_json" property="resultJson" />
         <result column="idempotency_key" property="idempotencyKey" />
         <result column="acted_by_account_id" property="actedByAccountId" />
+        <result column="acted_by_tenant_member_id" property="actedByTenantMemberId" />
         <result column="acted_at" property="actedAt" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, instance_id, task_id, node_key, action_code, comment_text, input_json, result_json, idempotency_key, acted_by_account_id, acted_at
+        id, instance_id, task_id, node_key, action_code, comment_text, input_json, result_json, idempotency_key, acted_by_account_id, acted_by_tenant_member_id, acted_at
     </sql>
 
 </mapper>

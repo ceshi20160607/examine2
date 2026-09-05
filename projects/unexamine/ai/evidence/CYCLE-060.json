@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-060",
+  "executedAt": "2026-09-01T15:31:36+08:00",
+  "taskIds": [
+    "TASK-0215",
+    "TASK-0216",
+    "TASK-0217"
+  ],
+  "checks": [
+    {
+      "name": "发布模块驱动的记录列表、表单、详情和编辑真实闭环",
+      "command": "Microsoft Edge via in-app Playwright against Nginx 15174 and Spring Boot 18080",
+      "result": "passed"
+    },
+    {
+      "name": "退出重登与页面重新加载后的数据持久化",
+      "command": "logout -> login -> enter system #18 -> reopen published module; assert both records and edited value",
+      "result": "passed"
+    },
+    {
+      "name": "运行记录、配置版本、负责人和不可删除审计读回",
+      "command": "MySQL readback for biz_record and audit_event in system #18",
+      "result": "passed"
+    },
+    {
+      "name": "运行页面全量前端回归与生产构建",
+      "command": "npm test -- --run (28 files / 78 tests); npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-RECORD-CREATE-EDIT",
+      "entryUrl": "http://127.0.0.1:15174/systems/18?workspace=runtime&module=module_087b31a589",
+      "actor": "客户运营中心业务用户",
+      "result": "passed",
+      "pageAssertions": [
+        "从已发布客户联系记录模块创建拜访华东零售客户和电话跟进华北制造客户两条真实记录。",
+        "列表显示两条记录及业务字段，点击整条业务标题进入详情，不显示内部记录编号。",
+        "编辑第一条联系主题后列表和详情同步读回新值，更新时间随之变化。",
+        "完整退出登录、重新登录并再次进入系统后，两条记录和修改结果仍然存在。"
+      ],
+      "persistentReads": [
+        "MySQL 读回两条 biz_record，第一条版本为 1、第二条版本为 0，均归属当前成员且保持 ACTIVE。",
+        "两条记录均保留创建配置版本 #13；后续模块 v2 发布为 #14，没有覆写历史记录版本。",
+        "审计读回两次 BUSINESS_RECORD_CREATED/SUCCESS、一次 BUSINESS_RECORD_UPDATED/SUCCESS。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+      ]
+    }
+  ]
+}

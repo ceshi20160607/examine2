@@ -4,9 +4,11 @@ import { Empty, message } from 'ant-design-vue'
 import { ApiError, api } from '../api'
 import { productDateTime } from '../presentation'
 import { allowsPermission } from '../permissions'
-import { activeRuntimeTask, parseManualStatusMappings, parseRuntimeVariables, runtimeIdempotency, runtimeStatusLabel } from '../flow-runtime'
+import { activeRuntimeTask, runtimeIdempotency, runtimeStatusLabel } from '../flow-runtime'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
-import type { FlowDefinitionView, FlowManualNodePreview, FlowManualNodeResult, FlowRuntimeActionResult, FlowRuntimeInstance, FlowRuntimeTask } from '../types'
+import PersonSelect from '../components/PersonSelect.vue'
+import BusinessAttachmentsPanel from '../components/BusinessAttachmentsPanel.vue'
+import type { FlowDefinitionView, FlowManualNodePreview, FlowManualNodeResult, FlowRuntimeActionResult, FlowRuntimeException, FlowRuntimeInstance, FlowRuntimeTask, SystemPeopleDirectory } from '../types'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system'; initialInstanceId?: number; initialTaskId?: number }>(), { context: 'system' })
 const token = computed(() => props.context === 'platform' ? platformTokens.value?.accessToken : systemTokens.value?.accessToken)
@@ -14,26 +16,30 @@ const current = computed(() => props.context === 'platform' ? platformContext.va
 const contextCode = computed(() => props.context === 'platform' ? 'PLATFORM' : 'SYSTEM')
 const flows = ref<FlowDefinitionView[]>([])
 const instances = ref<FlowRuntimeInstance[]>([])
+const directory = ref<SystemPeopleDirectory>({ departments: [], people: [], permissionVersion: 0 })
 const selected = ref<FlowRuntimeInstance>()
 const loading = ref(false)
 const busy = ref('')
 const startOpen = ref(false)
 const actionOpen = ref(false)
 const manualOpen = ref(false)
+const incidentOpen = ref(false)
 const manualPreview = ref<FlowManualNodePreview>()
 const selectedAction = ref('APPROVE')
-const startForm = reactive({ flowId: undefined as number | undefined, title: '', businessType: '', businessId: '', variables: '{}' })
-const actionForm = reactive({ comment: '', targetAccountId: undefined as number | undefined })
-const manualForm = reactive({ assigneeAccountId: undefined as number | undefined, reason: '', statusMappings: '{}' })
+const startForm = reactive({ flowId: undefined as number | undefined, title: '' })
+const actionForm = reactive({ comment: '', targetTenantMemberId: undefined as number | undefined })
+const manualForm = reactive({ assigneeTenantMemberId: undefined as number | undefined, reason: '' })
 const manualIdempotencyKey = ref('')
+const selectedIncident = ref<FlowRuntimeException>()
+const incidentForm = reactive({ actionCode: 'RETRY', comment: '' })
 const activeView = ref<'pending' | 'mine' | 'instances' | 'records'>('pending')
 
 const publishedFlows = computed(() => flows.value.filter(flow => !!flow.currentVersionId))
 const currentTask = computed(() => activeRuntimeTask(selected.value))
 const visibleInstances = computed(() => instances.value.filter(instance => {
-  if (activeView.value === 'mine') return instance.startedByAccountId === current.value?.accountId
+  if (activeView.value === 'mine') return instance.startedByTenantMemberId === current.value?.tenantMemberId
   if (activeView.value === 'pending') return instance.tasks.some(task =>
-    task.assigneeAccountId === current.value?.accountId && !task.completedAt && task.status !== 'COMPLETED')
+    taskMine(task) && !task.completedAt && task.status === 'PENDING')
   if (activeView.value === 'records') return Boolean(instance.finishedAt || instance.actions.length || instance.exceptions.length)
   return true
 }))
@@ -41,6 +47,10 @@ const visibleInstances = computed(() => instances.value.filter(instance => {
 function can(action: string) {
   return allowsPermission(current.value?.permissions, 'FLOW', contextCode.value, action)
     || allowsPermission(current.value?.permissions, 'FLOW', '*', action)
+}
+function canFile(action: string) {
+  return allowsPermission(current.value?.permissions, 'FILE', 'OBJECT', action)
+    || allowsPermission(current.value?.permissions, 'FILE', '*', action)
 }
 function describeError(error: unknown) {
   if (error instanceof ApiError) return `${error.message}${error.traceId ? `（追踪号 ${error.traceId}）` : ''}`
@@ -68,24 +78,41 @@ function publishedVersionNumber(flow: FlowDefinitionView) {
 function flowName(flowId: number) {
   return flows.value.find(flow => flow.id === flowId)?.name || '业务流程'
 }
-function accountDisplayName(accountId?: number) {
-  if (!accountId) return '未指定'
-  return accountId === current.value?.accountId ? current.value?.displayName || '我' : '其他成员'
+function taskMine(task: FlowRuntimeTask) {
+  return task.assigneeTenantMemberId === current.value?.tenantMemberId
+    || task.candidates.some(candidate => candidate.tenantMemberId === current.value?.tenantMemberId)
 }
 function actionLabel(action: string) {
   return ({ APPROVE: '同意', REJECT: '拒绝', RETURN: '退回', TRANSFER: '转交', WITHDRAW: '撤回', TERMINATE: '终止' } as Record<string, string>)[action] || '处理'
+}
+function businessReferenceLabel(instance: FlowRuntimeInstance) {
+  if (!instance.businessType) return '未关联'
+  const label = String(instance.businessSnapshot?.label || '').trim()
+  return label || '已关联业务记录'
+}
+function runtimeVariableEntries(instance: FlowRuntimeInstance) {
+  return Object.entries(instance.variables || {}).filter(([, value]) => value !== undefined && value !== null)
+}
+function jobTypeLabel(type: string) {
+  return ({ TIMER: '定时继续', TASK_TIMEOUT: '审批超时检查', RETRY: '自动重试' } as Record<string, string>)[type] || '流程作业'
+}
+function jobStatusLabel(status: string) {
+  return ({ PENDING: '待执行', RUNNING: '执行中', COMPLETED: '已完成', FAILED: '执行失败', CANCELLED: '已取消' } as Record<string, string>)[status] || status
 }
 
 async function load(preferId?: number) {
   if (!token.value || !can('VIEW_RUNTIME')) return
   loading.value = true
   try {
-    const [flowRows, instanceRows] = await Promise.all([
+    const [flowRows, instanceRows, people] = await Promise.all([
       api<FlowDefinitionView[]>('/api/flows', {}, token.value),
       api<FlowRuntimeInstance[]>('/api/flow-runtime/instances', {}, token.value),
+      props.context === 'system' ? api<SystemPeopleDirectory>('/api/system-directory', {}, token.value)
+        : Promise.resolve({ departments: [], people: [], permissionVersion: 0 }),
     ])
     flows.value = flowRows
     instances.value = instanceRows
+    directory.value = people
     const targetFromTask = props.initialTaskId
       ? instanceRows.find(instance => instance.tasks.some(task => task.id === props.initialTaskId))?.id : undefined
     const preferred = preferId ?? props.initialInstanceId ?? targetFromTask ?? selected.value?.id
@@ -98,7 +125,7 @@ async function load(preferId?: number) {
 }
 
 function openStart() {
-  Object.assign(startForm, { flowId: publishedFlows.value[0]?.id, title: '', businessType: '', businessId: '', variables: '{}' })
+  Object.assign(startForm, { flowId: publishedFlows.value[0]?.id, title: '' })
   startOpen.value = true
 }
 
@@ -106,12 +133,9 @@ async function startFlow() {
   if (!token.value || !startForm.flowId || !startForm.title.trim()) return
   busy.value = 'start'
   try {
-    const variables = parseRuntimeVariables(startForm.variables)
     const result = await api<FlowRuntimeActionResult>('/api/flow-runtime/instances', {
       method: 'POST', body: JSON.stringify({
-        flowId: startForm.flowId, title: startForm.title,
-        businessType: startForm.businessType || undefined, businessId: startForm.businessId || undefined,
-        businessSnapshot: startForm.businessType ? { label: startForm.title } : {}, variables,
+        flowId: startForm.flowId, title: startForm.title, businessSnapshot: {}, variables: {},
         idempotencyKey: runtimeIdempotency('flow-start'),
       }),
     }, token.value)
@@ -129,7 +153,7 @@ async function selectInstance(id: number) {
 
 function openAction(action: string) {
   selectedAction.value = action
-  Object.assign(actionForm, { comment: '', targetAccountId: undefined })
+  Object.assign(actionForm, { comment: '', targetTenantMemberId: undefined })
   actionOpen.value = true
 }
 
@@ -138,7 +162,7 @@ async function handleAction() {
   const action = selectedAction.value
   const needsReason = ['REJECT', 'RETURN', 'WITHDRAW', 'TERMINATE'].includes(action)
   if (needsReason && !actionForm.comment.trim()) return message.warning('该动作必须填写原因')
-  if (action === 'TRANSFER' && !actionForm.targetAccountId) return message.warning('转交必须填写目标账号')
+  if (action === 'TRANSFER' && !actionForm.targetTenantMemberId) return message.warning('转交必须选择目标成员')
   busy.value = 'action'
   try {
     const path = ['WITHDRAW', 'TERMINATE'].includes(action)
@@ -147,7 +171,7 @@ async function handleAction() {
     const result = await api<FlowRuntimeActionResult>(path, {
       method: 'POST', body: JSON.stringify({ actionCode: action, comment: actionForm.comment || undefined,
         idempotencyKey: runtimeIdempotency(`flow-${action.toLowerCase()}`), variables: {},
-        targetAccountId: actionForm.targetAccountId }),
+        targetTenantMemberId: actionForm.targetTenantMemberId }),
     }, token.value)
     actionOpen.value = false
     selected.value = result.instance
@@ -157,20 +181,20 @@ async function handleAction() {
 }
 
 function openManualNode() {
-  Object.assign(manualForm, { assigneeAccountId: current.value?.accountId, reason: '', statusMappings: '{}' })
+  Object.assign(manualForm, { assigneeTenantMemberId: current.value?.tenantMemberId, reason: '' })
   manualIdempotencyKey.value = runtimeIdempotency('flow-manual-node')
   manualPreview.value = undefined
   manualOpen.value = true
 }
 
 function manualRequest() {
-  if (!manualForm.assigneeAccountId) throw new Error('请选择当前上下文内的目标处理人账号')
+  if (!manualForm.assigneeTenantMemberId) throw new Error('请选择当前系统内的目标处理人')
   if (!manualForm.reason.trim()) throw new Error('手动加签必须填写可追溯原因')
   return {
-    assigneeAccountId: manualForm.assigneeAccountId,
+    assigneeTenantMemberId: manualForm.assigneeTenantMemberId,
     position: 'BEFORE_CURRENT',
     reason: manualForm.reason.trim(),
-    statusMappings: parseManualStatusMappings(manualForm.statusMappings),
+    statusMappings: {},
     idempotencyKey: manualIdempotencyKey.value,
   }
 }
@@ -206,6 +230,26 @@ async function addManualNode() {
   } finally { busy.value = '' }
 }
 
+function openIncident(item: FlowRuntimeException, actionCode: 'RETRY' | 'RESUME') {
+  selectedIncident.value = item
+  Object.assign(incidentForm, { actionCode, comment: '' })
+  incidentOpen.value = true
+}
+
+async function handleIncident() {
+  if (!token.value || !selected.value || !selectedIncident.value || !incidentForm.comment.trim()) return
+  busy.value = 'incident'
+  try {
+    const result = await api<FlowRuntimeActionResult>(`/api/flow-runtime/incidents/${selectedIncident.value.id}/actions`, {
+      method: 'POST', body: JSON.stringify({ actionCode: incidentForm.actionCode,
+        comment: incidentForm.comment.trim(), idempotencyKey: runtimeIdempotency('flow-incident') }),
+    }, token.value)
+    incidentOpen.value = false
+    await load(result.instance.id)
+    message.success(incidentForm.actionCode === 'RETRY' ? '已安排自动重试' : '已确认补偿并继续流程')
+  } catch (error) { message.error(describeError(error)) } finally { busy.value = '' }
+}
+
 onMounted(() => {
   if (props.initialInstanceId || props.initialTaskId) activeView.value = 'instances'
   void load(props.initialInstanceId)
@@ -215,7 +259,7 @@ watch(() => [props.initialInstanceId, props.initialTaskId], () => {
   activeView.value = 'instances'
   void load(props.initialInstanceId)
 })
-watch(() => [manualForm.assigneeAccountId, manualForm.reason, manualForm.statusMappings], () => {
+watch(() => [manualForm.assigneeTenantMemberId, manualForm.reason], () => {
   if (manualOpen.value) manualPreview.value = undefined
 })
 watch([activeView, visibleInstances], () => {
@@ -259,44 +303,47 @@ watch([activeView, visibleInstances], () => {
         </section>
         <section class="runtime-explain-grid">
           <article class="panel-card"><small>当前节点</small><strong>{{ selected.currentNodeName || '流程已结束' }}</strong><span>按当前流程版本推进</span></article>
-          <article class="panel-card"><small>当前处理人</small><strong>{{ currentTask?.assigneeAccountId ? accountDisplayName(currentTask.assigneeAccountId) : '无需人工处理' }}</strong><span>{{ currentTask?.candidates[0]?.resolutionReason || '按发布版本自动推进' }}</span></article>
+          <article class="panel-card"><small>当前处理人</small><strong>{{ currentTask?.assigneeName || currentTask?.candidates.map(item => item.displayName).join('、') || '无需人工处理' }}</strong><span>{{ currentTask?.assigneeDepartment || currentTask?.candidates[0]?.resolutionReason || '按发布版本自动推进' }}</span></article>
           <article class="panel-card"><small>下一步说明</small><strong>{{ selected.nextStep }}</strong><span>由运行引擎根据当前唯一状态计算</span></article>
         </section>
         <section class="panel-card runtime-snapshot">
           <div class="panel-title"><strong>流程版本与业务关联</strong><a-tag color="purple">运行时已固定</a-tag></div>
-          <a-descriptions bordered size="small" :column="2"><a-descriptions-item label="流程">{{ flowName(selected.flowId) }} · V{{ selected.flowVersionNumber }}</a-descriptions-item><a-descriptions-item label="发起人">{{ accountDisplayName(selected.startedByAccountId) }}</a-descriptions-item><a-descriptions-item label="关联业务">{{ selected.businessType ? `${selected.businessType} ${selected.businessId || ''}` : '未关联' }}</a-descriptions-item><a-descriptions-item label="发起时间">{{ productDateTime(selected.startedAt) }}</a-descriptions-item><a-descriptions-item label="发起参数" :span="2"><code>{{ JSON.stringify(selected.variables) }}</code></a-descriptions-item></a-descriptions>
+          <a-descriptions bordered size="small" :column="2"><a-descriptions-item label="流程">{{ flowName(selected.flowId) }} · V{{ selected.flowVersionNumber }}</a-descriptions-item><a-descriptions-item label="发起人">{{ selected.startedByName }}</a-descriptions-item><a-descriptions-item label="关联业务">{{ businessReferenceLabel(selected) }}</a-descriptions-item><a-descriptions-item label="发起时间">{{ productDateTime(selected.startedAt) }}</a-descriptions-item><a-descriptions-item v-if="runtimeVariableEntries(selected).length" label="业务参数" :span="2"><a-space wrap><a-tag v-for="([key, value]) in runtimeVariableEntries(selected)" :key="key">{{ key }}：{{ value }}</a-tag></a-space></a-descriptions-item></a-descriptions>
         </section>
+        <BusinessAttachmentsPanel v-if="canFile('VIEW')" :endpoint="`/api/business-attachments/flow-instances/${selected.id}`" :context="context" :writable="canFile('UPLOAD') && canFile('REFERENCE')" title="流程附件" description="审批材料和处理结果保存在当前流程实例内。" />
         <section class="panel-card runtime-task-map">
           <div class="panel-title"><strong>实例节点快照</strong><a-tag>{{ selected.tasks.length }} 个任务节点</a-tag></div>
           <div class="runtime-task-map__list">
             <article v-for="(task, index) in selected.tasks" :key="task.id" :class="{ manual: task.taskType === 'MANUAL_APPROVAL' }">
               <span class="runtime-task-map__index">{{ index + 1 }}</span>
-              <div><span><strong>{{ task.taskType === 'MANUAL_APPROVAL' ? '手动加签审批' : `流程任务 ${index + 1}` }}</strong><a-tag v-if="task.taskType === 'MANUAL_APPROVAL'" color="purple">运行时新增</a-tag><a-tag :color="taskStatusColor(task.status)">{{ taskStatusLabel(task.status) }}</a-tag></span><p v-if="manualReason(task)">{{ manualReason(task) }}</p><small>处理人：{{ accountDisplayName(task.assigneeAccountId) }} · {{ task.candidates[0]?.resolutionReason || '按发布版本解析' }}</small></div>
+              <div><span><strong>{{ task.taskType === 'MANUAL_APPROVAL' ? '手动加签审批' : `流程任务 ${index + 1}` }}</strong><a-tag v-if="task.taskType === 'MANUAL_APPROVAL'" color="purple">运行时新增</a-tag><a-tag :color="taskStatusColor(task.status)">{{ taskStatusLabel(task.status) }}</a-tag></span><p v-if="manualReason(task)">{{ manualReason(task) }}</p><small>处理人：{{ task.assigneeName || task.candidates.map(item => item.displayName).join('、') || '待解析' }}<template v-if="task.assigneeDepartment"> · {{ task.assigneeDepartment }}</template> · {{ task.candidates[0]?.resolutionReason || '按发布版本解析' }}</small></div>
             </article>
           </div>
         </section>
-        <section v-if="selected.exceptions.length" class="panel-card runtime-exceptions"><div class="panel-title"><strong>处理异常</strong><a-tag color="red">{{ selected.exceptions.length }}</a-tag></div><a-alert v-for="item in selected.exceptions" :key="item.id" type="error" show-icon :message="item.errorMessage" description="流程已保留异常现场，请由管理员查看技术详情。" /></section>
-        <section class="panel-card runtime-timeline"><div class="panel-title"><strong>处理时间线</strong><a-tag>{{ selected.actions.length }} 个动作</a-tag></div><a-timeline><a-timeline-item v-for="action in selected.actions" :key="action.id" :color="action.actionCode === 'APPROVE' ? 'green' : 'blue'"><strong>{{ actionLabel(action.actionCode) }}</strong><p>{{ action.comment || '系统自动推进并保存结果' }}</p><small>{{ accountDisplayName(action.actedByAccountId) }} · {{ productDateTime(action.actedAt) }}</small></a-timeline-item></a-timeline><a-empty v-if="!selected.actions.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="等待首个处理动作" /></section>
+        <section v-if="selected.exceptions.length" class="panel-card runtime-exceptions"><div class="panel-title"><strong>处理异常</strong><a-tag color="red">{{ selected.exceptions.length }}</a-tag></div><div v-for="item in selected.exceptions" :key="item.id" class="runtime-exception-row"><a-alert type="error" show-icon :message="item.errorMessage" :description="item.status === 'RESOLVED' ? `已由 ${item.resolvedByName || '系统'} 处理` : '运行现场已保留，可重试或人工确认补偿后继续。'" /><span v-if="['OPEN','RETRY_SCHEDULED'].includes(item.status)"><a-button @click="openIncident(item, 'RETRY')">重试</a-button><a-button type="primary" @click="openIncident(item, 'RESUME')">补偿后继续</a-button></span></div></section>
+        <section class="panel-card runtime-timeline"><div class="panel-title"><strong>完整处理历史</strong><a-tag>{{ selected.history.length }} 条</a-tag></div><a-timeline><a-timeline-item v-for="event in selected.history" :key="event.id" :color="event.afterStatus === 'EXCEPTION' ? 'red' : event.afterStatus === 'COMPLETED' ? 'green' : 'blue'"><strong>{{ event.eventName }}</strong><p v-if="event.beforeStatus || event.afterStatus">{{ event.beforeStatus ? runtimeStatusLabel(event.beforeStatus) : '开始' }} → {{ event.afterStatus ? runtimeStatusLabel(event.afterStatus) : '已记录' }}</p><small>{{ event.actorName }} · {{ productDateTime(event.occurredAt) }}</small></a-timeline-item></a-timeline><a-empty v-if="!selected.history.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="等待首个处理事件" /></section>
+        <section v-if="selected.jobs.length" class="panel-card runtime-job-list"><div class="panel-title"><strong>定时与重试作业</strong><a-tag>{{ selected.jobs.length }}</a-tag></div><a-descriptions v-for="job in selected.jobs" :key="job.id" bordered size="small" :column="3"><a-descriptions-item label="类型">{{ jobTypeLabel(job.jobType) }}</a-descriptions-item><a-descriptions-item label="状态">{{ jobStatusLabel(job.status) }}</a-descriptions-item><a-descriptions-item label="尝试">{{ job.attemptCount }} / {{ job.maxAttempts }}</a-descriptions-item></a-descriptions></section>
       </main>
     </div>
     </template>
   </div>
 
   <a-modal v-model:open="startOpen" title="发起已发布流程" width="680px" :confirm-loading="busy === 'start'" @ok="startFlow">
-    <a-form layout="vertical"><a-form-item label="流程" required><a-select v-model:value="startForm.flowId" :options="publishedFlows.map(flow => ({ value: flow.id, label: `${flow.name} · V${publishedVersionNumber(flow)}` }))" /></a-form-item><a-form-item label="申请标题" required><a-input v-model:value="startForm.title" placeholder="例如：客户合同审批" /></a-form-item><div class="form-grid"><a-form-item label="关联业务类型"><a-input v-model:value="startForm.businessType" placeholder="可选" /></a-form-item><a-form-item label="关联业务编号"><a-input v-model:value="startForm.businessId" placeholder="可选" /></a-form-item></div><a-form-item label="高级参数（JSON 对象）"><a-textarea v-model:value="startForm.variables" :rows="5" /></a-form-item></a-form>
+    <a-form layout="vertical"><a-form-item label="流程" required><a-select v-model:value="startForm.flowId" :options="publishedFlows.map(flow => ({ value: flow.id, label: `${flow.name} · V${publishedVersionNumber(flow)}` }))" /></a-form-item><a-form-item label="申请标题" required extra="需要关联客户等业务记录时，请从对应记录页发起，系统会自动带入关联关系。"><a-input v-model:value="startForm.title" placeholder="例如：客户合同审批" /></a-form-item></a-form>
   </a-modal>
-  <a-modal v-model:open="actionOpen" :title="`处理流程 · ${actionLabel(selectedAction)}`" :confirm-loading="busy === 'action'" @ok="handleAction"><a-form layout="vertical"><a-alert type="info" show-icon :message="selected?.nextStep" style="margin-bottom:16px" /><a-form-item label="处理意见" :required="['REJECT','RETURN','WITHDRAW','TERMINATE'].includes(selectedAction)"><a-textarea v-model:value="actionForm.comment" :placeholder="selectedAction === 'APPROVE' ? '可选填写审批意见' : '填写可追溯的动作原因'" /></a-form-item><a-form-item v-if="selectedAction === 'TRANSFER'" label="目标账号编号" required><a-input-number v-model:value="actionForm.targetAccountId" :min="1" style="width:100%" /></a-form-item></a-form></a-modal>
+  <a-modal v-model:open="actionOpen" :title="`处理流程 · ${actionLabel(selectedAction)}`" :confirm-loading="busy === 'action'" @ok="handleAction"><a-form layout="vertical"><a-alert type="info" show-icon :message="selected?.nextStep" style="margin-bottom:16px" /><a-form-item label="处理意见" :required="['REJECT','RETURN','WITHDRAW','TERMINATE'].includes(selectedAction)"><a-textarea v-model:value="actionForm.comment" :placeholder="selectedAction === 'APPROVE' ? '可选填写审批意见' : '填写可追溯的动作原因'" /></a-form-item><a-form-item v-if="selectedAction === 'TRANSFER'" label="转交给" required><PersonSelect v-model="actionForm.targetTenantMemberId" :people="directory.people" value-key="tenantMemberId" :excluded-values="current?.tenantMemberId ? [current.tenantMemberId] : []" /></a-form-item><BusinessAttachmentsPanel v-if="selected && canFile('VIEW')" :endpoint="`/api/business-attachments/flow-instances/${selected.id}`" :context="context" :writable="canFile('UPLOAD') && canFile('REFERENCE')" title="本次审批材料" description="附件保存在当前流程实例，提交动作不会改变附件权限。" compact /></a-form></a-modal>
   <a-modal v-model:open="manualOpen" title="手动加签 · 当前审批节点之前" width="720px" :footer="null">
     <a-alert type="warning" show-icon message="加签只作用于当前运行流程，不会修改已发布流程" description="确认后当前审批任务会暂停；加签处理完成后恢复原审批任务。" style="margin-bottom:16px" />
     <a-form layout="vertical">
-      <a-form-item label="目标处理人账号编号" required><a-input-number v-model:value="manualForm.assigneeAccountId" :min="1" style="width:100%" /></a-form-item>
+      <a-form-item label="加签处理人" required><PersonSelect v-model="manualForm.assigneeTenantMemberId" :people="directory.people" value-key="tenantMemberId" /></a-form-item>
       <a-form-item label="加签原因" required><a-textarea v-model:value="manualForm.reason" :rows="3" placeholder="说明为什么需要在当前节点前增加审批" /></a-form-item>
-      <a-form-item label="业务状态映射（JSON，可选）" extra="仅支持 APPROVE、REJECT、RETURN；配置后仍会校验目标模块动作权限和当前业务状态。"><a-textarea v-model:value="manualForm.statusMappings" :rows="6" placeholder='{"APPROVE":{"businessAction":"APPROVE","expectedCurrentStatus":"ACTIVE","targetStatus":"APPROVED"}}' /></a-form-item>
+      <a-alert type="info" show-icon message="加签仅增加本次审批人，不修改业务状态映射" description="业务状态仍由已发布流程节点统一回写，避免运行时临时配置造成口径不一致。" />
     </a-form>
     <section v-if="manualPreview" class="manual-node-preview">
-      <strong>预检查通过</strong><span>将暂停当前审批任务，由{{ accountDisplayName(manualPreview.assigneeAccountId) }}先处理。</span>
+      <strong>预检查通过</strong><span>将暂停当前审批任务，由 {{ manualPreview.assigneeName }}<template v-if="manualPreview.assigneeDepartment">（{{ manualPreview.assigneeDepartment }}）</template> 先处理。</span>
       <ul><li v-for="check in manualPreview.checks" :key="check">{{ check }}</li></ul>
     </section>
     <div class="modal-result-actions"><a-button @click="manualOpen = false">取消</a-button><a-button :loading="busy === 'manual-preview'" @click="previewManualNode">预检查</a-button><a-button type="primary" :disabled="!manualPreview?.allowed" :loading="busy === 'manual-add'" @click="addManualNode">确认加签</a-button></div>
   </a-modal>
+  <a-modal v-model:open="incidentOpen" :title="incidentForm.actionCode === 'RETRY' ? '重试异常节点' : '确认补偿并继续'" :confirm-loading="busy === 'incident'" :ok-button-props="{ disabled: !incidentForm.comment.trim() }" @ok="handleIncident"><a-alert type="warning" show-icon :message="selectedIncident?.errorMessage" style="margin-bottom:16px" /><a-form layout="vertical"><a-form-item label="处理说明" required><a-textarea v-model:value="incidentForm.comment" :placeholder="incidentForm.actionCode === 'RETRY' ? '说明重试依据' : '说明已完成的人工补偿'" /></a-form-item></a-form></a-modal>
 </template>

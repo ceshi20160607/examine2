@@ -5,6 +5,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import ProductMark from '../components/ProductMark.vue'
+import { isVerificationArtifactName } from '../presentation'
 import { setPlatformSession, setSystemSession, type CurrentContext, type SessionTokens } from '../session'
 
 const props = defineProps<{ initialMode: 'login' | 'register' }>()
@@ -16,7 +17,7 @@ const providers = ref<Array<{ code: string; name: string; protocol: string }>>([
 const startingProvider = ref('')
 const login = reactive({ username: '', password: '' })
 const register = reactive({
-  username: '', password: '', displayName: '', email: '', systemName: '', systemCode: '',
+  username: '', password: '', displayName: '', email: '', systemName: '',
 })
 const title = computed(() => mode.value === 'login' ? '欢迎回来' : '创建你的第一个系统')
 const subtitle = computed(() => mode.value === 'login' ? '登录并继续处理你的业务工作' : '注册平台账号，同时创建第一个业务系统')
@@ -73,7 +74,8 @@ async function submitRegister() {
 
 async function loadProviders() {
   try {
-    providers.value = await api<Array<{ code: string; name: string; protocol: string }>>('/api/auth/sso/providers')
+    const available = await api<Array<{ code: string; name: string; protocol: string }>>('/api/auth/sso/providers')
+    providers.value = available.filter((provider) => !isVerificationArtifactName(provider.name))
   } catch {
     providers.value = []
   }
@@ -158,12 +160,10 @@ onMounted(loadProviders)
           </div>
           <a-form-item label="邮箱" name="email" :rules="[{ type: 'email', message: '请输入正确的邮箱格式' }]"><a-input v-model:value="register.email" size="large" type="email" /></a-form-item>
           <a-form-item label="密码" name="password" :rules="[{ required: true, message: '请输入密码' }, { min: 8, message: '密码至少 8 位' }]"><a-input-password v-model:value="register.password" size="large" autocomplete="new-password" /></a-form-item>
-          <div class="form-grid">
-            <a-form-item label="系统名称" name="systemName" :rules="[{ required: true, message: '请输入系统名称' }]"><a-input v-model:value="register.systemName" size="large" /></a-form-item>
-            <a-form-item label="系统编码" name="systemCode" :rules="[{ required: true, message: '请输入系统编码' }, { pattern: /^[A-Za-z][A-Za-z0-9_-]{1,49}$/, message: '英文开头，至少 2 位' }]" extra="英文开头，可使用数字、- 和 _">
-              <a-input v-model:value="register.systemCode" size="large" />
-            </a-form-item>
-          </div>
+          <a-form-item label="系统名称" name="systemName" :rules="[{ required: true, message: '请输入系统名称' }]">
+            <a-input v-model:value="register.systemName" size="large" placeholder="例如：客户运营中心" />
+          </a-form-item>
+          <p class="auth-form-note">系统标识、主工作空间、根组织和管理员权限会自动准备，创建成功后直接进入系统。</p>
           <a-button type="primary" size="large" html-type="submit" block :loading="loading">创建并进入系统</a-button>
           <p class="auth-switch">已有账号？<a @click="switchMode('login')">直接登录</a></p>
         </a-form>

@@ -19,7 +19,7 @@ public final class DashboardModels {
     public record DataSourceRequest(
             @NotBlank @Pattern(regexp = "[a-z][a-z0-9_-]{1,99}") String code,
             @NotBlank @Size(max = 200) String name,
-            @NotBlank @Pattern(regexp = "PLATFORM_SYSTEMS|MODULE_RECORDS|MODULE_REPORT|TODO_ITEMS|MESSAGE_ITEMS|WORK_PROJECTS") String sourceType,
+            @NotBlank @Pattern(regexp = "PLATFORM_SYSTEMS|MODULE_RECORDS|MODULE_REPORT|EXTERNAL_API|DATABASE_CONNECTION|TODO_ITEMS|MESSAGE_ITEMS|WORK_PROJECTS") String sourceType,
             @NotNull Map<String, Object> definition,
             @NotNull Map<String, Object> permissionPolicy,
             Integer expectedVersion) {
@@ -52,10 +52,15 @@ public final class DashboardModels {
                                         String definitionHash, LocalDateTime publishedAt) {
     }
 
+    public record DataSourceBoundary(String family, String connectionMode, String queryMode,
+                                     String permissionMode, boolean runtimeReady, String explanation) {
+    }
+
     public record DataSourceView(Long id, String contextType, String code, String name, String sourceType,
                                  Integer draftRevision, Map<String, Object> definition,
                                  Map<String, Object> permissionPolicy, String status, Integer version,
-                                 LocalDateTime updatedAt, List<DataSourceVersionView> versions) {
+                                 LocalDateTime updatedAt, DataSourceBoundary boundary,
+                                 List<DataSourceVersionView> versions) {
     }
 
     public record ComponentView(Long id, String componentKey, String componentType, String title,

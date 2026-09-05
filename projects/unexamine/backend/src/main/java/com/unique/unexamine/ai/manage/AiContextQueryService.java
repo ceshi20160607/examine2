@@ -67,7 +67,7 @@ public class AiContextQueryService {
     private final AiExecutionStepBaseService stepService;
     private final AiSystemModelGrantBaseService grantService;
     private final AiModelBaseService modelService;
-    private final RuntimeDataService runtimeDataService;
+    private final AiAuthorizedQueryExecutor authorizedQueryExecutor;
     private final PermissionChecker permissionChecker;
     private final ChannelFieldPolicyResolver fieldPolicyResolver;
     private final PlatformAiConfigurationService platformConfigurationService;
@@ -84,7 +84,7 @@ public class AiContextQueryService {
             AiExecutionStepBaseService stepService,
             AiSystemModelGrantBaseService grantService,
             AiModelBaseService modelService,
-            RuntimeDataService runtimeDataService,
+            AiAuthorizedQueryExecutor authorizedQueryExecutor,
             PermissionChecker permissionChecker,
             ChannelFieldPolicyResolver fieldPolicyResolver,
             PlatformAiConfigurationService platformConfigurationService,
@@ -99,7 +99,7 @@ public class AiContextQueryService {
         this.stepService = stepService;
         this.grantService = grantService;
         this.modelService = modelService;
-        this.runtimeDataService = runtimeDataService;
+        this.authorizedQueryExecutor = authorizedQueryExecutor;
         this.permissionChecker = permissionChecker;
         this.fieldPolicyResolver = fieldPolicyResolver;
         this.platformConfigurationService = platformConfigurationService;
@@ -161,11 +161,23 @@ public class AiContextQueryService {
                     "DEGRADED", answer, "AI_MODEL_UNAVAILABLE", true, null, List.of(), availability);
         }
 
-        QueryData data = executeAuthorizedQuery(context, input, moduleCode, actionCode, requestedFields, traceId);
-        String metricDefinition = metricDefinition(context, input, moduleCode, actionCode);
-        String answer = answer(input.question(), moduleCode, data);
-        return finish(context, traceId, conversation, execution, tool, input, requestedFields,
-                "SUCCEEDED", answer, null, false, metricDefinition, data.sources(), availability);
+        try {
+            QueryData data = executeAuthorizedQuery(context, input, moduleCode, actionCode, requestedFields, traceId);
+            String metricDefinition = metricDefinition(context, input, moduleCode, actionCode);
+            String answer = answer(input.question(), moduleCode, data);
+            return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                    "SUCCEEDED", answer, null, false, metricDefinition, data.sources(), availability);
+        } catch (DomainException exception) {
+            String answer = "当前业务上下文读取失败，未生成或猜测任何业务结果；正常业务页面不受影响。"
+                    + (exception.status().is5xxServerError() ? "请稍后重试。" : "请返回业务页面确认记录与权限。" );
+            return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                    "DEGRADED", answer, "AI_TOOL_EXECUTION_FAILED", exception.status().is5xxServerError(),
+                    null, List.of(), availability);
+        } catch (RuntimeException exception) {
+            return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                    "DEGRADED", "上下文工具暂时不可用，未生成或猜测任何业务结果；正常业务页面不受影响，请稍后重试。",
+                    "AI_TOOL_EXECUTION_FAILED", true, null, List.of(), availability);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -236,12 +248,12 @@ public class AiContextQueryService {
             List<String> fields,
             String traceId) {
         if ("DETAIL".equals(actionCode)) {
-            RuntimeRecordView record = runtimeDataService.detail(context, moduleCode,
+            RuntimeRecordView record = authorizedQueryExecutor.detail(context, moduleCode,
                     input.entryContext().recordId(), traceId);
             return new QueryData(1, List.of(source(context, moduleCode, record, fields)));
         }
         String filtersJson = writeJson(input.entryContext().filters());
-        RuntimeRecordList result = runtimeDataService.list(context, moduleCode,
+        RuntimeRecordList result = authorizedQueryExecutor.list(context, moduleCode,
                 defaultValue(input.entryContext().lifecycleState(), "ACTIVE"),
                 defaultValue(input.entryContext().tenantScope(), "ALL"),
                 defaultValue(input.entryContext().search(), ""), filtersJson,
@@ -402,7 +414,7 @@ public class AiContextQueryService {
         step.setExecutionId(executionId);
         step.setStepNumber(1);
         step.setStepType("AUTHORIZED_QUERY");
-        step.setToolId(null);
+        step.setToolId(tool == null || tool.toolId() == 0 ? null : tool.toolId());
         step.setInputJson(writeJson(Map.of(
                 "question", input.question().strip(), "publishedToolId", tool == null ? 0 : tool.toolId(),
                 "retrievalScope", scope)));

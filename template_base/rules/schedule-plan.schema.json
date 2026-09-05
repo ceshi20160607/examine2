@@ -86,6 +86,24 @@
         }
       }
     },
+    "reworkTaskIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^TASK-[0-9]{4,}$"}
+    },
+    "reworkTaskStages": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["taskId", "stage"],
+        "properties": {
+          "taskId": {"type": "string", "pattern": "^TASK-[0-9]{4,}$"},
+          "stage": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
     "existingImplementationAssessment": {
       "type": "array",
       "items": {

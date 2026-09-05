@@ -2,8 +2,10 @@ package com.unique.unexamine.notification.manage;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,11 +34,16 @@ public final class MessageModels {
             LocalDateTime publishedAt, Integer version, LocalDateTime updatedAt) {
     }
 
+    public record RecipientRef(
+            @NotBlank @Pattern(regexp = "PLATFORM_MEMBER|TENANT_MEMBER") String type,
+            @Positive Long id) {
+    }
+
     public record SendEventRequest(
             @NotBlank @Pattern(regexp = "[A-Z][A-Z0-9_]{1,99}") String templateCode,
             @NotBlank @Pattern(regexp = "[A-Z][A-Z0-9_]{1,63}") String sourceType,
             @NotBlank @Size(max = 100) String dedupKey,
-            @NotEmpty List<Long> recipientAccountIds,
+            @NotEmpty List<@Valid RecipientRef> recipients,
             Map<String, Object> variables,
             @Pattern(regexp = "PLATFORM_ROUTE|SYSTEM_ROUTE|FLOW_INSTANCE|RUNTIME_RECORD|WORK_TASK|APPLICATION|FILE_OBJECT") String targetType,
             @Size(max = 100) String targetId,
@@ -57,8 +64,11 @@ public final class MessageModels {
             String subject, String content, String targetType, String targetId,
             String targetRoute, String sensitivity, String recipientStatus,
             LocalDateTime readAt, LocalDateTime archivedAt, Integer recipientVersion,
-            LocalDateTime createdAt, boolean targetCurrentlyAccessible,
-            List<DeliveryView> deliveries) {
+            LocalDateTime createdAt, String actorName, boolean targetCurrentlyAccessible) {
+    }
+
+    public record DeliveryDiagnosticsView(
+            Long messageId, String subject, List<DeliveryView> deliveries) {
     }
 
     public record InboxView(List<MessageView> messages, long unreadCount) {

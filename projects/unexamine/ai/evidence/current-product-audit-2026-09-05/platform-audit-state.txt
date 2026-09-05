@@ -1,0 +1,72 @@
+Browser tab: 3, Title: "Unexamine", URL: "http://127.0.0.1:15174/platform/admin/configurations?category=AUDIT".
+0 AXWebArea Unexamine, URL: 127.0.0.1:15174/platform/admin/configurations?category=AUDIT
+	1 container app
+		2 container
+			3 container Unexamine
+				4 text U unexamine
+			5 text 平台管理 平台管理 配置作用于全部系统
+			6 button arrow-left 返回工作区
+				7 image arrow-left
+				8 text 返回工作区
+			9 button user 平台超级管理员
+				10 image user
+				11 text 平台超级管理员
+		12 container 平台管理导航
+			13 text 平台管理
+			14 text 配置作用于整个平台，不进入单个系统业务。
+			15 button 平 平台信息 平台资料与统一认证
+				16 text 平
+				17 text 平台信息
+				18 text 平台资料与统一认证
+			19 button 组 组织架构 平台成员与组织关系
+				20 text 组
+				21 text 组织架构
+				22 text 平台成员与组织关系
+			23 button 角 角色权限 平台角色与访问范围
+				24 text 角
+				25 text 角色权限
+				26 text 平台角色与访问范围
+			27 button 数 数据字典 平台公共基础数据
+				28 text 数
+				29 text 数据字典
+				30 text 平台公共基础数据
+			31 button 系 系统配置 系统创建与全局策略
+				32 text 系
+				33 text 系统配置
+				34 text 系统创建与全局策略
+			35 button 其 其他业务参数 首页、消息与业务参数
+				36 text 其
+				37 text 其他业务参数
+				38 text 首页、消息与业务参数
+			39 button 流 流程配置 平台流程设计与发布
+				40 text 流
+				41 text 流程配置
+				42 text 平台流程设计与发布
+			43 button 应 应用配置 平台应用与访问授权
+				44 text 应
+				45 text 应用配置
+				46 text 平台应用与访问授权
+			47 button 智 智能助手配置 模型、额度与系统授权
+				48 text 智
+				49 text 智能助手配置
+				50 text 模型、额度与系统授权
+			51 button 审 审计日志 平台关键操作记录
+				52 text 审
+				53 text 审计日志
+				54 text 平台关键操作记录
+			55 button 运 运维配置 平台运行与健康策略
+				56 text 运
+				57 text 运维配置
+				58 text 平台运行与健康策略
+		59 container
+			60 container 审计日志
+				61 text 平台管理
+				62 heading 审计日志, Value: 1, ID: v-1
+					63 text 审计日志
+				64 text 维护平台审计策略与留存参数。
+			65 text 审计日志
+			66 text 选择一项配置进行编辑，或新建配置
+			67 button 新建配置
+			68 text 当前分类还没有配置，使用右上角按钮新建。
+
+The focused UI element is 51 button 审 审计日志 平台关键操作记录

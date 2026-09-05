@@ -10,8 +10,11 @@ function openFlow(target: { taskId?: number; instanceId?: number }) {
     ...(target.instanceId ? { instanceId: String(target.instanceId) } : {}),
   } })
 }
+function openWork(target: { taskId: number }) {
+  void router.push({ path: '/platform/tasks', query: { taskId: String(target.taskId) } })
+}
 </script>
 
 <template>
-  <PlatformShell><TodoWorkspaceView context="platform" @open-flow="openFlow" /></PlatformShell>
+  <PlatformShell><TodoWorkspaceView context="platform" @open-flow="openFlow" @open-work="openWork" /></PlatformShell>
 </template>

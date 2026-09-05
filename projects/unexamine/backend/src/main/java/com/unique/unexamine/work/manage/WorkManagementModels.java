@@ -1,5 +1,6 @@
 package com.unique.unexamine.work.manage;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -17,11 +18,14 @@ public final class WorkManagementModels {
     private WorkManagementModels() {
     }
 
-    public record ProjectMemberInput(@NotNull Long accountId, @NotBlank String projectRole) {
+    public record ProjectMemberInput(
+            Long tenantMemberId,
+            @JsonAlias("accountId") Long compatibilityAccountId,
+            @NotBlank String projectRole) {
     }
 
     public record CreateProjectRequest(
-            @NotBlank @Size(max = 100) String code,
+            @Size(max = 100) String code,
             @NotBlank @Size(max = 200) String name,
             @Size(max = 2000) String description,
             LocalDate startDate,
@@ -50,27 +54,41 @@ public final class WorkManagementModels {
             @NotBlank @Size(max = 500) String title,
             String description,
             @NotBlank String priority,
-            @NotNull Long ownerAccountId,
+            Long ownerTenantMemberId,
+            @JsonAlias("ownerAccountId") Long compatibilityOwnerAccountId,
             LocalDateTime startAt,
             LocalDateTime dueAt,
-            List<Long> collaboratorAccountIds,
-            Map<String, Object> customValues) {
+            List<Long> collaboratorTenantMemberIds,
+            @JsonAlias("collaboratorAccountIds") List<Long> compatibilityCollaboratorAccountIds,
+            String businessType,
+            String businessId,
+            @Size(max = 500) String businessTitle,
+            @JsonAlias("customValues") Map<String, Object> configuredValues) {
     }
 
     public record UpdateTaskRequest(
             @NotNull Integer expectedVersion,
             @NotBlank String status,
-            @NotNull Long ownerAccountId,
+            Long ownerTenantMemberId,
+            @JsonAlias("ownerAccountId") Long compatibilityOwnerAccountId,
             @NotBlank String priority,
             @NotNull @DecimalMin("0") @DecimalMax("100") BigDecimal progressPercent,
             LocalDateTime startAt,
             LocalDateTime dueAt,
-            List<Long> collaboratorAccountIds,
-            Map<String, Object> customValues,
+            List<Long> collaboratorTenantMemberIds,
+            @JsonAlias("collaboratorAccountIds") List<Long> compatibilityCollaboratorAccountIds,
+            String businessType,
+            String businessId,
+            @Size(max = 500) String businessTitle,
+            @JsonAlias("customValues") Map<String, Object> configuredValues,
             @Size(max = 2000) String comment) {
     }
 
-    public record MemberView(Long id, Long accountId, String projectRole, String status) {
+    public record PersonView(Long tenantMemberId, String displayName,
+                             String departmentName, String positionTitle) {
+    }
+
+    public record MemberView(Long id, PersonView person, String projectRole, String status) {
     }
 
     public record TaskGroupView(Long id, String name, Integer sortOrder, String status, Integer version) {
@@ -78,22 +96,30 @@ public final class WorkManagementModels {
 
     public record HistoryView(
             Long id, String actionCode, Map<String, Object> before,
-            Map<String, Object> after, String comment, Long changedByAccountId,
+            Map<String, Object> after, String comment, String changedByName,
             LocalDateTime changedAt) {
+    }
+
+    public record LinkedLogView(
+            Long id, LocalDate workDate, String title, String content,
+            Integer durationMinutes, String status, String authorName,
+            LocalDateTime updatedAt) {
     }
 
     public record TaskView(
             Long id, String contextType, Long platformId, Long systemId, Long tenantId,
             Long projectId, Long taskGroupId, Long parentTaskId, String title, String description,
             String taskType, String priority, String status, BigDecimal progressPercent,
-            Long ownerAccountId, LocalDateTime startAt, LocalDateTime dueAt, LocalDateTime completedAt,
-            Map<String, Object> customValues, Integer version,
-            List<Long> collaboratorAccountIds, List<HistoryView> history) {
+            PersonView owner, LocalDateTime startAt, LocalDateTime dueAt, LocalDateTime completedAt,
+            String businessType, String businessId, String businessTitle,
+            Map<String, Object> configuredValues, Integer version,
+            List<PersonView> collaborators, List<HistoryView> history,
+            List<LinkedLogView> linkedLogs) {
     }
 
     public record ProjectView(
             Long id, String contextType, Long platformId, Long systemId, Long tenantId,
-            String code, String name, String description, Long ownerAccountId,
+            String code, String name, String description, PersonView owner,
             LocalDate startDate, LocalDate dueDate, BigDecimal progressPercent,
             String status, Integer version, List<MemberView> members,
             List<TaskGroupView> taskGroups, List<TaskView> tasks) {

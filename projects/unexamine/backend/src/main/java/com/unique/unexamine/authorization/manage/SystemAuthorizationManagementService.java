@@ -16,6 +16,8 @@ import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleField;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleActionBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleFieldBaseService;
+import com.unique.unexamine.platform.base.entity.PlatformAccount;
+import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SystemDepartment;
 import com.unique.unexamine.system.base.entity.SystemMember;
@@ -40,6 +42,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,14 +52,26 @@ public class SystemAuthorizationManagementService {
     private static final Map<String, List<String>> FIXED_RESOURCES = Map.of(
             "CONFIG:SYSTEM", List.of("MANAGE", "MIGRATE_TENANT_MODE"),
             "CONFIG:MODULE", List.of("MANAGE"),
-            "AUDIT:EVENT", List.of("VIEW", "VIEW_SENSITIVE", "PURGE"));
+            "AUDIT:EVENT", List.of("VIEW", "VIEW_SENSITIVE", "PURGE"),
+            "TODO:SYSTEM", List.of("VIEW", "HANDLE"),
+            "MESSAGE:SYSTEM", List.of("VIEW", "SEND", "MANAGE"),
+            "AI:SYSTEM", List.of("VIEW", "MANAGE", "PUBLISH"));
     private static final Set<String> DATA_SCOPES = Set.of(
-            "ALL", "DEPARTMENT_AND_DESCENDANTS", "DEPARTMENT", "SELF", "CUSTOM");
-    private static final Set<String> CHANNELS = Set.of("PAGE", "APPLICATION", "FILE");
+            "ALL", "DEPARTMENT_AND_DESCENDANTS", "DEPARTMENT", "SELF_AND_SUBORDINATES", "SELF", "CUSTOM");
+    private static final Set<String> CHANNELS = Set.of("PAGE", "APPLICATION", "FILE", "FLOW");
     private static final Set<String> MODULE_ACTIONS = Set.of(
             "LIST", "DETAIL", "CREATE", "UPDATE", "DELETE", "IMPORT", "EXPORT", "CONVERT", "PRINT");
+    private static final Map<String, String> ACTION_NAMES = Map.ofEntries(
+            Map.entry("MANAGE", "管理"), Map.entry("MIGRATE_TENANT_MODE", "切换组织模式"),
+            Map.entry("VIEW", "查看"), Map.entry("VIEW_SENSITIVE", "查看敏感信息"), Map.entry("PURGE", "清理"),
+            Map.entry("LIST", "查看列表"), Map.entry("DETAIL", "查看详情"), Map.entry("CREATE", "新建"),
+            Map.entry("UPDATE", "编辑"), Map.entry("DELETE", "删除"), Map.entry("IMPORT", "导入"),
+            Map.entry("EXPORT", "导出"), Map.entry("CONVERT", "转化"), Map.entry("PRINT", "打印"),
+            Map.entry("ARCHIVE", "归档"), Map.entry("RESTORE", "恢复"), Map.entry("TRANSFER", "转交负责人"),
+            Map.entry("SHARE", "共享"));
 
     private final SystemDepartmentBaseService departmentService;
+    private final PlatformAccountBaseService accountService;
     private final SystemMemberBaseService memberService;
     private final SystemTenantMemberBaseService tenantMemberService;
     private final SystemRoleBaseService roleService;
@@ -69,11 +85,13 @@ public class SystemAuthorizationManagementService {
     private final CoreCacheEpochBaseService cacheEpochService;
     private final PermissionChecker permissionChecker;
     private final PermissionResolver permissionResolver;
+    private final OrganizationRelationRepository relationRepository;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
 
     public SystemAuthorizationManagementService(
             SystemDepartmentBaseService departmentService,
+            PlatformAccountBaseService accountService,
             SystemMemberBaseService memberService,
             SystemTenantMemberBaseService tenantMemberService,
             SystemRoleBaseService roleService,
@@ -87,9 +105,11 @@ public class SystemAuthorizationManagementService {
             CoreCacheEpochBaseService cacheEpochService,
             PermissionChecker permissionChecker,
             PermissionResolver permissionResolver,
+            OrganizationRelationRepository relationRepository,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper) {
         this.departmentService = departmentService;
+        this.accountService = accountService;
         this.memberService = memberService;
         this.tenantMemberService = tenantMemberService;
         this.roleService = roleService;
@@ -103,6 +123,7 @@ public class SystemAuthorizationManagementService {
         this.cacheEpochService = cacheEpochService;
         this.permissionChecker = permissionChecker;
         this.permissionResolver = permissionResolver;
+        this.relationRepository = relationRepository;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
     }
@@ -150,7 +171,9 @@ public class SystemAuthorizationManagementService {
             throw new DomainException("ORGANIZATION_CYCLE", "部门不能移动到自身或下级部门", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         department.setParentId(parent == null ? null : parent.getId());
-        department.setCode(input.code().strip());
+        department.setCode(input.code() == null || input.code().isBlank()
+                ? department.getCode() == null ? stableCode("department") : department.getCode()
+                : input.code().strip());
         department.setName(input.name().strip());
         department.setSortOrder(input.sortOrder() == null ? 0 : input.sortOrder());
         department.setPathCode((parent == null ? "" : parent.getPathCode() + "/") + department.getCode());
@@ -183,6 +206,7 @@ public class SystemAuthorizationManagementService {
         SystemTenantMember tenantMember = requireTenantMember(context, tenantMemberId);
         requireVersion(input.expectedVersion(), tenantMember.getVersion());
         if (input.departmentId() != null) requireDepartment(context, input.departmentId());
+        validateReportingLine(context, tenantMemberId, input.managerTenantMemberId());
         List<Long> distinctRoleIds = input.roleIds().stream().distinct().sorted().toList();
         for (Long roleId : distinctRoleIds) requireRole(context, roleId);
         tenantMember.setDepartmentId(input.departmentId());
@@ -197,6 +221,8 @@ public class SystemAuthorizationManagementService {
             row.setRoleId(roleId);
             memberRoleService.insert(row);
         }
+        relationRepository.upsert(context.systemId(), context.tenantId(), tenantMemberId,
+                input.managerTenantMemberId(), input.positionTitle());
         long permissionVersion = latestVersion(context.systemId(), context.tenantId()) + 1;
         AuthorizationPermissionVersion permissionVersionRow = new AuthorizationPermissionVersion();
         permissionVersionRow.setContextType("SYSTEM");
@@ -211,9 +237,76 @@ public class SystemAuthorizationManagementService {
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "SYSTEM_MEMBER_AUTHORIZATION_ASSIGNED", "SYSTEM_TENANT_MEMBER", tenantMemberId.toString(), "SUCCESS",
                 Map.of("departmentId", input.departmentId() == null ? "" : input.departmentId(),
+                        "manager", input.managerTenantMemberId() == null ? "" : input.managerTenantMemberId(),
                         "roleIds", distinctRoleIds, "permissionVersion", permissionVersion));
         SystemMember member = memberService.selectById(tenantMember.getSystemMemberId());
         return memberView(tenantMemberService.selectById(tenantMemberId), member, distinctRoleIds);
+    }
+
+    @Transactional
+    public SystemAuthorizationModels.MemberView addMember(
+            AuthenticatedContext context, SystemAuthorizationModels.AddMemberRequest input, String traceId) {
+        requireContext(context);
+        String accountText = input.account().strip();
+        PlatformAccount account = accountService.selectList(Wrappers.<PlatformAccount>lambdaQuery()
+                        .and(wrapper -> wrapper.eq(PlatformAccount::getUsername, accountText)
+                                .or().eq(PlatformAccount::getEmail, accountText)
+                                .or().eq(PlatformAccount::getMobile, accountText)))
+                .stream().findFirst().orElseThrow(() -> new DomainException("ACCOUNT_NOT_FOUND",
+                        "没有找到该账号，请确认用户名、邮箱或手机号；新用户需先完成注册", HttpStatus.NOT_FOUND));
+        if (!"ACTIVE".equals(account.getStatus())) {
+            throw new DomainException("ACCOUNT_NOT_ACTIVE", "该账号当前不可加入系统", HttpStatus.CONFLICT);
+        }
+        SystemMember member = memberService.selectList(Wrappers.<SystemMember>lambdaQuery()
+                        .eq(SystemMember::getSystemId, context.systemId())
+                        .eq(SystemMember::getAccountId, account.getId()))
+                .stream().findFirst().orElse(null);
+        if (member == null) {
+            member = new SystemMember();
+            member.setSystemId(context.systemId());
+            member.setAccountId(account.getId());
+            member.setEmployeeNumber(emptyToNull(input.employeeNumber()));
+            member.setDisplayName(account.getDisplayName());
+            member.setStatus("ACTIVE");
+            member.setJoinedAt(LocalDateTime.now());
+            memberService.insert(member);
+        } else {
+            if (input.employeeNumber() != null && !input.employeeNumber().isBlank()) {
+                member.setEmployeeNumber(input.employeeNumber().strip());
+            }
+            member.setDisplayName(account.getDisplayName());
+            member.setStatus("ACTIVE");
+            memberService.updateById(member);
+        }
+        SystemTenantMember membership = tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                        .eq(SystemTenantMember::getTenantId, context.tenantId())
+                        .eq(SystemTenantMember::getSystemMemberId, member.getId()))
+                .stream().findFirst().orElse(null);
+        if (membership != null && "ACTIVE".equals(membership.getStatus())) {
+            throw new DomainException("SYSTEM_MEMBER_EXISTS", "该成员已经在当前工作空间中", HttpStatus.CONFLICT);
+        }
+        if (membership == null) {
+            membership = new SystemTenantMember();
+            membership.setSystemId(context.systemId());
+            membership.setTenantId(context.tenantId());
+            membership.setSystemMemberId(member.getId());
+            membership.setDepartmentId(input.departmentId() == null ? rootDepartment(context).getId() : input.departmentId());
+            membership.setTenantAdmin(false);
+            membership.setStatus("ACTIVE");
+            tenantMemberService.insert(membership);
+        } else {
+            membership.setDepartmentId(input.departmentId() == null ? rootDepartment(context).getId() : input.departmentId());
+            membership.setStatus("ACTIVE");
+            tenantMemberService.updateById(membership);
+        }
+        membership = tenantMemberService.selectById(membership.getId());
+        SystemAuthorizationModels.MemberView saved = assignMember(context, membership.getId(),
+                new SystemAuthorizationModels.MemberAssignmentRequest(membership.getDepartmentId(),
+                        input.managerTenantMemberId(), input.positionTitle(), input.roleIds(), membership.getVersion()), traceId);
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "SYSTEM_MEMBER_ADDED", "SYSTEM_TENANT_MEMBER", membership.getId().toString(), "SUCCESS",
+                Map.of("account", account.getUsername(), "displayName", account.getDisplayName()));
+        return saved;
     }
 
     @Transactional
@@ -235,7 +328,9 @@ public class SystemAuthorizationManagementService {
                 throw new DomainException("BUILT_IN_ROLE_IMMUTABLE", "内置角色不能通过普通授权流程修改", HttpStatus.CONFLICT);
             }
         }
-        role.setCode(input.code().strip());
+        role.setCode(input.code() == null || input.code().isBlank()
+                ? role.getCode() == null ? stableCode("role") : role.getCode()
+                : input.code().strip());
         role.setName(input.name().strip());
         role.setDescription(input.description());
         role.setStatus("DRAFT");
@@ -495,20 +590,35 @@ public class SystemAuthorizationManagementService {
 
     private List<SystemAuthorizationModels.ResourceView> resources(AuthenticatedContext context) {
         List<SystemAuthorizationModels.ResourceView> result = new ArrayList<>();
-        result.add(new SystemAuthorizationModels.ResourceView("CONFIG", "SYSTEM", "系统后台", FIXED_RESOURCES.get("CONFIG:SYSTEM"), List.of()));
-        result.add(new SystemAuthorizationModels.ResourceView("CONFIG", "MODULE", "模板配置", FIXED_RESOURCES.get("CONFIG:MODULE"), List.of()));
-        result.add(new SystemAuthorizationModels.ResourceView("AUDIT", "EVENT", "审计日志", FIXED_RESOURCES.get("AUDIT:EVENT"), List.of()));
+        result.add(new SystemAuthorizationModels.ResourceView("CONFIG", "SYSTEM", "系统管理",
+                FIXED_RESOURCES.get("CONFIG:SYSTEM"), List.of(), actionNames(FIXED_RESOURCES.get("CONFIG:SYSTEM")), Map.of()));
+        result.add(new SystemAuthorizationModels.ResourceView("CONFIG", "MODULE", "业务模块配置",
+                FIXED_RESOURCES.get("CONFIG:MODULE"), List.of(), actionNames(FIXED_RESOURCES.get("CONFIG:MODULE")), Map.of()));
+        result.add(new SystemAuthorizationModels.ResourceView("AUDIT", "EVENT", "审计日志",
+                FIXED_RESOURCES.get("AUDIT:EVENT"), List.of(), actionNames(FIXED_RESOURCES.get("AUDIT:EVENT")), Map.of()));
+        result.add(new SystemAuthorizationModels.ResourceView("TODO", "SYSTEM", "我的待办",
+                FIXED_RESOURCES.get("TODO:SYSTEM"), List.of(), actionNames(FIXED_RESOURCES.get("TODO:SYSTEM")), Map.of()));
+        result.add(new SystemAuthorizationModels.ResourceView("MESSAGE", "SYSTEM", "消息中心",
+                FIXED_RESOURCES.get("MESSAGE:SYSTEM"), List.of(), actionNames(FIXED_RESOURCES.get("MESSAGE:SYSTEM")), Map.of()));
+        result.add(new SystemAuthorizationModels.ResourceView("AI", "SYSTEM", "智能助手",
+                FIXED_RESOURCES.get("AI:SYSTEM"), List.of(), actionNames(FIXED_RESOURCES.get("AI:SYSTEM")), Map.of()));
         for (ConfiguredModule module : moduleService.selectList(Wrappers.<ConfiguredModule>lambdaQuery()
                 .eq(ConfiguredModule::getSystemId, context.systemId()).eq(ConfiguredModule::getOwnerTenantId, context.tenantId()))) {
             Set<String> actions = new LinkedHashSet<>(MODULE_ACTIONS);
             actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
                             .eq(ConfiguredModuleAction::getModuleId, module.getId()).eq(ConfiguredModuleAction::getStatus, "ACTIVE"))
                     .forEach(action -> actions.add(action.getCode()));
-            List<String> fields = fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
+            List<ConfiguredModuleField> configuredFields = fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
                             .eq(ConfiguredModuleField::getModuleId, module.getId()).eq(ConfiguredModuleField::getStatus, "ACTIVE"))
-                    .stream().map(ConfiguredModuleField::getCode).sorted().toList();
+                    .stream().sorted(Comparator.comparing(ConfiguredModuleField::getSortOrder)
+                            .thenComparing(ConfiguredModuleField::getId)).toList();
+            List<String> fields = configuredFields.stream().map(ConfiguredModuleField::getCode).toList();
+            Map<String, String> fieldNames = configuredFields.stream().collect(Collectors.toMap(
+                    ConfiguredModuleField::getCode, ConfiguredModuleField::getName,
+                    (first, ignored) -> first, LinkedHashMap::new));
+            List<String> sortedActions = actions.stream().sorted().toList();
             result.add(new SystemAuthorizationModels.ResourceView("MODULE", module.getCode(), module.getName(),
-                    actions.stream().sorted().toList(), fields));
+                    sortedActions, fields, actionNames(sortedActions), fieldNames));
         }
         return result;
     }
@@ -544,11 +654,64 @@ public class SystemAuthorizationManagementService {
 
     private SystemAuthorizationModels.MemberView memberView(SystemTenantMember tenantMember, SystemMember member,
                                                               List<Long> roleIds) {
+        SystemDepartment department = tenantMember.getDepartmentId() == null
+                ? null : departmentService.selectById(tenantMember.getDepartmentId());
+        OrganizationRelationRepository.MemberRelation relation = relationRepository.byTenant(tenantMember.getTenantId())
+                .get(tenantMember.getId());
+        String managerName = null;
+        if (relation != null && relation.managerTenantMemberId() != null) {
+            SystemTenantMember managerMembership = tenantMemberService.selectById(relation.managerTenantMemberId());
+            SystemMember manager = managerMembership == null ? null
+                    : memberService.selectById(managerMembership.getSystemMemberId());
+            managerName = manager == null ? null : manager.getDisplayName();
+        }
+        List<String> roleNames = roleIds.stream().map(roleService::selectById)
+                .filter(java.util.Objects::nonNull).map(SystemRole::getName).distinct().sorted().toList();
         return new SystemAuthorizationModels.MemberView(tenantMember.getId(), tenantMember.getSystemMemberId(),
                 member == null ? null : member.getAccountId(), member == null ? "未知成员" : member.getDisplayName(),
                 member == null ? null : member.getEmployeeNumber(), tenantMember.getDepartmentId(),
+                department == null ? null : department.getName(),
+                relation == null ? null : relation.managerTenantMemberId(), managerName,
+                relation == null ? null : relation.positionTitle(),
                 Boolean.TRUE.equals(tenantMember.getTenantAdmin()), tenantMember.getStatus(),
-                roleIds.stream().distinct().sorted().toList(), tenantMember.getVersion());
+                roleIds.stream().distinct().sorted().toList(), roleNames, tenantMember.getVersion());
+    }
+
+    private void validateReportingLine(AuthenticatedContext context, Long tenantMemberId, Long managerTenantMemberId) {
+        if (managerTenantMemberId == null) return;
+        requireTenantMember(context, managerTenantMemberId);
+        if (tenantMemberId.equals(managerTenantMemberId)) {
+            throw new DomainException("REPORTING_LINE_CYCLE", "直属上级不能是成员本人", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        Map<Long, OrganizationRelationRepository.MemberRelation> relations = relationRepository.byTenant(context.tenantId());
+        Long current = managerTenantMemberId;
+        Set<Long> visited = new LinkedHashSet<>();
+        while (current != null && visited.add(current)) {
+            if (tenantMemberId.equals(current)) {
+                throw new DomainException("REPORTING_LINE_CYCLE", "上下级关系不能形成循环", HttpStatus.UNPROCESSABLE_ENTITY);
+            }
+            OrganizationRelationRepository.MemberRelation relation = relations.get(current);
+            current = relation == null ? null : relation.managerTenantMemberId();
+        }
+    }
+
+    private SystemDepartment rootDepartment(AuthenticatedContext context) {
+        return departments(context).stream().filter(item -> item.getParentId() == null).findFirst()
+                .orElseThrow(() -> new DomainException("ROOT_DEPARTMENT_MISSING", "系统根部门不存在，请联系平台管理员",
+                        HttpStatus.CONFLICT));
+    }
+
+    private Map<String, String> actionNames(List<String> actions) {
+        return actions.stream().collect(Collectors.toMap(Function.identity(),
+                action -> ACTION_NAMES.getOrDefault(action, "自定义操作"), (first, ignored) -> first, LinkedHashMap::new));
+    }
+
+    private String stableCode(String prefix) {
+        return prefix + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+    }
+
+    private String emptyToNull(String value) {
+        return value == null || value.isBlank() ? null : value.strip();
     }
 
     private List<SystemDepartment> departments(AuthenticatedContext context) {

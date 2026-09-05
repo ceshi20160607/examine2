@@ -30,8 +30,10 @@ public class WorkLogController {
     @GetMapping
     public ApiResult<List<WorkLogModels.LogView>> list(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate workDate,
+            @RequestParam(required = false) Long authorTenantMemberId,
             @RequestParam(required = false) Long authorAccountId) {
-        return ApiResult.ok(service.list(AuthenticationContextHolder.require(), workDate, authorAccountId));
+        return ApiResult.ok(service.list(AuthenticationContextHolder.require(), workDate,
+                authorTenantMemberId, authorAccountId));
     }
 
     @PostMapping

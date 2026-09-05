@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { api, ApiError } from '../api'
 import { authorizedBlob, exportScopeLabel, exportStatusLabel, saveBlob } from '../file'
+import { productDateTime } from '../presentation'
 import { systemTokens } from '../session'
 import type { ExportBatchView, ExportEstimateView, RuntimeListFilter } from '../types'
 
@@ -91,7 +92,7 @@ async function submit() {
     current.value = await api<ExportBatchView>(`/api/runtime/modules/${props.moduleCode}/exports`, {
       method: 'POST', body: JSON.stringify(payload()),
     }, token.value)
-    message.success(`导出批次 #${current.value.id} 已进入后台队列`)
+    message.success('导出任务已进入后台队列')
     await loadHistory()
     schedulePoll()
   } catch (reason) { error.value = readable(reason, '导出任务提交失败') }
@@ -167,7 +168,7 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
     <a-alert v-if="estimate && !estimate.withinQuota" type="error" show-icon message="当前结果超过导出配额" description="请收紧筛选条件或改为勾选少量记录后重新预估。" />
 
     <template v-if="current">
-      <a-divider>批次 #{{ current.id }}</a-divider>
+      <a-divider>本次导出 · {{ productDateTime(current.createdAt) }}</a-divider>
       <div class="export-current">
         <div><a-tag :color="statusColor(current.status)">{{ exportStatusLabel(current.status) }}</a-tag><span>{{ current.exportedRows }} / {{ current.totalRows }} 行</span><small v-if="current.errorMessage">{{ current.errorMessage }}</small></div>
         <a-progress :percent="progress" :status="current.status === 'FAILED' ? 'exception' : current.status === 'COMPLETED' ? 'success' : 'active'" />
@@ -178,8 +179,8 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
     <a-divider v-if="history.length">最近导出</a-divider>
     <div v-if="history.length" class="export-history">
       <button v-for="batch in history" :key="batch.id" type="button" :class="{ active: current?.id === batch.id }" @click="openBatch(batch.id)">
-        <span><strong>#{{ batch.id }}</strong><a-tag :color="statusColor(batch.status)">{{ exportStatusLabel(batch.status) }}</a-tag></span>
-        <small>{{ batch.totalRows }} 行 · {{ batch.selectedFields.length }} 列 · {{ batch.createdAt }}</small>
+        <span><strong>{{ productDateTime(batch.createdAt) }}</strong><a-tag :color="statusColor(batch.status)">{{ exportStatusLabel(batch.status) }}</a-tag></span>
+        <small>{{ batch.totalRows }} 行 · {{ batch.selectedFields.length }} 列</small>
         <a-button v-if="batch.status === 'COMPLETED'" type="link" size="small" @click.stop="download(batch)"><DownloadOutlined />下载</a-button>
       </button>
     </div>

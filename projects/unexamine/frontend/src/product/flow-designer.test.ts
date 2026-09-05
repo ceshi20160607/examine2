@@ -16,7 +16,24 @@ describe('flow designer validation', () => {
   })
 
   it('builds a connected publishable sequence once approval properties exist', () => {
-    const nodes = [node('start', 'START'), node('approval', 'APPROVAL', { type: 'ACCOUNT', accountIds: [1] }), node('end', 'END')]
+    const nodes = [node('start', 'START'), node('approval', 'APPROVAL', { type: 'PERSON', tenantMemberIds: [1] }), node('end', 'END')]
+    expect(localFlowIssues(nodes, sequentialEdges(nodes))).toEqual([])
+  })
+
+  it('requires real recipients and content for notification nodes', () => {
+    const nodes = [node('start', 'START'), node('notify', 'NOTIFICATION'), node('end', 'END')]
+    expect(localFlowIssues(nodes, sequentialEdges(nodes)).map(issue => issue.code))
+      .toEqual(expect.arrayContaining(['NOTIFICATION_RECIPIENT_MISSING', 'SPECIAL_PROPERTY_MISSING']))
+    nodes[1]!.assigneePolicy = { type: 'PERSON', tenantMemberIds: [7] }
+    nodes[1]!.config = { content: '流程 ${instanceTitle} 已更新' }
+    expect(localFlowIssues(nodes, sequentialEdges(nodes))).toEqual([])
+  })
+
+  it('blocks decorative writeback nodes that have no action or field mapping', () => {
+    const nodes = [node('start', 'START'), node('writeback', 'UPDATE_FIELD'), node('end', 'END')]
+    expect(localFlowIssues(nodes, sequentialEdges(nodes)).map(issue => issue.location))
+      .toEqual(expect.arrayContaining(['node:writeback.businessAction', 'node:writeback.fieldUpdates']))
+    nodes[1]!.config = { businessAction: 'UPDATE', fieldUpdates: { approval_note: '${comment}' } }
     expect(localFlowIssues(nodes, sequentialEdges(nodes))).toEqual([])
   })
 })

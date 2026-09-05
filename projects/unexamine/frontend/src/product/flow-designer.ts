@@ -11,8 +11,21 @@ export function localFlowIssues(nodes: FlowNodeInput[], edges: FlowEdgeInput[]):
     if (node.nodeType !== 'END' && !(outgoing.get(node.nodeKey)?.length)) {
       issues.push({ code: 'DEAD_END_NODE', location: `node:${node.nodeKey}`, message: '节点没有后续连线' })
     }
-    if (node.nodeType === 'APPROVAL' && !Object.keys(node.assigneePolicy || {}).length) {
-      issues.push({ code: 'APPROVER_MISSING', location: `node:${node.nodeKey}`, message: '审批节点尚未配置审批人' })
+    if (node.nodeType === 'APPROVAL') {
+      const policy = node.assigneePolicy || {}
+      const type = String(policy.type || '')
+      const missingSelection = type === 'PERSON' && !((policy.tenantMemberIds as number[] | undefined)?.length)
+        || ['DEPARTMENT', 'DEPARTMENT_MANAGER'].includes(type) && !((policy.departmentIds as number[] | undefined)?.length)
+        || type === 'PERSON_FIELD' && !String(policy.fieldCode || '').trim()
+      if (!type || missingSelection) {
+        issues.push({ code: 'APPROVER_MISSING', location: `node:${node.nodeKey}`, message: '审批节点尚未完整配置审批人来源' })
+      }
+    }
+    if (node.nodeType === 'NOTIFICATION') {
+      const ids = node.assigneePolicy?.tenantMemberIds as number[] | undefined
+      if (!ids?.length) {
+        issues.push({ code: 'NOTIFICATION_RECIPIENT_MISSING', location: `node:${node.nodeKey}`, message: '通知节点尚未选择接收人' })
+      }
     }
     if (node.nodeType === 'GATEWAY') {
       const expressions = edges.filter(edge => edge.sourceNodeKey === node.nodeKey).map(edge => edge.conditionExpression || '')
@@ -21,12 +34,15 @@ export function localFlowIssues(nodes: FlowNodeInput[], edges: FlowEdgeInput[]):
       }
     }
     const required: Partial<Record<FlowNodeInput['nodeType'], string[]>> = {
-      SUBFLOW: ['flowId'], WEBHOOK: ['url'], AI: ['model', 'prompt'], UPDATE_FIELD: ['fieldUpdates'],
+      SUBFLOW: ['flowId'], WEBHOOK: ['url'], AI: ['model', 'prompt'], UPDATE_FIELD: ['fieldUpdates', 'businessAction'], NOTIFICATION: ['content'],
     }
     for (const key of required[node.nodeType] || []) {
       if (!node.config[key]) issues.push({ code: 'SPECIAL_PROPERTY_MISSING', location: `node:${node.nodeKey}.${key}`, message: `${node.name}缺少 ${key}` })
     }
-    if (node.nodeType === 'WAIT_TIMER' && !node.config.duration && !node.config.resumeAt) {
+    if (node.nodeType === 'UPDATE_FIELD' && Object.keys((node.config.fieldUpdates as Record<string, unknown> | undefined) || {}).length === 0) {
+      issues.push({ code: 'SPECIAL_PROPERTY_MISSING', location: `node:${node.nodeKey}.fieldUpdates`, message: `${node.name}缺少字段更新映射` })
+    }
+    if (node.nodeType === 'WAIT_TIMER' && !node.config.durationMinutes && !node.config.duration && !node.config.resumeAt) {
       issues.push({ code: 'SPECIAL_PROPERTY_MISSING', location: `node:${node.nodeKey}`, message: `${node.name}缺少等待时长或恢复时间` })
     }
   }

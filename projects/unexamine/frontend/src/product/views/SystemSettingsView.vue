@@ -2,6 +2,7 @@
 import { CopyOutlined, ExclamationCircleOutlined, LinkOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api, ApiError } from '../api'
+import ProductPage from '../components/ProductPage.vue'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
 import { tenantModeLabel, userFacingWorkspaceName } from '../presentation'
@@ -57,6 +58,22 @@ const domainForm = reactive({
 const roleSelections = reactive<Record<number, number[]>>({})
 const decisionComments = reactive<Record<number, string>>({})
 const migrationTarget = computed<'SINGLE' | 'MULTI'>(() => settings.value?.tenantMode === 'MULTI' ? 'SINGLE' : 'MULTI')
+
+type SettingsTask = 'basic' | 'workspaces' | 'domains' | 'access'
+
+const activeTask = ref<SettingsTask>('basic')
+const settingsTasks = computed(() => [
+  { key: 'basic' as const, label: '基础信息', description: '系统名称与运行模式', count: null },
+  { key: 'workspaces' as const, label: '工作空间', description: '空间管理与运行模式发布', count: tenants.value.length },
+  { key: 'domains' as const, label: '访问地址', description: '域名验证与发布', count: domains.value.length },
+  { key: 'access' as const, label: '访问审批', description: '处理待加入系统的成员', count: accessRequests.value.length },
+])
+const activeTaskDefinition = computed(() => settingsTasks.value.find(item => item.key === activeTask.value) ?? {
+  key: 'basic' as const,
+  label: '基础信息',
+  description: '系统名称与运行模式',
+  count: null,
+})
 
 const impactLabels: Record<string, string> = {
   tenantCount: '工作空间总数',
@@ -130,7 +147,7 @@ async function requestMigration() {
     const requested = await api<TenantModeMigration>('/api/admin/system/tenant-mode-migrations', {
       method: 'POST', body: JSON.stringify({ toMode: migrationPreflight.value.toMode }),
     }, systemTokens.value.accessToken)
-    success.value = `迁移申请 #${requested.id} 已提交，须由具备租户模式迁移权限的管理员审批后执行。`
+    success.value = '运行模式变更申请已提交，须由具备权限的管理员审批后执行。'
     migrationPreflight.value = null
     migrationConfirm.value = false
     await load()
@@ -152,7 +169,7 @@ async function decideMigration(migration: TenantModeMigration, approved: boolean
       body: JSON.stringify({ approved, comment: migrationComment.value.trim() || null, expectedVersion: migration.version }),
     }, systemTokens.value.accessToken)
     success.value = result.status === 'COMPLETED'
-      ? `迁移作业 #${result.jobId} 已完成，系统现在按${result.toMode === 'MULTI' ? '多租户' : '单租户'}模式运行。`
+      ? `运行模式变更已完成，系统现在按${result.toMode === 'MULTI' ? '多工作空间' : '单工作空间'}模式运行。`
       : result.status === 'REJECTED' ? '迁移申请已拒绝，系统继续按原模式运行。' : `迁移结果：${result.status}，系统继续按原模式运行。`
     migrationComment.value = ''
     await load()
@@ -216,7 +233,7 @@ async function saveSettings() {
     if (systemContext.value && systemTokens.value) {
       setSystemSession(systemTokens.value, { ...systemContext.value, systemName: result.name })
     }
-    success.value = result.tenantMode === 'MULTI' ? '系统设置已保存，可以创建并切换租户。' : '系统设置已保存。'
+    success.value = result.tenantMode === 'MULTI' ? '系统设置已保存，可以创建并切换工作空间。' : '系统设置已保存。'
     await load()
   } catch (reason) {
     showError(reason, '系统设置保存失败')
@@ -236,7 +253,7 @@ async function createTenant() {
     tenantDrawer.value = false
     tenantForm.code = ''
     tenantForm.name = ''
-    success.value = '租户已创建，创建人已成为该租户管理员。'
+    success.value = '工作空间已创建，创建人已成为该空间管理员。'
     await load()
   } catch (reason) {
     showError(reason, '租户创建失败')
@@ -253,7 +270,7 @@ async function changeTenantStatus(tenant: SystemTenant) {
     await api<SystemTenant>(`/api/admin/system/tenants/${tenant.id}/status`, {
       method: 'PUT', body: JSON.stringify({ status: tenant.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE' }),
     }, systemTokens.value.accessToken)
-    success.value = tenant.status === 'ACTIVE' ? '租户已停用，已有租户会话已失效。' : '租户已启用。'
+    success.value = tenant.status === 'ACTIVE' ? '工作空间已停用，已有会话已失效。' : '工作空间已启用。'
     await load()
   } catch (reason) {
     showError(reason, '租户状态修改失败')
@@ -383,33 +400,45 @@ onMounted(load)
 </script>
 
 <template>
-  <div>
-    <ProductPageHeader kicker="系统管理" title="系统与组织" description="维护系统基础信息、组织空间和访问地址。">
+  <ProductPage density="configuration">
+    <ProductPageHeader density="configuration" kicker="系统管理 / 系统信息" title="系统信息" description="一次只处理一类系统配置；先选择任务，再完成保存、检查或发布。">
       <template #actions><a-button :loading="loading" @click="load"><ReloadOutlined />刷新</a-button></template>
     </ProductPageHeader>
     <a-alert v-if="error" type="error" show-icon :message="error" class="section-alert" />
     <a-alert v-if="success" type="success" show-icon :message="success" class="section-alert" closable @close="success = ''" />
     <a-spin :spinning="loading">
-      <div class="settings-grid">
-        <section class="panel-card settings-card">
+      <nav class="settings-task-nav" aria-label="系统信息配置任务">
+        <button v-for="task in settingsTasks" :key="task.key" type="button" :class="{ active: activeTask === task.key }" :aria-pressed="activeTask === task.key" @click="activeTask = task.key">
+          <span><strong>{{ task.label }}</strong><small>{{ task.description }}</small></span>
+          <a-badge v-if="task.count !== null" :count="task.count" show-zero :overflow-count="99" />
+        </button>
+      </nav>
+      <div class="settings-task-heading">
+        <div><small>当前任务</small><strong>{{ activeTaskDefinition.label }}</strong></div>
+        <p>{{ activeTaskDefinition.description }}</p>
+      </div>
+
+      <section v-if="activeTask === 'basic'" class="panel-card settings-card">
           <div class="panel-title"><strong>系统基础信息</strong><span>基础设置</span></div>
           <a-form layout="vertical" class="settings-form">
             <a-form-item label="系统名称" required><a-input v-model:value="form.name" :maxlength="200" /></a-form-item>
-            <a-form-item label="租户模式" required>
+            <a-form-item label="工作空间模式" required>
               <a-radio-group v-model:value="form.tenantMode" disabled>
-                <a-radio value="SINGLE">单租户</a-radio><a-radio value="MULTI">多租户</a-radio>
+                <a-radio value="SINGLE">单工作空间</a-radio><a-radio value="MULTI">多工作空间</a-radio>
               </a-radio-group>
             </a-form-item>
-            <a-alert type="info" show-icon message="租户模式变更必须通过独立的发布检查、审批和后台迁移任务，不能随基础信息直接修改。" class="mode-warning" />
+            <a-alert type="info" show-icon message="工作空间模式变更必须通过独立检查、审批和后台迁移，不能随基础信息直接修改。" class="mode-warning" />
             <a-alert v-if="form.tenantMode !== settings?.tenantMode" type="warning" show-icon class="mode-warning">
               <template #icon><ExclamationCircleOutlined /></template>
-              <template #message>{{ form.tenantMode === 'MULTI' ? '启用后可创建其他租户，原默认租户继续作为主租户。' : '存在其他租户时不能退回单租户。' }}</template>
+              <template #message>{{ form.tenantMode === 'MULTI' ? '启用后可创建其他工作空间，原空间继续作为主工作空间。' : '存在其他工作空间时不能退回单工作空间。' }}</template>
             </a-alert>
             <a-button type="primary" :loading="saving" @click="saveSettings">保存设置</a-button>
           </a-form>
-        </section>
+      </section>
+
+      <template v-else-if="activeTask === 'workspaces'">
         <section class="panel-card tenant-card">
-          <div class="panel-title"><strong>工作空间</strong><a-button v-if="settings?.tenantMode === 'MULTI'" type="primary" size="small" @click="tenantDrawer = true"><PlusOutlined />新建工作空间</a-button></div>
+          <div class="panel-title"><strong>工作空间</strong><a-button v-if="settings?.tenantMode === 'MULTI'" size="small" @click="tenantDrawer = true"><PlusOutlined />新建工作空间</a-button></div>
           <a-alert v-if="settings?.tenantMode === 'SINGLE'" type="info" show-icon message="当前只有一个工作空间，无需切换。" class="tenant-hint" />
           <div v-for="tenant in tenants" :key="tenant.id" class="tenant-row">
             <div><strong>{{ userFacingWorkspaceName(tenant.name) }}</strong><small>{{ tenant.current ? '当前使用的业务空间' : '可切换的业务空间' }}</small></div>
@@ -421,11 +450,10 @@ onMounted(load)
             </div>
           </div>
         </section>
-      </div>
-      <section class="panel-card migration-card">
+        <section class="panel-card migration-card">
         <div class="panel-title">
-          <div><strong>租户模式发布</strong><small>当前：{{ settings?.tenantMode === 'MULTI' ? '多租户' : '单租户' }}</small></div>
-          <a-button type="primary" :loading="saving" @click="runMigrationPreflight">发布检查：切换为{{ migrationTarget === 'MULTI' ? '多租户' : '单租户' }}</a-button>
+          <div><strong>工作空间模式发布</strong><small>当前：{{ settings?.tenantMode === 'MULTI' ? '多工作空间' : '单工作空间' }}</small></div>
+          <a-button :loading="saving" @click="runMigrationPreflight">发布检查：切换为{{ migrationTarget === 'MULTI' ? '多工作空间' : '单工作空间' }}</a-button>
         </div>
         <a-alert type="warning" show-icon message="这是高风险独立流程：先做影响检查，再提交审批；只有专门权限可以批准并执行，失败或阻断时保持原模式。" class="tenant-hint" />
         <div v-if="migrationPreflight" class="migration-preflight">
@@ -438,31 +466,33 @@ onMounted(load)
           </a-alert>
           <ol class="migration-steps"><li v-for="step in migrationPreflight.migrationSteps" :key="step">{{ step }}</li></ol>
           <div v-if="migrationPreflight.allowed" class="migration-confirm">
-            <a-checkbox v-model:checked="migrationConfirm">我已核对租户、业务数据、共享与缓存影响，确认提交迁移审批</a-checkbox>
-            <a-button type="primary" danger :disabled="!migrationConfirm" :loading="saving" @click="requestMigration">提交迁移审批</a-button>
+            <a-checkbox v-model:checked="migrationConfirm">我已核对工作空间、业务数据、共享与缓存影响，确认提交变更审批</a-checkbox>
+            <a-button danger :disabled="!migrationConfirm" :loading="saving" @click="requestMigration">提交迁移审批</a-button>
           </div>
         </div>
-        <a-empty v-if="!migrations.length" description="尚无租户模式迁移记录" />
+        <a-empty v-if="!migrations.length" description="尚无工作空间模式变更记录" />
         <article v-for="migration in migrations" :key="migration.id" class="migration-row">
-          <div><strong>#{{ migration.id }} · {{ tenantModeLabel(migration.fromMode) }} → {{ tenantModeLabel(migration.toMode) }}</strong><small>申请成员 {{ migration.requestedByMemberId }}<template v-if="migration.jobId"> · 作业 #{{ migration.jobId }}</template></small></div>
+          <div><strong>{{ tenantModeLabel(migration.fromMode) }} → {{ tenantModeLabel(migration.toMode) }}</strong><small>工作空间模式变更申请</small></div>
           <ProductStatusTag :status="migration.status" />
           <div class="migration-snapshot"><span v-for="(value, key) in (parseSnapshot(migration.impactSnapshotJson).impact as Record<string, unknown> ?? {})" :key="key">{{ impactLabels[key] ?? key }} {{ value }}</span></div>
           <div v-if="migration.status === 'PENDING_APPROVAL'" class="migration-decision">
             <a-input v-model:value="migrationComment" :maxlength="1000" placeholder="审批说明" />
             <a-button :loading="saving" @click="decideMigration(migration, false)">拒绝</a-button>
-            <a-popconfirm title="确认立即执行租户模式迁移？" ok-text="确认执行" cancel-text="取消" @confirm="decideMigration(migration, true)"><a-button type="primary" danger :loading="saving">批准并执行</a-button></a-popconfirm>
+            <a-popconfirm title="确认立即执行租户模式迁移？" ok-text="确认执行" cancel-text="取消" @confirm="decideMigration(migration, true)"><a-button danger :loading="saving">批准并执行</a-button></a-popconfirm>
           </div>
           <a-alert v-if="migration.status === 'BLOCKED' || migration.status === 'FAILED'" type="error" show-icon message="执行未完成，原租户模式继续可用。" />
         </article>
-      </section>
-      <section class="panel-card domain-card">
-        <div class="panel-title"><strong>域名 / 访问地址</strong><a-button type="primary" size="small" @click="openDomain()"><PlusOutlined />添加地址</a-button></div>
+        </section>
+      </template>
+
+      <section v-else-if="activeTask === 'domains'" class="panel-card domain-card">
+        <div class="panel-title"><strong>域名 / 访问地址</strong><a-button size="small" @click="openDomain()"><PlusOutlined />添加地址</a-button></div>
         <a-alert type="info" show-icon message="自定义地址先保存挑战，再由服务端真实访问验证地址读取证明；验证失败不会启用。" class="tenant-hint" />
         <a-empty v-if="!domains.length" description="尚未配置访问地址" />
         <article v-for="domain in domains" :key="domain.id" class="domain-row">
           <div class="domain-row__address">
             <strong><LinkOutlined />{{ domain.tlsRequired ? 'https' : 'http' }}://{{ domain.host }}{{ domain.basePath }}</strong>
-            <small>{{ domain.domainType === 'CUSTOM' ? '自定义域名' : '平台子域名' }} · v{{ domain.version }}</small>
+            <small>{{ domain.domainType === 'CUSTOM' ? '自定义域名' : '平台子域名' }}</small>
           </div>
           <ProductStatusTag :status="domain.status" />
           <div class="domain-row__proof">
@@ -473,13 +503,14 @@ onMounted(load)
             <a-button size="small" @click="copyProof(domain.verificationToken)"><CopyOutlined />复制证明</a-button>
             <a-button size="small" @click="openDomain(domain)">修改</a-button>
             <a-button v-if="domain.status !== 'PUBLISHED'" size="small" :loading="saving" @click="verifyDomain(domain)">验证</a-button>
-            <a-button v-if="domain.status === 'VERIFIED'" type="primary" size="small" :loading="saving" @click="publishDomain(domain)">发布</a-button>
+            <a-button v-if="domain.status === 'VERIFIED'" size="small" :loading="saving" @click="publishDomain(domain)">发布</a-button>
           </div>
         </article>
       </section>
-      <section class="panel-card access-review-card">
+
+      <section v-else class="panel-card access-review-card">
         <div class="panel-title"><strong>待处理访问申请</strong><span>{{ accessRequests.length }} 项</span></div>
-        <a-empty v-if="!accessRequests.length" description="当前租户没有待处理申请" />
+        <a-empty v-if="!accessRequests.length" description="当前工作空间没有待处理申请" />
         <article v-for="request in accessRequests" :key="request.id" class="access-review-row">
           <div class="access-review-row__identity">
             <strong>{{ request.accountDisplayName }}</strong>
@@ -491,7 +522,7 @@ onMounted(load)
           <a-input v-model:value="decisionComments[request.id]" :maxlength="1000" placeholder="处理说明；拒绝时必填" />
           <div class="access-review-row__actions">
             <a-button danger :loading="deciding === request.id" @click="decideAccess(request, 'REJECT')">拒绝</a-button>
-            <a-button type="primary" :loading="deciding === request.id" @click="decideAccess(request, 'APPROVE')">批准</a-button>
+            <a-button :loading="deciding === request.id" @click="decideAccess(request, 'APPROVE')">批准</a-button>
           </div>
         </article>
       </section>
@@ -513,5 +544,5 @@ onMounted(load)
       </a-form>
       <template #footer><div class="drawer-footer"><a-button @click="domainDrawer = false">取消</a-button><a-button type="primary" :loading="saving" @click="saveDomain">保存并生成证明</a-button></div></template>
     </a-drawer>
-  </div>
+  </ProductPage>
 </template>

@@ -1030,6 +1030,31 @@ class FlowAndWorkManagementHttpTest {
                 .getBody().get("data"))).singleElement().satisfies(row ->
                 assertThat(map(row)).containsEntry("id", (int) applicationId)
                         .containsEntry("contextType", "SYSTEM"));
+
+        ResponseEntity<Map> exported = exchange("/api/applications/" + applicationId + "/export",
+                HttpMethod.GET, owner.token(), null);
+        assertThat(exported.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> exportedConfiguration = data(exported);
+        assertThat(exportedConfiguration).containsEntry("schemaVersion", 1)
+                .containsEntry("sourceCode", "customer_bridge")
+                .containsEntry("applicationType", "SERVICE");
+        assertThat(String.valueOf(exportedConfiguration)).doesNotContain(firstSecret, "clientSecret", "callLogs");
+        ResponseEntity<Map> imported = exchange("/api/applications/import", HttpMethod.POST, owner.token(), Map.of(
+                "code", "customer_bridge_import", "name", "客户资料桥梁（导入）",
+                "description", exportedConfiguration.get("description"),
+                "applicationType", exportedConfiguration.get("applicationType"),
+                "callbacks", exportedConfiguration.get("callbacks"),
+                "grants", exportedConfiguration.get("grants")));
+        assertThat(imported.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> importedApplication = map(data(imported).get("application"));
+        long importedApplicationId = number(importedApplication.get("id"));
+        assertThat(importedApplication).containsEntry("status", "DRAFT")
+                .containsEntry("draftRevision", 2).containsEntry("contextType", "SYSTEM")
+                .containsEntry("ownerSystemId", (int) owner.systemId());
+        assertThat(map(data(imported).get("issuedCredential"))).containsEntry("shownOnce", true);
+        assertThat(count("app_credential", "application_id=" + importedApplicationId + " and status='ACTIVE'")).isOne();
+        assertThat(count("audit_event", "object_type='APPLICATION' and object_id='" + importedApplicationId
+                + "' and event_code='APPLICATION_CONFIGURATION_IMPORTED'")).isOne();
     }
 
     @Test
@@ -1077,9 +1102,11 @@ class FlowAndWorkManagementHttpTest {
                         "callbacks", List.of(), "grants", List.of(grant))).getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(exchange("/api/applications/" + applicationId + "/publication-check",
                 HttpMethod.GET, owner.token(), null))).containsEntry("valid", true);
-        assertThat(exchange("/api/applications/" + applicationId + "/publish", HttpMethod.POST,
+        ResponseEntity<Map> publishedApplication = exchange("/api/applications/" + applicationId + "/publish", HttpMethod.POST,
                 owner.token(), Map.of("expectedDraftRevision", 2, "changeSummary", "开放受控 Flow"))
-                .getStatusCode()).isEqualTo(HttpStatus.OK);
+                ;
+        assertThat(publishedApplication.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long publishedApplicationVersionId = number(data(publishedApplication).get("versionId"));
 
         Map<String, Object> callBody = new LinkedHashMap<>();
         callBody.put("resourceType", "FLOW");
@@ -1102,6 +1129,7 @@ class FlowAndWorkManagementHttpTest {
                 + requestId + "' and started_by_account_id=" + owner.accountId())).isOne();
         assertThat(count("app_call", "application_id=" + applicationId
                 + " and status='SUCCESS' and target_reference='FLOW_INSTANCE:" + instanceId + "'"
+                + " and application_version_id=" + publishedApplicationVersionId
                 + " and permission_snapshot_json is not null and response_json is not null")).isOne();
 
         ResponseEntity<Map> idempotentReplay = signedApplicationCall(callBody, clientId, clientSecret,
@@ -1171,9 +1199,68 @@ class FlowAndWorkManagementHttpTest {
         assertThat(savedAfterCalls.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(count("app_call", "application_id=" + applicationId)).isEqualTo(6);
         assertThat(count("app_call", "application_id=" + applicationId + " and grant_id is not null")).isZero();
+        assertThat(count("app_call", "application_id=" + applicationId
+                + " and application_version_id=" + publishedApplicationVersionId)).isEqualTo(6);
         assertThat(String.valueOf(exchange("/api/applications/" + applicationId + "/calls",
                 HttpMethod.GET, owner.token(), null).getBody().get("data")))
                 .contains("FLOW_INSTANCE:", "permissionSnapshot");
+    }
+
+    @Test
+    void applicationFailurePolicyDisablesOnlyAfterAuthorizedTargetExecutionFailures() throws Exception {
+        Session owner = register("c64_failure_owner", "c64-failure-system", "c64-failure@example.com");
+        seedPublishedModule(owner, "customer");
+        ResponseEntity<Map> created = exchange("/api/applications", HttpMethod.POST, owner.token(), Map.of(
+                "code", "failure_guarded_bridge", "name", "带失败保护的客户桥梁", "applicationType", "SERVICE"));
+        long applicationId = number(map(data(created).get("application")).get("id"));
+        Map<String, Object> credential = map(data(created).get("issuedCredential"));
+        String clientId = String.valueOf(credential.get("clientId"));
+        String clientSecret = String.valueOf(credential.get("clientSecret"));
+        Map<String, Object> grant = Map.of(
+                "targetType", "SYSTEM", "targetSystemId", owner.systemId(), "targetTenantId", owner.tenantId(),
+                "resourceType", "MODULE", "resourceId", "customer", "actionCode", "DETAIL",
+                "dataScope", Map.of("type", "SELF"),
+                "rateLimit", Map.of("maxRequests", 100, "windowSeconds", 600,
+                        "allowedIps", List.of("127.0.0.1"),
+                        "failureDisableThreshold", 2, "failureWindowSeconds", 300),
+                "fields", List.of(Map.of("fieldCode", "customer_name", "readable", true,
+                        "writable", false, "maskStrategy", "NONE")));
+        assertThat(exchange("/api/applications/" + applicationId + "/draft", HttpMethod.PUT,
+                owner.token(), Map.of("expectedVersion", 0, "name", "带失败保护的客户桥梁",
+                        "description", "目标执行连续失败两次自动停用", "applicationType", "SERVICE",
+                        "callbacks", List.of(), "grants", List.of(grant))).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(exchange("/api/applications/" + applicationId + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", 2, "changeSummary", "启用目标执行失败保护"))
+                .getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        Map<String, Object> callBody = new LinkedHashMap<>();
+        callBody.put("resourceType", "MODULE");
+        callBody.put("resourceId", "customer");
+        callBody.put("actionCode", "DETAIL");
+        callBody.put("targetSystemId", owner.systemId());
+        callBody.put("targetTenantId", owner.tenantId());
+        callBody.put("requestedDataScope", Map.of("type", "SELF"));
+        callBody.put("payload", Map.of("recordId", 900001));
+        ResponseEntity<Map> firstFailure = signedApplicationCall(callBody, clientId, clientSecret,
+                "c64-failure-nonce-1", "c64-failure-call-1", null);
+        assertThat(firstFailure.getStatusCode().isError()).isTrue();
+        assertThat(data(exchange("/api/applications/" + applicationId, HttpMethod.GET,
+                owner.token(), null))).containsEntry("status", "ACTIVE");
+
+        callBody.put("payload", Map.of("recordId", 900002));
+        ResponseEntity<Map> secondFailure = signedApplicationCall(callBody, clientId, clientSecret,
+                "c64-failure-nonce-2", "c64-failure-call-2", null);
+        assertThat(secondFailure.getStatusCode().isError()).isTrue();
+        assertThat(data(exchange("/api/applications/" + applicationId, HttpMethod.GET,
+                owner.token(), null))).containsEntry("status", "DISABLED");
+        assertThat(count("app_credential", "application_id=" + applicationId + " and status='ACTIVE'")).isZero();
+        assertThat(count("audit_event", "object_type='APPLICATION' and object_id='" + applicationId
+                + "' and event_code='APPLICATION_FAILURE_POLICY_DISABLED'")).isOne();
+
+        ResponseEntity<Map> disabled = signedApplicationCall(callBody, clientId, clientSecret,
+                "c64-failure-nonce-3", "c64-failure-call-3", null);
+        assertThat(disabled.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(disabled.getBody().get("code")).isEqualTo("APPLICATION_DISABLED");
     }
 
     @Test
@@ -1184,6 +1271,10 @@ class FlowAndWorkManagementHttpTest {
                 owner, recipientHome.accountId(), "MESSAGE", List.of("VIEW"), "MESSAGE_VIEWER");
         Session recipient = enterTenant(recipientHome, owner.systemId(), owner.tenantId(),
                 platformLogin(recipientHome.username()));
+        long recipientTenantMemberId = jdbc.queryForObject("select stm.id from sys_tenant_member stm "
+                        + "join sys_member sm on sm.id=stm.system_member_id "
+                        + "where stm.system_id=? and stm.tenant_id=? and sm.account_id=?",
+                Long.class, owner.systemId(), owner.tenantId(), recipientHome.accountId());
 
         long flowId = number(data(exchange("/api/flows", HttpMethod.POST, owner.token(), Map.of(
                 "code", "c42_message_target", "name", "消息安全跳转目标", "description", "C42 message target"))).get("id"));
@@ -1214,7 +1305,8 @@ class FlowAndWorkManagementHttpTest {
         int messagesBeforeInvalid = count("msg_message", "system_id=" + owner.systemId());
         ResponseEntity<Map> missingVariable = exchange("/api/messages/events", HttpMethod.POST, owner.token(), Map.of(
                 "templateCode", "FLOW_RESULT_NOTICE", "sourceType", "FLOW_EVENT", "dedupKey", "c42-missing-variable",
-                "recipientAccountIds", List.of(recipientHome.accountId()), "variables", Map.of("title", "缺少处理人"),
+                "recipients", List.of(Map.of("type", "TENANT_MEMBER", "id", recipientTenantMemberId)),
+                "variables", Map.of("title", "缺少处理人"),
                 "targetType", "FLOW_INSTANCE", "targetId", String.valueOf(instanceId), "sensitivity", "IMPORTANT"));
         assertThat(missingVariable.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(missingVariable.getBody().get("code")).isEqualTo("MESSAGE_TEMPLATE_VARIABLE_MISSING");
@@ -1222,7 +1314,7 @@ class FlowAndWorkManagementHttpTest {
 
         Map<String, Object> event = Map.of(
                 "templateCode", "FLOW_RESULT_NOTICE", "sourceType", "FLOW_EVENT", "dedupKey", "c42-flow-result-1",
-                "recipientAccountIds", List.of(recipientHome.accountId()),
+                "recipients", List.of(Map.of("type", "TENANT_MEMBER", "id", recipientTenantMemberId)),
                 "variables", Map.of("title", "合同复核", "actor", "流程引擎"),
                 "targetType", "FLOW_INSTANCE", "targetId", String.valueOf(instanceId), "sensitivity", "IMPORTANT");
         ResponseEntity<Map> sent = exchange("/api/messages/events", HttpMethod.POST, owner.token(), event);
@@ -1231,7 +1323,10 @@ class FlowAndWorkManagementHttpTest {
         assertThat(data(sent)).containsEntry("subject", "流程 合同复核 已更新")
                 .containsEntry("content", "流程引擎 处理了流程 合同复核")
                 .containsEntry("recipientStatus", "UNREAD");
-        List<?> deliveries = (List<?>) data(sent).get("deliveries");
+        ResponseEntity<Map> diagnostic = exchange("/api/messages/diagnostics/" + messageId + "/deliveries",
+                HttpMethod.GET, owner.token(), null);
+        assertThat(diagnostic.getStatusCode()).isEqualTo(HttpStatus.OK);
+        List<?> deliveries = (List<?>) data(diagnostic).get("deliveries");
         assertThat(deliveries).hasSize(2);
         assertThat(deliveries.toString()).contains("IN_APP", "DELIVERED", "EMAIL", "RETRY_PENDING");
         long externalDeliveryId = deliveries.stream().map(this::map)
@@ -1297,6 +1392,8 @@ class FlowAndWorkManagementHttpTest {
 
         grantPlatformPermissions(owner.accountId(), "MESSAGE", List.of("VIEW", "MANAGE"));
         String platformToken = platformLogin(owner.username());
+        long ownerPlatformMemberId = jdbc.queryForObject(
+                "select id from plat_member where account_id=?", Long.class, owner.accountId());
         long platformTemplateId = number(data(exchange("/api/message-templates", HttpMethod.POST, platformToken,
                 Map.of("code", "PLATFORM_ROUTE_NOTICE", "name", "平台路由通知", "channel", "IN_APP",
                         "subjectTemplate", "平台入口已更新", "contentTemplate", "打开平台 Flow 工作区",
@@ -1305,7 +1402,8 @@ class FlowAndWorkManagementHttpTest {
                 platformToken, Map.of()).getStatusCode()).isEqualTo(HttpStatus.OK);
         ResponseEntity<Map> platformMessage = exchange("/api/messages/events", HttpMethod.POST, platformToken,
                 Map.of("templateCode", "PLATFORM_ROUTE_NOTICE", "sourceType", "MANUAL_TEST",
-                        "dedupKey", "c42-platform-route", "recipientAccountIds", List.of(owner.accountId()),
+                        "dedupKey", "c42-platform-route",
+                        "recipients", List.of(Map.of("type", "PLATFORM_MEMBER", "id", ownerPlatformMemberId)),
                         "variables", Map.of(), "targetType", "PLATFORM_ROUTE", "targetRoute", "/platform/flows",
                         "sensitivity", "NORMAL"));
         long platformMessageId = number(data(platformMessage).get("id"));

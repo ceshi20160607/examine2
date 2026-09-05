@@ -16,12 +16,14 @@ import com.unique.unexamine.file.base.service.FileReferenceBaseService;
 import com.unique.unexamine.file.base.service.FileSecurityScanBaseService;
 import com.unique.unexamine.file.base.service.FileStorageBackendBaseService;
 import com.unique.unexamine.file.base.service.FileUploadSessionBaseService;
-import com.unique.unexamine.flow.base.entity.FlowInstance;
-import com.unique.unexamine.flow.base.service.FlowInstanceBaseService;
+import com.unique.unexamine.flow.manage.FlowRuntimeService;
+import com.unique.unexamine.flow.base.entity.FlowHistoryEvent;
+import com.unique.unexamine.flow.base.service.FlowHistoryEventBaseService;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
 import com.unique.unexamine.shared.manage.web.DomainException;
-import com.unique.unexamine.work.base.entity.WorkTask;
-import com.unique.unexamine.work.base.service.WorkTaskBaseService;
+import com.unique.unexamine.work.manage.WorkManagementService;
+import com.unique.unexamine.work.base.entity.WorkTaskHistory;
+import com.unique.unexamine.work.base.service.WorkTaskHistoryBaseService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -57,8 +60,10 @@ public class FileStorageService {
     private final FileObjectBaseService objectService;
     private final FileReferenceBaseService referenceService;
     private final FileSecurityScanBaseService scanService;
-    private final FlowInstanceBaseService flowInstanceService;
-    private final WorkTaskBaseService workTaskService;
+    private final FlowRuntimeService flowRuntimeService;
+    private final WorkManagementService workManagementService;
+    private final FlowHistoryEventBaseService flowHistoryService;
+    private final WorkTaskHistoryBaseService workTaskHistoryService;
     private final RuntimeDataService runtimeDataService;
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
@@ -73,8 +78,10 @@ public class FileStorageService {
             FileObjectBaseService objectService,
             FileReferenceBaseService referenceService,
             FileSecurityScanBaseService scanService,
-            FlowInstanceBaseService flowInstanceService,
-            WorkTaskBaseService workTaskService,
+            FlowRuntimeService flowRuntimeService,
+            WorkManagementService workManagementService,
+            FlowHistoryEventBaseService flowHistoryService,
+            WorkTaskHistoryBaseService workTaskHistoryService,
             RuntimeDataService runtimeDataService,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
@@ -87,8 +94,10 @@ public class FileStorageService {
         this.objectService = objectService;
         this.referenceService = referenceService;
         this.scanService = scanService;
-        this.flowInstanceService = flowInstanceService;
-        this.workTaskService = workTaskService;
+        this.flowRuntimeService = flowRuntimeService;
+        this.workManagementService = workManagementService;
+        this.flowHistoryService = flowHistoryService;
+        this.workTaskHistoryService = workTaskHistoryService;
         this.runtimeDataService = runtimeDataService;
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
@@ -101,7 +110,7 @@ public class FileStorageService {
     @Transactional
     public FileModels.UploadSessionView start(
             AuthenticatedContext context, FileModels.StartUploadRequest input, String traceId) {
-        require(context, "UPLOAD");
+        require(context, "MANAGE");
         if (input.expectedSize() > maximumSize) {
             throw invalid("FILE_SIZE_LIMIT_EXCEEDED", "文件超过当前部署允许的单文件大小");
         }
@@ -136,7 +145,7 @@ public class FileStorageService {
     @Transactional
     public FileModels.FileView upload(
             AuthenticatedContext context, Long sessionId, String rawToken, byte[] content, String traceId) {
-        require(context, "UPLOAD");
+        require(context, "MANAGE");
         FileUploadSession session = sessionService.selectById(sessionId);
         if (session == null || !inContext(session, context)
                 || !Objects.equals(session.getUploaderAccountId(), context.accountId())) {
@@ -220,7 +229,7 @@ public class FileStorageService {
 
     @Transactional(readOnly = true)
     public List<FileModels.FileView> list(AuthenticatedContext context, String traceId) {
-        require(context, "VIEW");
+        require(context, "MANAGE");
         return objectService.selectList(Wrappers.<FileObject>lambdaQuery()
                         .eq(FileObject::getPlatformId, context.platformId())
                         .ne(FileObject::getStatus, "DELETED")
@@ -231,13 +240,14 @@ public class FileStorageService {
 
     @Transactional(readOnly = true)
     public FileModels.FileView detail(AuthenticatedContext context, Long fileId, String traceId) {
+        require(context, "MANAGE");
         return view(requireFile(context, fileId, "VIEW", traceId));
     }
 
     @Transactional
     public FileModels.FileView addReference(
             AuthenticatedContext context, Long fileId, FileModels.AddReferenceRequest input, String traceId) {
-        require(context, "REFERENCE");
+        require(context, "MANAGE");
         FileObject file = requireFile(context, fileId, "REFERENCE", traceId);
         if (!"ACTIVE".equals(file.getStatus()) || !"CLEAN".equals(file.getScanStatus())) {
             throw conflict("FILE_NOT_PUBLISHABLE", "文件未通过安全扫描，不能建立业务引用");
@@ -270,7 +280,7 @@ public class FileStorageService {
     @Transactional
     public FileModels.FileView removeReference(
             AuthenticatedContext context, Long fileId, Long referenceId, String traceId) {
-        require(context, "REFERENCE");
+        require(context, "MANAGE");
         FileObject file = requireFile(context, fileId, "REFERENCE", traceId);
         FileReference reference = referenceService.selectById(referenceId);
         if (reference == null || !Objects.equals(reference.getFileId(), fileId) || !referenceInContext(reference, context)) {
@@ -285,6 +295,7 @@ public class FileStorageService {
 
     @Transactional(readOnly = true)
     public FileModels.BinaryContent preview(AuthenticatedContext context, Long fileId, String traceId) {
+        require(context, "MANAGE");
         FileObject file = requireFile(context, fileId, "VIEW", traceId);
         if (!"AVAILABLE".equals(file.getPreviewStatus())) {
             throw conflict("FILE_PREVIEW_UNAVAILABLE", "该文件不能在线预览，请在有下载权限时下载");
@@ -294,8 +305,232 @@ public class FileStorageService {
 
     @Transactional(readOnly = true)
     public FileModels.BinaryContent download(AuthenticatedContext context, Long fileId, String traceId) {
+        require(context, "MANAGE");
         FileObject file = requireFile(context, fileId, "DOWNLOAD", traceId);
         return binary(file, false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FileModels.BusinessAttachmentView> listBusinessAttachments(
+            AuthenticatedContext context, String ownerType, String ownerId, String fieldCode, String traceId) {
+        require(context, "VIEW");
+        validateReferenceTarget(context, ownerType, ownerId, traceId);
+        validateBusinessAttachmentField(context, ownerType, ownerId, fieldCode, false, traceId);
+        String normalizedField = stripToNull(fieldCode);
+        return referenceService.selectList(Wrappers.<FileReference>lambdaQuery()
+                        .eq(FileReference::getOwnerType, ownerType).eq(FileReference::getOwnerId, ownerId)
+                        .orderByDesc(FileReference::getCreatedAt))
+                .stream().filter(reference -> referenceInContext(reference, context))
+                .filter(reference -> Objects.equals(reference.getFieldCode(), normalizedField))
+                .map(reference -> Map.entry(reference, objectService.selectById(reference.getFileId())))
+                .filter(entry -> entry.getValue() != null && inContext(entry.getValue(), context)
+                        && !"DELETED".equals(entry.getValue().getStatus()))
+                .map(entry -> businessAttachmentView(entry.getValue(), entry.getKey(), context, traceId))
+                .toList();
+    }
+
+    @Transactional
+    public FileModels.BusinessAttachmentView uploadBusinessAttachment(
+            AuthenticatedContext context, byte[] content, String originalName, String contentType,
+            String ownerType, String ownerId, String fieldCode, String purpose, String traceId) {
+        require(context, "UPLOAD");
+        require(context, "REFERENCE");
+        validateReferenceTarget(context, ownerType, ownerId, traceId);
+        validateBusinessAttachmentField(context, ownerType, ownerId, fieldCode, true, traceId);
+        if (content == null || content.length == 0 || content.length > maximumSize) {
+            throw invalid("FILE_SIZE_INVALID", "附件为空或超过当前部署允许的单文件大小");
+        }
+        String safeName = sanitizeName(originalName);
+        String safeContentType = contentType == null || contentType.isBlank()
+                ? "application/octet-stream" : contentType.strip().toLowerCase(Locale.ROOT);
+        String safePurpose = purpose == null ? "ATTACHMENT" : purpose.strip().toUpperCase(Locale.ROOT);
+        if (!Set.of("ATTACHMENT", "IMAGE", "DOCUMENT", "RESULT").contains(safePurpose)) {
+            throw invalid("FILE_REFERENCE_TYPE_INVALID", "附件用途无效");
+        }
+        FileStorageBackend storage = backend(context);
+        String objectKey = contextKey(context) + "/attachments/" + UUID.randomUUID();
+        Path path = objectPath(objectKey);
+        try {
+            Files.createDirectories(path.getParent());
+            Files.write(path, content, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+        } catch (IOException exception) {
+            throw new DomainException("FILE_STORAGE_WRITE_FAILED", "附件写入存储失败", HttpStatus.SERVICE_UNAVAILABLE);
+        }
+        deleteOnRollback(path);
+
+        String contentSha = sha256(content);
+        boolean unsafe = blocked(safeName, safeContentType, content);
+        FileObject object = new FileObject();
+        object.setContextType(contextType(context));
+        object.setPlatformId(context.platformId());
+        object.setSystemId(context.systemId());
+        object.setTenantId(context.tenantId());
+        object.setStorageBackendId(storage.getId());
+        object.setUploadSessionId(null);
+        object.setObjectKey(objectKey);
+        object.setObjectKeyHash(sha256(objectKey.getBytes(StandardCharsets.UTF_8)));
+        object.setOriginalName(safeName);
+        object.setContentType(safeContentType);
+        object.setSizeBytes((long) content.length);
+        object.setSha256(contentSha);
+        object.setScanStatus(unsafe ? "BLOCKED" : "CLEAN");
+        object.setPreviewStatus(unsafe ? "BLOCKED" : previewStatus(safeContentType));
+        object.setStatus(unsafe ? "QUARANTINED" : "ACTIVE");
+        object.setUploadedByAccountId(context.accountId());
+        object.setVersion(0);
+        objectService.insert(object);
+
+        FileSecurityScan scan = new FileSecurityScan();
+        scan.setFileId(object.getId());
+        scan.setScanner("BUILTIN_SIGNATURE");
+        scan.setScanVersion("1");
+        scan.setStatus(unsafe ? "BLOCKED" : "CLEAN");
+        scan.setResultCode(unsafe ? "UNSAFE_CONTENT_SIGNATURE" : "CLEAN");
+        scan.setResultDetailJson(toJson(Map.of("size", content.length, "contentType", safeContentType,
+                "sha256", contentSha)));
+        scan.setStartedAt(LocalDateTime.now());
+        scan.setFinishedAt(LocalDateTime.now());
+        scanService.insert(scan);
+
+        FileReference reference = null;
+        if (!unsafe) {
+            reference = new FileReference();
+            reference.setFileId(object.getId());
+            reference.setContextType(contextType(context));
+            reference.setSystemId(context.systemId());
+            reference.setTenantId(context.tenantId());
+            reference.setOwnerType(ownerType);
+            reference.setOwnerId(ownerId);
+            reference.setFieldCode(stripToNull(fieldCode));
+            reference.setReferenceType(safePurpose);
+            reference.setCreatedByAccountId(context.accountId());
+            referenceService.insert(reference);
+        }
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                unsafe ? "BUSINESS_ATTACHMENT_QUARANTINED" : "BUSINESS_ATTACHMENT_ADDED",
+                "FILE", object.getId().toString(), unsafe ? "UNSAFE_CONTENT_SIGNATURE" : "SUCCESS",
+                Map.of("originalName", safeName, "size", content.length, "sha256", contentSha,
+                        "businessTargetType", ownerType, "purpose", safePurpose));
+        if (!unsafe) recordBusinessAttachmentTimeline(context, traceId, "BUSINESS_RECORD_ATTACHMENT_ADDED",
+                ownerType, ownerId, fieldCode, object, safePurpose);
+        return businessAttachmentView(object, reference, context, traceId);
+    }
+
+    @Transactional(readOnly = true)
+    public FileModels.BinaryContent previewBusinessAttachment(
+            AuthenticatedContext context, Long attachmentId, String traceId) {
+        Attachment attachment = requireBusinessAttachment(context, attachmentId, "VIEW", traceId);
+        if (!"AVAILABLE".equals(attachment.file().getPreviewStatus())) {
+            throw conflict("FILE_PREVIEW_UNAVAILABLE", "该附件不能在线预览，请在有下载权限时下载");
+        }
+        return binary(attachment.file(), true);
+    }
+
+    @Transactional(readOnly = true)
+    public FileModels.BinaryContent downloadBusinessAttachment(
+            AuthenticatedContext context, Long attachmentId, String traceId) {
+        return binary(requireBusinessAttachment(context, attachmentId, "DOWNLOAD", traceId).file(), false);
+    }
+
+    @Transactional
+    public FileModels.DeleteResult removeBusinessAttachment(
+            AuthenticatedContext context, Long attachmentId, String traceId) {
+        require(context, "DELETE");
+        FileReference reference = referenceService.selectList(Wrappers.<FileReference>lambdaQuery()
+                        .eq(FileReference::getId, attachmentId).last("FOR UPDATE"))
+                .stream().findFirst().orElseThrow(() -> notFound("BUSINESS_ATTACHMENT_NOT_FOUND", "业务附件不存在"));
+        if (!referenceInContext(reference, context)) throw notFound("BUSINESS_ATTACHMENT_NOT_FOUND", "业务附件不存在");
+        validateReferenceTarget(context, reference.getOwnerType(), reference.getOwnerId(), traceId);
+        validateBusinessAttachmentField(context, reference.getOwnerType(), reference.getOwnerId(),
+                reference.getFieldCode(), true, traceId);
+        FileObject file = objectService.selectById(reference.getFileId());
+        if (file == null || !inContext(file, context)) throw notFound("BUSINESS_ATTACHMENT_NOT_FOUND", "业务附件不存在");
+        referenceService.deleteById(reference.getId());
+        long remaining = referenceService.selectList(Wrappers.<FileReference>lambdaQuery()
+                .eq(FileReference::getFileId, file.getId())).size();
+        boolean bytesRemoved = false;
+        if (remaining == 0) {
+            file.setStatus("DELETED");
+            file.setDeletedAt(LocalDateTime.now());
+            objectService.updateById(file);
+            deleteAfterCommit(objectPath(file.getObjectKey()));
+            bytesRemoved = true;
+        }
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "BUSINESS_ATTACHMENT_REMOVED", "FILE", file.getId().toString(), "SUCCESS",
+                Map.of("attachmentId", attachmentId, "remainingReferences", remaining));
+        recordBusinessAttachmentTimeline(context, traceId, "BUSINESS_RECORD_ATTACHMENT_REMOVED",
+                reference.getOwnerType(), reference.getOwnerId(), reference.getFieldCode(), file,
+                reference.getReferenceType());
+        return new FileModels.DeleteResult(file.getId(), remaining == 0 ? "DELETED" : "ACTIVE", bytesRemoved);
+    }
+
+    private Attachment requireBusinessAttachment(
+            AuthenticatedContext context, Long attachmentId, String action, String traceId) {
+        require(context, action);
+        FileReference reference = referenceService.selectById(attachmentId);
+        if (reference == null || !referenceInContext(reference, context)) {
+            throw notFound("BUSINESS_ATTACHMENT_NOT_FOUND", "业务附件不存在");
+        }
+        validateReferenceTarget(context, reference.getOwnerType(), reference.getOwnerId(), traceId);
+        validateBusinessAttachmentField(context, reference.getOwnerType(), reference.getOwnerId(),
+                reference.getFieldCode(), false, traceId);
+        FileObject file = objectService.selectById(reference.getFileId());
+        if (file == null || !inContext(file, context) || "DELETED".equals(file.getStatus())) {
+            throw notFound("BUSINESS_ATTACHMENT_NOT_FOUND", "业务附件不存在");
+        }
+        return new Attachment(reference, file);
+    }
+
+    private FileModels.BusinessAttachmentView businessAttachmentView(
+            FileObject file, FileReference reference, AuthenticatedContext context, String traceId) {
+        boolean accessible = reference != null && targetAccessible(context, reference, traceId);
+        return new FileModels.BusinessAttachmentView(reference == null ? null : reference.getId(), file.getId(),
+                file.getOriginalName(), file.getContentType(), file.getSizeBytes(), file.getScanStatus(),
+                file.getPreviewStatus(), file.getStatus(), reference == null ? "QUARANTINE" : reference.getReferenceType(),
+                file.getCreatedAt(), accessible && "AVAILABLE".equals(file.getPreviewStatus()),
+                accessible && "CLEAN".equals(file.getScanStatus()), accessible);
+    }
+
+    private void recordBusinessAttachmentTimeline(
+            AuthenticatedContext context, String traceId, String eventCode,
+            String ownerType, String ownerId, String fieldCode, FileObject file, String purpose) {
+        Map<String, Object> detail = Map.of("fieldCode", Objects.toString(fieldCode, "attachments"),
+                "fileId", file.getId(), "fileName", file.getOriginalName(), "purpose", purpose);
+        if ("BUSINESS_RECORD".equals(ownerType)) {
+            String[] target = ownerId.split(":", 2);
+            LinkedHashMap<String, Object> recordDetail = new LinkedHashMap<>(detail);
+            recordDetail.put("moduleCode", target[0]);
+            auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                    eventCode, "BUSINESS_RECORD", target[1], "SUCCESS", recordDetail);
+            return;
+        }
+        if ("WORK_TASK".equals(ownerType)) {
+            WorkTaskHistory history = new WorkTaskHistory();
+            history.setTaskId(Long.valueOf(ownerId));
+            history.setActionCode(eventCode.endsWith("ADDED") ? "ATTACHMENT_ADDED" : "ATTACHMENT_REMOVED");
+            history.setBeforeJson(null);
+            history.setAfterJson(toJson(detail));
+            history.setCommentText(file.getOriginalName());
+            history.setChangedByAccountId(context.accountId());
+            history.setChangedAt(LocalDateTime.now());
+            workTaskHistoryService.insert(history);
+            return;
+        }
+        if ("FLOW_INSTANCE".equals(ownerType)) {
+            FlowHistoryEvent history = new FlowHistoryEvent();
+            history.setInstanceId(Long.valueOf(ownerId));
+            history.setEventType(eventCode.endsWith("ADDED") ? "ATTACHMENT_ADDED" : "ATTACHMENT_REMOVED");
+            history.setEventName(eventCode.endsWith("ADDED") ? "添加流程附件" : "移除流程附件");
+            history.setActorAccountId(context.accountId());
+            history.setActorTenantMemberId(context.tenantMemberId());
+            history.setDetailJson(toJson(detail));
+            history.setOccurredAt(LocalDateTime.now());
+            flowHistoryService.insert(history);
+        }
+    }
+
+    private record Attachment(FileReference reference, FileObject file) {
     }
 
     @Transactional
@@ -391,7 +626,7 @@ public class FileStorageService {
 
     @Transactional
     public FileModels.DeleteResult delete(AuthenticatedContext context, Long fileId, String traceId) {
-        require(context, "DELETE");
+        require(context, "MANAGE");
         FileObject file = requireFile(context, fileId, "DELETE", traceId);
         long references = referenceService.selectList(Wrappers.<FileReference>lambdaQuery()
                 .eq(FileReference::getFileId, fileId)).size();
@@ -459,13 +694,13 @@ public class FileStorageService {
     }
 
     private boolean canAccess(AuthenticatedContext context, FileObject file, String action, String traceId) {
-        if (Objects.equals(file.getUploadedByAccountId(), context.accountId())
-                || permissionChecker.allows(context, "FILE", "OBJECT", "MANAGE")
+        if (permissionChecker.allows(context, "FILE", "OBJECT", "MANAGE")
                 || permissionChecker.allows(context, "FILE", "*", "MANAGE")) return true;
         if (Set.of("DELETE", "REFERENCE").contains(action)) return false;
-        return referenceService.selectList(Wrappers.<FileReference>lambdaQuery()
-                        .eq(FileReference::getFileId, file.getId()))
-                .stream().filter(reference -> referenceInContext(reference, context))
+        List<FileReference> references = referenceService.selectList(Wrappers.<FileReference>lambdaQuery()
+                .eq(FileReference::getFileId, file.getId()));
+        if (references.isEmpty()) return Objects.equals(file.getUploadedByAccountId(), context.accountId());
+        return references.stream().filter(reference -> referenceInContext(reference, context))
                 .anyMatch(reference -> targetAccessible(context, reference, traceId));
     }
 
@@ -489,10 +724,7 @@ public class FileStorageService {
             }
             case "FLOW_INSTANCE" -> {
                 Long id = numeric(ownerId);
-                FlowInstance flow = flowInstanceService.selectById(id);
-                if (flow == null || !sameContext(flow.getContextType(), flow.getPlatformId(), flow.getSystemId(),
-                        flow.getTenantId(), context)) throw notFound("FILE_REFERENCE_TARGET_NOT_FOUND", "Flow 实例不存在");
-                requireTarget(context, "FLOW", context.systemId() == null ? "PLATFORM" : "SYSTEM", "VIEW");
+                flowRuntimeService.instance(context, id);
             }
             case "BUSINESS_RECORD" -> {
                 if (context.systemId() == null || !ownerId.matches("[a-z][a-z0-9_-]{0,99}:[1-9][0-9]*")) {
@@ -503,13 +735,21 @@ public class FileStorageService {
             }
             case "WORK_TASK" -> {
                 Long id = numeric(ownerId);
-                WorkTask task = workTaskService.selectById(id);
-                if (task == null || !sameContext(task.getContextType(), task.getPlatformId(), task.getSystemId(),
-                        task.getTenantId(), context)) throw notFound("FILE_REFERENCE_TARGET_NOT_FOUND", "工作任务不存在");
-                requireTarget(context, "WORK", "TASK", "VIEW");
+                workManagementService.task(context, id);
             }
             default -> throw invalid("FILE_REFERENCE_TARGET_INVALID", "文件引用目标类型无效");
         }
+    }
+
+    private void validateBusinessAttachmentField(
+            AuthenticatedContext context, String ownerType, String ownerId,
+            String fieldCode, boolean write, String traceId) {
+        if (!"BUSINESS_RECORD".equals(ownerType)) return;
+        if (fieldCode == null || fieldCode.isBlank()) {
+            throw invalid("ATTACHMENT_FIELD_REQUIRED", "业务记录附件必须绑定已发布的文件字段");
+        }
+        String[] parts = ownerId.split(":", 2);
+        runtimeDataService.requireAttachmentField(context, parts[0], Long.valueOf(parts[1]), fieldCode, write, traceId);
     }
 
     private void requireTarget(AuthenticatedContext context, String type, String code, String action) {

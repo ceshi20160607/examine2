@@ -4,9 +4,17 @@ export const dashboardSourceLabels: Record<DashboardSourceType, string> = {
   PLATFORM_SYSTEMS: '已授权系统',
   MODULE_RECORDS: '模块业务记录',
   MODULE_REPORT: '结构化模块报表',
+  EXTERNAL_API: '外部 API',
+  DATABASE_CONNECTION: '数据库连接',
   TODO_ITEMS: '待办事项',
   MESSAGE_ITEMS: '未读消息',
   WORK_PROJECTS: '工作项目',
+}
+
+const CORE_WORKSPACE_SUMMARIES = new Set(['待处理事项', '未读消息', '可进入系统', '可用业务模块'])
+
+export function isCoreWorkspaceSummary(title: string) {
+  return CORE_WORKSPACE_SUMMARIES.has(title.trim())
 }
 
 export function moveDashboardComponent(

@@ -24,6 +24,9 @@ public class AppCall {
     @TableField("application_id")
     private Long applicationId;
 
+    @TableField("application_version_id")
+    private Long applicationVersionId;
+
     @TableField("credential_version")
     private Integer credentialVersion;
 
@@ -110,6 +113,14 @@ public class AppCall {
 
     public void setApplicationId(Long applicationId) {
         this.applicationId = applicationId;
+    }
+
+    public Long getApplicationVersionId() {
+        return applicationVersionId;
+    }
+
+    public void setApplicationVersionId(Long applicationVersionId) {
+        this.applicationVersionId = applicationVersionId;
     }
 
     public Integer getCredentialVersion() {

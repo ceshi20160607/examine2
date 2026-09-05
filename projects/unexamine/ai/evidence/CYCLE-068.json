@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-068",
+  "executedAt": "2026-09-02T01:14:30+08:00",
+  "taskIds": [
+    "TASK-0240",
+    "TASK-0241"
+  ],
+  "checks": [
+    {
+      "name": "销售、主管、无助手权限成员的真实上下文查询与确认写入闭环",
+      "command": "pwsh -NoProfile -File projects/unexamine/tools/c68-live-acceptance.ps1 against Spring Boot 18080, MySQL 33077 and Redis 36379",
+      "result": "passed"
+    },
+    {
+      "name": "AI 权限查询、字段拒绝、工具失败和模型降级隔离回归",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -Dtest=AiContextQueryHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "候选预览、取消零写入、校验修复、确认持久化和审计回归",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -Dtest=AiConfirmedWriteHttpTest test",
+      "result": "passed"
+    },
+    {
+      "name": "前端上下文助手、权限入口和业务详情刷新全量回归与生产构建",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (28 files / 80 tests); npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "本地浏览器登录、系统入口、客户详情、右侧助手、模型降级和字段预览视觉验收",
+      "command": "Browser QA at http://127.0.0.1:15174/systems/44?workspace=runtime&module=customer_c68_227384",
+      "result": "passed"
+    },
+    {
+      "name": "Java 21 打包、运行健康和工作区边界校验",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -DskipTests package; docker restart unexamine-backend; GET /actuator/health; python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-AI-CONTEXT-QUERY",
+      "entryUrl": "http://127.0.0.1:15174/systems/48?workspace=runtime&module=customer_c68_631670&recordId=45",
+      "actor": "仅有本人客户范围的销售、拥有本人及下属范围的主管、无 AI 权限的只读成员",
+      "result": "passed",
+      "pageAssertions": [
+        "登录后从我的系统进入北辰客户协作中心，再从系统首页进入客户模块和客户详情；详情右上角提供单一的询问当前记录入口。",
+        "助手自动带入当前客户、系统、租户、生命周期和页面可见字段，不展示模块代码、字段代码、筛选表达式或内部查询结构。",
+        "销售回答只引用 customer_name，电话字段请求被 REFUSED 且零来源，读取主管客户返回无来源降级；主管在同一入口可读取下属客户的已授权电话字段。",
+        "无 AI 权限成员助手接口返回 403，但本人客户详情继续可用；模型端点失败显示明确降级说明，客户详情和列表不受影响。"
+      ],
+      "persistentReads": [
+        "系统 #48、租户 #50、Agent #3 的销售查询 SUCCEEDED，来源客户 #45 只包含 customer_name；受限字段 REFUSED，跨本人记录 DEGRADED。",
+        "主管查询同一客户 #45 返回 customer_name 与 contact_phone；销售授权快照仍保持 SELF，主管保持 SELF_AND_SUBORDINATES。",
+        "无助手成员读取 /api/ai 为 403，同时可正常读回本人客户详情。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/components/AiContextAssistantPanel.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiContextQueryService.java",
+        "projects/unexamine/tools/c68-live-acceptance.ps1"
+      ]
+    },
+    {
+      "useCaseId": "UC-AI-CONFIRM-WRITE",
+      "entryUrl": "http://127.0.0.1:15174/systems/48?workspace=runtime&module=customer_c68_631670&recordId=45",
+      "actor": "在北辰科技客户详情中整理电话跟进的销售成员",
+      "result": "passed",
+      "pageAssertions": [
+        "整理并创建记录使用业务名称选择跟进记录，生成字段级候选；当前客户自动关联并显示北辰科技，不暴露内部记录 ID。",
+        "候选明确提示确认前不会写入，只有补齐必填字段、勾选逐字段核对确认后才能执行真实写入；取消候选后业务记录数不变。",
+        "确认后跟进记录 #48 可从普通业务模块读回，原客户时间线新增助手创建关联记录并显示跟进标题，详情与列表同步刷新。",
+        "模型故障仍保留当前客户关联和原始输入但不写业务；确认按钮在缺失必填字段时保持禁用。"
+      ],
+      "persistentReads": [
+        "确认前跟进记录总数不变，取消候选 businessWritten=false；确认后总数精确增加 1，字段值从 RuntimeDataService 普通详情接口读回。",
+        "客户 #45 时间线持久化事件 #2382，eventCode=AI_CONFIRMED_RELATED_RECORD_CREATED，目标为跟进记录 #48。",
+        "同一次写入分别持久化 AI_WRITE_CONFIRMED 和来源客户关联时间线审计；模型降级前后跟进记录总数均为 1。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiConfirmedWriteService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/frontend/src/product/components/AiContextAssistantPanel.vue",
+        "projects/unexamine/tools/c68-live-acceptance.ps1"
+      ]
+    }
+  ]
+}

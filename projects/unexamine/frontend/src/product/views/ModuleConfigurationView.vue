@@ -31,6 +31,7 @@ import type {
   RuleTestResult,
   PublishedModuleVersion,
   RuntimeModuleConfiguration,
+  AiSystemOverview,
 } from '../types'
 
 const emit = defineEmits<{ published: [] }>()
@@ -64,7 +65,7 @@ const fieldTypes = [
   { type: 'FILE', name: '文件', hint: '单个文件引用' },
   { type: 'FILE_GROUP', name: '文件组', hint: '文件夹或多文件' },
   { type: 'AUTO_NUMBER', name: '自动编号', hint: '并发安全编号规则' },
-  { type: 'REFERENCE', name: '关联数据', hint: '保存目标记录 ID' },
+  { type: 'REFERENCE', name: '关联数据', hint: '关联另一模块的业务记录' },
   { type: 'LOOKUP', name: '引用字段', hint: '从关联记录读取字段' },
   { type: 'SUBTABLE', name: '子表', hint: '一主多明细事务' },
   { type: 'ADDRESS', name: '地址', hint: '结构化地址' },
@@ -76,7 +77,7 @@ const fieldTypes = [
   { type: 'QRCODE', name: '二维码', hint: '二维码内容与展示' },
   { type: 'SIGNATURE', name: '签名', hint: '签名文件引用' },
   { type: 'RICH_TEXT', name: '富文本', hint: '受控富文本内容' },
-  { type: 'JSON', name: 'JSON', hint: '结构化 JSON 数据' },
+  { type: 'JSON', name: '结构化数据', hint: '保存成组的结构化内容' },
   { type: 'SECRET', name: '密码/密钥', hint: '敏感值与脱敏' },
   { type: 'SYSTEM_CREATED_BY', name: '创建人', hint: '只读系统字段' },
   { type: 'SYSTEM_CREATED_AT', name: '创建时间', hint: '只读系统字段' },
@@ -93,6 +94,7 @@ const loading = ref(false)
 const saving = ref(false)
 const overview = ref<ModuleOverview>({ groups: [], modules: [] })
 const dictionaries = ref<DictionaryDraft[]>([])
+const availableAiModels = ref<AiSystemOverview['availableModels']>([])
 const selectedModuleId = ref<number>()
 const draft = ref<ModuleDraft>()
 const ruleIndexDraft = ref<RuleIndexDraft>({ rules: [], indexes: [] })
@@ -102,7 +104,10 @@ const groupModal = ref(false)
 const moduleModal = ref(false)
 const fieldDrawer = ref(false)
 const activeDesignerTab = ref('FIELDS')
-const activeConfigTask = ref<'INFO' | 'FIELDS' | 'ACTIONS' | 'FLOW' | 'APPLICATIONS'>('INFO')
+type ModuleConfigTask = 'INFO' | 'FIELDS' | 'ACTIONS' | 'FLOW' | 'APPLICATION'
+
+const activeConfigTask = ref<ModuleConfigTask>('INFO')
+const infoSection = ref<'OVERVIEW' | 'PUBLICATION'>('OVERVIEW')
 const actionDrawer = ref(false)
 const menuDrawer = ref(false)
 const pageModal = ref(false)
@@ -119,8 +124,13 @@ const editingIndex = ref<QueryIndexDraft>()
 const rulePreview = ref<RuleTestResult>()
 const draggingPageField = ref('')
 const previewDevice = ref<'DESKTOP' | 'MOBILE'>('DESKTOP')
-const groupForm = reactive({ code: '', name: '', sortOrder: 10 })
-const moduleForm = reactive({ groupId: undefined as number | undefined, code: '', name: '' })
+const groupForm = reactive({ name: '', sortOrder: 10 })
+const moduleForm = reactive({
+  groupMode: 'existing' as 'existing' | 'new',
+  groupId: undefined as number | undefined,
+  groupName: '',
+  name: '',
+})
 const fieldForm = reactive({
   code: '', name: '', fieldType: 'TEXT', required: false, uniqueValue: false, searchable: false,
   dictionaryId: undefined as number | undefined, referenceModuleId: undefined as number | undefined,
@@ -130,7 +140,10 @@ const fieldForm = reactive({
   version: 0,
 })
 const actionForm = reactive({ location: 'ROW', confirmation: false, confirmationText: '', version: 0 })
-const conversionTargets = ref<Array<{ moduleCode: string; mappingsText: string }>>([])
+type ConversionMapping = { targetCode: string; sourceCode: string }
+type ConversionTarget = { moduleCode: string; mappings: ConversionMapping[] }
+const conversionTargets = ref<ConversionTarget[]>([])
+const conversionTargetDrafts = reactive<Record<string, ModuleDraft>>({})
 const pageForm = reactive({ pageType: 'CUSTOM', name: '自定义页面' })
 const menuForm = reactive({
   parentId: undefined as number | undefined, name: '', icon: 'appstore', routePath: '',
@@ -148,6 +161,23 @@ const indexFieldIds = ref<number[]>([])
 const indexForm = reactive({
   code: '', name: '', uniqueIndex: false, status: 'ACTIVE' as 'ACTIVE' | 'DISABLED', version: 0,
 })
+
+const ruleTypeOptions = [
+  { value: 'VALIDATION', label: '数据校验' }, { value: 'REQUIRED', label: '动态必填' },
+  { value: 'VISIBILITY', label: '动态可见' }, { value: 'EDITABLE', label: '动态可编辑' },
+  { value: 'APPROVAL', label: '进入审批' }, { value: 'DELETE_ROLE', label: '指定角色删除' },
+]
+const triggerEventOptions = [
+  { value: 'CREATE', label: '新建记录时' }, { value: 'UPDATE', label: '更新记录时' },
+  { value: 'DELETE', label: '删除记录时' }, { value: 'ALWAYS', label: '每次操作时' },
+]
+const conditionOperatorOptions = [
+  { value: 'EQ', label: '等于' }, { value: 'NE', label: '不等于' },
+  { value: 'GT', label: '大于' }, { value: 'GTE', label: '大于等于' },
+  { value: 'LT', label: '小于' }, { value: 'LTE', label: '小于等于' },
+  { value: 'IN', label: '属于' }, { value: 'CONTAINS', label: '包含' },
+  { value: 'EMPTY', label: '为空' }, { value: 'NOT_EMPTY', label: '不为空' },
+]
 
 const token = computed(() => systemTokens.value?.accessToken || '')
 const selectedModule = computed(() => overview.value.modules.find((item) => item.id === selectedModuleId.value))
@@ -192,33 +222,33 @@ const pagePreviewFields = computed(() => {
 const pageLayoutIssues = computed(() => {
   if (!selectedPage.value) return [] as string[]
   const issues: string[] = []
-  try { JSON.parse(selectedPage.value.layoutJson) } catch { issues.push('页面 Schema 不是有效 JSON') }
+  try { JSON.parse(selectedPage.value.layoutJson) } catch { issues.push('页面布局配置无法读取，请重新保存当前页面') }
   const activeCodes = new Set((draft.value?.fields || []).filter(field => field.status === 'ACTIVE').map(field => field.code))
-  rawSelectedPageFieldCodes.value.filter(code => !activeCodes.has(code)).forEach(code => issues.push(`字段引用 ${code} 不存在或已停用`))
-  if (standardPageType.value && !pagePreviewFields.value.length) issues.push(`${selectedPage.value.pageType} 页面至少需要一个有效字段`)
+  rawSelectedPageFieldCodes.value.filter(code => !activeCodes.has(code)).forEach(() => issues.push('页面包含已移除或停用的字段'))
+  if (standardPageType.value && !pagePreviewFields.value.length) issues.push(`${selectedPage.value.name}至少需要一个有效字段`)
   if (!standardPageType.value && !selectedPageLayout.value.components?.some((component: Record<string, unknown>) => component.type && component.type !== 'SECTION')) {
-    issues.push(`${selectedPage.value.pageType} 是特殊页面，必须先配置专属组件，不能使用通用表单占位`)
+    issues.push(`${selectedPage.value.name}必须先配置专属内容，不能使用通用表单占位`)
   }
   return issues
 })
 const dictionaryOptions = computed(() => dictionaries.value.map(entry => ({
   value: entry.dictionary.id,
-  label: `${entry.dictionary.name}（${entry.dictionary.code}${entry.currentVersionId ? ` · 已发布 v${entry.currentVersionNumber}` : ' · 未发布'}）`,
+  label: `${entry.dictionary.name}${entry.currentVersionId ? ` · 已发布版本 ${entry.currentVersionNumber}` : ' · 未发布'}`,
 })))
 const referenceModuleOptions = computed(() => overview.value.modules
   .filter(module => module.id !== selectedModuleId.value)
-  .map(module => ({ value: module.id, label: `${module.name}（${module.code}）` })))
+  .map(module => ({ value: module.id, label: module.name })))
 const conversionModuleOptions = computed(() => overview.value.modules
   .filter(module => module.id !== selectedModuleId.value)
-  .map(module => ({ value: module.code, label: `${module.name}（${module.code}）` })))
+  .map(module => ({ value: module.code, label: module.name })))
 const activeFieldOptions = computed(() => (draft.value?.fields || []).filter(field => field.status === 'ACTIVE')
-  .map(field => ({ value: field.code, label: `${field.name}（${field.code}）` })))
+  .map(field => ({ value: field.code, label: field.name })))
 const indexFieldOptions = computed(() => (draft.value?.fields || []).filter(field => field.status === 'ACTIVE'
   && !['RICH_TEXT', 'JSON', 'SECRET', 'ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP', 'SUBTABLE', 'SIGNATURE'].includes(field.fieldType))
-  .map(field => ({ value: field.id, label: `${field.name}（${field.code}）` })))
+  .map(field => ({ value: field.id, label: field.name })))
 const ruleNeedsTarget = computed(() => ['REQUIRE_FIELD', 'SET_VISIBILITY', 'SET_EDITABLE', 'REQUIRE_APPROVAL'].includes(ruleForm.effectType))
 const fieldConfigurationIssue = computed(() => {
-  if (!fieldForm.name.trim() || !fieldForm.code.trim()) return '字段名称和稳定编码不能为空'
+  if (!fieldForm.name.trim()) return '请填写字段名称'
   if (['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(fieldForm.fieldType)
       && !fieldForm.dictionaryId && !fieldForm.optionsText.trim()) return '选项字段必须绑定字典或配置手动选项'
   if (fieldForm.fieldType === 'CASCADE') {
@@ -227,7 +257,7 @@ const fieldConfigurationIssue = computed(() => {
   }
   if (fieldForm.fieldType === 'MONEY' && (!fieldForm.currency.trim() || fieldForm.precision < 0 || fieldForm.precision > 6)) return '金额字段需要币种，精度范围为 0 到 6'
   if (['REFERENCE', 'LOOKUP', 'SUBTABLE', 'SUMMARY', 'AGGREGATE'].includes(fieldForm.fieldType) && !fieldForm.referenceModuleId) return '该字段类型必须选择目标模块'
-  if (fieldForm.fieldType === 'AUTO_NUMBER' && !fieldForm.sequenceCode.trim()) return '自动编号字段必须配置编号规则编码'
+  if (fieldForm.fieldType === 'AUTO_NUMBER' && !fieldForm.sequenceCode.trim()) return '自动编号字段必须配置编号规则'
   if (['FORMULA', 'CALCULATION'].includes(fieldForm.fieldType) && !fieldForm.expression.trim()) return '公式或计算字段必须配置表达式'
   if (fieldForm.fieldType === 'AI_FILL' && (!fieldForm.modelCode.trim() || !fieldForm.humanConfirmation)) return 'AI 填充必须选择授权模型并启用人工确认'
   if (fieldForm.fieldType.startsWith('SYSTEM_') && !fieldForm.readOnly) return '系统字段必须只读'
@@ -245,6 +275,11 @@ async function loadOverview(preferredModuleId?: number) {
     } catch (cause) {
       if (!(cause instanceof ApiError) || cause.code !== 'PERMISSION_DENIED') throw cause
       dictionaries.value = []
+    }
+    try {
+      availableAiModels.value = (await api<AiSystemOverview>('/api/admin/system/ai', {}, token.value)).availableModels
+    } catch {
+      availableAiModels.value = []
     }
     const target = preferredModuleId ?? selectedModuleId.value ?? overview.value.modules[0]?.id
     if (target) await selectModule(target)
@@ -280,7 +315,7 @@ async function createGroup() {
       method: 'POST', body: JSON.stringify(groupForm),
     }, token.value)
     groupModal.value = false
-    Object.assign(groupForm, { code: '', name: '', sortOrder: 10 })
+    Object.assign(groupForm, { name: '', sortOrder: 10 })
     message.success('模块组已创建')
     await loadOverview()
   } catch (reason) {
@@ -290,16 +325,34 @@ async function createGroup() {
   }
 }
 
+function beginModule() {
+  Object.assign(moduleForm, {
+    groupMode: overview.value.groups.length ? 'existing' : 'new',
+    groupId: overview.value.groups[0]?.id,
+    groupName: '',
+    name: '',
+  })
+  moduleModal.value = true
+}
+
 async function createModule() {
-  if (!moduleForm.groupId) return message.warning('请选择模块组')
+  if (!moduleForm.name.trim()) return message.warning('请填写模块名称')
+  if (moduleForm.groupMode === 'existing' && !moduleForm.groupId) return message.warning('请选择业务分组')
+  if (moduleForm.groupMode === 'new' && !moduleForm.groupName.trim()) return message.warning('请填写新业务分组名称')
   saving.value = true
   try {
     const result = await api<ModuleDraft>('/api/admin/module-config/modules', {
-      method: 'POST', body: JSON.stringify(moduleForm),
+      method: 'POST', body: JSON.stringify({
+        name: moduleForm.name.trim(),
+        groupId: moduleForm.groupMode === 'existing' ? moduleForm.groupId : undefined,
+        groupName: moduleForm.groupMode === 'new' ? moduleForm.groupName.trim() : undefined,
+      }),
     }, token.value)
     moduleModal.value = false
-    Object.assign(moduleForm, { groupId: undefined, code: '', name: '' })
-    message.success('模块草稿已创建')
+    Object.assign(moduleForm, { groupMode: overview.value.groups.length ? 'existing' : 'new', groupId: overview.value.groups[0]?.id, groupName: '', name: '' })
+    activeConfigTask.value = 'FIELDS'
+    activeDesignerTab.value = 'FIELDS'
+    message.success('模块骨架已创建，列表、表单、详情和常用动作已准备好')
     await loadOverview(result.module.id)
   } catch (reason) {
     message.error(readable(reason))
@@ -313,10 +366,9 @@ function beginField(type: string) {
     message.warning('请先创建并选择一个模块')
     return
   }
-  const meta = fieldTypes.find((item) => item.type === type)
   editingField.value = undefined
   Object.assign(fieldForm, {
-    code: '', name: meta?.name || '', fieldType: type, required: false, uniqueValue: false, searchable: false,
+    code: '', name: '', fieldType: type, required: false, uniqueValue: false, searchable: false,
     dictionaryId: undefined, referenceModuleId: undefined,
     sortOrder: (draft.value?.fields.length || 0) * 10 + 10,
     status: 'ACTIVE', optionsText: ['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(type) ? 'active|启用\ninactive|停用' : '',
@@ -388,7 +440,7 @@ async function saveField() {
     } else {
       await api(`/api/admin/module-config/modules/${selectedModuleId.value}/fields`, {
         method: 'POST', body: JSON.stringify({
-          code: fieldForm.code, name: fieldForm.name, fieldType: fieldForm.fieldType,
+          name: fieldForm.name, fieldType: fieldForm.fieldType,
           required: fieldForm.required, uniqueValue: fieldForm.uniqueValue, searchable: fieldForm.searchable,
           dictionaryId: fieldForm.dictionaryId, referenceModuleId: fieldForm.referenceModuleId,
           sortOrder: fieldForm.sortOrder, config: fieldConfig(),
@@ -536,29 +588,46 @@ function editAction(action: ConfiguredAction) {
   const targets = config.targets || (config.targetModuleCode ? [{ moduleCode: config.targetModuleCode, fieldMappings: config.fieldMappings }] : [])
   conversionTargets.value = targets.map(target => ({
     moduleCode: target.moduleCode,
-    mappingsText: Object.entries(target.fieldMappings || {}).map(([targetCode, sourceCode]) => `${targetCode}=${sourceCode}`).join('\n'),
+    mappings: Object.entries(target.fieldMappings || {}).map(([targetCode, sourceCode]) => ({ targetCode, sourceCode })),
   }))
+  conversionTargets.value.forEach(target => void loadConversionTarget(target.moduleCode))
   if (action.code === 'CONVERT' && !conversionTargets.value.length) addConversionTarget()
   actionDrawer.value = true
 }
 
 function addConversionTarget() {
-  conversionTargets.value.push({ moduleCode: '', mappingsText: '' })
+  conversionTargets.value.push({ moduleCode: '', mappings: [{ targetCode: '', sourceCode: '' }] })
 }
 
-function conversionMappings(text: string) {
-  const result: Record<string, string> = {}
-  text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).forEach((line) => {
-    const separator = line.indexOf('=')
-    if (separator <= 0 || separator === line.length - 1) throw new Error(`映射“${line}”应使用 目标字段=来源字段`)
-    const target = line.slice(0, separator).trim()
-    const source = line.slice(separator + 1).trim()
-    if (!/^[a-z][a-z0-9_]{1,99}$/.test(target) || !/^[a-z][a-z0-9_]{1,99}$/.test(source)) {
-      throw new Error(`映射“${line}”包含无效字段编码`)
-    }
-    result[target] = source
-  })
-  return result
+async function loadConversionTarget(moduleCode: string) {
+  if (!moduleCode || conversionTargetDrafts[moduleCode]) return
+  const module = overview.value.modules.find(item => item.code === moduleCode)
+  if (!module) return
+  try {
+    conversionTargetDrafts[moduleCode] = await api<ModuleDraft>(`/api/admin/module-config/modules/${module.id}/draft`, {}, token.value)
+  } catch (reason) {
+    message.error(readable(reason))
+  }
+}
+
+function conversionTargetFieldOptions(moduleCode: string) {
+  return (conversionTargetDrafts[moduleCode]?.fields || [])
+    .filter(field => field.status === 'ACTIVE')
+    .map(field => ({ value: field.code, label: field.name }))
+}
+
+function addConversionMapping(target: ConversionTarget) {
+  target.mappings.push({ targetCode: '', sourceCode: '' })
+}
+
+function conversionMappings(target: ConversionTarget) {
+  if (!target.mappings.length || target.mappings.some(mapping => !mapping.targetCode || !mapping.sourceCode)) {
+    throw new Error('请完成目标字段与来源字段的对应关系')
+  }
+  if (new Set(target.mappings.map(mapping => mapping.targetCode)).size !== target.mappings.length) {
+    throw new Error('同一个目标字段只能配置一次')
+  }
+  return Object.fromEntries(target.mappings.map(mapping => [mapping.targetCode, mapping.sourceCode]))
 }
 
 async function saveAction() {
@@ -576,7 +645,7 @@ async function saveAction() {
         throw new Error('同一目标模块只能配置一次')
       }
       config.targets = conversionTargets.value.map(target => ({
-        moduleCode: target.moduleCode, fieldMappings: conversionMappings(target.mappingsText),
+        moduleCode: target.moduleCode, fieldMappings: conversionMappings(target),
       }))
     }
     await api(`/api/admin/module-config/modules/${selectedModuleId.value}/actions/${editingAction.value.code}`, {
@@ -664,7 +733,7 @@ async function saveRule() {
       name: ruleForm.name, ruleType: ruleForm.ruleType, triggerEvent: ruleForm.triggerEvent,
       definition: structuredRuleDefinition(), message: ruleForm.message || undefined,
       sortOrder: ruleForm.sortOrder,
-      ...(editingRule.value ? { status: ruleForm.status, version: ruleForm.version } : { code: ruleForm.code }),
+      ...(editingRule.value ? { status: ruleForm.status, version: ruleForm.version } : {}),
     }
     await api(`/api/admin/module-config/modules/${selectedModuleId.value}/rules-indexes/rules${editingRule.value ? `/${editingRule.value.id}` : ''}`, {
       method: editingRule.value ? 'PUT' : 'POST', body: JSON.stringify(body),
@@ -713,7 +782,7 @@ async function saveIndex() {
     const body = {
       name: indexForm.name, uniqueIndex: indexForm.uniqueIndex,
       fields: indexFieldIds.value.map((fieldId, sortOrder) => ({ fieldId, sortOrder, sortDirection: 'ASC' })),
-      ...(editingIndex.value ? { status: indexForm.status, version: indexForm.version } : { code: indexForm.code }),
+      ...(editingIndex.value ? { status: indexForm.status, version: indexForm.version } : {}),
     }
     await api(`/api/admin/module-config/modules/${selectedModuleId.value}/rules-indexes/indexes${editingIndex.value ? `/${editingIndex.value.index.id}` : ''}`, {
       method: editingIndex.value ? 'PUT' : 'POST', body: JSON.stringify(body),
@@ -725,13 +794,13 @@ async function saveIndex() {
   finally { saving.value = false }
 }
 
-async function checkPublication() {
+async function checkPublication(openModal = true) {
   if (!selectedModuleId.value) return
   saving.value = true
   try {
     publication.value = await api<PublicationCheck>(
       `/api/admin/module-config/modules/${selectedModuleId.value}/publication-check`, {}, token.value)
-    publishModal.value = true
+    publishModal.value = openModal
   } catch (reason) {
     message.error(readable(reason))
   } finally {
@@ -747,9 +816,13 @@ async function publish() {
       method: 'POST', body: JSON.stringify({ expectedDraftRevision: publication.value.draftRevision }),
     }, token.value)
     publishModal.value = false
-    message.success(`发布版本 v${result.versionNumber} 成功，业务运行页已经切换并读回`)
+    message.success(`版本 ${result.versionNumber} 已发布，业务运行页已经切换并读回`)
     await loadOverview(selectedModuleId.value)
     emit('published')
+    await router.push({
+      path: `/systems/${systemContext.value?.systemId}`,
+      query: { workspace: 'runtime', module: draft.value?.module.code },
+    })
   } catch (reason) {
     message.error(readable(reason))
   } finally {
@@ -768,7 +841,7 @@ async function rollbackVersion(version: PublishedModuleVersion) {
           expectedPublicationVersion: version.publicationVersion,
         }),
       }, token.value)
-    message.success(`已生成回滚发布版本 v${result.versionNumber}，目标与原版本快照均完整保留`)
+    message.success(`已从历史快照生成版本 ${result.versionNumber}，目标与原版本均完整保留`)
     await loadOverview(selectedModuleId.value)
     emit('published')
   } catch (reason) {
@@ -781,10 +854,20 @@ function onDrop() {
   draggingType.value = ''
 }
 
-function selectConfigTask(task: 'INFO' | 'FIELDS' | 'ACTIONS' | 'FLOW' | 'APPLICATIONS') {
+function selectConfigTask(task: ModuleConfigTask) {
   activeConfigTask.value = task
   if (task === 'FIELDS') activeDesignerTab.value = 'FIELDS'
   if (task === 'ACTIONS') activeDesignerTab.value = 'ACTIONS'
+}
+
+function selectInfoSection(section: 'OVERVIEW' | 'PUBLICATION') {
+  activeConfigTask.value = 'INFO'
+  infoSection.value = section
+  if (section === 'PUBLICATION') void checkPublication(false)
+}
+
+function openPublicationStep() {
+  selectInfoSection('PUBLICATION')
 }
 
 function openRelatedConfiguration(section: 'flow' | 'applications') {
@@ -796,23 +879,42 @@ function readable(reason: unknown) {
   return '请求失败，请稍后重试'
 }
 
+function actionLocationName(location: string) {
+  return ({
+    MODULE_ENTRY: '模块入口', LIST_TOOLBAR: '列表上方', BATCH: '批量操作', ROW: '每行操作',
+    DETAIL_HEADER: '详情页上方', DETAIL_MORE: '详情更多操作',
+  } as Record<string, string>)[location] || location
+}
+
+function optionName(options: Array<{ value: string; label: string }>, value: string) {
+  return options.find(option => option.value === value)?.label || '已配置'
+}
+
+function fieldName(code: string) {
+  return draft.value?.fields.find(field => field.code === code)?.name || '已移除字段'
+}
+
+function fieldNames(codes: string[]) {
+  return codes.map(fieldName).join(' → ')
+}
+
 onMounted(() => loadOverview())
 </script>
 
 <template>
   <div class="config-page">
-    <div class="page-heading">
-      <div><p class="eyebrow">后台配置</p><h1>模块配置</h1><p>先编辑草稿，再检查并发布；未发布内容不会进入业务运行页。</p></div>
+    <div class="module-builder-toolbar">
+      <div><strong>模板配置</strong><span>选择模块后，按模块信息、字段、动作、流程和应用五类任务完成配置。</span></div>
       <div class="heading-actions">
         <a-button :loading="loading" @click="loadOverview()"><ReloadOutlined />刷新</a-button>
-        <a-button type="primary" :disabled="!selectedModuleId" :loading="saving" @click="checkPublication"><CloudUploadOutlined />检查并发布</a-button>
+        <a-button type="primary" @click="beginModule"><PlusOutlined />新建模块</a-button>
       </div>
     </div>
     <a-alert v-if="error" type="error" show-icon :message="error" class="section-alert" />
 
     <div :class="['config-layout', { 'config-layout--page': activeConfigTask === 'FIELDS' && selectedPage }]">
       <aside class="config-tree panel-card">
-        <div class="panel-title"><strong>模块结构</strong><a-button type="text" size="small" @click="groupModal = true"><PlusOutlined />分组</a-button></div>
+        <div class="panel-title"><strong>模块结构</strong><a-button type="text" size="small" @click="groupModal = true"><PlusOutlined />业务分组</a-button></div>
         <a-skeleton v-if="loading && !overview.groups.length" active :paragraph="{ rows: 5 }" />
         <template v-else>
           <section v-for="group in groupedModules" :key="group.id" class="module-group">
@@ -822,25 +924,29 @@ onMounted(() => loadOverview())
               <AppstoreAddOutlined /><span>{{ module.name }}</span><a-badge :status="module.status === 'ACTIVE' ? 'success' : 'default'" />
             </button>
           </section>
-          <a-empty v-if="!overview.groups.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="还没有模块组" />
-          <a-button block class="tree-create" :disabled="!overview.groups.length" @click="moduleModal = true"><PlusOutlined />新建模块</a-button>
+          <a-empty v-if="!overview.groups.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="还没有业务模块" />
+          <a-button block class="tree-create" @click="beginModule"><PlusOutlined />新建模块</a-button>
         </template>
       </aside>
 
       <main class="designer panel-card">
         <template v-if="draft">
           <div class="designer-heading">
-            <div><span class="draft-state">{{ draft.published ? '已有发布版本' : '未发布' }}</span><h2>{{ draft.module.name }}</h2><p>草稿第 {{ draft.module.draftRevision }} 次修订</p></div>
+            <div><span class="draft-state">{{ draft.published ? '已有运行版本' : '尚未发布' }}</span><h2>{{ draft.module.name }}</h2><p>{{ draft.published ? '当前修改保存在草稿，发布前不影响运行页' : '完成必要配置并通过检查后即可发布' }}</p></div>
             <a-tag :color="draft.published ? 'green' : 'default'">{{ draft.published ? '运行中' : '仅草稿' }}</a-tag>
           </div>
           <div class="config-task-tabs" role="tablist" aria-label="模块配置任务">
-            <button :class="{ active: activeConfigTask === 'INFO' }" @click="selectConfigTask('INFO')"><strong>1</strong><span>模块信息<small>入口与发布状态</small></span></button>
-            <button :class="{ active: activeConfigTask === 'FIELDS' }" @click="selectConfigTask('FIELDS')"><strong>2</strong><span>字段与页面<small>数据结构和界面</small></span></button>
+            <button :class="{ active: activeConfigTask === 'INFO' }" @click="selectConfigTask('INFO')"><strong>1</strong><span>模块信息<small>入口、状态、发布与版本</small></span></button>
+            <button :class="{ active: activeConfigTask === 'FIELDS' }" @click="selectConfigTask('FIELDS')"><strong>2</strong><span>模块字段<small>字段与页面呈现</small></span></button>
             <button :class="{ active: activeConfigTask === 'ACTIONS' }" @click="selectConfigTask('ACTIONS')"><strong>3</strong><span>模块动作<small>动作、规则与索引</small></span></button>
-            <button :class="{ active: activeConfigTask === 'FLOW' }" @click="selectConfigTask('FLOW')"><strong>4</strong><span>关联流程<small>业务流程绑定</small></span></button>
-            <button :class="{ active: activeConfigTask === 'APPLICATIONS' }" @click="selectConfigTask('APPLICATIONS')"><strong>5</strong><span>关联应用<small>受控访问范围</small></span></button>
+            <button :class="{ active: activeConfigTask === 'FLOW' }" @click="selectConfigTask('FLOW')"><strong>4</strong><span>模块 Flow<small>触发、审批与异常</small></span></button>
+            <button :class="{ active: activeConfigTask === 'APPLICATION' }" @click="selectConfigTask('APPLICATION')"><strong>5</strong><span>模块应用<small>受控开放与调用</small></span></button>
           </div>
-          <div v-if="activeConfigTask === 'FIELDS'" class="designer-subtabs">
+          <div v-if="activeConfigTask === 'INFO'" class="designer-subtabs">
+            <button :class="{ active: infoSection === 'OVERVIEW' }" @click="infoSection = 'OVERVIEW'">模块概览</button>
+            <button :class="{ active: infoSection === 'PUBLICATION' }" @click="selectInfoSection('PUBLICATION')">发布与版本</button>
+          </div>
+          <div v-else-if="activeConfigTask === 'FIELDS'" class="designer-subtabs">
             <button :class="{ active: activeDesignerTab === 'FIELDS' }" @click="activeDesignerTab = 'FIELDS'">模块字段</button>
             <button v-for="page in draft.pages" :key="page.id" :class="{ active: activeDesignerTab === page.pageType }" @click="activeDesignerTab = page.pageType">{{ page.name }}</button>
             <button class="designer-tab-add" @click="pageModal = true"><PlusOutlined />新增页面</button>
@@ -850,16 +956,16 @@ onMounted(() => loadOverview())
             <button :class="{ active: activeDesignerTab === 'RULES' }" @click="activeDesignerTab = 'RULES'">业务规则</button>
             <button :class="{ active: activeDesignerTab === 'INDEXES' }" @click="activeDesignerTab = 'INDEXES'">查询与唯一规则</button>
           </div>
-          <section v-if="activeConfigTask === 'INFO'" class="module-task-overview">
+          <section v-if="activeConfigTask === 'INFO' && infoSection === 'OVERVIEW'" class="module-task-overview">
             <div class="module-task-summary"><div><small>当前模块</small><strong>{{ draft.module.name }}</strong></div><div><small>字段</small><strong>{{ draft.fields.length }}</strong></div><div><small>页面</small><strong>{{ draft.pages.length }}</strong></div><div><small>动作</small><strong>{{ draft.actions.length }}</strong></div></div>
-            <div class="module-task-guidance"><h3>按顺序完成模块配置</h3><ol><li>确认模块名称和运行入口</li><li>配置字段与列表、表单、详情页面</li><li>检查动作、业务规则和查询规则</li><li>按需关联流程与应用</li><li>执行发布检查并发布</li></ol></div>
+            <div class="module-task-guidance"><h3>模块骨架已准备好</h3><ol><li>列表、表单和详情页已经自动创建</li><li>新建、编辑、删除、导入和导出等常用功能已经准备好</li><li>内部稳定标识由系统维护，不需要用户记忆或复制</li></ol><a-button type="primary" @click="selectConfigTask('FIELDS')">下一步：添加业务字段</a-button></div>
             <div class="module-entry-list"><div class="panel-title"><strong>运行入口</strong><span>发布后显示在业务工作区</span></div><button v-for="menu in draft.menus" :key="menu.id" type="button" class="menu-config-row" @click="editMenu(menu)"><span class="menu-config-icon">{{ (menu.icon || 'M').slice(0, 1).toUpperCase() }}</span><span><strong>{{ menu.name }}</strong><small>{{ menu.visible && menu.status === 'ACTIVE' ? '发布后显示' : '当前隐藏' }}</small></span><span>配置</span></button></div>
           </section>
           <div v-else-if="activeConfigTask === 'FIELDS' && activeDesignerTab === 'FIELDS'" class="field-canvas" @dragover.prevent @drop="onDrop">
             <div class="field-task-toolbar"><div><strong>模块字段</strong><small>字段决定业务数据结构和页面可用内容</small></div><a-dropdown><a-button type="primary"><PlusOutlined />添加字段</a-button><template #overlay><a-menu class="field-type-menu" @click="beginField(String($event.key))"><a-menu-item v-for="field in fieldTypes" :key="field.type"><strong>{{ field.name }}</strong><small>{{ field.hint }}</small></a-menu-item></a-menu></template></a-dropdown></div>
             <button v-for="field in draft.fields" :key="field.id" type="button" class="configured-field" @click="editField(field)">
               <DragOutlined class="field-handle" />
-              <span><strong>{{ field.name }}</strong><small>{{ field.code }}</small></span>
+              <span><strong>{{ field.name }}</strong><small>{{ field.searchable ? '可搜索' : '普通字段' }}</small></span>
               <a-tag>{{ fieldTypes.find((item) => item.type === field.fieldType)?.name || field.fieldType }}</a-tag>
               <em v-if="field.required">必填</em><em v-if="field.status !== 'ACTIVE'" class="muted">停用</em>
             </button>
@@ -875,7 +981,7 @@ onMounted(() => loadOverview())
                   <a-button danger :loading="saving"><DeleteOutlined />删除页面</a-button>
                 </a-popconfirm>
                 <a-button :disabled="saving || Boolean(pageLayoutIssues.length)" @click="savePageLayout(selectedPageFieldCodes)">保存草稿</a-button>
-                <a-button type="primary" :disabled="Boolean(pageLayoutIssues.length)" @click="checkPublication">预览并检查发布</a-button></div>
+                <a-button type="primary" :disabled="Boolean(pageLayoutIssues.length)" @click="openPublicationStep">进入发布检查</a-button></div>
             </div>
             <a-alert v-if="pageLayoutIssues.length" type="error" show-icon class="section-alert" message="页面设计存在阻断项" :description="pageLayoutIssues.join('；')" />
             <div class="page-editor-grid">
@@ -887,12 +993,12 @@ onMounted(() => loadOverview())
                   @dragstart="draggingPageField = field.code" @dragover.prevent @drop.prevent="movePageField(field.code)">
                   <DragOutlined />
                   <a-checkbox :checked="selectedPageFieldCodes.includes(field.code)" :disabled="saving" @change="togglePageField(field.code, $event.target.checked)" />
-                  <span><strong>{{ field.name }}</strong><small>{{ field.code }}</small></span>
+                  <span><strong>{{ field.name }}</strong><small>{{ field.required ? '必填' : '选填' }}</small></span>
                   <a-tag>{{ fieldTypes.find((item) => item.type === field.fieldType)?.name }}</a-tag>
                 </label>
               </section>
               <section :class="['schema-preview', { 'schema-preview--mobile': previewDevice === 'MOBILE' }]">
-                <div class="schema-preview__bar"><span></span><span></span><span></span><strong>实时预览</strong><a-tag>Schema v1</a-tag></div>
+                <div class="schema-preview__bar"><span></span><span></span><span></span><strong>实时预览</strong><a-tag>{{ previewDevice === 'MOBILE' ? '手机' : '桌面' }}</a-tag></div>
                 <a-result v-if="!standardPageType" status="error" title="特殊页面尚未完成专属设计" sub-title="不能以通用表单或空抽屉替代；请先配置该页面所需的专属组件、状态和失败反馈。" />
                 <div v-else-if="selectedPage.pageType === 'LIST'" class="preview-table">
                   <div class="preview-table__head"><span v-for="field in pagePreviewFields" :key="field.code">{{ field.name }}</span></div>
@@ -909,8 +1015,8 @@ onMounted(() => loadOverview())
           <div v-else-if="activeConfigTask === 'ACTIONS' && activeDesignerTab === 'RULES'" class="page-config-canvas">
             <div class="page-editor-toolbar"><div><strong>结构化业务规则</strong><small>只允许字段、运算符和受控结果；不执行任意脚本。草稿可预演，发布后前后端读取同一快照。</small></div><a-button type="primary" @click="beginRule"><PlusOutlined />新建规则</a-button></div>
             <button v-for="rule in ruleIndexDraft.rules" :key="rule.id" type="button" class="rule-config-card" @click="editRule(rule)">
-              <span><strong>{{ rule.name }}</strong><small>{{ rule.code }} · {{ rule.triggerEvent }} · 排序 {{ rule.sortOrder }}</small></span>
-              <a-tag>{{ rule.ruleType }}</a-tag><a-tag :color="rule.testStatus === 'EXECUTED' ? 'green' : 'orange'">{{ rule.testStatus === 'EXECUTED' ? '已预演' : '待预演' }}</a-tag>
+              <span><strong>{{ rule.name }}</strong><small>{{ optionName(triggerEventOptions, rule.triggerEvent) }} · 顺序 {{ rule.sortOrder }}</small></span>
+              <a-tag>{{ optionName(ruleTypeOptions, rule.ruleType) }}</a-tag><a-tag :color="rule.testStatus === 'EXECUTED' ? 'green' : 'orange'">{{ rule.testStatus === 'EXECUTED' ? '已预演' : '待预演' }}</a-tag>
               <p>{{ rule.messageTemplate || '命中后按配置结果执行' }}</p>
             </button>
             <a-empty v-if="!ruleIndexDraft.rules.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无规则；可从结构化条件开始配置" />
@@ -918,29 +1024,53 @@ onMounted(() => loadOverview())
           <div v-else-if="activeConfigTask === 'ACTIONS' && activeDesignerTab === 'INDEXES'" class="page-config-canvas">
             <div class="page-editor-toolbar"><div><strong>查询索引与唯一规则</strong><small>按选定字段生成运行态投影；唯一规则固定隔离到系统、租户、模块和未删除数据。</small></div><a-button type="primary" @click="beginIndex"><PlusOutlined />新建索引</a-button></div>
             <button v-for="item in ruleIndexDraft.indexes" :key="item.index.id" type="button" class="index-config-card" @click="editIndex(item)">
-              <span><strong>{{ item.index.name }}</strong><small>{{ item.index.code }} · {{ item.fieldCodes.join(' → ') }}</small></span>
+              <span><strong>{{ item.index.name }}</strong><small>{{ fieldNames(item.fieldCodes) }}</small></span>
               <a-tag :color="item.index.uniqueIndex ? 'volcano' : 'blue'">{{ item.index.uniqueIndex ? '唯一规则' : '查询投影' }}</a-tag>
-              <p>{{ item.scope }}</p><code>{{ item.projectionPlan }}</code>
+              <p>{{ item.index.uniqueIndex ? '在当前系统、组织和模块内保证未归档数据不重复' : '提升所选字段的筛选与查询速度' }}</p>
             </button>
             <a-empty v-if="!ruleIndexDraft.indexes.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无索引；普通字段仍可使用基础查询" />
           </div>
           <div v-else-if="activeConfigTask === 'ACTIONS' && activeDesignerTab === 'ACTIONS'" class="page-config-canvas">
+            <div class="page-editor-toolbar"><div><strong>模块功能</strong><small>常用功能默认可用；只有业务确实需要时再调整位置或二次确认。</small></div></div>
             <button v-for="action in draft.actions" :key="action.id" type="button" class="action-config-row" @click="editAction(action)">
-              <span><strong>{{ action.name }}</strong><small>{{ action.code }}</small></span>
-              <a-tag>{{ action.location }}</a-tag><span>配置</span>
+              <span><strong>{{ action.name }}</strong><small>{{ actionLocationName(action.location) }}</small></span>
+              <a-tag>{{ action.status === 'ACTIVE' ? '已启用' : '已停用' }}</a-tag><span>配置</span>
             </button>
           </div>
-          <section v-else-if="activeConfigTask === 'FLOW'" class="module-related-task"><ApartmentOutlined /><h3>关联业务流程</h3><p>在流程配置中选择当前模块作为触发或处理对象；发布前可模拟完整流转。</p><a-button type="primary" @click="openRelatedConfiguration('flow')">打开流程配置</a-button></section>
-          <section v-else-if="activeConfigTask === 'APPLICATIONS'" class="module-related-task"><AppstoreAddOutlined /><h3>关联应用</h3><p>在应用配置中授权当前模块的可访问动作和数据范围。</p><a-button type="primary" @click="openRelatedConfiguration('applications')">打开应用配置</a-button></section>
-          <section v-if="activeConfigTask === 'INFO'" class="default-config">
+          <section v-else-if="activeConfigTask === 'FLOW'" class="related-module-task">
+            <ApartmentOutlined />
+            <div><small>当前模块</small><h3>{{ draft.module.name }}的流程</h3><p>为新建、更新、状态变化等业务事件绑定已发布流程；审批、自动流转和异常处理都在流程配置中完成。</p></div>
+            <a-button type="primary" @click="openRelatedConfiguration('flow')">配置模块 Flow</a-button>
+          </section>
+          <section v-else-if="activeConfigTask === 'APPLICATION'" class="related-module-task">
+            <AppstoreAddOutlined />
+            <div><small>当前模块</small><h3>{{ draft.module.name }}的应用开放</h3><p>只把明确授权的模块动作开放给系统内外应用；凭证、签名、限流和调用日志统一在应用配置中维护。</p></div>
+            <a-button type="primary" @click="openRelatedConfiguration('applications')">配置模块应用</a-button>
+          </section>
+          <section v-if="activeConfigTask === 'INFO' && infoSection === 'OVERVIEW'" class="default-config">
             <div><strong>页面</strong><span v-for="page in draft.pages" :key="page.id">{{ page.name }}</span></div>
             <div><strong>菜单</strong><span v-for="menu in draft.menus" :key="menu.id">{{ menu.name }}</span></div>
             <div><strong>动作</strong><span v-for="action in draft.actions" :key="action.id">{{ action.name }}</span></div>
           </section>
-          <section v-if="activeConfigTask === 'INFO'" class="module-version-history">
+          <section v-if="activeConfigTask === 'INFO' && infoSection === 'PUBLICATION'" class="module-publish-step">
+            <div class="publish-readiness" :class="{ ready: publication?.valid }">
+              <CheckCircleOutlined v-if="publication?.valid" />
+              <CloudUploadOutlined v-else />
+              <div><h3>{{ publication?.valid ? '可以发布' : '发布前检查' }}</h3><p>{{ publication?.valid ? '字段、页面、动作和依赖均已通过检查。' : '系统会检查缺失配置并准确指出需要返回的步骤。' }}</p></div>
+              <a-button :loading="saving" @click="checkPublication(false)">重新检查</a-button>
+            </div>
+            <a-alert v-if="publication && !publication.valid" type="warning" show-icon message="还有内容需要处理">
+              <template #description><ul class="publication-issues"><li v-for="issue in publication.issues" :key="`${issue.path}-${issue.code}`"><strong>{{ issue.path }}</strong><span>{{ issue.message }}</span></li></ul></template>
+            </a-alert>
+            <div class="publish-actions">
+              <span>发布后普通用户会立即在业务工作区看到这个模块。</span>
+              <a-button type="primary" size="large" :disabled="!publication?.valid" :loading="saving" @click="publish"><CloudUploadOutlined />确认发布并进入运行页</a-button>
+            </div>
+          </section>
+          <section v-if="activeConfigTask === 'INFO' && infoSection === 'PUBLICATION'" class="module-version-history">
             <div class="version-history-heading"><span><HistoryOutlined /><strong>发布历史</strong></span><small>已发布版本不可直接修改；回滚会生成一个新版本</small></div>
             <div v-for="version in versions" :key="version.versionId" class="module-version-row">
-              <span><strong>v{{ version.versionNumber }}</strong><small>{{ version.changeSummary }} · 发布于 {{ productDateTime(version.publishedAt) }}</small></span>
+              <span><strong>版本 {{ version.versionNumber }}</strong><small>{{ version.changeSummary }} · 发布于 {{ productDateTime(version.publishedAt) }}</small></span>
               <a-tag :color="version.current ? 'green' : 'default'">{{ version.current ? '当前运行版本' : '历史快照' }}</a-tag>
               <a-popconfirm v-if="!version.current" title="确认把运行态切换到这个不可变版本？" ok-text="确认回滚" cancel-text="取消" @confirm="rollbackVersion(version)">
                 <a-button size="small" :loading="saving">回滚到此版本</a-button>
@@ -979,13 +1109,22 @@ onMounted(() => loadOverview())
 
     <a-modal v-model:open="groupModal" title="新建模块组" :confirm-loading="saving" @ok="createGroup">
       <a-form layout="vertical"><a-form-item label="名称" required><a-input v-model:value="groupForm.name" placeholder="例如：销售管理" /></a-form-item>
-        <a-form-item label="编码" required><a-input v-model:value="groupForm.code" placeholder="例如：sales" /></a-form-item>
         <a-form-item label="排序"><a-input-number v-model:value="groupForm.sortOrder" :min="0" /></a-form-item></a-form>
+      <a-alert type="info" show-icon message="模块组用于整理运行导航；内部标识由系统自动维护。" />
     </a-modal>
     <a-modal v-model:open="moduleModal" title="新建业务模块" :confirm-loading="saving" @ok="createModule">
-      <a-form layout="vertical"><a-form-item label="所属模块组" required><a-select v-model:value="moduleForm.groupId" :options="overview.groups.map((item) => ({ value: item.id, label: item.name }))" /></a-form-item>
-        <a-form-item label="模块名称" required><a-input v-model:value="moduleForm.name" placeholder="例如：客户" /></a-form-item>
-        <a-form-item label="模块编码" required extra="发布后业务接口使用该编码"><a-input v-model:value="moduleForm.code" placeholder="例如：customer" /></a-form-item></a-form>
+      <a-form layout="vertical">
+        <a-form-item label="模块名称" required><a-input v-model:value="moduleForm.name" autofocus placeholder="例如：客户、订单、巡检记录" /></a-form-item>
+        <a-form-item label="放在哪个业务分组" required>
+          <a-radio-group v-model:value="moduleForm.groupMode" button-style="solid">
+            <a-radio-button v-if="overview.groups.length" value="existing">已有分组</a-radio-button>
+            <a-radio-button value="new">新建分组</a-radio-button>
+          </a-radio-group>
+        </a-form-item>
+        <a-form-item v-if="moduleForm.groupMode === 'existing'" label="业务分组" required><a-select v-model:value="moduleForm.groupId" :options="overview.groups.map((item) => ({ value: item.id, label: item.name }))" /></a-form-item>
+        <a-form-item v-else label="新分组名称" required><a-input v-model:value="moduleForm.groupName" placeholder="例如：客户运营" /></a-form-item>
+        <a-alert type="success" show-icon message="创建后自动准备列表、表单、详情、运行入口和常用操作。" description="技术编码由系统生成；下一步只需要添加业务字段。" />
+      </a-form>
     </a-modal>
     <a-modal v-model:open="pageModal" title="添加扩展页面" :confirm-loading="saving" @ok="createPage">
       <a-form layout="vertical">
@@ -999,9 +1138,8 @@ onMounted(() => loadOverview())
     </a-modal>
     <a-drawer v-model:open="fieldDrawer" :title="editingField ? '编辑字段' : '添加字段'" width="520">
       <a-form layout="vertical">
-        <a-form-item label="字段类型"><a-input :value="fieldTypes.find((item) => item.type === fieldForm.fieldType)?.name" disabled /></a-form-item>
-        <a-form-item label="字段名称" required><a-input v-model:value="fieldForm.name" /></a-form-item>
-        <a-form-item label="字段编码" required extra="创建后不可修改"><a-input v-model:value="fieldForm.code" :disabled="Boolean(editingField)" /></a-form-item>
+        <a-form-item label="字段类型"><a-select v-if="!editingField" v-model:value="fieldForm.fieldType" show-search :options="fieldTypes.map(item => ({ value: item.type, label: `${item.name} · ${item.hint}` }))" /><a-input v-else :value="fieldTypes.find((item) => item.type === fieldForm.fieldType)?.name" disabled /></a-form-item>
+        <a-form-item label="字段名称" required><a-input v-model:value="fieldForm.name" placeholder="例如：客户名称、联系电话、跟进结果" /></a-form-item>
         <div class="form-grid"><a-form-item label="排序"><a-input-number v-model:value="fieldForm.sortOrder" :min="0" /></a-form-item>
           <a-form-item label="是否必填"><a-switch v-model:checked="fieldForm.required" /></a-form-item></div>
         <div class="form-grid"><a-form-item label="可搜索"><a-switch v-model:checked="fieldForm.searchable" /></a-form-item>
@@ -1025,13 +1163,13 @@ onMounted(() => loadOverview())
         <template v-if="fieldForm.fieldType === 'MONEY'">
           <div class="form-grid"><a-form-item label="币种" required><a-input v-model:value="fieldForm.currency" placeholder="CNY" /></a-form-item><a-form-item label="小数精度" required><a-input-number v-model:value="fieldForm.precision" :min="0" :max="6" /></a-form-item></div>
         </template>
-        <a-form-item v-if="['REFERENCE', 'LOOKUP', 'SUBTABLE', 'SUMMARY', 'AGGREGATE'].includes(fieldForm.fieldType)" label="目标模块" required extra="运行时保存目标记录 ID，页面展示目标模块主要字段。">
+        <a-form-item v-if="['REFERENCE', 'LOOKUP', 'SUBTABLE', 'SUMMARY', 'AGGREGATE'].includes(fieldForm.fieldType)" label="目标模块" required extra="选择要关联的业务模块，运行页展示目标记录的业务名称。">
           <a-select v-model:value="fieldForm.referenceModuleId" show-search :options="referenceModuleOptions" />
         </a-form-item>
-        <a-form-item v-if="fieldForm.fieldType === 'AUTO_NUMBER'" label="编号规则编码" required><a-input v-model:value="fieldForm.sequenceCode" placeholder="例如 customer_number" /></a-form-item>
+        <a-form-item v-if="fieldForm.fieldType === 'AUTO_NUMBER'" label="编号规则" required><a-input v-model:value="fieldForm.sequenceCode" placeholder="例如：客户编号" /></a-form-item>
         <a-form-item v-if="['FORMULA', 'CALCULATION'].includes(fieldForm.fieldType)" label="表达式" required><a-textarea v-model:value="fieldForm.expression" :rows="4" placeholder="例如 amount * tax_rate" /></a-form-item>
         <template v-if="fieldForm.fieldType === 'AI_FILL'">
-          <a-form-item label="已授权模型编码" required><a-input v-model:value="fieldForm.modelCode" placeholder="由系统 AI 配置授权" /></a-form-item>
+          <a-form-item label="授权模型" required><a-select v-model:value="fieldForm.modelCode" show-search :options="availableAiModels.map(model => ({ value: model.code, label: `${model.name} · ${model.provider}` }))" placeholder="仅显示当前系统已授权模型" /></a-form-item>
           <a-form-item label="写入控制"><a-checkbox v-model:checked="fieldForm.humanConfirmation">每次写入前必须人工确认</a-checkbox></a-form-item>
         </template>
         <a-form-item v-if="fieldForm.fieldType === 'SECRET'" label="敏感字段"><a-checkbox v-model:checked="fieldForm.sensitive">按敏感字段权限、脱敏和审计处理</a-checkbox></a-form-item>
@@ -1053,8 +1191,16 @@ onMounted(() => loadOverview())
           <a-divider>转化目标与字段映射</a-divider>
           <a-alert type="info" show-icon class="section-alert" message="运行时只读取已发布映射；每个来源记录对同一目标模块永久只能成功转化一次。" />
           <section v-for="(target, index) in conversionTargets" :key="index" class="panel-card" style="padding:12px;margin-bottom:12px">
-            <a-form-item label="目标模块" required><a-select v-model:value="target.moduleCode" show-search :options="conversionModuleOptions" /></a-form-item>
-            <a-form-item label="字段映射" required extra="每行一项：目标字段编码=来源字段编码"><a-textarea v-model:value="target.mappingsText" :rows="5" placeholder="opportunity_name=customer_name" /></a-form-item>
+            <a-form-item label="目标模块" required><a-select v-model:value="target.moduleCode" show-search :options="conversionModuleOptions" @change="loadConversionTarget(String($event))" /></a-form-item>
+            <a-form-item label="字段对应关系" required extra="选择新记录中的目标字段，以及从当前记录取值的来源字段。">
+              <div v-for="(mapping, mappingIndex) in target.mappings" :key="mappingIndex" class="conversion-mapping-row">
+                <a-select v-model:value="mapping.targetCode" show-search placeholder="目标字段" :options="conversionTargetFieldOptions(target.moduleCode)" />
+                <span>取值自</span>
+                <a-select v-model:value="mapping.sourceCode" show-search placeholder="当前模块字段" :options="activeFieldOptions" />
+                <a-button danger type="text" :disabled="target.mappings.length === 1" @click="target.mappings.splice(mappingIndex, 1)">移除</a-button>
+              </div>
+              <a-button block @click="addConversionMapping(target)"><PlusOutlined />增加字段对应</a-button>
+            </a-form-item>
             <a-button v-if="conversionTargets.length > 1" danger size="small" @click="conversionTargets.splice(index, 1)">移除目标</a-button>
           </section>
           <a-button block @click="addConversionTarget">增加目标模块</a-button>
@@ -1067,7 +1213,6 @@ onMounted(() => loadOverview())
         <a-form-item label="菜单名称" required><a-input v-model:value="menuForm.name" /></a-form-item>
         <div class="form-grid"><a-form-item label="图标标识"><a-input v-model:value="menuForm.icon" placeholder="例如 team" /></a-form-item>
           <a-form-item label="组内排序"><a-input-number v-model:value="menuForm.sortOrder" :min="0" /></a-form-item></div>
-        <a-form-item label="运行入口" required extra="入口固定绑定当前模块，不能指向后台配置页面。"><a-input v-model:value="menuForm.routePath" /></a-form-item>
         <div class="form-grid"><a-form-item label="菜单可见"><a-switch v-model:checked="menuForm.visible" /></a-form-item>
           <a-form-item label="状态"><a-radio-group v-model:value="menuForm.status"><a-radio value="ACTIVE">启用</a-radio><a-radio value="DISABLED">停用</a-radio></a-radio-group></a-form-item></div>
         <a-alert type="warning" show-icon message="菜单配置不会授予任何业务权限；无模块 LIST 权限的用户仍不可见且不能直接访问。" />
@@ -1076,16 +1221,13 @@ onMounted(() => loadOverview())
     </a-drawer>
     <a-drawer v-model:open="ruleDrawer" :title="editingRule ? '编辑结构化规则' : '新建结构化规则'" width="640">
       <a-form layout="vertical">
-        <div class="form-grid"><a-form-item label="规则名称" required><a-input v-model:value="ruleForm.name" /></a-form-item><a-form-item label="稳定编码" required><a-input v-model:value="ruleForm.code" :disabled="Boolean(editingRule)" /></a-form-item></div>
-        <div class="form-grid"><a-form-item label="规则类型"><a-select v-model:value="ruleForm.ruleType" :options="[
-          { value: 'VALIDATION', label: '数据校验' }, { value: 'REQUIRED', label: '动态必填' }, { value: 'VISIBILITY', label: '动态可见' },
-          { value: 'EDITABLE', label: '动态可编辑' }, { value: 'APPROVAL', label: '进入审批' }, { value: 'DELETE_ROLE', label: '指定角色删除' },
-        ]" /></a-form-item><a-form-item label="触发时机"><a-select v-model:value="ruleForm.triggerEvent" :options="['CREATE', 'UPDATE', 'DELETE', 'ALWAYS'].map(value => ({ value, label: value }))" /></a-form-item></div>
+        <a-form-item label="规则名称" required><a-input v-model:value="ruleForm.name" placeholder="例如：高金额订单需要复核" /></a-form-item>
+        <div class="form-grid"><a-form-item label="规则类型"><a-select v-model:value="ruleForm.ruleType" :options="ruleTypeOptions" /></a-form-item><a-form-item label="触发时机"><a-select v-model:value="ruleForm.triggerEvent" :options="triggerEventOptions" /></a-form-item></div>
         <a-form-item label="条件组合"><a-radio-group v-model:value="ruleForm.mode"><a-radio value="ALL">全部满足</a-radio><a-radio value="ANY">任一满足</a-radio></a-radio-group></a-form-item>
         <div class="rule-condition-list">
           <div v-for="(condition, index) in ruleConditions" :key="index" class="rule-condition-row">
             <a-select v-model:value="condition.field" show-search :options="activeFieldOptions" placeholder="字段" @change="sampleValues[condition.field] = sampleValues[condition.field] || ''" />
-            <a-select v-model:value="condition.operator" :options="['EQ', 'NE', 'GT', 'GTE', 'LT', 'LTE', 'IN', 'CONTAINS', 'EMPTY', 'NOT_EMPTY'].map(value => ({ value, label: value }))" />
+            <a-select v-model:value="condition.operator" :options="conditionOperatorOptions" />
             <a-input v-if="!['EMPTY', 'NOT_EMPTY'].includes(condition.operator)" v-model:value="condition.value" placeholder="比较值；数字自动识别" />
             <span v-else class="condition-no-value">无需比较值</span>
             <a-button danger type="text" :disabled="ruleConditions.length === 1" @click="ruleConditions.splice(index, 1)">移除</a-button>
@@ -1099,7 +1241,7 @@ onMounted(() => loadOverview())
         <a-form-item label="命中提示"><a-input v-model:value="ruleForm.message" placeholder="例如：金额不能超过 1000" /></a-form-item>
         <div v-if="editingRule" class="rule-preview-box">
           <strong>条件预演</strong><small>输入样例值，服务端使用与发布运行态相同的规则解释器计算每个分支。</small>
-          <label v-for="condition in ruleConditions" :key="condition.field"><span>{{ condition.field }}</span><a-input v-model:value="sampleValues[condition.field]" placeholder="样例值" /></label>
+          <label v-for="condition in ruleConditions" :key="condition.field"><span>{{ fieldName(condition.field) }}</span><a-input v-model:value="sampleValues[condition.field]" placeholder="样例值" /></label>
           <a-button :loading="saving" @click="previewRule">执行预演</a-button>
           <a-alert v-if="rulePreview" :type="rulePreview.matched ? 'warning' : 'success'" show-icon :message="rulePreview.matched ? `命中：${rulePreview.effectType}` : '未命中，数据可继续处理'" :description="rulePreview.message" />
         </div>
@@ -1110,19 +1252,18 @@ onMounted(() => loadOverview())
     </a-drawer>
     <a-drawer v-model:open="indexDrawer" :title="editingIndex ? '编辑查询索引' : '新建查询索引'" width="520">
       <a-form layout="vertical">
-        <a-form-item label="索引名称" required><a-input v-model:value="indexForm.name" /></a-form-item>
-        <a-form-item label="稳定编码" required><a-input v-model:value="indexForm.code" :disabled="Boolean(editingIndex)" /></a-form-item>
+        <a-form-item label="规则名称" required><a-input v-model:value="indexForm.name" placeholder="例如：客户手机号不可重复" /></a-form-item>
         <a-form-item label="索引字段" required extra="选择顺序就是组合索引顺序；字段变更会由发布检查阻断失效引用。"><a-select v-model:value="indexFieldIds" mode="multiple" show-search :options="indexFieldOptions" /></a-form-item>
         <a-form-item label="唯一规则"><a-switch v-model:checked="indexForm.uniqueIndex" /><span class="inline-help"> 开启后，由数据库并发约束保证唯一，不依赖先查后写。</span></a-form-item>
         <a-form-item v-if="editingIndex" label="状态"><a-radio-group v-model:value="indexForm.status"><a-radio value="ACTIVE">启用</a-radio><a-radio value="DISABLED">停用</a-radio></a-radio-group></a-form-item>
-        <a-alert type="info" show-icon :message="indexForm.uniqueIndex ? '范围固定为：系统 + 租户 + 模块 + 未删除数据。空值不参与唯一冲突。' : '发布后生成 biz_record_index 查询投影，不修改业务记录物理表。'" />
+        <a-alert type="info" show-icon :message="indexForm.uniqueIndex ? '只在当前系统、组织和模块的未归档数据中判断重复；空值不冲突。' : '发布后会优化这些字段的查询，不会改变已有业务记录。'" />
       </a-form>
       <template #footer><div class="drawer-footer"><a-button @click="indexDrawer = false">取消</a-button><a-button type="primary" :loading="saving" @click="saveIndex">保存索引草稿</a-button></div></template>
     </a-drawer>
     <a-modal v-model:open="publishModal" title="发布检查" :ok-text="publication?.valid ? '确认发布' : '返回修改'"
       :confirm-loading="saving" @ok="publication?.valid ? publish() : (publishModal = false)">
       <template v-if="publication?.valid"><a-result status="success" title="配置检查通过" sub-title="发布会生成一个不可修改的版本，业务运行页随即使用它。"><template #icon><CheckCircleOutlined /></template></a-result>
-        <div v-if="publication.indexProjectionPlans.length" class="projection-plan"><strong>索引投影计划</strong><code v-for="plan in publication.indexProjectionPlans" :key="plan">{{ plan }}</code></div></template>
+        <a-alert v-if="publication.indexProjectionPlans.length" type="info" show-icon message="查询与唯一规则已准备就绪" :description="`共 ${publication.indexProjectionPlans.length} 项，将随本次发布生效。`" /></template>
       <template v-else><a-alert type="warning" show-icon message="当前配置还不能发布" description="请修正以下问题后重新检查。" />
         <ul class="publication-issues"><li v-for="issue in publication?.issues" :key="`${issue.path}-${issue.code}`"><strong>{{ issue.path }}</strong><span>{{ issue.message }}</span></li></ul></template>
     </a-modal>

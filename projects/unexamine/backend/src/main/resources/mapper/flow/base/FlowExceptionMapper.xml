@@ -13,6 +13,7 @@
         <result column="policy_action" property="policyAction" />
         <result column="status" property="status" />
         <result column="resolved_by_account_id" property="resolvedByAccountId" />
+        <result column="resolved_by_tenant_member_id" property="resolvedByTenantMemberId" />
         <result column="resolution_comment" property="resolutionComment" />
         <result column="occurred_at" property="occurredAt" />
         <result column="resolved_at" property="resolvedAt" />
@@ -21,7 +22,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, instance_id, node_key, exception_type, error_code, error_message, policy_action, `status`, resolved_by_account_id, resolution_comment, occurred_at, resolved_at, version
+        id, instance_id, node_key, exception_type, error_code, error_message, policy_action, `status`, resolved_by_account_id, resolved_by_tenant_member_id, resolution_comment, occurred_at, resolved_at, version
     </sql>
 
 </mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowHistoryEventMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowHistoryEvent">
+        <id column="id" property="id" />
+        <result column="instance_id" property="instanceId" />
+        <result column="execution_id" property="executionId" />
+        <result column="task_id" property="taskId" />
+        <result column="node_key" property="nodeKey" />
+        <result column="event_type" property="eventType" />
+        <result column="event_name" property="eventName" />
+        <result column="actor_account_id" property="actorAccountId" />
+        <result column="actor_tenant_member_id" property="actorTenantMemberId" />
+        <result column="before_status" property="beforeStatus" />
+        <result column="after_status" property="afterStatus" />
+        <result column="detail_json" property="detailJson" />
+        <result column="occurred_at" property="occurredAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, instance_id, execution_id, task_id, node_key, event_type, event_name, actor_account_id, actor_tenant_member_id, before_status, after_status, detail_json, occurred_at
+    </sql>
+
+</mapper>

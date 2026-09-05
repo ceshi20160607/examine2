@@ -4,23 +4,9 @@ import com.unique.unexamine.platform.base.entity.PlatformAccount;
 import com.unique.unexamine.platform.base.entity.PlatformAccountCredential;
 import com.unique.unexamine.platform.base.entity.PlatformMember;
 import com.unique.unexamine.platform.base.entity.PlatformDefinition;
-import com.unique.unexamine.system.base.entity.SystemDefinition;
-import com.unique.unexamine.system.base.entity.SystemMember;
-import com.unique.unexamine.system.base.entity.SystemMemberRole;
-import com.unique.unexamine.system.base.entity.SystemRole;
-import com.unique.unexamine.system.base.entity.SystemRolePermission;
-import com.unique.unexamine.system.base.entity.SystemTenant;
-import com.unique.unexamine.system.base.entity.SystemTenantMember;
 import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
 import com.unique.unexamine.platform.base.service.PlatformAccountCredentialBaseService;
 import com.unique.unexamine.platform.base.service.PlatformMemberBaseService;
-import com.unique.unexamine.system.base.service.SystemDefinitionBaseService;
-import com.unique.unexamine.system.base.service.SystemMemberBaseService;
-import com.unique.unexamine.system.base.service.SystemMemberRoleBaseService;
-import com.unique.unexamine.system.base.service.SystemRoleBaseService;
-import com.unique.unexamine.system.base.service.SystemRolePermissionBaseService;
-import com.unique.unexamine.system.base.service.SystemTenantBaseService;
-import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.platform.manage.foundation.PlatformDefinitionManager;
 import com.unique.unexamine.authentication.manage.AuthenticationService;
@@ -30,6 +16,8 @@ import com.unique.unexamine.authorization.manage.DataScopeExpression;
 import com.unique.unexamine.authorization.manage.DataScopeTerm;
 import com.unique.unexamine.authorization.manage.PermissionGrant;
 import com.unique.unexamine.authorization.manage.ResolvedPermissions;
+import com.unique.unexamine.system.manage.SystemBootstrapResult;
+import com.unique.unexamine.system.manage.SystemBootstrapService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,13 +32,7 @@ public class RegistrationTransactionService {
     private final PlatformAccountBaseService accountService;
     private final PlatformAccountCredentialBaseService credentialService;
     private final PlatformMemberBaseService platformMemberService;
-    private final SystemDefinitionBaseService systemService;
-    private final SystemTenantBaseService tenantService;
-    private final SystemMemberBaseService memberService;
-    private final SystemTenantMemberBaseService tenantMemberService;
-    private final SystemRoleBaseService roleService;
-    private final SystemMemberRoleBaseService memberRoleService;
-    private final SystemRolePermissionBaseService rolePermissionService;
+    private final SystemBootstrapService systemBootstrapService;
     private final Pbkdf2PasswordHasher passwordHasher;
     private final AuthenticationService authenticationService;
     private final AuditRecorder auditRecorder;
@@ -60,13 +42,7 @@ public class RegistrationTransactionService {
             PlatformAccountBaseService accountService,
             PlatformAccountCredentialBaseService credentialService,
             PlatformMemberBaseService platformMemberService,
-            SystemDefinitionBaseService systemService,
-            SystemTenantBaseService tenantService,
-            SystemMemberBaseService memberService,
-            SystemTenantMemberBaseService tenantMemberService,
-            SystemRoleBaseService roleService,
-            SystemMemberRoleBaseService memberRoleService,
-            SystemRolePermissionBaseService rolePermissionService,
+            SystemBootstrapService systemBootstrapService,
             Pbkdf2PasswordHasher passwordHasher,
             AuthenticationService authenticationService,
             AuditRecorder auditRecorder,
@@ -74,13 +50,7 @@ public class RegistrationTransactionService {
         this.accountService = accountService;
         this.credentialService = credentialService;
         this.platformMemberService = platformMemberService;
-        this.systemService = systemService;
-        this.tenantService = tenantService;
-        this.memberService = memberService;
-        this.tenantMemberService = tenantMemberService;
-        this.roleService = roleService;
-        this.memberRoleService = memberRoleService;
-        this.rolePermissionService = rolePermissionService;
+        this.systemBootstrapService = systemBootstrapService;
         this.passwordHasher = passwordHasher;
         this.authenticationService = authenticationService;
         this.auditRecorder = auditRecorder;
@@ -90,9 +60,7 @@ public class RegistrationTransactionService {
     @Transactional
     public RegistrationResult create(RegistrationRequest request, String traceId) {
         String username = request.username().strip().toLowerCase(Locale.ROOT);
-        String systemCode = request.systemCode().strip().toLowerCase(Locale.ROOT);
         String displayName = request.displayName().strip();
-        String systemName = request.systemName().strip();
         PlatformDefinition platform = platformDefinitionManager.requireDefaultPlatform();
 
         PlatformAccount account = new PlatformAccount();
@@ -114,64 +82,13 @@ public class RegistrationTransactionService {
         platformMember.setStatus("ACTIVE");
         platformMemberService.insert(platformMember);
 
-        SystemDefinition system = new SystemDefinition();
-        system.setPlatformId(platform.getId());
-        system.setCode(systemCode);
-        system.setName(systemName);
-        system.setCreatorAccountId(account.getId());
-        system.setTenantMode("SINGLE");
-        system.setStatus("ACTIVE");
-        system.setDeleted(false);
-        systemService.insert(system);
-
-        SystemTenant tenant = new SystemTenant();
-        tenant.setSystemId(system.getId());
-        tenant.setCode("main");
-        tenant.setName("默认主租户");
-        tenant.setMain(true);
-        tenant.setMainMarker("MAIN");
-        tenant.setCreatorAccountId(account.getId());
-        tenant.setStatus("ACTIVE");
-        tenantService.insert(tenant);
-
-        SystemMember member = new SystemMember();
-        member.setSystemId(system.getId());
-        member.setAccountId(account.getId());
-        member.setDisplayName(displayName);
-        member.setStatus("ACTIVE");
-        memberService.insert(member);
-
-        SystemTenantMember tenantMember = new SystemTenantMember();
-        tenantMember.setSystemId(system.getId());
-        tenantMember.setTenantId(tenant.getId());
-        tenantMember.setSystemMemberId(member.getId());
-        tenantMember.setTenantAdmin(true);
-        tenantMember.setStatus("ACTIVE");
-        tenantMemberService.insert(tenantMember);
-
-        SystemRole role = new SystemRole();
-        role.setSystemId(system.getId());
-        role.setTenantId(tenant.getId());
-        role.setCode("SYSTEM_SUPER_ADMIN");
-        role.setName("系统超级管理员");
-        role.setStatus("ACTIVE");
-        roleService.insert(role);
-
-        SystemMemberRole memberRole = new SystemMemberRole();
-        memberRole.setTenantId(tenant.getId());
-        memberRole.setTenantMemberId(tenantMember.getId());
-        memberRole.setRoleId(role.getId());
-        memberRoleService.insert(memberRole);
-
-        SystemRolePermission permission = new SystemRolePermission();
-        permission.setSystemId(system.getId());
-        permission.setTenantId(tenant.getId());
-        permission.setRoleId(role.getId());
-        permission.setResourceType("*");
-        permission.setResourceCode("*");
-        permission.setActionCode("*");
-        permission.setDataScopeType("ALL");
-        rolePermissionService.insert(permission);
+        SystemBootstrapResult initialized = systemBootstrapService.bootstrap(
+                platform.getId(), account.getId(), displayName, request.systemName(), request.systemCode(), "SINGLE");
+        var system = initialized.system();
+        var tenant = initialized.tenant();
+        var member = initialized.member();
+        var tenantMember = initialized.tenantMember();
+        var role = initialized.administratorRole();
 
         SessionTokens tokens = authenticationService.createSystemSession(
                 account.getId(), system.getId(), tenant.getId(), member.getId(), tenantMember.getId(),
@@ -184,9 +101,10 @@ public class RegistrationTransactionService {
 
         auditRecorder.record(traceId, account.getId(), system.getId(), tenant.getId(), member.getId(),
                 "ACCOUNT_REGISTER_SYSTEM_CREATED", "SYSTEM", system.getId().toString(), "SUCCESS",
-                Map.of("tenantMode", "SINGLE", "mainTenant", true));
+                Map.of("tenantMode", "SINGLE", "mainTenant", true,
+                        "rootDepartmentId", initialized.rootDepartment().getId()));
 
-        return new RegistrationResult(account.getId(), system.getId(), systemCode, systemName, tenant.getId(),
+        return new RegistrationResult(account.getId(), system.getId(), system.getCode(), system.getName(), tenant.getId(),
                 tenant.getName(), system.getTenantMode(), tokens);
     }
 

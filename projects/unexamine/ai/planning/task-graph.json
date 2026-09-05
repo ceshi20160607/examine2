@@ -813,62 +813,233 @@
     {
       "id": "CYCLE-058",
       "journeyUseCaseIds": [
-        "UC-UI-DESIGN-RESPONSIVE"
+        "UC-DELIVERY-CODE-ASSESSMENT",
+        "UC-DELIVERY-PLAN-VERIFY",
+        "UC-SYSTEM-CREATE",
+        "UC-SYSTEM-ADMIN-CONFIG"
       ],
       "maximumMinutes": 240,
       "order": 58,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-07",
       "taskIds": [
-        "TASK-0193",
-        "TASK-0194"
+        "TASK-0207",
+        "TASK-0208",
+        "TASK-0209",
+        "TASK-0210",
+        "TASK-0211"
       ]
     },
     {
       "id": "CYCLE-059",
       "journeyUseCaseIds": [
-        "UC-UI-SHELL-NAVIGATION"
+        "UC-LOWCODE-MODULE-LIFECYCLE",
+        "UC-LOWCODE-FIELDS-DICTIONARY",
+        "UC-LOWCODE-PAGE-MENU",
+        "UC-LOWCODE-PUBLISH-ROLLBACK"
       ],
       "maximumMinutes": 240,
       "order": 59,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-07",
+      "taskIds": [
+        "TASK-0212",
+        "TASK-0213",
+        "TASK-0214"
+      ]
+    },
+    {
+      "id": "CYCLE-060",
+      "journeyUseCaseIds": [
+        "UC-RECORD-CREATE-EDIT"
+      ],
+      "maximumMinutes": 240,
+      "order": 60,
+      "phaseId": "PHASE-07",
+      "taskIds": [
+        "TASK-0215",
+        "TASK-0216",
+        "TASK-0217"
+      ]
+    },
+    {
+      "id": "CYCLE-061",
+      "journeyUseCaseIds": [
+        "UC-AUTH-ORG-ROLE",
+        "UC-AUTH-MULTIROLE-PREVIEW",
+        "UC-AUTH-GUARD-MASK"
+      ],
+      "maximumMinutes": 240,
+      "order": 61,
+      "phaseId": "PHASE-07",
+      "taskIds": [
+        "TASK-0218",
+        "TASK-0219",
+        "TASK-0220"
+      ]
+    },
+    {
+      "id": "CYCLE-062",
+      "journeyUseCaseIds": [],
+      "maximumMinutes": 240,
+      "order": 62,
+      "phaseId": "PHASE-08",
+      "taskIds": [
+        "TASK-0221",
+        "TASK-0227"
+      ]
+    },
+    {
+      "id": "CYCLE-063",
+      "journeyUseCaseIds": [
+        "UC-FLOW-DESIGN-PUBLISH",
+        "UC-FLOW-BIND-RESOLVE",
+        "UC-FLOW-APPROVE-RUNTIME",
+        "UC-FLOW-MANUAL-STATUS",
+        "UC-WORK-PROJECT-TASK",
+        "UC-WORK-MANUAL-LOG",
+        "UC-WORK-CALENDAR-CONFIG"
+      ],
+      "maximumMinutes": 240,
+      "order": 63,
+      "phaseId": "PHASE-08",
+      "taskIds": [
+        "TASK-0222",
+        "TASK-0223",
+        "TASK-0228",
+        "TASK-0229"
+      ]
+    },
+    {
+      "id": "CYCLE-064",
+      "journeyUseCaseIds": [
+        "UC-APPLICATION-MANAGE",
+        "UC-APPLICATION-BRIDGE-CALL"
+      ],
+      "maximumMinutes": 240,
+      "order": 64,
+      "phaseId": "PHASE-08",
+      "taskIds": [
+        "TASK-0224",
+        "TASK-0225",
+        "TASK-0226"
+      ]
+    },
+    {
+      "id": "CYCLE-065",
+      "journeyUseCaseIds": [
+        "UC-NOTIFICATION-TODO",
+        "UC-NOTIFICATION-MESSAGE-DELIVERY"
+      ],
+      "maximumMinutes": 240,
+      "order": 65,
+      "phaseId": "PHASE-08",
+      "taskIds": [
+        "TASK-0230",
+        "TASK-0231",
+        "TASK-0232",
+        "TASK-0233"
+      ]
+    },
+    {
+      "id": "CYCLE-066",
+      "journeyUseCaseIds": [
+        "UC-FILE-UPLOAD-ACCESS"
+      ],
+      "maximumMinutes": 240,
+      "order": 66,
+      "phaseId": "PHASE-08",
+      "taskIds": [
+        "TASK-0234",
+        "TASK-0235",
+        "TASK-0236"
+      ]
+    },
+    {
+      "id": "CYCLE-067",
+      "journeyUseCaseIds": [
+        "UC-ANALYTICS-DASHBOARD",
+        "UC-ANALYTICS-DATASOURCE-REPORT",
+        "UC-ANALYTICS-KPI"
+      ],
+      "maximumMinutes": 240,
+      "order": 67,
+      "phaseId": "PHASE-08",
+      "taskIds": [
+        "TASK-0237",
+        "TASK-0238",
+        "TASK-0239"
+      ]
+    },
+    {
+      "id": "CYCLE-068",
+      "journeyUseCaseIds": [
+        "UC-AI-MODEL-AGENT",
+        "UC-AI-CONTEXT-QUERY",
+        "UC-AI-CONFIRM-WRITE"
+      ],
+      "maximumMinutes": 240,
+      "order": 68,
+      "phaseId": "PHASE-08",
+      "taskIds": [
+        "TASK-0240",
+        "TASK-0241"
+      ]
+    },
+    {
+      "id": "CYCLE-069",
+      "journeyUseCaseIds": [],
+      "maximumMinutes": 240,
+      "order": 69,
+      "phaseId": "PHASE-09",
+      "taskIds": [
+        "TASK-0193"
+      ]
+    },
+    {
+      "id": "CYCLE-070",
+      "journeyUseCaseIds": [
+        "UC-UI-SHELL-NAVIGATION"
+      ],
+      "maximumMinutes": 240,
+      "order": 70,
+      "phaseId": "PHASE-09",
       "taskIds": [
         "TASK-0195",
         "TASK-0196"
       ]
     },
     {
-      "id": "CYCLE-060",
+      "id": "CYCLE-071",
       "journeyUseCaseIds": [
         "UC-ANALYTICS-DASHBOARD"
       ],
       "maximumMinutes": 240,
-      "order": 60,
-      "phaseId": "PHASE-06",
+      "order": 71,
+      "phaseId": "PHASE-09",
       "taskIds": [
         "TASK-0197",
         "TASK-0198"
       ]
     },
     {
-      "id": "CYCLE-061",
+      "id": "CYCLE-072",
       "journeyUseCaseIds": [],
       "maximumMinutes": 240,
-      "order": 61,
-      "phaseId": "PHASE-06",
+      "order": 72,
+      "phaseId": "PHASE-09",
       "taskIds": [
         "TASK-0199"
       ]
     },
     {
-      "id": "CYCLE-062",
+      "id": "CYCLE-073",
       "journeyUseCaseIds": [
         "UC-UI-LIST-DETAIL",
         "UC-UI-FORM-DETAIL-DESIGNER",
         "UC-SYSTEM-ADMIN-CONFIG"
       ],
       "maximumMinutes": 240,
-      "order": 62,
-      "phaseId": "PHASE-06",
+      "order": 73,
+      "phaseId": "PHASE-09",
       "taskIds": [
         "TASK-0200",
         "TASK-0201",
@@ -876,28 +1047,40 @@
       ]
     },
     {
-      "id": "CYCLE-063",
+      "id": "CYCLE-074",
       "journeyUseCaseIds": [
         "UC-LOWCODE-MODULE-LIFECYCLE"
       ],
       "maximumMinutes": 240,
-      "order": 63,
-      "phaseId": "PHASE-06",
+      "order": 74,
+      "phaseId": "PHASE-09",
       "taskIds": [
         "TASK-0203",
         "TASK-0204"
       ]
     },
     {
-      "id": "CYCLE-064",
+      "id": "CYCLE-075",
       "journeyUseCaseIds": [
         "UC-UI-DESIGN-RESPONSIVE"
       ],
       "maximumMinutes": 240,
-      "order": 64,
-      "phaseId": "PHASE-06",
+      "order": 75,
+      "phaseId": "PHASE-09",
       "taskIds": [
         "TASK-0205",
+        "TASK-0194"
+      ]
+    },
+    {
+      "id": "CYCLE-076",
+      "journeyUseCaseIds": [
+        "UC-UI-DESIGN-RESPONSIVE"
+      ],
+      "maximumMinutes": 240,
+      "order": 76,
+      "phaseId": "PHASE-09",
+      "taskIds": [
         "TASK-0206"
       ]
     }
@@ -1200,15 +1383,42 @@
         "PHASE-05"
       ],
       "id": "PHASE-06",
-      "name": "运维安全与统一响应式 Hardening",
+      "name": "既有运维安全工程闭环",
       "order": 6,
-      "outcome": "部署升级备份密钥观测具备真实操作闭环，同一 Vue 应用通过完整移动断点、触控与可访问性验收。"
+      "outcome": "部署升级备份密钥观测完成工程闭环，并为系统业务重建提供稳定运行基础。"
+    },
+    {
+      "dependsOn": [
+        "PHASE-06"
+      ],
+      "id": "PHASE-07",
+      "name": "登录系统模块记录骨架重建",
+      "order": 7,
+      "outcome": "按不可退化基线完成登录、系统创建初始化、模块构建发布、业务记录和统一组织权限主链。"
+    },
+    {
+      "dependsOn": [
+        "PHASE-07"
+      ],
+      "id": "PHASE-08",
+      "name": "Flow 与业务血肉重建",
+      "order": 8,
+      "outcome": "在已跑通骨架上完成 Flow、应用、任务、待办消息、文件、统计 KPI 和上下文助手闭环。"
+    },
+    {
+      "dependsOn": [
+        "PHASE-08"
+      ],
+      "id": "PHASE-09",
+      "name": "完整系统体验与生产收口",
+      "order": 9,
+      "outcome": "三类角色使用同一客户运营中心数据连续完成全系统旅程后，再统一完成设计系统、多断点和生产验收。"
     }
   ],
   "schemaVersion": 1,
   "source": {
     "taskCatalogPath": "task-catalog.json",
-    "taskCatalogSha256": "e24b110f699d6c36ba64acffa5f0940be4edc6d4cb0dff29dd2856c6bffa075e"
+    "taskCatalogSha256": "3346dca35025e45953223e7bb960bce5150e5b5f05f5e8e160a144e94b506de7"
   },
   "taskSchedules": [
     {
@@ -2821,124 +3031,536 @@
       "taskId": "TASK-0191"
     },
     {
-      "dependsOn": [
-        "TASK-0178",
-        "TASK-0191"
-      ],
+      "dependsOn": [],
       "estimateMinutes": 120,
       "phaseId": "PHASE-06",
       "taskId": "TASK-0192"
     },
     {
       "dependsOn": [
+        "TASK-0003"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0207"
+    },
+    {
+      "dependsOn": [
+        "TASK-0003",
+        "TASK-0005",
+        "TASK-0006"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0208"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 75,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0209"
+    },
+    {
+      "dependsOn": [
+        "TASK-0025",
+        "TASK-0028",
+        "TASK-0209"
+      ],
+      "estimateMinutes": 60,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0210"
+    },
+    {
+      "dependsOn": [
+        "TASK-0024",
+        "TASK-0025",
+        "TASK-0026",
+        "TASK-0028",
+        "TASK-0029",
+        "TASK-0209",
+        "TASK-0210"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0211"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 120,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0212"
+    },
+    {
+      "dependsOn": [
+        "TASK-0066",
+        "TASK-0069",
+        "TASK-0072",
+        "TASK-0075",
+        "TASK-0212"
+      ],
+      "estimateMinutes": 90,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0213"
+    },
+    {
+      "dependsOn": [
+        "TASK-0065",
+        "TASK-0066",
+        "TASK-0067",
+        "TASK-0069",
+        "TASK-0070",
+        "TASK-0072",
+        "TASK-0073",
+        "TASK-0075",
+        "TASK-0076",
+        "TASK-0212",
+        "TASK-0213"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0214"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 120,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0215"
+    },
+    {
+      "dependsOn": [
+        "TASK-0085",
+        "TASK-0215"
+      ],
+      "estimateMinutes": 90,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0216"
+    },
+    {
+      "dependsOn": [
+        "TASK-0084",
+        "TASK-0085",
+        "TASK-0086",
+        "TASK-0215",
+        "TASK-0216"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0217"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 90,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0218"
+    },
+    {
+      "dependsOn": [
+        "TASK-0038",
+        "TASK-0041",
+        "TASK-0044",
+        "TASK-0218"
+      ],
+      "estimateMinutes": 70,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0219"
+    },
+    {
+      "dependsOn": [
+        "TASK-0037",
+        "TASK-0038",
+        "TASK-0039",
+        "TASK-0041",
+        "TASK-0042",
+        "TASK-0044",
+        "TASK-0045",
+        "TASK-0218",
+        "TASK-0219"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-07",
+      "taskId": "TASK-0220"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 150,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0221"
+    },
+    {
+      "dependsOn": [
+        "TASK-0098",
+        "TASK-0101",
+        "TASK-0104",
+        "TASK-0107",
+        "TASK-0221"
+      ],
+      "estimateMinutes": 115,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0222"
+    },
+    {
+      "dependsOn": [
+        "TASK-0097",
+        "TASK-0098",
+        "TASK-0099",
+        "TASK-0101",
+        "TASK-0102",
+        "TASK-0104",
+        "TASK-0105",
+        "TASK-0107",
+        "TASK-0108",
+        "TASK-0221",
+        "TASK-0222"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0223"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 120,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0224"
+    },
+    {
+      "dependsOn": [
+        "TASK-0111",
+        "TASK-0114",
+        "TASK-0224"
+      ],
+      "estimateMinutes": 90,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0225"
+    },
+    {
+      "dependsOn": [
+        "TASK-0110",
+        "TASK-0111",
+        "TASK-0112",
+        "TASK-0114",
+        "TASK-0115",
+        "TASK-0224",
+        "TASK-0225"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0226"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 75,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0227"
+    },
+    {
+      "dependsOn": [
+        "TASK-0118",
+        "TASK-0121",
+        "TASK-0124",
+        "TASK-0227"
+      ],
+      "estimateMinutes": 60,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0228"
+    },
+    {
+      "dependsOn": [
+        "TASK-0117",
+        "TASK-0118",
+        "TASK-0119",
+        "TASK-0121",
+        "TASK-0122",
+        "TASK-0124",
+        "TASK-0125",
+        "TASK-0227",
+        "TASK-0228"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0229"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 75,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0230"
+    },
+    {
+      "dependsOn": [
+        "TASK-0128",
+        "TASK-0131",
+        "TASK-0230"
+      ],
+      "estimateMinutes": 60,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0231"
+    },
+    {
+      "dependsOn": [
+        "TASK-0127",
+        "TASK-0128",
+        "TASK-0129",
+        "TASK-0131",
+        "TASK-0132",
+        "TASK-0230",
+        "TASK-0231"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0232"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 60,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0233"
+    },
+    {
+      "dependsOn": [
+        "TASK-0145",
+        "TASK-0233"
+      ],
+      "estimateMinutes": 45,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0234"
+    },
+    {
+      "dependsOn": [
+        "TASK-0144",
+        "TASK-0145",
+        "TASK-0146",
+        "TASK-0233",
+        "TASK-0234"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0235"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 105,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0236"
+    },
+    {
+      "dependsOn": [
+        "TASK-0156",
+        "TASK-0159",
+        "TASK-0162",
+        "TASK-0236"
+      ],
+      "estimateMinutes": 80,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0237"
+    },
+    {
+      "dependsOn": [
+        "TASK-0155",
+        "TASK-0156",
+        "TASK-0157",
+        "TASK-0159",
+        "TASK-0160",
+        "TASK-0162",
+        "TASK-0163",
+        "TASK-0236",
+        "TASK-0237"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0238"
+    },
+    {
+      "dependsOn": [
+        "TASK-0006"
+      ],
+      "estimateMinutes": 120,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0239"
+    },
+    {
+      "dependsOn": [
+        "TASK-0135",
+        "TASK-0138",
+        "TASK-0141",
+        "TASK-0239"
+      ],
+      "estimateMinutes": 90,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0240"
+    },
+    {
+      "dependsOn": [
+        "TASK-0134",
+        "TASK-0135",
+        "TASK-0136",
+        "TASK-0138",
+        "TASK-0139",
+        "TASK-0141",
+        "TASK-0142",
+        "TASK-0239",
+        "TASK-0240"
+      ],
+      "estimateMinutes": 15,
+      "phaseId": "PHASE-08",
+      "taskId": "TASK-0241"
+    },
+    {
+      "dependsOn": [
         "TASK-0192"
       ],
       "estimateMinutes": 180,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0193"
     },
     {
       "dependsOn": [
-        "TASK-0193"
-      ],
-      "estimateMinutes": 45,
-      "phaseId": "PHASE-06",
-      "taskId": "TASK-0194"
-    },
-    {
-      "dependsOn": [
-        "TASK-0194"
+        "TASK-0006"
       ],
       "estimateMinutes": 180,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0195"
     },
     {
       "dependsOn": [
+        "TASK-0169",
         "TASK-0195"
       ],
       "estimateMinutes": 45,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0196"
     },
     {
       "dependsOn": [
-        "TASK-0196"
+        "TASK-0156",
+        "TASK-0236"
       ],
       "estimateMinutes": 180,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0197"
     },
     {
       "dependsOn": [
-        "TASK-0197"
+        "TASK-0155",
+        "TASK-0156",
+        "TASK-0157",
+        "TASK-0197",
+        "TASK-0236",
+        "TASK-0237"
       ],
       "estimateMinutes": 45,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0198"
     },
     {
       "dependsOn": [
-        "TASK-0198"
+        "TASK-0006"
       ],
       "estimateMinutes": 210,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0199"
     },
     {
       "dependsOn": [
+        "TASK-0171",
+        "TASK-0173",
         "TASK-0199"
       ],
       "estimateMinutes": 45,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0200"
     },
     {
       "dependsOn": [
-        "TASK-0200"
+        "TASK-0028",
+        "TASK-0209"
       ],
       "estimateMinutes": 150,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0201"
     },
     {
       "dependsOn": [
-        "TASK-0201"
+        "TASK-0024",
+        "TASK-0028",
+        "TASK-0029",
+        "TASK-0201",
+        "TASK-0209",
+        "TASK-0210"
       ],
       "estimateMinutes": 45,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0202"
     },
     {
       "dependsOn": [
-        "TASK-0202"
+        "TASK-0066",
+        "TASK-0212"
       ],
       "estimateMinutes": 180,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0203"
     },
     {
       "dependsOn": [
-        "TASK-0203"
+        "TASK-0065",
+        "TASK-0066",
+        "TASK-0067",
+        "TASK-0203",
+        "TASK-0212",
+        "TASK-0213"
       ],
       "estimateMinutes": 45,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0204"
     },
     {
       "dependsOn": [
-        "TASK-0204"
+        "TASK-0192"
       ],
       "estimateMinutes": 180,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0205"
     },
     {
       "dependsOn": [
+        "TASK-0177",
+        "TASK-0192",
+        "TASK-0193",
+        "TASK-0205"
+      ],
+      "estimateMinutes": 45,
+      "phaseId": "PHASE-09",
+      "taskId": "TASK-0194"
+    },
+    {
+      "dependsOn": [
+        "TASK-0177",
+        "TASK-0192",
+        "TASK-0193",
         "TASK-0205"
       ],
       "estimateMinutes": 60,
-      "phaseId": "PHASE-06",
+      "phaseId": "PHASE-09",
       "taskId": "TASK-0206"
     }
   ]

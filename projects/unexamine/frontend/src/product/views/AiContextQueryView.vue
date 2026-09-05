@@ -4,7 +4,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { aiOutcomePresentation, aiScopeSummary } from '../ai-context'
-import { productDateTime } from '../presentation'
+import { productDateTime, userFacingRecordNumber } from '../presentation'
 import { systemContext, systemTokens } from '../session'
 import type { AiQueryConversationDetail, AiQueryOverview, AiQueryResult } from '../types'
 
@@ -176,7 +176,7 @@ onMounted(loadOverview)
             <div v-if="result.sources.length" class="ai-source-list">
               <div class="panel-title"><strong>获权来源</strong><span>点击回到普通业务页复核</span></div>
               <button v-for="source in result.sources" :key="source.recordId" class="ai-source-row" @click="router.push(source.path)">
-                <span><strong>{{ source.title }}</strong><small>{{ source.recordNumber || '业务记录' }} · {{ Object.keys(source.fields).length }} 个可见字段</small></span><LinkOutlined />
+                <span><strong>{{ source.title }}</strong><small>{{ userFacingRecordNumber(source.recordNumber) }} · {{ Object.keys(source.fields).length }} 个可见字段</small></span><LinkOutlined />
               </button>
             </div>
           </div>

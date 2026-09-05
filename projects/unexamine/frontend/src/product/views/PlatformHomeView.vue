@@ -7,7 +7,8 @@ import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
 import PlatformShell from '../components/PlatformShell.vue'
 import { isVerificationArtifactName, userFacingWorkspaceName } from '../presentation'
-import { clearSession, platformContext, platformTokens, setSystemSession, systemContext, type CurrentContext, type SessionTokens } from '../session'
+import { clearSession, platformContext, platformTokens } from '../session'
+import { establishSystemSession } from '../system-entry'
 import type { SystemAccessRequest, SystemDirectoryItem } from '../types'
 
 interface AccessibleSystem {
@@ -18,24 +19,6 @@ interface AccessibleSystem {
   status: string
   defaultTenantId: number
   defaultTenantName: string
-}
-
-interface EntryResult {
-  systemId: number
-  systemCode: string
-  systemName: string
-  tenantMode: string
-  tenantId: number
-  tenantName: string
-  systemMemberId: number
-  tenantMemberId: number
-  roleIds: number[]
-  permissions: CurrentContext['permissions']
-  dataScopes: CurrentContext['dataScopes']
-  contextRevision: string
-  redrawScopes: string[]
-  tenantSwitchContext: CurrentContext['tenantSwitchContext']
-  tokens: SessionTokens
 }
 
 const router = useRouter()
@@ -51,7 +34,7 @@ const requestTarget = ref<SystemDirectoryItem | null>(null)
 const error = ref('')
 const success = ref('')
 const requestForm = reactive({ reason: '', requestedRole: '' })
-const createForm = reactive({ name: '', code: '', tenantMode: 'SINGLE' })
+const createForm = reactive({ name: '' })
 const visibleSystems = computed(() => systems.value.filter((system) => !isVerificationArtifactName(system.systemName)))
 const requestableSystems = computed(() => directory.value.filter((system) => !system.accessible && !isVerificationArtifactName(system.systemName)))
 const canCreateSystem = computed(() => platformContext.value?.permissions.some((permission) =>
@@ -92,14 +75,12 @@ function openAccessRequest(system: SystemDirectoryItem) {
 
 function openCreateSystem() {
   createForm.name = ''
-  createForm.code = ''
-  createForm.tenantMode = 'SINGLE'
   error.value = ''
   createOpen.value = true
 }
 
 async function createSystem() {
-  if (!platformTokens.value?.accessToken || !createForm.name.trim() || !createForm.code.trim()) return
+  if (!platformTokens.value?.accessToken || !createForm.name.trim()) return
   creating.value = true
   error.value = ''
   success.value = ''
@@ -108,13 +89,12 @@ async function createSystem() {
       method: 'POST',
       body: JSON.stringify({
         name: createForm.name.trim(),
-        code: createForm.code.trim(),
-        tenantMode: createForm.tenantMode,
       }),
     }, platformTokens.value.accessToken)
     createOpen.value = false
     await loadSystems()
-    success.value = `系统“${created.systemName}”已创建，首个工作空间为“${userFacingWorkspaceName(created.defaultTenantName)}”。你现在可以进入系统继续配置。`
+    success.value = `系统“${created.systemName}”已创建，正在进入“${userFacingWorkspaceName(created.defaultTenantName)}”。`
+    await enterSystem(created)
   } catch (reason) {
     error.value = reason instanceof ApiError ? reason.message : '系统创建失败'
   } finally {
@@ -154,32 +134,7 @@ async function enterSystem(system: AccessibleSystem) {
   if (!platformTokens.value?.accessToken || !platformContext.value) return
   entering.value = system.systemId
   try {
-    const entry = await api<EntryResult>(`/api/systems/${system.systemId}/enter`, {
-      method: 'POST',
-      body: JSON.stringify({
-        previousSystemId: systemContext.value?.systemId ?? null,
-        previousTenantId: systemContext.value?.tenantId ?? null,
-      }),
-    }, platformTokens.value.accessToken)
-    setSystemSession(entry.tokens, {
-      accountId: platformContext.value.accountId,
-      platformId: platformContext.value.platformId,
-      systemId: entry.systemId,
-      tenantId: entry.tenantId,
-      memberId: entry.systemMemberId,
-      tenantMemberId: entry.tenantMemberId,
-      username: platformContext.value.username,
-      displayName: platformContext.value.displayName,
-      mfaLevel: platformContext.value.mfaLevel,
-      systemName: entry.systemName,
-      tenantName: entry.tenantName,
-      roleIds: entry.roleIds,
-      permissions: entry.permissions,
-      dataScopes: entry.dataScopes,
-      contextRevision: entry.contextRevision,
-      redrawScopes: entry.redrawScopes,
-      tenantSwitchContext: entry.tenantSwitchContext,
-    })
+    await establishSystemSession(system.systemId)
     await router.push(`/systems/${system.systemId}`)
   } catch (reason) {
     error.value = reason instanceof ApiError ? reason.message : '无法进入系统'
@@ -237,18 +192,10 @@ onMounted(loadSystems)
     </a-modal>
 
     <a-modal :open="createOpen" title="新建系统" :confirm-loading="creating" ok-text="创建系统" @ok="createSystem" @cancel="createOpen = false">
-      <a-alert type="info" show-icon message="创建后会同时生成首个工作空间，并授予你该系统的管理权限。" class="section-alert" />
+      <a-alert type="info" show-icon message="创建后会自动准备主工作空间、根组织和系统管理员权限，并直接进入系统。" class="section-alert" />
       <a-form layout="vertical">
         <a-form-item label="系统名称" required><a-input v-model:value="createForm.name" :maxlength="200" placeholder="例如：客户经营系统" /></a-form-item>
-        <a-form-item label="系统编码" required extra="2–100 位，以字母开头，可使用小写字母、数字、短横线和下划线。">
-          <a-input v-model:value="createForm.code" :maxlength="100" placeholder="例如：customer_ops" />
-        </a-form-item>
-        <a-form-item label="租户模式" required>
-          <a-radio-group v-model:value="createForm.tenantMode">
-            <a-radio-button value="SINGLE">单组织</a-radio-button>
-            <a-radio-button value="MULTI">多组织</a-radio-button>
-          </a-radio-group>
-        </a-form-item>
+        <p class="system-create-note">系统标识由平台自动生成。新系统先按单组织模式启用；确需多个独立业务组织时，可由管理员完成影响检查后再开启。</p>
       </a-form>
     </a-modal>
   </PlatformShell>

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-065",
+  "executedAt": "2026-09-01T23:25:08+08:00",
+  "taskIds": [
+    "TASK-0230",
+    "TASK-0231",
+    "TASK-0232",
+    "TASK-0233"
+  ],
+  "checks": [
+    {
+      "name": "待办、消息管理和个人文档前端全量回归与生产构建",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (28 files / 80 tests); npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "消息组织成员解析、管理员投递诊断和业务附件后端编译",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -DskipTests package; mvn -DskipTests test-compile",
+      "result": "passed"
+    },
+    {
+      "name": "任务待办消息、撤回刷新、消息去重、角标、组织边界和审计真实验收",
+      "command": "pwsh projects/unexamine/tools/c65-live-acceptance.ps1 against Spring Boot 18080, MySQL 33077 and Redis 36379",
+      "result": "passed"
+    },
+    {
+      "name": "个人业务附件原子上传、字节下载、删除和无效对象零孤儿真实验收",
+      "command": "pwsh projects/unexamine/tools/c65-live-acceptance.ps1; system #27 / tenant #29 / attachment #6",
+      "result": "passed"
+    },
+    {
+      "name": "工作区唯一需求源、活动实现和复用模板边界",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-NOTIFICATION-TODO",
+      "entryUrl": "http://127.0.0.1:15174/systems/27?workspace=todos",
+      "actor": "客户跟进任务负责人和审批处理人",
+      "result": "passed",
+      "pageAssertions": [
+        "待办按需要审批、需要推进和需要关注三个工作语义分组，不再把所有来源平铺成同一种卡片。",
+        "每项待办显示业务对象、发起人、优先级、截止时间、最新状态和当前可执行动作；Flow 与任务都能返回准确来源。",
+        "组织成员选择使用当前工作空间人员目录，转交动作不要求用户填写账号编号。",
+        "目标已经处理、撤回、取消、转交或失效时，列表刷新会读取目标当前状态并禁止再次执行。"
+      ],
+      "persistentReads": [
+        "系统 #27 的工作任务 #9 自动投影待办 #9 和消息 #51；待办读取到业务对象“跟进重点客户回访”和真实发起人。",
+        "工作任务 #9 取消后待办 #9 从 PENDING 刷新为 COMPLETED，不再提供执行动作。",
+        "任务创建、任务更新、消息生成、全部已读和附件操作共读回 6 条目标审计事件。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+        "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+        "projects/unexamine/tools/c65-live-acceptance.ps1"
+      ]
+    },
+    {
+      "useCaseId": "UC-NOTIFICATION-MESSAGE-DELIVERY",
+      "entryUrl": "http://127.0.0.1:15174/systems/27?workspace=messages",
+      "actor": "接收业务通知的普通成员与消息管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "普通收件箱只呈现消息主题、正文、来源、发起人、时间、已读状态和可访问的关联业务对象，不出现模板编辑、账号编号、变量 JSON 或投递回执。",
+        "模板配置、组织成员测试发送和渠道投递诊断移动到系统或平台管理区；系统测试接收人只能从当前工作空间目录选择。",
+        "消息发送接口接收 PLATFORM_MEMBER 或 TENANT_MEMBER 组织引用并按当前上下文解析，系统消息拒绝平台成员引用。",
+        "消息点击时重新校验 Flow、任务、记录、应用或文件目标权限；全部已读后未读角标即时为 0。"
+      ],
+      "persistentReads": [
+        "诊断消息 #52 使用同一去重键重复发送后仍返回消息 #52，未重复创建事件。",
+        "普通收件箱消息响应不存在 deliveries 字段；管理员诊断读取到 IN_APP 与 EMAIL 两条投递记录。",
+        "错误 PLATFORM_MEMBER 系统收件人返回 MESSAGE_RECIPIENT_CONTEXT_INVALID；全部已读后未读数为 0。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+        "projects/unexamine/frontend/src/product/views/MessageWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/views/MessageTemplateManagementView.vue",
+        "projects/unexamine/tools/c65-live-acceptance.ps1"
+      ]
+    }
+  ]
+}

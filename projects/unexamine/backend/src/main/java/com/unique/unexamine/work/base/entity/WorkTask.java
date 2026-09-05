@@ -65,6 +65,9 @@ public class WorkTask {
     @TableField("owner_account_id")
     private Long ownerAccountId;
 
+    @TableField("owner_tenant_member_id")
+    private Long ownerTenantMemberId;
+
     @TableField("start_at")
     private LocalDateTime startAt;
 
@@ -76,6 +79,15 @@ public class WorkTask {
 
     @TableField("custom_values_json")
     private String customValuesJson;
+
+    @TableField("business_type")
+    private String businessType;
+
+    @TableField("business_id")
+    private String businessId;
+
+    @TableField("business_title")
+    private String businessTitle;
 
     @TableField("created_by_account_id")
     private Long createdByAccountId;
@@ -210,6 +222,14 @@ public class WorkTask {
         this.ownerAccountId = ownerAccountId;
     }
 
+    public Long getOwnerTenantMemberId() {
+        return ownerTenantMemberId;
+    }
+
+    public void setOwnerTenantMemberId(Long ownerTenantMemberId) {
+        this.ownerTenantMemberId = ownerTenantMemberId;
+    }
+
     public LocalDateTime getStartAt() {
         return startAt;
     }
@@ -240,6 +260,30 @@ public class WorkTask {
 
     public void setCustomValuesJson(String customValuesJson) {
         this.customValuesJson = customValuesJson;
+    }
+
+    public String getBusinessType() {
+        return businessType;
+    }
+
+    public void setBusinessType(String businessType) {
+        this.businessType = businessType;
+    }
+
+    public String getBusinessId() {
+        return businessId;
+    }
+
+    public void setBusinessId(String businessId) {
+        this.businessId = businessId;
+    }
+
+    public String getBusinessTitle() {
+        return businessTitle;
+    }
+
+    public void setBusinessTitle(String businessTitle) {
+        this.businessTitle = businessTitle;
     }
 
     public Long getCreatedByAccountId() {
@@ -292,10 +336,14 @@ public class WorkTask {
             ", status = " + status +
             ", progressPercent = " + progressPercent +
             ", ownerAccountId = " + ownerAccountId +
+            ", ownerTenantMemberId = " + ownerTenantMemberId +
             ", startAt = " + startAt +
             ", dueAt = " + dueAt +
             ", completedAt = " + completedAt +
             ", customValuesJson = " + customValuesJson +
+            ", businessType = " + businessType +
+            ", businessId = " + businessId +
+            ", businessTitle = " + businessTitle +
             ", createdByAccountId = " + createdByAccountId +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +

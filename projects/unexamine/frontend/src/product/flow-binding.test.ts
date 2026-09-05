@@ -9,8 +9,8 @@ describe('Flow binding page state', () => {
   })
 
   it('keeps replacement explicit and source language unambiguous', () => {
-    expect(bindingSourceLabel('DEFAULT')).toBe('主租户默认')
-    expect(bindingSourceLabel('TENANT_OVERRIDE')).toBe('当前租户覆盖')
+    expect(bindingSourceLabel('DEFAULT')).toBe('系统公共配置')
+    expect(bindingSourceLabel('TENANT_OVERRIDE')).toBe('当前工作空间配置')
     expect(publishedBindingPayload({ moduleId: 1, flowId: 2, triggerEvent: 'CREATE',
       executionMode: 'AFTER_EXECUTION', priorityOrder: 0, conditionExpression: '  amount > 10  ',
       mutuallyExclusive: true }, true)).toMatchObject({ conditionExpression: 'amount > 10', replaceExisting: true })

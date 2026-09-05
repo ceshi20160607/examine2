@@ -7,13 +7,14 @@
         <id column="id" property="id" />
         <result column="task_id" property="taskId" />
         <result column="account_id" property="accountId" />
+        <result column="tenant_member_id" property="tenantMemberId" />
         <result column="member_type" property="memberType" />
         <result column="created_at" property="createdAt" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, task_id, account_id, member_type, created_at
+        id, task_id, account_id, tenant_member_id, member_type, created_at
     </sql>
 
 </mapper>

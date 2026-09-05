@@ -5,9 +5,12 @@ import { ApiError, api } from '../api'
 import { allowsPermission } from '../permissions'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
 import { groupProjectTasks, nextTaskAction } from '../work-management'
-import type { WorkProject, WorkTask } from '../types'
+import type { SystemDirectoryPerson, SystemPeopleDirectory, WorkConfigurationField, WorkPerson, WorkProject, WorkTask } from '../types'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
+import PersonSelect from '../components/PersonSelect.vue'
+import WorkConfiguredFields from '../components/WorkConfiguredFields.vue'
+import BusinessAttachmentsPanel from '../components/BusinessAttachmentsPanel.vue'
 import { productDateTime } from '../presentation'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'platform' })
@@ -15,6 +18,8 @@ const token = computed(() => props.context === 'platform' ? platformTokens.value
 const current = computed(() => props.context === 'platform' ? platformContext.value : systemContext.value)
 const contextCode = computed(() => props.context === 'platform' ? 'PLATFORM' : 'SYSTEM')
 const projects = ref<WorkProject[]>([])
+const directory = ref<SystemPeopleDirectory>({ departments: [], people: [], permissionVersion: 0 })
+const taskFields = ref<WorkConfigurationField[]>([])
 const selected = ref<WorkProject>()
 const taskDetail = ref<WorkTask>()
 const loading = ref(false)
@@ -27,9 +32,16 @@ const projectForm = reactive({ code: '', name: '', description: '', startDate: '
 const groupForm = reactive({ name: '', sortOrder: 10 })
 const taskForm = reactive({
   title: '', description: '', taskGroupId: undefined as number | undefined,
-  priority: 'NORMAL' as WorkTask['priority'], ownerAccountId: undefined as number | undefined,
-  startAt: '', dueAt: '', acceptance: '',
+  priority: 'NORMAL' as WorkTask['priority'], ownerId: undefined as number | undefined,
+  collaboratorIds: [] as number[], startAt: '', dueAt: '', configuredValues: {} as Record<string, unknown>,
 })
+const directoryPeople = computed<SystemDirectoryPerson[]>(() => props.context === 'system'
+  ? directory.value.people
+  : current.value ? [{
+    tenantMemberId: current.value.accountId, systemMemberId: current.value.accountId,
+    accountId: current.value.accountId, displayName: current.value.displayName,
+    roleNames: [], tenantAdmin: false,
+  }] : [])
 
 const groupedTasks = computed(() => selected.value ? groupProjectTasks(selected.value.tasks, selected.value.taskGroups) : [])
 const summary = computed(() => {
@@ -43,6 +55,10 @@ const summary = computed(() => {
 function can(action: string) {
   return allowsPermission(current.value?.permissions, 'WORK', contextCode.value, action)
     || allowsPermission(current.value?.permissions, 'WORK', '*', action)
+}
+function canFile(action: string) {
+  return allowsPermission(current.value?.permissions, 'FILE', 'OBJECT', action)
+    || allowsPermission(current.value?.permissions, 'FILE', '*', action)
 }
 
 function describeError(error: unknown) {
@@ -67,11 +83,11 @@ function projectStatusLabel(status: string) {
 }
 
 function ownerLabel(task: WorkTask) {
-  return task.ownerAccountId === current.value?.accountId ? current.value?.displayName || '我' : '项目成员'
+  return task.owner.displayName
 }
 
 function historyLabel(code: string) {
-  return ({ CREATED: '创建任务', UPDATED: '更新任务', STATUS_CHANGED: '更新状态' } as Record<string, string>)[code] || '更新任务'
+  return ({ CREATED: '创建任务', UPDATED: '更新任务', STATUS_CHANGED: '更新状态', ATTACHMENT_ADDED: '添加附件', ATTACHMENT_REMOVED: '移除附件' } as Record<string, string>)[code] || '更新任务'
 }
 
 async function loadProjects(preferId?: number) {
@@ -89,6 +105,30 @@ async function loadProjects(preferId?: number) {
   }
 }
 
+async function loadDirectory() {
+  if (!token.value || props.context !== 'system') return
+  try { directory.value = await api<SystemPeopleDirectory>('/api/system-directory', {}, token.value) }
+  catch (error) { message.error(describeError(error)) }
+}
+
+async function loadTaskFields() {
+  if (!token.value) return
+  try { taskFields.value = await api<WorkConfigurationField[]>('/api/work/configuration/effective/TASK', {}, token.value) }
+  catch (error) { message.error(describeError(error)) }
+}
+
+function assignmentPayload(ownerId: number | undefined, collaborators: number[]) {
+  return props.context === 'system'
+    ? { ownerTenantMemberId: ownerId, collaboratorTenantMemberIds: collaborators }
+    : { ownerAccountId: ownerId, collaboratorAccountIds: collaborators }
+}
+
+function updateAssignmentPayload(owner: WorkPerson, collaborators: WorkPerson[]) {
+  return props.context === 'system'
+    ? { ownerTenantMemberId: owner.tenantMemberId, collaboratorTenantMemberIds: collaborators.map(item => item.tenantMemberId).filter((id): id is number => !!id) }
+    : { ownerAccountId: current.value?.accountId, collaboratorAccountIds: [] }
+}
+
 async function selectProject(id: number) {
   if (!token.value) return
   try {
@@ -99,12 +139,12 @@ async function selectProject(id: number) {
 }
 
 async function createProject() {
-  if (!token.value || !projectForm.code.trim() || !projectForm.name.trim()) return
+  if (!token.value || !projectForm.name.trim()) return
   busy.value = 'project'
   try {
     const project = await api<WorkProject>('/api/work/projects', {
       method: 'POST', body: JSON.stringify({
-        code: projectForm.code, name: projectForm.name, description: projectForm.description || undefined,
+        code: projectForm.code.trim() || undefined, name: projectForm.name, description: projectForm.description || undefined,
         startDate: projectForm.startDate || undefined, dueDate: projectForm.dueDate || undefined, members: [],
       }),
     }, token.value)
@@ -145,22 +185,22 @@ async function createGroup() {
 function openTask(groupId?: number) {
   Object.assign(taskForm, {
     title: '', description: '', taskGroupId: groupId ?? selected.value?.taskGroups[0]?.id,
-    priority: 'NORMAL', ownerAccountId: current.value?.accountId,
-    startAt: '', dueAt: '', acceptance: '',
+    priority: 'NORMAL', ownerId: props.context === 'system' ? current.value?.tenantMemberId || undefined : current.value?.accountId,
+    collaboratorIds: [], startAt: '', dueAt: '', configuredValues: {},
   })
   createTaskOpen.value = true
 }
 
 async function createTask() {
-  if (!token.value || !selected.value || !taskForm.title.trim() || !taskForm.ownerAccountId) return
+  if (!token.value || !selected.value || !taskForm.title.trim() || !taskForm.ownerId) return
   busy.value = 'task'
   try {
     const task = await api<WorkTask>(`/api/work/projects/${selected.value.id}/tasks`, {
       method: 'POST', body: JSON.stringify({
         taskGroupId: taskForm.taskGroupId, title: taskForm.title, description: taskForm.description || undefined,
-        priority: taskForm.priority, ownerAccountId: taskForm.ownerAccountId,
+        priority: taskForm.priority, ...assignmentPayload(taskForm.ownerId, taskForm.collaboratorIds),
         startAt: taskForm.startAt || undefined, dueAt: taskForm.dueAt || undefined,
-        collaboratorAccountIds: [], customValues: taskForm.acceptance ? { acceptance: taskForm.acceptance } : {},
+        configuredValues: taskForm.configuredValues,
       }),
     }, token.value)
     createTaskOpen.value = false
@@ -198,10 +238,12 @@ async function advanceTask(task: WorkTask) {
   try {
     const updated = await api<WorkTask>(`/api/work/tasks/${task.id}`, {
       method: 'PUT', body: JSON.stringify({
-        expectedVersion: task.version, status: action.status, ownerAccountId: task.ownerAccountId,
+        expectedVersion: task.version, status: action.status,
+        ...updateAssignmentPayload(task.owner, task.collaborators),
         priority: task.priority, progressPercent: action.status === 'COMPLETED' ? 100 : Math.max(10, Number(task.progressPercent)),
-        startAt: task.startAt, dueAt: task.dueAt, collaboratorAccountIds: task.collaboratorAccountIds,
-        customValues: task.customValues, comment: action.label,
+        startAt: task.startAt, dueAt: task.dueAt,
+        businessType: task.businessType, businessId: task.businessId, businessTitle: task.businessTitle,
+        configuredValues: task.configuredValues, comment: action.label,
       }),
     }, token.value)
     message.success(`任务已${action.label === '完成任务' ? '完成' : '开始'}`)
@@ -215,7 +257,7 @@ async function advanceTask(task: WorkTask) {
   }
 }
 
-onMounted(() => loadProjects())
+onMounted(() => Promise.all([loadProjects(), loadDirectory(), loadTaskFields()]))
 </script>
 
 <template>
@@ -239,7 +281,7 @@ onMounted(() => loadProjects())
       <main v-if="selected" class="project-main">
         <section class="panel-card project-overview">
           <div class="project-overview__heading">
-            <span><p class="eyebrow">{{ selected.code }}</p><h2>{{ selected.name }}</h2><small>{{ selected.description || '暂无说明' }}</small></span>
+            <span><p class="eyebrow">项目概览</p><h2>{{ selected.name }}</h2><small>{{ selected.description || '暂无说明' }} · 负责人：{{ selected.owner.displayName }}</small></span>
             <span><a-button v-if="can('MANAGE_PROJECT')" @click="openGroup">新建任务组</a-button><a-button v-if="can('CREATE_TASK')" type="primary" @click="openTask()">新建任务</a-button></span>
           </div>
           <div class="project-metrics">
@@ -270,20 +312,30 @@ onMounted(() => loadProjects())
   </div>
 
   <a-modal v-model:open="createProjectOpen" title="新建项目" :confirm-loading="busy === 'project'" @ok="createProject">
-    <a-form layout="vertical"><div class="form-grid"><a-form-item label="项目名称" required><a-input v-model:value="projectForm.name" placeholder="例如：客户平台交付" /></a-form-item><a-form-item label="稳定编码" required><a-input v-model:value="projectForm.code" placeholder="customer_delivery" /></a-form-item></div><a-form-item label="项目说明"><a-textarea v-model:value="projectForm.description" /></a-form-item><div class="form-grid"><a-form-item label="开始日期"><a-date-picker v-model:value="projectForm.startDate" value-format="YYYY-MM-DD" style="width:100%" /></a-form-item><a-form-item label="截止日期"><a-date-picker v-model:value="projectForm.dueDate" value-format="YYYY-MM-DD" style="width:100%" /></a-form-item></div></a-form>
+    <a-form layout="vertical"><div class="form-grid"><a-form-item label="项目名称" required><a-input v-model:value="projectForm.name" placeholder="例如：客户平台交付" /></a-form-item><a-form-item label="项目编码" extra="可不填，由系统自动生成"><a-input v-model:value="projectForm.code" placeholder="自动生成" /></a-form-item></div><a-form-item label="项目说明"><a-textarea v-model:value="projectForm.description" /></a-form-item><div class="form-grid"><a-form-item label="开始日期"><a-date-picker v-model:value="projectForm.startDate" value-format="YYYY-MM-DD" style="width:100%" /></a-form-item><a-form-item label="截止日期"><a-date-picker v-model:value="projectForm.dueDate" value-format="YYYY-MM-DD" style="width:100%" /></a-form-item></div></a-form>
   </a-modal>
   <a-modal v-model:open="createGroupOpen" title="新建任务组" :confirm-loading="busy === 'group'" @ok="createGroup">
     <a-form layout="vertical"><a-form-item label="任务组名称" required><a-input v-model:value="groupForm.name" placeholder="例如：第一阶段" /></a-form-item><a-form-item label="排序"><a-input-number v-model:value="groupForm.sortOrder" :min="0" style="width:100%" /></a-form-item></a-form>
   </a-modal>
   <a-modal v-model:open="createTaskOpen" title="新建项目任务" width="680px" :confirm-loading="busy === 'task'" @ok="createTask">
-    <a-form layout="vertical"><a-form-item label="任务标题" required><a-input v-model:value="taskForm.title" placeholder="填写一个可直接执行和验收的任务" /></a-form-item><a-form-item label="说明"><a-textarea v-model:value="taskForm.description" /></a-form-item><div class="form-grid"><a-form-item label="任务组"><a-select v-model:value="taskForm.taskGroupId" allow-clear :options="selected?.taskGroups.map(group => ({ value: group.id, label: group.name }))" /></a-form-item><a-form-item label="优先级"><a-select v-model:value="taskForm.priority" :options="[{value:'LOW',label:'低'},{value:'NORMAL',label:'普通'},{value:'HIGH',label:'高'},{value:'URGENT',label:'紧急'}]" /></a-form-item></div><a-form-item label="验收口径"><a-input v-model:value="taskForm.acceptance" placeholder="完成后页面应显示的结果" /></a-form-item><div class="form-grid"><a-form-item label="开始时间"><a-date-picker v-model:value="taskForm.startAt" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" /></a-form-item><a-form-item label="截止时间"><a-date-picker v-model:value="taskForm.dueAt" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" /></a-form-item></div></a-form>
+    <a-form layout="vertical"><a-form-item label="任务标题" required><a-input v-model:value="taskForm.title" placeholder="填写一个可直接执行和验收的任务" /></a-form-item><a-form-item label="说明"><a-textarea v-model:value="taskForm.description" /></a-form-item><div class="form-grid"><a-form-item label="任务组"><a-select v-model:value="taskForm.taskGroupId" allow-clear :options="selected?.taskGroups.map(group => ({ value: group.id, label: group.name }))" /></a-form-item><a-form-item label="优先级"><a-select v-model:value="taskForm.priority" :options="[{value:'LOW',label:'低'},{value:'NORMAL',label:'普通'},{value:'HIGH',label:'高'},{value:'URGENT',label:'紧急'}]" /></a-form-item></div><div class="form-grid"><a-form-item label="负责人" required><PersonSelect v-model="taskForm.ownerId" :people="directoryPeople" :value-key="context === 'system' ? 'tenantMemberId' : 'accountId'" :allow-clear="false" /></a-form-item><a-form-item label="协作成员"><PersonSelect v-model="taskForm.collaboratorIds" :people="directoryPeople" :value-key="context === 'system' ? 'tenantMemberId' : 'accountId'" multiple :excluded-values="taskForm.ownerId ? [taskForm.ownerId] : []" /></a-form-item></div><WorkConfiguredFields v-model="taskForm.configuredValues" :fields="taskFields" /><div class="form-grid"><a-form-item label="开始时间"><a-date-picker v-model:value="taskForm.startAt" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" /></a-form-item><a-form-item label="截止时间"><a-date-picker v-model:value="taskForm.dueAt" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" /></a-form-item></div></a-form>
   </a-modal>
 
   <a-drawer v-model:open="taskDrawerOpen" title="任务详情与版本时间线" width="620">
     <template v-if="taskDetail">
       <div class="task-detail-heading"><span><p class="eyebrow">项目任务</p><h2>{{ taskDetail.title }}</h2></span><a-tag :color="statusColor(taskDetail.status)">{{ statusLabel(taskDetail.status) }}</a-tag></div>
-      <a-descriptions bordered :column="2" size="small"><a-descriptions-item label="负责人">{{ ownerLabel(taskDetail) }}</a-descriptions-item><a-descriptions-item label="优先级">{{ priorityLabel(taskDetail.priority) }}</a-descriptions-item><a-descriptions-item label="进度">{{ taskDetail.progressPercent }}%</a-descriptions-item><a-descriptions-item label="截止时间">{{ taskDetail.dueAt ? productDateTime(taskDetail.dueAt) : '未设置' }}</a-descriptions-item></a-descriptions>
+      <a-descriptions bordered :column="2" size="small"><a-descriptions-item label="负责人">{{ ownerLabel(taskDetail) }}</a-descriptions-item><a-descriptions-item label="协作成员">{{ taskDetail.collaborators.map(item => item.displayName).join('、') || '无' }}</a-descriptions-item><a-descriptions-item label="优先级">{{ priorityLabel(taskDetail.priority) }}</a-descriptions-item><a-descriptions-item label="进度">{{ taskDetail.progressPercent }}%</a-descriptions-item><a-descriptions-item label="截止时间">{{ taskDetail.dueAt ? productDateTime(taskDetail.dueAt) : '未设置' }}</a-descriptions-item><a-descriptions-item v-for="field in taskFields.filter(item => taskDetail?.configuredValues[item.fieldCode] !== undefined)" :key="field.fieldCode" :label="field.fieldName">{{ taskDetail.configuredValues[field.fieldCode] }}</a-descriptions-item></a-descriptions>
+      <BusinessAttachmentsPanel v-if="canFile('VIEW')" :endpoint="`/api/business-attachments/work-tasks/${taskDetail.id}`" :context="context" :writable="canFile('UPLOAD') && canFile('REFERENCE')" title="任务附件" description="说明文档、交付物和处理结果保存在当前任务内。" compact />
       <a-button v-if="can('UPDATE_TASK') && nextTaskAction(taskDetail.status)" type="primary" style="margin-top:16px" :loading="busy === `advance:${taskDetail.id}`" @click="advanceTask(taskDetail)">{{ nextTaskAction(taskDetail.status)?.label }}</a-button>
+      <section class="task-linked-logs">
+        <div class="panel-title"><strong>关联工作日志</strong><span>{{ taskDetail.linkedLogs.length }} 条</span></div>
+        <article v-for="log in taskDetail.linkedLogs" :key="log.id" class="task-linked-log">
+          <span><strong>{{ log.title }}</strong><small>{{ log.authorName }} · {{ log.workDate }}<template v-if="log.durationMinutes"> · {{ log.durationMinutes }} 分钟</template></small></span>
+          <p>{{ log.content }}</p>
+          <a-tag :color="log.status === 'SUBMITTED' ? 'green' : log.status === 'WITHDRAWN' ? 'orange' : 'blue'">{{ log.status === 'SUBMITTED' ? '已提交' : log.status === 'WITHDRAWN' ? '已撤回' : '草稿' }}</a-tag>
+        </article>
+        <a-empty v-if="!taskDetail.linkedLogs.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="尚无工作日志关联此任务" />
+      </section>
       <a-timeline class="task-history-timeline">
         <a-timeline-item v-for="history in taskDetail.history" :key="history.id" :color="history.actionCode === 'CREATED' ? 'blue' : 'green'">
           <strong>{{ historyLabel(history.actionCode) }}</strong><p>{{ history.comment || '任务状态已保存' }}</p><small>{{ productDateTime(history.changedAt) }}</small>

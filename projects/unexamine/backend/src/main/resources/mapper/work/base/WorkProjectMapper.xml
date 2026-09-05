@@ -13,6 +13,7 @@
         <result column="name" property="name" />
         <result column="description" property="description" />
         <result column="owner_account_id" property="ownerAccountId" />
+        <result column="owner_tenant_member_id" property="ownerTenantMemberId" />
         <result column="start_date" property="startDate" />
         <result column="due_date" property="dueDate" />
         <result column="progress_percent" property="progressPercent" />
@@ -24,7 +25,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, `code`, `name`, `description`, owner_account_id, start_date, due_date, progress_percent, `status`, created_at, updated_at, version
+        id, context_type, platform_id, system_id, tenant_id, `code`, `name`, `description`, owner_account_id, owner_tenant_member_id, start_date, due_date, progress_percent, `status`, created_at, updated_at, version
     </sql>
 
 </mapper>

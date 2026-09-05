@@ -2,7 +2,7 @@ export const MOBILE_BREAKPOINT_PX = 900
 export const MINIMUM_TOUCH_TARGET_PX = 48
 
 const HEAVY_CONFIGURATION_SECTIONS = new Set([
-  'organization', 'dictionary', 'dashboard', 'print', 'templates',
+  'organization', 'authorization', 'roles', 'dictionary', 'dashboard', 'print', 'templates', 'parameters',
   'flow', 'applications', 'ai', 'operations',
 ])
 

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-064",
+  "executedAt": "2026-09-01T22:57:24+08:00",
+  "taskIds": [
+    "TASK-0224",
+    "TASK-0225",
+    "TASK-0226"
+  ],
+  "checks": [
+    {
+      "name": "应用管理结构化界面全量前端回归和生产构建",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (28 files / 80 tests); npm run build",
+      "result": "passed"
+    },
+    {
+      "name": "应用桥梁后端、迁移与测试源码编译",
+      "command": "cd projects/unexamine/backend; JAVA_HOME=D:/dev/jdk21 mvn -DskipTests package (775 main sources / 25 test sources / Flyway V1-V39)",
+      "result": "passed"
+    },
+    {
+      "name": "应用配置导出导入、内外通道隔离、系统内幂等调用、失败自动停用与不可变版本关联真实验收",
+      "command": "powershell projects/unexamine/tools/c64-live-acceptance.ps1 against Spring Boot 18080, MySQL 33077 and Redis 36379",
+      "result": "passed"
+    },
+    {
+      "name": "外部签名调用、授权范围、凭证轮换、回滚和停用完整链路",
+      "command": "Spring Boot 18080 real API against application #4 V1-V3 and customer record #20 in system #18",
+      "result": "passed"
+    },
+    {
+      "name": "工作区唯一需求源、活动实现和复用模板边界",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-APPLICATION-MANAGE",
+      "entryUrl": "http://127.0.0.1:15174/systems/18/admin?section=applications",
+      "actor": "客户运营系统应用管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "应用管理页只组织受控访问配置，不承载模块分组或普通用户业务导航；主区域按应用状态、发布授权、凭证版本、不可变版本和最近调用分层呈现。",
+        "资源授权通过已发布模块和 Flow 业务选择器配置，动作、字段、数据范围、系统内或外部访问方式、限流、IP 和失败停用均为结构化控件，不要求管理员编辑资源编码或配置 JSON。",
+        "复制、导入、导出、发布、回滚、凭证轮换、停用、重新启用和删除均有独立恢复语义；明文凭证只在创建、导入、复制、轮换或重新启用结果中显示一次。",
+        "导出文件不包含凭证明文和调用历史；导入后生成独立草稿与独立凭证，并重新固定当前系统和租户范围。"
+      ],
+      "persistentReads": [
+        "应用 #4 保存 V1-V3 三个不可变发布版本，当前运行 V3 保持详情和编辑授权，草稿变化不影响运行授权。",
+        "系统 #24 的应用 #10 发布版本 #10；导出 schemaVersion=1 且不包含 credentials/clientSecret，导入应用 #11 为独立 DRAFT 并签发一次性凭证。",
+        "软删除应用从管理列表消失但保留版本、调用和审计；停用和失败策略均撤销全部有效凭证。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java"
+      ]
+    },
+    {
+      "useCaseId": "UC-APPLICATION-BRIDGE-CALL",
+      "entryUrl": "http://127.0.0.1:18080/api/application-access/v1/calls",
+      "actor": "系统内登录成员与外部签名调用方",
+      "result": "passed",
+      "pageAssertions": [
+        "系统内访问使用当前登录身份，外部访问使用一次性签发凭证；同一资源动作可分别开放通道，系统内授权不能被外部凭证调用，外部授权也不能被系统内入口调用。",
+        "系统内 Flow 调用成功创建真实流程实例，同一幂等键只复用原结果不重复写业务；返回结果带业务目标引用、requestId、应用来源和 INTERNAL 通道标记。",
+        "外部调用经过 HMAC 签名、五分钟时间戳、nonce 防重放、幂等、限流、IP、固定系统租户、应用发布授权、字段和数据范围及目标身份当前权限交集。",
+        "错误签名和访问通道越权只被拒绝并审计，不会触发攻击者可利用的自动停用；已授权目标执行在 300 秒内连续失败 2 次后应用自动停用并撤销凭证。"
+      ],
+      "persistentReads": [
+        "系统 #24 应用 #10 的系统内调用成功并幂等复用；外部调用系统内授权和系统内调用外部授权均返回 APPLICATION_ACCESS_CHANNEL_DENIED。",
+        "错误签名后应用保持 ACTIVE；第一次目标执行失败后仍 ACTIVE，第二次达到阈值后为 DISABLED、有效凭证为 0，后续调用返回 APPLICATION_DISABLED。",
+        "应用 #10 共保存 7 条调用日志，7 条均通过 application_version_id 关联发布版本 #10、grant_id 为空，自动停用审计恰好 1 条。",
+        "应用 #4 的外部详情和编辑调用读写客户记录 #20；V2 未授权编辑被拒绝，回滚发布 V3 后编辑恢复，旧凭证、停用状态和越权资源调用均被拒绝并审计。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationInternalAccessController.java",
+        "projects/unexamine/db/migration/V39__application_call_immutable_version.sql",
+        "projects/unexamine/tools/c64-live-acceptance.ps1"
+      ]
+    }
+  ]
+}

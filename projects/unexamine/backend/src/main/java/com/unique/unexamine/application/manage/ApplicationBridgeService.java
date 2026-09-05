@@ -9,14 +9,14 @@ import com.unique.unexamine.application.base.entity.AppCall;
 import com.unique.unexamine.application.base.entity.AppCallNonce;
 import com.unique.unexamine.application.base.entity.AppCredential;
 import com.unique.unexamine.application.base.entity.AppDefinition;
-import com.unique.unexamine.application.base.entity.AppGrant;
-import com.unique.unexamine.application.base.entity.AppGrantField;
+import com.unique.unexamine.application.base.entity.AppPublication;
+import com.unique.unexamine.application.base.entity.AppVersion;
 import com.unique.unexamine.application.base.service.AppCallBaseService;
 import com.unique.unexamine.application.base.service.AppCallNonceBaseService;
 import com.unique.unexamine.application.base.service.AppCredentialBaseService;
 import com.unique.unexamine.application.base.service.AppDefinitionBaseService;
-import com.unique.unexamine.application.base.service.AppGrantBaseService;
-import com.unique.unexamine.application.base.service.AppGrantFieldBaseService;
+import com.unique.unexamine.application.base.service.AppPublicationBaseService;
+import com.unique.unexamine.application.base.service.AppVersionBaseService;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.DataScopeExpression;
@@ -36,6 +36,7 @@ import com.unique.unexamine.runtimedata.manage.CreateRuntimeRecordRequest;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordList;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordView;
+import com.unique.unexamine.runtimedata.manage.UpdateRuntimeRecordRequest;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SystemMember;
 import com.unique.unexamine.system.base.entity.SystemTenantMember;
@@ -71,8 +72,8 @@ public class ApplicationBridgeService {
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() { };
     private final AppDefinitionBaseService definitionService;
     private final AppCredentialBaseService credentialService;
-    private final AppGrantBaseService grantService;
-    private final AppGrantFieldBaseService fieldService;
+    private final AppPublicationBaseService publicationService;
+    private final AppVersionBaseService versionService;
     private final AppCallBaseService callService;
     private final AppCallNonceBaseService nonceService;
     private final PlatformAccountBaseService accountService;
@@ -93,8 +94,8 @@ public class ApplicationBridgeService {
     public ApplicationBridgeService(
             AppDefinitionBaseService definitionService,
             AppCredentialBaseService credentialService,
-            AppGrantBaseService grantService,
-            AppGrantFieldBaseService fieldService,
+            AppPublicationBaseService publicationService,
+            AppVersionBaseService versionService,
             AppCallBaseService callService,
             AppCallNonceBaseService nonceService,
             PlatformAccountBaseService accountService,
@@ -113,8 +114,8 @@ public class ApplicationBridgeService {
             PlatformTransactionManager transactionManager) {
         this.definitionService = definitionService;
         this.credentialService = credentialService;
-        this.grantService = grantService;
-        this.fieldService = fieldService;
+        this.publicationService = publicationService;
+        this.versionService = versionService;
         this.callService = callService;
         this.nonceService = nonceService;
         this.accountService = accountService;
@@ -154,7 +155,7 @@ public class ApplicationBridgeService {
         if (application == null) throw unauthorized("APPLICATION_NOT_FOUND", "目标应用不存在");
         ApplicationBridgeModels.CallRequest input = parseRequest(rawBody);
         String requestHash = sha256(rawBody);
-        AppGrant grant = findGrant(application.getId(), input);
+        PublishedGrant grant = findGrant(application.getId(), input);
 
         if (Math.abs(System.currentTimeMillis() - timestamp) > TIMESTAMP_TOLERANCE_MILLIS) {
             reject(application, credential, grant, input, requestId, requestTimestamp, nonce, sourceAddress,
@@ -165,6 +166,7 @@ public class ApplicationBridgeService {
             requireCallable(application, credential);
             verifySignature(credential, timestampText, nonce, idempotencyKey, signature, requestHash);
             if (grant == null) throw forbidden("APPLICATION_GRANT_DENIED", "应用未被授权访问该资源动作");
+            requireAccessChannel(grant, "EXTERNAL");
             requireGrantBoundary(grant, input);
             requireSourceAddress(grant, sourceAddress);
             requireDataScope(grant, input.requestedDataScope());
@@ -183,7 +185,7 @@ public class ApplicationBridgeService {
             try {
                 ApplicationBridgeModels.CallResult result = transactions.execute(status -> executeTarget(
                         application, credential, grant, input, targetContext, prepared.callId(), requestId,
-                        permissionSnapshot, startedNanos));
+                        permissionSnapshot, application.getCreatedByAccountId(), startedNanos));
                 if (result == null) throw new IllegalStateException("Application target transaction returned no result");
                 return result;
             } catch (DomainException exception) {
@@ -203,18 +205,80 @@ public class ApplicationBridgeService {
         }
     }
 
+    public ApplicationBridgeModels.CallResult callInternal(
+            AuthenticatedContext context,
+            Long applicationId,
+            String idempotencyKey,
+            ApplicationBridgeModels.CallRequest request,
+            String requestId) {
+        long startedNanos = System.nanoTime();
+        requireHeader(idempotencyKey, "APPLICATION_IDEMPOTENCY_KEY_REQUIRED", "缺少幂等键");
+        if (idempotencyKey.length() > 200) {
+            throw invalid("APPLICATION_CALL_HEADER_INVALID", "幂等键超过允许长度");
+        }
+        ApplicationBridgeModels.CallRequest input = parseRequest(writeJson(request));
+        AppDefinition application = definitionService.selectById(applicationId);
+        if (application == null) throw new DomainException(
+                "APPLICATION_NOT_FOUND", "目标应用不存在", HttpStatus.NOT_FOUND);
+        requireInternalContext(context, application);
+        AppCredential internalIdentity = new AppCredential();
+        internalIdentity.setApplicationId(applicationId);
+        internalIdentity.setCredentialVersion(0);
+        internalIdentity.setClientId("internal-account:" + context.accountId());
+        PublishedGrant grant = findGrant(applicationId, input);
+        String requestHash = sha256(writeJson(input));
+        String durableIdempotencyKey = "internal:" + context.accountId() + ":" + idempotencyKey;
+        LocalDateTime requestedAt = LocalDateTime.now();
+        String nonce = "internal:" + requestId;
+        try {
+            if (!"ACTIVE".equals(application.getStatus())) {
+                throw forbidden("APPLICATION_DISABLED", "应用已停用或尚未发布");
+            }
+            if (grant == null) throw forbidden("APPLICATION_GRANT_DENIED", "应用未被授权访问该资源动作");
+            requireAccessChannel(grant, "INTERNAL");
+            requireGrantBoundary(grant, input);
+            requireDataScope(grant, input.requestedDataScope());
+            if (!permissionChecker.allows(context, grant.getResourceType(), grant.getResourceId(), grant.getActionCode())) {
+                throw forbidden("APPLICATION_TARGET_PERMISSION_DENIED", "当前登录身份没有目标资源动作权限");
+            }
+            requireTargetDataScope(grant, input.requestedDataScope(), context);
+            Map<String, Object> permissionSnapshot = permissionSnapshot(
+                    application, internalIdentity, grant, context);
+            permissionSnapshot.put("accessChannel", "INTERNAL");
+            Prepared prepared = transactions.execute(status -> prepareCall(
+                    application, internalIdentity, grant, input, durableIdempotencyKey, requestId,
+                    requestedAt, nonce, "INTERNAL:" + context.accountId(), requestHash, permissionSnapshot));
+            if (prepared == null) throw new IllegalStateException("Internal application call returned no result");
+            if (prepared.replayed() != null) return prepared.replayed();
+            try {
+                ApplicationBridgeModels.CallResult result = transactions.execute(status -> executeTarget(
+                        application, internalIdentity, grant, input, context, prepared.callId(), requestId,
+                        permissionSnapshot, context.accountId(), startedNanos));
+                if (result == null) throw new IllegalStateException("Internal application target returned no result");
+                return result;
+            } catch (DomainException exception) {
+                finishFailure(prepared.callId(), exception.code(), exception.getMessage(), startedNanos);
+                recordFailure(application, internalIdentity, grant, input, context, requestId,
+                        permissionSnapshot, exception.code(), exception.getMessage());
+                throw exception;
+            }
+        } catch (DomainException exception) {
+            if (callService.selectList(Wrappers.<AppCall>lambdaQuery()
+                    .eq(AppCall::getApplicationId, applicationId)
+                    .eq(AppCall::getRequestId, requestId)).isEmpty()) {
+                logRejected(application, internalIdentity, grant, input, requestId, requestedAt, nonce,
+                        "INTERNAL:" + context.accountId(), requestHash,
+                        exception.code(), exception.getMessage(), startedNanos);
+            }
+            throw exception;
+        }
+    }
+
     private Prepared prepareCall(
-            AppDefinition application, AppCredential credential, AppGrant grant,
+            AppDefinition application, AppCredential credential, PublishedGrant grant,
             ApplicationBridgeModels.CallRequest input, String idempotencyKey, String requestId,
             LocalDateTime requestTimestamp, String nonce, String sourceAddress, String requestHash,
             Map<String, Object> permissionSnapshot) {
-        AppGrant locked = grantService.selectList(Wrappers.<AppGrant>lambdaQuery()
-                        .eq(AppGrant::getId, grant.getId()).last("FOR UPDATE"))
-                .stream().findFirst().orElseThrow(() -> forbidden(
-                        "APPLICATION_GRANT_DENIED", "应用授权已被移除"));
-        if (!"ACTIVE".equals(locked.getStatus())) {
-            throw forbidden("APPLICATION_GRANT_DENIED", "应用授权当前不可用");
-        }
         AppCall existing = callService.selectList(Wrappers.<AppCall>lambdaQuery()
                         .eq(AppCall::getApplicationId, application.getId())
                         .eq(AppCall::getIdempotencyKey, idempotencyKey))
@@ -246,9 +310,9 @@ public class ApplicationBridgeService {
     }
 
     private ApplicationBridgeModels.CallResult executeTarget(
-            AppDefinition application, AppCredential credential, AppGrant grant,
+            AppDefinition application, AppCredential credential, PublishedGrant grant,
             ApplicationBridgeModels.CallRequest input, AuthenticatedContext targetContext, Long callId,
-            String requestId, Map<String, Object> permissionSnapshot, long startedNanos) {
+            String requestId, Map<String, Object> permissionSnapshot, Long actorAccountId, long startedNanos) {
         TargetResult target = switch (grant.getResourceType()) {
             case "FLOW" -> executeFlow(grant, input, targetContext, callId, requestId);
             case "MODULE" -> executeModule(grant, input, targetContext, callId, requestId);
@@ -260,6 +324,8 @@ public class ApplicationBridgeService {
         source.put("applicationCode", application.getCode());
         source.put("callId", callId);
         source.put("requestId", requestId);
+        source.put("accessChannel", credential.getCredentialVersion() == 0 ? "INTERNAL" : "EXTERNAL");
+        source.put("actorAccountId", actorAccountId);
         ApplicationBridgeModels.CallResult result = new ApplicationBridgeModels.CallResult(
                 requestId, false, application.getId(), grant.getId(), credential.getCredentialVersion(),
                 grant.getResourceType(), grant.getResourceId(), grant.getActionCode(),
@@ -272,7 +338,7 @@ public class ApplicationBridgeService {
         call.setDurationMillis(elapsedMillis(startedNanos));
         call.setFinishedAt(LocalDateTime.now());
         callService.updateById(call);
-        auditRecorder.recordWithPermissionSnapshot(requestId, application.getCreatedByAccountId(),
+        auditRecorder.recordWithPermissionSnapshot(requestId, actorAccountId,
                 grant.getTargetSystemId(), grant.getTargetTenantId(), targetContext.memberId(),
                 "APPLICATION_CALL_SUCCEEDED", target.objectType(), target.objectId(), "SUCCESS",
                 permissionSnapshot, Map.of("applicationId", application.getId(), "callId", callId,
@@ -282,7 +348,7 @@ public class ApplicationBridgeService {
     }
 
     private TargetResult executeFlow(
-            AppGrant grant, ApplicationBridgeModels.CallRequest input, AuthenticatedContext context,
+            PublishedGrant grant, ApplicationBridgeModels.CallRequest input, AuthenticatedContext context,
             Long callId, String requestId) {
         if (!"START".equals(grant.getActionCode())) {
             throw invalid("APPLICATION_FLOW_ACTION_UNSUPPORTED", "应用当前只支持发起已授权 Flow");
@@ -310,7 +376,7 @@ public class ApplicationBridgeService {
     }
 
     private TargetResult executeModule(
-            AppGrant grant, ApplicationBridgeModels.CallRequest input, AuthenticatedContext context,
+            PublishedGrant grant, ApplicationBridgeModels.CallRequest input, AuthenticatedContext context,
             Long callId, String requestId) {
         Map<String, Object> payload = safe(input.payload());
         Object value;
@@ -350,6 +416,29 @@ public class ApplicationBridgeService {
                 reference = "BUSINESS_RECORD:" + result.id();
                 objectId = result.id().toString();
             }
+            case "UPDATE" -> {
+                Long recordId = number(payload.get("recordId"));
+                Long expectedVersion = number(payload.get("version"));
+                if (recordId == null) throw invalid("APPLICATION_RECORD_ID_REQUIRED", "模块编辑调用缺少业务记录");
+                if (expectedVersion == null) throw invalid("APPLICATION_RECORD_VERSION_REQUIRED", "模块编辑调用缺少业务记录版本，请先刷新后重试");
+                RuntimeRecordView current = runtimeDataService.detail(context, grant.getResourceId(), recordId, requestId);
+                Map<String, Object> submittedFields = map(payload.get("fields"));
+                requireWritableFields(grant, submittedFields.keySet());
+                Map<String, JsonNode> mergedFields = new LinkedHashMap<>(current.fields());
+                submittedFields.forEach((key, fieldValue) -> mergedFields.put(key, objectMapper.valueToTree(fieldValue)));
+                UpdateRuntimeRecordRequest request = new UpdateRuntimeRecordRequest(
+                        stringOrDefault(payload.get("title"), current.title()),
+                        stringOrDefault(payload.get("recordNumber"), current.recordNumber()),
+                        stringOrDefault(payload.get("status"), current.status()),
+                        number(payload.get("ownerMemberId")) == null ? current.ownerMemberId() : number(payload.get("ownerMemberId")),
+                        number(payload.get("departmentId")) == null ? current.departmentId() : number(payload.get("departmentId")),
+                        payload.containsKey("participantMemberIds") ? numbers(payload.get("participantMemberIds")) : current.participantMemberIds(),
+                        mergedFields, expectedVersion.intValue());
+                RuntimeRecordView result = runtimeDataService.update(context, grant.getResourceId(), recordId, request, requestId);
+                value = filterReadableFields(grant, result);
+                reference = "BUSINESS_RECORD:" + result.id();
+                objectId = result.id().toString();
+            }
             default -> throw invalid("APPLICATION_MODULE_ACTION_UNSUPPORTED", "当前模块动作尚不支持应用调用");
         }
         Map<String, Object> wrapped = new LinkedHashMap<>();
@@ -358,11 +447,9 @@ public class ApplicationBridgeService {
         return new TargetResult(reference, wrapped, "BUSINESS_RECORD", objectId);
     }
 
-    private Object filterReadableFields(AppGrant grant, Object value) {
-        Set<String> readable = fieldService.selectList(Wrappers.<AppGrantField>lambdaQuery()
-                        .eq(AppGrantField::getGrantId, grant.getId())
-                        .eq(AppGrantField::getReadable, true))
-                .stream().map(AppGrantField::getFieldCode).collect(java.util.stream.Collectors.toSet());
+    private Object filterReadableFields(PublishedGrant grant, Object value) {
+        Set<String> readable = grant.getFields().stream().filter(PublishedField::readable)
+                .map(PublishedField::fieldCode).collect(java.util.stream.Collectors.toSet());
         Object converted = objectMapper.convertValue(value, Object.class);
         filterFields(converted, readable);
         return converted;
@@ -382,17 +469,15 @@ public class ApplicationBridgeService {
         }
     }
 
-    private void requireWritableFields(AppGrant grant, Set<String> requested) {
-        Set<String> writable = fieldService.selectList(Wrappers.<AppGrantField>lambdaQuery()
-                        .eq(AppGrantField::getGrantId, grant.getId())
-                        .eq(AppGrantField::getWritable, true))
-                .stream().map(AppGrantField::getFieldCode).collect(java.util.stream.Collectors.toSet());
+    private void requireWritableFields(PublishedGrant grant, Set<String> requested) {
+        Set<String> writable = grant.getFields().stream().filter(PublishedField::writable)
+                .map(PublishedField::fieldCode).collect(java.util.stream.Collectors.toSet());
         if (!writable.containsAll(requested)) {
             throw forbidden("APPLICATION_FIELD_WRITE_DENIED", "请求包含未获应用写权限的字段");
         }
     }
 
-    private AuthenticatedContext targetContext(AppDefinition application, AppGrant grant) {
+    private AuthenticatedContext targetContext(AppDefinition application, PublishedGrant grant) {
         PlatformAccount account = accountService.selectById(application.getCreatedByAccountId());
         if (account == null || !"ACTIVE".equals(account.getStatus())) {
             throw forbidden("APPLICATION_TARGET_IDENTITY_INACTIVE", "应用绑定的目标执行身份已停用");
@@ -490,25 +575,76 @@ public class ApplicationBridgeService {
         }
     }
 
-    private AppGrant findGrant(Long applicationId, ApplicationBridgeModels.CallRequest input) {
-        if (input.resourceType() == null || input.resourceId() == null || input.actionCode() == null) return null;
-        return grantService.selectList(Wrappers.<AppGrant>lambdaQuery()
-                        .eq(AppGrant::getApplicationId, applicationId)
-                        .eq(AppGrant::getResourceType, input.resourceType().strip().toUpperCase(Locale.ROOT))
-                        .eq(AppGrant::getResourceId, input.resourceId().strip())
-                        .eq(AppGrant::getActionCode, input.actionCode().strip().toUpperCase(Locale.ROOT))
-                        .eq(AppGrant::getStatus, "ACTIVE"))
-                .stream().findFirst().orElse(null);
+    private void requireInternalContext(AuthenticatedContext context, AppDefinition application) {
+        if (context == null || !Objects.equals(context.platformId(), application.getPlatformId())) {
+            throw forbidden("APPLICATION_INTERNAL_CONTEXT_DENIED", "当前登录身份不在应用所属平台范围");
+        }
+        if ("PLATFORM".equals(application.getContextType())) {
+            if (context.systemId() != null || application.getOwnerSystemId() != null) {
+                throw forbidden("APPLICATION_INTERNAL_CONTEXT_DENIED", "平台应用只能从平台上下文访问");
+            }
+            return;
+        }
+        if (!Objects.equals(context.systemId(), application.getOwnerSystemId())
+                || !Objects.equals(context.tenantId(), application.getOwnerTenantId())) {
+            throw forbidden("APPLICATION_INTERNAL_CONTEXT_DENIED", "系统应用只能从所属系统和租户访问");
+        }
     }
 
-    private void requireGrantBoundary(AppGrant grant, ApplicationBridgeModels.CallRequest input) {
+    private void requireAccessChannel(PublishedGrant grant, String requiredChannel) {
+        Object configured = readMap(grant.getRateLimitJson()).get("accessChannels");
+        List<String> channels = configured instanceof List<?> values && !values.isEmpty()
+                ? values.stream().map(String::valueOf).map(this::normalize).toList()
+                : List.of("EXTERNAL");
+        if (!channels.contains(requiredChannel)) {
+            throw forbidden("APPLICATION_ACCESS_CHANNEL_DENIED",
+                    "当前资源动作未开放" + ("INTERNAL".equals(requiredChannel) ? "系统内访问" : "外部访问"));
+        }
+    }
+
+    private PublishedGrant findGrant(Long applicationId, ApplicationBridgeModels.CallRequest input) {
+        if (input.resourceType() == null || input.resourceId() == null || input.actionCode() == null) return null;
+        AppPublication publication = publicationService.selectList(Wrappers.<AppPublication>lambdaQuery()
+                        .eq(AppPublication::getApplicationId, applicationId))
+                .stream().findFirst().orElse(null);
+        if (publication == null || publication.getCurrentVersionId() == null) return null;
+        AppVersion version = versionService.selectById(publication.getCurrentVersionId());
+        if (version == null || version.getSnapshotJson() == null) return null;
+        Object rawGrants = readMap(version.getSnapshotJson()).get("grants");
+        if (!(rawGrants instanceof List<?> values)) return null;
+        String resourceType = input.resourceType().strip().toUpperCase(Locale.ROOT);
+        String resourceId = input.resourceId().strip();
+        String actionCode = input.actionCode().strip().toUpperCase(Locale.ROOT);
+        for (Object value : values) {
+            Map<String, Object> grant = map(value);
+            if (!resourceType.equals(normalize(string(grant.get("resourceType"))))
+                    || !resourceId.equals(string(grant.get("resourceId")))
+                    || !actionCode.equals(normalize(string(grant.get("actionCode"))))) continue;
+            List<PublishedField> fields = new ArrayList<>();
+            if (grant.get("fields") instanceof List<?> fieldValues) {
+                for (Object fieldValue : fieldValues) {
+                    Map<String, Object> field = map(fieldValue);
+                    String fieldCode = string(field.get("fieldCode"));
+                    if (fieldCode != null) fields.add(new PublishedField(fieldCode,
+                            Boolean.TRUE.equals(field.get("readable")), Boolean.TRUE.equals(field.get("writable"))));
+                }
+            }
+            return new PublishedGrant(number(grant.get("grantId")), version.getId(), version.getVersionNumber(),
+                    version.getSnapshotHash(), string(grant.get("targetType")), number(grant.get("targetSystemId")),
+                    number(grant.get("targetTenantId")), resourceType, resourceId, actionCode,
+                    writeJson(map(grant.get("dataScope"))), writeJson(map(grant.get("rateLimit"))), fields);
+        }
+        return null;
+    }
+
+    private void requireGrantBoundary(PublishedGrant grant, ApplicationBridgeModels.CallRequest input) {
         if (!Objects.equals(grant.getTargetSystemId(), input.targetSystemId())
                 || !Objects.equals(grant.getTargetTenantId(), input.targetTenantId())) {
             throw forbidden("APPLICATION_TARGET_SCOPE_EXPANSION", "请求不能扩大应用固定的系统或租户范围");
         }
     }
 
-    private void requireDataScope(AppGrant grant, Map<String, Object> requested) {
+    private void requireDataScope(PublishedGrant grant, Map<String, Object> requested) {
         if (requested == null || requested.isEmpty()) return;
         Map<String, Object> fixed = readMap(grant.getDataScopeJson());
         String fixedType = string(fixed.get("type"));
@@ -534,7 +670,7 @@ public class ApplicationBridgeService {
     }
 
     private void requireTargetDataScope(
-            AppGrant grant, Map<String, Object> requested, AuthenticatedContext targetContext) {
+            PublishedGrant grant, Map<String, Object> requested, AuthenticatedContext targetContext) {
         if (targetContext.systemId() == null) return;
         Map<String, Object> effective = requested == null || requested.isEmpty()
                 ? readMap(grant.getDataScopeJson()) : requested;
@@ -555,7 +691,7 @@ public class ApplicationBridgeService {
         }
     }
 
-    private boolean scopeKeyMatches(String key, AppGrant grant) {
+    private boolean scopeKeyMatches(String key, PublishedGrant grant) {
         String[] parts = key.split(":", 3);
         return parts.length == 3
                 && ("*".equals(parts[0]) || grant.getResourceType().equals(parts[0]))
@@ -571,7 +707,7 @@ public class ApplicationBridgeService {
                 && rank.get(requestedType) <= rank.get(grantedType);
     }
 
-    private void requireSourceAddress(AppGrant grant, String sourceAddress) {
+    private void requireSourceAddress(PublishedGrant grant, String sourceAddress) {
         Object configured = readMap(grant.getRateLimitJson()).get("allowedIps");
         List<String> allowed = configured instanceof List<?> list ? list.stream().map(String::valueOf).toList() : List.of();
         String normalized = "0:0:0:0:0:0:0:1".equals(sourceAddress) ? "127.0.0.1" : sourceAddress;
@@ -580,7 +716,7 @@ public class ApplicationBridgeService {
         }
     }
 
-    private void requireRateLimit(AppDefinition application, AppGrant grant) {
+    private void requireRateLimit(AppDefinition application, PublishedGrant grant) {
         Map<String, Object> limit = readMap(grant.getRateLimitJson());
         long maximum = number(limit.get("maxRequests")) == null ? 0 : number(limit.get("maxRequests")).longValue();
         long seconds = number(limit.get("windowSeconds")) == null ? 0 : number(limit.get("windowSeconds")).longValue();
@@ -589,7 +725,9 @@ public class ApplicationBridgeService {
         LocalDateTime cutoff = LocalDateTime.now().minusSeconds(seconds);
         long count = callService.selectList(Wrappers.<AppCall>lambdaQuery()
                         .eq(AppCall::getApplicationId, application.getId())
-                        .eq(AppCall::getGrantId, grant.getId())
+                        .eq(AppCall::getResourceType, grant.getResourceType())
+                        .eq(AppCall::getResourceId, grant.getResourceId())
+                        .eq(AppCall::getActionCode, grant.getActionCode())
                         .ge(AppCall::getCalledAt, cutoff))
                 .size();
         if (count >= maximum) throw new DomainException(
@@ -597,11 +735,14 @@ public class ApplicationBridgeService {
     }
 
     private Map<String, Object> permissionSnapshot(
-            AppDefinition application, AppCredential credential, AppGrant grant, AuthenticatedContext context) {
+            AppDefinition application, AppCredential credential, PublishedGrant grant, AuthenticatedContext context) {
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("applicationId", application.getId());
         snapshot.put("credentialVersion", credential.getCredentialVersion());
         snapshot.put("grantId", grant.getId());
+        snapshot.put("applicationVersionId", grant.getApplicationVersionId());
+        snapshot.put("applicationVersionNumber", grant.getApplicationVersionNumber());
+        snapshot.put("applicationVersionHash", grant.getApplicationVersionHash());
         snapshot.put("grant", Map.of("resourceType", grant.getResourceType(), "resourceId", grant.getResourceId(),
                 "actionCode", grant.getActionCode(), "dataScope", readMap(grant.getDataScopeJson())));
         snapshot.put("targetIdentity", Map.of("accountId", context.accountId(), "memberId", context.memberId(),
@@ -611,7 +752,7 @@ public class ApplicationBridgeService {
     }
 
     private void reject(
-            AppDefinition application, AppCredential credential, AppGrant grant,
+            AppDefinition application, AppCredential credential, PublishedGrant grant,
             ApplicationBridgeModels.CallRequest input, String requestId, LocalDateTime timestamp, String nonce,
             String sourceAddress, String requestHash, String code, String message, long startedNanos) {
         logRejected(application, credential, grant, input, requestId, timestamp, nonce, sourceAddress,
@@ -620,7 +761,7 @@ public class ApplicationBridgeService {
     }
 
     private void logRejected(
-            AppDefinition application, AppCredential credential, AppGrant grant,
+            AppDefinition application, AppCredential credential, PublishedGrant grant,
             ApplicationBridgeModels.CallRequest input, String requestId, LocalDateTime timestamp, String nonce,
             String sourceAddress, String requestHash, String code, String message, long startedNanos) {
         try {
@@ -655,7 +796,7 @@ public class ApplicationBridgeService {
     }
 
     private void recordFailure(
-            AppDefinition application, AppCredential credential, AppGrant grant,
+            AppDefinition application, AppCredential credential, PublishedGrant grant,
             ApplicationBridgeModels.CallRequest input, AuthenticatedContext context, String requestId,
             Map<String, Object> permissionSnapshot, String code, String message) {
         Map<String, Object> detail = new LinkedHashMap<>();
@@ -666,20 +807,83 @@ public class ApplicationBridgeService {
         detail.put("actionCode", input.actionCode());
         detail.put("failureCode", code);
         detail.put("message", message);
-        auditRecorder.recordWithPermissionSnapshot(requestId, application.getCreatedByAccountId(),
+        auditRecorder.recordWithPermissionSnapshot(requestId,
+                context == null ? application.getCreatedByAccountId() : context.accountId(),
                 grant == null ? null : grant.getTargetSystemId(), grant == null ? null : grant.getTargetTenantId(),
                 context == null ? null : context.memberId(), "APPLICATION_CALL_REJECTED", "APPLICATION",
                 application.getId().toString(), code, permissionSnapshot, detail);
+        applyFailureDisablePolicy(application, credential, grant, context, requestId, code);
+    }
+
+    private void applyFailureDisablePolicy(
+            AppDefinition application,
+            AppCredential credential,
+            PublishedGrant grant,
+            AuthenticatedContext targetContext,
+            String requestId,
+            String failureCode) {
+        // Only failures raised while executing the already-authorized target count toward automatic shutdown.
+        // Signature, replay, IP, scope and permission rejections must never let an attacker disable an application.
+        if (grant == null || targetContext == null || !"ACTIVE".equals(application.getStatus())) return;
+        Map<String, Object> policy = readMap(grant.getRateLimitJson());
+        Number configuredThreshold = number(policy.get("failureDisableThreshold"));
+        Number configuredWindow = number(policy.get("failureWindowSeconds"));
+        long threshold = configuredThreshold == null ? 5 : configuredThreshold.longValue();
+        long windowSeconds = configuredWindow == null ? 300 : configuredWindow.longValue();
+        if (threshold < 1 || windowSeconds < 10) return;
+
+        LocalDateTime cutoff = LocalDateTime.now().minusSeconds(windowSeconds);
+        long failures = callService.selectList(Wrappers.<AppCall>lambdaQuery()
+                        .eq(AppCall::getApplicationId, application.getId())
+                        .eq(AppCall::getApplicationVersionId, grant.getApplicationVersionId())
+                        .eq(AppCall::getResourceType, grant.getResourceType())
+                        .eq(AppCall::getResourceId, grant.getResourceId())
+                        .eq(AppCall::getActionCode, grant.getActionCode())
+                        .eq(AppCall::getStatus, "FAILED")
+                        .ge(AppCall::getCalledAt, cutoff))
+                .stream().filter(call -> call.getPermissionSnapshotJson() != null
+                        && !call.getPermissionSnapshotJson().isBlank()).count();
+        if (failures < threshold) return;
+
+        transactions.executeWithoutResult(status -> {
+            AppDefinition current = definitionService.selectById(application.getId());
+            if (current == null || !"ACTIVE".equals(current.getStatus())) return;
+            current.setStatus("DISABLED");
+            if (definitionService.updateById(current) != 1) return;
+            LocalDateTime now = LocalDateTime.now();
+            for (AppCredential active : credentialService.selectList(Wrappers.<AppCredential>lambdaQuery()
+                    .eq(AppCredential::getApplicationId, application.getId())
+                    .eq(AppCredential::getStatus, "ACTIVE"))) {
+                active.setStatus("REVOKED");
+                active.setRevokedAt(now);
+                credentialService.updateById(active);
+            }
+            auditRecorder.record(requestId, targetContext.accountId(),
+                    grant.getTargetSystemId(), grant.getTargetTenantId(), targetContext.memberId(),
+                    "APPLICATION_FAILURE_POLICY_DISABLED", "APPLICATION", application.getId().toString(),
+                    "SUCCESS", Map.of(
+                            "failureCode", failureCode,
+                            "credentialVersion", credential.getCredentialVersion(),
+                            "applicationVersionId", grant.getApplicationVersionId(),
+                            "resource", grant.getResourceType() + ":" + grant.getResourceId(),
+                            "action", grant.getActionCode(),
+                            "failureCount", failures,
+                            "threshold", threshold,
+                            "windowSeconds", windowSeconds,
+                            "newCallsAllowed", false));
+        });
     }
 
     private AppCall baseCall(
-            AppDefinition application, AppCredential credential, AppGrant grant,
+            AppDefinition application, AppCredential credential, PublishedGrant grant,
             ApplicationBridgeModels.CallRequest input, String requestId, LocalDateTime timestamp, String nonce,
             String sourceAddress, String requestHash) {
         AppCall call = new AppCall();
         call.setApplicationId(application.getId());
+        call.setApplicationVersionId(grant == null ? null : grant.getApplicationVersionId());
         call.setCredentialVersion(credential.getCredentialVersion());
-        call.setGrantId(grant == null ? null : grant.getId());
+        // Draft grant rows are replaceable; immutable application_version_id is the durable authorization link.
+        call.setGrantId(null);
         call.setRequestId(requestId);
         call.setTraceId(requestId);
         call.setRequestTimestamp(timestamp);
@@ -810,6 +1014,62 @@ public class ApplicationBridgeService {
 
     private DomainException conflict(String code, String message) {
         return new DomainException(code, message, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Runtime authorization is resolved from the immutable current application version. Draft grant rows are only
+     * authoring material and may be replaced at any time; they must never change an already published bridge.
+     */
+    private static final class PublishedGrant {
+        private final Long id;
+        private final Long applicationVersionId;
+        private final Integer applicationVersionNumber;
+        private final String applicationVersionHash;
+        private final String targetType;
+        private final Long targetSystemId;
+        private final Long targetTenantId;
+        private final String resourceType;
+        private final String resourceId;
+        private final String actionCode;
+        private final String dataScopeJson;
+        private final String rateLimitJson;
+        private final List<PublishedField> fields;
+
+        private PublishedGrant(
+                Long id, Long applicationVersionId, Integer applicationVersionNumber, String applicationVersionHash,
+                String targetType, Long targetSystemId, Long targetTenantId, String resourceType, String resourceId,
+                String actionCode, String dataScopeJson, String rateLimitJson, List<PublishedField> fields) {
+            this.id = id;
+            this.applicationVersionId = applicationVersionId;
+            this.applicationVersionNumber = applicationVersionNumber;
+            this.applicationVersionHash = applicationVersionHash;
+            this.targetType = targetType;
+            this.targetSystemId = targetSystemId;
+            this.targetTenantId = targetTenantId;
+            this.resourceType = resourceType;
+            this.resourceId = resourceId;
+            this.actionCode = actionCode;
+            this.dataScopeJson = dataScopeJson;
+            this.rateLimitJson = rateLimitJson;
+            this.fields = List.copyOf(fields);
+        }
+
+        Long getId() { return id; }
+        Long getApplicationVersionId() { return applicationVersionId; }
+        Integer getApplicationVersionNumber() { return applicationVersionNumber; }
+        String getApplicationVersionHash() { return applicationVersionHash; }
+        String getTargetType() { return targetType; }
+        Long getTargetSystemId() { return targetSystemId; }
+        Long getTargetTenantId() { return targetTenantId; }
+        String getResourceType() { return resourceType; }
+        String getResourceId() { return resourceId; }
+        String getActionCode() { return actionCode; }
+        String getDataScopeJson() { return dataScopeJson; }
+        String getRateLimitJson() { return rateLimitJson; }
+        List<PublishedField> getFields() { return fields; }
+    }
+
+    private record PublishedField(String fieldCode, boolean readable, boolean writable) {
     }
 
     private record Prepared(Long callId, ApplicationBridgeModels.CallResult replayed) {

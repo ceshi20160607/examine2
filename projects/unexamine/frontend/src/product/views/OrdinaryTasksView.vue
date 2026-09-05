@@ -5,11 +5,13 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { ApiError, api } from '../api'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
+import PersonSelect from '../components/PersonSelect.vue'
+import WorkConfiguredFields from '../components/WorkConfiguredFields.vue'
 import { allowsPermission } from '../permissions'
 import { productDateTime } from '../presentation'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
 import { nextTaskAction } from '../work-management'
-import type { WorkTask } from '../types'
+import type { SystemDirectoryPerson, SystemPeopleDirectory, WorkConfigurationField, WorkPerson, WorkTask } from '../types'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'platform' })
 const token = computed(() => props.context === 'platform' ? platformTokens.value?.accessToken : systemTokens.value?.accessToken)
@@ -22,8 +24,21 @@ const advancingId = ref<number>()
 const createOpen = ref(false)
 const detailOpen = ref(false)
 const detail = ref<WorkTask>()
+const directory = ref<SystemPeopleDirectory>({ departments: [], people: [], permissionVersion: 0 })
+const taskFields = ref<WorkConfigurationField[]>([])
 const filter = ref<'OPEN' | 'COMPLETED' | 'ALL'>('OPEN')
-const form = reactive({ title: '', description: '', priority: 'NORMAL' as WorkTask['priority'], dueAt: '' })
+const form = reactive({
+  title: '', description: '', priority: 'NORMAL' as WorkTask['priority'], dueAt: '',
+  ownerId: undefined as number | undefined, collaboratorIds: [] as number[],
+  configuredValues: {} as Record<string, unknown>,
+})
+const directoryPeople = computed<SystemDirectoryPerson[]>(() => props.context === 'system'
+  ? directory.value.people
+  : current.value ? [{
+    tenantMemberId: current.value.accountId, systemMemberId: current.value.accountId,
+    accountId: current.value.accountId, displayName: current.value.displayName,
+    roleNames: [], tenantAdmin: false,
+  }] : [])
 
 const visibleTasks = computed(() => tasks.value.filter((task) => {
   if (filter.value === 'COMPLETED') return task.status === 'COMPLETED'
@@ -58,20 +73,48 @@ async function load() {
   finally { loading.value = false }
 }
 
+async function loadDirectory() {
+  if (!token.value || props.context !== 'system') return
+  try { directory.value = await api<SystemPeopleDirectory>('/api/system-directory', {}, token.value) }
+  catch (reason) { message.error(readable(reason)) }
+}
+
+async function loadTaskFields() {
+  if (!token.value) return
+  try { taskFields.value = await api<WorkConfigurationField[]>('/api/work/configuration/effective/TASK', {}, token.value) }
+  catch (reason) { message.error(readable(reason)) }
+}
+
 function beginCreate() {
-  Object.assign(form, { title: '', description: '', priority: 'NORMAL', dueAt: '' })
+  Object.assign(form, {
+    title: '', description: '', priority: 'NORMAL', dueAt: '',
+    ownerId: props.context === 'system' ? current.value?.tenantMemberId || undefined : current.value?.accountId,
+    collaboratorIds: [], configuredValues: {},
+  })
   createOpen.value = true
 }
 
+function assignmentPayload(ownerId: number | undefined, collaborators: number[]) {
+  return props.context === 'system'
+    ? { ownerTenantMemberId: ownerId, collaboratorTenantMemberIds: collaborators }
+    : { ownerAccountId: ownerId, collaboratorAccountIds: collaborators }
+}
+
+function updateAssignmentPayload(owner: WorkPerson, collaborators: WorkPerson[]) {
+  return props.context === 'system'
+    ? { ownerTenantMemberId: owner.tenantMemberId, collaboratorTenantMemberIds: collaborators.map(item => item.tenantMemberId).filter((id): id is number => !!id) }
+    : { ownerAccountId: current.value?.accountId, collaboratorAccountIds: [] }
+}
+
 async function createTask() {
-  if (!token.value || !form.title.trim() || !current.value?.accountId) return
+  if (!token.value || !form.title.trim() || !form.ownerId) return
   saving.value = true
   try {
     await api<WorkTask>('/api/work/tasks', {
       method: 'POST', body: JSON.stringify({
         title: form.title.trim(), description: form.description.trim() || undefined,
-        priority: form.priority, ownerAccountId: current.value.accountId,
-        dueAt: form.dueAt || undefined, collaboratorAccountIds: [], customValues: {},
+        priority: form.priority, dueAt: form.dueAt || undefined,
+        ...assignmentPayload(form.ownerId, form.collaboratorIds), configuredValues: form.configuredValues,
       }),
     }, token.value)
     createOpen.value = false
@@ -97,10 +140,12 @@ async function advance(task: WorkTask) {
   try {
     const updated = await api<WorkTask>(`/api/work/tasks/${task.id}`, {
       method: 'PUT', body: JSON.stringify({
-        expectedVersion: task.version, status: next.status, ownerAccountId: task.ownerAccountId,
+        expectedVersion: task.version, status: next.status,
+        ...updateAssignmentPayload(task.owner, task.collaborators),
         priority: task.priority, progressPercent: next.status === 'COMPLETED' ? 100 : Math.max(10, Number(task.progressPercent)),
-        startAt: task.startAt, dueAt: task.dueAt, collaboratorAccountIds: task.collaboratorAccountIds,
-        customValues: task.customValues, comment: next.label,
+        startAt: task.startAt, dueAt: task.dueAt,
+        businessType: task.businessType, businessId: task.businessId, businessTitle: task.businessTitle,
+        configuredValues: task.configuredValues, comment: next.label,
       }),
     }, token.value)
     message.success(next.status === 'COMPLETED' ? '任务已完成' : '任务已开始')
@@ -110,7 +155,7 @@ async function advance(task: WorkTask) {
   finally { advancingId.value = undefined }
 }
 
-onMounted(load)
+onMounted(() => Promise.all([load(), loadDirectory(), loadTaskFields()]))
 </script>
 
 <template>
@@ -131,7 +176,7 @@ onMounted(load)
         <div v-if="visibleTasks.length" class="ordinary-task-list">
           <article v-for="task in visibleTasks" :key="task.id" class="panel-card ordinary-task-card" @click="openDetail(task)">
             <span class="task-status-dot" :data-status="task.status" />
-            <div><strong>{{ task.title }}</strong><p>{{ task.description || '没有补充说明' }}</p><small>{{ task.dueAt ? `截止 ${productDateTime(task.dueAt)}` : '未设置截止时间' }}</small></div>
+            <div><strong>{{ task.title }}</strong><p>{{ task.description || '没有补充说明' }}</p><small>{{ task.owner.displayName }} · {{ task.dueAt ? `截止 ${productDateTime(task.dueAt)}` : '未设置截止时间' }}</small></div>
             <div class="ordinary-task-card__meta"><a-tag :color="task.priority === 'URGENT' ? 'red' : task.priority === 'HIGH' ? 'orange' : 'default'">{{ priorityLabel(task.priority) }}</a-tag><ProductStatusTag :status="task.status" :label="statusLabel(task.status)" /></div>
             <a-button v-if="can('UPDATE_TASK') && nextTaskAction(task.status)" :type="nextTaskAction(task.status)?.status === 'COMPLETED' ? 'primary' : 'default'" :loading="advancingId === task.id" @click.stop="advance(task)">{{ nextTaskAction(task.status)?.label }}</a-button>
           </article>
@@ -147,14 +192,17 @@ onMounted(load)
     <a-form layout="vertical">
       <a-form-item label="任务标题" required><a-input v-model:value="form.title" placeholder="填写可直接执行的任务" /></a-form-item>
       <a-form-item label="任务说明"><a-textarea v-model:value="form.description" :rows="3" /></a-form-item>
+      <a-form-item label="负责人" required><PersonSelect v-model="form.ownerId" :people="directoryPeople" :value-key="context === 'system' ? 'tenantMemberId' : 'accountId'" :allow-clear="false" /></a-form-item>
+      <a-form-item label="协作成员"><PersonSelect v-model="form.collaboratorIds" :people="directoryPeople" :value-key="context === 'system' ? 'tenantMemberId' : 'accountId'" multiple :excluded-values="form.ownerId ? [form.ownerId] : []" /></a-form-item>
       <div class="form-grid"><a-form-item label="优先级"><a-select v-model:value="form.priority" :options="[{value:'LOW',label:'低'},{value:'NORMAL',label:'普通'},{value:'HIGH',label:'高'},{value:'URGENT',label:'紧急'}]" /></a-form-item><a-form-item label="截止时间"><a-date-picker v-model:value="form.dueAt" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" /></a-form-item></div>
+      <WorkConfiguredFields v-model="form.configuredValues" :fields="taskFields" />
     </a-form>
   </a-modal>
 
   <a-drawer v-model:open="detailOpen" title="任务详情" width="520">
     <template v-if="detail">
       <div class="ordinary-task-detail"><ProductStatusTag :status="detail.status" :label="statusLabel(detail.status)" /><h2>{{ detail.title }}</h2><p>{{ detail.description || '没有补充说明' }}</p></div>
-      <a-descriptions bordered :column="1" size="small"><a-descriptions-item label="优先级">{{ priorityLabel(detail.priority) }}</a-descriptions-item><a-descriptions-item label="进度">{{ detail.progressPercent }}%</a-descriptions-item><a-descriptions-item label="截止时间">{{ detail.dueAt ? productDateTime(detail.dueAt) : '未设置' }}</a-descriptions-item></a-descriptions>
+      <a-descriptions bordered :column="1" size="small"><a-descriptions-item label="负责人">{{ detail.owner.displayName }}<small v-if="detail.owner.departmentName"> · {{ detail.owner.departmentName }}</small></a-descriptions-item><a-descriptions-item label="协作成员">{{ detail.collaborators.map(item => item.displayName).join('、') || '无' }}</a-descriptions-item><a-descriptions-item label="优先级">{{ priorityLabel(detail.priority) }}</a-descriptions-item><a-descriptions-item label="进度">{{ detail.progressPercent }}%</a-descriptions-item><a-descriptions-item label="截止时间">{{ detail.dueAt ? productDateTime(detail.dueAt) : '未设置' }}</a-descriptions-item><a-descriptions-item v-for="field in taskFields.filter(item => detail?.configuredValues[item.fieldCode] !== undefined)" :key="field.fieldCode" :label="field.fieldName">{{ detail.configuredValues[field.fieldCode] }}</a-descriptions-item></a-descriptions>
       <a-divider>处理记录</a-divider>
       <a-timeline v-if="detail.history.length"><a-timeline-item v-for="item in detail.history" :key="item.id"><strong>{{ item.actionCode === 'CREATED' ? '创建任务' : item.comment || '更新任务' }}</strong><p>{{ productDateTime(item.changedAt) }}</p></a-timeline-item></a-timeline>
       <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无处理记录" />

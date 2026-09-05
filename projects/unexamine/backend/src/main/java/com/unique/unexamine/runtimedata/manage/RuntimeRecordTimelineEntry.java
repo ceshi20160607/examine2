@@ -10,6 +10,9 @@ public record RuntimeRecordTimelineEntry(
         Long actorAccountId,
         Long actorMemberId,
         String actorDisplayName,
+        String summary,
+        String targetType,
+        String targetId,
         LocalDateTime occurredAt,
         List<RuntimeRecordTimelineChange> changes) {
 }

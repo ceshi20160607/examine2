@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-073",
+  "executedAt": "2026-09-02T02:36:00+08:00",
+  "taskIds": [
+    "TASK-0200",
+    "TASK-0201",
+    "TASK-0202"
+  ],
+  "checks": [
+    {
+      "name": "后台层级、运行表单恢复与移动动作栏回归",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (32 files / 93 tests)",
+      "result": "passed"
+    },
+    {
+      "name": "前端类型检查与生产构建",
+      "command": "cd projects/unexamine/frontend; npm run build (3945 modules)",
+      "result": "passed"
+    },
+    {
+      "name": "普通业务成员客户维护权限与持久化读回",
+      "command": "pwsh -NoProfile -File projects/unexamine/tools/c73-live-acceptance.ps1",
+      "result": "passed"
+    },
+    {
+      "name": "390px 移动端客户完整旅程",
+      "command": "node projects/unexamine/tools/c73-mobile-acceptance.cjs",
+      "result": "passed"
+    },
+    {
+      "name": "平台与系统后台固定目录及角色任务流视觉验收",
+      "command": "node projects/unexamine/tools/c73-admin-visual-acceptance.cjs",
+      "result": "passed"
+    },
+    {
+      "name": "工作区边界与唯一需求源校验",
+      "command": "python template_base/tools/tb.py workspace-validate --workspace workspace.json",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-UI-LIST-DETAIL",
+      "entryUrl": "http://127.0.0.1:15174/systems/44?workspace=runtime&module=customer_c68_227384",
+      "actor": "普通业务成员陈晨",
+      "result": "passed",
+      "pageAssertions": [
+        "桌面端完成客户搜索、打开详情、编辑、归档并在归档列表读回，首屏只有新建客户一个主动作。",
+        "390×844 移动端使用卡片列表完成同一查询、详情、编辑和归档链路，没有页面级横向溢出。",
+        "移动详情抽屉占满视口，底部关闭、更多操作和编辑三个动作完整可见，当前抽屉只有编辑一个主动作。",
+        "详情按概览、关联、历史组织，业务成员只看到有权读取的客户名称，不显示受限联系电话或内部成员编号。",
+        "详情读取遇到权限失效、记录不可见或租户共享失效时关闭详情、刷新列表并给出恢复提示。"
+      ],
+      "persistentReads": [
+        "客户销售角色已发布 LIST、DETAIL、CREATE、UPDATE、ARCHIVE 五项本人范围能力。",
+        "桌面端云帆物流（华东）创建和更新后读回，再从正常列表移除并出现在已归档列表。",
+        "移动端海岳设备（售后）创建和更新后读回，再从正常列表移除并出现在已归档列表。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/runtime-workflow.test.ts",
+        "projects/unexamine/tools/c73-live-acceptance.ps1",
+        "projects/unexamine/tools/c73-mobile-acceptance.cjs",
+        "projects/unexamine/ai/evidence/CYCLE-073-runtime-desktop.png",
+        "projects/unexamine/ai/evidence/CYCLE-073-runtime-archived.png",
+        "projects/unexamine/ai/evidence/CYCLE-073-runtime-mobile.png"
+      ]
+    },
+    {
+      "useCaseId": "UC-UI-FORM-DETAIL-DESIGNER",
+      "entryUrl": "http://127.0.0.1:15174/systems/44?workspace=runtime&module=customer_c68_227384",
+      "actor": "普通业务成员陈晨",
+      "result": "passed",
+      "pageAssertions": [
+        "已发布客户模板在桌面和移动端生成一致的新建与编辑表单，并按字段策略只提供可写的客户名称。",
+        "模拟服务暂时不可用后表单继续打开，标题、业务编号和客户名称输入全部保留，并显示可恢复的具体错误。",
+        "离开未提交表单前提示自动保存草稿，再次新建时明确提示已恢复草稿；成功保存后才清理草稿。",
+        "保存成功后直接回到真实详情并读回修改值，没有落入通用 JSON 编辑或内部字段编号界面。"
+      ],
+      "persistentReads": [
+        "失败保存后临时保存测试三个输入值仍在当前表单，随后可保留草稿离开。",
+        "成功创建和编辑的客户名称、业务编号、负责人及创建更新时间均从后端详情重新读取。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/frontend/src/product/runtime-workflow.test.ts",
+        "projects/unexamine/tools/c73-mobile-acceptance.cjs",
+        "projects/unexamine/ai/evidence/CYCLE-073-runtime-desktop.png",
+        "projects/unexamine/ai/evidence/CYCLE-073-runtime-mobile.png"
+      ]
+    },
+    {
+      "useCaseId": "UC-SYSTEM-ADMIN-CONFIG",
+      "entryUrl": "http://127.0.0.1:15174/platform/admin/configurations?category=PLATFORM_INFO",
+      "actor": "平台超级管理员与北辰客户协作中心系统管理员周明",
+      "result": "passed",
+      "pageAssertions": [
+        "平台后台与系统后台分别显示平台范围和当前系统范围、唯一返回路径，并各自严格使用需求规定的 11 个一级目录。",
+        "统一认证、首页配置、打印模板和消息模板保留为所属一级目录内的二级任务，不再抢占一级目录。",
+        "系统信息页一次只展示基础信息、工作空间、访问地址或访问审批中的一个任务，不再五个面板并排堆叠。",
+        "角色权限按基本信息、权限范围、保存与发布三步展开，非当前高密度权限矩阵默认不显示。",
+        "固定配置先选一级类别和配置对象，再按需进入独立编辑页；空页只有一个新建主动作。"
+      ],
+      "persistentReads": [
+        "系统名称保存后重新读取为北辰客户协作中心。",
+        "单租户切换多租户发布检查返回检查结果且系统继续保持单租户，未绕过确认和审批执行迁移。",
+        "客户销售角色以已发布状态重新读回，说明为负责本人客户的新增、维护、归档与跟进。"
+      ],
+      "evidencePaths": [
+        "docs/user_requirement.md",
+        "projects/unexamine/frontend/src/product/components/PlatformAdminShell.vue",
+        "projects/unexamine/frontend/src/product/components/SystemAdminShell.vue",
+        "projects/unexamine/frontend/src/product/views/SystemAdminHomeView.vue",
+        "projects/unexamine/frontend/src/product/views/SystemSettingsView.vue",
+        "projects/unexamine/frontend/src/product/views/FixedConfigurationsView.vue",
+        "projects/unexamine/frontend/src/product/views/SystemAuthorizationView.vue",
+        "projects/unexamine/frontend/src/product/admin-workflow.test.ts",
+        "projects/unexamine/tools/c73-admin-visual-acceptance.cjs",
+        "projects/unexamine/ai/evidence/CYCLE-073-platform-admin.png",
+        "projects/unexamine/ai/evidence/CYCLE-073-system-admin.png"
+      ]
+    }
+  ]
+}

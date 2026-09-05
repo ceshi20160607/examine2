@@ -120,6 +120,10 @@
         {
           "name": "sys_role_permission",
           "entity": "SystemRolePermission"
+        },
+        {
+          "name": "sys_member_reporting_line",
+          "entity": "SystemMemberReportingLine"
         }
       ]
     },
@@ -383,6 +387,10 @@
           "entity": "FlowInstance"
         },
         {
+          "name": "flow_execution",
+          "entity": "FlowExecution"
+        },
+        {
           "name": "flow_instance_variable",
           "entity": "FlowInstanceVariable"
         },
@@ -401,6 +409,15 @@
         {
           "name": "flow_exception",
           "entity": "FlowException"
+        },
+        {
+          "name": "flow_history_event",
+          "entity": "FlowHistoryEvent",
+          "immutable": true
+        },
+        {
+          "name": "flow_job",
+          "entity": "FlowJob"
         }
       ]
     },
@@ -484,6 +501,10 @@
         {
           "name": "work_log",
           "entity": "WorkLog"
+        },
+        {
+          "name": "work_log_task_link",
+          "entity": "WorkLogTaskLink"
         },
         {
           "name": "work_log_revision",
@@ -752,6 +773,11 @@
         {
           "name": "ops_verification_finding",
           "entity": "OpsVerificationFinding"
+        },
+        {
+          "name": "ops_request_log",
+          "entity": "OpsRequestLog",
+          "immutable": true
         }
       ]
     }

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,7 +93,7 @@ public class ModuleRuleConfigurationService {
         rule.setSystemId(context.systemId());
         rule.setOwnerTenantId(context.tenantId());
         rule.setModuleId(moduleId);
-        rule.setCode(normalizeCode(request.code()));
+        rule.setCode(resolveRuleCode(moduleId, request.code()));
         applyRule(rule, request.name(), request.ruleType(), request.triggerEvent(), request.definition(),
                 request.message(), request.sortOrder(), "ACTIVE");
         resetTest(rule);
@@ -154,7 +155,7 @@ public class ModuleRuleConfigurationService {
         index.setSystemId(context.systemId());
         index.setOwnerTenantId(context.tenantId());
         index.setModuleId(moduleId);
-        index.setCode(normalizeCode(request.code()));
+        index.setCode(resolveIndexCode(moduleId, request.code()));
         index.setName(request.name().strip());
         index.setUniqueIndex(request.uniqueIndex());
         index.setStatus("ACTIVE");
@@ -292,6 +293,34 @@ public class ModuleRuleConfigurationService {
     private void touch(ConfiguredModule module) {
         module.setDraftRevision(module.getDraftRevision() + 1);
         if (moduleService.updateById(module) == 0) conflict("模块草稿已被其他操作修改");
+    }
+
+    private String resolveRuleCode(Long moduleId, String requestedCode) {
+        if (requestedCode != null && !requestedCode.isBlank()) return normalizeCode(requestedCode);
+        for (int attempt = 0; attempt < 10; attempt++) {
+            String generated = generatedCode("rule");
+            if (ruleService.selectList(Wrappers.<CfgModuleRule>lambdaQuery()
+                    .eq(CfgModuleRule::getModuleId, moduleId).eq(CfgModuleRule::getCode, generated)).isEmpty()) {
+                return generated;
+            }
+        }
+        throw new IllegalStateException("Cannot allocate module rule code");
+    }
+
+    private String resolveIndexCode(Long moduleId, String requestedCode) {
+        if (requestedCode != null && !requestedCode.isBlank()) return normalizeCode(requestedCode);
+        for (int attempt = 0; attempt < 10; attempt++) {
+            String generated = generatedCode("index");
+            if (indexService.selectList(Wrappers.<CfgQueryIndex>lambdaQuery()
+                    .eq(CfgQueryIndex::getModuleId, moduleId).eq(CfgQueryIndex::getCode, generated)).isEmpty()) {
+                return generated;
+            }
+        }
+        throw new IllegalStateException("Cannot allocate query index code");
+    }
+
+    private String generatedCode(String prefix) {
+        return prefix + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 10);
     }
 
     private String normalizeCode(String code) { return code.strip().toLowerCase(Locale.ROOT); }

@@ -464,7 +464,7 @@ public class SystemAiConfigurationService {
                     .filter(action -> permissionChecker.allows(context, "MODULE", module.getCode(), action)).toList();
             if (!actions.isEmpty()) {
                 result.add(new AiConfigurationModels.ModuleOption(module.getCode(), module.getName(), actions,
-                        published.fields()));
+                        published.fields(), published.fieldOptions()));
             }
         }
         return result.stream().sorted(Comparator.comparing(AiConfigurationModels.ModuleOption::name)).toList();
@@ -486,14 +486,21 @@ public class SystemAiConfigurationService {
         try {
             JsonNode snapshot = objectMapper.readTree(version.getSnapshotJson());
             List<String> fields = new ArrayList<>();
+            List<AiConfigurationModels.FieldOption> fieldOptions = new ArrayList<>();
             snapshot.path("fields").forEach(field -> {
-                if ("ACTIVE".equals(field.path("status").asText())) fields.add(field.path("code").asText());
+                if ("ACTIVE".equals(field.path("status").asText())) {
+                    String code = field.path("code").asText();
+                    fields.add(code);
+                    fieldOptions.add(new AiConfigurationModels.FieldOption(
+                            code, field.path("name").asText(code)));
+                }
             });
             List<String> actions = new ArrayList<>();
             snapshot.path("actions").forEach(action -> {
                 if ("ACTIVE".equals(action.path("status").asText())) actions.add(action.path("code").asText());
             });
             return new PublishedModule(module.getCode(), fields.stream().distinct().sorted().toList(),
+                    fieldOptions.stream().distinct().sorted(Comparator.comparing(AiConfigurationModels.FieldOption::name)).toList(),
                     actions.stream().distinct().sorted().toList(), version.getId(), version.getVersionNumber());
         } catch (JsonProcessingException exception) {
             return null;
@@ -681,6 +688,11 @@ public class SystemAiConfigurationService {
     }
 
     private record PublishedModule(
-            String code, List<String> fields, List<String> actions, Long versionId, Integer versionNumber) {
+            String code,
+            List<String> fields,
+            List<AiConfigurationModels.FieldOption> fieldOptions,
+            List<String> actions,
+            Long versionId,
+            Integer versionNumber) {
     }
 }

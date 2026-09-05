@@ -46,6 +46,9 @@ public class FlowException {
     @TableField("resolved_by_account_id")
     private Long resolvedByAccountId;
 
+    @TableField("resolved_by_tenant_member_id")
+    private Long resolvedByTenantMemberId;
+
     @TableField("resolution_comment")
     private String resolutionComment;
 
@@ -131,6 +134,14 @@ public class FlowException {
         this.resolvedByAccountId = resolvedByAccountId;
     }
 
+    public Long getResolvedByTenantMemberId() {
+        return resolvedByTenantMemberId;
+    }
+
+    public void setResolvedByTenantMemberId(Long resolvedByTenantMemberId) {
+        this.resolvedByTenantMemberId = resolvedByTenantMemberId;
+    }
+
     public String getResolutionComment() {
         return resolutionComment;
     }
@@ -175,6 +186,7 @@ public class FlowException {
             ", policyAction = " + policyAction +
             ", status = " + status +
             ", resolvedByAccountId = " + resolvedByAccountId +
+            ", resolvedByTenantMemberId = " + resolvedByTenantMemberId +
             ", resolutionComment = " + resolutionComment +
             ", occurredAt = " + occurredAt +
             ", resolvedAt = " + resolvedAt +

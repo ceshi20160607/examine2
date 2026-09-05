@@ -421,6 +421,39 @@ class ModuleConfigurationHttpTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void ruleAndIndexCodesAreGeneratedWhenBusinessUsersOnlyProvideNames() {
+        Session owner = register("generated_config_owner", "generated-config-system", "generated-config@example.com");
+        long groupId = number(data(exchange("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
+                Map.of("name", "服务管理", "sortOrder", 40))).get("id"));
+        Map<String, Object> created = data(exchange("/api/admin/module-config/modules", HttpMethod.POST, owner.token(),
+                Map.of("groupId", groupId, "name", "售后工单")));
+        long moduleId = number(((Map<?, ?>) created.get("module")).get("id"));
+        Map<String, Object> subject = data(exchange(
+                "/api/admin/module-config/modules/" + moduleId + "/fields", HttpMethod.POST, owner.token(),
+                Map.of("name", "工单主题", "fieldType", "TEXT", "required", true,
+                        "sortOrder", 10, "config", Map.of("placeholder", "请输入工单主题"))));
+
+        Map<String, Object> ruleDefinition = Map.of(
+                "mode", "ALL",
+                "conditions", List.of(Map.of("field", subject.get("code"), "operator", "NOT_EMPTY")),
+                "effect", Map.of("type", "BLOCK"));
+        Map<String, Object> rule = data(exchange(
+                "/api/admin/module-config/modules/" + moduleId + "/rules-indexes/rules",
+                HttpMethod.POST, owner.token(), Map.of(
+                        "name", "主题填写检查", "ruleType", "VALIDATION", "triggerEvent", "CREATE",
+                        "definition", ruleDefinition, "message", "主题已填写", "sortOrder", 10)));
+        assertThat(rule.get("code").toString()).startsWith("rule_");
+
+        Map<String, Object> index = data(exchange(
+                "/api/admin/module-config/modules/" + moduleId + "/rules-indexes/indexes",
+                HttpMethod.POST, owner.token(), Map.of(
+                        "name", "工单主题查询", "uniqueIndex", false,
+                        "fields", List.of(Map.of("fieldId", subject.get("id"), "sortOrder", 0, "sortDirection", "ASC")))));
+        assertThat(((Map<String, Object>) index.get("index")).get("code").toString()).startsWith("index_");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void structuredRulesAndUniqueIndexesArePreviewedPublishedAndEnforcedInOneTransaction() {
         Session owner = register("rule_index_owner", "rule-index-system", "rule-index@example.com");
         Session outsider = register("rule_index_outsider", "rule-index-other", "rule-index-other@example.com");

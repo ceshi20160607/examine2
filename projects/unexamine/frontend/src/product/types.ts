@@ -154,6 +154,7 @@ export interface AiModuleOption {
   name: string
   actions: string[]
   fields: string[]
+  fieldOptions?: Array<{ code: string; name: string }>
 }
 
 export interface AiSystemOverview {
@@ -437,7 +438,7 @@ export interface TenantExtensionApplicationGrant {
   applicationId: number
   applicationCode: string
   applicationName: string
-  grantId: number
+  grantId?: number
   actionCode: string
   fieldCodes: string[]
 }
@@ -601,7 +602,7 @@ export interface CommandCenterExecution {
 
 export interface RuntimeField extends ConfiguredField {
   access?: {
-    channel: 'PAGE' | 'APPLICATION' | 'FILE'
+    channel: 'PAGE' | 'APPLICATION' | 'FILE' | 'FLOW'
     readable: boolean
     writable: boolean
     maskStrategy?: string
@@ -697,11 +698,14 @@ export interface RuntimeRecordTimelineChange {
 
 export interface RuntimeRecordTimelineEntry {
   eventId: number
-  eventCode: 'BUSINESS_RECORD_CREATED' | 'BUSINESS_RECORD_UPDATED' | 'BUSINESS_RECORD_ARCHIVED' | 'BUSINESS_RECORD_DELETED' | 'BUSINESS_RECORD_RESTORED' | 'BUSINESS_RECORD_TRANSFERRED' | 'BUSINESS_RECORD_CONVERTED'
+  eventCode: 'BUSINESS_RECORD_CREATED' | 'BUSINESS_RECORD_UPDATED' | 'BUSINESS_RECORD_ARCHIVED' | 'BUSINESS_RECORD_DELETED' | 'BUSINESS_RECORD_RESTORED' | 'BUSINESS_RECORD_TRANSFERRED' | 'BUSINESS_RECORD_CONVERTED' | 'BUSINESS_RECORD_TASK_CREATED' | 'BUSINESS_RECORD_TASK_UPDATED' | 'BUSINESS_RECORD_LOG_CREATED' | 'BUSINESS_RECORD_LOG_UPDATED' | 'FLOW_BUSINESS_WRITEBACK' | 'FLOW_BUSINESS_STATUS_MAPPED'
   label: string
   actorAccountId?: number
   actorMemberId?: number
   actorDisplayName: string
+  summary?: string
+  targetType?: 'WORK_TASK' | 'WORK_LOG'
+  targetId?: string
   occurredAt: string
   changes: RuntimeRecordTimelineChange[]
 }
@@ -939,9 +943,14 @@ export interface AuthorizationMember {
   displayName: string
   employeeNumber?: string
   departmentId?: number
+  departmentName?: string
+  managerTenantMemberId?: number
+  managerName?: string
+  positionTitle?: string
   tenantAdmin: boolean
   status: string
   roleIds: number[]
+  roleNames: string[]
   version: number
 }
 
@@ -980,6 +989,37 @@ export interface AuthorizationResource {
   name: string
   actions: string[]
   fields: string[]
+  actionNames: Record<string, string>
+  fieldNames: Record<string, string>
+}
+
+export interface SystemDirectoryDepartment {
+  id: number
+  parentId?: number
+  name: string
+  fullName: string
+  memberCount: number
+}
+
+export interface SystemDirectoryPerson {
+  tenantMemberId: number
+  systemMemberId: number
+  accountId: number
+  displayName: string
+  employeeNumber?: string
+  departmentId?: number
+  departmentName?: string
+  managerTenantMemberId?: number
+  managerName?: string
+  positionTitle?: string
+  roleNames: string[]
+  tenantAdmin: boolean
+}
+
+export interface SystemPeopleDirectory {
+  departments: SystemDirectoryDepartment[]
+  people: SystemDirectoryPerson[]
+  permissionVersion: number
 }
 
 export interface SystemAuthorizationOverview {
@@ -1811,7 +1851,10 @@ export interface FlowBindingResolution {
 export interface FlowRuntimeCandidate {
   id: number
   candidateType: string
-  candidateId: string
+  tenantMemberId?: number
+  displayName: string
+  departmentName?: string
+  positionTitle?: string
   resolutionReason: string
   createdAt: string
 }
@@ -1820,7 +1863,10 @@ export interface FlowRuntimeTask {
   nodeKey: string
   taskType: string
   status: string
-  assigneeAccountId?: number
+  assigneeTenantMemberId?: number
+  assigneeName?: string
+  assigneeDepartment?: string
+  assigneePosition?: string
   assigneeSnapshot: Record<string, unknown>
   dueAt?: string
   claimedAt?: string
@@ -1837,7 +1883,8 @@ export interface FlowRuntimeAction {
   input: Record<string, unknown>
   result: Record<string, unknown>
   idempotencyKey: string
-  actedByAccountId: number
+  actedByTenantMemberId?: number
+  actedByName: string
   actedAt: string
 }
 export interface FlowRuntimeException {
@@ -1848,7 +1895,8 @@ export interface FlowRuntimeException {
   errorMessage: string
   policyAction: string
   status: string
-  resolvedByAccountId?: number
+  resolvedByTenantMemberId?: number
+  resolvedByName?: string
   resolutionComment?: string
   occurredAt: string
   resolvedAt?: string
@@ -1872,7 +1920,8 @@ export interface FlowRuntimeInstance {
   currentNodeKey?: string
   currentNodeName?: string
   status: string
-  startedByAccountId: number
+  startedByTenantMemberId?: number
+  startedByName: string
   startedAt: string
   finishedAt?: string
   errorCode?: string
@@ -1882,6 +1931,9 @@ export interface FlowRuntimeInstance {
   tasks: FlowRuntimeTask[]
   actions: FlowRuntimeAction[]
   exceptions: FlowRuntimeException[]
+  executions: Array<{ id: number; nodeKey: string; nodeType: string; status: string; enteredAt: string; leftAt?: string; resultCode?: string }>
+  history: Array<{ id: number; nodeKey?: string; eventType: string; eventName: string; actorTenantMemberId?: number; actorName: string; beforeStatus?: string; afterStatus?: string; detail: Record<string, unknown>; occurredAt: string }>
+  jobs: Array<{ id: number; nodeKey: string; jobType: string; status: string; attemptCount: number; maxAttempts: number; nextRunAt: string; lastErrorCode?: string; lastErrorMessage?: string; completedAt?: string }>
   allowedActions: string[]
   nextStep: string
 }
@@ -1895,7 +1947,9 @@ export interface FlowManualNodePreview {
   instanceStatus: string
   currentNodeKey: string
   suspendedTaskId: number
-  assigneeAccountId: number
+  assigneeTenantMemberId: number
+  assigneeName: string
+  assigneeDepartment?: string
   position: 'BEFORE_CURRENT'
   reason: string
   statusMappings: Record<string, Record<string, string>>
@@ -1913,10 +1967,14 @@ export interface TodoItemView {
   platformId: number
   systemId?: number
   tenantId?: number
-  assigneeAccountId: number
+  assigneeTenantMemberId?: number
+  assigneeName: string
   todoType: string
   sourceType: string
   sourceId: string
+  sourceLabel: string
+  objectName: string
+  initiatorName: string
   title: string
   summary: string
   targetRoute?: string
@@ -1936,7 +1994,8 @@ export interface TodoHandleResult {
   targetResult?: FlowRuntimeActionResult
 }
 
-export interface WorkProjectMember { id: number; accountId: number; projectRole: string; status: string }
+export interface WorkPerson { tenantMemberId?: number; displayName: string; departmentName?: string; positionTitle?: string }
+export interface WorkProjectMember { id: number; person: WorkPerson; projectRole: string; status: string }
 export interface WorkTaskGroup { id: number; name: string; sortOrder: number; status: string; version: number }
 export interface WorkTaskHistory {
   id: number
@@ -1944,8 +2003,18 @@ export interface WorkTaskHistory {
   before: Record<string, unknown>
   after: Record<string, unknown>
   comment?: string
-  changedByAccountId: number
+  changedByName: string
   changedAt: string
+}
+export interface WorkTaskLinkedLog {
+  id: number
+  workDate: string
+  title: string
+  content: string
+  durationMinutes?: number
+  status: 'DRAFT' | 'SUBMITTED' | 'WITHDRAWN'
+  authorName: string
+  updatedAt: string
 }
 export interface WorkTask {
   id: number
@@ -1962,14 +2031,18 @@ export interface WorkTask {
   priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
   status: 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'COMPLETED' | 'CANCELLED'
   progressPercent: number
-  ownerAccountId: number
+  owner: WorkPerson
   startAt?: string
   dueAt?: string
   completedAt?: string
-  customValues: Record<string, unknown>
+  businessType?: string
+  businessId?: string
+  businessTitle?: string
+  configuredValues: Record<string, unknown>
   version: number
-  collaboratorAccountIds: number[]
+  collaborators: WorkPerson[]
   history: WorkTaskHistory[]
+  linkedLogs: WorkTaskLinkedLog[]
 }
 export interface WorkProject {
   id: number
@@ -1980,7 +2053,7 @@ export interface WorkProject {
   code: string
   name: string
   description?: string
-  ownerAccountId: number
+  owner: WorkPerson
   startDate?: string
   dueDate?: string
   progressPercent: number
@@ -1996,7 +2069,7 @@ export interface WorkLogRevision {
   revisionNumber: number
   snapshot: Record<string, unknown>
   revisionReason: string
-  revisedByAccountId: number
+  revisedByName: string
   revisedAt: string
 }
 export interface WorkLog {
@@ -2005,13 +2078,19 @@ export interface WorkLog {
   platformId: number
   systemId?: number
   tenantId?: number
-  authorAccountId: number
+  author: WorkPerson
   workDate: string
   title: string
   content: string
   durationMinutes?: number
   status: 'DRAFT' | 'SUBMITTED' | 'WITHDRAWN'
-  customValues: Record<string, unknown>
+  projectId?: number
+  projectName?: string
+  tasks: Array<{ id: number; title: string; status: string }>
+  businessType?: string
+  businessId?: string
+  businessTitle?: string
+  configuredValues: Record<string, unknown>
   version: number
   createdAt: string
   updatedAt: string
@@ -2056,7 +2135,10 @@ export interface WorkCalendarTask {
   status: string
   priority: string
   projectId?: number
-  ownerAccountId: number
+  owner: WorkPerson
+  businessType?: string
+  businessId?: string
+  businessTitle?: string
   dueAt?: string
   completedAt?: string
 }
@@ -2064,7 +2146,7 @@ export interface WorkCalendarLog {
   id: number
   title: string
   status: string
-  authorAccountId: number
+  author: WorkPerson
   durationMinutes: number
   workDate: string
 }
@@ -2095,7 +2177,8 @@ export interface WorkCalendar {
   from: string
   to: string
   projectId?: number
-  accountId?: number
+  tenantMemberId?: number
+  personName?: string
   detailAvailable: boolean
   summary: Omit<WorkCalendarDay, 'date' | 'detailAvailable' | 'tasks' | 'logs' | 'milestones'>
   days: WorkCalendarDay[]
@@ -2119,6 +2202,29 @@ export interface ApplicationGrantFieldView {
   readable: boolean
   writable: boolean
   maskStrategy?: string
+}
+
+export interface ApplicationResourceField {
+  code: string
+  name: string
+  fieldType: string
+  required: boolean
+}
+
+export interface ApplicationResourceAction {
+  code: string
+  name: string
+}
+
+export interface ApplicationResourceOption {
+  resourceType: 'MODULE' | 'FLOW' | 'AI'
+  resourceId: string
+  name: string
+  description?: string
+  publishedVersionId: number
+  publishedVersionNumber?: number
+  actions: ApplicationResourceAction[]
+  fields: ApplicationResourceField[]
 }
 
 export interface ApplicationGrantView {
@@ -2182,8 +2288,10 @@ export interface ApplicationView {
   status: 'DRAFT' | 'ACTIVE' | 'DISABLED'
   version: number
   currentVersionId?: number
+  publicationVersion?: number
   callbacks: ApplicationCallbackView[]
   grants: ApplicationGrantView[]
+  publishedGrants: ApplicationGrantView[]
   credentials: ApplicationCredentialView[]
   versions: ApplicationVersionView[]
   statusHistory: ApplicationStatusEvent[]
@@ -2204,6 +2312,34 @@ export interface ApplicationCredentialSecret {
 export interface ApplicationCreateResult {
   application: ApplicationView
   issuedCredential: ApplicationCredentialSecret
+}
+
+export interface ApplicationConfigurationExport {
+  schemaVersion: number
+  sourceCode: string
+  sourceName: string
+  description?: string
+  applicationType: 'SERVICE' | 'WEBHOOK'
+  callbacks: Array<{
+    callbackType: 'EVENT' | 'RESULT'
+    url: string
+    eventCodes: string[]
+    signingSecretRef: string
+    timeoutMillis: number
+    maxAttempts: number
+  }>
+  grants: Array<{
+    targetType: 'PLATFORM' | 'SYSTEM'
+    targetSystemId?: number
+    targetTenantId?: number
+    resourceType: string
+    resourceId: string
+    actionCode: string
+    dataScope: Record<string, unknown>
+    rateLimit: Record<string, unknown>
+    fields: Array<{ fieldCode: string; readable: boolean; writable: boolean; maskStrategy?: string }>
+  }>
+  exportedAt: string
 }
 
 export interface ApplicationRotateResult {
@@ -2244,6 +2380,7 @@ export interface ApplicationCallLogView {
   id: number
   requestId: string
   traceId: string
+  applicationVersionId?: number
   credentialVersion: number
   grantId?: number
   sourceAddress?: string
@@ -2320,7 +2457,13 @@ export interface MessageItemView {
   archivedAt?: string
   recipientVersion: number
   createdAt: string
+  actorName: string
   targetCurrentlyAccessible: boolean
+}
+
+export interface MessageDeliveryDiagnosticsView {
+  messageId: number
+  subject: string
   deliveries: MessageDeliveryView[]
 }
 
@@ -2348,6 +2491,22 @@ export interface FileReferenceView {
   referenceType: 'ATTACHMENT' | 'IMAGE' | 'DOCUMENT' | 'RESULT'
   createdByAccountId: number
   createdAt: string
+}
+
+export interface BusinessAttachmentView {
+  attachmentId?: number
+  fileId: number
+  originalName: string
+  contentType: string
+  sizeBytes: number
+  scanStatus: string
+  previewStatus: string
+  status: string
+  purpose: string
+  createdAt: string
+  previewable: boolean
+  downloadable: boolean
+  removable: boolean
 }
 
 export interface FileScanView {
@@ -2490,8 +2649,8 @@ export interface ExportBatchView {
   version: number
 }
 
-export type DashboardSourceType = 'PLATFORM_SYSTEMS' | 'MODULE_RECORDS' | 'MODULE_REPORT' | 'TODO_ITEMS'
-  | 'MESSAGE_ITEMS' | 'WORK_PROJECTS'
+export type DashboardSourceType = 'PLATFORM_SYSTEMS' | 'MODULE_RECORDS' | 'MODULE_REPORT' | 'EXTERNAL_API'
+  | 'DATABASE_CONNECTION' | 'TODO_ITEMS' | 'MESSAGE_ITEMS' | 'WORK_PROJECTS'
 export type DashboardComponentType = 'METRIC' | 'CHART' | 'LIST' | 'TODO' | 'QUICK_ENTRY'
   | 'KPI' | 'PROGRESS' | 'RANKING'
 
@@ -2514,6 +2673,14 @@ export interface DashboardDataSource {
   status: 'DRAFT' | 'PUBLISHED'
   version: number
   updatedAt: string
+  boundary: {
+    family: 'SYSTEM_MODULE' | 'EXTERNAL_API' | 'DATABASE' | 'SYSTEM_CAPABILITY'
+    connectionMode: string
+    queryMode: string
+    permissionMode: string
+    runtimeReady: boolean
+    explanation: string
+  }
   versions: DashboardDataSourceVersion[]
 }
 export interface DashboardComponentInput {
@@ -2597,7 +2764,7 @@ export interface KpiReminder {
   id: number
   todoId?: number
   messageId?: number
-  recipientAccountId: number
+  recipientTenantMemberId: number
   status: 'SENT' | 'ACKNOWLEDGED' | 'RESOLVED'
   sentAt: string
   acknowledgedAt?: string
@@ -2632,7 +2799,7 @@ export interface KpiDefinition {
   visibilityPermission: Record<string, unknown>
   drillPermission: Record<string, unknown>
   reminderEnabled: boolean
-  reminderRecipientAccountIds: number[]
+  reminderRecipientTenantMemberIds: number[]
   reminderBelowPercent: number
   status: 'ACTIVE' | 'INACTIVE'
   version: number

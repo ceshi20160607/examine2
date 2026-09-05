@@ -3,9 +3,10 @@ import { DownloadOutlined, PlayCircleOutlined, ReloadOutlined, RollbackOutlined,
 import { message } from 'ant-design-vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { api, ApiError } from '../api'
-import { authorizedBlob, importRowLabel, parseCsvHeaders, referenceToAccount, saveBlob, uploadControlledFile } from '../file'
+import { authorizedBlob, fileScanLabel, importRowLabel, parseCsvHeaders, referenceToAccount, saveBlob, uploadControlledFile } from '../file'
+import { productDateTime, productStatus } from '../presentation'
 import { systemContext, systemTokens } from '../session'
-import type { ControlledFileView, ImportBatchView, ImportTemplateView } from '../types'
+import type { ControlledFileView, ImportBatchView, ImportRowView, ImportTemplateView } from '../types'
 
 const props = defineProps<{ open: boolean; moduleCode: string; moduleName?: string }>()
 const emit = defineEmits<{ 'update:open': [value: boolean]; recordsChanged: [] }>()
@@ -25,7 +26,7 @@ const error = ref('')
 let pollTimer: number | undefined
 
 const targetOptions = computed(() => (template.value?.columns || []).map(column => ({
-  value: column.code, label: `${column.name}（${column.code}）${column.required ? ' *' : ''}`,
+  value: column.code, label: `${column.name}${column.required ? '（必填）' : ''}`,
 })))
 const mappedTargets = computed(() => Object.values(mapping.value).filter(Boolean))
 const canPreview = computed(() => sourceFile.value?.scanStatus === 'CLEAN' && mappedTargets.value.includes('title'))
@@ -177,6 +178,15 @@ function statusColor(status: string) {
   return 'blue'
 }
 
+function operationLabel(operation: string) {
+  return ({ CREATE: '新建', UPDATE: '更新', SKIP: '跳过' } as Record<string, string>)[operation] || '待处理'
+}
+
+function rowSummary(row: ImportRowView) {
+  const values = Object.values(row.raw).filter(value => value !== null && value !== undefined && String(value).trim()).slice(0, 3)
+  return values.length ? values.join(' · ') : '空白行'
+}
+
 watch(() => [props.open, props.moduleCode], ([open]) => { if (open) void load() }, { immediate: true })
 onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
 </script>
@@ -193,7 +203,7 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
       <a-button @click="downloadTemplate"><DownloadOutlined />下载 CSV 模板</a-button>
       <label class="ant-btn file-upload-button" for="module-import-file"><UploadOutlined />选择 CSV 文件</label>
       <input id="module-import-file" class="visually-hidden" type="file" accept=".csv,text/csv" @change="selectSource" />
-      <a-tag v-if="sourceFile" :color="sourceFile.scanStatus === 'CLEAN' ? 'green' : 'red'">{{ sourceFile.originalName }} · {{ sourceFile.scanStatus }}</a-tag>
+      <a-tag v-if="sourceFile" :color="sourceFile.scanStatus === 'CLEAN' ? 'green' : 'red'">{{ sourceFile.originalName }} · {{ fileScanLabel(sourceFile.scanStatus) }}</a-tag>
     </div>
     <a-progress v-if="uploading" :percent="uploadProgress" status="active" />
 
@@ -204,16 +214,16 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
     </template>
 
     <template v-if="current">
-      <a-divider>批次 #{{ current.id }} · {{ current.status }}</a-divider>
-      <div class="import-summary"><span><strong>{{ current.totalRows }}</strong>总行数</span><span><strong>{{ current.validRows }}</strong>可执行</span><span><strong>{{ current.successRows }}</strong>成功</span><span><strong>{{ current.failedRows }}</strong>错误</span><a-tag :color="statusColor(current.status)">{{ current.status }}</a-tag></div>
+      <a-divider>本次导入 · {{ productDateTime(current.createdAt) }}</a-divider>
+      <div class="import-summary"><span><strong>{{ current.totalRows }}</strong>总行数</span><span><strong>{{ current.validRows }}</strong>可执行</span><span><strong>{{ current.successRows }}</strong>成功</span><span><strong>{{ current.failedRows }}</strong>错误</span><a-tag :color="statusColor(current.status)">{{ productStatus(current.status).label }}</a-tag></div>
       <a-table :data-source="current.rows" row-key="id" size="small" :pagination="{ pageSize: 20 }" :scroll="{ x: 900 }">
-        <a-table-column title="行" data-index="rowNumber" width="65" /><a-table-column title="计划" data-index="operation" width="90" />
+        <a-table-column title="行" data-index="rowNumber" width="65" /><a-table-column title="计划" width="90"><template #default="{ record }">{{ operationLabel(record.operation) }}</template></a-table-column>
         <a-table-column title="状态" width="120"><template #default="{ record }"><a-tag :color="statusColor(record.status)">{{ importRowLabel(record.status) }}</a-tag></template></a-table-column>
-        <a-table-column title="原始数据"><template #default="{ record }"><code class="import-row-json">{{ JSON.stringify(record.raw) }}</code></template></a-table-column>
-        <a-table-column title="目标记录" width="100"><template #default="{ record }">{{ record.targetRecordId || '—' }}</template></a-table-column>
-        <a-table-column title="说明" width="220"><template #default="{ record }">{{ record.errorMessage || record.rollbackStatus || '校验通过' }}</template></a-table-column>
+        <a-table-column title="数据摘要"><template #default="{ record }">{{ rowSummary(record) }}</template></a-table-column>
+        <a-table-column title="匹配结果" width="100"><template #default="{ record }">{{ record.targetRecordId ? '已匹配' : '新记录' }}</template></a-table-column>
+        <a-table-column title="说明" width="220"><template #default="{ record }">{{ record.errorMessage || (record.rollbackStatus ? importRowLabel(record.rollbackStatus) : '校验通过') }}</template></a-table-column>
       </a-table>
-      <div class="drawer-footer import-result-actions"><a-select v-if="history.length" placeholder="查看历史批次" style="width:190px" :options="history.map(batch => ({ value: batch.id, label: `#${batch.id} · ${batch.status}` }))" @change="openBatch" /><a-button :loading="loading" @click="load"><ReloadOutlined />刷新</a-button><a-button v-if="current.failedRows" @click="downloadErrors"><DownloadOutlined />下载错误行</a-button><a-popconfirm v-if="['COMPLETED', 'COMPLETED_WITH_ERRORS', 'ROLLBACK_PARTIAL'].includes(current.status)" title="只会撤销本批次且未被后续修改的记录，确认继续？" @confirm="rollback"><a-button danger :loading="loading"><RollbackOutlined />安全回滚</a-button></a-popconfirm><a-button v-if="current.status === 'PREVIEWED' && current.validRows" type="primary" :loading="loading" @click="execute"><PlayCircleOutlined />确认后台执行</a-button></div>
+      <div class="drawer-footer import-result-actions"><a-select v-if="history.length" placeholder="查看历史导入" style="width:240px" :options="history.map(batch => ({ value: batch.id, label: `${productDateTime(batch.createdAt)} · ${productStatus(batch.status).label}` }))" @change="openBatch" /><a-button :loading="loading" @click="load"><ReloadOutlined />刷新</a-button><a-button v-if="current.failedRows" @click="downloadErrors"><DownloadOutlined />下载错误行</a-button><a-popconfirm v-if="['COMPLETED', 'COMPLETED_WITH_ERRORS', 'ROLLBACK_PARTIAL'].includes(current.status)" title="只会撤销本次导入且未被后续修改的记录，确认继续？" @confirm="rollback"><a-button danger :loading="loading"><RollbackOutlined />安全回滚</a-button></a-popconfirm><a-button v-if="current.status === 'PREVIEWED' && current.validRows" type="primary" :loading="loading" @click="execute"><PlayCircleOutlined />确认后台执行</a-button></div>
     </template>
     <template #footer><div class="drawer-footer"><span>权限、字段可写范围和数据归属会在每一行执行时重新校验。</span><a-button @click="drawerOpen = false">关闭</a-button></div></template>
   </a-drawer>

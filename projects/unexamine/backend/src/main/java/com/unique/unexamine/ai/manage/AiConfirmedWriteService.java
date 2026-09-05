@@ -47,6 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.Socket;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -164,6 +166,21 @@ public class AiConfirmedWriteService {
         AiExecutionStep step = recognitionStep(execution, tool, input);
 
         String refusal = refusal(context, input, published.snapshot(), tool, moduleCode, entryType);
+        SourceRecordContext sourceContext = null;
+        if (refusal == null && "RECORD_DETAIL".equals(entryType)) {
+            sourceContext = parseSourceRecordContext(
+                    input.sourceReference() == null ? "" : input.sourceReference().strip(), context.systemId());
+            if (sourceContext == null) {
+                refusal = "已拒绝：当前业务记录上下文已失效；未识别字段，也未写入业务。";
+            } else {
+                try {
+                    runtimeDataService.detail(context, sourceContext.moduleCode(), sourceContext.recordId(), traceId);
+                } catch (DomainException exception) {
+                    refusal = "已拒绝：当前业务记录无权访问或已失效；未识别字段，也未写入业务。";
+                    sourceContext = null;
+                }
+            }
+        }
         RuntimeModuleConfiguration configuration = null;
         List<FieldDefinition> definitions = List.of();
         if (refusal == null) {
@@ -175,6 +192,9 @@ public class AiConfirmedWriteService {
         CandidateDraft draft = refusal == null && availability.available()
                 ? recognizeDraft(input.inputText(), definitions)
                 : manualDraft(input.inputText(), definitions);
+        if (refusal == null && sourceContext != null) {
+            draft = bindSourceRecord(context, draft, definitions, sourceContext);
+        }
 
         String outcome;
         String status;
@@ -217,6 +237,7 @@ public class AiConfirmedWriteService {
         preview.put("confirmationRequired", true);
         preview.put("sourceType", input.sourceType());
         preview.put("sourceReference", input.sourceReference() == null ? "" : input.sourceReference());
+        preview.put("entryType", entryType);
         preview.put("inputText", input.inputText().strip());
         preview.put("fields", draft.fields());
         preview.put("unknownSegments", draft.unknownSegments());
@@ -274,6 +295,7 @@ public class AiConfirmedWriteService {
                 .findFirst().orElseThrow(() -> new DomainException("AI_WRITE_TOOL_REVOKED",
                         "固定 Agent 版本没有可确认的写入工具", HttpStatus.CONFLICT));
         enforceWriteAuthorization(context, moduleCode, tool, input.fields().keySet(), traceId);
+        SourceRecordContext sourceContext = requireSourceRecordContext(context, pending, traceId);
 
         CreateRuntimeRecordRequest createRequest = new CreateRuntimeRecordRequest(
                 input.title().strip(), blankToNull(input.recordNumber()), blankToDefault(input.status(), "ACTIVE"),
@@ -302,6 +324,18 @@ public class AiConfirmedWriteService {
         LocalDateTime confirmedAt = LocalDateTime.now();
         String recordPath = "/systems/" + context.systemId() + "?workspace=runtime&module=" + moduleCode
                 + "&recordId=" + record.id();
+        if (sourceContext != null) {
+            String targetModuleName = modulePublicationService.published(context, moduleCode)
+                    .configuration().path("module").path("name").asText(moduleCode);
+            auditRecorder.recordWithPermissionSnapshot(traceId, context.accountId(), context.systemId(),
+                    context.tenantId(), context.memberId(), "AI_CONFIRMED_RELATED_RECORD_CREATED",
+                    "BUSINESS_RECORD", sourceContext.recordId().toString(), "SUCCESS",
+                    Map.of("sourceModuleCode", sourceContext.moduleCode(), "sourceRecordId", sourceContext.recordId(),
+                            "targetModuleCode", moduleCode, "targetRecordId", record.id()),
+                    Map.of("targetModuleCode", moduleCode, "targetModuleName", targetModuleName,
+                            "targetRecordId", record.id(), "targetRecordTitle", record.title(),
+                            "targetRecordPath", recordPath, "pendingWriteId", pending.getId()));
+        }
         LinkedHashMap<String, Object> result = new LinkedHashMap<>();
         result.put("recordId", record.id());
         result.put("recordPath", recordPath);
@@ -340,6 +374,42 @@ public class AiConfirmedWriteService {
         return new AiConfirmedWriteModels.WriteResult(pending.getId(), "CONFIRMED", "SUCCEEDED", null,
                 "已确认并写入真实业务，结果可从目标模块读回。", record.id(), recordPath,
                 objectMapper.convertValue(record, MAP_TYPE), true, pending.getVersion(), confirmedAt);
+    }
+
+    private SourceRecordContext requireSourceRecordContext(
+            AuthenticatedContext context, AiPendingWrite pending, String traceId) {
+        JsonNode preview = readTree(pending.getPreviewJson());
+        if (!"RECORD_DETAIL".equals(preview.path("entryType").asText())) return null;
+        SourceRecordContext source = parseSourceRecordContext(
+                preview.path("sourceReference").asText("").strip(), context.systemId());
+        if (source == null) {
+            throw new DomainException("AI_WRITE_SOURCE_CONTEXT_INVALID",
+                    "当前记录上下文已失效，请返回业务详情后重新生成候选", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        runtimeDataService.detail(context, source.moduleCode(), source.recordId(), traceId);
+        return source;
+    }
+
+    private SourceRecordContext parseSourceRecordContext(String reference, Long expectedSystemId) {
+        try {
+            URI uri = URI.create(reference);
+            String[] path = uri.getPath().split("/");
+            if (path.length != 3 || !"systems".equals(path[1])
+                    || !expectedSystemId.equals(Long.valueOf(path[2]))) return null;
+            Map<String, String> query = new LinkedHashMap<>();
+            for (String item : uri.getRawQuery() == null ? new String[0] : uri.getRawQuery().split("&")) {
+                String[] pair = item.split("=", 2);
+                if (pair.length == 2) query.put(URLDecoder.decode(pair[0], StandardCharsets.UTF_8),
+                        URLDecoder.decode(pair[1], StandardCharsets.UTF_8));
+            }
+            if (!"runtime".equals(query.get("workspace"))) return null;
+            String moduleCode = query.get("module");
+            String recordId = query.get("recordId");
+            if (moduleCode == null || !moduleCode.matches("[a-z][a-z0-9_]{1,99}") || recordId == null) return null;
+            return new SourceRecordContext(moduleCode, Long.valueOf(recordId));
+        } catch (RuntimeException ignored) {
+            return null;
+        }
     }
 
     @Transactional
@@ -508,6 +578,23 @@ public class AiConfirmedWriteService {
                 input.isBlank() ? List.of() : List.of(input.strip()));
     }
 
+    private CandidateDraft bindSourceRecord(
+            AuthenticatedContext context, CandidateDraft draft,
+            List<FieldDefinition> definitions, SourceRecordContext source) {
+        Long sourceModuleId = modulePublicationService.published(context, source.moduleCode()).moduleId();
+        Map<String, FieldDefinition> byCode = definitions.stream()
+                .collect(java.util.stream.Collectors.toMap(FieldDefinition::code, field -> field));
+        List<AiConfirmedWriteModels.FieldCandidate> fields = draft.fields().stream().map(field -> {
+            FieldDefinition definition = byCode.get(field.code());
+            if (definition == null || !definition.writable() || !"REFERENCE".equals(definition.fieldType())
+                    || !Objects.equals(sourceModuleId, definition.referenceModuleId())) return field;
+            return new AiConfirmedWriteModels.FieldCandidate(field.code(), field.label(), field.fieldType(),
+                    field.required(), true, new LongNode(source.recordId()), 1.0, true,
+                    "已自动关联当前业务记录");
+        }).toList();
+        return new CandidateDraft(draft.title(), draft.recordNumber(), draft.status(), fields, draft.unknownSegments());
+    }
+
     private List<FieldDefinition> fieldDefinitions(
             AuthenticatedContext context, String moduleCode, RuntimeModuleConfiguration configuration, WriteTool tool) {
         Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolveIntersection(
@@ -519,7 +606,8 @@ public class AiConfirmedWriteService {
             FieldAccessDecision decision = decisions.get(code);
             fields.add(new FieldDefinition(code, field.path("name").asText(code),
                     field.path("fieldType").asText("TEXT"), field.path("required").asBoolean(false),
-                    decision != null && decision.writable()));
+                    decision != null && decision.writable(),
+                    field.path("referenceModuleId").isNumber() ? field.path("referenceModuleId").longValue() : null));
         }
         return List.copyOf(fields);
     }
@@ -891,7 +979,7 @@ public class AiConfirmedWriteService {
     }
 
     private record FieldDefinition(String code, String label, String fieldType,
-                                   boolean required, boolean writable) {
+                                   boolean required, boolean writable, Long referenceModuleId) {
     }
 
     private record CandidateDraft(String title, String recordNumber, String status,
@@ -900,5 +988,8 @@ public class AiConfirmedWriteService {
     }
 
     private record ModelAvailability(boolean available, String reason, String mode) {
+    }
+
+    private record SourceRecordContext(String moduleCode, Long recordId) {
     }
 }

@@ -7112,6 +7112,1051 @@
       "useCaseIds": [
         "UC-UI-DESIGN-RESPONSIVE"
       ]
+    },
+    {
+      "acceptance": [
+        "2024 年模块、组织权限和审批实现只作为工程参照完成逐项复审，并记录可保留原则与禁止照搬问题。",
+        "当前实现的数据库、Base、manage、API、前端和测试重新标记 reuse、modify、replace 或 delete。",
+        "实施顺序固定为登录与系统、模块与记录骨架优先，Flow、协同、统计和 AI 依次挂接。",
+        "原 C58-C64 体验收口移动到功能重建之后，用户否决和跨能力旅程失败会触发源码复审与重排。"
+      ],
+      "capabilityId": "CAP-PRODUCT-DELIVERY",
+      "id": "TASK-0207",
+      "inputs": [
+        "docs/user_requirement.md",
+        "projects/unexamine/ai/planning/current-system-reassessment.md",
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md"
+      ],
+      "kind": "integration-test",
+      "outcome": "把多轮重构后的任务图纠正为先骨架后血肉的完整系统实施顺序。",
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-EXISTING-CODE-ASSESSMENT",
+        "REQ-DESIGN-BEFORE-PROTOTYPE"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "role": "test",
+      "title": "重排先骨架后血肉的完整系统任务图",
+      "useCaseIds": [
+        "UC-DELIVERY-CODE-ASSESSMENT"
+      ]
+    },
+    {
+      "acceptance": [
+        "任务目录、依赖图和四小时周期通过 Template Base 校验。",
+        "第一个未完成周期从系统骨架开始，功能重建完成前不进入统一视觉扫尾。",
+        "每个重建周期包含真实入口、持久化读回、权限边界和失败恢复验收。",
+        "最终存在一条使用同一客户运营中心数据连续覆盖全部核心能力的否决式旅程。"
+      ],
+      "capabilityId": "CAP-PRODUCT-DELIVERY",
+      "id": "TASK-0208",
+      "inputs": [
+        "projects/unexamine/ai/planning/task-catalog.json",
+        "projects/unexamine/ai/planning/task-graph.json",
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md"
+      ],
+      "kind": "integration-test",
+      "outcome": "验证纠偏后的框架能够阻止再次以局部页面和技术证据冒充完整系统。",
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-EXISTING-CODE-ASSESSMENT",
+        "REQ-DESIGN-BEFORE-PROTOTYPE",
+        "REQ-DELIVERY-ARTIFACTS",
+        "REQ-DELIVERY-FULL-CAPABILITIES",
+        "REQ-DELIVERY-IMPLEMENTATION-ORDER",
+        "REQ-ENGINEERING-ATOMIC-CYCLES",
+        "REQ-ENGINEERING-FUNCTION-THEN-HARDEN",
+        "REQ-ENGINEERING-TEST-LAYERS"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "role": "test",
+      "title": "验收重排后的系统实施与失败回退门禁",
+      "useCaseIds": [
+        "UC-DELIVERY-CODE-ASSESSMENT",
+        "UC-DELIVERY-PLAN-VERIFY"
+      ]
+    },
+    {
+      "acceptance": [
+        "登录用户创建系统时原子生成系统、主租户、系统管理员成员和根组织节点。",
+        "创建结果返回面向业务的系统上下文和可进入入口，不要求前端拼接内部标识。",
+        "重复创建、初始化失败和越权创建均回滚并返回明确恢复动作。",
+        "系统固定配置保持平台后台和系统后台边界，普通用户不可访问。"
+      ],
+      "capabilityId": "CAP-SYSTEM-TENANCY",
+      "id": "TASK-0209",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage"
+      ],
+      "kind": "backend-manage",
+      "outcome": "重建从登录到创建并初始化可进入系统的后端骨架。",
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-SYSTEM-TENANT-LIFECYCLE",
+        "REQ-TENANT-UNIFIED-ACCOUNT-DEFAULT",
+        "REQ-PLATFORM-ADMIN",
+        "REQ-SYSTEM-ADMIN",
+        "REQ-SYSTEM-ADMIN-CAPABILITY-PLACEMENT"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
+      "role": "backend",
+      "title": "重建系统创建与默认上下文初始化事务",
+      "useCaseIds": [
+        "UC-SYSTEM-CREATE",
+        "UC-SYSTEM-ADMIN-CONFIG"
+      ]
+    },
+    {
+      "acceptance": [
+        "登录后首页以创建或继续系统为第一主任务，创建过程只填写用户可理解的信息。",
+        "创建成功直接进入有明确运行入口和管理入口的系统首页。",
+        "当前系统、租户和角色持续可见，切换或返回不会混淆平台与系统层级。",
+        "初始化、权限和网络失败均保留输入并给出可执行恢复路径。"
+      ],
+      "capabilityId": "CAP-SYSTEM-TENANCY",
+      "id": "TASK-0210",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product"
+      ],
+      "kind": "frontend",
+      "outcome": "形成登录、创建系统、进入系统和返回平台的清楚前端骨架。",
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-SYSTEM-TENANT-LIFECYCLE",
+        "REQ-TENANT-UNIFIED-ACCOUNT-DEFAULT",
+        "REQ-PLATFORM-ADMIN",
+        "REQ-SYSTEM-ADMIN",
+        "REQ-SYSTEM-ADMIN-CAPABILITY-PLACEMENT"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
+      "role": "frontend",
+      "title": "重建登录后创建并进入系统的连续界面",
+      "useCaseIds": [
+        "UC-SYSTEM-CREATE",
+        "UC-SYSTEM-ADMIN-CONFIG"
+      ]
+    },
+    {
+      "acceptance": [
+        "从真实登录入口创建客户运营中心并读回系统、主租户、管理员成员和根部门。",
+        "退出后重新登录仍可直接找到并进入该系统。",
+        "普通成员不能进入系统后台，系统管理员不能越界修改平台固定配置。",
+        "页面不出现内部系统 ID、租户 ID、状态码或技术初始化说明。"
+      ],
+      "capabilityId": "CAP-SYSTEM-TENANCY",
+      "id": "TASK-0211",
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "kind": "integration-test",
+      "outcome": "用真实账号验收登录到可用系统上下文的第一段骨架。",
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-SYSTEM-TENANT-LIFECYCLE",
+        "REQ-TENANT-UNIFIED-ACCOUNT-DEFAULT",
+        "REQ-PLATFORM-ADMIN",
+        "REQ-SYSTEM-ADMIN",
+        "REQ-SYSTEM-ADMIN-CAPABILITY-PLACEMENT"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "role": "test",
+      "title": "验收登录创建系统与初始化骨架",
+      "useCaseIds": [
+        "UC-SYSTEM-CREATE",
+        "UC-SYSTEM-ADMIN-CONFIG"
+      ]
+    },
+    {
+      "acceptance": [
+        "模块组、模块、字段、页面、菜单动作和发布版本围绕同一模块聚合保存。",
+        "发布校验覆盖必填字段、稳定编码、页面引用、规则、动作和破坏性版本变化。",
+        "发布成功后运行目录立即读取不可变版本，回滚只改变后续生效版本。",
+        "普通管理接口不接收任意 JSON 作为主要配置入口。"
+      ],
+      "capabilityId": "CAP-LOWCODE-DEFINITION",
+      "id": "TASK-0212",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage"
+      ],
+      "kind": "backend-manage",
+      "outcome": "恢复 2024 年已跑通的模块业务骨架并补齐当前版本发布约束。",
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-CONFIGURABLE-BUSINESS-SCENARIOS",
+        "REQ-ADMIN-NO-CODE-JOURNEY",
+        "REQ-MODULE-GROUP",
+        "REQ-RUNTIME-MODULE",
+        "REQ-MODULE-LIFECYCLE",
+        "REQ-LOWCODE-METADATA-ONLY",
+        "REQ-MODULE-FIELD-TYPES",
+        "REQ-MODULE-FIELD-CONFIG",
+        "REQ-MODULE-PAGE-TYPES",
+        "REQ-VISUAL-PAGE-DESIGN",
+        "REQ-MENU-CONFIGURATION",
+        "REQ-SCHEMA-DRIVEN-PAGES",
+        "REQ-CONFIG-VERSION-HISTORY",
+        "REQ-CONFIG-DRAFT-PUBLISH",
+        "REQ-CONFIG-STABLE-CODES",
+        "REQ-DATA-CONFIG-RUNTIME-VERSIONS"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
+      "role": "backend",
+      "title": "重建模块定义到不可变发布的业务聚合",
+      "useCaseIds": [
+        "UC-LOWCODE-MODULE-LIFECYCLE",
+        "UC-LOWCODE-FIELDS-DICTIONARY",
+        "UC-LOWCODE-PAGE-MENU",
+        "UC-LOWCODE-PUBLISH-ROLLBACK"
+      ]
+    },
+    {
+      "acceptance": [
+        "管理员按模块信息、字段、页面与动作、检查发布的单向步骤创建客户模块。",
+        "字段和页面使用真实可视化组件，内部编码自动生成并仅在高级信息中查看。",
+        "模块树、当前编辑对象和发布状态持续可见，非当前步骤不争夺首屏。",
+        "发布成功后可以直接预览并进入客户模块运行页面。"
+      ],
+      "capabilityId": "CAP-LOWCODE-DEFINITION",
+      "id": "TASK-0213",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue"
+      ],
+      "kind": "frontend",
+      "outcome": "把模块配置恢复为业务明确、可逐步完成和可发布的低代码构建器。",
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-CONFIGURABLE-BUSINESS-SCENARIOS",
+        "REQ-ADMIN-NO-CODE-JOURNEY",
+        "REQ-MODULE-GROUP",
+        "REQ-RUNTIME-MODULE",
+        "REQ-MODULE-LIFECYCLE",
+        "REQ-LOWCODE-METADATA-ONLY",
+        "REQ-MODULE-FIELD-TYPES",
+        "REQ-MODULE-FIELD-CONFIG",
+        "REQ-MODULE-PAGE-TYPES",
+        "REQ-VISUAL-PAGE-DESIGN",
+        "REQ-MENU-CONFIGURATION",
+        "REQ-SCHEMA-DRIVEN-PAGES",
+        "REQ-CONFIG-VERSION-HISTORY",
+        "REQ-CONFIG-DRAFT-PUBLISH",
+        "REQ-CONFIG-STABLE-CODES",
+        "REQ-DATA-CONFIG-RUNTIME-VERSIONS"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
+      "role": "frontend",
+      "title": "重建从新建模块到发布预览的低代码构建器",
+      "useCaseIds": [
+        "UC-LOWCODE-MODULE-LIFECYCLE",
+        "UC-LOWCODE-FIELDS-DICTIONARY",
+        "UC-LOWCODE-PAGE-MENU",
+        "UC-LOWCODE-PUBLISH-ROLLBACK"
+      ]
+    },
+    {
+      "acceptance": [
+        "在客户运营中心创建客户模块组和客户模块，配置名称、负责人、阶段、联系电话和备注字段。",
+        "配置列表、表单、详情和基础动作后检查发布，发布目录和版本可读回。",
+        "整个过程无需编辑 JSON、记忆编码或在多个技术页面间复制 ID。",
+        "缺少关键配置时发布被阻断并准确定位到对应模块步骤。"
+      ],
+      "capabilityId": "CAP-LOWCODE-DEFINITION",
+      "id": "TASK-0214",
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "kind": "integration-test",
+      "outcome": "用真实客户模块验收低代码骨架从创建到发布。",
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-CONFIGURABLE-BUSINESS-SCENARIOS",
+        "REQ-ADMIN-NO-CODE-JOURNEY",
+        "REQ-MODULE-GROUP",
+        "REQ-RUNTIME-MODULE",
+        "REQ-MODULE-LIFECYCLE",
+        "REQ-LOWCODE-METADATA-ONLY",
+        "REQ-MODULE-FIELD-TYPES",
+        "REQ-MODULE-FIELD-CONFIG",
+        "REQ-MODULE-PAGE-TYPES",
+        "REQ-VISUAL-PAGE-DESIGN",
+        "REQ-MENU-CONFIGURATION",
+        "REQ-SCHEMA-DRIVEN-PAGES",
+        "REQ-CONFIG-VERSION-HISTORY",
+        "REQ-CONFIG-DRAFT-PUBLISH",
+        "REQ-CONFIG-STABLE-CODES",
+        "REQ-DATA-CONFIG-RUNTIME-VERSIONS"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "role": "test",
+      "title": "验收客户模块从创建配置到发布",
+      "useCaseIds": [
+        "UC-LOWCODE-MODULE-LIFECYCLE",
+        "UC-LOWCODE-FIELDS-DICTIONARY",
+        "UC-LOWCODE-PAGE-MENU",
+        "UC-LOWCODE-PUBLISH-ROLLBACK"
+      ]
+    },
+    {
+      "acceptance": [
+        "运行服务只接受已发布模块版本并按版本 Schema 校验业务字段。",
+        "记录创建、编辑、所有权、参与人和审计在一个明确事务边界中完成。",
+        "列表和详情查询统一执行租户、角色、数据范围和字段权限。",
+        "并发冲突、校验失败和越权操作不产生部分业务数据。"
+      ],
+      "capabilityId": "CAP-RECORD-RUNTIME",
+      "id": "TASK-0215",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage"
+      ],
+      "kind": "backend-manage",
+      "outcome": "让已发布模块真正承载可写、可查和受权限保护的业务记录。",
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-END-USER-BUSINESS-JOURNEY",
+        "REQ-RUNTIME-BUSINESS-RECORD",
+        "REQ-ROBUST-DATA-INTEGRITY",
+        "REQ-RECORD-STANDARD-OWNERSHIP"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
+      "role": "backend",
+      "title": "重建发布模块驱动的业务记录事务链",
+      "useCaseIds": [
+        "UC-RECORD-CREATE-EDIT"
+      ]
+    },
+    {
+      "acceptance": [
+        "普通用户从系统运行导航进入客户列表并使用发布 Schema 生成的真实表单。",
+        "列表、详情和编辑保持同一业务上下文，整行进入详情且返回后保留筛选。",
+        "人员、字典、关联和状态字段显示业务名称，不显示内部编号。",
+        "保存成功读回真实记录，校验、冲突、无权和空状态具有清楚反馈。"
+      ],
+      "capabilityId": "CAP-RECORD-RUNTIME",
+      "id": "TASK-0216",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+      ],
+      "kind": "frontend",
+      "outcome": "形成从客户列表、新建、详情到编辑的连续真实业务界面。",
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-END-USER-BUSINESS-JOURNEY",
+        "REQ-RUNTIME-BUSINESS-RECORD",
+        "REQ-ROBUST-DATA-INTEGRITY",
+        "REQ-RECORD-STANDARD-OWNERSHIP"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
+      "role": "frontend",
+      "title": "重建客户列表表单详情编辑连续运行页",
+      "useCaseIds": [
+        "UC-RECORD-CREATE-EDIT"
+      ]
+    },
+    {
+      "acceptance": [
+        "使用已发布客户模块新建至少两条客户记录并从列表、详情和编辑连续读回。",
+        "退出重登后数据、所有权、版本和审计仍一致。",
+        "另一数据范围成员只能看到授权记录和字段。",
+        "无效输入、并发编辑和越权修改不会留下部分更新。"
+      ],
+      "capabilityId": "CAP-RECORD-RUNTIME",
+      "id": "TASK-0217",
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "kind": "integration-test",
+      "outcome": "证明系统骨架最终落在可正常使用的客户业务记录上。",
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-END-USER-BUSINESS-JOURNEY",
+        "REQ-RUNTIME-BUSINESS-RECORD",
+        "REQ-ROBUST-DATA-INTEGRITY",
+        "REQ-RECORD-STANDARD-OWNERSHIP"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "role": "test",
+      "title": "验收客户记录新建列表详情编辑骨架",
+      "useCaseIds": [
+        "UC-RECORD-CREATE-EDIT"
+      ]
+    },
+    {
+      "acceptance": [
+        "成员、部门、负责人、上下级和角色形成系统级统一目录与查询接口。",
+        "角色发布同时固化页面、字段、动作和数据范围策略，运行查询只使用已发布版本。",
+        "最终权限预览解释多角色并集、限制交集、脱敏和共享边界。",
+        "Flow、记录、任务、消息和 KPI 通过同一人员解析服务获取候选对象。"
+      ],
+      "capabilityId": "CAP-AUTHORIZATION",
+      "id": "TASK-0218",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage"
+      ],
+      "kind": "backend-manage",
+      "outcome": "重建全系统共用的组织成员角色和数据权限上下文。",
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-PERMISSION-ISOLATION",
+        "REQ-ORGANIZATION-MEMBER",
+        "REQ-AUTHORIZATION-MODEL",
+        "REQ-TECH-PERMISSION-ENFORCEMENT",
+        "REQ-UI-PERMISSION-CONSOLE",
+        "REQ-PERMISSION-USER-PREVIEW",
+        "REQ-PERMISSION-MULTIROLE-MERGE",
+        "REQ-UI-PERMISSION-GUARDS",
+        "REQ-DATA-MASKING",
+        "REQ-DATA-APP-FILE-PERMISSION-MODEL"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
+      "role": "backend",
+      "title": "重建统一组织成员角色与权限解析域",
+      "useCaseIds": [
+        "UC-AUTH-ORG-ROLE",
+        "UC-AUTH-MULTIROLE-PREVIEW",
+        "UC-AUTH-GUARD-MASK"
+      ]
+    },
+    {
+      "acceptance": [
+        "管理员通过组织树和成员目录完成部门、成员、负责人、上下级和角色配置。",
+        "所有人员输入使用统一可搜索选择器，页面不出现成员编号或账号 ID 输入。",
+        "权限控制台按页面、字段、动作和数据范围组织并实时预览影响。",
+        "普通成员登录后的导航、记录字段和动作与最终权限预览一致。"
+      ],
+      "capabilityId": "CAP-AUTHORIZATION",
+      "id": "TASK-0219",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product"
+      ],
+      "kind": "frontend",
+      "outcome": "形成管理员能正常维护、其他业务能力可直接复用的组织权限界面。",
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-PERMISSION-ISOLATION",
+        "REQ-ORGANIZATION-MEMBER",
+        "REQ-AUTHORIZATION-MODEL",
+        "REQ-TECH-PERMISSION-ENFORCEMENT",
+        "REQ-UI-PERMISSION-CONSOLE",
+        "REQ-PERMISSION-USER-PREVIEW",
+        "REQ-PERMISSION-MULTIROLE-MERGE",
+        "REQ-UI-PERMISSION-GUARDS",
+        "REQ-DATA-MASKING",
+        "REQ-DATA-APP-FILE-PERMISSION-MODEL"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
+      "role": "frontend",
+      "title": "重建组织树成员目录人员选择与权限控制台",
+      "useCaseIds": [
+        "UC-AUTH-ORG-ROLE",
+        "UC-AUTH-MULTIROLE-PREVIEW",
+        "UC-AUTH-GUARD-MASK"
+      ]
+    },
+    {
+      "acceptance": [
+        "客户运营中心建立销售部和管理部，开通销售、主管和只读审计成员。",
+        "销售只看到本人客户，主管看到本部门客户，审计角色只读且敏感字段脱敏。",
+        "最终权限预览与三个角色实际登录结果一致。",
+        "Flow、任务和记录表单选择同一批成员与部门，不出现孤立账号编号。"
+      ],
+      "capabilityId": "CAP-AUTHORIZATION",
+      "id": "TASK-0220",
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "kind": "integration-test",
+      "outcome": "用真实组织和多角色证明权限上下文成为系统公共基础。",
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-PERMISSION-ISOLATION",
+        "REQ-ORGANIZATION-MEMBER",
+        "REQ-AUTHORIZATION-MODEL",
+        "REQ-TECH-PERMISSION-ENFORCEMENT",
+        "REQ-UI-PERMISSION-CONSOLE",
+        "REQ-PERMISSION-USER-PREVIEW",
+        "REQ-PERMISSION-MULTIROLE-MERGE",
+        "REQ-UI-PERMISSION-GUARDS",
+        "REQ-DATA-MASKING",
+        "REQ-DATA-APP-FILE-PERMISSION-MODEL"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "role": "test",
+      "title": "验收组织权限和统一人员上下文",
+      "useCaseIds": [
+        "UC-AUTH-ORG-ROLE",
+        "UC-AUTH-MULTIROLE-PREVIEW",
+        "UC-AUTH-GUARD-MASK"
+      ]
+    },
+    {
+      "acceptance": [
+        "Flow 后端按 Definition、Deployment、Instance/Execution、Task/IdentityLink、Variable/Binding、History、Job/Incident 分层。",
+        "草稿校验后生成不可变发布版本，运行实例固定引用版本快照和业务键。",
+        "审批人策略通过统一组织上下文解析人员、角色、部门、负责人、上下级、人员字段和上一处理人。",
+        "审批、驳回、转办、加签、退回、撤回、手工加节点、超时、重试和补偿具有显式状态机。",
+        "流程结果可靠回写业务记录并投影待办、消息和完整历史。"
+      ],
+      "capabilityId": "CAP-FLOW",
+      "id": "TASK-0221",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage"
+      ],
+      "kind": "backend-manage",
+      "outcome": "参考开源工作流正确边界重写适合当前产品的 Flow 定义与运行引擎。",
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-FLOW-DESIGN-VERSION",
+        "REQ-FLOW-SIMULATION",
+        "REQ-FLOW-SPECIALIZED-NODE-PROPERTIES",
+        "REQ-FLOW-TRIGGER",
+        "REQ-MODULE-PUBLISH-FLOW-BINDING",
+        "REQ-TENANT-FLOW-RESOLUTION",
+        "REQ-FLOW-MAIN-ENTRY",
+        "REQ-FLOW-APPROVAL-NODE",
+        "REQ-FLOW-RUNTIME-SNAPSHOT",
+        "REQ-FLOW-RUNTIME-ACTIONS",
+        "REQ-TECH-FLOW-ENGINE-MODEL",
+        "REQ-ROBUST-FLOW-RUNTIME",
+        "REQ-FLOW-MANUAL-NODE",
+        "REQ-FLOW-BUSINESS-STATUS-MAPPING"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
+      "role": "backend",
+      "title": "重写 Flow 定义部署实例任务历史和作业引擎",
+      "useCaseIds": [
+        "UC-FLOW-DESIGN-PUBLISH",
+        "UC-FLOW-BIND-RESOLVE",
+        "UC-FLOW-APPROVE-RUNTIME",
+        "UC-FLOW-MANUAL-STATUS"
+      ]
+    },
+    {
+      "acceptance": [
+        "使用 Vue Flow 实现全屏拖拽、连线、缩放、小地图、框选、撤销重做和属性面板。",
+        "节点目录、分支条件、审批人预览、模拟路径和配置错误在画布中直接可见。",
+        "管理员使用业务名称和人员选择器配置节点，不接触 BPMN XML、账号 ID 或原始 JSON。",
+        "发布后可从模块 Flow 设置绑定触发点并直接查看运行实例、当前任务和历史路径。"
+      ],
+      "capabilityId": "CAP-FLOW",
+      "id": "TASK-0222",
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue"
+      ],
+      "kind": "frontend",
+      "outcome": "用真正可视化的业务流程设计器替换当前线性节点配置页。",
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-FLOW-DESIGN-VERSION",
+        "REQ-UI-FLOW-DESIGNER",
+        "REQ-FLOW-SIMULATION",
+        "REQ-FLOW-SPECIALIZED-NODE-PROPERTIES",
+        "REQ-FLOW-TRIGGER",
+        "REQ-MODULE-PUBLISH-FLOW-BINDING",
+        "REQ-TENANT-FLOW-RESOLUTION",
+        "REQ-FLOW-MAIN-ENTRY",
+        "REQ-FLOW-APPROVAL-NODE",
+        "REQ-FLOW-RUNTIME-SNAPSHOT",
+        "REQ-FLOW-RUNTIME-ACTIONS",
+        "REQ-TECH-FLOW-ENGINE-MODEL",
+        "REQ-ROBUST-FLOW-RUNTIME",
+        "REQ-FLOW-MANUAL-NODE",
+        "REQ-FLOW-BUSINESS-STATUS-MAPPING"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
+      "role": "frontend",
+      "title": "重建 Vue Flow 业务流程设计与运行追踪界面",
+      "useCaseIds": [
+        "UC-FLOW-DESIGN-PUBLISH",
+        "UC-FLOW-BIND-RESOLVE",
+        "UC-FLOW-APPROVE-RUNTIME",
+        "UC-FLOW-MANUAL-STATUS"
+      ]
+    },
+    {
+      "acceptance": [
+        "为客户模块设计并发布客户建档审批 Flow，模块发布绑定解析到唯一生效版本。",
+        "销售新建客户后主管收到待办，审批通过后客户状态回写并产生可跳转消息。",
+        "新版本发布不改变运行中实例，历史能解释节点、人员、变量、动作和耗时。",
+        "驳回、转办、加签、退回、撤回、超时重试和回写失败至少各验证一条恢复分支。",
+        "任何环节不要求用户填写账号 ID、节点 ID 或变量 JSON。"
+      ],
+      "capabilityId": "CAP-FLOW",
+      "id": "TASK-0223",
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "kind": "integration-test",
+      "outcome": "用客户建档审批完整验证 Flow 设计、发布、运行、回写和历史。",
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-FLOW-DESIGN-VERSION",
+        "REQ-UI-FLOW-DESIGNER",
+        "REQ-FLOW-SIMULATION",
+        "REQ-FLOW-SPECIALIZED-NODE-PROPERTIES",
+        "REQ-FLOW-TRIGGER",
+        "REQ-MODULE-PUBLISH-FLOW-BINDING",
+        "REQ-TENANT-FLOW-RESOLUTION",
+        "REQ-FLOW-MAIN-ENTRY",
+        "REQ-FLOW-APPROVAL-NODE",
+        "REQ-FLOW-RUNTIME-SNAPSHOT",
+        "REQ-FLOW-RUNTIME-ACTIONS",
+        "REQ-TECH-FLOW-ENGINE-MODEL",
+        "REQ-ROBUST-FLOW-RUNTIME",
+        "REQ-FLOW-MANUAL-NODE",
+        "REQ-FLOW-BUSINESS-STATUS-MAPPING"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
+      "role": "test",
+      "title": "验收客户建档 Flow 审批与业务回写闭环",
+      "useCaseIds": [
+        "UC-FLOW-DESIGN-PUBLISH",
+        "UC-FLOW-BIND-RESOLVE",
+        "UC-FLOW-APPROVE-RUNTIME",
+        "UC-FLOW-MANUAL-STATUS"
+      ]
+    },
+    {
+      "acceptance": [
+        "应用保持系统间和平台内外调用桥梁定位，不成为模块容器或第二套业务导航。",
+        "创建、发布、密钥轮换、停用和授权范围具有版本、审计和失败回滚。",
+        "跨系统调用只通过目标应用授权并执行调用方、租户、模块、Flow 和动作范围校验。",
+        "应用调用结果关联真实业务对象和审计，不暴露长期明文密钥。"
+      ],
+      "capabilityId": "CAP-APPLICATION",
+      "id": "TASK-0224",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage"],
+      "kind": "backend-manage",
+      "outcome": "把应用恢复为依附系统和模块业务的受控通信桥梁。",
+      "outputs": ["projects/unexamine/backend"],
+      "requirementIds": ["REQ-APPLICATION-MAIN-ENTRY", "REQ-UI-APPLICATION-DETAIL", "REQ-APPLICATION-NOT-MODULE-CONTAINER", "REQ-APPLICATION-BRIDGE-FINAL"],
+      "resources": ["projects/unexamine/backend"],
+      "role": "backend",
+      "title": "重建应用发布授权和跨系统调用桥梁",
+      "useCaseIds": ["UC-APPLICATION-MANAGE", "UC-APPLICATION-BRIDGE-CALL"]
+    },
+    {
+      "acceptance": [
+        "系统管理员从当前系统创建应用并以资源选择器授权模块、Flow 和动作。",
+        "应用详情展示状态、版本、授权范围、凭据轮换和最近调用，不与模块配置混淆。",
+        "普通用户只在业务动作结果中看到应用调用结果，不接触资源编码和密钥。",
+        "停用、越权和调用失败给出明确原因、重试或恢复入口。"
+      ],
+      "capabilityId": "CAP-APPLICATION",
+      "id": "TASK-0225",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "kind": "frontend",
+      "outcome": "形成边界清楚的应用管理和调用结果界面。",
+      "outputs": ["projects/unexamine/frontend"],
+      "requirementIds": ["REQ-APPLICATION-MAIN-ENTRY", "REQ-UI-APPLICATION-DETAIL", "REQ-APPLICATION-NOT-MODULE-CONTAINER", "REQ-APPLICATION-BRIDGE-FINAL"],
+      "resources": ["projects/unexamine/frontend"],
+      "role": "frontend",
+      "title": "重建应用授权详情和业务调用反馈",
+      "useCaseIds": ["UC-APPLICATION-MANAGE", "UC-APPLICATION-BRIDGE-CALL"]
+    },
+    {
+      "acceptance": [
+        "创建并发布一个仅可调用客户查询和跟进动作的应用。",
+        "授权调用成功读回客户业务结果，越权模块和停用凭据调用被拒绝并审计。",
+        "轮换凭据后旧凭据失效且业务页面显示可恢复的调用结果。",
+        "应用全程不作为模块容器或普通用户主工作区。"
+      ],
+      "capabilityId": "CAP-APPLICATION",
+      "id": "TASK-0226",
+      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "kind": "integration-test",
+      "outcome": "验证应用只承担受控通信桥梁且能连接真实客户业务。",
+      "outputs": ["projects/unexamine/ai/evidence"],
+      "requirementIds": ["REQ-APPLICATION-MAIN-ENTRY", "REQ-UI-APPLICATION-DETAIL", "REQ-APPLICATION-NOT-MODULE-CONTAINER", "REQ-APPLICATION-BRIDGE-FINAL"],
+      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "role": "test",
+      "title": "验收应用桥梁授权调用和停用边界",
+      "useCaseIds": ["UC-APPLICATION-MANAGE", "UC-APPLICATION-BRIDGE-CALL"]
+    },
+    {
+      "acceptance": [
+        "项目、任务组、任务、负责人、参与人、截止时间、工作日志和日历统计围绕真实业务对象关联。",
+        "负责人和参与人由统一组织上下文解析，不接收普通用户填写账号 ID。",
+        "任务状态变化投影待办和消息，完成结果回写对象时间线。",
+        "工作配置使用结构化字段规则而非任意 JSON。"
+      ],
+      "capabilityId": "CAP-WORK",
+      "id": "TASK-0227",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage"],
+      "kind": "backend-manage",
+      "outcome": "让任务和工作日志成为客户业务对象上的协同能力。",
+      "outputs": ["projects/unexamine/backend"],
+      "requirementIds": ["REQ-WORK-MAIN-ENTRY", "REQ-WORK-MANAGEMENT-BOUNDARY", "REQ-PROJECT-TASK", "REQ-MANUAL-WORK-LOG", "REQ-WORK-CALENDAR-STATISTICS", "REQ-WORK-CONFIGURATION", "REQ-WORK-PERMISSION-ISOLATION"],
+      "resources": ["projects/unexamine/backend"],
+      "role": "backend",
+      "title": "重建业务对象关联的项目任务和工作日志",
+      "useCaseIds": ["UC-WORK-PROJECT-TASK", "UC-WORK-MANUAL-LOG", "UC-WORK-CALENDAR-CONFIG"]
+    },
+    {
+      "acceptance": [
+        "用户可从客户详情创建跟进任务并选择组织成员作为负责人。",
+        "任务主入口按我的任务、项目和日历组织，能准确返回关联客户。",
+        "工作日志在任务和客户时间线中以业务内容呈现，不显示配置 JSON。",
+        "无权、逾期、完成和修订状态反馈一致。"
+      ],
+      "capabilityId": "CAP-WORK",
+      "id": "TASK-0228",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "kind": "frontend",
+      "outcome": "形成客户详情、任务工作区和日历之间连续的协同界面。",
+      "outputs": ["projects/unexamine/frontend"],
+      "requirementIds": ["REQ-WORK-MAIN-ENTRY", "REQ-WORK-MANAGEMENT-BOUNDARY", "REQ-PROJECT-TASK", "REQ-MANUAL-WORK-LOG", "REQ-WORK-CALENDAR-STATISTICS", "REQ-WORK-CONFIGURATION", "REQ-WORK-PERMISSION-ISOLATION"],
+      "resources": ["projects/unexamine/frontend"],
+      "role": "frontend",
+      "title": "重建客户上下文任务工作日志和日历界面",
+      "useCaseIds": ["UC-WORK-PROJECT-TASK", "UC-WORK-MANUAL-LOG", "UC-WORK-CALENDAR-CONFIG"]
+    },
+    {
+      "acceptance": [
+        "销售从客户详情创建任务，负责人从统一成员目录选择并收到待办。",
+        "负责人完成任务和填写工作日志后，任务、日历和客户时间线一致读回。",
+        "非参与成员无法查看任务内容，主管按授权范围查看统计。",
+        "整个旅程不填写账号编号或 JSON。"
+      ],
+      "capabilityId": "CAP-WORK",
+      "id": "TASK-0229",
+      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "kind": "integration-test",
+      "outcome": "验证任务和日志真实长在客户业务上下文中。",
+      "outputs": ["projects/unexamine/ai/evidence"],
+      "requirementIds": ["REQ-WORK-MAIN-ENTRY", "REQ-WORK-MANAGEMENT-BOUNDARY", "REQ-PROJECT-TASK", "REQ-MANUAL-WORK-LOG", "REQ-WORK-CALENDAR-STATISTICS", "REQ-WORK-CONFIGURATION", "REQ-WORK-PERMISSION-ISOLATION"],
+      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "role": "test",
+      "title": "验收客户跟进任务日志和日历闭环",
+      "useCaseIds": ["UC-WORK-PROJECT-TASK", "UC-WORK-MANUAL-LOG", "UC-WORK-CALENDAR-CONFIG"]
+    },
+    {
+      "acceptance": [
+        "Flow、任务、KPI 和业务动作统一投影待办与消息并携带可授权解析的对象链接。",
+        "收件人通过统一组织上下文解析，业务接口不接收裸账号 ID 列表。",
+        "已读、处理、失效、撤回和重复投递保持幂等并有审计。",
+        "模板测试和技术投递只在管理诊断区出现。"
+      ],
+      "capabilityId": "CAP-NOTIFICATION",
+      "id": "TASK-0230",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage"],
+      "kind": "backend-manage",
+      "outcome": "统一跨来源待办消息投影和可跳转业务结果链。",
+      "outputs": ["projects/unexamine/backend"],
+      "requirementIds": ["REQ-TODO-MAIN-ENTRY", "REQ-ACTION-RESULT-CHAIN", "REQ-MESSAGE-MAIN-ENTRY", "REQ-MESSAGE-NOTIFICATION", "REQ-MESSAGE-TEMPLATE-DELIVERY"],
+      "resources": ["projects/unexamine/backend"],
+      "role": "backend",
+      "title": "重建待办消息投影和对象跳转链",
+      "useCaseIds": ["UC-NOTIFICATION-TODO", "UC-NOTIFICATION-MESSAGE-DELIVERY"]
+    },
+    {
+      "acceptance": [
+        "待办页按审批、任务和提醒分组并显示业务对象、发起人、截止时间和当前动作。",
+        "消息页只呈现用户收到的真实消息，点击可返回准确客户、Flow 或任务。",
+        "处理后列表、角标和对象状态即时一致。",
+        "普通用户界面不出现消息测试账号、模板参数 JSON 或投递技术状态。"
+      ],
+      "capabilityId": "CAP-NOTIFICATION",
+      "id": "TASK-0231",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "kind": "frontend",
+      "outcome": "形成清楚、可处理并能返回业务对象的统一工作收件箱。",
+      "outputs": ["projects/unexamine/frontend"],
+      "requirementIds": ["REQ-TODO-MAIN-ENTRY", "REQ-ACTION-RESULT-CHAIN", "REQ-MESSAGE-MAIN-ENTRY", "REQ-MESSAGE-NOTIFICATION", "REQ-MESSAGE-TEMPLATE-DELIVERY"],
+      "resources": ["projects/unexamine/frontend"],
+      "role": "frontend",
+      "title": "重建审批任务待办与消息收件箱",
+      "useCaseIds": ["UC-NOTIFICATION-TODO", "UC-NOTIFICATION-MESSAGE-DELIVERY"]
+    },
+    {
+      "acceptance": [
+        "客户审批和跟进任务分别生成可处理待办与可跳转消息。",
+        "用户处理待办后业务状态、收件箱、角标和审计一致读回。",
+        "重复事件不重复投递，撤回或失效任务不可再次处理。",
+        "消息跳转执行目标对象权限校验。"
+      ],
+      "capabilityId": "CAP-NOTIFICATION",
+      "id": "TASK-0232",
+      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "kind": "integration-test",
+      "outcome": "验证待办消息与 Flow、任务和客户对象形成闭环。",
+      "outputs": ["projects/unexamine/ai/evidence"],
+      "requirementIds": ["REQ-TODO-MAIN-ENTRY", "REQ-ACTION-RESULT-CHAIN", "REQ-MESSAGE-MAIN-ENTRY", "REQ-MESSAGE-NOTIFICATION", "REQ-MESSAGE-TEMPLATE-DELIVERY"],
+      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "role": "test",
+      "title": "验收跨来源待办消息处理和对象返回",
+      "useCaseIds": ["UC-NOTIFICATION-TODO", "UC-NOTIFICATION-MESSAGE-DELIVERY"]
+    },
+    {
+      "acceptance": [
+        "文件上传通过业务对象引用命令关联记录、任务或 Flow，不由普通用户填写 ownerType、ownerId 和 fieldCode。",
+        "预览、下载、删除和临时访问地址执行对象权限、字段权限和租户边界。",
+        "对象事务失败不会留下不可追踪引用，存储失败可重试和清理。",
+        "存储提供方配置保持后台边界。"
+      ],
+      "capabilityId": "CAP-FILE",
+      "id": "TASK-0233",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage"],
+      "kind": "backend-manage",
+      "outcome": "把文件能力归回业务对象上下文并统一权限访问。",
+      "outputs": ["projects/unexamine/backend"],
+      "requirementIds": ["REQ-FILE-STORAGE"],
+      "resources": ["projects/unexamine/backend"],
+      "role": "backend",
+      "title": "重建业务对象附件引用和受控访问",
+      "useCaseIds": ["UC-FILE-UPLOAD-ACCESS"]
+    },
+    {
+      "acceptance": [
+        "客户详情、任务和 Flow 处理表单在对应上下文上传、预览和下载附件。",
+        "用户只选择文件和业务字段，不输入存储类型或对象标识。",
+        "上传进度、失败重试、无权和文件失效状态清楚。",
+        "附件同时出现在对象时间线并遵循字段权限。"
+      ],
+      "capabilityId": "CAP-FILE",
+      "id": "TASK-0234",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "kind": "frontend",
+      "outcome": "让附件自然出现在客户、任务和 Flow 的业务操作中。",
+      "outputs": ["projects/unexamine/frontend"],
+      "requirementIds": ["REQ-FILE-STORAGE"],
+      "resources": ["projects/unexamine/frontend"],
+      "role": "frontend",
+      "title": "重建记录任务和 Flow 上下文附件交互",
+      "useCaseIds": ["UC-FILE-UPLOAD-ACCESS"]
+    },
+    {
+      "acceptance": [
+        "在客户记录和审批任务各上传一个附件并从对象上下文预览下载。",
+        "无权成员和字段被隐藏成员无法访问附件。",
+        "业务保存失败和存储失败不会留下孤立可见附件。",
+        "页面全程不展示 ownerType、ownerId、fieldCode 或存储提供方参数。"
+      ],
+      "capabilityId": "CAP-FILE",
+      "id": "TASK-0235",
+      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "kind": "integration-test",
+      "outcome": "验证文件成为受控业务附件而非独立技术表单。",
+      "outputs": ["projects/unexamine/ai/evidence"],
+      "requirementIds": ["REQ-FILE-STORAGE"],
+      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "role": "test",
+      "title": "验收业务对象附件上传访问和失败恢复",
+      "useCaseIds": ["UC-FILE-UPLOAD-ACCESS"]
+    },
+    {
+      "acceptance": [
+        "数据源定义区分系统模块、外部 API 和数据库连接，连接、查询、版本和权限边界明确。",
+        "指标、维度、过滤、聚合、KPI 和下钻使用已发布业务字段并执行当前用户数据权限。",
+        "仪表盘发布保存不可变布局和组件配置，运行查询只读取发布版本。",
+        "客户记录变化可刷新指标，KPI 阈值可靠投影提醒并能解释来源。"
+      ],
+      "capabilityId": "CAP-ANALYTICS",
+      "id": "TASK-0236",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage"],
+      "kind": "backend-manage",
+      "outcome": "重建由真实业务数据驱动且执行权限的统计仪表盘服务。",
+      "outputs": ["projects/unexamine/backend"],
+      "requirementIds": ["REQ-DASHBOARD-ENTRY", "REQ-CONFIGURABLE-DASHBOARD", "REQ-DASHBOARD-DATA-COMPONENTS", "REQ-UI-PLATFORM-DASHBOARD", "REQ-UI-SYSTEM-DASHBOARD", "REQ-CONFIGURABLE-DATA-SOURCE", "REQ-DATA-SOURCE-CAPABILITIES", "REQ-REPORT-AGGREGATION", "REQ-KPI-CLOSED-LOOP", "REQ-DATA-KPI-DASHBOARD-EXPLAIN"],
+      "resources": ["projects/unexamine/backend"],
+      "role": "backend",
+      "title": "重建版本化数据源指标仪表盘和 KPI 服务",
+      "useCaseIds": ["UC-ANALYTICS-DASHBOARD", "UC-ANALYTICS-DATASOURCE-REPORT", "UC-ANALYTICS-KPI"]
+    },
+    {
+      "acceptance": [
+        "管理员通过业务字段选择器定义数据源、指标和图表，不以编码、limit 和原始查询参数作为首屏。",
+        "使用 ECharts 呈现真实统计，组件可拖拽调整尺寸并显示加载、空、错误和刷新状态。",
+        "系统首页组合经营指标、我的任务待办和继续工作入口。",
+        "用户点击图表可带过滤条件下钻到客户列表并返回原仪表盘状态。"
+      ],
+      "capabilityId": "CAP-ANALYTICS",
+      "id": "TASK-0237",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "kind": "frontend",
+      "outcome": "形成可配置、可理解、可下钻的系统经营首页。",
+      "outputs": ["projects/unexamine/frontend"],
+      "requirementIds": ["REQ-DASHBOARD-ENTRY", "REQ-CONFIGURABLE-DASHBOARD", "REQ-DASHBOARD-DATA-COMPONENTS", "REQ-UI-PLATFORM-DASHBOARD", "REQ-UI-SYSTEM-DASHBOARD", "REQ-CONFIGURABLE-DATA-SOURCE", "REQ-DATA-SOURCE-CAPABILITIES", "REQ-REPORT-AGGREGATION", "REQ-KPI-CLOSED-LOOP", "REQ-DATA-KPI-DASHBOARD-EXPLAIN"],
+      "resources": ["projects/unexamine/frontend"],
+      "role": "frontend",
+      "title": "重建可视化数据源仪表盘和系统经营首页",
+      "useCaseIds": ["UC-ANALYTICS-DASHBOARD", "UC-ANALYTICS-DATASOURCE-REPORT", "UC-ANALYTICS-KPI"]
+    },
+    {
+      "acceptance": [
+        "以客户模块配置客户总量、分阶段数量、负责人分布和逾期跟进 KPI。",
+        "不同角色看到的统计与其客户列表数据范围一致。",
+        "图表下钻准确打开带过滤的客户列表，新增或修改客户后指标同步更新。",
+        "KPI 触发提醒可返回对应客户，指标页面能解释数据源、口径和更新时间。"
+      ],
+      "capabilityId": "CAP-ANALYTICS",
+      "id": "TASK-0238",
+      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "kind": "integration-test",
+      "outcome": "用真实客户数据验收数据源、仪表盘、下钻和 KPI 闭环。",
+      "outputs": ["projects/unexamine/ai/evidence"],
+      "requirementIds": ["REQ-DASHBOARD-ENTRY", "REQ-CONFIGURABLE-DASHBOARD", "REQ-DASHBOARD-DATA-COMPONENTS", "REQ-UI-PLATFORM-DASHBOARD", "REQ-UI-SYSTEM-DASHBOARD", "REQ-CONFIGURABLE-DATA-SOURCE", "REQ-DATA-SOURCE-CAPABILITIES", "REQ-REPORT-AGGREGATION", "REQ-KPI-CLOSED-LOOP", "REQ-DATA-KPI-DASHBOARD-EXPLAIN"],
+      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "role": "test",
+      "title": "验收客户经营仪表盘权限下钻与 KPI",
+      "useCaseIds": ["UC-ANALYTICS-DASHBOARD", "UC-ANALYTICS-DATASOURCE-REPORT", "UC-ANALYTICS-KPI"]
+    },
+    {
+      "acceptance": [
+        "模型授权、系统 Agent 策略、可访问模块动作和工具范围形成可发布版本。",
+        "上下文查询只读取当前用户可见的系统、模块、记录和选择内容并返回来源解释。",
+        "AI 写入先生成结构化变更候选，确认后调用同一业务 manage 命令并审计。",
+        "模型失败、超时、无权限和工具失败可降级且不阻断正常业务。"
+      ],
+      "capabilityId": "CAP-AI",
+      "id": "TASK-0239",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage"],
+      "kind": "backend-manage",
+      "outcome": "重建受权限、来源解释和人工确认约束的上下文助手服务。",
+      "outputs": ["projects/unexamine/backend"],
+      "requirementIds": ["REQ-AI-MODEL-AUTHORIZATION", "REQ-AI-AGENT-POLICY-SCOPE", "REQ-AI-MAIN-ENTRY", "REQ-AI-CONTEXT-ENTRIES", "REQ-AI-PERMISSIONED-QUERY", "REQ-AI-RIGHT-ASSISTANT", "REQ-AI-CONFIRMED-WRITE", "REQ-AI-AUDIT-DEGRADE"],
+      "resources": ["projects/unexamine/backend"],
+      "role": "backend",
+      "title": "重建上下文 AI 权限查询和确认写入服务",
+      "useCaseIds": ["UC-AI-MODEL-AGENT", "UC-AI-CONTEXT-QUERY", "UC-AI-CONFIRM-WRITE"]
+    },
+    {
+      "acceptance": [
+        "系统发布至少一个可用助手策略并在业务页面挂载右侧上下文入口。",
+        "客户详情助手自动理解当前记录并显示引用来源，不要求用户填写查询结构。",
+        "创建跟进记录前展示字段级变更预览，用户确认后再写入并刷新页面。",
+        "无助手、无权限和模型不可用时显示简洁空态或降级说明及正常业务返回入口。"
+      ],
+      "capabilityId": "CAP-AI",
+      "id": "TASK-0240",
+      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "kind": "frontend",
+      "outcome": "让助手成为客户业务页面内可用、可解释和可确认的协作者。",
+      "outputs": ["projects/unexamine/frontend"],
+      "requirementIds": ["REQ-AI-MODEL-AUTHORIZATION", "REQ-AI-AGENT-POLICY-SCOPE", "REQ-AI-MAIN-ENTRY", "REQ-AI-CONTEXT-ENTRIES", "REQ-AI-PERMISSIONED-QUERY", "REQ-AI-RIGHT-ASSISTANT", "REQ-AI-CONFIRMED-WRITE", "REQ-AI-AUDIT-DEGRADE"],
+      "resources": ["projects/unexamine/frontend"],
+      "role": "frontend",
+      "title": "重建客户详情右侧上下文助手和确认界面",
+      "useCaseIds": ["UC-AI-MODEL-AGENT", "UC-AI-CONTEXT-QUERY", "UC-AI-CONFIRM-WRITE"]
+    },
+    {
+      "acceptance": [
+        "销售在客户详情询问客户摘要，助手只引用其可见字段和关联任务。",
+        "主管在同一入口看到授权范围内的团队信息，销售无法通过助手越权获取。",
+        "助手生成跟进记录候选，用户确认后真实写入客户时间线并产生审计。",
+        "模型失败和用户取消不会写入数据，正常客户操作仍可继续。"
+      ],
+      "capabilityId": "CAP-AI",
+      "id": "TASK-0241",
+      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "kind": "integration-test",
+      "outcome": "验证上下文助手的权限查询、来源解释、确认写入和降级闭环。",
+      "outputs": ["projects/unexamine/ai/evidence"],
+      "requirementIds": ["REQ-AI-MODEL-AUTHORIZATION", "REQ-AI-AGENT-POLICY-SCOPE", "REQ-AI-MAIN-ENTRY", "REQ-AI-CONTEXT-ENTRIES", "REQ-AI-PERMISSIONED-QUERY", "REQ-AI-RIGHT-ASSISTANT", "REQ-AI-CONFIRMED-WRITE", "REQ-AI-AUDIT-DEGRADE"],
+      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "role": "test",
+      "title": "验收客户上下文助手查询和确认写入",
+      "useCaseIds": ["UC-AI-MODEL-AGENT", "UC-AI-CONTEXT-QUERY", "UC-AI-CONFIRM-WRITE"]
     }
   ]
 }

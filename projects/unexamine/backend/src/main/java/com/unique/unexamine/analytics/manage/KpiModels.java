@@ -28,7 +28,7 @@ public final class KpiModels {
             @NotNull Map<String, Object> visibilityPermission,
             @NotNull Map<String, Object> drillPermission,
             boolean reminderEnabled,
-            List<Long> reminderRecipientAccountIds,
+            List<Long> reminderRecipientTenantMemberIds,
             @DecimalMin("0") BigDecimal reminderBelowPercent,
             @NotBlank @Pattern(regexp = "ACTIVE|INACTIVE") String status,
             Integer expectedVersion) {
@@ -38,7 +38,7 @@ public final class KpiModels {
             @NotBlank @Pattern(regexp = "[0-9]{4}(-Q[1-4]|-(0[1-9]|1[0-2]))?") String periodKey) {
     }
 
-    public record ReminderView(Long id, Long todoId, Long messageId, Long recipientAccountId,
+    public record ReminderView(Long id, Long todoId, Long messageId, Long recipientTenantMemberId,
                                String status, LocalDateTime sentAt, LocalDateTime acknowledgedAt) {
     }
 
@@ -55,7 +55,7 @@ public final class KpiModels {
                           String responsibleType, List<Long> responsibleIds,
                           Map<String, Object> visibilityPermission,
                           Map<String, Object> drillPermission, boolean reminderEnabled,
-                          List<Long> reminderRecipientAccountIds,
+                          List<Long> reminderRecipientTenantMemberIds,
                           BigDecimal reminderBelowPercent, String status, Integer version,
                           LocalDateTime updatedAt, ResultView latestResult) {
     }

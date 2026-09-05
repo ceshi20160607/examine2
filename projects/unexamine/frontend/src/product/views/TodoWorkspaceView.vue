@@ -8,15 +8,20 @@ import { platformContext, platformTokens, systemContext, systemTokens } from '..
 import { runtimeIdempotency } from '../flow-runtime'
 import { todoActionLabel, todoNeedsComment, todoNeedsTarget, todoStatusLabel, todoTypeLabel } from '../todo'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
+import PersonSelect from '../components/PersonSelect.vue'
 import { productDateTime } from '../presentation'
-import type { TodoHandleResult, TodoItemView } from '../types'
+import type { SystemPeopleDirectory, TodoHandleResult, TodoItemView } from '../types'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'platform' })
-const emit = defineEmits<{ openFlow: [target: { taskId?: number; instanceId?: number }] }>()
+const emit = defineEmits<{
+  openFlow: [target: { taskId?: number; instanceId?: number }]
+  openWork: [target: { taskId: number }]
+}>()
 const token = computed(() => props.context === 'platform' ? platformTokens.value?.accessToken : systemTokens.value?.accessToken)
 const current = computed(() => props.context === 'platform' ? platformContext.value : systemContext.value)
 const contextCode = computed(() => props.context === 'platform' ? 'PLATFORM' : 'SYSTEM')
 const rows = ref<TodoItemView[]>([])
+const directory = ref<SystemPeopleDirectory>({ departments: [], people: [], permissionVersion: 0 })
 const loading = ref(false)
 const busy = ref(false)
 const status = ref('PENDING')
@@ -24,8 +29,13 @@ const type = ref('ALL')
 const actionOpen = ref(false)
 const selected = ref<TodoItemView>()
 const action = ref('APPROVE')
-const actionForm = reactive({ comment: '', targetAccountId: undefined as number | undefined })
+const actionForm = reactive({ comment: '', targetTenantMemberId: undefined as number | undefined })
 const lastResult = ref<TodoHandleResult>()
+const groups = computed(() => [
+  { key: 'APPROVAL', label: '需要审批', description: '需要你作出明确决定的流程事项', rows: rows.value.filter(item => item.todoType === 'APPROVAL') },
+  { key: 'WORK', label: '需要推进', description: '由你负责推进的任务事项', rows: rows.value.filter(item => item.todoType === 'WORK') },
+  { key: 'REMINDER', label: '需要关注', description: '联系、提醒和其他需要关注的事项', rows: rows.value.filter(item => !['APPROVAL', 'WORK'].includes(item.todoType)) },
+].filter(group => group.rows.length))
 
 function can(actionCode: string) {
   return allowsPermission(current.value?.permissions, 'TODO', contextCode.value, actionCode)
@@ -62,30 +72,38 @@ async function load() {
   } finally { loading.value = false }
 }
 
+async function loadDirectory() {
+  if (!token.value || props.context !== 'system') return
+  try { directory.value = await api<SystemPeopleDirectory>('/api/system-directory', {}, token.value) }
+  catch (error) { message.error(describeError(error)) }
+}
+
 function openSource(todo: TodoItemView) {
   if (todo.sourceType === 'FLOW_TASK' && Number(todo.sourceId)) {
     emit('openFlow', { taskId: Number(todo.sourceId) })
+  } else if (todo.sourceType === 'WORK_TASK' && Number(todo.sourceId)) {
+    emit('openWork', { taskId: Number(todo.sourceId) })
   }
 }
 
 function openAction(todo: TodoItemView, actionCode: string) {
   selected.value = todo
   action.value = actionCode
-  Object.assign(actionForm, { comment: '', targetAccountId: undefined })
+  Object.assign(actionForm, { comment: '', targetTenantMemberId: undefined })
   actionOpen.value = true
 }
 
 async function handleTodo() {
   if (!token.value || !selected.value || !can('HANDLE')) return
   if (todoNeedsComment(action.value) && !actionForm.comment.trim()) return message.warning('拒绝或退回必须填写可追溯原因')
-  if (todoNeedsTarget(action.value) && !actionForm.targetAccountId) return message.warning('转交必须填写目标账号')
+  if (todoNeedsTarget(action.value) && !actionForm.targetTenantMemberId) return message.warning('转交必须选择目标成员')
   busy.value = true
   try {
     lastResult.value = await api<TodoHandleResult>(`/api/todos/${selected.value.id}/actions`, {
       method: 'POST', body: JSON.stringify({
         actionCode: action.value,
         comment: actionForm.comment || undefined,
-        targetAccountId: actionForm.targetAccountId,
+        targetTenantMemberId: actionForm.targetTenantMemberId,
         idempotencyKey: runtimeIdempotency(`todo-${action.value.toLowerCase()}`),
       }),
     }, token.value)
@@ -104,7 +122,7 @@ function openLastResult() {
 }
 
 watch([status, type], () => void load())
-onMounted(() => load())
+onMounted(() => Promise.all([load(), loadDirectory()]))
 </script>
 
 <template>
@@ -126,19 +144,24 @@ onMounted(() => load())
         <span>共 {{ rows.length }} 项</span>
       </section>
       <a-spin :spinning="loading">
-        <div v-if="rows.length" class="todo-list">
-          <article v-for="todo in rows" :key="todo.id" class="panel-card todo-card">
+        <div v-if="rows.length" class="todo-groups">
+          <section v-for="group in groups" :key="group.key" class="todo-group">
+            <header class="todo-group__header"><span><strong>{{ group.label }}</strong><small>{{ group.description }}</small></span><a-tag>{{ group.rows.length }}</a-tag></header>
+            <div class="todo-list">
+          <article v-for="todo in group.rows" :key="todo.id" class="panel-card todo-card">
             <div class="todo-card__main">
               <span class="todo-card__type">{{ todoTypeLabel(todo.todoType) }}</span>
-              <div><span class="todo-card__title"><strong>{{ todo.title }}</strong><a-tag :color="priorityColor(todo.priority)">{{ priorityLabel(todo.priority) }}</a-tag><a-tag :color="statusColor(todo.status)">{{ todoStatusLabel(todo.status) }}</a-tag></span><p>{{ todo.summary }}</p><small>{{ todoTypeLabel(todo.todoType) }}<template v-if="todo.dueAt"> · 截止 {{ productDateTime(todo.dueAt) }}</template></small></div>
+              <div><span class="todo-card__title"><strong>{{ todo.title }}</strong><a-tag :color="priorityColor(todo.priority)">{{ priorityLabel(todo.priority) }}</a-tag><a-tag :color="statusColor(todo.status)">{{ todoStatusLabel(todo.status) }}</a-tag></span><p>{{ todo.summary }}</p><small>{{ todo.sourceLabel }} · {{ todo.objectName }} · 发起人 {{ todo.initiatorName }}<template v-if="todo.dueAt"> · 截止 {{ productDateTime(todo.dueAt) }}</template></small></div>
             </div>
             <div class="todo-card__actions">
-              <a-button v-if="todo.sourceType === 'FLOW_TASK'" @click="openSource(todo)">打开来源</a-button>
+              <a-button v-if="['FLOW_TASK','WORK_TASK'].includes(todo.sourceType)" @click="openSource(todo)">打开来源</a-button>
               <template v-if="can('HANDLE')">
                 <a-button v-for="item in todo.availableActions" :key="item" :type="item === 'APPROVE' ? 'primary' : 'default'" @click="openAction(todo, item)">{{ todoActionLabel(item) }}</a-button>
               </template>
             </div>
           </article>
+            </div>
+          </section>
         </div>
         <a-empty v-else-if="!loading" :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="status === 'PENDING' ? '当前没有未完成待办' : '当前筛选没有待办记录'" />
       </a-spin>
@@ -149,7 +172,7 @@ onMounted(() => load())
     <a-form layout="vertical">
       <a-alert type="info" show-icon :message="selected?.title" description="提交后会重新读取业务对象与待办状态，避免重复处理。" style="margin-bottom:16px" />
       <a-form-item label="处理意见" :required="todoNeedsComment(action)"><a-textarea v-model:value="actionForm.comment" :rows="4" placeholder="记录处理结论或可追溯原因" /></a-form-item>
-      <a-form-item v-if="todoNeedsTarget(action)" label="目标账号编号" required extra="请输入组织成员的账号编号"><a-input-number v-model:value="actionForm.targetAccountId" :min="1" style="width:100%" /></a-form-item>
+      <a-form-item v-if="todoNeedsTarget(action)" label="转交给" required extra="只能选择当前工作空间内的有效成员"><PersonSelect v-model="actionForm.targetTenantMemberId" :people="directory.people" value-key="tenantMemberId" :excluded-values="current?.tenantMemberId ? [current.tenantMemberId] : []" :allow-clear="false" /></a-form-item>
     </a-form>
   </a-modal>
 </template>

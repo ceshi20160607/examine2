@@ -66,6 +66,9 @@ public class MsgMessage {
     @TableField("created_at")
     private LocalDateTime createdAt;
 
+    @TableField("dedup_context_key")
+    private String dedupContextKey;
+
     public Long getId() {
         return id;
     }
@@ -194,6 +197,14 @@ public class MsgMessage {
         this.createdAt = createdAt;
     }
 
+    public String getDedupContextKey() {
+        return dedupContextKey;
+    }
+
+    public void setDedupContextKey(String dedupContextKey) {
+        this.dedupContextKey = dedupContextKey;
+    }
+
     @Override
     public String toString() {
         return "MsgMessage{" +
@@ -213,6 +224,7 @@ public class MsgMessage {
             ", sensitivity = " + sensitivity +
             ", createdByAccountId = " + createdByAccountId +
             ", createdAt = " + createdAt +
+            ", dedupContextKey = " + dedupContextKey +
             "}";
     }
 }

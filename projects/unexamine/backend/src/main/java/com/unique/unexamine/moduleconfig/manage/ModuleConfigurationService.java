@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class ModuleConfigurationService {
@@ -83,10 +84,11 @@ public class ModuleConfigurationService {
     @Transactional
     public ConfiguredModuleGroup createGroup(AuthenticatedContext context, CreateModuleGroupRequest request, String traceId) {
         requireSystemContext(context);
+        String groupCode = resolveGroupCode(context, request.code());
         ConfiguredModuleGroup group = new ConfiguredModuleGroup();
         group.setSystemId(context.systemId());
         group.setOwnerTenantId(context.tenantId());
-        group.setCode(normalizeCode(request.code()));
+        group.setCode(groupCode);
         group.setName(request.name().strip());
         group.setSortOrder(request.sortOrder() == null ? 0 : request.sortOrder());
         group.setStatus("ACTIVE");
@@ -116,15 +118,12 @@ public class ModuleConfigurationService {
     @Transactional
     public ModuleDraft createModule(AuthenticatedContext context, CreateModuleRequest request, String traceId) {
         requireSystemContext(context);
-        ConfiguredModuleGroup group = groupService.selectById(request.groupId());
-        if (group == null || !context.systemId().equals(group.getSystemId()) || !context.tenantId().equals(group.getOwnerTenantId())) {
-            throw notFound("模块组不存在");
-        }
+        ConfiguredModuleGroup group = resolveModuleGroup(context, request, traceId);
         ConfiguredModule module = new ConfiguredModule();
         module.setSystemId(context.systemId());
         module.setOwnerTenantId(context.tenantId());
         module.setGroupId(group.getId());
-        module.setCode(normalizeCode(request.code()));
+        module.setCode(resolveModuleCode(context, request.code()));
         module.setName(request.name().strip());
         module.setStatus("DRAFT");
         module.setDraftRevision(1);
@@ -151,7 +150,7 @@ public class ModuleConfigurationService {
 
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "MODULE_DRAFT_CREATED", "MODULE", module.getId().toString(), "SUCCESS",
-                Map.of("code", module.getCode(), "defaultPages", 3, "defaultMenus", 1, "defaultActions", 11));
+                Map.of("code", module.getCode(), "defaultPages", 3, "defaultMenus", 1, "defaultActions", 12));
         return draft(context, module.getId());
     }
 
@@ -171,7 +170,7 @@ public class ModuleConfigurationService {
         field.setSystemId(context.systemId());
         field.setOwnerTenantId(context.tenantId());
         field.setModuleId(moduleId);
-        field.setCode(normalizeCode(request.code()));
+        field.setCode(resolveFieldCode(moduleId, request.code()));
         field.setName(request.name().strip());
         field.setFieldType(fieldType);
         field.setRequired(request.required());
@@ -570,6 +569,112 @@ public class ModuleConfigurationService {
 
     private String normalizeCode(String value) {
         return value.strip().toLowerCase(Locale.ROOT);
+    }
+
+    private ConfiguredModuleGroup resolveModuleGroup(
+            AuthenticatedContext context,
+            CreateModuleRequest request,
+            String traceId) {
+        if (request.groupId() != null) {
+            ConfiguredModuleGroup group = groupService.selectById(request.groupId());
+            if (group == null || !context.systemId().equals(group.getSystemId())
+                    || !context.tenantId().equals(group.getOwnerTenantId())) {
+                throw notFound("模块组不存在");
+            }
+            return group;
+        }
+        if (request.groupName() == null || request.groupName().isBlank()) {
+            throw new DomainException("MODULE_GROUP_REQUIRED", "请选择业务分组或填写新分组名称", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        ConfiguredModuleGroup group = new ConfiguredModuleGroup();
+        group.setSystemId(context.systemId());
+        group.setOwnerTenantId(context.tenantId());
+        group.setCode(resolveGroupCode(context, null));
+        group.setName(request.groupName().strip());
+        Integer nextSortOrder = groupService.selectList(Wrappers.<ConfiguredModuleGroup>lambdaQuery()
+                        .eq(ConfiguredModuleGroup::getSystemId, context.systemId())
+                        .eq(ConfiguredModuleGroup::getOwnerTenantId, context.tenantId()))
+                .stream().map(ConfiguredModuleGroup::getSortOrder).max(Integer::compareTo).orElse(0) + 10;
+        group.setSortOrder(nextSortOrder);
+        group.setStatus("ACTIVE");
+        group.setCreatedByMemberId(context.memberId());
+        group.setVersion(0);
+        groupService.insert(group);
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "MODULE_GROUP_DRAFT_CREATED", "MODULE_GROUP", group.getId().toString(), "SUCCESS",
+                Map.of("code", group.getCode(), "createdWithModule", true));
+        return group;
+    }
+
+    private String resolveGroupCode(AuthenticatedContext context, String requestedCode) {
+        if (requestedCode != null && !requestedCode.isBlank()) {
+            String normalized = normalizeCode(requestedCode);
+            if (groupService.selectList(Wrappers.<ConfiguredModuleGroup>lambdaQuery()
+                    .eq(ConfiguredModuleGroup::getOwnerTenantId, context.tenantId())
+                    .eq(ConfiguredModuleGroup::getCode, normalized)).isEmpty()) {
+                return normalized;
+            }
+            throw new DomainException("MODULE_GROUP_CODE_EXISTS", "业务分组标识已经存在", HttpStatus.CONFLICT);
+        }
+        for (int attempt = 0; attempt < 5; attempt++) {
+            String generated = generatedCode("group");
+            if (groupService.selectList(Wrappers.<ConfiguredModuleGroup>lambdaQuery()
+                    .eq(ConfiguredModuleGroup::getOwnerTenantId, context.tenantId())
+                    .eq(ConfiguredModuleGroup::getCode, generated)).isEmpty()) {
+                return generated;
+            }
+        }
+        throw codeGenerationFailed();
+    }
+
+    private String resolveModuleCode(AuthenticatedContext context, String requestedCode) {
+        if (requestedCode != null && !requestedCode.isBlank()) {
+            String normalized = normalizeCode(requestedCode);
+            if (moduleService.selectList(Wrappers.<ConfiguredModule>lambdaQuery()
+                    .eq(ConfiguredModule::getOwnerTenantId, context.tenantId())
+                    .eq(ConfiguredModule::getCode, normalized)).isEmpty()) {
+                return normalized;
+            }
+            throw new DomainException("MODULE_CODE_EXISTS", "模块标识已经存在", HttpStatus.CONFLICT);
+        }
+        for (int attempt = 0; attempt < 5; attempt++) {
+            String generated = generatedCode("module");
+            if (moduleService.selectList(Wrappers.<ConfiguredModule>lambdaQuery()
+                    .eq(ConfiguredModule::getOwnerTenantId, context.tenantId())
+                    .eq(ConfiguredModule::getCode, generated)).isEmpty()) {
+                return generated;
+            }
+        }
+        throw codeGenerationFailed();
+    }
+
+    private String resolveFieldCode(Long moduleId, String requestedCode) {
+        if (requestedCode != null && !requestedCode.isBlank()) {
+            String normalized = normalizeCode(requestedCode);
+            if (fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
+                    .eq(ConfiguredModuleField::getModuleId, moduleId)
+                    .eq(ConfiguredModuleField::getCode, normalized)).isEmpty()) {
+                return normalized;
+            }
+            throw new DomainException("MODULE_FIELD_CODE_EXISTS", "字段标识已经存在", HttpStatus.CONFLICT);
+        }
+        for (int attempt = 0; attempt < 5; attempt++) {
+            String generated = generatedCode("field");
+            if (fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
+                    .eq(ConfiguredModuleField::getModuleId, moduleId)
+                    .eq(ConfiguredModuleField::getCode, generated)).isEmpty()) {
+                return generated;
+            }
+        }
+        throw codeGenerationFailed();
+    }
+
+    private String generatedCode(String prefix) {
+        return prefix + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+    }
+
+    private DomainException codeGenerationFailed() {
+        return new DomainException("STABLE_CODE_GENERATION_FAILED", "内部标识生成失败，请重试", HttpStatus.CONFLICT);
     }
 
     private String toJson(Object value) {

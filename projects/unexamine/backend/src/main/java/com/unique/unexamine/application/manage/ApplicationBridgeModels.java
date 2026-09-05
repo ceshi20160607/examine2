@@ -35,6 +35,7 @@ public final class ApplicationBridgeModels {
             Long id,
             String requestId,
             String traceId,
+            Long applicationVersionId,
             Integer credentialVersion,
             Long grantId,
             String sourceAddress,

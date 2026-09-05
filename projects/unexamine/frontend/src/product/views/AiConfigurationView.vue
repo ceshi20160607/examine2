@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { CheckCircleOutlined, PlusOutlined, ReloadOutlined, RobotOutlined, SafetyCertificateOutlined } from '@ant-design/icons-vue'
 import { api, ApiError } from '../api'
 import { aiPreviewSummary, aiScopeLabel, aiToolTypeLabel, isWriteTool } from '../ai'
+import { actionLabel, productDateTime, versionLabel } from '../presentation'
 import { platformTokens, systemTokens } from '../session'
 import type {
   AiAgent,
@@ -60,7 +61,7 @@ function blankTool(): ToolDraft {
   const module = system.value.modules[0]
   return {
     toolType: 'QUERY', resourceType: 'MODULE', resourceId: module?.code || '',
-    actionCode: module?.actions[0] || 'LIST', fieldCodes: module?.fields.slice(0, 1) || [],
+    actionCode: module?.actions[0] || 'LIST', fieldCodes: module?.fieldOptions?.slice(0, 1).map(field => field.code) || module?.fields.slice(0, 1) || [],
     requestedDataScope: 'CURRENT', requiresConfirmation: false,
   }
 }
@@ -210,10 +211,30 @@ function moduleFor(code: string) {
   return system.value.modules.find(item => item.code === code)
 }
 
+function fieldOptions(moduleCode: string) {
+  const module = moduleFor(moduleCode)
+  return module?.fieldOptions?.length
+    ? module.fieldOptions.map(field => ({ value: field.code, label: field.name }))
+    : (module?.fields || []).map((code, index) => ({ value: code, label: `业务字段 ${index + 1}` }))
+}
+
+function fieldName(moduleCode: string, code: string) {
+  return moduleFor(moduleCode)?.fieldOptions?.find(field => field.code === code)?.name || '业务字段'
+}
+
+function toolTitle(resourceId: string, actionCode: string) {
+  return `${moduleFor(resourceId)?.name || '业务模块'} · ${actionLabel(actionCode)}`
+}
+
+function generatedCode(prefix: string, name: string) {
+  const latin = name.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '')
+  return `${prefix}_${latin || Date.now().toString(36)}`.slice(0, 96)
+}
+
 function resetToolBinding(tool: ToolDraft) {
   const module = moduleFor(tool.resourceId)
   tool.actionCode = module?.actions[0] || ''
-  tool.fieldCodes = module?.fields.slice(0, 1) || []
+  tool.fieldCodes = module?.fieldOptions?.slice(0, 1).map(field => field.code) || module?.fields.slice(0, 1) || []
   if (isWriteTool(tool)) tool.requiresConfirmation = true
 }
 
@@ -223,6 +244,7 @@ function toolTypeChanged(tool: ToolDraft) {
 
 async function saveAgent() {
   if (!token.value || !agentForm.modelGrantId || !agentForm.tools.length) return
+  if (!agentForm.code) agentForm.code = generatedCode('assistant', agentForm.name)
   saving.value = true
   error.value = ''
   success.value = ''
@@ -272,7 +294,7 @@ async function publishAgent() {
     if (!reread?.versions.some(item => item.id === result.versionId && item.current)) throw new Error('publication reread mismatch')
     editAgent(reread)
     await previewAgent()
-    success.value = `智能助手版本 v${result.versionNumber} 已发布并确认生效。`
+    success.value = `智能助手${versionLabel(result.versionNumber)}已发布并确认生效。`
   } catch (cause) {
     error.value = message(cause, '智能助手发布后未能读回')
   } finally {
@@ -357,24 +379,21 @@ onMounted(load)
           <div class="panel-title"><strong>智能助手</strong><a-button type="text" @click="resetAgent"><PlusOutlined />新建</a-button></div>
           <div v-if="system.agents.length" class="ai-agent-list">
             <button v-for="agent in system.agents" :key="agent.id" :class="{ active: selectedAgentId === agent.id }" @click="editAgent(agent)">
-              <span><strong>{{ agent.name }}</strong><small>{{ agent.code }} · 草稿 r{{ agent.draftRevision }}</small></span>
+              <span><strong>{{ agent.name }}</strong><small>{{ agent.description || '已保存的助手配置' }}</small></span>
               <a-tag :color="agent.status === 'PUBLISHED' ? 'green' : 'gold'">{{ agent.status === 'PUBLISHED' ? '已发布' : '草稿' }}</a-tag>
             </button>
           </div>
           <a-empty v-else description="尚未配置智能助手" />
           <div v-if="selectedAgent?.versions.length" class="ai-version-list">
-            <strong>不可变版本</strong>
-            <span v-for="version in selectedAgent.versions" :key="version.id">v{{ version.versionNumber }} · r{{ version.draftRevision }} <a-tag v-if="version.current" color="green">当前</a-tag></span>
+            <strong>发布历史</strong>
+            <span v-for="version in selectedAgent.versions" :key="version.id">{{ versionLabel(version.versionNumber) }} · {{ productDateTime(version.publishedAt) }} <a-tag v-if="version.current" color="green">当前使用</a-tag></span>
           </div>
         </section>
 
         <section class="panel-card ai-editor">
           <div class="panel-title"><strong>{{ agentForm.id ? '智能助手草稿' : '新建智能助手' }}</strong><span>先保存，再预览，再发布</span></div>
           <a-form layout="vertical">
-            <div class="form-grid form-grid--2">
-              <a-form-item label="编码" required><a-input v-model:value="agentForm.code" placeholder="sales_assistant" /></a-form-item>
-              <a-form-item label="名称" required><a-input v-model:value="agentForm.name" placeholder="销售助理" /></a-form-item>
-            </div>
+            <a-form-item label="名称" required><a-input v-model:value="agentForm.name" placeholder="销售助理" /></a-form-item>
             <a-form-item label="授权模型" required><a-select v-model:value="agentForm.modelGrantId" :options="system.availableModels.map(item => ({ value: item.activeGrantId, label: `${item.name} · ${item.provider}` }))" placeholder="仅展示平台已授权模型" /></a-form-item>
             <a-form-item label="系统提示词" required><a-textarea v-model:value="agentForm.systemPrompt" :rows="4" /></a-form-item>
             <div class="ai-policy-row">
@@ -391,14 +410,14 @@ onMounted(load)
               <div class="form-grid form-grid--4">
                 <a-form-item label="类型"><a-select v-model:value="tool.toolType" :options="['QUERY','WRITE','FLOW_DRAFT','REPORT','ERROR_EXPLAIN'].map(value => ({ value, label: aiToolTypeLabel(value) }))" @change="toolTypeChanged(tool)" /></a-form-item>
                 <a-form-item label="模块"><a-select v-model:value="tool.resourceId" :options="system.modules.map(item => ({ value: item.code, label: item.name }))" @change="resetToolBinding(tool)" /></a-form-item>
-                <a-form-item label="动作"><a-select v-model:value="tool.actionCode" :options="(moduleFor(tool.resourceId)?.actions || []).map(value => ({ value, label: value }))" @change="toolTypeChanged(tool)" /></a-form-item>
+                <a-form-item label="动作"><a-select v-model:value="tool.actionCode" :options="(moduleFor(tool.resourceId)?.actions || []).map(value => ({ value, label: actionLabel(value) }))" @change="toolTypeChanged(tool)" /></a-form-item>
                 <a-form-item label="数据范围"><a-select v-model:value="tool.requestedDataScope" :options="[
                   { value: 'CURRENT', label: '当前成员范围' }, { value: 'ALL', label: '全部数据' }]" /></a-form-item>
               </div>
-              <a-form-item label="字段"><a-select v-model:value="tool.fieldCodes" mode="multiple" :options="(moduleFor(tool.resourceId)?.fields || []).map(value => ({ value, label: value }))" /></a-form-item>
+              <a-form-item label="字段"><a-select v-model:value="tool.fieldCodes" mode="multiple" :options="fieldOptions(tool.resourceId)" /></a-form-item>
               <div class="ai-tool-footer"><a-checkbox v-model:checked="tool.requiresConfirmation" :disabled="isWriteTool(tool)">执行前人工确认</a-checkbox><span>{{ aiScopeLabel(tool.requestedDataScope) }}</span><a-button danger type="link" @click="agentForm.tools.splice(index, 1)">移除</a-button></div>
             </div>
-            <a-button type="primary" :loading="saving" :disabled="!agentForm.code || !agentForm.name || !agentForm.modelGrantId || !agentForm.tools.length" @click="saveAgent">保存草稿并读回</a-button>
+            <a-button type="primary" :loading="saving" :disabled="!agentForm.name || !agentForm.modelGrantId || !agentForm.tools.length" @click="saveAgent">保存草稿</a-button>
             <a-button class="ai-secondary-action" :disabled="!selectedAgentId" @click="previewAgent">执行权限预览</a-button>
           </a-form>
         </section>
@@ -408,17 +427,17 @@ onMounted(load)
         <div class="panel-title"><strong>最终发布预览</strong><a-tag :color="preview.valid ? 'green' : 'red'">{{ aiPreviewSummary(preview) }}</a-tag></div>
         <a-descriptions bordered size="small" :column="3">
           <a-descriptions-item label="最终模型">{{ preview.finalModel?.name || '不可用' }}</a-descriptions-item>
-          <a-descriptions-item label="草稿修订">r{{ preview.draftRevision }}</a-descriptions-item>
+          <a-descriptions-item label="配置状态">已完成权限计算</a-descriptions-item>
           <a-descriptions-item label="角色快照">{{ (preview.permissionSnapshot.roleIds as number[] || []).length }} 个角色</a-descriptions-item>
         </a-descriptions>
         <a-alert v-if="preview.issues.length" type="error" show-icon message="发布被阻断">
-          <template #description><ul><li v-for="item in preview.issues" :key="`${item.code}-${item.toolIndex}`">{{ item.code }}：{{ item.message }}</li></ul></template>
+          <template #description><ul><li v-for="item in preview.issues" :key="`${item.code}-${item.toolIndex}`">{{ item.message }}</li></ul></template>
         </a-alert>
         <div class="ai-preview-tools">
           <article v-for="tool in preview.tools" :key="tool.toolId" :class="{ invalid: !tool.valid }">
-            <header><strong>{{ aiToolTypeLabel(tool.toolType) }} · {{ tool.resourceId }} / {{ tool.actionCode }}</strong><a-tag :color="tool.valid ? 'green' : 'red'">{{ tool.valid ? '范围有效' : '范围越权' }}</a-tag></header>
+            <header><strong>{{ aiToolTypeLabel(tool.toolType) }} · {{ toolTitle(tool.resourceId, tool.actionCode) }}</strong><a-tag :color="tool.valid ? 'green' : 'red'">{{ tool.valid ? '范围有效' : '范围越权' }}</a-tag></header>
             <div v-for="(decision, field) in tool.fieldAuthorization" :key="field" class="ai-field-decision">
-              <code>{{ field }}</code><span>{{ decision.readable ? '可读' : '隐藏' }} / {{ decision.writable ? '可写' : '只读' }}</span><a-tag v-if="decision.maskStrategy">{{ decision.maskStrategy }} 脱敏</a-tag>
+              <strong>{{ fieldName(tool.resourceId, field) }}</strong><span>{{ decision.readable ? '可读' : '隐藏' }} / {{ decision.writable ? '可写' : '只读' }}</span><a-tag v-if="decision.maskStrategy">已按安全策略脱敏</a-tag>
             </div>
             <footer>{{ tool.requiresConfirmation ? '需要人工确认' : '只读直达' }} · 数据范围由服务器按权限快照收敛</footer>
           </article>

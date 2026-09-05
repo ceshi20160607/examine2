@@ -71,6 +71,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -90,6 +91,7 @@ public class RuntimeDataService {
     private final TenantShareUsageRecorder tenantShareUsageRecorder;
     private final ConfiguredModuleBaseService moduleService;
     private final SystemTenantMemberBaseService tenantMemberService;
+    private final com.unique.unexamine.authorization.manage.OrganizationRelationRepository organizationRelationRepository;
     private final SystemDepartmentBaseService departmentService;
     private final SystemMemberBaseService memberService;
     private final SystemTenantBaseService tenantService;
@@ -117,6 +119,7 @@ public class RuntimeDataService {
             TenantShareUsageRecorder tenantShareUsageRecorder,
             ConfiguredModuleBaseService moduleService,
             SystemTenantMemberBaseService tenantMemberService,
+            com.unique.unexamine.authorization.manage.OrganizationRelationRepository organizationRelationRepository,
             SystemDepartmentBaseService departmentService,
             SystemMemberBaseService memberService,
             SystemTenantBaseService tenantService,
@@ -142,6 +145,7 @@ public class RuntimeDataService {
         this.tenantShareUsageRecorder = tenantShareUsageRecorder;
         this.moduleService = moduleService;
         this.tenantMemberService = tenantMemberService;
+        this.organizationRelationRepository = organizationRelationRepository;
         this.departmentService = departmentService;
         this.memberService = memberService;
         this.tenantService = tenantService;
@@ -501,6 +505,30 @@ public class RuntimeDataService {
         return view(context, moduleCode, "DETAIL", List.of("PAGE"), access);
     }
 
+    @Transactional(readOnly = true)
+    public void requireAttachmentField(
+            AuthenticatedContext context, String moduleCode, Long recordId,
+            String fieldCode, boolean write, String traceId) {
+        String action = write ? "UPDATE" : "DETAIL";
+        RecordAccess access = requireRecordAccess(context, moduleCode, action, recordId, false, traceId);
+        PublishedField field = access.published().fields().stream()
+                .filter(item -> item.code().equals(fieldCode)).findFirst()
+                .orElseThrow(() -> new DomainException("ATTACHMENT_FIELD_NOT_FOUND",
+                        "当前发布版本没有这个附件字段", HttpStatus.NOT_FOUND));
+        if (!Set.of("ATTACHMENT", "IMAGE", "FILE", "FILE_GROUP").contains(field.type())) {
+            throw new DomainException("ATTACHMENT_FIELD_TYPE_INVALID", "目标字段不是附件或文件字段",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        FieldAccessDecision decision = fieldPolicyResolver.resolveIntersection(
+                context, moduleCode, action, List.of("PAGE", "FILE"), List.of(fieldCode)).get(fieldCode);
+        boolean allowed = decision != null && (write ? decision.writable() : decision.readable());
+        if (!allowed) {
+            throw new DomainException("ATTACHMENT_FIELD_ACCESS_DENIED",
+                    write ? "当前成员不能向这个业务字段添加附件" : "当前成员不能查看这个业务字段的附件",
+                    HttpStatus.FORBIDDEN);
+        }
+    }
+
     /**
      * Resolves the record again for the PRINT action instead of reusing a page response. Printing therefore
      * requires both DETAIL and PRINT record scopes, and fields are protected by the PAGE ∩ FILE channel policy.
@@ -533,7 +561,12 @@ public class RuntimeDataService {
                 .eq(AuditEvent::getResultCode, "SUCCESS")
                 .in(AuditEvent::getEventCode, "BUSINESS_RECORD_CREATED", "BUSINESS_RECORD_UPDATED",
                         "BUSINESS_RECORD_ARCHIVED", "BUSINESS_RECORD_DELETED", "BUSINESS_RECORD_RESTORED",
-                        "BUSINESS_RECORD_TRANSFERRED", "BUSINESS_RECORD_CONVERTED")
+                        "BUSINESS_RECORD_TRANSFERRED", "BUSINESS_RECORD_CONVERTED",
+                        "BUSINESS_RECORD_TASK_CREATED", "BUSINESS_RECORD_TASK_UPDATED",
+                        "BUSINESS_RECORD_LOG_CREATED", "BUSINESS_RECORD_LOG_UPDATED",
+                        "BUSINESS_RECORD_ATTACHMENT_ADDED", "BUSINESS_RECORD_ATTACHMENT_REMOVED",
+                        "FLOW_BUSINESS_WRITEBACK", "FLOW_BUSINESS_STATUS_MAPPED",
+                        "AI_CONFIRMED_RELATED_RECORD_CREATED")
                 .orderByDesc(AuditEvent::getOccurredAt, AuditEvent::getId)
                 .last("limit 100"));
         if (events.isEmpty()) {
@@ -560,14 +593,27 @@ public class RuntimeDataService {
                                 .in(SystemMember::getId, memberIds))
                 .stream().collect(java.util.stream.Collectors.toMap(SystemMember::getId, SystemMember::getDisplayName));
 
-        List<RuntimeRecordTimelineEntry> entries = events.stream().map(event -> {
+        List<RuntimeRecordTimelineEntry> entries = events.stream()
+                .filter(event -> attachmentEventVisible(event, fieldAccess)).map(event -> {
+            Map<String, Object> detail = auditDetail(event);
             List<RuntimeRecordTimelineChange> changes = changesByEvent.getOrDefault(event.getId(), List.of()).stream()
                     .map(change -> timelineChange(change, fieldsByCode.get(change.getFieldCode()), fieldAccess.get(change.getFieldCode())))
                     .toList();
             return new RuntimeRecordTimelineEntry(
                     event.getId(), event.getEventCode(), timelineLabel(event.getEventCode()),
                     event.getActorAccountId(), event.getMemberId(),
-                    memberNames.getOrDefault(event.getMemberId(), "未知成员"), event.getOccurredAt(), changes);
+                    memberNames.getOrDefault(event.getMemberId(), "系统自动执行"),
+                    timelineSummary(event.getEventCode(), detail, fieldsByCode),
+                    event.getEventCode().startsWith("BUSINESS_RECORD_TASK_") ? "WORK_TASK"
+                            : event.getEventCode().startsWith("BUSINESS_RECORD_LOG_") ? "WORK_LOG"
+                            : "AI_CONFIRMED_RELATED_RECORD_CREATED".equals(event.getEventCode())
+                            ? "BUSINESS_RECORD" : null,
+                    event.getEventCode().startsWith("BUSINESS_RECORD_TASK_") ? nullableString(detail.get("taskId"))
+                            : event.getEventCode().startsWith("BUSINESS_RECORD_LOG_")
+                            ? nullableString(detail.get("logId"))
+                            : "AI_CONFIRMED_RELATED_RECORD_CREATED".equals(event.getEventCode())
+                            ? nullableString(detail.get("targetRecordId")) : null,
+                    event.getOccurredAt(), changes);
         }).toList();
         return new RuntimeRecordTimeline(entries);
     }
@@ -581,8 +627,110 @@ public class RuntimeDataService {
             case "BUSINESS_RECORD_RESTORED" -> "恢复记录";
             case "BUSINESS_RECORD_TRANSFERRED" -> "转交负责人";
             case "BUSINESS_RECORD_CONVERTED" -> "转化记录";
+            case "BUSINESS_RECORD_TASK_CREATED" -> "创建关联任务";
+            case "BUSINESS_RECORD_TASK_UPDATED" -> "更新关联任务";
+            case "BUSINESS_RECORD_LOG_CREATED" -> "填写关联日志";
+            case "BUSINESS_RECORD_LOG_UPDATED" -> "修订关联日志";
+            case "BUSINESS_RECORD_ATTACHMENT_ADDED" -> "添加附件";
+            case "BUSINESS_RECORD_ATTACHMENT_REMOVED" -> "移除附件";
+            case "FLOW_BUSINESS_WRITEBACK" -> "Flow 自动回写";
+            case "FLOW_BUSINESS_STATUS_MAPPED" -> "Flow 状态映射";
+            case "AI_CONFIRMED_RELATED_RECORD_CREATED" -> "助手创建关联记录";
             default -> eventCode;
         };
+    }
+
+    private Map<String, Object> auditDetail(AuditEvent event) {
+        if (event.getDetailJson() == null || event.getDetailJson().isBlank()) return Map.of();
+        try {
+            return objectMapper.readValue(event.getDetailJson(), new TypeReference<>() { });
+        } catch (JsonProcessingException ignored) {
+            return Map.of();
+        }
+    }
+
+    private String timelineSummary(
+            String eventCode, Map<String, Object> detail,
+            Map<String, PublishedField> fieldsByCode) {
+        if (eventCode.startsWith("BUSINESS_RECORD_TASK_")) {
+            String title = nullableString(detail.get("taskTitle"));
+            String status = workTaskStatusLabel(nullableString(detail.get("taskStatus")));
+            return title == null ? status : title + (status == null ? "" : " · " + status);
+        }
+        if (eventCode.startsWith("BUSINESS_RECORD_LOG_")) {
+            String title = nullableString(detail.get("logTitle"));
+            String status = workLogStatusLabel(nullableString(detail.get("logStatus")));
+            String minutes = nullableString(detail.get("durationMinutes"));
+            String suffix = status == null ? "" : " · " + status;
+            if (minutes != null) suffix += " · " + minutes + " 分钟";
+            return title == null ? (suffix.isBlank() ? null : suffix.substring(3)) : title + suffix;
+        }
+        if (eventCode.startsWith("BUSINESS_RECORD_ATTACHMENT_")) {
+            String fileName = nullableString(detail.get("fileName"));
+            String fieldCode = nullableString(detail.get("fieldCode"));
+            PublishedField field = fieldCode == null ? null : fieldsByCode.get(fieldCode);
+            return (field == null ? "附件" : field.name()) + (fileName == null ? "" : " · " + fileName);
+        }
+        if ("AI_CONFIRMED_RELATED_RECORD_CREATED".equals(eventCode)) {
+            String moduleName = nullableString(detail.get("targetModuleName"));
+            String title = nullableString(detail.get("targetRecordTitle"));
+            if (moduleName == null) return title;
+            return title == null ? moduleName : moduleName + " · " + title;
+        }
+        if ("FLOW_BUSINESS_WRITEBACK".equals(eventCode)) {
+            String status = nullableString(detail.get("afterStatus"));
+            Object fields = detail.get("updatedFields");
+            String fieldSummary = fields instanceof List<?> list && !list.isEmpty()
+                    ? "更新字段 " + String.join("、", list.stream().map(String::valueOf)
+                    .map(code -> fieldsByCode.containsKey(code) ? fieldsByCode.get(code).name() : "业务字段")
+                    .toList()) : null;
+            if (status != null && fieldSummary != null) return fieldSummary + "；状态变为 " + status;
+            return fieldSummary != null ? fieldSummary : status == null ? null : "状态变为 " + status;
+        }
+        if ("FLOW_BUSINESS_STATUS_MAPPED".equals(eventCode)) {
+            String before = nullableString(detail.get("beforeStatus"));
+            String after = nullableString(detail.get("afterStatus"));
+            return before == null && after == null ? null : (before == null ? "" : before) + " → "
+                    + (after == null ? "" : after);
+        }
+        return null;
+    }
+
+    private boolean attachmentEventVisible(
+            AuditEvent event, Map<String, FieldAccessDecision> fieldAccess) {
+        if (!event.getEventCode().startsWith("BUSINESS_RECORD_ATTACHMENT_")) return true;
+        String fieldCode = nullableString(auditDetail(event).get("fieldCode"));
+        FieldAccessDecision decision = fieldCode == null ? null : fieldAccess.get(fieldCode);
+        return decision != null && decision.readable();
+    }
+
+    private String workLogStatusLabel(String status) {
+        if (status == null) return null;
+        return switch (status) {
+            case "DRAFT" -> "草稿";
+            case "SUBMITTED" -> "已提交";
+            case "WITHDRAWN" -> "已撤回";
+            default -> status;
+        };
+    }
+
+    private String workTaskStatusLabel(String status) {
+        if (status == null) return null;
+        return switch (status) {
+            case "BACKLOG" -> "待规划";
+            case "TODO" -> "待开始";
+            case "IN_PROGRESS" -> "进行中";
+            case "BLOCKED" -> "已阻塞";
+            case "COMPLETED" -> "已完成";
+            case "CANCELLED" -> "已取消";
+            default -> status;
+        };
+    }
+
+    private String nullableString(Object value) {
+        if (value == null) return null;
+        String result = String.valueOf(value).strip();
+        return result.isEmpty() ? null : result;
     }
 
     private RuntimeRecordTimelineChange timelineChange(
@@ -786,6 +934,104 @@ public class RuntimeDataService {
         if (access.share() != null) recordShareUsage(context, access.share(), action, "SUCCESS");
         return view(context, moduleCode, action, List.of("PAGE"), new RecordAccess(
                 recordService.selectById(recordId), access.published(), access.sourceContext(), access.share()));
+    }
+
+    /** Applies a published Flow node writeback against the same module permission and field policy model as pages. */
+    @Transactional(noRollbackFor = DomainException.class)
+    public RuntimeRecordView applyFlowWriteback(
+            AuthenticatedContext context, String moduleCode, Long recordId, String actionCode,
+            String expectedCurrentStatus, String targetStatus, Map<String, Object> fieldUpdates,
+            String traceId) {
+        String action = actionCode == null ? "" : actionCode.strip().toUpperCase(Locale.ROOT);
+        if (action.isBlank()) {
+            throw new DomainException("FLOW_WRITEBACK_ACTION_REQUIRED",
+                    "字段回写节点必须配置业务动作", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        String target = targetStatus == null ? "" : targetStatus.strip().toUpperCase(Locale.ROOT);
+        if (!target.isBlank() && !target.matches("[A-Z][A-Z0-9_]{0,63}")) {
+            throw new DomainException("FLOW_STATUS_MAPPING_INVALID",
+                    "Flow 业务状态映射目标无效", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        RecordAccess access = requireRecordAccess(context, moduleCode, action, recordId, true, traceId);
+        BusinessRecord record = access.record();
+        if (expectedCurrentStatus != null && !expectedCurrentStatus.isBlank()
+                && !expectedCurrentStatus.equalsIgnoreCase(record.getStatus())) {
+            throw new DomainException("FLOW_STATUS_MAPPING_INCOMPATIBLE",
+                    "业务数据当前状态与字段回写前置状态不兼容", HttpStatus.CONFLICT);
+        }
+        PublishedModule published = access.published();
+        Map<String, PublishedField> fieldsByCode = new LinkedHashMap<>();
+        published.fields().forEach(field -> fieldsByCode.put(field.code(), field));
+        Map<String, Object> requested = fieldUpdates == null ? Map.of() : fieldUpdates;
+        Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolve(
+                context, moduleCode, action, "FLOW", new ArrayList<>(requested.keySet()));
+        Map<String, JsonNode> before = readRawValues(recordId, published.fields());
+        Map<String, JsonNode> merged = new LinkedHashMap<>(before);
+        List<String> errors = new ArrayList<>();
+        requested.forEach((code, raw) -> {
+            PublishedField field = fieldsByCode.get(code);
+            if (field == null) {
+                errors.add(code + ": 字段未发布或不存在");
+                return;
+            }
+            FieldAccessDecision decision = decisions.get(code);
+            if (decision == null || !decision.writable()) {
+                errors.add(code + ": Flow 渠道没有字段写入权限");
+                return;
+            }
+            JsonNode value = objectMapper.valueToTree(raw);
+            if (empty(value)) {
+                merged.remove(code);
+                return;
+            }
+            try {
+                JsonNode normalized = normalize(access.sourceContext(), field, value);
+                validateReferenceValue(access.sourceContext(), field, normalized);
+                merged.put(code, normalized);
+            } catch (IllegalArgumentException exception) {
+                errors.add(code + ": " + exception.getMessage());
+            }
+        });
+        published.fields().stream().filter(PublishedField::required)
+                .filter(field -> empty(merged.get(field.code())))
+                .forEach(field -> errors.add(field.code() + ": 必填字段不能为空"));
+        if (!errors.isEmpty()) {
+            throw new DomainException("FLOW_WRITEBACK_FIELD_INVALID", String.join("；", errors),
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        ruleIndexService.validate(published.configuration(), action, merged);
+        String beforeStatus = record.getStatus();
+        if (!target.isBlank()) record.setStatus(target);
+        record.setUpdatedConfigVersionId(published.configuration().versionId());
+        record.setUpdatedByMemberId(context.memberId());
+        record.setUpdatedAt(LocalDateTime.now());
+        if (recordService.updateById(record) != 1) {
+            throw new DomainException("RECORD_VERSION_CONFLICT", "业务数据已被其他操作修改", HttpStatus.CONFLICT);
+        }
+        replaceValues(access.sourceContext(), recordId, published.fields(), merged);
+        ruleIndexService.syncIndexes(access.sourceContext(), published.configuration(), recordId, merged);
+        Long auditEventId = auditRecorder.recordWithPermissionSnapshot(
+                traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "FLOW_BUSINESS_WRITEBACK", "BUSINESS_RECORD", recordId.toString(), "SUCCESS",
+                permissionSnapshot(context, moduleCode, action, "FLOW"),
+                Map.of("moduleCode", moduleCode, "actionCode", action,
+                        "beforeStatus", beforeStatus, "afterStatus", record.getStatus(),
+                        "updatedFields", requested.keySet()));
+        recordFieldChanges(context, moduleCode, auditEventId, before, merged, published.fields());
+        if (!Objects.equals(beforeStatus, record.getStatus())) {
+            BizRecordStateHistory history = new BizRecordStateHistory();
+            history.setRecordId(recordId);
+            history.setFromStatus(beforeStatus);
+            history.setToStatus(record.getStatus());
+            history.setReason("Flow 字段回写节点更新业务状态");
+            history.setSourceType("FLOW");
+            history.setSourceId(traceId);
+            history.setChangedByMemberId(context.memberId());
+            stateHistoryService.insert(history);
+        }
+        if (access.share() != null) recordShareUsage(context, access.share(), action, "SUCCESS");
+        return view(context, moduleCode, action, List.of("FLOW"), new RecordAccess(
+                recordService.selectById(recordId), published, access.sourceContext(), access.share()));
     }
 
     @Transactional(readOnly = true)
@@ -1685,6 +1931,13 @@ public class RuntimeDataService {
         for (DataScopeTerm term : terms) {
             switch (term.type()) {
                 case "SELF" -> clauses.add(wrapper -> wrapper.eq(BusinessRecord::getOwnerMemberId, context.memberId()));
+                case "SELF_AND_SUBORDINATES" -> {
+                    List<Long> memberIds = organizationRelationRepository.subordinateSystemMemberIds(
+                            context.tenantId(), context.tenantMemberId());
+                    if (!memberIds.isEmpty()) {
+                        clauses.add(wrapper -> wrapper.in(BusinessRecord::getOwnerMemberId, memberIds));
+                    }
+                }
                 case "CREATED_BY_SELF" -> clauses.add(wrapper ->
                         wrapper.eq(BusinessRecord::getCreatedByMemberId, context.memberId()));
                 case "PARTICIPATED" -> clauses.add(wrapper -> wrapper.apply(

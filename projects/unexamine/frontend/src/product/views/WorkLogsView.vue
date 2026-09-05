@@ -7,7 +7,9 @@ import { allowsPermission } from '../permissions'
 import { productDateTime } from '../presentation'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
 import { canEditLog, revisionDifference, sortWorkLogs } from '../work-log'
-import type { WorkLog, WorkProject } from '../types'
+import type { SystemPeopleDirectory, WorkConfigurationField, WorkLog, WorkProject } from '../types'
+import PersonSelect from '../components/PersonSelect.vue'
+import WorkConfiguredFields from '../components/WorkConfiguredFields.vue'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'platform' })
 const token = computed(() => props.context === 'platform' ? platformTokens.value?.accessToken : systemTokens.value?.accessToken)
@@ -15,6 +17,8 @@ const current = computed(() => props.context === 'platform' ? platformContext.va
 const contextCode = computed(() => props.context === 'platform' ? 'PLATFORM' : 'SYSTEM')
 const logs = ref<WorkLog[]>([])
 const projects = ref<WorkProject[]>([])
+const directory = ref<SystemPeopleDirectory>({ departments: [], people: [], permissionVersion: 0 })
+const logFields = ref<WorkConfigurationField[]>([])
 const detail = ref<WorkLog>()
 const loading = ref(false)
 const busy = ref('')
@@ -26,6 +30,7 @@ const authorFilter = ref<number>()
 const form = reactive({
   workDate: today(), title: '', content: '', durationMinutes: 60,
   projectId: undefined as number | undefined, taskIds: [] as number[], revisionReason: '',
+  configuredValues: {} as Record<string, unknown>,
 })
 
 const projectTasks = computed(() => projects.value.find(project => project.id === form.projectId)?.tasks || [])
@@ -59,19 +64,11 @@ function statusColor(status: WorkLog['status']) {
 }
 
 function projectName(log: WorkLog) {
-  const id = Number(log.customValues?.projectId || 0)
-  return projects.value.find(project => project.id === id)?.name
-}
-
-function authorName(accountId?: number) {
-  if (!accountId) return '未指定'
-  return accountId === current.value?.accountId ? current.value?.displayName || '我' : '其他成员'
+  return log.projectName || projects.value.find(project => project.id === log.projectId)?.name
 }
 
 function linkedTaskNames(log: WorkLog) {
-  const ids = Array.isArray(log.customValues?.taskIds) ? log.customValues.taskIds.map(Number) : []
-  const names = projects.value.flatMap(project => project.tasks).filter(task => ids.includes(task.id)).map(task => task.title)
-  return names.join('、') || (ids.length ? `${ids.length} 项任务` : '未关联')
+  return log.tasks.map(task => task.title).join('、') || '未关联'
 }
 
 async function loadLogs() {
@@ -80,7 +77,7 @@ async function loadLogs() {
   try {
     const params = new URLSearchParams()
     if (dateFilter.value) params.set('workDate', dateFilter.value)
-    if (authorFilter.value) params.set('authorAccountId', String(authorFilter.value))
+    if (authorFilter.value) params.set('tenantMemberId', String(authorFilter.value))
     logs.value = sortWorkLogs(await api<WorkLog[]>(`/api/work/logs${params.size ? `?${params}` : ''}`, {}, token.value))
   } catch (error) {
     message.error(describeError(error))
@@ -100,10 +97,22 @@ async function loadProjects() {
   }
 }
 
+async function loadDirectory() {
+  if (!token.value || props.context !== 'system') return
+  try { directory.value = await api<SystemPeopleDirectory>('/api/system-directory', {}, token.value) }
+  catch (error) { message.error(describeError(error)) }
+}
+
+async function loadLogFields() {
+  if (!token.value) return
+  try { logFields.value = await api<WorkConfigurationField[]>('/api/work/configuration/effective/LOG', {}, token.value) }
+  catch (error) { message.error(describeError(error)) }
+}
+
 function openCreate() {
   editing.value = undefined
   Object.assign(form, { workDate: today(), title: '', content: '', durationMinutes: 60,
-    projectId: undefined, taskIds: [], revisionReason: '' })
+    projectId: undefined, taskIds: [], revisionReason: '', configuredValues: {} })
   editorOpen.value = true
 }
 
@@ -111,19 +120,12 @@ function openEdit(log: WorkLog) {
   editing.value = log
   Object.assign(form, {
     workDate: log.workDate, title: log.title, content: log.content, durationMinutes: log.durationMinutes || 60,
-    projectId: Number(log.customValues?.projectId || 0) || undefined,
-    taskIds: Array.isArray(log.customValues?.taskIds) ? log.customValues.taskIds.map(Number) : [],
-    revisionReason: '',
+    projectId: log.projectId,
+    taskIds: log.tasks.map(task => task.id),
+    revisionReason: '', configuredValues: { ...log.configuredValues },
   })
   detailOpen.value = false
   editorOpen.value = true
-}
-
-function customValues() {
-  return {
-    ...(form.projectId ? { projectId: form.projectId } : {}),
-    ...(form.taskIds.length ? { taskIds: form.taskIds } : {}),
-  }
 }
 
 async function saveLog() {
@@ -133,7 +135,10 @@ async function saveLog() {
   try {
     const payload = {
       workDate: form.workDate, title: form.title, content: form.content,
-      durationMinutes: form.durationMinutes, customValues: customValues(),
+      durationMinutes: form.durationMinutes, projectId: form.projectId,
+      taskIds: form.taskIds, businessType: editing.value?.businessType,
+      businessId: editing.value?.businessId, businessTitle: editing.value?.businessTitle,
+      configuredValues: form.configuredValues,
     }
     const saved = editing.value
       ? await api<WorkLog>(`/api/work/logs/${editing.value.id}`, {
@@ -169,7 +174,10 @@ async function changeStatus(log: WorkLog, status: WorkLog['status'], revisionRea
     const updated = await api<WorkLog>(`/api/work/logs/${log.id}`, {
       method: 'PUT', body: JSON.stringify({
         expectedVersion: log.version, workDate: log.workDate, title: log.title, content: log.content,
-        durationMinutes: log.durationMinutes, status, customValues: log.customValues, revisionReason,
+        durationMinutes: log.durationMinutes, status, projectId: log.projectId,
+        taskIds: log.tasks.map(task => task.id), businessType: log.businessType,
+        businessId: log.businessId, businessTitle: log.businessTitle,
+        configuredValues: log.configuredValues, revisionReason,
       }),
     }, token.value)
     detail.value = updated
@@ -182,7 +190,7 @@ async function changeStatus(log: WorkLog, status: WorkLog['status'], revisionRea
   }
 }
 
-onMounted(() => Promise.all([loadLogs(), loadProjects()]))
+onMounted(() => Promise.all([loadLogs(), loadProjects(), loadDirectory(), loadLogFields()]))
 </script>
 
 <template>
@@ -196,7 +204,7 @@ onMounted(() => Promise.all([loadLogs(), loadProjects()]))
     <template v-else>
       <section class="panel-card work-log-filter">
         <a-date-picker v-model:value="dateFilter" value-format="YYYY-MM-DD" placeholder="全部日期" allow-clear />
-        <a-input-number v-if="can('VIEW_OTHERS')" v-model:value="authorFilter" :min="1" placeholder="作者账号编号" style="width:180px" />
+        <PersonSelect v-if="can('VIEW_OTHERS') && context === 'system'" v-model="authorFilter" :people="directory.people" value-key="tenantMemberId" placeholder="按作者筛选" style="width:240px" />
         <a-button @click="loadLogs">筛选</a-button>
         <a-button v-if="dateFilter || authorFilter" @click="dateFilter = undefined; authorFilter = undefined; loadLogs()">清空</a-button>
       </section>
@@ -204,7 +212,7 @@ onMounted(() => Promise.all([loadLogs(), loadProjects()]))
         <section v-if="logs.length" class="work-log-list">
           <article v-for="log in logs" :key="log.id" class="panel-card work-log-row" @click="openDetail(log.id)">
             <time><strong>{{ log.workDate.slice(8, 10) }}</strong><small>{{ log.workDate.slice(0, 7) }}</small></time>
-            <div><span><strong>{{ log.title }}</strong><a-tag :color="statusColor(log.status)">{{ statusLabel(log.status) }}</a-tag></span><p>{{ log.content }}</p><small>{{ authorName(log.authorAccountId) }}<template v-if="projectName(log)"> · {{ projectName(log) }}</template> · {{ productDateTime(log.updatedAt) }}</small></div>
+            <div><span><strong>{{ log.title }}</strong><a-tag :color="statusColor(log.status)">{{ statusLabel(log.status) }}</a-tag></span><p>{{ log.content }}</p><small>{{ log.author.displayName }}<template v-if="projectName(log)"> · {{ projectName(log) }}</template> · {{ productDateTime(log.updatedAt) }}</small></div>
             <span class="work-log-duration">{{ log.durationMinutes || '—' }}<small>分钟</small></span>
           </article>
         </section>
@@ -219,6 +227,7 @@ onMounted(() => Promise.all([loadLogs(), loadProjects()]))
       <a-form-item label="标题" required><a-input v-model:value="form.title" placeholder="今天完成了什么" /></a-form-item>
       <a-form-item label="日志正文" required><a-textarea v-model:value="form.content" :rows="6" placeholder="写明完成结果、验证情况和后续事项" /></a-form-item>
       <div class="form-grid"><a-form-item label="关联项目"><a-select v-model:value="form.projectId" allow-clear placeholder="可选" :options="projects.map(project => ({ value: project.id, label: project.name }))" @change="form.taskIds = []" /></a-form-item><a-form-item label="关联任务"><a-select v-model:value="form.taskIds" mode="multiple" allow-clear placeholder="可多选" :disabled="!form.projectId" :options="projectTasks.map(task => ({ value: task.id, label: task.title }))" /></a-form-item></div>
+      <WorkConfiguredFields v-model="form.configuredValues" :fields="logFields" />
       <a-form-item v-if="editing" label="修订原因" required><a-input v-model:value="form.revisionReason" placeholder="例如：补充页面验收结果" /></a-form-item>
     </a-form>
   </a-modal>
@@ -227,8 +236,8 @@ onMounted(() => Promise.all([loadLogs(), loadProjects()]))
     <template v-if="detail">
       <div class="work-log-detail-heading"><span><p class="eyebrow">{{ detail.workDate }} · 工作日志</p><h2>{{ detail.title }}</h2></span><a-tag :color="statusColor(detail.status)">{{ statusLabel(detail.status) }}</a-tag></div>
       <p class="work-log-content">{{ detail.content }}</p>
-      <a-descriptions bordered size="small" :column="2"><a-descriptions-item label="作者">{{ authorName(detail.authorAccountId) }}</a-descriptions-item><a-descriptions-item label="投入">{{ detail.durationMinutes || '—' }} 分钟</a-descriptions-item><a-descriptions-item label="关联项目">{{ projectName(detail) || '未关联' }}</a-descriptions-item><a-descriptions-item label="关联任务">{{ linkedTaskNames(detail) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item></a-descriptions>
-      <div v-if="detail.authorAccountId === current?.accountId && can('UPDATE_LOG')" class="work-log-actions">
+      <a-descriptions bordered size="small" :column="2"><a-descriptions-item label="作者">{{ detail.author.displayName }}<small v-if="detail.author.departmentName"> · {{ detail.author.departmentName }}</small></a-descriptions-item><a-descriptions-item label="投入">{{ detail.durationMinutes || '—' }} 分钟</a-descriptions-item><a-descriptions-item label="关联项目">{{ projectName(detail) || '未关联' }}</a-descriptions-item><a-descriptions-item label="关联任务">{{ linkedTaskNames(detail) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item><a-descriptions-item v-for="field in logFields.filter(item => detail?.configuredValues[item.fieldCode] !== undefined)" :key="field.fieldCode" :label="field.fieldName">{{ detail.configuredValues[field.fieldCode] }}</a-descriptions-item></a-descriptions>
+      <div v-if="(context === 'platform' || detail.author.tenantMemberId === current?.tenantMemberId) && can('UPDATE_LOG')" class="work-log-actions">
         <a-button v-if="canEditLog(detail.status)" @click="openEdit(detail)">修订内容</a-button>
         <a-button v-if="detail.status === 'DRAFT'" type="primary" :loading="busy === `status:${detail.id}`" @click="changeStatus(detail, 'SUBMITTED', '用户确认提交日志')">提交并锁定</a-button>
         <a-button v-if="detail.status === 'SUBMITTED'" :loading="busy === `status:${detail.id}`" @click="changeStatus(detail, 'WITHDRAWN', '用户撤回已提交日志')">撤回后修订</a-button>
@@ -239,7 +248,7 @@ onMounted(() => Promise.all([loadLogs(), loadProjects()]))
         <a-timeline-item v-for="(revision, index) in detail.revisions" :key="revision.id" :color="index === 0 ? 'blue' : 'gray'">
           <strong>修订 {{ revision.revisionNumber }} · {{ revision.revisionReason }}</strong>
           <p>{{ revisionDifference(revision, detail.revisions[index + 1]) }}</p>
-          <small>{{ authorName(revision.revisedByAccountId) }} · {{ productDateTime(revision.revisedAt) }} · {{ statusLabel(revision.snapshot.status as WorkLog['status']) }}</small>
+          <small>{{ revision.revisedByName }} · {{ productDateTime(revision.revisedAt) }} · {{ statusLabel(revision.snapshot.status as WorkLog['status']) }}</small>
         </a-timeline-item>
       </a-timeline>
     </template>

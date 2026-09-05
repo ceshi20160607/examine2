@@ -1,5 +1,5 @@
 import { api, ApiError, type ApiEnvelope } from './api'
-import type { ControlledFileView, FileUploadSessionView } from './types'
+import type { BusinessAttachmentView, ControlledFileView, FileUploadSessionView } from './types'
 
 export async function sha256Hex(file: Blob): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
@@ -47,6 +47,37 @@ export async function referenceToAccount(fileId: number, accountId: number, toke
       ownerType: 'ACCOUNT', ownerId: String(accountId), fieldCode: 'managed_files', referenceType: 'DOCUMENT',
     }),
   }, token)
+}
+
+export async function uploadBusinessAttachment(
+  file: File,
+  path: string,
+  token: string,
+  onProgress?: (progress: number) => void,
+): Promise<BusinessAttachmentView> {
+  return new Promise((resolve, reject) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('purpose', file.type.startsWith('image/') ? 'IMAGE' : 'DOCUMENT')
+    const request = new XMLHttpRequest()
+    request.open('POST', path)
+    request.setRequestHeader('Authorization', `Bearer ${token}`)
+    request.upload.onprogress = event => {
+      if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100))
+    }
+    request.onerror = () => reject(new ApiError('FILE_UPLOAD_NETWORK_FAILED', '附件上传网络中断'))
+    request.onload = () => {
+      let payload: ApiEnvelope<BusinessAttachmentView> & { data?: { traceId?: string } }
+      try { payload = JSON.parse(request.responseText) as typeof payload }
+      catch { return reject(new ApiError('FILE_UPLOAD_RESPONSE_INVALID', '附件上传返回无效')) }
+      if (request.status < 200 || request.status >= 300 || payload.code !== 'OK') {
+        return reject(new ApiError(payload.code, payload.message || '附件上传失败', payload.data?.traceId ?? payload.requestId))
+      }
+      onProgress?.(100)
+      resolve(payload.data)
+    }
+    request.send(form)
+  })
 }
 
 export async function authorizedBlob(path: string, token: string): Promise<Blob> {

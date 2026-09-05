@@ -105,11 +105,15 @@ class DashboardHttpTest {
                 "select id from ana_data_source_version where data_source_id=?", Long.class, reportSourceId);
         long ownerAccountId = jdbc.queryForObject(
                 "select id from plat_account where username='dashboard_owner'", Long.class);
+        long ownerTenantMemberId = jdbc.queryForObject(
+                "select stm.id from sys_tenant_member stm join sys_member sm on sm.id=stm.system_member_id "
+                        + "where stm.system_id=? and stm.tenant_id=? and sm.account_id=?",
+                Long.class, owner.systemId(), owner.tenantId(), ownerAccountId);
 
         Map<String, Object> kpi = ok("/api/analytics/admin/kpis", HttpMethod.POST, owner.token(),
                 kpi("customer_monthly", "月度有效客户", reportVersionId, 3,
                         Map.of(), Map.of("resourceType", "MODULE", "resourceCode", "customer",
-                                "actionCode", "LIST"), ownerAccountId, null));
+                                "actionCode", "LIST"), ownerTenantMemberId, null));
         long kpiId = number(kpi.get("id"));
         assertThat(number(kpi.get("dataSourceVersionId"))).isEqualTo(reportVersionId);
         assertThat(kpi).containsEntry("periodType", "MONTH").containsEntry("version", 0);
@@ -132,7 +136,7 @@ class DashboardHttpTest {
         assertThat(number(map(kpiResult.get("explanation")).get("dataSourceVersionId")))
                 .isEqualTo(reportVersionId);
         assertThat(list(kpiResult.get("reminders"))).singleElement().satisfies(reminder -> {
-            assertThat(number(reminder.get("recipientAccountId"))).isEqualTo(ownerAccountId);
+            assertThat(number(reminder.get("recipientTenantMemberId"))).isEqualTo(ownerTenantMemberId);
             assertThat(reminder).containsEntry("status", "SENT").containsKey("messageId");
         });
         long reminderCount = count("ana_kpi_reminder", "kpi_result_id=" + kpiResult.get("id"));
@@ -221,6 +225,8 @@ class DashboardHttpTest {
             assertThat(item).containsEntry("title", "ACTIVE");
             assertThat(number(item.get("value"))).isEqualTo(2);
             assertThat(item.get("status").toString()).contains("2 行授权记录");
+            assertThat(map(item.get("filter"))).containsEntry("fieldCode", "status")
+                    .containsEntry("operator", "EQ").containsEntry("value", "ACTIVE");
         });
         assertThat(runtimeComponents.get(4)).containsEntry("componentType", "KPI")
                 .containsEntry("outcome", "READY").containsEntry("drillAvailable", true);
@@ -245,6 +251,45 @@ class DashboardHttpTest {
                                 "metric", Map.of("operation", "COUNT"))), Map.of(), null));
         assertThat(arbitrarySql.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(arbitrarySql.body()).containsEntry("code", "REPORT_ARBITRARY_SQL_FORBIDDEN");
+
+        Map<String, Object> externalSource = ok("/api/analytics/admin/data-sources", HttpMethod.POST,
+                owner.token(), source("erp_order_api", "ERP 订单接口", "EXTERNAL_API",
+                        Map.of("connectionReference", "erp_readonly", "requestCode", "LIST_ORDERS",
+                                "method", "GET", "queryParameters", Map.of("status", "ACTIVE"),
+                                "responseSelector", "$.items", "limit", 100, "timeoutMillis", 3000),
+                        Map.of("resourceType", "MODULE", "resourceCode", "customer", "actionCode", "LIST"), null));
+        assertThat(map(externalSource.get("boundary")))
+                .containsEntry("family", "EXTERNAL_API").containsEntry("runtimeReady", false)
+                .containsEntry("connectionMode", "MANAGED_REFERENCE")
+                .containsEntry("queryMode", "APPROVED_REQUEST_CODE");
+        externalSource = ok("/api/analytics/admin/data-sources/" + externalSource.get("id") + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", externalSource.get("draftRevision")));
+        assertThat(list(externalSource.get("versions"))).singleElement();
+
+        Map<String, Object> databaseSource = ok("/api/analytics/admin/data-sources", HttpMethod.POST,
+                owner.token(), source("warehouse_summary", "仓库只读汇总", "DATABASE_CONNECTION",
+                        Map.of("connectionReference", "warehouse_readonly", "queryCode", "INVENTORY_SUMMARY",
+                                "parameters", Map.of("warehouse", "EAST"),
+                                "outputFields", List.of("warehouse", "quantity"), "limit", 200,
+                                "timeoutMillis", 5000), Map.of(), null));
+        assertThat(map(databaseSource.get("boundary")))
+                .containsEntry("family", "DATABASE").containsEntry("runtimeReady", false)
+                .containsEntry("connectionMode", "MANAGED_READ_ONLY_REFERENCE")
+                .containsEntry("queryMode", "APPROVED_QUERY_CODE");
+
+        Response exposedSecret = exchange("/api/analytics/admin/data-sources", HttpMethod.POST, owner.token(),
+                source("unsafe_external", "不安全连接", "EXTERNAL_API",
+                        Map.of("connectionReference", "erp_readonly", "requestCode", "LIST_ORDERS",
+                                "method", "GET", "token", "must-not-be-stored"), Map.of(), null));
+        assertThat(exposedSecret.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(exposedSecret.body()).containsEntry("code", "DASHBOARD_CONNECTION_SECRET_FORBIDDEN");
+
+        Response exposedSql = exchange("/api/analytics/admin/data-sources", HttpMethod.POST, owner.token(),
+                source("unsafe_database", "不安全查询", "DATABASE_CONNECTION",
+                        Map.of("connectionReference", "warehouse_readonly", "queryCode", "INVENTORY_SUMMARY",
+                                "sql", "select * from secrets"), Map.of(), null));
+        assertThat(exposedSql.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(exposedSql.body()).containsEntry("code", "DASHBOARD_CONNECTION_SECRET_FORBIDDEN");
 
         Map<String, Object> ambiguousDefinition = new java.util.LinkedHashMap<>(reportDefinition(100));
         ambiguousDefinition.put("relations", List.of());
@@ -351,7 +396,7 @@ class DashboardHttpTest {
 
         Map<String, Object> updatedKpi = ok("/api/analytics/admin/kpis/" + kpiId, HttpMethod.PUT,
                 owner.token(), kpi("customer_monthly", "月度有效客户", reportVersionId, 3,
-                        Map.of(), Map.of("accountIds", List.of(999999L)), ownerAccountId, 0));
+                        Map.of(), Map.of("tenantMemberIds", List.of(999999L)), ownerTenantMemberId, 0));
         assertThat(updatedKpi).containsEntry("version", 1);
         Map<String, Object> visibleWithoutDrill = ok("/api/analytics/kpis/" + kpiId,
                 HttpMethod.GET, owner.token(), null);
@@ -378,12 +423,12 @@ class DashboardHttpTest {
 
     private Map<String, Object> kpi(String code, String name, long sourceVersionId, int target,
                                     Map<String, Object> visibility, Map<String, Object> drill,
-                                    long recipientAccountId, Integer expectedVersion) {
+                                    long recipientTenantMemberId, Integer expectedVersion) {
         return mapWithNullable("code", code, "name", name, "dataSourceVersionId", sourceVersionId,
                 "targetValue", target, "targetOperator", "GTE", "periodType", "MONTH",
-                "responsibleType", "PERSON", "responsibleIds", List.of(recipientAccountId),
+                "responsibleType", "PERSON", "responsibleIds", List.of(recipientTenantMemberId),
                 "visibilityPermission", visibility, "drillPermission", drill,
-                "reminderEnabled", true, "reminderRecipientAccountIds", List.of(recipientAccountId),
+                "reminderEnabled", true, "reminderRecipientTenantMemberIds", List.of(recipientTenantMemberId),
                 "reminderBelowPercent", 100, "status", "ACTIVE", "expectedVersion", expectedVersion);
     }
 

@@ -48,6 +48,9 @@ public class FlowAction {
     @TableField("acted_by_account_id")
     private Long actedByAccountId;
 
+    @TableField("acted_by_tenant_member_id")
+    private Long actedByTenantMemberId;
+
     @TableField("acted_at")
     private LocalDateTime actedAt;
 
@@ -131,6 +134,14 @@ public class FlowAction {
         this.actedByAccountId = actedByAccountId;
     }
 
+    public Long getActedByTenantMemberId() {
+        return actedByTenantMemberId;
+    }
+
+    public void setActedByTenantMemberId(Long actedByTenantMemberId) {
+        this.actedByTenantMemberId = actedByTenantMemberId;
+    }
+
     public LocalDateTime getActedAt() {
         return actedAt;
     }
@@ -152,6 +163,7 @@ public class FlowAction {
             ", resultJson = " + resultJson +
             ", idempotencyKey = " + idempotencyKey +
             ", actedByAccountId = " + actedByAccountId +
+            ", actedByTenantMemberId = " + actedByTenantMemberId +
             ", actedAt = " + actedAt +
             "}";
     }

@@ -18,6 +18,14 @@ import com.unique.unexamine.authorization.manage.PermissionChecker;
 import com.unique.unexamine.notification.manage.MessageModels;
 import com.unique.unexamine.notification.manage.MessageService;
 import com.unique.unexamine.shared.manage.web.DomainException;
+import com.unique.unexamine.system.base.entity.SystemDepartment;
+import com.unique.unexamine.system.base.entity.SystemMember;
+import com.unique.unexamine.system.base.entity.SystemRole;
+import com.unique.unexamine.system.base.entity.SystemTenantMember;
+import com.unique.unexamine.system.base.service.SystemDepartmentBaseService;
+import com.unique.unexamine.system.base.service.SystemMemberBaseService;
+import com.unique.unexamine.system.base.service.SystemRoleBaseService;
+import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +52,10 @@ public class KpiService {
     private final AnaDataSourceVersionBaseService sourceVersionService;
     private final ReportService reportService;
     private final MessageService messageService;
+    private final SystemTenantMemberBaseService tenantMemberService;
+    private final SystemMemberBaseService systemMemberService;
+    private final SystemDepartmentBaseService departmentService;
+    private final SystemRoleBaseService roleService;
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
@@ -55,6 +67,10 @@ public class KpiService {
             AnaDataSourceVersionBaseService sourceVersionService,
             ReportService reportService,
             MessageService messageService,
+            SystemTenantMemberBaseService tenantMemberService,
+            SystemMemberBaseService systemMemberService,
+            SystemDepartmentBaseService departmentService,
+            SystemRoleBaseService roleService,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper) {
@@ -64,6 +80,10 @@ public class KpiService {
         this.sourceVersionService = sourceVersionService;
         this.reportService = reportService;
         this.messageService = messageService;
+        this.tenantMemberService = tenantMemberService;
+        this.systemMemberService = systemMemberService;
+        this.departmentService = departmentService;
+        this.roleService = roleService;
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
@@ -238,7 +258,7 @@ public class KpiService {
             reminderService.updateById(reminder);
         }
         audit(context, traceId, "KPI_REMINDER_ACKNOWLEDGED", result.getKpiId(), Map.of("reminderId", reminderId));
-        return reminderView(reminderService.selectById(reminderId));
+        return reminderView(context, reminderService.selectById(reminderId));
     }
 
     private void sendReminders(AuthenticatedContext context, AnaKpi kpi, AnaKpiResult result,
@@ -247,21 +267,24 @@ public class KpiService {
         if (!booleanValue(policy.get("enabled"))) return;
         BigDecimal threshold = number(policy.get("belowPercent"));
         if (threshold != null && rate.compareTo(threshold) >= 0) return;
-        List<Long> recipients = longList(policy.get("recipientAccountIds"));
+        List<KpiRecipient> recipients = resolveRecipients(context,
+                longList(policy.get("recipientTenantMemberIds")));
         if (recipients.isEmpty()) return;
         MessageModels.MessageView message = messageService.notifyKpiUnderTarget(context, kpi.getId(), result.getId(),
                 kpi.getName(), result.getActualValue().stripTrailingZeros().toPlainString(),
                 result.getTargetValue().stripTrailingZeros().toPlainString(),
-                rate.stripTrailingZeros().toPlainString(), recipients, traceId);
-        for (Long recipientId : recipients.stream().distinct().toList()) {
+                rate.stripTrailingZeros().toPlainString(), recipients.stream()
+                        .map(recipient -> new MessageModels.RecipientRef("TENANT_MEMBER", recipient.tenantMemberId()))
+                        .toList(), traceId);
+        for (KpiRecipient recipient : recipients) {
             AnaKpiReminder reminder = reminderService.selectList(Wrappers.<AnaKpiReminder>lambdaQuery()
                             .eq(AnaKpiReminder::getKpiResultId, result.getId())
-                            .eq(AnaKpiReminder::getRecipientAccountId, recipientId)).stream().findFirst().orElse(null);
+                            .eq(AnaKpiReminder::getRecipientAccountId, recipient.accountId())).stream().findFirst().orElse(null);
             if (reminder != null) continue;
             reminder = new AnaKpiReminder();
             reminder.setKpiResultId(result.getId());
             reminder.setMessageId(message.id());
-            reminder.setRecipientAccountId(recipientId);
+            reminder.setRecipientAccountId(recipient.accountId());
             reminder.setStatus("SENT");
             reminder.setSentAt(LocalDateTime.now());
             reminder.setCreatedAt(LocalDateTime.now());
@@ -292,7 +315,7 @@ public class KpiService {
                 target.value(), target.operator(), kpi.getCalculationSchedule(),
                 string(dimension.get("responsibleType")), longList(dimension.get("responsibleIds")),
                 readMapValue(dimension.get("visibilityPermission")), readMapValue(dimension.get("drillPermission")),
-                booleanValue(reminder.get("enabled")), longList(reminder.get("recipientAccountIds")),
+                booleanValue(reminder.get("enabled")), longList(reminder.get("recipientTenantMemberIds")),
                 number(reminder.get("belowPercent")), kpi.getStatus(), kpi.getVersion(), kpi.getUpdatedAt(),
                 latest == null ? null : resultView(context, kpi, latest, includeDrill, traceId));
     }
@@ -310,12 +333,12 @@ public class KpiService {
                 result.getActualValue(), result.getTargetValue(), result.getAchievementRate(), result.getStatus(),
                 "STALE".equals(result.getStatus()) || booleanValue(readMap(result.getExplanationJson()).get("stale")),
                 readMap(result.getExplanationJson()), result.getCalculatedAt(), drillItems, drillAllowed,
-                reminders(result.getId()).stream().map(this::reminderView).toList());
+                reminders(result.getId()).stream().map(reminder -> reminderView(context, reminder)).toList());
     }
 
-    private KpiModels.ReminderView reminderView(AnaKpiReminder reminder) {
+    private KpiModels.ReminderView reminderView(AuthenticatedContext context, AnaKpiReminder reminder) {
         return new KpiModels.ReminderView(reminder.getId(), reminder.getTodoId(), reminder.getMessageId(),
-                reminder.getRecipientAccountId(), reminder.getStatus(), reminder.getSentAt(),
+                tenantMemberId(context, reminder.getRecipientAccountId()), reminder.getStatus(), reminder.getSentAt(),
                 reminder.getAcknowledgedAt());
     }
 
@@ -323,13 +346,13 @@ public class KpiService {
         AnaDataSourceVersion version = sourceVersionService.selectById(input.dataSourceVersionId());
         if (version == null) throw invalid("KPI_SOURCE_VERSION_INVALID", "必须选择存在的结构化数据源发布版本");
         reportService.executeVersion(context, input.dataSourceVersionId(), "kpi-definition-validation");
-        if (input.responsibleIds().stream().anyMatch(Objects::isNull)) {
-            throw invalid("KPI_RESPONSIBLE_INVALID", "责任对象不能为空");
+        validateResponsible(context, input.responsibleType(), input.responsibleIds());
+        if (input.reminderEnabled() && (input.reminderRecipientTenantMemberIds() == null
+                || input.reminderRecipientTenantMemberIds().isEmpty())) {
+            throw invalid("KPI_REMINDER_RECIPIENT_REQUIRED", "启用未达标提醒时必须选择当前工作空间成员");
         }
-        if (input.reminderEnabled() && (input.reminderRecipientAccountIds() == null
-                || input.reminderRecipientAccountIds().isEmpty())) {
-            throw invalid("KPI_REMINDER_RECIPIENT_REQUIRED", "启用未达标提醒时必须选择接收账号");
-        }
+        resolveRecipients(context, input.reminderRecipientTenantMemberIds() == null
+                ? List.of() : input.reminderRecipientTenantMemberIds());
     }
 
     private void bind(AnaKpi kpi, AuthenticatedContext context, KpiModels.KpiRequest input) {
@@ -346,11 +369,79 @@ public class KpiService {
                 "responsibleIds", input.responsibleIds(), "visibilityPermission", input.visibilityPermission(),
                 "drillPermission", input.drillPermission())));
         kpi.setReminderPolicyJson(writeJson(Map.of("enabled", input.reminderEnabled(),
-                "recipientAccountIds", input.reminderRecipientAccountIds() == null ? List.of()
-                        : input.reminderRecipientAccountIds(),
+                "recipientTenantMemberIds", input.reminderRecipientTenantMemberIds() == null ? List.of()
+                        : input.reminderRecipientTenantMemberIds().stream().distinct().toList(),
                 "belowPercent", input.reminderBelowPercent() == null ? BigDecimal.valueOf(100)
                         : input.reminderBelowPercent())));
         kpi.setStatus(input.status());
+    }
+
+    private void validateResponsible(AuthenticatedContext context, String type, List<Long> ids) {
+        if (ids == null || ids.isEmpty() || ids.stream().anyMatch(Objects::isNull)) {
+            throw invalid("KPI_RESPONSIBLE_INVALID", "KPI 必须选择当前工作空间内的责任对象");
+        }
+        long valid = switch (type) {
+            case "PERSON" -> tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                            .eq(SystemTenantMember::getSystemId, context.systemId())
+                            .eq(SystemTenantMember::getTenantId, context.tenantId())
+                            .eq(SystemTenantMember::getStatus, "ACTIVE").in(SystemTenantMember::getId, ids))
+                    .stream().map(SystemTenantMember::getId).distinct().count();
+            case "DEPARTMENT" -> departmentService.selectList(Wrappers.<SystemDepartment>lambdaQuery()
+                            .eq(SystemDepartment::getSystemId, context.systemId())
+                            .eq(SystemDepartment::getTenantId, context.tenantId())
+                            .eq(SystemDepartment::getStatus, "ACTIVE").in(SystemDepartment::getId, ids))
+                    .stream().map(SystemDepartment::getId).distinct().count();
+            case "ROLE" -> roleService.selectList(Wrappers.<SystemRole>lambdaQuery()
+                            .eq(SystemRole::getSystemId, context.systemId())
+                            .eq(SystemRole::getTenantId, context.tenantId())
+                            .eq(SystemRole::getStatus, "ACTIVE").in(SystemRole::getId, ids))
+                    .stream().map(SystemRole::getId).distinct().count();
+            default -> 0;
+        };
+        if (valid != ids.stream().distinct().count()) {
+            throw invalid("KPI_RESPONSIBLE_INVALID", "责任对象不存在、已停用或不属于当前工作空间");
+        }
+    }
+
+    private List<KpiRecipient> resolveRecipients(AuthenticatedContext context, List<Long> tenantMemberIds) {
+        if (tenantMemberIds == null || tenantMemberIds.isEmpty()) return List.of();
+        List<SystemTenantMember> tenantMembers = tenantMemberService.selectList(
+                Wrappers.<SystemTenantMember>lambdaQuery().eq(SystemTenantMember::getSystemId, context.systemId())
+                        .eq(SystemTenantMember::getTenantId, context.tenantId())
+                        .eq(SystemTenantMember::getStatus, "ACTIVE")
+                        .in(SystemTenantMember::getId, tenantMemberIds.stream().distinct().toList()));
+        Map<Long, SystemTenantMember> byId = tenantMembers.stream().collect(java.util.stream.Collectors.toMap(
+                SystemTenantMember::getId, member -> member));
+        if (byId.size() != tenantMemberIds.stream().distinct().count()) {
+            throw invalid("KPI_REMINDER_RECIPIENT_INVALID", "提醒接收人不存在、已停用或不属于当前工作空间");
+        }
+        return tenantMemberIds.stream().distinct().map(id -> {
+            SystemTenantMember tenantMember = byId.get(id);
+            SystemMember member = systemMemberService.selectById(tenantMember.getSystemMemberId());
+            if (member == null || !Objects.equals(member.getSystemId(), context.systemId())
+                    || !"ACTIVE".equals(member.getStatus())) {
+                throw invalid("KPI_REMINDER_RECIPIENT_INVALID", "提醒接收人的系统成员身份已失效");
+            }
+            return new KpiRecipient(id, member.getAccountId());
+        }).toList();
+    }
+
+    private Long tenantMemberId(AuthenticatedContext context, Long accountId) {
+        if (accountId == null) return null;
+        SystemMember member = systemMemberService.selectList(Wrappers.<SystemMember>lambdaQuery()
+                        .eq(SystemMember::getSystemId, context.systemId())
+                        .eq(SystemMember::getAccountId, accountId).eq(SystemMember::getStatus, "ACTIVE"))
+                .stream().findFirst().orElse(null);
+        if (member == null) return null;
+        return tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                        .eq(SystemTenantMember::getSystemId, context.systemId())
+                        .eq(SystemTenantMember::getTenantId, context.tenantId())
+                        .eq(SystemTenantMember::getSystemMemberId, member.getId())
+                        .eq(SystemTenantMember::getStatus, "ACTIVE"))
+                .stream().map(SystemTenantMember::getId).findFirst().orElse(null);
+    }
+
+    private record KpiRecipient(Long tenantMemberId, Long accountId) {
     }
 
     private Target target(AnaKpi kpi) {
@@ -394,8 +485,8 @@ public class KpiService {
     private boolean allows(AuthenticatedContext context, Map<String, Object> container, String key) {
         Map<String, Object> policy = readMapValue(container.get(key));
         if (policy.isEmpty()) return true;
-        if (policy.containsKey("accountIds")) {
-            return longList(policy.get("accountIds")).contains(context.accountId());
+        if (policy.containsKey("tenantMemberIds")) {
+            return longList(policy.get("tenantMemberIds")).contains(context.tenantMemberId());
         }
         String type = string(policy.get("resourceType"));
         String code = string(policy.get("resourceCode"));

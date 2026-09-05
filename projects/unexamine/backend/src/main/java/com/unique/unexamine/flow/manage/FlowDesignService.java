@@ -54,6 +54,7 @@ public class FlowDesignService {
     private final FlowVersionBaseService versionService;
     private final FlowPublicationBaseService publicationService;
     private final ConfiguredModuleBaseService moduleService;
+    private final FlowParticipantResolver participantResolver;
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
@@ -65,6 +66,7 @@ public class FlowDesignService {
             FlowVersionBaseService versionService,
             FlowPublicationBaseService publicationService,
             ConfiguredModuleBaseService moduleService,
+            FlowParticipantResolver participantResolver,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper) {
@@ -74,6 +76,7 @@ public class FlowDesignService {
         this.versionService = versionService;
         this.publicationService = publicationService;
         this.moduleService = moduleService;
+        this.participantResolver = participantResolver;
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
@@ -92,7 +95,9 @@ public class FlowDesignService {
     public FlowDesignModels.FlowView create(
             AuthenticatedContext context, FlowDesignModels.CreateFlowRequest input, String traceId) {
         requireAction(context, "DESIGN");
-        String code = normalizeCode(input.code());
+        String code = input.code() == null || input.code().isBlank()
+                ? "flow_" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 12)
+                : normalizeCode(input.code());
         if (scopedDefinitions(context).stream().anyMatch(flow -> code.equals(flow.getCode()))) {
             throw new DomainException("FLOW_CODE_CONFLICT", "当前范围已存在相同 Flow 编码", HttpStatus.CONFLICT);
         }
@@ -358,17 +363,40 @@ public class FlowDesignService {
         }
         if ("APPROVAL".equals(type) && assignee.isEmpty()) {
             issues.add(issue("APPROVER_MISSING", node.getNodeKey(), "审批节点必须配置审批人策略"));
+        } else if ("APPROVAL".equals(type)) {
+            String policyIssue = participantResolver.validatePolicy(context, assignee);
+            if (policyIssue != null) {
+                issues.add(issue("APPROVER_POLICY_INVALID", node.getNodeKey(), policyIssue));
+            }
+            String approvalMode = String.valueOf(config.getOrDefault("approvalMode", "OR_SIGN"))
+                    .strip().toUpperCase(Locale.ROOT);
+            if (!Set.of("OR_SIGN", "ALL_SIGN", "SEQUENTIAL").contains(approvalMode)) {
+                issues.add(issue("APPROVAL_MODE_INVALID", node.getNodeKey(),
+                        "审批方式必须是或签、会签或顺序会签"));
+            }
         }
         if ("FORM_TASK".equals(type) && form.isEmpty()) {
             issues.add(issue("FORM_POLICY_MISSING", node.getNodeKey(), "表单任务必须配置字段权限"));
+        }
+        if ("NOTIFICATION".equals(type)) {
+            if (assignee.isEmpty()) {
+                issues.add(issue("NOTIFICATION_RECIPIENT_MISSING", node.getNodeKey(), "通知节点必须配置接收人策略"));
+            } else {
+                String policyIssue = participantResolver.validatePolicy(context, assignee);
+                if (policyIssue != null) {
+                    issues.add(issue("NOTIFICATION_RECIPIENT_INVALID", node.getNodeKey(), policyIssue));
+                }
+            }
         }
         requireConfig(type, node, config, issues, "SUBFLOW", "flowId", "子流程节点必须选择目标 Flow");
         requireConfig(type, node, config, issues, "WEBHOOK", "url", "Webhook 节点必须配置地址");
         requireConfig(type, node, config, issues, "AI", "model", "AI 节点必须配置受控模型");
         requireConfig(type, node, config, issues, "AI", "prompt", "AI 节点必须配置提示模板");
-        requireAnyConfig(type, node, config, issues, "WAIT_TIMER", List.of("duration", "resumeAt"),
+        requireAnyConfig(type, node, config, issues, "WAIT_TIMER", List.of("durationMinutes", "duration", "resumeAt"),
                 "等待节点必须配置时长或恢复时间");
         requireConfig(type, node, config, issues, "UPDATE_FIELD", "fieldUpdates", "字段更新节点必须配置更新映射");
+        requireConfig(type, node, config, issues, "UPDATE_FIELD", "businessAction", "字段更新节点必须配置业务动作权限");
+        requireConfig(type, node, config, issues, "NOTIFICATION", "content", "通知节点必须配置消息内容");
         Long referencedFlowId = longValue(config.get("flowId"));
         if (referencedFlowId != null && "SUBFLOW".equals(type)) {
             if (Objects.equals(referencedFlowId, flow.getId())) {

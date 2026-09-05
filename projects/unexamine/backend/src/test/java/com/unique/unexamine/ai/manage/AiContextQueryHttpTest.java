@@ -127,6 +127,13 @@ class AiContextQueryHttpTest {
                 .containsEntry("errorCode", "AI_QUERY_SCOPE_DENIED");
         assertThat(String.valueOf(data(tenantRefused).get("answer"))).contains("不会确认该数据是否存在");
 
+        ResponseEntity<Map> toolDegraded = exchange("/api/ai/queries", HttpMethod.POST, owner.systemToken(),
+                detailQuery(agentId, "读取已不存在的客户", List.of("customer_name"), owner.tenantId(), 999999L));
+        assertThat(data(toolDegraded)).containsEntry("outcome", "DEGRADED")
+                .containsEntry("errorCode", "AI_TOOL_EXECUTION_FAILED").containsEntry("retryable", false);
+        assertThat((List<?>) data(toolDegraded).get("sources")).isEmpty();
+        assertThat(String.valueOf(data(toolDegraded).get("answer"))).contains("正常业务页面不受影响");
+
         jdbc.update("update ai_model set endpoint_url='http://127.0.0.1:1/v1' where id=?", modelId);
         ResponseEntity<Map> degraded = exchange("/api/ai/queries", HttpMethod.POST, owner.systemToken(), query(
                 agentId, null, "现在有多少客户？", List.of("customer_name"), owner.tenantId(), "MODULE_PAGE"));
@@ -136,14 +143,16 @@ class AiContextQueryHttpTest {
         assertThat(String.valueOf(data(degraded).get("answer"))).contains("未生成或猜测任何业务结果", "重试");
 
         assertThat(count("ai_conversation", "system_id=" + owner.systemId() + " and tenant_id=" + owner.tenantId()))
-                .isEqualTo(3);
+                .isEqualTo(4);
         assertThat(count("ai_execution", "status='REFUSED'")).isEqualTo(2);
         assertThat(count("ai_execution", "status='FAILED' and fallback_used=1 and error_code='AI_MODEL_UNAVAILABLE'"))
+                .isOne();
+        assertThat(count("ai_execution", "status='FAILED' and fallback_used=1 and error_code='AI_TOOL_EXECUTION_FAILED'"))
                 .isOne();
         assertThat(count("audit_event", "event_code='AI_CONTEXT_QUERY_SUCCEEDED' and object_id='" + executionId + "'"))
                 .isOne();
         assertThat(count("audit_event", "event_code='AI_CONTEXT_QUERY_REFUSED'")).isEqualTo(2);
-        assertThat(count("audit_event", "event_code='AI_CONTEXT_QUERY_DEGRADED'")).isOne();
+        assertThat(count("audit_event", "event_code='AI_CONTEXT_QUERY_DEGRADED'")).isEqualTo(2);
     }
 
     private long publishAgent(Session owner, long grantId) {
@@ -154,16 +163,19 @@ class AiContextQueryHttpTest {
         request.put("modelGrantId", grantId);
         request.put("systemPrompt", "只允许使用服务器收敛后的当前系统、租户、字段与数据范围回答，并提供可追溯来源。");
         request.put("contextPolicy", Map.of("allowedEntryContexts",
-                List.of("SYSTEM_AI", "RIGHT_ASSISTANT", "MODULE_PAGE"),
+                List.of("SYSTEM_AI", "RIGHT_ASSISTANT", "MODULE_PAGE", "RECORD_DETAIL"),
                 "allowExternalData", false, "maskSensitiveData", true));
         request.put("confirmationPolicy", Map.of("writeActionsRequireConfirmation", true,
                 "batchActionsRequireConfirmation", true, "showFieldLevelDiff", true));
         request.put("fallbackPolicy", Map.of("mode", "TEMPLATE_QUERY",
                 "userMessage", "模型不可用，未返回业务结果，请稍后重试"));
-        request.put("tools", List.of(Map.of(
-                "toolType", "QUERY", "resourceType", "MODULE", "resourceId", "customer",
-                "actionCode", "LIST", "fieldCodes", List.of("customer_name"),
-                "requestedDataScope", "CURRENT", "requiresConfirmation", false)));
+        request.put("tools", List.of(
+                Map.of("toolType", "QUERY", "resourceType", "MODULE", "resourceId", "customer",
+                        "actionCode", "LIST", "fieldCodes", List.of("customer_name"),
+                        "requestedDataScope", "CURRENT", "requiresConfirmation", false),
+                Map.of("toolType", "QUERY", "resourceType", "MODULE", "resourceId", "customer",
+                        "actionCode", "DETAIL", "fieldCodes", List.of("customer_name"),
+                        "requestedDataScope", "CURRENT", "requiresConfirmation", false)));
         Map<String, Object> created = data(exchange("/api/admin/system/ai/agents", HttpMethod.POST,
                 owner.systemToken(), request));
         long agentId = number(created.get("id"));
@@ -186,6 +198,16 @@ class AiContextQueryHttpTest {
                 Map.entry("sourcePath", "/systems/" + tenantId), Map.entry("lifecycleState", "ACTIVE"),
                 Map.entry("tenantScope", "ALL"), Map.entry("search", ""), Map.entry("filters", List.of()),
                 Map.entry("sortField", "updatedAt"), Map.entry("sortDirection", "DESC"), Map.entry("pageSize", 5)));
+        return request;
+    }
+
+    private Map<String, Object> detailQuery(
+            long agentId, String question, List<String> fields, long tenantId, long recordId) {
+        Map<String, Object> request = new LinkedHashMap<>(query(
+                agentId, null, question, fields, tenantId, "RECORD_DETAIL"));
+        Map<String, Object> entry = new LinkedHashMap<>((Map<String, Object>) request.get("entryContext"));
+        entry.put("recordId", recordId);
+        request.put("entryContext", entry);
         return request;
     }
 

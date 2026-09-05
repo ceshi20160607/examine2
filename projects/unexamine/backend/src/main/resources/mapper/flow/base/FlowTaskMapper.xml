@@ -10,6 +10,7 @@
         <result column="task_type" property="taskType" />
         <result column="status" property="status" />
         <result column="assignee_account_id" property="assigneeAccountId" />
+        <result column="assignee_tenant_member_id" property="assigneeTenantMemberId" />
         <result column="assignee_snapshot_json" property="assigneeSnapshotJson" />
         <result column="due_at" property="dueAt" />
         <result column="claimed_at" property="claimedAt" />
@@ -21,7 +22,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, instance_id, node_key, task_type, `status`, assignee_account_id, assignee_snapshot_json, due_at, claimed_at, completed_at, created_at, updated_at, version
+        id, instance_id, node_key, task_type, `status`, assignee_account_id, assignee_tenant_member_id, assignee_snapshot_json, due_at, claimed_at, completed_at, created_at, updated_at, version
     </sql>
 
 </mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowJobMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowJob">
+        <id column="id" property="id" />
+        <result column="instance_id" property="instanceId" />
+        <result column="execution_id" property="executionId" />
+        <result column="node_key" property="nodeKey" />
+        <result column="job_type" property="jobType" />
+        <result column="status" property="status" />
+        <result column="payload_json" property="payloadJson" />
+        <result column="idempotency_key" property="idempotencyKey" />
+        <result column="attempt_count" property="attemptCount" />
+        <result column="max_attempts" property="maxAttempts" />
+        <result column="next_run_at" property="nextRunAt" />
+        <result column="locked_at" property="lockedAt" />
+        <result column="locked_by" property="lockedBy" />
+        <result column="last_error_code" property="lastErrorCode" />
+        <result column="last_error_message" property="lastErrorMessage" />
+        <result column="completed_at" property="completedAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, instance_id, execution_id, node_key, job_type, `status`, payload_json, idempotency_key, attempt_count, max_attempts, next_run_at, locked_at, locked_by, last_error_code, last_error_message, completed_at, created_at, updated_at, version
+    </sql>
+
+</mapper>

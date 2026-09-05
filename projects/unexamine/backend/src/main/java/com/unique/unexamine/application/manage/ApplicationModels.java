@@ -66,6 +66,40 @@ public final class ApplicationModels {
     public record DisableRequest(@NotBlank @Size(max = 500) String reason) {
     }
 
+    public record CopyRequest(
+            @NotBlank @Pattern(regexp = "[a-z][a-z0-9_]{1,63}") String code,
+            @NotBlank @Size(max = 200) String name) {
+    }
+
+    public record RollbackRequest(
+            @NotNull Long targetVersionId,
+            @NotNull Integer expectedPublicationVersion,
+            @NotBlank @Size(max = 500) String reason) {
+    }
+
+    public record DeleteRequest(@NotBlank @Size(max = 500) String reason) {
+    }
+
+    public record ConfigurationExport(
+            int schemaVersion,
+            String sourceCode,
+            String sourceName,
+            String description,
+            String applicationType,
+            List<CallbackInput> callbacks,
+            List<GrantInput> grants,
+            LocalDateTime exportedAt) {
+    }
+
+    public record ImportRequest(
+            @NotBlank @Pattern(regexp = "[a-z][a-z0-9_]{1,63}") String code,
+            @NotBlank @Size(max = 200) String name,
+            @Size(max = 1000) String description,
+            @NotBlank @Pattern(regexp = "SERVICE|WEBHOOK") String applicationType,
+            @Valid List<CallbackInput> callbacks,
+            @NotNull @Size(min = 1) @Valid List<GrantInput> grants) {
+    }
+
     public record Issue(String code, String message) {
     }
 
@@ -109,6 +143,23 @@ public final class ApplicationModels {
     }
 
     public record FieldView(Long id, String fieldCode, boolean readable, boolean writable, String maskStrategy) {
+    }
+
+    public record ResourceField(String code, String name, String fieldType, boolean required) {
+    }
+
+    public record ResourceAction(String code, String name) {
+    }
+
+    public record ResourceOption(
+            String resourceType,
+            String resourceId,
+            String name,
+            String description,
+            Long publishedVersionId,
+            Integer publishedVersionNumber,
+            List<ResourceAction> actions,
+            List<ResourceField> fields) {
     }
 
     public record GrantView(
@@ -172,8 +223,10 @@ public final class ApplicationModels {
             String status,
             Integer version,
             Long currentVersionId,
+            Integer publicationVersion,
             List<CallbackView> callbacks,
             List<GrantView> grants,
+            List<GrantView> publishedGrants,
             List<CredentialView> credentials,
             List<VersionView> versions,
             List<StatusEvent> statusHistory,

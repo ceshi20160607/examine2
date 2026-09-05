@@ -50,6 +50,7 @@ public class WorkConfigurationService {
     private final WorkProjectBaseService projectService;
     private final WorkProjectMemberBaseService projectMemberService;
     private final WorkLogBaseService logService;
+    private final WorkParticipantResolver participantResolver;
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
@@ -61,6 +62,7 @@ public class WorkConfigurationService {
             WorkProjectBaseService projectService,
             WorkProjectMemberBaseService projectMemberService,
             WorkLogBaseService logService,
+            WorkParticipantResolver participantResolver,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper) {
@@ -70,6 +72,7 @@ public class WorkConfigurationService {
         this.projectService = projectService;
         this.projectMemberService = projectMemberService;
         this.logService = logService;
+        this.participantResolver = participantResolver;
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
@@ -99,6 +102,13 @@ public class WorkConfigurationService {
                         .thenComparing(WorkConfigurationModels.FieldView::fieldCode)).toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<WorkConfigurationModels.FieldView> effectiveFields(
+            AuthenticatedContext context, String targetType) {
+        requireAction(context, "VIEW");
+        return effectivePublishedFields(context, normalizeTarget(targetType));
+    }
+
     @Transactional
     public WorkConfigurationModels.FieldView saveField(
             AuthenticatedContext context, String targetType, String fieldCode,
@@ -112,6 +122,9 @@ public class WorkConfigurationService {
         }
         if ("STATISTICS".equals(target) && !"QUERY".equals(fieldType)) {
             throw invalid("WORK_STATISTICS_QUERY_TYPE_REQUIRED", "统计查询定义必须使用 QUERY 类型");
+        }
+        if (!"STATISTICS".equals(target) && "QUERY".equals(fieldType)) {
+            throw invalid("WORK_CONFIG_QUERY_TARGET_INVALID", "查询定义只能用于工作统计");
         }
         validateSettings(target, input.settings());
         WorkFieldConfig row = ownConfiguration(context, target, code, false);
@@ -208,11 +221,16 @@ public class WorkConfigurationService {
 
     @Transactional(readOnly = true)
     public WorkConfigurationModels.CalendarView calendar(
-            AuthenticatedContext context, LocalDate from, LocalDate to, Long projectId, Long accountId) {
+            AuthenticatedContext context, LocalDate from, LocalDate to, Long projectId,
+            Long tenantMemberId, Long compatibilityAccountId) {
         requireAction(context, "VIEW_CALENDAR");
         if (from == null || to == null || from.isAfter(to) || ChronoUnit.DAYS.between(from, to) > 366) {
             throw invalid("WORK_CALENDAR_RANGE_INVALID", "日历范围必须有效且不能超过 366 天");
         }
+        WorkParticipantResolver.ResolvedPerson selectedPerson = tenantMemberId == null
+                && compatibilityAccountId == null ? null
+                : participantResolver.require(context, tenantMemberId, compatibilityAccountId);
+        Long accountId = selectedPerson == null ? null : selectedPerson.accountId();
         if (accountId != null && !Objects.equals(accountId, context.accountId()) && !allowed(context, "VIEW_OTHERS")) {
             throw forbidden("WORK_CALENDAR_VIEW_OTHERS_DENIED", "按其他人员统计需要明确权限");
         }
@@ -235,18 +253,19 @@ public class WorkConfigurationService {
                 boolean overdue = dueDate.isBefore(today) && !"COMPLETED".equals(task.getStatus());
                 if (overdue) day.overdueTasks++;
                 if (overdue || "BLOCKED".equals(task.getStatus())) day.riskTasks++;
-                day.addTask(task);
+                day.addTask(task, personView(context, task.getOwnerTenantMemberId(), task.getOwnerAccountId()));
             }
             if (completedDate != null && days.containsKey(completedDate)) {
                 days.get(completedDate).tasksCompleted++;
-                days.get(completedDate).addTask(task);
+                days.get(completedDate).addTask(task,
+                        personView(context, task.getOwnerTenantMemberId(), task.getOwnerAccountId()));
             }
         }
 
         List<WorkLog> logs = scopedLogs(context).stream()
                 .filter(log -> Objects.equals(log.getAuthorAccountId(), context.accountId()) || allowed(context, "VIEW_OTHERS"))
                 .filter(log -> accountId == null || Objects.equals(log.getAuthorAccountId(), accountId))
-                .filter(log -> projectId == null || Objects.equals(asLong(readMap(log.getCustomValuesJson()).get("projectId")), projectId))
+                .filter(log -> projectId == null || Objects.equals(log.getProjectId(), projectId))
                 .toList();
         for (WorkLog log : logs) {
             if (!days.containsKey(log.getWorkDate())) continue;
@@ -254,7 +273,8 @@ public class WorkConfigurationService {
             day.logCount++;
             day.logMinutes += log.getDurationMinutes() == null ? 0 : log.getDurationMinutes();
             day.logs.add(new WorkConfigurationModels.LogCalendarItem(log.getId(), log.getTitle(), log.getStatus(),
-                    log.getAuthorAccountId(), log.getDurationMinutes() == null ? 0 : log.getDurationMinutes(),
+                    personView(context, log.getAuthorTenantMemberId(), log.getAuthorAccountId()),
+                    log.getDurationMinutes() == null ? 0 : log.getDurationMinutes(),
                     log.getWorkDate()));
         }
 
@@ -279,7 +299,9 @@ public class WorkConfigurationService {
                 views.stream().mapToInt(WorkConfigurationModels.CalendarDay::logMinutes).sum(),
                 views.stream().mapToInt(WorkConfigurationModels.CalendarDay::projectMilestones).sum());
         return new WorkConfigurationModels.CalendarView(context.systemId() == null ? "PLATFORM" : "SYSTEM",
-                context.systemId(), context.tenantId(), from, to, projectId, accountId,
+                context.systemId(), context.tenantId(), from, to, projectId,
+                selectedPerson == null ? null : selectedPerson.tenantMemberId(),
+                selectedPerson == null ? null : selectedPerson.displayName(),
                 detailAvailable, summary, views);
     }
 
@@ -371,6 +393,111 @@ public class WorkConfigurationService {
                 .anyMatch(item -> !allowedMetrics.contains(item))) {
             throw invalid("WORK_STATISTICS_QUERY_INVALID", "统计查询包含不支持的分组或指标");
         }
+    }
+
+    /**
+     * Normalizes configured values against the effective published schema. Draft fields never participate in
+     * business writes, so a task or log cannot silently persist an arbitrary JSON property.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> validateConfiguredValues(
+            AuthenticatedContext context, String targetType, Map<String, Object> configuredValues) {
+        String target = normalizeTarget(targetType);
+        if ("STATISTICS".equals(target)) {
+            throw invalid("WORK_CONFIG_VALUES_TARGET_INVALID", "统计查询配置不能作为业务数据字段提交");
+        }
+        Map<String, Object> supplied = safeMap(configuredValues);
+        LinkedHashMap<String, WorkConfigurationModels.FieldView> fields = new LinkedHashMap<>();
+        effectivePublishedFields(context, target).forEach(field -> fields.put(field.fieldCode(), field));
+        List<String> unknown = supplied.keySet().stream().filter(code -> !fields.containsKey(code)).toList();
+        if (!unknown.isEmpty()) {
+            throw invalid("WORK_CONFIG_VALUE_FIELD_UNPUBLISHED",
+                    "包含未发布的工作字段：" + String.join("、", unknown));
+        }
+        LinkedHashMap<String, Object> normalized = new LinkedHashMap<>();
+        for (WorkConfigurationModels.FieldView field : fields.values()) {
+            Object value = supplied.get(field.fieldCode());
+            if (emptyConfiguredValue(value)) {
+                if (field.required()) {
+                    throw invalid("WORK_CONFIG_REQUIRED_VALUE_MISSING", field.fieldName() + "不能为空");
+                }
+                continue;
+            }
+            normalized.put(field.fieldCode(), normalizeConfiguredValue(field, value));
+        }
+        return normalized;
+    }
+
+    private List<WorkConfigurationModels.FieldView> effectivePublishedFields(
+            AuthenticatedContext context, String target) {
+        LinkedHashMap<String, WorkConfigurationModels.FieldView> fields = new LinkedHashMap<>();
+        if (context.systemId() != null) {
+            for (WorkFieldConfig row : platformConfigurations(context.platformId())) {
+                if (hasPublication(row) && target.equals(row.getTargetType())) {
+                    fields.put(row.getFieldCode(), publishedView(row, "PLATFORM_DEFAULT"));
+                }
+            }
+        }
+        for (WorkFieldConfig row : ownConfigurations(context)) {
+            if (hasPublication(row) && target.equals(row.getTargetType())) {
+                fields.put(row.getFieldCode(), publishedView(row,
+                        context.systemId() == null ? "PLATFORM_DEFAULT" : "SYSTEM_OVERRIDE"));
+            }
+        }
+        return fields.values().stream().sorted(Comparator
+                .comparingInt(WorkConfigurationModels.FieldView::sortOrder)
+                .thenComparing(WorkConfigurationModels.FieldView::fieldCode)).toList();
+    }
+
+    private Object normalizeConfiguredValue(WorkConfigurationModels.FieldView field, Object value) {
+        try {
+            return switch (field.fieldType()) {
+                case "TEXT", "TEXTAREA" -> {
+                    if (!(value instanceof String text)) throw new IllegalArgumentException();
+                    yield text.strip();
+                }
+                case "NUMBER" -> {
+                    if (!(value instanceof Number)) throw new IllegalArgumentException();
+                    yield value;
+                }
+                case "DATE" -> LocalDate.parse(String.valueOf(value)).toString();
+                case "DATETIME" -> LocalDateTime.parse(String.valueOf(value)).toString();
+                case "BOOLEAN" -> {
+                    if (!(value instanceof Boolean)) throw new IllegalArgumentException();
+                    yield value;
+                }
+                case "DICTIONARY" -> normalizeDictionaryValue(field, value);
+                case "REFERENCE" -> {
+                    if (!(value instanceof String) && !(value instanceof Number)) throw new IllegalArgumentException();
+                    yield value;
+                }
+                default -> throw new IllegalArgumentException();
+            };
+        } catch (RuntimeException exception) {
+            throw invalid("WORK_CONFIG_VALUE_TYPE_INVALID",
+                    field.fieldName() + "的值不符合 " + field.fieldType() + " 类型");
+        }
+    }
+
+    private Object normalizeDictionaryValue(WorkConfigurationModels.FieldView field, Object value) {
+        if (!(value instanceof String) && !(value instanceof Number)) throw new IllegalArgumentException();
+        Object configuredOptions = field.settings().get("options");
+        if (configuredOptions instanceof List<?> options && !options.isEmpty()) {
+            boolean matched = options.stream().anyMatch(option -> {
+                if (option instanceof Map<?, ?> entry) {
+                    return Objects.equals(String.valueOf(entry.get("value")), String.valueOf(value));
+                }
+                return Objects.equals(String.valueOf(option), String.valueOf(value));
+            });
+            if (!matched) throw new IllegalArgumentException();
+        }
+        return value;
+    }
+
+    private boolean emptyConfiguredValue(Object value) {
+        return value == null || value instanceof String text && text.isBlank()
+                || value instanceof List<?> list && list.isEmpty()
+                || value instanceof Map<?, ?> map && map.isEmpty();
     }
 
     private WorkFieldConfig requireOwnForUpdate(AuthenticatedContext context, String target, String code) {
@@ -592,6 +719,14 @@ public class WorkConfigurationService {
         return new DomainException(code, message, HttpStatus.NOT_FOUND);
     }
 
+    private WorkManagementModels.PersonView personView(
+            AuthenticatedContext context, Long tenantMemberId, Long accountId) {
+        WorkParticipantResolver.ResolvedPerson person = participantResolver.find(context, tenantMemberId, accountId);
+        if (person == null) return new WorkManagementModels.PersonView(null, "已失效成员", null, null);
+        return new WorkManagementModels.PersonView(person.tenantMemberId(), person.displayName(),
+                person.departmentName(), person.positionTitle());
+    }
+
     private static final class DayAccumulator {
         private final LocalDate date;
         private int tasksDue;
@@ -609,11 +744,11 @@ public class WorkConfigurationService {
             this.date = date;
         }
 
-        private void addTask(WorkTask task) {
+        private void addTask(WorkTask task, WorkManagementModels.PersonView owner) {
             if (tasks.stream().anyMatch(item -> Objects.equals(item.id(), task.getId()))) return;
             tasks.add(new WorkConfigurationModels.TaskCalendarItem(task.getId(), task.getTitle(), task.getStatus(),
-                    task.getPriority(), task.getProjectId(), task.getOwnerAccountId(), task.getDueAt(),
-                    task.getCompletedAt()));
+                    task.getPriority(), task.getProjectId(), owner, task.getBusinessType(), task.getBusinessId(),
+                    task.getBusinessTitle(), task.getDueAt(), task.getCompletedAt()));
         }
 
         private WorkConfigurationModels.CalendarDay view(boolean detailAvailable) {

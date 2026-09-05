@@ -48,6 +48,9 @@ public class WorkProject {
     @TableField("owner_account_id")
     private Long ownerAccountId;
 
+    @TableField("owner_tenant_member_id")
+    private Long ownerTenantMemberId;
+
     @TableField("start_date")
     private LocalDate startDate;
 
@@ -142,6 +145,14 @@ public class WorkProject {
         this.ownerAccountId = ownerAccountId;
     }
 
+    public Long getOwnerTenantMemberId() {
+        return ownerTenantMemberId;
+    }
+
+    public void setOwnerTenantMemberId(Long ownerTenantMemberId) {
+        this.ownerTenantMemberId = ownerTenantMemberId;
+    }
+
     public LocalDate getStartDate() {
         return startDate;
     }
@@ -210,6 +221,7 @@ public class WorkProject {
             ", name = " + name +
             ", description = " + description +
             ", ownerAccountId = " + ownerAccountId +
+            ", ownerTenantMemberId = " + ownerTenantMemberId +
             ", startDate = " + startDate +
             ", dueDate = " + dueDate +
             ", progressPercent = " + progressPercent +

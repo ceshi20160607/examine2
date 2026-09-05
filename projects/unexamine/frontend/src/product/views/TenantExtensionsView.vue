@@ -3,6 +3,7 @@ import { CloudUploadOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, Roll
 import { Empty, message } from 'ant-design-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api, ApiError } from '../api'
+import { actionLabel, fieldTypeLabel, productDateTime, productStatus, userFacingWorkspaceName, versionLabel } from '../presentation'
 import { systemTokens } from '../session'
 import type { TenantExtensionApplicationGrant, TenantExtensionCheck, TenantExtensionField, TenantExtensionModule } from '../types'
 
@@ -29,7 +30,7 @@ const previewFields = computed(() => [
 ])
 const fieldOptions = computed(() => previewFields.value.map(field => ({
   value: field.code,
-  label: `${field.name}（${field.code} · ${field.source === 'MAIN' ? '主配置' : '本租户'}）`,
+  label: `${field.name}（${field.source === 'MAIN' ? '系统公共配置' : '当前工作空间'}）`,
 })))
 const applicationGroups = computed(() => {
   const groups = new Map<number, { id: number; name: string; code: string; grants: TenantExtensionApplicationGrant[] }>()
@@ -86,11 +87,20 @@ function beginField() {
   fieldDrawer.value = true
 }
 
+function generatedFieldCode(name: string) {
+  const latin = name.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '')
+  return `extension_${latin || Date.now().toString(36)}`.slice(0, 96)
+}
+
+function grantFieldNames(codes: string[]) {
+  return codes.map(code => previewFields.value.find(field => field.code === code)?.name).filter(Boolean).join('、') || '不包含字段'
+}
+
 function addField() {
-  const code = fieldForm.code.trim().toLowerCase()
-  if (!code || !fieldForm.name.trim()) return message.warning('请填写字段名称和稳定编码')
+  const code = fieldForm.code.trim().toLowerCase() || generatedFieldCode(fieldForm.name)
+  if (!fieldForm.name.trim()) return message.warning('请填写字段名称')
   if (previewFields.value.some(field => field.code === code) || extensionFields.value.some(field => field.code === code)) {
-    return message.warning('字段编码不能与主配置或本租户扩展重复')
+    return message.warning('已经存在同名或冲突字段，请更换字段名称')
   }
   extensionFields.value.push({
     id: 0, code, name: fieldForm.name.trim(), fieldType: fieldForm.fieldType,
@@ -117,7 +127,10 @@ function config(field: TenantExtensionField) {
 function bindings() {
   return applicationGroups.value.map(group => ({
     applicationId: group.id,
-    grantIds: group.grants.filter(grant => selectedGrantIds.value.includes(grant.grantId)).map(grant => grant.grantId),
+    grantIds: group.grants
+      .filter((grant): grant is typeof grant & { grantId: number } => typeof grant.grantId === 'number')
+      .filter(grant => selectedGrantIds.value.includes(grant.grantId))
+      .map(grant => grant.grantId),
   })).filter(binding => binding.grantIds.length)
 }
 
@@ -207,79 +220,79 @@ onMounted(load)
 <template>
   <section class="tenant-extension panel-card">
     <div class="page-heading compact-heading">
-      <div><p class="eyebrow">系统后台 · 模板配置</p><h2>租户模板扩展与应用绑定</h2><p>主配置只读继承；本租户仅添加自己的字段、页面视图和已有应用授权绑定。</p></div>
+      <div><p class="eyebrow">系统后台 · 模板配置</p><h2>工作空间模板扩展</h2><p>系统公共配置保持只读；当前工作空间可增加自己的字段、页面内容和应用权限绑定。</p></div>
       <a-button :loading="loading" @click="load()"><ReloadOutlined />刷新</a-button>
     </div>
-    <a-alert v-if="unavailable" type="info" show-icon message="当前是主租户" description="主租户请在“模块配置”维护基础版本；进入非主租户后才能创建租户扩展。" />
+    <a-alert v-if="unavailable" type="info" show-icon message="当前是主工作空间" description="请在“模块配置”维护系统公共模板；切换到其他工作空间后可增加专属字段和页面内容。" />
     <a-alert v-else-if="error" type="error" show-icon :message="error" />
     <div v-else class="extension-layout">
       <aside class="extension-modules">
         <button v-for="item in modules" :key="item.moduleId" :class="{ active: selectedId === item.moduleId }" @click="choose(item.moduleId)">
-          <span><strong>{{ item.moduleName }}</strong><small>{{ item.moduleCode }} · 主版本 v{{ item.baseVersionNumber }}</small></span>
-          <a-tag :color="item.extension?.status === 'PUBLISHED' ? 'green' : item.extension?.status === 'DRAFT' ? 'orange' : 'default'">{{ item.extension?.status || '仅主配置' }}</a-tag>
+          <span><strong>{{ item.moduleName }}</strong><small>{{ versionLabel(item.baseVersionNumber) }}公共配置</small></span>
+          <a-tag :color="item.extension ? productStatus(item.extension.status).color : 'default'">{{ item.extension ? productStatus(item.extension.status).label : '使用公共配置' }}</a-tag>
         </button>
-        <a-empty v-if="!modules.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="主租户还没有已发布模块" />
+        <a-empty v-if="!modules.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="系统还没有已发布模块" />
       </aside>
       <main v-if="selected" class="extension-editor">
         <div class="extension-summary">
-          <span><strong>{{ selected.moduleName }}</strong><small>基础来源：{{ selected.baseTenantName }} · 不可变版本 v{{ selected.baseVersionNumber }}</small></span>
-          <span><a-tag color="blue">MAIN 主配置</a-tag><a-tag color="purple">TENANT 本租户</a-tag></span>
+          <span><strong>{{ selected.moduleName }}</strong><small>公共来源：{{ userFacingWorkspaceName(selected.baseTenantName) }} · {{ versionLabel(selected.baseVersionNumber) }}</small></span>
+          <span><a-tag color="blue">系统公共</a-tag><a-tag color="purple">当前工作空间</a-tag></span>
         </div>
         <a-tabs>
           <a-tab-pane key="fields" tab="字段与来源">
-            <div class="section-action"><p>主字段的编码、类型、安全语义和强制属性不可编辑。</p><a-button @click="beginField"><PlusOutlined />添加租户字段</a-button></div>
+            <div class="section-action"><p>系统公共字段的类型、安全规则和必填属性不可修改。</p><a-button @click="beginField"><PlusOutlined />添加专属字段</a-button></div>
             <div class="source-list">
               <div v-for="field in previewFields" :key="`${field.source}-${field.code}`">
-                <a-tag :color="field.source === 'MAIN' ? 'blue' : 'purple'">{{ field.source }}</a-tag>
-                <span><strong>{{ field.name }}</strong><small>{{ field.code }} · {{ field.fieldType }}</small></span>
-                <a-tag v-if="field.mandatory" color="red">基础强制项 · 只读</a-tag>
-                <a-tag v-else-if="field.required" color="orange">本租户必填</a-tag>
+                <a-tag :color="field.source === 'MAIN' ? 'blue' : 'purple'">{{ field.source === 'MAIN' ? '系统公共' : '当前工作空间' }}</a-tag>
+                <span><strong>{{ field.name }}</strong><small>{{ fieldTypeLabel(field.fieldType) }}</small></span>
+                <a-tag v-if="field.mandatory" color="red">公共必填 · 只读</a-tag>
+                <a-tag v-else-if="field.required" color="orange">当前工作空间必填</a-tag>
                 <a-button v-if="field.source === 'TENANT'" type="link" danger @click="removeDraftField(field.code)">移除草稿</a-button>
               </div>
             </div>
           </a-tab-pane>
           <a-tab-pane key="pages" tab="页面与视图">
-            <a-alert type="info" show-icon message="主配置的导航、模块组和菜单层级不会被租户页面覆盖。" />
+            <a-alert type="info" show-icon message="系统公共导航、模块分组和菜单层级不会被工作空间配置覆盖。" />
             <a-form layout="vertical" class="page-overrides">
               <a-form-item label="表单页面字段" extra="主配置强制字段必须保留"><a-select v-model:value="formFieldCodes" mode="multiple" :options="fieldOptions" /></a-form-item>
               <a-form-item label="列表视图字段"><a-select v-model:value="listFieldCodes" mode="multiple" :options="fieldOptions" /></a-form-item>
             </a-form>
           </a-tab-pane>
           <a-tab-pane key="applications" tab="应用绑定">
-            <a-alert type="warning" show-icon message="这里只能绑定应用已经授予当前租户、当前模块的动作；绑定不会新建授权，也不能扩大字段范围。" />
+            <a-alert type="warning" show-icon message="这里只能选择应用已经授予当前工作空间和当前模块的操作；绑定不会新增权限，也不能扩大字段范围。" />
             <div class="grant-groups">
               <section v-for="application in applicationGroups" :key="application.id">
-                <strong>{{ application.name }}</strong><small>{{ application.code }}</small>
+                <strong>{{ application.name }}</strong><small>{{ application.grants.length }} 项可用权限</small>
                 <a-checkbox-group v-model:value="selectedGrantIds">
-                  <a-checkbox v-for="grant in application.grants" :key="grant.grantId" :value="grant.grantId">{{ grant.actionCode }} · 字段 {{ grant.fieldCodes.join('、') || '无' }}</a-checkbox>
+                  <a-checkbox v-for="grant in application.grants" :key="grant.grantId" :value="grant.grantId">{{ actionLabel(grant.actionCode) }} · {{ grantFieldNames(grant.fieldCodes) }}</a-checkbox>
                 </a-checkbox-group>
               </section>
-              <a-empty v-if="!applicationGroups.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="当前租户没有可绑定的有效模块授权" />
+              <a-empty v-if="!applicationGroups.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="当前工作空间没有可绑定的有效模块权限" />
             </div>
           </a-tab-pane>
           <a-tab-pane key="versions" tab="发布历史">
-            <div class="version-list"><div v-for="version in selected.versions" :key="version.versionId"><span><strong>租户 v{{ version.versionNumber }}</strong><small>基于主配置版本 {{ version.baseModuleVersionId }} · {{ version.publishedAt }}</small></span><a-tag v-if="version.current" color="green">当前运行版本</a-tag><a-button v-else size="small" @click="rollback(version.versionId)"><RollbackOutlined />回滚</a-button></div><a-empty v-if="!selected.versions.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="尚未发布租户扩展" /></div>
+            <div class="version-list"><div v-for="version in selected.versions" :key="version.versionId"><span><strong>{{ versionLabel(version.versionNumber) }}</strong><small>{{ productDateTime(version.publishedAt) }}发布</small></span><a-tag v-if="version.current" color="green">当前使用</a-tag><a-button v-else size="small" @click="rollback(version.versionId)"><RollbackOutlined />恢复此版本</a-button></div><a-empty v-if="!selected.versions.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="尚未发布工作空间扩展" /></div>
           </a-tab-pane>
         </a-tabs>
         <div class="extension-footer">
-          <span>草稿修订 {{ selected.extension?.draftRevision || 0 }} · 状态 {{ selected.extension?.status || '未创建' }}</span>
+          <span>{{ selected.extension ? `当前配置：${productStatus(selected.extension.status).label}` : '尚未创建专属配置' }}</span>
           <div><a-button v-if="selected.extension?.currentVersionId" danger :loading="saving" @click="removePublished"><DeleteOutlined />删除并回退主配置</a-button><a-button :loading="saving" @click="saveDraft"><SaveOutlined />保存草稿</a-button><a-button type="primary" :loading="saving" @click="checkPublication"><CloudUploadOutlined />检查并发布</a-button></div>
         </div>
       </main>
-      <a-empty v-else class="extension-editor" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="选择一个主租户已发布模块" />
+      <a-empty v-else class="extension-editor" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="选择一个已发布模块" />
     </div>
   </section>
 
-  <a-drawer v-model:open="fieldDrawer" title="添加本租户字段" width="430">
-    <a-form layout="vertical"><a-form-item label="字段名称" required><a-input v-model:value="fieldForm.name" /></a-form-item><a-form-item label="稳定编码" required extra="不能与主配置或其他租户字段重复，创建后类型和编码不可修改"><a-input v-model:value="fieldForm.code" placeholder="例如：vip_level" /></a-form-item><a-form-item label="字段类型"><a-select v-model:value="fieldForm.fieldType" :options="['TEXT','LONG_TEXT','NUMBER','DATE','DATETIME','BOOLEAN'].map(value => ({ value, label: value }))" /></a-form-item><a-form-item label="占位提示"><a-input v-model:value="fieldForm.placeholder" /></a-form-item><div class="form-grid"><a-form-item label="排序"><a-input-number v-model:value="fieldForm.sortOrder" :min="0" /></a-form-item><a-form-item label="本租户必填"><a-switch v-model:checked="fieldForm.required" /></a-form-item></div></a-form>
+  <a-drawer v-model:open="fieldDrawer" title="添加当前工作空间字段" width="430">
+    <a-form layout="vertical"><a-form-item label="字段名称" required><a-input v-model:value="fieldForm.name" placeholder="例如：客户等级" /></a-form-item><a-form-item label="字段类型"><a-select v-model:value="fieldForm.fieldType" :options="['TEXT','LONG_TEXT','NUMBER','DATE','DATETIME','BOOLEAN'].map(value => ({ value, label: fieldTypeLabel(value) }))" /></a-form-item><a-form-item label="占位提示"><a-input v-model:value="fieldForm.placeholder" /></a-form-item><div class="form-grid"><a-form-item label="排序"><a-input-number v-model:value="fieldForm.sortOrder" :min="0" /></a-form-item><a-form-item label="当前工作空间必填"><a-switch v-model:checked="fieldForm.required" /></a-form-item></div></a-form>
     <template #footer><div class="drawer-footer"><a-button @click="fieldDrawer = false">取消</a-button><a-button type="primary" @click="addField">加入草稿</a-button></div></template>
   </a-drawer>
   <a-modal v-model:open="checkModal" title="租户扩展发布检查" :confirm-loading="saving" :ok-text="publication?.valid ? '确认发布' : '返回修改'" @ok="publication?.valid ? publish() : (checkModal = false)">
     <a-result v-if="publication?.valid" status="success" title="检查通过" sub-title="将生成不可变租户版本并原子切换运行指针；主导航不变。" />
-    <a-result v-else status="error" title="发布被阻止"><template #subTitle><ul><li v-for="issue in publication?.issues" :key="`${issue.path}-${issue.code}`"><strong>{{ issue.code }}</strong>：{{ issue.message }}</li></ul></template></a-result>
+    <a-result v-else status="error" title="发布被阻止"><template #subTitle><ul><li v-for="issue in publication?.issues" :key="`${issue.path}-${issue.code}`">{{ issue.message }}</li></ul></template></a-result>
   </a-modal>
 </template>
 
 <style scoped>
-.extension-layout{display:grid;grid-template-columns:270px 1fr;min-height:590px;border-top:1px solid #edf0f5}.extension-modules{padding:16px;border-right:1px solid #edf0f5}.extension-modules>button{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;border:0;background:transparent;padding:12px;border-radius:10px;margin-bottom:8px;cursor:pointer}.extension-modules>button.active{background:#eef5ff;color:#0958d9}.extension-modules span,.extension-summary>span,.source-list span,.version-list span{display:flex;flex-direction:column}.extension-modules small,.extension-summary small,.source-list small,.version-list small,.grant-groups small{color:#8792a5;margin-top:3px}.extension-editor{padding:18px;min-width:0}.extension-summary,.section-action,.extension-footer{display:flex;align-items:center;justify-content:space-between;gap:16px}.section-action p{color:#667085}.source-list>div,.version-list>div{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #edf0f5}.source-list span,.version-list span{flex:1}.page-overrides{padding:18px 4px}.grant-groups section{display:grid;grid-template-columns:180px 1fr;gap:4px 18px;padding:16px 0;border-bottom:1px solid #edf0f5}.grant-groups .ant-checkbox-group{grid-column:2;display:flex;flex-direction:column;gap:10px}.extension-footer{position:sticky;bottom:0;background:#fff;border-top:1px solid #e8edf4;padding:14px 0 2px;margin-top:16px}.extension-footer>div{display:flex;gap:8px}@media(max-width:900px){.extension-layout{grid-template-columns:1fr}.extension-modules{border-right:0;border-bottom:1px solid #edf0f5}.grant-groups section{grid-template-columns:1fr}.grant-groups .ant-checkbox-group{grid-column:1}}
+.extension-layout{display:grid;grid-template-columns:270px 1fr;min-height:590px;border-top:1px solid #edf0f5}.extension-modules{padding:16px;border-right:1px solid #edf0f5}.extension-modules>button{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;border:0;background:transparent;padding:12px;border-radius:10px;margin-bottom:8px;cursor:pointer}.extension-modules>button.active{background:#eef5ff;color:#0958d9}.extension-modules span,.extension-summary>span,.source-list span,.version-list span{display:flex;flex-direction:column}.extension-modules small,.extension-summary small,.source-list small,.version-list small,.grant-groups small{color:#8792a5;margin-top:3px}.extension-editor{padding:18px;min-width:0}.extension-summary,.section-action,.extension-footer{display:flex;align-items:center;justify-content:space-between;gap:16px}.section-action p{color:#667085}.source-list>div,.version-list>div{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #edf0f5}.source-list span,.version-list span{flex:1}.page-overrides{padding:18px 4px}.grant-groups section{display:grid;grid-template-columns:180px 1fr;gap:4px 18px;padding:16px 0;border-bottom:1px solid #edf0f5}.grant-groups .ant-checkbox-group{grid-column:2;display:flex;flex-direction:column;gap:10px}.extension-footer{position:sticky;bottom:0;background:#fff;border-top:1px solid #e8edf4;padding:14px 0 2px;margin-top:16px}.extension-footer>div{display:flex;gap:8px;flex-wrap:wrap}@media(max-width:900px){.extension-layout{grid-template-columns:1fr}.extension-modules{border-right:0;border-bottom:1px solid #edf0f5}.grant-groups section{grid-template-columns:1fr}.grant-groups .ant-checkbox-group{grid-column:1}.extension-summary,.section-action,.extension-footer,.source-list>div,.version-list>div{align-items:flex-start;flex-wrap:wrap}.extension-editor{padding:14px}.extension-footer{position:static}}
 </style>

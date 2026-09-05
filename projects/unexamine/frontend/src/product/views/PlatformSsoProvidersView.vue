@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import PlatformAdminShell from '../components/PlatformAdminShell.vue'
 import { api, ApiError } from '../api'
 import { clearSession, platformTokens } from '../session'
+import { versionLabel } from '../presentation'
 import type { SsoProviderAdmin, SsoProviderTestReport, SsoProviderVersion } from '../types'
 
 type Protocol = 'OIDC' | 'SAML2' | 'OAUTH2' | 'LDAP' | 'AD' | 'WECHAT' | 'DINGTALK'
@@ -48,6 +49,20 @@ const directory = computed(() => ['LDAP', 'AD'].includes(form.protocol))
 
 function lines(value: string) {
   return value.split(/[\n,]/).map((item) => item.trim()).filter(Boolean)
+}
+
+function protocolLabel(value?: string) {
+  return protocols.find(item => item.value === value)?.label || '企业身份协议'
+}
+
+function generatedCode(name: string) {
+  const latin = name.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '')
+  return `identity_${latin || Date.now().toString(36)}`.slice(0, 96)
+}
+
+function checkLabel(code: string) {
+  return ({ ENDPOINT: '连接地址', CONNECTIVITY: '网络连接', CREDENTIAL: '凭证可用性',
+    CALLBACK: '回调地址', DOMAIN: '登录域名', ATTRIBUTE_MAPPING: '用户属性映射', MFA: '多因素验证' } as Record<string, string>)[code] || '配置完整性'
 }
 
 function stringConfig(version: SsoProviderVersion, key: string) {
@@ -169,7 +184,8 @@ function selectProvider(provider: SsoProviderAdmin) {
 
 async function saveDraft() {
   if (!platformTokens.value?.accessToken) return
-  if (!creatingVersion.value && (!form.code.trim() || !form.name.trim())) return
+  if (!creatingVersion.value && !form.name.trim()) return
+  if (!creatingVersion.value && !form.code) form.code = generatedCode(form.name)
   saving.value = true
   error.value = ''
   success.value = ''
@@ -180,7 +196,7 @@ async function saveDraft() {
       }, platformTokens.value.accessToken)
       editorOpen.value = false
       await loadProviders(selectedProvider.value.id, version.id)
-      success.value = `版本 V${version.versionNumber} 已保存为不可变草稿。`
+      success.value = `${versionLabel(version.versionNumber)}已保存为新草稿。`
     } else {
       const provider = await api<SsoProviderAdmin>('/api/admin/platform/sso-providers', {
         method: 'POST', body: JSON.stringify({ code: form.code.trim(), name: form.name.trim(), ...payload() }),
@@ -204,7 +220,7 @@ async function testVersion(version: SsoProviderVersion) {
   try {
     const report = await api<SsoProviderTestReport>(`/api/admin/platform/sso-providers/${selectedProvider.value.id}/versions/${version.id}/test`, { method: 'POST' }, platformTokens.value.accessToken)
     await loadProviders(selectedProvider.value.id, version.id)
-    success.value = report.status === 'PASSED' ? `V${version.versionNumber} 预检全部通过，可以发布。` : `V${version.versionNumber} 预检未通过，请按报告修正后新建版本。`
+    success.value = report.status === 'PASSED' ? `${versionLabel(version.versionNumber)}预检全部通过，可以发布。` : `${versionLabel(version.versionNumber)}预检未通过，请按报告修正后新建版本。`
   } catch (reason) {
     error.value = reason instanceof ApiError ? `${reason.message}${reason.traceId ? `（requestId: ${reason.traceId}）` : ''}` : '身份源预检失败'
   } finally {
@@ -220,7 +236,7 @@ async function publishVersion(version: SsoProviderVersion) {
   try {
     const provider = await api<SsoProviderAdmin>(`/api/admin/platform/sso-providers/${selectedProvider.value.id}/versions/${version.id}/publish`, { method: 'POST' }, platformTokens.value.accessToken)
     await loadProviders(provider.id, version.id)
-    success.value = `身份源“${provider.name}”V${version.versionNumber} 已发布，并已进入登录页。`
+    success.value = `身份源“${provider.name}”${versionLabel(version.versionNumber)}已发布，并已进入登录页。`
   } catch (reason) {
     error.value = reason instanceof ApiError ? `${reason.message}${reason.traceId ? `（requestId: ${reason.traceId}）` : ''}` : '身份源发布失败'
   } finally {
@@ -249,26 +265,26 @@ onMounted(() => loadProviders())
         <section class="panel-card identity-providers">
           <div class="panel-title"><strong>身份源</strong><span>{{ providers.length }} 个</span></div>
           <button v-for="provider in providers" :key="provider.id" type="button" :class="['identity-provider-item', { active: provider.id === selectedProviderId }]" @click="selectProvider(provider)">
-            <span><CloudServerOutlined /></span><div><strong>{{ provider.name }}</strong><small>{{ provider.code }} · {{ provider.versions[0]?.protocol }}</small></div><a-tag :color="provider.status === 'PUBLISHED' ? 'green' : 'default'">{{ provider.status === 'PUBLISHED' ? `已发布 V${provider.publishedVersionNumber}` : '草稿' }}</a-tag>
+            <span><CloudServerOutlined /></span><div><strong>{{ provider.name }}</strong><small>{{ protocolLabel(provider.versions[0]?.protocol) }}</small></div><a-tag :color="provider.status === 'PUBLISHED' ? 'green' : 'default'">{{ provider.status === 'PUBLISHED' ? `已发布 · ${versionLabel(provider.publishedVersionNumber)}` : '草稿' }}</a-tag>
           </button>
           <a-empty v-if="!providers.length && !loading" description="还没有企业身份源" />
         </section>
 
         <section v-if="selectedProvider" class="identity-detail">
           <div class="panel-card identity-summary">
-            <div><p class="eyebrow">{{ selectedProvider.code }}</p><h2>{{ selectedProvider.name }}</h2><p>发布版本不可修改；配置变更通过新草稿版本完成。</p></div>
+            <div><p class="eyebrow">企业身份源</p><h2>{{ selectedProvider.name }}</h2><p>发布版本不可修改；配置变更通过新草稿版本完成。</p></div>
             <a-button @click="openNewVersion"><PlusOutlined />新建版本</a-button>
           </div>
           <div class="panel-card version-tabs">
             <button v-for="version in selectedProvider.versions" :key="version.id" :class="{ active: version.id === selectedVersion?.id }" @click="selectedVersionId = version.id">
-              <strong>V{{ version.versionNumber }}</strong><span>{{ version.protocol }}</span><a-tag :color="version.status === 'PUBLISHED' ? 'green' : version.testStatus === 'FAILED' ? 'red' : version.testStatus === 'PASSED' ? 'blue' : 'default'">{{ version.status === 'PUBLISHED' ? '已发布' : version.testStatus === 'PASSED' ? '预检通过' : version.testStatus === 'FAILED' ? '预检失败' : '待预检' }}</a-tag>
+              <strong>{{ versionLabel(version.versionNumber) }}</strong><span>{{ protocolLabel(version.protocol) }}</span><a-tag :color="version.status === 'PUBLISHED' ? 'green' : version.testStatus === 'FAILED' ? 'red' : version.testStatus === 'PASSED' ? 'blue' : 'default'">{{ version.status === 'PUBLISHED' ? '已发布' : version.testStatus === 'PASSED' ? '预检通过' : version.testStatus === 'FAILED' ? '预检失败' : '待预检' }}</a-tag>
             </button>
           </div>
           <div v-if="selectedVersion" class="panel-card version-detail">
-            <div class="panel-title"><strong>V{{ selectedVersion.versionNumber }} 配置</strong><span>{{ selectedVersion.status === 'PUBLISHED' ? '运行态当前版本' : '不可变草稿' }}</span></div>
+            <div class="panel-title"><strong>{{ versionLabel(selectedVersion.versionNumber) }}配置</strong><span>{{ selectedVersion.status === 'PUBLISHED' ? '登录页当前使用' : '待发布草稿' }}</span></div>
             <div class="identity-metadata">
-              <div><small>协议</small><strong>{{ selectedVersion.protocol }}</strong></div><div><small>Issuer</small><strong>{{ selectedVersion.issuer }}</strong></div>
-              <div><small>Client ID</small><strong>{{ selectedVersion.clientId }}</strong></div><div><small>SecretRef</small><strong>{{ selectedVersion.clientSecretRef || selectedVersion.protocolConfig.certificateRef || selectedVersion.protocolConfig.bindSecretRef || '不需要' }}</strong></div>
+              <div><small>协议</small><strong>{{ protocolLabel(selectedVersion.protocol) }}</strong></div><div><small>身份发行方</small><strong>{{ selectedVersion.issuer }}</strong></div>
+              <div><small>接入应用</small><strong>{{ selectedVersion.clientId }}</strong></div><div><small>安全凭证</small><strong>{{ selectedVersion.clientSecretRef || selectedVersion.protocolConfig.certificateRef || selectedVersion.protocolConfig.bindSecretRef || '不需要' }}</strong></div>
               <div><small>允许域名</small><strong>{{ selectedVersion.allowedDomains.join('、') || '未限制' }}</strong></div><div><small>回调地址</small><strong>{{ selectedVersion.callbackUris.join('、') || '目录协议无需回调' }}</strong></div>
             </div>
             <div class="version-actions">
@@ -277,8 +293,8 @@ onMounted(() => loadProviders())
               <a-tag v-else color="green"><CheckCircleOutlined /> 已进入登录运行态</a-tag>
             </div>
             <div v-if="selectedVersion.testReport" class="test-report">
-              <div class="test-report__heading"><div><strong>预检报告</strong><small>requestId: {{ selectedVersion.testReport.requestId }}</small></div><a-tag :color="selectedVersion.testReport.status === 'PASSED' ? 'green' : 'red'">{{ selectedVersion.testReport.status === 'PASSED' ? '全部通过' : `失败：${selectedVersion.testReport.failureCode}` }}</a-tag></div>
-              <div class="test-checks"><div v-for="check in reportChecks(selectedVersion)" :key="check.code" :class="['test-check', check.status.toLowerCase()]"><CheckCircleOutlined v-if="check.status === 'PASSED'" /><SafetyCertificateOutlined v-else /><div><strong>{{ check.code }}</strong><span>{{ check.message }}</span></div></div></div>
+              <div class="test-report__heading"><div><strong>预检报告</strong><small>{{ reportChecks(selectedVersion).length }} 项检查</small></div><a-tag :color="selectedVersion.testReport.status === 'PASSED' ? 'green' : 'red'">{{ selectedVersion.testReport.status === 'PASSED' ? '全部通过' : '存在未通过项' }}</a-tag></div>
+              <div class="test-checks"><div v-for="check in reportChecks(selectedVersion)" :key="check.code" :class="['test-check', check.status.toLowerCase()]"><CheckCircleOutlined v-if="check.status === 'PASSED'" /><SafetyCertificateOutlined v-else /><div><strong>{{ checkLabel(check.code) }}</strong><span>{{ check.message }}</span></div></div></div>
             </div>
           </div>
         </section>
@@ -289,7 +305,7 @@ onMounted(() => loadProviders())
     <a-modal :open="editorOpen" :title="creatingVersion ? `新建 ${selectedProvider?.name ?? ''} 的版本` : '新建企业身份源'" width="760px" :confirm-loading="saving" ok-text="保存不可变草稿" @ok="saveDraft" @cancel="editorOpen = false">
       <a-alert type="info" show-icon message="页面和接口只保存密钥引用（SecretRef），不会保存或回显密钥明文。" class="section-alert" />
       <a-form layout="vertical">
-        <div v-if="!creatingVersion" class="form-grid"><a-form-item label="身份源名称" required><a-input v-model:value="form.name" :maxlength="200" placeholder="例如：集团统一身份" /></a-form-item><a-form-item label="身份源编码" required><a-input v-model:value="form.code" :maxlength="100" placeholder="例如：group_oidc" /></a-form-item></div>
+        <a-form-item v-if="!creatingVersion" label="身份源名称" required><a-input v-model:value="form.name" :maxlength="200" placeholder="例如：集团统一身份" /></a-form-item>
         <div class="form-grid"><a-form-item label="协议" required><a-select v-model:value="form.protocol" :options="protocols" /></a-form-item><a-form-item label="Issuer / 目录标识" required><a-input v-model:value="form.issuer" placeholder="https://id.example.com" /></a-form-item></div>
         <div class="form-grid"><a-form-item label="Client ID / 应用标识" required><a-input v-model:value="form.clientId" /></a-form-item><a-form-item v-if="interactive" label="Client SecretRef" required><a-input v-model:value="form.clientSecretRef" placeholder="property:app.identity.client-secret" /></a-form-item></div>
         <template v-if="interactive"><div class="form-grid"><a-form-item label="授权端点" required><a-input v-model:value="form.authorizationEndpoint" /></a-form-item><a-form-item label="令牌端点" required><a-input v-model:value="form.tokenEndpoint" /></a-form-item></div><div class="form-grid"><a-form-item label="用户信息端点" required><a-input v-model:value="form.userinfoEndpoint" /></a-form-item><a-form-item v-if="form.protocol === 'OIDC'" label="JWKS 地址" required><a-input v-model:value="form.jwksUri" /></a-form-item></div><a-form-item label="协议回调地址" required><a-input v-model:value="form.redirectUri" /></a-form-item></template>

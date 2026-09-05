@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-061",
+  "executedAt": "2026-09-01T16:31:00+08:00",
+  "taskIds": [
+    "TASK-0218",
+    "TASK-0219",
+    "TASK-0220"
+  ],
+  "checks": [
+    {
+      "name": "组织、汇报关系、角色发布、权限预览和组织环组合测试",
+      "command": "cd projects/unexamine/backend && JAVA_HOME=D:/dev/jdk21-temurin mvn -Dtest=IdentityOrganizationContextIntegrationTest test",
+      "result": "passed"
+    },
+    {
+      "name": "管理员配置到普通成员真实登录的数据权限闭环",
+      "command": "Microsoft Edge via in-app Playwright against Nginx 15174 and Spring Boot 18080",
+      "result": "passed"
+    },
+    {
+      "name": "成员、汇报线、角色、权限版本、字段策略、记录归属和审计读回",
+      "command": "MySQL readback for system #18 and tenant #20",
+      "result": "passed"
+    },
+    {
+      "name": "组织权限页面全量前端回归与生产构建",
+      "command": "npm test -- --run (28 files / 78 tests); npm run build",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-AUTH-ORG-ROLE",
+      "entryUrl": "http://127.0.0.1:15174/systems/18/admin?section=organization",
+      "actor": "客户运营中心系统管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "组织目录以全公司和销售部的真实层级展示，不显示 root、部门编码或成员内部编号；新建销售部时只填写上级、名称和排序，编码由系统生成。",
+        "通过已注册账号搜索添加 C61 客户跟进成员，设置员工编号、客户经理岗位、销售部、直属上级和客户跟进专员角色，页面读回三名成员及完整组织关系。",
+        "角色仅填写业务名称，配置客户联系记录的新建、列表、详情和编辑动作、仅本人数据范围及四个可读可写字段，发布后权限版本推进到 v4。",
+        "记录转交复用统一人员与部门选择器，预览显示负责人和部门的业务名称变化，不要求填写任何成员或部门编号。"
+      ],
+      "persistentReads": [
+        "MySQL 读回 c61_customer_agent 对应系统成员 #24、租户成员 #26、销售部 #35、直属上级租户成员 #22 和角色 #24。",
+        "角色 #24 为 ACTIVE，MODULE 客户联系记录保存 CREATE、DETAIL、LIST、UPDATE 四项 SELF 正向授权。",
+        "auth_permission_version 连续保存成员分配和发布形成的 v1-v4；组织、授权发布和成员开通均写入不可删除审计。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/db/update/V35__organization_reporting_directory.sql",
+        "projects/unexamine/db/update/V36__backfill_system_root_department.sql",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemPeopleDirectoryService.java",
+        "projects/unexamine/frontend/src/product/views/SystemAuthorizationView.vue",
+        "projects/unexamine/frontend/src/product/components/PersonSelect.vue",
+        "projects/unexamine/frontend/src/product/components/DepartmentSelect.vue"
+      ]
+    },
+    {
+      "useCaseId": "UC-AUTH-MULTIROLE-PREVIEW",
+      "entryUrl": "http://127.0.0.1:15174/systems/18/admin?section=organization",
+      "actor": "客户运营中心系统管理员",
+      "result": "passed",
+      "pageAssertions": [
+        "最终权限预览按姓名搜索 C28 商机跟进人，按客户联系记录和查看列表筛选，动作选项全部显示业务中文而不暴露 LIST、DETAIL 等内部动作码。",
+        "预览显示目标成员、岗位、部门、有效角色、规则版本 v3、角色贡献、最终允许、仅本人数据范围和四个字段的页面读写结果。",
+        "预览结果不显示成员编号、模块编码、角色编码或租户成员技术字段，并明确本次只写审计、不修改授权。"
+      ],
+      "persistentReads": [
+        "audit_event 读回 AUTHORIZATION_PERMISSION_PREVIEW/SUCCESS，关联管理员、目标成员和当前系统租户上下文。",
+        "角色发布与成员分配的权限版本均可独立追踪，预览严格使用请求中的期望版本。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+        "projects/unexamine/frontend/src/product/views/SystemAuthorizationView.vue"
+      ]
+    },
+    {
+      "useCaseId": "UC-AUTH-GUARD-MASK",
+      "entryUrl": "http://127.0.0.1:15174/systems/18?workspace=runtime&module=module_087b31a589",
+      "actor": "仅有客户跟进专员角色的 C61 客户跟进成员",
+      "result": "passed",
+      "pageAssertions": [
+        "普通成员登录后可进入客户运营中心，只出现客户联系记录一个获权模块，系统管理入口完全隐藏。",
+        "客户联系记录列表只显示本人负责的拜访华东零售客户，共 1 条；电话跟进华北制造客户不在页面和响应结果中出现。",
+        "普通成员编辑联系主题和备注后列表、详情及页面刷新均读回最新值，证明动作权限、字段写权限和 SELF 数据范围共同生效。",
+        "未授予的打印动作由后端明确拒绝并写入 PERMISSION_CHECK/PERMISSION_DENIED 审计。"
+      ],
+      "persistentReads": [
+        "biz_record #19 最终 owner_member_id=24、department_id=35、version=4，字段值读回普通成员保存的联系主题和联系备注。",
+        "auth_field_policy 为角色 #24 保存四个 PAGE 渠道字段，全部可读可写且无脱敏；不存在额外模块授权。",
+        "审计读回 SYSTEM_ENTER、SYSTEM_CONTEXT_SWITCHED、BUSINESS_RECORD_TRANSFERRED、BUSINESS_RECORD_UPDATED 和未授权打印拒绝事件。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/PermissionResolver.java",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/authorization/manage/IdentityOrganizationContextIntegrationTest.java"
+      ]
+    }
+  ]
+}

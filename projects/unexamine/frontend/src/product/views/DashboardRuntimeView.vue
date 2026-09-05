@@ -4,13 +4,18 @@ import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
-import { dashboardComponentSpan } from '../dashboard'
+import DashboardChart from '../components/DashboardChart.vue'
+import { dashboardComponentSpan, isCoreWorkspaceSummary } from '../dashboard'
 import { allowsPermission } from '../permissions'
-import { dashboardComponentLabel, productStatus, userFacingDateTime } from '../presentation'
+import { dashboardComponentLabel, productStatus, userFacingDateTime, versionLabel } from '../presentation'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
 import type { DashboardRuntime, DashboardRuntimeComponent } from '../types'
 
-const props = withDefaults(defineProps<{ context?: 'platform' | 'system'; embedded?: boolean }>(), { context: 'system', embedded: false })
+const props = withDefaults(defineProps<{
+  context?: 'platform' | 'system'
+  embedded?: boolean
+  excludeCoreSummary?: boolean
+}>(), { context: 'system', embedded: false, excludeCoreSummary: false })
 const router = useRouter()
 const dashboard = ref<DashboardRuntime>()
 const loading = ref(false)
@@ -25,6 +30,8 @@ const canConfigure = computed(() => props.context === 'platform'
 const configurationPath = computed(() => props.context === 'platform'
   ? '/platform/admin/dashboards'
   : `/systems/${systemContext.value?.systemId}/admin?section=dashboard`)
+const visibleComponents = computed(() => (dashboard.value?.components || []).filter((component) =>
+  !props.excludeCoreSummary || !isCoreWorkspaceSummary(component.title)))
 
 function resetRefreshTimer() {
   if (refreshTimer) window.clearInterval(refreshTimer)
@@ -59,6 +66,29 @@ function drill(component: DashboardRuntimeComponent) {
   openTarget(component.drillTarget.route)
 }
 
+function chartType(component: DashboardRuntimeComponent): 'BAR' | 'LINE' | 'PIE' {
+  const type = String(component.displayConfig.chartType || '').toUpperCase()
+  if (type === 'LINE' || type === 'PIE') return type
+  return 'BAR'
+}
+
+function drillItem(component: DashboardRuntimeComponent, item: Record<string, unknown>) {
+  if (!component.drillAvailable) return
+  const target = typeof item.route === 'string' ? item.route : component.drillTarget.route
+  if (typeof target !== 'string' || !target) return
+  const resolved = router.resolve(target)
+  const filter = item.filter && typeof item.filter === 'object' && !Array.isArray(item.filter)
+    ? item.filter : undefined
+  void router.push({
+    path: resolved.path,
+    query: {
+      ...resolved.query,
+      ...(filter ? { filters: JSON.stringify([filter]) } : {}),
+      dashboardReturn: router.currentRoute.value.fullPath,
+    },
+  })
+}
+
 function itemTitle(item: Record<string, unknown>) {
   return String(item.title || item.name || item.id || '未命名项')
 }
@@ -76,13 +106,6 @@ function itemStatus(item: Record<string, unknown>) {
   return item.status ? productStatus(String(item.status)).label : ''
 }
 
-function chartWidth(component: DashboardRuntimeComponent, item: Record<string, unknown>) {
-  const values = component.items.map(row => Number(row.value ?? row.progressPercent ?? 1)).filter(Number.isFinite)
-  const current = Number(item.value ?? item.progressPercent ?? 1)
-  const maximum = Math.max(...values, 1)
-  return `${Math.max(8, Math.min(100, current / maximum * 100))}%`
-}
-
 onMounted(load)
 onBeforeUnmount(() => refreshTimer && window.clearInterval(refreshTimer))
 watch(() => props.context === 'platform' ? platformContext.value?.contextRevision
@@ -90,17 +113,17 @@ watch(() => props.context === 'platform' ? platformContext.value?.contextRevisio
 </script>
 
 <template>
-  <section v-if="!embedded || dashboard?.configured" :class="['dashboard-runtime', { 'dashboard-runtime--embedded': embedded }]" aria-label="已发布仪表盘">
+  <section v-if="!embedded || dashboard?.configured && visibleComponents.length" :class="['dashboard-runtime', { 'dashboard-runtime--embedded': embedded }]" aria-label="业务指标">
     <ProductPageHeader v-if="!embedded"
       :kicker="context === 'platform' ? '平台概览' : '系统概览'"
       :title="dashboard?.name || '工作概览'"
       :description="dashboard?.description || dashboard?.message || '集中查看当前工作范围内的重要进展和常用入口。'"
     >
       <template #actions>
-        <a-tag v-if="dashboard?.configured" color="blue">发布版 v{{ dashboard.versionNumber }}</a-tag>
+        <a-tag v-if="dashboard?.configured" color="blue">{{ versionLabel(dashboard.versionNumber) }}</a-tag>
         <a-button :loading="loading" @click="load">刷新数据</a-button>
-        <a-button v-if="canConfigure" type="primary" @click="router.push(configurationPath)">配置仪表盘</a-button>
       </template>
+      <template #primary><a-button v-if="canConfigure" type="primary" @click="router.push(configurationPath)">配置仪表盘</a-button></template>
     </ProductPageHeader>
 
     <a-alert v-if="error" type="error" show-icon :message="error" />
@@ -111,14 +134,14 @@ watch(() => props.context === 'platform' ? platformContext.value?.contextRevisio
     </a-empty>
     <div v-else class="dashboard-grid">
       <article
-        v-for="component in dashboard?.components || []"
+        v-for="component in visibleComponents"
         :key="component.componentKey"
         class="dashboard-card"
         :class="[`dashboard-card--${component.componentType.toLowerCase()}`, { 'dashboard-card--error': component.outcome === 'ERROR', 'dashboard-card--clickable': component.drillAvailable }]"
         :style="{ gridColumn: `span ${dashboardComponentSpan(component.layout)}`, '--dashboard-accent': String(component.displayConfig.accentColor || '#315efb') }"
         @click="drill(component)"
       >
-        <header><div><small>{{ dashboardComponentLabel(component.componentType) }}</small><h2>{{ component.title }}</h2></div><ProductStatusTag :status="component.outcome" /></header>
+        <header><div><small v-if="!embedded">{{ dashboardComponentLabel(component.componentType) }}</small><h2>{{ component.title }}</h2></div><ProductStatusTag v-if="!['READY', 'SUCCESS', 'SUCCEEDED'].includes(component.outcome)" :status="component.outcome" /></header>
         <a-alert
           v-if="component.outcome === 'ERROR'"
           type="error"
@@ -135,13 +158,12 @@ watch(() => props.context === 'platform' ? platformContext.value?.contextRevisio
           <p class="dashboard-definition">{{ component.metricDefinition }}</p>
         </template>
         <template v-else-if="component.componentType === 'CHART' || component.componentType === 'RANKING'">
-          <div v-if="component.items.length" class="dashboard-bars">
-            <div v-for="item in component.items" :key="String(item.id)"><span>{{ itemTitle(item) }}</span><i><b :style="{ width: chartWidth(component, item) }"></b></i><em>{{ itemStatus(item) || item.value || '' }}</em></div>
-          </div>
+          <DashboardChart v-if="component.items.length" :items="component.items" :chart-type="chartType(component)"
+            :accent-color="String(component.displayConfig.accentColor || '#315efb')" @click.stop @select="drillItem(component, $event)" />
           <a-empty v-else :image="false" description="当前权限范围内没有可展示数据" />
         </template>
         <template v-else-if="component.componentType === 'QUICK_ENTRY'">
-          <a-button type="primary" :disabled="!component.drillAvailable">打开已授权页面</a-button>
+          <a-button :disabled="!component.drillAvailable">打开{{ component.title }}</a-button>
           <p class="dashboard-definition">{{ component.message }}</p>
         </template>
         <template v-else>
@@ -152,7 +174,7 @@ watch(() => props.context === 'platform' ? platformContext.value?.contextRevisio
           </div>
           <a-empty v-else :image="false" description="当前权限范围内没有可展示数据" />
         </template>
-        <footer><span>{{ updated(component.updatedAt) }}</span><span v-if="component.drillAvailable">可下钻</span></footer>
+        <footer><span>{{ updated(component.updatedAt) }}</span><span v-if="component.drillAvailable">查看详情</span></footer>
       </article>
     </div>
   </section>

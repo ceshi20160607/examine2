@@ -27,6 +27,9 @@ public class WorkTaskMember {
     @TableField("account_id")
     private Long accountId;
 
+    @TableField("tenant_member_id")
+    private Long tenantMemberId;
+
     @TableField("member_type")
     private String memberType;
 
@@ -57,6 +60,14 @@ public class WorkTaskMember {
         this.accountId = accountId;
     }
 
+    public Long getTenantMemberId() {
+        return tenantMemberId;
+    }
+
+    public void setTenantMemberId(Long tenantMemberId) {
+        this.tenantMemberId = tenantMemberId;
+    }
+
     public String getMemberType() {
         return memberType;
     }
@@ -79,6 +90,7 @@ public class WorkTaskMember {
             "id = " + id +
             ", taskId = " + taskId +
             ", accountId = " + accountId +
+            ", tenantMemberId = " + tenantMemberId +
             ", memberType = " + memberType +
             ", createdAt = " + createdAt +
             "}";

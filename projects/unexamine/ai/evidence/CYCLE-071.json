@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "cycleId": "CYCLE-071",
+  "executedAt": "2026-09-02T01:54:00+08:00",
+  "taskIds": [
+    "TASK-0197",
+    "TASK-0198"
+  ],
+  "checks": [
+    {
+      "name": "首页数据、系统直达、仪表盘去重与组件语义回归",
+      "command": "cd projects/unexamine/frontend; npm test -- --run (30 files / 87 tests)",
+      "result": "passed"
+    },
+    {
+      "name": "首页与共享系统进入能力生产构建",
+      "command": "cd projects/unexamine/frontend; npm run build (3943 modules)",
+      "result": "passed"
+    },
+    {
+      "name": "平台首页真实业务信息和系统卡直达验收",
+      "command": "Browser QA: /platform/dashboard -> 北辰客户协作中心 -> /systems/44",
+      "result": "passed"
+    },
+    {
+      "name": "系统首页待办、消息、模块、最近记录与主动作验收",
+      "command": "Browser DOM and visual audit at /systems/44 using 周明",
+      "result": "passed"
+    },
+    {
+      "name": "首页技术标签、工程数据与桌面溢出门禁",
+      "command": "Browser audit: zero LIST/METRIC/READY/ACTIVE labels, zero cycle markers, zero page overflow, one primary action",
+      "result": "passed"
+    }
+  ],
+  "journeys": [
+    {
+      "useCaseId": "UC-ANALYTICS-DASHBOARD",
+      "entryUrl": "http://127.0.0.1:15174/platform/dashboard",
+      "actor": "拥有北辰客户协作中心访问权的系统管理员周明",
+      "result": "passed",
+      "pageAssertions": [
+        "平台首页首屏显示待处理事项、未读消息、可进入系统、我的系统和最新消息，并只保留进入北辰客户协作中心一个主动作。",
+        "点击首页北辰客户协作中心卡直接建立系统会话并进入 /systems/44，不再绕到系统目录要求二次选择。",
+        "系统首页显示当前工作空间待办、消息、两个可用业务模块、客户与跟进记录快捷入口及最近业务记录。",
+        "默认仪表盘中的可进入系统、待办和消息等重复摘要被去重，成功状态和组件技术类型不再占据首页视觉层级。",
+        "任一可选数据源失败时首页保留其他内容并明确提示不可用来源；首次加载使用统一骨架。"
+      ],
+      "persistentReads": [
+        "平台首页读取 1 个获权系统；北辰客户协作中心卡进入后系统上下文为 systemId=44 和主工作空间。",
+        "系统首页读取 2 个已发布模块并汇总北辰科技、北辰科技电话跟进、星河制造和远山集团等最近记录。",
+        "首页待办与消息总数独立于五条展示上限，卡片数量不再使用截断后的数组长度。"
+      ],
+      "evidencePaths": [
+        "projects/unexamine/frontend/src/product/views/WorkspaceHomeView.vue",
+        "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+        "projects/unexamine/frontend/src/product/system-entry.ts",
+        "projects/unexamine/ai/evidence/CYCLE-071-platform-home.png",
+        "projects/unexamine/ai/evidence/CYCLE-071-system-home.png"
+      ]
+    }
+  ]
+}

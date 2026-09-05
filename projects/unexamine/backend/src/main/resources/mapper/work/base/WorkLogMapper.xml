@@ -9,13 +9,18 @@
         <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
+        <result column="project_id" property="projectId" />
         <result column="author_account_id" property="authorAccountId" />
+        <result column="author_tenant_member_id" property="authorTenantMemberId" />
         <result column="work_date" property="workDate" />
         <result column="title" property="title" />
         <result column="content_text" property="contentText" />
         <result column="duration_minutes" property="durationMinutes" />
         <result column="status" property="status" />
         <result column="custom_values_json" property="customValuesJson" />
+        <result column="business_type" property="businessType" />
+        <result column="business_id" property="businessId" />
+        <result column="business_title" property="businessTitle" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
         <result column="version" property="version" />
@@ -23,7 +28,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, author_account_id, work_date, title, content_text, duration_minutes, `status`, custom_values_json, created_at, updated_at, version
+        id, context_type, platform_id, system_id, tenant_id, project_id, author_account_id, author_tenant_member_id, work_date, title, content_text, duration_minutes, `status`, custom_values_json, business_type, business_id, business_title, created_at, updated_at, version
     </sql>
 
 </mapper>

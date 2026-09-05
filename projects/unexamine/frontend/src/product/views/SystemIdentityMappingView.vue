@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { CheckCircleOutlined, PlusOutlined, ReloadOutlined, SafetyCertificateOutlined } from '@ant-design/icons-vue'
 import { api, ApiError } from '../api'
+import { productDateTime, productStatus, versionLabel } from '../presentation'
 import { systemTokens } from '../session'
 import type {
   IdentityMappingJob,
@@ -121,7 +122,7 @@ async function saveDraft() {
       }),
     }, token.value)
     await rereadConfiguration()
-    success.value = `草稿已保存并读回 v${configuration.value?.version}，下一步可运行样本预检。`
+    success.value = '映射草稿已保存，下一步可运行登录样本预检。'
   } catch (cause) {
     error.value = explain(cause, '身份映射草稿保存失败')
   } finally {
@@ -159,7 +160,7 @@ async function confirm() {
     }, token.value)
     jobs.value = [job, ...jobs.value.filter(item => item.id !== job.id)]
     await Promise.all([rereadConfiguration(), loadLogs()])
-    success.value = `同步任务 #${job.id} 已完成：${job.progressCurrent}/${job.progressTotal}；无成员项已转为访问申请。`
+    success.value = `同步已完成：处理 ${job.progressCurrent}/${job.progressTotal} 项；未匹配成员的项目已转为访问申请。`
   } catch (cause) {
     error.value = explain(cause, '身份映射确认失败')
   } finally {
@@ -181,6 +182,20 @@ function resultColor(value: string) {
   return 'orange'
 }
 
+function resultLabel(value: string) {
+  return ({ READY: '可同步', SUCCESS: '成功', ACCESS_REQUEST: '转访问申请', ACCESS_REQUEST_PENDING: '等待访问审批',
+    MANUAL_REVIEW: '需要人工检查', CONFLICT: '存在冲突' } as Record<string, string>)[value] || productStatus(value).label
+}
+
+function actionText(value: string) {
+  return ({ BIND_MEMBER: '绑定已有成员', CREATE_MEMBER: '创建成员', CREATE_ACCOUNT_AND_MEMBER: '创建账号和成员',
+    CREATE_ACCESS_REQUEST: '创建访问申请', SKIP: '不处理' } as Record<string, string>)[value] || '按映射策略处理'
+}
+
+function protocolLabel(value: string) {
+  return ({ OIDC: '开放身份登录', SAML: '企业联合登录', LDAP: '企业目录' } as Record<string, string>)[value] || '企业身份源'
+}
+
 onMounted(load)
 </script>
 
@@ -192,20 +207,20 @@ onMounted(load)
   <a-alert v-if="error" type="error" show-icon :message="error" class="section-alert" closable @close="error = ''" />
   <a-alert v-if="success" type="success" show-icon :message="success" class="section-alert" closable @close="success = ''" />
   <a-alert v-if="!providers.length" type="warning" show-icon message="平台尚未发布可继承的身份源，请先由平台管理员完成预检和发布。" class="section-alert" />
-  <a-alert v-if="!departments.length" type="warning" show-icon message="当前租户尚无有效部门，先在组织架构中建立部门后再配置映射。" class="section-alert" />
+  <a-alert v-if="!departments.length" type="warning" show-icon message="当前工作空间尚无有效部门，请先在组织架构中建立部门。" class="section-alert" />
 
   <div class="system-identity-grid">
     <section class="panel-card identity-mapping-config">
-      <div class="panel-title"><strong>1. 继承草稿</strong><span v-if="configuration">已保存 v{{ configuration.version }}</span></div>
+      <div class="panel-title"><strong>1. 身份源与部门映射</strong><span v-if="configuration">草稿已保存</span></div>
       <a-form layout="vertical">
         <a-form-item label="平台已发布身份源" required>
           <a-select v-model:value="form.providerId" placeholder="选择身份源">
-            <a-select-option v-for="provider in providers" :key="provider.providerId" :value="provider.providerId">{{ provider.name }} · {{ provider.protocol }} · V{{ provider.publishedVersionNumber }}</a-select-option>
+            <a-select-option v-for="provider in providers" :key="provider.providerId" :value="provider.providerId">{{ provider.name }} · {{ protocolLabel(provider.protocol) }} · {{ versionLabel(provider.publishedVersionNumber) }}</a-select-option>
           </a-select>
         </a-form-item>
         <a-alert v-if="selectedProvider" type="info" show-icon :message="`允许域名：${selectedProvider.allowedDomains.join('、') || '未限制'}`" class="mode-warning" />
-        <a-form-item label="租户域名" required><a-input v-model:value="form.tenantDomain" placeholder="tenant.example.com" /></a-form-item>
-        <a-form-item label="JIT 策略" required>
+        <a-form-item label="工作空间登录域名" required><a-input v-model:value="form.tenantDomain" placeholder="company.example.com" /></a-form-item>
+        <a-form-item label="首次登录处理方式" required>
           <a-radio-group v-model:value="form.jitPolicy">
             <a-radio value="ACCESS_REQUEST">无成员时转访问申请</a-radio>
             <a-radio value="CREATE_MEMBER">匹配账号后创建成员</a-radio>
@@ -216,7 +231,7 @@ onMounted(load)
         <div v-for="(mapping, index) in mappings" :key="index" class="department-mapping-row">
           <a-input v-model:value="mapping.externalDepartment" placeholder="外部部门编码" />
           <a-select v-model:value="mapping.departmentId" placeholder="系统部门">
-            <a-select-option v-for="department in departments" :key="department.id" :value="department.id">{{ department.name }}（{{ department.code }}）</a-select-option>
+            <a-select-option v-for="department in departments" :key="department.id" :value="department.id">{{ department.name }}</a-select-option>
           </a-select>
           <a-button danger type="text" :disabled="mappings.length === 1" @click="mappings.splice(index, 1)">移除</a-button>
         </div>
@@ -228,15 +243,14 @@ onMounted(load)
       <div class="panel-title"><strong>2. 登录样本预检</strong><a-button size="small" type="link" @click="samples.push(blankSample())"><PlusOutlined />添加样本</a-button></div>
       <div class="sample-scroll">
         <div v-for="(sample, index) in samples" :key="index" class="identity-sample-row">
-          <a-input v-model:value="sample.externalUserId" placeholder="externalUserId" />
+          <a-input v-model:value="sample.externalUserId" placeholder="外部用户标识" />
           <a-input v-model:value="sample.externalDepartment" placeholder="外部部门" />
-          <a-input v-model:value="sample.email" placeholder="email" />
-          <a-input v-model:value="sample.mobile" placeholder="mobile" />
-          <a-input v-model:value="sample.employeeNo" placeholder="employeeNo" />
+          <a-input v-model:value="sample.email" placeholder="邮箱" />
+          <a-input v-model:value="sample.mobile" placeholder="手机" />
+          <a-input v-model:value="sample.employeeNo" placeholder="工号" />
           <a-input v-model:value="sample.displayName" placeholder="显示名" />
-          <a-input v-model:value="sample.mfaLevel" placeholder="MFA" />
+          <a-input v-model:value="sample.mfaLevel" placeholder="登录验证级别" />
           <a-input v-model:value="sample.device" placeholder="设备" />
-          <a-input v-model:value="sample.requestId" placeholder="requestId" />
           <a-button danger type="text" :disabled="samples.length === 1" @click="samples.splice(index, 1)">移除</a-button>
         </div>
       </div>
@@ -245,16 +259,16 @@ onMounted(load)
   </div>
 
   <section v-if="preflight" class="panel-card preflight-panel">
-    <div class="panel-title"><strong>3. 预检报告</strong><span>{{ preflight.preflightId }}</span></div>
-    <div class="preflight-summary"><a-tag v-for="(count, outcome) in preflight.summary" :key="outcome" :color="resultColor(outcome)">{{ outcome }} {{ count }}</a-tag></div>
+    <div class="panel-title"><strong>3. 预检报告</strong><span>{{ productDateTime(preflight.createdAt) }}</span></div>
+    <div class="preflight-summary"><a-tag v-for="(count, outcome) in preflight.summary" :key="outcome" :color="resultColor(outcome)">{{ resultLabel(outcome) }} {{ count }}</a-tag></div>
     <a-table :data-source="preflight.items" :pagination="false" row-key="rowNumber" size="small" :scroll="{ x: 1100 }">
       <a-table-column title="外部身份" data-index="externalUserId" fixed="left" :width="150" />
       <a-table-column title="外部部门" data-index="externalDepartment" :width="120" />
       <a-table-column title="目标部门" data-index="departmentName" :width="120" />
-      <a-table-column title="账号" data-index="accountId" :width="90" />
-      <a-table-column title="成员" data-index="systemMemberId" :width="90" />
-      <a-table-column title="结果" :width="130"><template #default="{ record }"><a-tag :color="resultColor(record.outcome)">{{ record.outcome }}</a-tag></template></a-table-column>
-      <a-table-column title="确认动作" data-index="plannedAction" :width="190" />
+      <a-table-column title="姓名" data-index="displayName" :width="110" />
+      <a-table-column title="匹配情况" :width="110"><template #default="{ record }">{{ record.systemMemberId ? '已有成员' : record.accountId ? '已有账号' : '未匹配' }}</template></a-table-column>
+      <a-table-column title="结果" :width="130"><template #default="{ record }"><a-tag :color="resultColor(record.outcome)">{{ resultLabel(record.outcome) }}</a-tag></template></a-table-column>
+      <a-table-column title="确认动作" :width="190"><template #default="{ record }">{{ actionText(record.plannedAction) }}</template></a-table-column>
       <a-table-column title="原因"><template #default="{ record }">{{ record.reasons.join('；') || '—' }}</template></a-table-column>
     </a-table>
     <div class="identity-step-actions"><a-button type="primary" :loading="confirming" @click="confirm"><CheckCircleOutlined />人工确认并同步</a-button></div>
@@ -264,7 +278,7 @@ onMounted(load)
     <div class="panel-title"><strong>同步任务</strong><span>{{ jobs.length }} 条</span></div>
     <a-empty v-if="!jobs.length" description="尚无同步任务" class="fixed-config-empty" />
     <div v-for="job in jobs" v-else :key="job.id" class="identity-job-row">
-      <span><strong>#{{ job.id }} · {{ job.status }}</strong><small>{{ job.createdAt }} · {{ job.progressCurrent }}/{{ job.progressTotal }}</small></span>
+      <span><strong>{{ productStatus(job.status).label }}</strong><small>{{ productDateTime(job.createdAt) }} · 已处理 {{ job.progressCurrent }}/{{ job.progressTotal }}</small></span>
       <a-tag :color="job.status === 'SUCCEEDED' ? 'green' : 'orange'">访问申请 {{ job.summary.accessRequests ?? 0 }}</a-tag>
     </div>
   </section>
@@ -272,22 +286,22 @@ onMounted(load)
   <section class="panel-card identity-logs">
     <div class="panel-title"><strong>登录映射日志</strong><a-button size="small" @click="loadLogs"><ReloadOutlined />查询</a-button></div>
     <div class="identity-log-filters">
-      <a-input v-model:value="filters.identityProvider" placeholder="identityProvider" />
-      <a-input v-model:value="filters.externalUserId" placeholder="externalUserId" />
-      <a-input v-model:value="filters.mfaLevel" placeholder="MFA" />
+      <a-input v-model:value="filters.identityProvider" placeholder="身份源" />
+      <a-input v-model:value="filters.externalUserId" placeholder="外部用户标识" />
+      <a-input v-model:value="filters.mfaLevel" placeholder="验证级别" />
       <a-input v-model:value="filters.device" placeholder="设备" />
-      <a-input v-model:value="filters.requestId" placeholder="requestId" />
-      <a-input v-model:value="filters.traceId" placeholder="traceId" />
+      <a-input v-model:value="filters.requestId" placeholder="请求追踪号" />
+      <a-input v-model:value="filters.traceId" placeholder="链路追踪号" />
       <a-input v-model:value="filters.failureReason" placeholder="失败原因" />
     </div>
     <a-table :data-source="logs" row-key="id" size="small" :pagination="{ pageSize: 10 }" :scroll="{ x: 1050 }">
-      <a-table-column title="时间" data-index="occurredAt" :width="180" />
+      <a-table-column title="时间" :width="180"><template #default="{ record }">{{ productDateTime(record.occurredAt) }}</template></a-table-column>
       <a-table-column title="身份源" data-index="identityProvider" :width="130" />
       <a-table-column title="外部用户" data-index="externalUserId" :width="140" />
       <a-table-column title="MFA / 设备" :width="170"><template #default="{ record }">{{ record.mfaLevel }} · {{ record.device }}</template></a-table-column>
-      <a-table-column title="requestId / traceId" :width="250"><template #default="{ record }"><code>{{ record.requestId }}</code><br /><code>{{ record.traceId }}</code></template></a-table-column>
-      <a-table-column title="结果" :width="170"><template #default="{ record }"><a-tag :color="resultColor(record.resultCode)">{{ record.resultCode }}</a-tag></template></a-table-column>
-      <a-table-column title="systemMemberId" data-index="systemMemberId" :width="130" />
+      <a-table-column title="追踪信息" :width="250"><template #default="{ record }"><code>{{ record.requestId }}</code><br /><code>{{ record.traceId }}</code></template></a-table-column>
+      <a-table-column title="结果" :width="170"><template #default="{ record }"><a-tag :color="resultColor(record.resultCode)">{{ resultLabel(record.resultCode) }}</a-tag></template></a-table-column>
+      <a-table-column title="成员匹配" :width="110"><template #default="{ record }">{{ record.systemMemberId ? '已匹配' : '未匹配' }}</template></a-table-column>
       <a-table-column title="失败原因" data-index="failureReason" />
     </a-table>
   </section>
