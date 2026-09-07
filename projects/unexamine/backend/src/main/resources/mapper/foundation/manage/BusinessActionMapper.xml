@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.foundation.manage.control.BusinessActionMapper">
+  <insert id="claim">
+    INSERT INTO core_idempotency_record
+      (context_key, operation_code, idempotency_key, request_hash, status, response_code, locked_until, expires_at)
+    VALUES (#{contextKey}, #{operation}, #{key}, #{hash}, 'PROCESSING', #{claim},
+            DATE_ADD(NOW(3), INTERVAL 2 MINUTE), DATE_ADD(NOW(3), INTERVAL 24 HOUR))
+    ON DUPLICATE KEY UPDATE id = id
+  </insert>
+  <select id="lock" resultType="com.unique.unexamine.foundation.base.entity.CoreIdempotencyRecord">
+    SELECT * FROM core_idempotency_record
+    WHERE context_key = #{contextKey} AND operation_code = #{operation} AND idempotency_key = #{key}
+    FOR UPDATE
+  </select>
+  <select id="lockEvent" resultType="com.unique.unexamine.foundation.base.entity.CoreEventOutbox">
+    SELECT * FROM core_event_outbox WHERE id = #{id} FOR UPDATE
+  </select>
+  <select id="activeActor" resultType="int">
+    SELECT COUNT(*) FROM sys_tenant_member tm
+    JOIN sys_member m ON m.id = tm.system_member_id AND m.system_id = tm.system_id
+    JOIN sys_tenant t ON t.id = tm.tenant_id AND t.system_id = tm.system_id
+    WHERE tm.id = #{actor.tenantMemberId} AND tm.system_id = #{actor.systemId}
+      AND tm.tenant_id = #{actor.tenantId} AND tm.system_member_id = #{actor.memberId}
+      AND m.account_id = #{actor.accountId}
+      AND tm.status = 'ACTIVE' AND m.status = 'ACTIVE' AND t.status = 'ACTIVE'
+  </select>
+</mapper>
