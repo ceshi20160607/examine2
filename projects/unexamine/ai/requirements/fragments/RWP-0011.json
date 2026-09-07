@@ -1,1 +1,30 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0011","requirements":[{"id":"REQ-CAPABILITY-BOUNDARIES","title":"模块、应用、Flow、任务、待办和消息边界","statement":"模块组只组织导航，应用只提供受控访问，Flow 绑定模块动作或平台运行，模块动作承载具体业务；工作任务与 Flow 任务分表建模但可汇总到待办，平台与系统同名能力共享模型并按上下文、权限、数据和日志隔离。","type":"constraint","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0072"],"acceptanceCriteria":["能力归属表中每项能力只有一个主归属。","不存在应用挂模块、后台任务形成重复业务入口或工作任务与 Flow 任务混表。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0072","classification":"requirement","requirementIds":["REQ-CAPABILITY-BOUNDARIES"],"rationale":"跨能力唯一边界。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0072"
+      ],
+      "sourceBlock": "B0072"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0011",
+  "requirements": [
+    {
+      "id": "CAND-B0072",
+      "sourceBlocks": [
+        "B0072"
+      ],
+      "statement": "- 模块组只组织运行态模块导航，不是业务数据父级。\n- 应用只提供受控访问，不组织模块。\n- 系统Flow可以绑定模块及其动作或事件；平台Flow可以独立存在。\n- 模块动作负责具体业务操作；公共后台任务、文件和消息能力只承载动作执行，不形成重复业务入口。\n- 普通任务、项目任务和工作日志属于工作管理；Flow任务属于Flow运行数据，二者可以统一展示在待办中，但不能混成一张任务表。\n- 平台待办、消息、任务和Flow与系统内同名能力共享产品模型，但必须按上下文、数据范围、权限和日志隔离。",
+      "title": "4.6 能力关系与边界",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

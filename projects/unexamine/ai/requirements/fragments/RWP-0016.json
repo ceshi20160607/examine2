@@ -1,1 +1,98 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0016","requirements":[{"id":"REQ-APPLICATION-BRIDGE","title":"应用作为唯一受控通信桥梁","statement":"平台应用和系统应用分别配置并隔离授权，统一承载外部访问和系统内受控访问；系统间调用通过目标系统应用授权，平台外调用系统模块动作或系统 Flow 通过系统应用授权，平台外调用平台 Flow 通过平台应用授权。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0089","B0090","B0091","B0092","B0093"],"acceptanceCriteria":["应用支持创建编辑复制启停删除且停用保留配置、授权和历史调用。","应用配置身份、版本化密钥、回调、资源动作字段数据系统租户范围、签名、防重放、幂等、限流、IP、失败停用策略、示例错误和审计。","配置支持草稿、发布、版本、回滚、导入和导出。","系统 A 只有获得系统 B 应用授权并通过 B 的身份与数据校验后才能调用 B。"],"decisionIds":[]},{"id":"REQ-NO-SEPARATE-INTERFACE-CENTER","title":"不建设独立接口开放中心","statement":"凭证、授权、调用控制、接入说明、异常和调用日志全部归属应用，不建设与应用并列的接口开放产品或配置中心。","type":"non-goal","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0093"],"acceptanceCriteria":["导航、权限和后台配置中不存在独立接口开放中心。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0089","classification":"requirement","requirementIds":["REQ-APPLICATION-BRIDGE"],"rationale":"应用定义和归属。"},{"sourceBlock":"B0090","classification":"context","requirementIds":[],"rationale":"必需能力引导语。"},{"sourceBlock":"B0091","classification":"requirement","requirementIds":["REQ-APPLICATION-BRIDGE"],"rationale":"应用完整配置目录。"},{"sourceBlock":"B0092","classification":"context","requirementIds":[],"rationale":"约束引导语。"},{"sourceBlock":"B0093","classification":"requirement","requirementIds":["REQ-APPLICATION-BRIDGE","REQ-NO-SEPARATE-INTERFACE-CENTER"],"rationale":"应用边界与非目标。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0089"
+      ],
+      "sourceBlock": "B0089"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0090"
+      ],
+      "sourceBlock": "B0090"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0091"
+      ],
+      "sourceBlock": "B0091"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0092"
+      ],
+      "sourceBlock": "B0092"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0093"
+      ],
+      "sourceBlock": "B0093"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0016",
+  "requirements": [
+    {
+      "id": "CAND-B0089",
+      "sourceBlocks": [
+        "B0089"
+      ],
+      "statement": "应用是平台或系统向受控访问方开放能力的载体，同时覆盖外部访问和系统内受控访问。平台应用可以开放平台 Flow；系统应用可以开放本系统的模块、模块动作和 Flow。应用不是模块的父级容器，不负责组织普通用户的业务导航。",
+      "title": "5.3 应用",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0090",
+      "sourceBlocks": [
+        "B0090"
+      ],
+      "statement": "必须包含：",
+      "title": "5.3 应用",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0091",
+      "sourceBlocks": [
+        "B0091"
+      ],
+      "statement": "- 平台应用和系统应用，两者分别在平台后台、系统后台配置并隔离授权范围。\n- 创建、编辑、复制、启用、停用和删除应用；停用不删除配置、授权和历史调用记录。\n- 应用名称、编码、图标、说明、归属层级、状态和版本。\n- 访问方式：外部访问、系统内访问，允许同时启用并分别授权。\n- 访问入口、身份识别方式、密钥引用及版本、回调地址。\n- 授权资源：平台 Flow，或指定系统内的模块、模块动作和 Flow。\n- 操作权限、字段权限、数据范围、系统范围和租户范围。\n- 签名、防重放、幂等、限流、IP 白名单、失败策略和停用策略。\n- 应用调用示例、错误说明、调用日志、耗时、结果和 requestId。\n- 应用配置的草稿、发布、版本、回滚、导入和导出。",
+      "title": "5.3 应用",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0092",
+      "sourceBlocks": [
+        "B0092"
+      ],
+      "statement": "约束：",
+      "title": "5.3 应用",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0093",
+      "sourceBlocks": [
+        "B0093"
+      ],
+      "statement": "- 模块必须归属模块组，不能挂在应用下面。\n- 普通用户通过仪表盘和模块组进入业务，不另设应用运行入口。\n- 对内与对外访问均必须经过应用授权、当前身份权限和数据范围校验；应用本身不能绕过系统、租户和模块权限。\n- 不建设与“应用”并列的独立接口开放中心，凭证、授权、调用控制、接入说明和日志都收敛在应用配置及应用记录中。",
+      "title": "5.3 应用",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

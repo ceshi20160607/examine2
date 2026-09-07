@@ -1,1 +1,64 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0113","requirements":[],"decisions":[],"coverage":[{"sourceBlock":"B0640","classification":"engineering-setting","requirementIds":[],"rationale":"说明依赖应按项目稳定性锁定版本，不形成额外产品范围。"},{"sourceBlock":"B0641","classification":"context","requirementIds":[],"rationale":"官方参考链接，技术选择已在技术基线与 PM 决策中确定。"},{"sourceBlock":"B0642","classification":"context","requirementIds":[],"rationale":"Markdown 分隔符。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0640"
+      ],
+      "sourceBlock": "B0640"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0641"
+      ],
+      "sourceBlock": "B0641"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0642"
+      ],
+      "sourceBlock": "B0642"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0113",
+  "requirements": [
+    {
+      "id": "CAND-B0640",
+      "sourceBlocks": [
+        "B0640"
+      ],
+      "statement": "下面是本方案参考的主流官方方向，不绑定死版本，实际开发时以项目依赖和稳定性为准：",
+      "title": "15. 参考技术方向",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0641",
+      "sourceBlocks": [
+        "B0641"
+      ],
+      "statement": "- Vue：`https://vuejs.org/`\n- Vite：`https://vite.dev/`\n- Spring Boot：`https://docs.spring.io/spring-boot/`\n- Ant Design Vue：`https://ant-design-vue.github.io/`\n- Element Plus：`https://element-plus.org/`\n- Naive UI：`https://www.naiveui.com/`\n- TanStack Table：`https://tanstack.com/table`\n- AG Grid：`https://www.ag-grid.com/`\n- Vue Flow：`https://vueflow.dev/`",
+      "title": "15. 参考技术方向",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0642",
+      "sourceBlocks": [
+        "B0642"
+      ],
+      "statement": "---",
+      "title": "15. 参考技术方向",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

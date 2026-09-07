@@ -1,1 +1,217 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0022","requirements":[{"id":"REQ-MODULE-PAGE-TYPES","title":"模块列表、表单、详情和自定义页面","statement":"模块支持列表、表单、详情、仪表盘和自定义页面；列表配置列、搜索筛选分页批量行操作和视图，表单配置分组布局联动校验子表附件草稿，详情配置字段附件关联子表 Flow 历史日志和评论。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0129","B0130","B0131","B0132","B0133","B0134","B0135","B0136"],"acceptanceCriteria":["发布页面配置后运行态按发布版本渲染，草稿不影响当前用户。","新建记录保存后列表刷新且最新记录出现在正确排序位置，详情读回字段、附件、关联和子表。","列表批量和行操作只在选择及权限满足时出现。"],"decisionIds":[]},{"id":"REQ-CONFIGURABLE-DASHBOARD","title":"多层级可配置仪表盘","statement":"仪表盘是由多个组件构成的可配置页面，每个组件配置数据源、统计、筛选、样式、刷新和跳转；支持平台公共、系统公共、模块和个人首页，公共仪表盘由管理员发布，个人仪表盘由用户保存。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0137","B0138","B0139","B0140"],"acceptanceCriteria":["管理员可配置并发布指标、图表、排名、进度、待办、列表、快捷入口和 KPI 组件。","组件只能读取当前上下文和权限范围数据，点击后进入授权列表或详情。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0129","classification":"context","requirementIds":[],"rationale":"页面类型引导语。"},{"sourceBlock":"B0130","classification":"requirement","requirementIds":["REQ-MODULE-PAGE-TYPES"],"rationale":"页面类型目录。"},{"sourceBlock":"B0131","classification":"context","requirementIds":[],"rationale":"列表页引导语。"},{"sourceBlock":"B0132","classification":"requirement","requirementIds":["REQ-MODULE-PAGE-TYPES"],"rationale":"列表配置目录。"},{"sourceBlock":"B0133","classification":"context","requirementIds":[],"rationale":"表单页引导语。"},{"sourceBlock":"B0134","classification":"requirement","requirementIds":["REQ-MODULE-PAGE-TYPES"],"rationale":"表单配置目录。"},{"sourceBlock":"B0135","classification":"context","requirementIds":[],"rationale":"详情页引导语。"},{"sourceBlock":"B0136","classification":"requirement","requirementIds":["REQ-MODULE-PAGE-TYPES"],"rationale":"详情配置目录。"},{"sourceBlock":"B0137","classification":"context","requirementIds":[],"rationale":"仪表盘页引导语。"},{"sourceBlock":"B0138","classification":"requirement","requirementIds":["REQ-CONFIGURABLE-DASHBOARD"],"rationale":"仪表盘组件目录。"},{"sourceBlock":"B0139","classification":"context","requirementIds":[],"rationale":"仪表盘定义引导语。"},{"sourceBlock":"B0140","classification":"requirement","requirementIds":["REQ-CONFIGURABLE-DASHBOARD"],"rationale":"仪表盘定义与层级。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0129"
+      ],
+      "sourceBlock": "B0129"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0130"
+      ],
+      "sourceBlock": "B0130"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0131"
+      ],
+      "sourceBlock": "B0131"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0132"
+      ],
+      "sourceBlock": "B0132"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0133"
+      ],
+      "sourceBlock": "B0133"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0134"
+      ],
+      "sourceBlock": "B0134"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0135"
+      ],
+      "sourceBlock": "B0135"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0136"
+      ],
+      "sourceBlock": "B0136"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0137"
+      ],
+      "sourceBlock": "B0137"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0138"
+      ],
+      "sourceBlock": "B0138"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0139"
+      ],
+      "sourceBlock": "B0139"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0140"
+      ],
+      "sourceBlock": "B0140"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0022",
+  "requirements": [
+    {
+      "id": "CAND-B0129",
+      "sourceBlocks": [
+        "B0129"
+      ],
+      "statement": "页面类型：",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0130",
+      "sourceBlocks": [
+        "B0130"
+      ],
+      "statement": "- 列表页。\n- 表单页。\n- 详情页。\n- 仪表盘页。\n- 自定义页面。",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0131",
+      "sourceBlocks": [
+        "B0131"
+      ],
+      "statement": "列表页：",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0132",
+      "sourceBlocks": [
+        "B0132"
+      ],
+      "statement": "- 显示列。\n- 固定列。\n- 列宽。\n- 排序。\n- 搜索。\n- 高级筛选。\n- 分页。\n- 批量选择。\n- 批量删除。\n- 批量导出。\n- 行内操作。\n- 保存视图。",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0133",
+      "sourceBlocks": [
+        "B0133"
+      ],
+      "statement": "表单页：",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0134",
+      "sourceBlocks": [
+        "B0134"
+      ],
+      "statement": "- 字段分组。\n- 两列布局。\n- 折叠分组。\n- 只读字段。\n- 隐藏字段。\n- 联动显示。\n- 必填校验。\n- 子表。\n- 附件上传。\n- 保存草稿。",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0135",
+      "sourceBlocks": [
+        "B0135"
+      ],
+      "statement": "详情页：",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0136",
+      "sourceBlocks": [
+        "B0136"
+      ],
+      "statement": "- 字段展示。\n- 附件预览。\n- 关联数据。\n- 子表数据。\n- 流程状态。\n- 变更历史。\n- 操作记录。\n- 评论备注。",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0137",
+      "sourceBlocks": [
+        "B0137"
+      ],
+      "statement": "仪表盘页：",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0138",
+      "sourceBlocks": [
+        "B0138"
+      ],
+      "statement": "- 指标卡片。\n- 折线图。\n- 柱状图。\n- 饼图。\n- 排名榜。\n- 进度条。\n- 待办列表。\n- 数据列表。\n- 快捷入口。\n- KPI 目标达成情况。",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0139",
+      "sourceBlocks": [
+        "B0139"
+      ],
+      "statement": "仪表盘定义：",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0140",
+      "sourceBlocks": [
+        "B0140"
+      ],
+      "statement": "- 一个仪表盘是一张可配置页面。\n- 一个仪表盘包含多个组件。\n- 每个组件都有自己的数据源、统计方式、筛选条件、展示样式、刷新方式和点击跳转规则。\n- 仪表盘支持平台公共首页、系统公共首页、模块首页和个人首页。\n- 公共仪表盘由管理员发布，个人仪表盘由用户自己保存。",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

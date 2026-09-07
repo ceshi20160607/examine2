@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0034","requirements":[{"id":"REQ-QUERYABLE-AUDIT-LOG","title":"异步可查询的全域日志审计","statement":"日志覆盖登录、操作、数据变更、Flow、应用调用、文件和导出任务，可按人、时间、类型、系统和应用查询；关键操作完整追溯且日志写入不能阻塞主要业务事务。","type":"quality","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0225","B0226","B0227","B0228"],"acceptanceCriteria":["每类关键操作可由 requestId 或 traceId 关联到操作者、对象、动作、前后状态和结果。","日志查询执行当前层级与权限过滤。","日志异步或事务后写入失败时有补偿和告警，不造成业务半成功。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0225","classification":"context","requirementIds":[],"rationale":"必需日志引导语。"},{"sourceBlock":"B0226","classification":"requirement","requirementIds":["REQ-QUERYABLE-AUDIT-LOG"],"rationale":"日志类型目录。"},{"sourceBlock":"B0227","classification":"context","requirementIds":[],"rationale":"优化要求引导语。"},{"sourceBlock":"B0228","classification":"requirement","requirementIds":["REQ-QUERYABLE-AUDIT-LOG"],"rationale":"查询追溯和性能约束。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0225"
+      ],
+      "sourceBlock": "B0225"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0226"
+      ],
+      "sourceBlock": "B0226"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0227"
+      ],
+      "sourceBlock": "B0227"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0228"
+      ],
+      "sourceBlock": "B0228"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0034",
+  "requirements": [
+    {
+      "id": "CAND-B0225",
+      "sourceBlocks": [
+        "B0225"
+      ],
+      "statement": "必须包含：",
+      "title": "5.17 日志和审计",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0226",
+      "sourceBlocks": [
+        "B0226"
+      ],
+      "statement": "- 登录日志。\n- 操作日志。\n- 数据变更历史。\n- 流程操作日志。\n- 应用调用日志。\n- 文件操作日志。\n- 导出任务日志。",
+      "title": "5.17 日志和审计",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0227",
+      "sourceBlocks": [
+        "B0227"
+      ],
+      "statement": "优化：",
+      "title": "5.17 日志和审计",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0228",
+      "sourceBlocks": [
+        "B0228"
+      ],
+      "statement": "- 日志可按人、时间、类型、系统、应用查询。\n- 关键操作必须可追溯。\n- 日志不要拖慢业务操作。",
+      "title": "5.17 日志和审计",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

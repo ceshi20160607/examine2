@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0076","requirements":[{"id":"REQ-CONFIG-VERSION-HISTORY","title":"关键配置不可变版本和历史使用","statement":"模块字段、页面、Flow、打印模板、导入导出和权限配置均保留版本；管理员可回滚误改，运行端只用已发布版本，已有 Flow 实例和历史单据继续使用创建时的 Flow 或打印模板版本。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0457","B0458","B0459","B0460"],"acceptanceCriteria":["每次发布产生不可变版本并记录发布人、时间和变更摘要。","回滚通过重新发布历史版本实现，不篡改历史版本内容。","未发布字段或页面草稿不影响普通用户，旧 Flow 实例继续按原快照运行。","历史单据可选择或自动使用其关联的历史打印模板生成一致结果。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0457","classification":"context","requirementIds":[],"rationale":"版本管理引导语。"},{"sourceBlock":"B0458","classification":"requirement","requirementIds":["REQ-CONFIG-VERSION-HISTORY"],"rationale":"需版本化的配置范围。"},{"sourceBlock":"B0459","classification":"context","requirementIds":[],"rationale":"版本场景引导语。"},{"sourceBlock":"B0460","classification":"requirement","requirementIds":["REQ-CONFIG-VERSION-HISTORY"],"rationale":"回滚、运行版本和历史快照。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0457"
+      ],
+      "sourceBlock": "B0457"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0458"
+      ],
+      "sourceBlock": "B0458"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0459"
+      ],
+      "sourceBlock": "B0459"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0460"
+      ],
+      "sourceBlock": "B0460"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0076",
+  "requirements": [
+    {
+      "id": "CAND-B0457",
+      "sourceBlocks": [
+        "B0457"
+      ],
+      "statement": "关键配置必须有版本：",
+      "title": "14.1 配置版本管理",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0458",
+      "sourceBlocks": [
+        "B0458"
+      ],
+      "statement": "- 模块字段版本。\n- 页面配置版本。\n- 流程版本。\n- 打印模板版本。\n- 导入导出配置版本。\n- 权限配置版本。",
+      "title": "14.1 配置版本管理",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0459",
+      "sourceBlocks": [
+        "B0459"
+      ],
+      "statement": "使用场景：",
+      "title": "14.1 配置版本管理",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0460",
+      "sourceBlocks": [
+        "B0460"
+      ],
+      "statement": "- 管理员改错字段后，可以回到上一版。\n- 页面发布后，运行端使用发布版本，未发布草稿不影响用户。\n- 流程发布后，老流程实例继续按老版本走，新实例使用新版本。\n- 打印模板改版后，历史单据可以按历史模板打印。",
+      "title": "14.1 配置版本管理",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

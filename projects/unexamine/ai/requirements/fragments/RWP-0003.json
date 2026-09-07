@@ -1,1 +1,183 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0003","requirements":[{"id":"REQ-PRODUCT-GOALS","title":"平台核心使用目标","statement":"管理员能配置系统能力，普通用户能在授权系统使用模块，内外访问方能通过应用安全调用，项目能稳定部署升级维护。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0010"],"acceptanceCriteria":["管理员、普通用户、应用调用方和运维人员分别有真实入口完成对应目标。"],"decisionIds":[]},{"id":"REQ-CONFIGURABLE-BUSINESS-SCENARIOS","title":"通过通用能力组合业务场景","statement":"客户、合同、订单、项目、任务、审批、资产、工单、巡检、台账及轻量 CRM/OA/进销存/ERP/MES/售后场景必须由通用模块、字段、子表、Flow、规则、KPI、打印和仪表盘能力组合，不建设重型行业套件。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0013","B0015"],"acceptanceCriteria":["管理员可以用同一套低代码能力配置至少一种台账场景和一种带 Flow 的业务场景。","产品中不出现独立重型 ERP 或 MES 套件。"],"decisionIds":[]},{"id":"REQ-ADMIN-NO-CODE-JOURNEY","title":"管理员无代码建模旅程","statement":"不会写代码的管理员必须能按系统、模块组、模块、字段、动作、菜单发布、权限、Flow、可选应用、成员和导出顺序完成系统搭建。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0017","B0018","B0019"],"acceptanceCriteria":["从系统后台真实页面完成完整建模并发布后，授权用户在运行态看到模块组和模块。","应用不成为模块父级。"],"decisionIds":[]},{"id":"REQ-END-USER-BUSINESS-JOURNEY","title":"普通用户业务旅程","statement":"普通用户必须能登录并进入授权系统，使用模块菜单完成增改查筛选、详情、附件、审批、消息和权限内导出。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0020","B0021"],"acceptanceCriteria":["页面旅程逐步验证登录、进入系统、新建业务数据、列表首行读回、详情、附件、审批、消息和导出权限。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0010","classification":"requirement","requirementIds":["REQ-PRODUCT-GOALS"],"rationale":"总体目标。"},{"sourceBlock":"B0012","classification":"context","requirementIds":[],"rationale":"覆盖范围引导语。"},{"sourceBlock":"B0013","classification":"requirement","requirementIds":["REQ-CONFIGURABLE-BUSINESS-SCENARIOS"],"rationale":"可组合场景目录。"},{"sourceBlock":"B0014","classification":"context","requirementIds":[],"rationale":"说明引导语。"},{"sourceBlock":"B0015","classification":"requirement","requirementIds":["REQ-CONFIGURABLE-BUSINESS-SCENARIOS"],"rationale":"轻量场景边界。"},{"sourceBlock":"B0017","classification":"requirement","requirementIds":["REQ-ADMIN-NO-CODE-JOURNEY"],"rationale":"管理员角色前提。"},{"sourceBlock":"B0018","classification":"requirement","requirementIds":["REQ-ADMIN-NO-CODE-JOURNEY"],"rationale":"管理员完整旅程。"},{"sourceBlock":"B0019","classification":"requirement","requirementIds":["REQ-ADMIN-NO-CODE-JOURNEY"],"rationale":"建模边界。"},{"sourceBlock":"B0020","classification":"requirement","requirementIds":["REQ-END-USER-BUSINESS-JOURNEY"],"rationale":"普通用户角色前提。"},{"sourceBlock":"B0021","classification":"requirement","requirementIds":["REQ-END-USER-BUSINESS-JOURNEY"],"rationale":"普通用户完整旅程。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0010"
+      ],
+      "sourceBlock": "B0010"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0012"
+      ],
+      "sourceBlock": "B0012"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0013"
+      ],
+      "sourceBlock": "B0013"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0014"
+      ],
+      "sourceBlock": "B0014"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0015"
+      ],
+      "sourceBlock": "B0015"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0017"
+      ],
+      "sourceBlock": "B0017"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0018"
+      ],
+      "sourceBlock": "B0018"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0019"
+      ],
+      "sourceBlock": "B0019"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0020"
+      ],
+      "sourceBlock": "B0020"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0021"
+      ],
+      "sourceBlock": "B0021"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0003",
+  "requirements": [
+    {
+      "id": "CAND-B0010",
+      "sourceBlocks": [
+        "B0010"
+      ],
+      "statement": "- 管理员可以创建系统，并通过模块组、模块、字段、动作和 Flow 搭建业务能力。\n- 普通用户可以在有权限的系统中顺手使用业务模块。\n- 平台内、系统内和外部访问方可以通过已授权应用安全访问能力。\n- 项目可以稳定部署、升级、维护。",
+      "title": "2.1 产品目标",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0012",
+      "sourceBlocks": [
+        "B0012"
+      ],
+      "statement": "这套产品要能支撑：",
+      "title": "2.2 覆盖范围",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0013",
+      "sourceBlocks": [
+        "B0013"
+      ],
+      "statement": "- 客户管理。\n- 合同管理。\n- 订单管理。\n- 项目管理。\n- 任务管理。\n- 报销审批。\n- 请假审批。\n- 采购申请。\n- 资产管理。\n- 工单处理。\n- 设备巡检。\n- 内部台账。\n- 简单 CRM。\n- 简单 OA。\n- 简单进销存。\n- 轻量 ERP 子场景。\n- 轻量 MES 子场景。\n- 简单售后系统。",
+      "title": "2.2 覆盖范围",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0014",
+      "sourceBlocks": [
+        "B0014"
+      ],
+      "statement": "说明：",
+      "title": "2.2 覆盖范围",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0015",
+      "sourceBlocks": [
+        "B0015"
+      ],
+      "statement": "- ERP 和 MES 不单独做重型行业套件。\n- 通过模块、字段、子表、流程、规则、KPI、打印模板、仪表盘等能力，组合出轻量 ERP 和轻量 MES 场景。\n- 例如采购、销售、库存台账、生产工单、质检记录、设备巡检，都可以作为普通模块配置出来。",
+      "title": "2.2 覆盖范围",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0017",
+      "sourceBlocks": [
+        "B0017"
+      ],
+      "statement": "一个不会写代码的管理员，应该可以完成：",
+      "title": "2.3 核心判断标准",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0018",
+      "sourceBlocks": [
+        "B0018"
+      ],
+      "statement": "1. 创建一个系统。\n2. 创建一个**模块组**（运行态顶栏导航分组）。\n3. 在模块组下创建业务模块。\n4. 配置字段。\n5. 配置页面动作（含导出）。\n6. 配置菜单与发布。\n7. 配置角色权限。\n8. 配置审批流程。\n9. （可选）配置应用的外部访问或系统内访问入口。\n10. 邀请用户使用。\n11. 导出数据或开放接口。",
+      "title": "2.3 核心判断标准",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0019",
+      "sourceBlocks": [
+        "B0019"
+      ],
+      "statement": "> **统一边界：** 建模主链是“系统 → 模块组 → 模块”，不是“应用 → 模块”。应用用于提供外部访问和系统内受控访问，见 4.2、5.3 和附录 A。",
+      "title": "2.3 核心判断标准",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0020",
+      "sourceBlocks": [
+        "B0020"
+      ],
+      "statement": "普通用户应该可以完成：",
+      "title": "2.3 核心判断标准",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0021",
+      "sourceBlocks": [
+        "B0021"
+      ],
+      "statement": "1. 登录。\n2. 进入自己有权限的系统。\n3. 打开业务菜单。\n4. 新增和编辑数据。\n5. 查询和筛选数据。\n6. 查看详情。\n7. 上传附件。\n8. 处理审批。\n9. 查看消息。\n10. 导出自己有权限的数据。",
+      "title": "2.3 核心判断标准",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

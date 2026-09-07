@@ -1,5 +1,7 @@
 package com.unique.unexamine.runtimedata.manage;
 
+import com.unique.unexamine.foundation.manage.control.BusinessAction;
+
 import com.unique.unexamine.shared.manage.web.ApiResult;
 import com.unique.unexamine.authentication.manage.AuthenticationContextHolder;
 import com.unique.unexamine.shared.manage.web.TraceIdFilter;
@@ -163,8 +165,8 @@ public class RuntimeDataController {
             @PathVariable Long recordId,
             @Valid @RequestBody RecordLifecycleRequest body,
             HttpServletRequest request) {
-        return ApiResult.ok(runtimeDataService.delete(AuthenticationContextHolder.require(), moduleCode,
-                recordId, body, TraceIdFilter.current(request)));
+        return ApiResult.ok(runtimeDataService.deleteAction(AuthenticationContextHolder.require(), moduleCode,
+                recordId, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))).value());
     }
 
     @PostMapping("/{recordId}/restore")
@@ -192,8 +194,8 @@ public class RuntimeDataController {
             @PathVariable String moduleCode,
             @Valid @RequestBody CreateRuntimeRecordRequest body,
             HttpServletRequest request) {
-        return ApiResult.ok(runtimeDataService.create(
-                AuthenticationContextHolder.require(), moduleCode, body, TraceIdFilter.current(request)));
+        return ApiResult.ok(runtimeDataService.createAction(
+                AuthenticationContextHolder.require(), moduleCode, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))).value());
     }
 
     @PutMapping("/{recordId}")
@@ -202,7 +204,7 @@ public class RuntimeDataController {
             @PathVariable Long recordId,
             @Valid @RequestBody UpdateRuntimeRecordRequest body,
             HttpServletRequest request) {
-        return ApiResult.ok(runtimeDataService.update(
-                AuthenticationContextHolder.require(), moduleCode, recordId, body, TraceIdFilter.current(request)));
+        return ApiResult.ok(runtimeDataService.updateAction(
+                AuthenticationContextHolder.require(), moduleCode, recordId, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))).value());
     }
 }

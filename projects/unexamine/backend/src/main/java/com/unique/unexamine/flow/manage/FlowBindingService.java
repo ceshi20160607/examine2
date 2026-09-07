@@ -190,6 +190,32 @@ public class FlowBindingService {
             AuthenticatedContext context, FlowBindingModels.ResolveBindingRequest input, String traceId) {
         requireSystem(context);
         requireAction(context, "TRIGGER");
+        return resolveInternal(context, input, traceId, false);
+    }
+
+    /** Called only after the business service has checked module/action/data permissions. */
+    @Transactional
+    public FlowBindingModels.ResolutionView resolveForAction(
+            AuthenticatedContext context, Long moduleId, String actionCode,
+            Map<String, Object> variables, String traceId) {
+        requireSystem(context);
+        Long mainTenantId = mainTenant(context.systemId()).getId();
+        ConfiguredModuleAction action = actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
+                .eq(ConfiguredModuleAction::getModuleId, moduleId)
+                .eq(ConfiguredModuleAction::getCode, actionCode)
+                .eq(ConfiguredModuleAction::getStatus, "ACTIVE")).stream().findFirst().orElse(null);
+        Long actionId = action == null ? null : action.getId();
+        if (actionId != null && activeBindings(context.systemId(), context.tenantId(), moduleId, actionId, actionCode).isEmpty()
+                && activeBindings(context.systemId(), mainTenantId, moduleId, actionId, actionCode).isEmpty()) {
+            actionId = null;
+        }
+        return resolveInternal(context, new FlowBindingModels.ResolveBindingRequest(
+                moduleId, actionId, actionCode, variables), traceId, true);
+    }
+
+    private FlowBindingModels.ResolutionView resolveInternal(
+            AuthenticatedContext context, FlowBindingModels.ResolveBindingRequest input, String traceId,
+            boolean optional) {
         ConfiguredModule module = requireModule(context, input.moduleId());
         ConfiguredModuleAction action = requireActionTarget(context, module, input.actionId());
         String event = normalizeEvent(input.triggerEvent());
@@ -205,10 +231,12 @@ public class FlowBindingService {
         FlowTriggerBinding binding = !own.isEmpty() ? own.getFirst()
                 : !defaults.isEmpty() ? defaults.getFirst() : null;
         if (binding == null) {
+            if (optional) return null;
             throw new DomainException("FLOW_BINDING_NOT_FOUND", "当前业务触发点没有可用 Flow 绑定", HttpStatus.NOT_FOUND);
         }
         BindingPolicy policy = policy(binding);
         if (!matches(policy.conditionExpression(), input.variables())) {
+            if (optional) return null;
             throw invalid("FLOW_BINDING_CONDITION_NOT_MATCHED", "业务数据未命中 Flow 绑定条件");
         }
         FlowDefinition flow = definitionService.selectById(binding.getFlowId());

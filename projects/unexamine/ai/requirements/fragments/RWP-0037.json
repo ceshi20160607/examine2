@@ -1,1 +1,132 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0037","requirements":[{"id":"REQ-AI-PERMISSIONED-QUERY","title":"说明口径的权限内 AI 查询","statement":"用户可对话查询统计、列表、趋势、待办、任务、工作日志和项目进度；结果按当前系统租户、角色、字段、数据范围和脱敏限制，并说明统计范围、时间、模块及筛选口径，导出批量和 Flow 动作二次确认。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0255","B0256"],"acceptanceCriteria":["同一问题由不同权限用户查询得到符合各自范围的结果。","结果页面展示口径和来源，禁止返回无权限字段或敏感原值。"],"decisionIds":[]},{"id":"REQ-AI-AUDIT-DEGRADE","title":"AI 全链审计和失败降级","statement":"平台及系统配置模型和 Agent 范围、确认、失败降级和日志保留；每次查询、生成、写入、失败、人工确认及模型调用写审计，外部模型不可用时停用智能写入并降级到允许能力。","type":"quality","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0257","B0258","B0259","B0260","B0261"],"acceptanceCriteria":["审计可追溯模型授权、策略、提示词、确认人和最终副作用。","关闭外部模型或调用失败时不会产生未确认写入，并向用户显示明确降级状态。","AI 入口和边界先于具体模型编排完成，敏感数据外发受开关和脱敏控制。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0255","classification":"context","requirementIds":[],"rationale":"AI 查询引导语。"},{"sourceBlock":"B0256","classification":"requirement","requirementIds":["REQ-AI-PERMISSIONED-QUERY"],"rationale":"查询范围和口径。"},{"sourceBlock":"B0257","classification":"context","requirementIds":[],"rationale":"配置审计引导语。"},{"sourceBlock":"B0258","classification":"requirement","requirementIds":["REQ-AI-AUDIT-DEGRADE"],"rationale":"平台系统配置、审计和降级。"},{"sourceBlock":"B0259","classification":"context","requirementIds":[],"rationale":"落地顺序引导语。"},{"sourceBlock":"B0260","classification":"requirement","requirementIds":["REQ-AI-AUDIT-DEGRADE"],"rationale":"基础能力依赖和入口边界。"},{"sourceBlock":"B0261","classification":"requirement","requirementIds":["REQ-AI-AUDIT-DEGRADE"],"rationale":"权限、确认和外发非功能约束。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0255"
+      ],
+      "sourceBlock": "B0255"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0256"
+      ],
+      "sourceBlock": "B0256"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0257"
+      ],
+      "sourceBlock": "B0257"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0258"
+      ],
+      "sourceBlock": "B0258"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0259"
+      ],
+      "sourceBlock": "B0259"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0260"
+      ],
+      "sourceBlock": "B0260"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0261"
+      ],
+      "sourceBlock": "B0261"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0037",
+  "requirements": [
+    {
+      "id": "CAND-B0255",
+      "sourceBlocks": [
+        "B0255"
+      ],
+      "statement": "- 用户可以通过对话查询统计、列表、趋势、待办、任务、工作日志和项目进度。\n- 查询结果必须受当前用户权限、字段权限、数据范围和脱敏规则限制。\n- 返回结果要说明口径，例如统计范围、时间范围、系统、租户、模块和筛选条件。\n- 涉及导出、批量修改、发起流程等动作时必须二次确认。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0256",
+      "sourceBlocks": [
+        "B0256"
+      ],
+      "statement": "AI Agent 配置和审计：",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0257",
+      "sourceBlocks": [
+        "B0257"
+      ],
+      "statement": "- 平台配置模型供应商、模型、调用额度、并发、脱敏、数据出境策略和授权系统。\n- 系统配置 Agent 可访问模块、字段、动作、确认策略、失败降级、日志保留。\n- 每次 Agent 查询、生成、写入、失败、人工确认都要记录审计日志。\n- 外部模型不可用时要有降级策略，例如停用智能写入、只保留模板化查询或提示稍后重试。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0258",
+      "sourceBlocks": [
+        "B0258"
+      ],
+      "statement": "设计落地顺序：",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0259",
+      "sourceBlocks": [
+        "B0259"
+      ],
+      "statement": "- AI Agent 必须建立在平台/系统/字段/流程/权限/日志等基础能力之上。\n- 当前设计阶段要先把 AI Agent 的配置入口、运行入口、权限边界、人工确认、审计日志、失败降级和工作管理联动画出来。\n- 具体模型接入、提示词编排和复杂自动化执行可以在基础能力确认后细化，但不能缺少产品入口和开发边界。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0260",
+      "sourceBlocks": [
+        "B0260"
+      ],
+      "statement": "注意：",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0261",
+      "sourceBlocks": [
+        "B0261"
+      ],
+      "statement": "- 智能能力不能替代权限。\n- 智能生成的东西必须让管理员确认后保存。\n- 不能把敏感数据随便发送到外部服务。\n- 外部模型调用必须有开关、脱敏、授权、审计和失败降级。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

@@ -1,1 +1,115 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0029","requirements":[{"id":"REQ-FLOW-MANUAL-NODE","title":"运行中有审计的手动加节点","statement":"有权限人员可在运行中增加审批或抄送节点，必须记录添加人、原因、位置和配置快照，且不能改变已完成节点历史。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0189","B0190"],"acceptanceCriteria":["新增节点插入指定位置后流程按新快照继续。","已完成节点、意见和日志保持不可变。"],"decisionIds":[]},{"id":"REQ-FLOW-RUNTIME-ACTIONS","title":"Flow 发起、处理和可解释运行","statement":"Flow 运行支持发起、待办、抄送、我的申请、实例详情、同意、拒绝、转办、领取取消、撤回、终止、加减签、催办和评论；审批页同时展示业务、流程图、历史和允许操作。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0191","B0192","B0193","B0194"],"acceptanceCriteria":["每个处理动作产生可见状态变化、持久化任务结果和操作日志。","页面能说明当前路径、候选人、字段权限和超时处理。","子流程结束后父流程按配置继续或结束，不得卡住。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0189","classification":"context","requirementIds":[],"rationale":"手动节点引导语。"},{"sourceBlock":"B0190","classification":"requirement","requirementIds":["REQ-FLOW-MANUAL-NODE"],"rationale":"运行中加节点规则。"},{"sourceBlock":"B0191","classification":"context","requirementIds":[],"rationale":"运行能力引导语。"},{"sourceBlock":"B0192","classification":"requirement","requirementIds":["REQ-FLOW-RUNTIME-ACTIONS"],"rationale":"运行动作目录。"},{"sourceBlock":"B0193","classification":"context","requirementIds":[],"rationale":"优化要求引导语。"},{"sourceBlock":"B0194","classification":"requirement","requirementIds":["REQ-FLOW-RUNTIME-ACTIONS"],"rationale":"设计发布和可解释运行补充。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0189"
+      ],
+      "sourceBlock": "B0189"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0190"
+      ],
+      "sourceBlock": "B0190"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0191"
+      ],
+      "sourceBlock": "B0191"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0192"
+      ],
+      "sourceBlock": "B0192"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0193"
+      ],
+      "sourceBlock": "B0193"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0194"
+      ],
+      "sourceBlock": "B0194"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0029",
+  "requirements": [
+    {
+      "id": "CAND-B0189",
+      "sourceBlocks": [
+        "B0189"
+      ],
+      "statement": "手动增加节点：",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0190",
+      "sourceBlocks": [
+        "B0190"
+      ],
+      "statement": "- 流程运行中支持管理员或有权限的人手动增加审批节点、抄送节点。\n- 手动节点要记录添加人、添加原因、插入位置、节点配置快照。\n- 手动节点可以插在当前节点后，也可以插在指定节点前后。\n- 手动节点不能破坏已完成节点的历史记录。",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0191",
+      "sourceBlocks": [
+        "B0191"
+      ],
+      "statement": "运行能力：",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0192",
+      "sourceBlocks": [
+        "B0192"
+      ],
+      "statement": "- 发起流程。\n- 待办。\n- 抄送。\n- 我的申请。\n- 实例详情。\n- 同意。\n- 拒绝。\n- 转办。\n- 领取。\n- 取消领取。\n- 撤回。\n- 终止。\n- 加签。\n- 减签。\n- 催办。\n- 评论。",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0193",
+      "sourceBlocks": [
+        "B0193"
+      ],
+      "statement": "优化：",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0194",
+      "sourceBlocks": [
+        "B0194"
+      ],
+      "statement": "- 流程设计器用画布加右侧配置。\n- 创建流程时选择系统内一个模块，审批、业务详情、流程状态都围绕这个模块的数据展开。\n- 发布前检查是否有断线、死路、空审批人。\n- 审批页面同时展示业务数据、流程图、历史、操作区。\n- 拒绝、撤回、终止必须填写原因。\n- 子流程不能卡住父流程。\n- 流程状态变化要写日志。\n- 流程设计要有流程列表、审批类型、流程版本、节点库、画布、属性面板、模拟运行、发布检查、错误定位、影响分析和回滚。\n- 流程运行要能解释当前为什么走到这个节点、谁有权处理、哪些字段可见/可改、超时后怎么处理。",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

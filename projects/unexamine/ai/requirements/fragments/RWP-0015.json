@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0015","requirements":[{"id":"REQ-SYSTEM-TENANT-LIFECYCLE","title":"系统与租户生命周期和隔离模式","statement":"系统支持创建编辑启停删除、成员角色、基础信息、登录展示、首页参数开关、日志待办消息和上下文；系统可配置单租户或多租户，多租户按 tenantId、组织或业务主体隔离并管理成员、管理员、角色、域名、配额、迁移备份归档恢复、日志脱敏和安全策略。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0084","B0085","B0086","B0087"],"acceptanceCriteria":["创建系统自动初始化默认主租户、默认角色和默认菜单权限，不自动创建应用作为模块容器。","单租户隐藏租户切换，多租户按权限显示切换并重建上下文。","切换租户模式前页面展示对数据、权限、域名、应用授权和导入导出的影响。","平台控制系统是否允许多租户，系统控制本系统租户配置和隔离策略。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0084","classification":"context","requirementIds":[],"rationale":"必需能力引导语。"},{"sourceBlock":"B0085","classification":"requirement","requirementIds":["REQ-SYSTEM-TENANT-LIFECYCLE"],"rationale":"系统租户能力目录。"},{"sourceBlock":"B0086","classification":"context","requirementIds":[],"rationale":"优化能力引导语。"},{"sourceBlock":"B0087","classification":"requirement","requirementIds":["REQ-SYSTEM-TENANT-LIFECYCLE"],"rationale":"模式交互和分层责任。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0084"
+      ],
+      "sourceBlock": "B0084"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0085"
+      ],
+      "sourceBlock": "B0085"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0086"
+      ],
+      "sourceBlock": "B0086"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0087"
+      ],
+      "sourceBlock": "B0087"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0015",
+  "requirements": [
+    {
+      "id": "CAND-B0084",
+      "sourceBlocks": [
+        "B0084"
+      ],
+      "statement": "必须包含：",
+      "title": "5.2 系统和租户",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0085",
+      "sourceBlocks": [
+        "B0085"
+      ],
+      "statement": "- 创建系统。\n- 编辑系统。\n- 启用系统。\n- 停用系统。\n- 删除系统。\n- 系统成员。\n- 系统角色。\n- 系统基础信息。\n- 系统登录入口。\n- 系统登录展示。\n- 系统默认首页。\n- 系统参数。\n- 系统功能开关。\n- 系统待办。\n- 系统消息。\n- 登录日志。\n- 业务日志。\n- 多租户支持。\n- 当前系统上下文。\n- 当前租户上下文。\n- 租户模式配置：单租户、多租户。\n- 多租户隔离维度：按 tenantId 隔离、按部门/组织隔离、按业务主体隔离。\n- 租户切换策略：单租户隐藏切换入口，多租户按权限显示租户切换。\n- 租户成员、租户管理员、租户角色映射。\n- 租户级域名、访问地址、登录展示。\n- 租户级配额：成员数、模块数、字段数、存储、导入导出、应用调用。\n- 租户级数据迁移、备份、归档、停用和恢复。\n- 租户级日志、审计、数据脱敏和安全策略。",
+      "title": "5.2 系统和租户",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0086",
+      "sourceBlocks": [
+        "B0086"
+      ],
+      "statement": "优化：",
+      "title": "5.2 系统和租户",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0087",
+      "sourceBlocks": [
+        "B0087"
+      ],
+      "statement": "- 单租户用户不需要看到复杂租户选择。\n- 多租户系统才显示租户切换。\n- 系统创建时自动初始化默认主租户、默认角色和默认菜单权限；应用按真实访问需求创建，不自动充当模块容器。\n- 系统后台必须清楚展示当前系统是单租户还是多租户；切换租户模式前要提示对数据、权限、域名、应用授权和导入导出的影响。\n- 平台层负责授权系统是否允许多租户；系统层负责当前系统内租户开关、默认租户、租户管理员和业务数据隔离策略。",
+      "title": "5.2 系统和租户",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

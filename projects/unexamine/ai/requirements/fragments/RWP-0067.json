@@ -1,1 +1,64 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0067","requirements":[{"id":"REQ-SCHEMA-DRIVEN-PAGES","title":"统一 Schema 驱动字段、页面和表单","statement":"字段、页面和表单使用统一、版本化 Schema 描述，桌面和移动响应式布局共用配置和渲染语义，列表、表单、详情渲染保持一致，并可随应用配置导入导出和向后兼容扩展。","type":"constraint","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0424","B0425","B0426"],"acceptanceCriteria":["同一发布版本在桌面和移动窄屏读取同一字段与页面 Schema，无重复配置副本。","Schema 版本变化通过兼容迁移或明确阻断处理，旧发布版本仍可渲染。","导出后再导入应用配置可恢复字段、页面和表单 Schema 及版本关系。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0424","classification":"requirement","requirementIds":["REQ-SCHEMA-DRIVEN-PAGES"],"rationale":"统一 Schema 约束。"},{"sourceBlock":"B0425","classification":"context","requirementIds":[],"rationale":"方案价值引导语。"},{"sourceBlock":"B0426","classification":"requirement","requirementIds":["REQ-SCHEMA-DRIVEN-PAGES"],"rationale":"跨布局复用、一致渲染、扩展和导入导出。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0424"
+      ],
+      "sourceBlock": "B0424"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0425"
+      ],
+      "sourceBlock": "B0425"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0426"
+      ],
+      "sourceBlock": "B0426"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0067",
+  "requirements": [
+    {
+      "id": "CAND-B0424",
+      "sourceBlocks": [
+        "B0424"
+      ],
+      "statement": "字段、页面、表单都用统一 schema 描述。",
+      "title": "9.3 Schema 驱动页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0425",
+      "sourceBlocks": [
+        "B0425"
+      ],
+      "statement": "好处：",
+      "title": "9.3 Schema 驱动页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0426",
+      "sourceBlocks": [
+        "B0426"
+      ],
+      "statement": "- Web 和移动端可以共用配置。\n- 表单渲染更统一。\n- 页面配置更容易扩展。\n- 支持导入导出应用配置。",
+      "title": "9.3 Schema 驱动页面",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

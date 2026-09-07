@@ -1,1 +1,30 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0064","requirements":[],"decisions":[],"coverage":[{"sourceBlock":"B0413","classification":"context","requirementIds":[],"rationale":"说明后续能力的产品价值，不单独形成可交付项；具体能力由后续源块定义。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0413"
+      ],
+      "sourceBlock": "B0413"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0064",
+  "requirements": [
+    {
+      "id": "CAND-B0413",
+      "sourceBlocks": [
+        "B0413"
+      ],
+      "statement": "这些不是花哨功能，而是能明显提升使用体验的能力。",
+      "title": "9. 新技术和超前能力",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

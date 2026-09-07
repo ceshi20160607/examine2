@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0099","requirements":[{"id":"REQ-IDEMPOTENCY","title":"表单、审批、应用与作业幂等","statement":"表单保存、审批处理、应用调用、导入和导出任务必须防重复提交；请求使用 requestId 或调用方 idempotencyKey，Redis 保存短期幂等结果，审批同时以持久任务状态约束，应用访问必须接受幂等键。","type":"quality","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0572","B0573","B0574","B0575"],"acceptanceCriteria":["相同主体、作用域和幂等键的重复请求返回首次确定结果且不重复写数据或发事件。","不同系统、租户、应用或用户使用相同键不会相互冲突。","Redis 幂等记录丢失时审批和关键写入仍由数据库唯一约束或状态机防重复。","导入导出重复提交复用已有作业或明确返回重复状态。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0572","classification":"context","requirementIds":[],"rationale":"重复提交引导语。"},{"sourceBlock":"B0573","classification":"requirement","requirementIds":["REQ-IDEMPOTENCY"],"rationale":"表单、审批、应用和作业场景。"},{"sourceBlock":"B0574","classification":"context","requirementIds":[],"rationale":"幂等实现引导语。"},{"sourceBlock":"B0575","classification":"requirement","requirementIds":["REQ-IDEMPOTENCY"],"rationale":"幂等键、Redis 和任务状态。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0572"
+      ],
+      "sourceBlock": "B0572"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0573"
+      ],
+      "sourceBlock": "B0573"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0574"
+      ],
+      "sourceBlock": "B0574"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0575"
+      ],
+      "sourceBlock": "B0575"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0099",
+  "requirements": [
+    {
+      "id": "CAND-B0572",
+      "sourceBlocks": [
+        "B0572"
+      ],
+      "statement": "成熟项目必须处理重复提交：",
+      "title": "14.24 幂等和重复提交",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0573",
+      "sourceBlocks": [
+        "B0573"
+      ],
+      "statement": "- 表单重复点击保存。\n- 审批按钮重复点击。\n- 应用调用重复请求。\n- 导入任务重复提交。\n- 导出任务重复提交。",
+      "title": "14.24 幂等和重复提交",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0574",
+      "sourceBlocks": [
+        "B0574"
+      ],
+      "statement": "实现规则：",
+      "title": "14.24 幂等和重复提交",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0575",
+      "sourceBlocks": [
+        "B0575"
+      ],
+      "statement": "- 使用 requestId 或 idempotencyKey。\n- Redis 保存短时间幂等记录。\n- 审批任务按任务状态防重复处理。\n- 应用调用必须支持幂等键。",
+      "title": "14.24 幂等和重复提交",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

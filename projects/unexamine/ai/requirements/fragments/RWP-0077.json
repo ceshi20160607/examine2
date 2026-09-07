@@ -1,1 +1,115 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0077","requirements":[{"id":"REQ-CONFIG-DRAFT-PUBLISH","title":"配置草稿、预览、发布与回滚","statement":"页面、Flow、打印模板、字段显示和导入导出配置分为管理员可编辑草稿与普通用户可用的已发布版本；管理员预览验证后发布，编辑草稿不影响运行用户，并可基于历史版本回滚。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0462","B0463","B0464","B0465","B0466","B0467"],"acceptanceCriteria":["保存草稿后运行态仍读取原发布版本，预览读取指定草稿。","发布通过校验后原子切换运行版本，正在进行的请求不读取半发布状态。","回滚生成新的发布记录并恢复所选历史配置。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0462","classification":"requirement","requirementIds":["REQ-CONFIG-DRAFT-PUBLISH"],"rationale":"草稿与发布分层。"},{"sourceBlock":"B0463","classification":"requirement","requirementIds":["REQ-CONFIG-DRAFT-PUBLISH"],"rationale":"编辑、预览和运行规则。"},{"sourceBlock":"B0464","classification":"context","requirementIds":[],"rationale":"适用能力引导语。"},{"sourceBlock":"B0465","classification":"requirement","requirementIds":["REQ-CONFIG-DRAFT-PUBLISH"],"rationale":"发布机制适用范围。"},{"sourceBlock":"B0466","classification":"context","requirementIds":[],"rationale":"方案价值引导语。"},{"sourceBlock":"B0467","classification":"requirement","requirementIds":["REQ-CONFIG-DRAFT-PUBLISH"],"rationale":"运行隔离、预览和回滚。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0462"
+      ],
+      "sourceBlock": "B0462"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0463"
+      ],
+      "sourceBlock": "B0463"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0464"
+      ],
+      "sourceBlock": "B0464"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0465"
+      ],
+      "sourceBlock": "B0465"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0466"
+      ],
+      "sourceBlock": "B0466"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0467"
+      ],
+      "sourceBlock": "B0467"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0077",
+  "requirements": [
+    {
+      "id": "CAND-B0462",
+      "sourceBlocks": [
+        "B0462"
+      ],
+      "statement": "配置分成“草稿”和“已发布”：",
+      "title": "14.2 配置发布机制",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0463",
+      "sourceBlocks": [
+        "B0463"
+      ],
+      "statement": "- 管理员可以先在草稿里改。\n- 预览没问题再发布。\n- 普通用户只使用已发布版本。",
+      "title": "14.2 配置发布机制",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0464",
+      "sourceBlocks": [
+        "B0464"
+      ],
+      "statement": "适合的功能：",
+      "title": "14.2 配置发布机制",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0465",
+      "sourceBlocks": [
+        "B0465"
+      ],
+      "statement": "- 页面。\n- 流程。\n- 打印模板。\n- 字段显示配置。\n- 导入导出配置。",
+      "title": "14.2 配置发布机制",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0466",
+      "sourceBlocks": [
+        "B0466"
+      ],
+      "statement": "好处：",
+      "title": "14.2 配置发布机制",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0467",
+      "sourceBlocks": [
+        "B0467"
+      ],
+      "statement": "- 避免管理员改配置时影响正在使用的用户。\n- 方便做预览和回滚。",
+      "title": "14.2 配置发布机制",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

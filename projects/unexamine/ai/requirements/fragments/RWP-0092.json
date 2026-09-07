@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0092","requirements":[{"id":"REQ-UPGRADE-DATA-CONFIG-MIGRATION","title":"数据库与配置版本化升级恢复","statement":"系统升级同时管理数据库脚本以及模块、页面、Flow、打印模板和权限配置迁移；变更均有版本，升级脚本可识别已执行状态，升级前可备份，失败时自动回滚可回滚部分或给出明确人工处理步骤。","type":"quality","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0538","B0539","B0540","B0541"],"acceptanceCriteria":["升级预检列出当前与目标数据库及配置版本、依赖、备份和风险。","重复运行迁移不会重复应用已成功步骤或破坏数据。","升级中途失败后服务不进入版本混合的可用状态，并输出已完成、已回滚和待处理步骤。","恢复演练能从升级前备份还原数据库、文件和配置到一致版本。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0538","classification":"context","requirementIds":[],"rationale":"系统升级引导语。"},{"sourceBlock":"B0539","classification":"requirement","requirementIds":["REQ-UPGRADE-DATA-CONFIG-MIGRATION"],"rationale":"数据库和配置迁移范围。"},{"sourceBlock":"B0540","classification":"context","requirementIds":[],"rationale":"恢复规则引导语。"},{"sourceBlock":"B0541","classification":"requirement","requirementIds":["REQ-UPGRADE-DATA-CONFIG-MIGRATION"],"rationale":"版本、幂等检查、备份和失败处理。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0538"
+      ],
+      "sourceBlock": "B0538"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0539"
+      ],
+      "sourceBlock": "B0539"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0540"
+      ],
+      "sourceBlock": "B0540"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0541"
+      ],
+      "sourceBlock": "B0541"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0092",
+  "requirements": [
+    {
+      "id": "CAND-B0538",
+      "sourceBlocks": [
+        "B0538"
+      ],
+      "statement": "系统升级必须考虑：",
+      "title": "14.17 配置迁移和升级",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0539",
+      "sourceBlocks": [
+        "B0539"
+      ],
+      "statement": "- 数据库脚本升级。\n- 模块配置升级。\n- 页面配置升级。\n- 流程配置升级。\n- 打印模板升级。\n- 权限配置升级。",
+      "title": "14.17 配置迁移和升级",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0540",
+      "sourceBlocks": [
+        "B0540"
+      ],
+      "statement": "恢复规则：",
+      "title": "14.17 配置迁移和升级",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0541",
+      "sourceBlocks": [
+        "B0541"
+      ],
+      "statement": "- 配置变更有版本。\n- 升级脚本可重复检查。\n- 升级前能备份。\n- 升级失败能回滚或给出明确处理方式。",
+      "title": "14.17 配置迁移和升级",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

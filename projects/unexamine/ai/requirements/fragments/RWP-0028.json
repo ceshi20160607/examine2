@@ -1,1 +1,217 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0028","requirements":[{"id":"REQ-FLOW-DESIGN-VERSION","title":"企业级 Flow 设计和发布版本","statement":"Flow 支持模板、版本、高级设置、启停、业务对象、画布节点连线条件、审批人字段权限、发布复制和回滚；节点覆盖审批、分支网关、子流程、自动表单任务通知、字段数据更新、等待定时消息、Webhook、外部和受控 AI 等类型。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0177","B0178","B0179","B0180"],"acceptanceCriteria":["管理员通过画布和专属属性面板完成设计，发布检查能定位断线、死路、空审批人和无效配置。","运行实例固定使用发起时的发布版本快照，后续草稿和发布不改变已有实例。"],"decisionIds":[]},{"id":"REQ-FLOW-APPROVAL-NODE","title":"完整审批节点规则","statement":"审批节点支持多种审批人来源、或签会签顺序会签、超时自动处理、字段权限、同意拒绝转办加签退回撤回、代理委托领取、意见附件要求、表单快照和字段回写。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0181","B0182"],"acceptanceCriteria":["每种审批方式按配置计算候选人和通过条件。","节点页面只展示允许字段和动作，处理一次后重复请求被拒绝。","拒绝、撤回和终止必须填写原因并记录日志。"],"decisionIds":[]},{"id":"REQ-FLOW-TRIGGER","title":"模块事件和应用触发 Flow","statement":"Flow 可绑定模块新建、编辑、删除、状态变化、手动、周期、应用、导入完成和异常事件并配置条件、优先级和互斥，覆盖常见企业审批、办公和协作场景。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0183","B0184","B0187","B0188"],"acceptanceCriteria":["模块业务事务完成后按系统模块事件查询绑定、判断条件和优先级并创建实例快照。","互斥绑定命中首项后停止，非互斥按规则生成多个实例且防止重复发起。","实例 ID 和审批状态回写业务记录。"],"decisionIds":[]},{"id":"REQ-FLOW-RUNTIME-SNAPSHOT","title":"Flow 运行快照和审计数据","statement":"Flow 运行必须保存模板版本、节点连线条件、字段权限和高级设置快照，以及实例、候选任务、处理意见、节点字段提交和完整操作日志。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0185","B0186"],"acceptanceCriteria":["实例详情可以解释当前节点、路径条件、处理人、字段权限和超时策略。","模板修改、停用或删除不破坏历史实例和日志。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0177","classification":"context","requirementIds":[],"rationale":"Flow 设计引导语。"},{"sourceBlock":"B0178","classification":"requirement","requirementIds":["REQ-FLOW-DESIGN-VERSION"],"rationale":"Flow 设计能力。"},{"sourceBlock":"B0179","classification":"context","requirementIds":[],"rationale":"节点类型引导语。"},{"sourceBlock":"B0180","classification":"requirement","requirementIds":["REQ-FLOW-DESIGN-VERSION"],"rationale":"节点类型目录。"},{"sourceBlock":"B0181","classification":"context","requirementIds":[],"rationale":"审批节点引导语。"},{"sourceBlock":"B0182","classification":"requirement","requirementIds":["REQ-FLOW-APPROVAL-NODE"],"rationale":"审批节点完整配置。"},{"sourceBlock":"B0183","classification":"context","requirementIds":[],"rationale":"触发规则引导语。"},{"sourceBlock":"B0184","classification":"requirement","requirementIds":["REQ-FLOW-TRIGGER"],"rationale":"Flow 触发目录。"},{"sourceBlock":"B0185","classification":"context","requirementIds":[],"rationale":"运行数据引导语。"},{"sourceBlock":"B0186","classification":"requirement","requirementIds":["REQ-FLOW-RUNTIME-SNAPSHOT"],"rationale":"运行快照数据。"},{"sourceBlock":"B0187","classification":"context","requirementIds":[],"rationale":"模块事件触发引导语。"},{"sourceBlock":"B0188","classification":"requirement","requirementIds":["REQ-FLOW-TRIGGER"],"rationale":"模块事件触发链。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0177"
+      ],
+      "sourceBlock": "B0177"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0178"
+      ],
+      "sourceBlock": "B0178"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0179"
+      ],
+      "sourceBlock": "B0179"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0180"
+      ],
+      "sourceBlock": "B0180"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0181"
+      ],
+      "sourceBlock": "B0181"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0182"
+      ],
+      "sourceBlock": "B0182"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0183"
+      ],
+      "sourceBlock": "B0183"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0184"
+      ],
+      "sourceBlock": "B0184"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0185"
+      ],
+      "sourceBlock": "B0185"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0186"
+      ],
+      "sourceBlock": "B0186"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0187"
+      ],
+      "sourceBlock": "B0187"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0188"
+      ],
+      "sourceBlock": "B0188"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0028",
+  "requirements": [
+    {
+      "id": "CAND-B0177",
+      "sourceBlocks": [
+        "B0177"
+      ],
+      "statement": "设计能力：",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0178",
+      "sourceBlocks": [
+        "B0178"
+      ],
+      "statement": "- 流程模板。\n- 流程版本。\n- 流程高级设置。\n- 流程启用停用。\n- 选择平台内模块作为流程业务对象。\n- 流程画布。\n- 节点。\n- 连线。\n- 条件。\n- 节点审批人。\n- 节点字段权限。\n- 发布。\n- 复制版本。\n- 回滚版本。",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0179",
+      "sourceBlocks": [
+        "B0179"
+      ],
+      "statement": "节点类型：",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0180",
+      "sourceBlocks": [
+        "B0180"
+      ],
+      "statement": "- 开始。\n- 普通审批。\n- 条件审批。\n- 抄送。\n- 条件分支。\n- 并行网关。\n- 包容网关。\n- 合并网关。\n- 子流程。\n- 自动节点。\n- 填写表单节点。\n- 任务节点。\n- 通知节点。\n- 字段更新节点。\n- 数据创建/更新节点。\n- 等待节点。\n- 定时器节点。\n- 消息节点。\n- Webhook 节点。\n- 外部节点。\n- AI 辅助节点（后续智能能力启用后使用，必须受模型授权、权限、审计和人工确认控制）。\n- 结束。",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0181",
+      "sourceBlocks": [
+        "B0181"
+      ],
+      "statement": "审批节点配置：",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0182",
+      "sourceBlocks": [
+        "B0182"
+      ],
+      "statement": "- 审批人来源支持指定人员、角色、部门、部门负责人、直属上级、发起人上级、字段内人员、上一节点处理人。\n- 审批方式支持或签、会签、顺序会签。\n- 或签表示任意一人同意即可通过。\n- 会签表示所有人都要处理，可以配置全部同意才通过或达到比例后通过。\n- 顺序会签表示按配置顺序一个一个审批。\n- 节点可以配置超时提醒、自动通过、自动拒绝、自动转交。\n- 节点可以配置字段查看、字段编辑、字段必填、字段隐藏。\n- 节点可以配置审批操作按钮，比如同意、拒绝、转办、加签、退回、撤回。\n- 节点可以配置退回到发起人、退回到上一节点、退回到指定节点、重新提交后从头走或回到退回节点。\n- 节点可以配置代理审批、委托、候选人领取、会签比例、会签顺序、审批意见必填、附件必填。\n- 节点可以配置业务表单快照、节点内可编辑字段、节点完成后字段回写。",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0183",
+      "sourceBlocks": [
+        "B0183"
+      ],
+      "statement": "流程触发：",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0184",
+      "sourceBlocks": [
+        "B0184"
+      ],
+      "statement": "- 流程要绑定模块和事件点。\n- 支持新建触发。\n- 支持编辑触发。\n- 支持删除前或删除后触发。\n- 支持状态变化触发。\n- 支持手动点击发起。\n- 支持已授权应用发起。\n- 每个触发点可以配置条件，比如金额大于 5000 才走审批。\n- 一个模块可以绑定多个流程，但同一个事件点要配置优先级和互斥规则，避免重复发起。\n- 支持周期触发、应用触发、导入完成触发、数据异常触发。\n- 支持办公流场景：请假、报销、采购、用印、合同审批、资产领用、工单派发、任务协作、跨部门会签。\n- 流程能力目标是覆盖企业级工作流、审批流、办公流的大多数常见场景，不做只能跑单一审批链路的简版。",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0185",
+      "sourceBlocks": [
+        "B0185"
+      ],
+      "statement": "流程运行数据：",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0186",
+      "sourceBlocks": [
+        "B0186"
+      ],
+      "statement": "- 流程模板保存基础信息和启用停用状态。\n- 流程版本保存发布快照，草稿修改不能影响已发布版本。\n- 流程高级设置保存撤回、拒绝、重审、超时、异常兜底、是否允许加签加节点等规则。\n- 流程节点保存节点类型、审批方式、审批人来源、外部节点配置、子流程配置。\n- 流程连线和连线条件保存条件分支。\n- 流程实例保存某条模块数据正在走哪一个流程模板版本。\n- 流程实例创建时，要把模板版本的节点、连线、条件、字段权限和高级设置复制成运行快照。\n- 流程任务保存当前待办、候选人、处理状态和处理意见。\n- 流程提交快照保存节点内字段修改，支持审批过程中修改字段。\n- 流程日志保存每一次节点进入、审批、拒绝、转办、加签、加节点、撤回、终止。\n- 流程运行时必须使用发布版本快照，流程修改不能影响已发起实例。",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0187",
+      "sourceBlocks": [
+        "B0187"
+      ],
+      "statement": "模块事件触发流程：",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0188",
+      "sourceBlocks": [
+        "B0188"
+      ],
+      "statement": "- 模块数据新建、编辑、删除、状态变化时，由模块业务层产生事件。\n- 根据系统、模块、事件点查询流程绑定。\n- 按优先级判断绑定条件。\n- 满足条件后读取启用的流程模板和最新发布版本。\n- 创建流程实例并复制版本快照。\n- 回写模块数据的审批状态和当前流程实例 ID。\n- 如果绑定是互斥的，命中第一个流程后停止继续匹配。",
+      "title": "5.12 流程",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

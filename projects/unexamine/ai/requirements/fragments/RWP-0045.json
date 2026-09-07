@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0045","requirements":[{"id":"REQ-UI-DETAIL-INTERACTION","title":"通用详情信息结构与操作","statement":"详情顶部显示标题和主要状态，基础信息分组，关联数据使用标签页，Flow 记录和变更历史使用时间线，附件使用独立区域；右侧固定操作区，关联数据可打开其详情并支持复制字段值。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0315","B0316","B0317","B0318"],"acceptanceCriteria":["打开详情即可看到记录标题、主状态、分组基础信息和可用操作。","有关联、Flow、变更或附件数据时分别在规定区域展示。","点击关联记录打开正确关联详情，复制字段值写入剪贴板且有成功反馈。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0315","classification":"context","requirementIds":[],"rationale":"详情规则引导语。"},{"sourceBlock":"B0316","classification":"requirement","requirementIds":["REQ-UI-DETAIL-INTERACTION"],"rationale":"详情信息结构。"},{"sourceBlock":"B0317","classification":"context","requirementIds":[],"rationale":"高级体验引导语。"},{"sourceBlock":"B0318","classification":"requirement","requirementIds":["REQ-UI-DETAIL-INTERACTION"],"rationale":"详情操作和关联跳转。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0315"
+      ],
+      "sourceBlock": "B0315"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0316"
+      ],
+      "sourceBlock": "B0316"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0317"
+      ],
+      "sourceBlock": "B0317"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0318"
+      ],
+      "sourceBlock": "B0318"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0045",
+  "requirements": [
+    {
+      "id": "CAND-B0315",
+      "sourceBlocks": [
+        "B0315"
+      ],
+      "statement": "详情规则：",
+      "title": "6.6 详情页",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0316",
+      "sourceBlocks": [
+        "B0316"
+      ],
+      "statement": "- 顶部显示标题和主要状态。\n- 基础信息分组展示。\n- 关联数据用标签页。\n- 流程记录用时间线。\n- 变更历史用时间线。\n- 附件单独区域展示。",
+      "title": "6.6 详情页",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0317",
+      "sourceBlocks": [
+        "B0317"
+      ],
+      "statement": "高级体验：",
+      "title": "6.6 详情页",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0318",
+      "sourceBlocks": [
+        "B0318"
+      ],
+      "statement": "- 详情页右侧固定操作区。\n- 点击关联数据可直接打开关联详情。\n- 支持复制字段值。",
+      "title": "6.6 详情页",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

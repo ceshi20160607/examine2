@@ -1,1 +1,115 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0093","requirements":[{"id":"REQ-OPS-BACKUP-RESTORE","title":"数据库、文件、配置和密钥备份恢复","statement":"运维支持数据库、文件、配置和打印模板备份，并为应用密钥提供不可明文导出的加密备份或重建策略；可应对误删数据、配置错误、文件丢失和升级失败，所有备份恢复操作记录审计。","type":"quality","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0543","B0544","B0545","B0546","B0547","B0548"],"acceptanceCriteria":["备份包含一致性时间点、版本、范围、校验值和加密存储位置。","恢复演练覆盖误删、配置、文件和升级失败，并验证数据库引用与文件对象一致。","任何导出或备份界面不显示密钥明文；密钥材料加密保护或通过轮换重建。","备份、下载、恢复和失败操作记录操作者、时间、范围、结果和 requestId。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0543","classification":"context","requirementIds":[],"rationale":"备份引导语。"},{"sourceBlock":"B0544","classification":"requirement","requirementIds":["REQ-OPS-BACKUP-RESTORE"],"rationale":"备份对象和密钥策略。"},{"sourceBlock":"B0545","classification":"context","requirementIds":[],"rationale":"恢复场景引导语。"},{"sourceBlock":"B0546","classification":"requirement","requirementIds":["REQ-OPS-BACKUP-RESTORE"],"rationale":"误删、配置、文件和升级恢复。"},{"sourceBlock":"B0547","classification":"context","requirementIds":[],"rationale":"备份注意引导语。"},{"sourceBlock":"B0548","classification":"requirement","requirementIds":["REQ-OPS-BACKUP-RESTORE"],"rationale":"密钥保护和操作日志。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0543"
+      ],
+      "sourceBlock": "B0543"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0544"
+      ],
+      "sourceBlock": "B0544"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0545"
+      ],
+      "sourceBlock": "B0545"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0546"
+      ],
+      "sourceBlock": "B0546"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0547"
+      ],
+      "sourceBlock": "B0547"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0548"
+      ],
+      "sourceBlock": "B0548"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0093",
+  "requirements": [
+    {
+      "id": "CAND-B0543",
+      "sourceBlocks": [
+        "B0543"
+      ],
+      "statement": "上线产品需要考虑备份：",
+      "title": "14.18 备份和恢复",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0544",
+      "sourceBlocks": [
+        "B0544"
+      ],
+      "statement": "- 数据库备份。\n- 文件备份。\n- 配置备份。\n- 打印模板备份。\n- 应用密钥备份策略。",
+      "title": "14.18 备份和恢复",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0545",
+      "sourceBlocks": [
+        "B0545"
+      ],
+      "statement": "恢复场景：",
+      "title": "14.18 备份和恢复",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0546",
+      "sourceBlocks": [
+        "B0546"
+      ],
+      "statement": "- 误删业务数据。\n- 配置改错。\n- 文件丢失。\n- 部署升级失败。",
+      "title": "14.18 备份和恢复",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0547",
+      "sourceBlocks": [
+        "B0547"
+      ],
+      "statement": "注意：",
+      "title": "14.18 备份和恢复",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0548",
+      "sourceBlocks": [
+        "B0548"
+      ],
+      "statement": "- 密钥不能明文导出。\n- 备份和恢复要记录操作日志。",
+      "title": "14.18 备份和恢复",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

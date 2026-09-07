@@ -1,1 +1,183 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0019","requirements":[{"id":"REQ-MODULE-FIELD-TYPES","title":"完整低代码字段类型目录","statement":"模块字段必须覆盖文本、号码、数值金额、日期时间、选择、人员部门组织、附件图片文件、编号、关联引用子表、地址位置、评分进度标签、条码签名富文本 JSON 密钥状态系统字段，以及公式、汇总、计算、查找、聚合和受控 AI 填充等高级类型。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0104","B0105","B0106","B0107"],"acceptanceCriteria":["字段设计器可以创建目录内每种字段并在表单、详情和列表按类型正确展示。","AI 填充字段只有在模型授权、数据权限和人工确认后写入。"],"decisionIds":[]},{"id":"REQ-MODULE-FIELD-CONFIG","title":"按字段类型配置校验、显示、权限和数据规则","statement":"字段配置必须覆盖名称编码类型、必填默认提示排序、显隐只读、搜索筛选列表详情、权限、关联子表、选项、校验默认值、条件显示、列表导出脱敏、索引唯一历史和移动展示，并按字段类型显示专属配置。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0108","B0109","B0110","B0111","B0112","B0113"],"acceptanceCriteria":["金额、人员、关联、公式和子表字段分别显示专属配置与即时校验。","关联保存目标 ID、展示主要字段，子表以一主多明细事务保存。","自动编号并发下唯一且连续策略可追踪。","删除字段默认停用并保留历史值和显示快照。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0104","classification":"context","requirementIds":[],"rationale":"字段类型引导语。"},{"sourceBlock":"B0105","classification":"requirement","requirementIds":["REQ-MODULE-FIELD-TYPES"],"rationale":"基础字段目录。"},{"sourceBlock":"B0106","classification":"context","requirementIds":[],"rationale":"高级字段引导语。"},{"sourceBlock":"B0107","classification":"requirement","requirementIds":["REQ-MODULE-FIELD-TYPES"],"rationale":"高级字段目录。"},{"sourceBlock":"B0108","classification":"context","requirementIds":[],"rationale":"字段配置引导语。"},{"sourceBlock":"B0109","classification":"requirement","requirementIds":["REQ-MODULE-FIELD-CONFIG"],"rationale":"字段配置完整目录。"},{"sourceBlock":"B0110","classification":"context","requirementIds":[],"rationale":"关联字段引导语。"},{"sourceBlock":"B0111","classification":"requirement","requirementIds":["REQ-MODULE-FIELD-CONFIG"],"rationale":"关联和子表语义。"},{"sourceBlock":"B0112","classification":"context","requirementIds":[],"rationale":"交互优化引导语。"},{"sourceBlock":"B0113","classification":"requirement","requirementIds":["REQ-MODULE-FIELD-CONFIG"],"rationale":"设计器、编号、停用和专属配置约束。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0104"
+      ],
+      "sourceBlock": "B0104"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0105"
+      ],
+      "sourceBlock": "B0105"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0106"
+      ],
+      "sourceBlock": "B0106"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0107"
+      ],
+      "sourceBlock": "B0107"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0108"
+      ],
+      "sourceBlock": "B0108"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0109"
+      ],
+      "sourceBlock": "B0109"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0110"
+      ],
+      "sourceBlock": "B0110"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0111"
+      ],
+      "sourceBlock": "B0111"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0112"
+      ],
+      "sourceBlock": "B0112"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0113"
+      ],
+      "sourceBlock": "B0113"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0019",
+  "requirements": [
+    {
+      "id": "CAND-B0104",
+      "sourceBlocks": [
+        "B0104"
+      ],
+      "statement": "必须包含字段类型：",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0105",
+      "sourceBlocks": [
+        "B0105"
+      ],
+      "statement": "- 文本。\n- 多行文本。\n- 手机号。\n- 邮箱。\n- URL。\n- 身份证号。\n- 数字。\n- 百分比。\n- 金额。\n- 日期。\n- 日期时间。\n- 日期范围。\n- 时间。\n- 时间范围。\n- 单选。\n- 多选。\n- 级联选择。\n- 开关。\n- 人员。\n- 部门。\n- 组织/租户。\n- 附件。\n- 图片。\n- 文件夹/文件组。\n- 自动编号。\n- 关联数据。\n- 引用字段。\n- 子表。\n- 地址。\n- 地理位置。\n- 评分。\n- 进度。\n- 标签。\n- 条码/二维码。\n- 签名。\n- 富文本。\n- JSON。\n- 密码/密钥。\n- 状态。\n- 创建人、创建时间、更新人、更新时间等系统字段。",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0106",
+      "sourceBlocks": [
+        "B0106"
+      ],
+      "statement": "高级字段：",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0107",
+      "sourceBlocks": [
+        "B0107"
+      ],
+      "statement": "- 公式字段。\n- 汇总字段。\n- 计算字段。\n- 状态字段。\n- 查找字段。\n- 聚合字段。\n- AI 填充字段（后续智能能力启用后使用，必须受权限和人工确认控制）。",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0108",
+      "sourceBlocks": [
+        "B0108"
+      ],
+      "statement": "字段配置：",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0109",
+      "sourceBlocks": [
+        "B0109"
+      ],
+      "statement": "- 字段名称。\n- 字段编码。\n- 字段类型。\n- 必填。\n- 默认值。\n- 提示文案。\n- 排序。\n- 是否隐藏。\n- 是否只读。\n- 是否可搜索。\n- 是否可筛选。\n- 是否列表显示。\n- 是否详情显示。\n- 字段权限。\n- 关联模块。\n- 关联选择方式，支持单选和多选。\n- 子表明细配置。\n- 下拉数据来源，可以来自字典，也可以来自系统内某个模块的数据。\n- 校验规则：长度、范围、精度、正则、唯一、必填条件、重复检查。\n- 默认值：固定值、当前用户、当前部门、当前日期、公式、上级字段联动。\n- 显示规则：字段分组、表单宽度、条件显示、条件只读、移动端展示。\n- 列表规则：是否默认列、列宽、固定列、排序、筛选、导出、脱敏。\n- 权限规则：角色可见、可编辑、可导出、审批节点字段权限。\n- 数据规则：是否建立索引、唯一范围、历史快照、软删除影响。\n- 选项规则：字典绑定、手动选项、颜色、图标、停用项历史显示。\n- 关联规则：显示字段、值字段、筛选条件、反向关联、是否允许新增关联数据。\n- 子表规则：子表列、行权限、汇总字段、最小/最大行数、导入导出方式。",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0110",
+      "sourceBlocks": [
+        "B0110"
+      ],
+      "statement": "关联字段说明：",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0111",
+      "sourceBlocks": [
+        "B0111"
+      ],
+      "statement": "- 字段配置里的“关联模块”用于表达业务数据之间的连接关系。\n- 选择一个模块作为数据来源，再设置单选或多选，就是常见的关联关系。\n- 子表字段用于订单明细、合同回款、项目任务这类一条主数据带多条明细的场景。\n- 页面保存时保存关联数据的 ID，页面展示时显示关联数据的名称或主要字段，避免用户看到技术 ID。",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0112",
+      "sourceBlocks": [
+        "B0112"
+      ],
+      "statement": "优化：",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0113",
+      "sourceBlocks": [
+        "B0113"
+      ],
+      "statement": "- 字段设计器用拖拽，不只用表格。\n- 字段配置用右侧抽屉。\n- 不同字段类型显示不同配置项。\n- 自动编号要用数据库或独立序号服务保证并发安全。\n- 删除字段默认停用，不直接清历史数据。\n- 字段设计要参考主流无代码/低代码产品的能力边界，目标是通过字段、字典、关联、子表、公式、汇总、权限和发布版本配置覆盖大多数内部系统场景。\n- 字段配置不能只给通用表格，必须按字段类型展示专属配置项，例如金额字段有币种/精度，人员字段有范围/多选，关联字段有目标模块/显示字段/筛选条件，公式字段有表达式和校验结果。",
+      "title": "5.5 字段",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

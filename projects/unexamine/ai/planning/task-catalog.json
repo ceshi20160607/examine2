@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "source": {
     "architecturePath": "../architecture/design.json",
-    "architectureSha256": "507f14c04268a360c078c985119eec1124e8d5991fd872ff6596b1f83af14bf7",
+    "architectureSha256": "8b7f7eb582a06a978f797d56f5d26cc36c7ffa3aab17c27d858cb4789512b84a",
     "useCaseCatalogPath": "../requirements/use-cases.json",
-    "useCaseCatalogSha256": "c6e99e285ee9b411b4dc47ad2800b599b2eaadc88d5e80f1ea4c320ae478d5cc"
+    "useCaseCatalogSha256": "fe589f7064879169302fa4ca1775ecf4b613f80a3df12c0709b7434ec0358e5f"
   },
   "tasks": [
     {
@@ -7825,15 +7825,30 @@
       ],
       "capabilityId": "CAP-APPLICATION",
       "id": "TASK-0224",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage"
+      ],
       "kind": "backend-manage",
       "outcome": "把应用恢复为依附系统和模块业务的受控通信桥梁。",
-      "outputs": ["projects/unexamine/backend"],
-      "requirementIds": ["REQ-APPLICATION-MAIN-ENTRY", "REQ-UI-APPLICATION-DETAIL", "REQ-APPLICATION-NOT-MODULE-CONTAINER", "REQ-APPLICATION-BRIDGE-FINAL"],
-      "resources": ["projects/unexamine/backend"],
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-APPLICATION-MAIN-ENTRY",
+        "REQ-UI-APPLICATION-DETAIL",
+        "REQ-APPLICATION-NOT-MODULE-CONTAINER",
+        "REQ-APPLICATION-BRIDGE-FINAL"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
       "role": "backend",
       "title": "重建应用发布授权和跨系统调用桥梁",
-      "useCaseIds": ["UC-APPLICATION-MANAGE", "UC-APPLICATION-BRIDGE-CALL"]
+      "useCaseIds": [
+        "UC-APPLICATION-MANAGE",
+        "UC-APPLICATION-BRIDGE-CALL"
+      ]
     },
     {
       "acceptance": [
@@ -7844,15 +7859,30 @@
       ],
       "capabilityId": "CAP-APPLICATION",
       "id": "TASK-0225",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product"
+      ],
       "kind": "frontend",
       "outcome": "形成边界清楚的应用管理和调用结果界面。",
-      "outputs": ["projects/unexamine/frontend"],
-      "requirementIds": ["REQ-APPLICATION-MAIN-ENTRY", "REQ-UI-APPLICATION-DETAIL", "REQ-APPLICATION-NOT-MODULE-CONTAINER", "REQ-APPLICATION-BRIDGE-FINAL"],
-      "resources": ["projects/unexamine/frontend"],
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-APPLICATION-MAIN-ENTRY",
+        "REQ-UI-APPLICATION-DETAIL",
+        "REQ-APPLICATION-NOT-MODULE-CONTAINER",
+        "REQ-APPLICATION-BRIDGE-FINAL"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
       "role": "frontend",
       "title": "重建应用授权详情和业务调用反馈",
-      "useCaseIds": ["UC-APPLICATION-MANAGE", "UC-APPLICATION-BRIDGE-CALL"]
+      "useCaseIds": [
+        "UC-APPLICATION-MANAGE",
+        "UC-APPLICATION-BRIDGE-CALL"
+      ]
     },
     {
       "acceptance": [
@@ -7863,15 +7893,33 @@
       ],
       "capabilityId": "CAP-APPLICATION",
       "id": "TASK-0226",
-      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "kind": "integration-test",
       "outcome": "验证应用只承担受控通信桥梁且能连接真实客户业务。",
-      "outputs": ["projects/unexamine/ai/evidence"],
-      "requirementIds": ["REQ-APPLICATION-MAIN-ENTRY", "REQ-UI-APPLICATION-DETAIL", "REQ-APPLICATION-NOT-MODULE-CONTAINER", "REQ-APPLICATION-BRIDGE-FINAL"],
-      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-APPLICATION-MAIN-ENTRY",
+        "REQ-UI-APPLICATION-DETAIL",
+        "REQ-APPLICATION-NOT-MODULE-CONTAINER",
+        "REQ-APPLICATION-BRIDGE-FINAL"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "role": "test",
       "title": "验收应用桥梁授权调用和停用边界",
-      "useCaseIds": ["UC-APPLICATION-MANAGE", "UC-APPLICATION-BRIDGE-CALL"]
+      "useCaseIds": [
+        "UC-APPLICATION-MANAGE",
+        "UC-APPLICATION-BRIDGE-CALL"
+      ]
     },
     {
       "acceptance": [
@@ -7882,15 +7930,34 @@
       ],
       "capabilityId": "CAP-WORK",
       "id": "TASK-0227",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage"
+      ],
       "kind": "backend-manage",
       "outcome": "让任务和工作日志成为客户业务对象上的协同能力。",
-      "outputs": ["projects/unexamine/backend"],
-      "requirementIds": ["REQ-WORK-MAIN-ENTRY", "REQ-WORK-MANAGEMENT-BOUNDARY", "REQ-PROJECT-TASK", "REQ-MANUAL-WORK-LOG", "REQ-WORK-CALENDAR-STATISTICS", "REQ-WORK-CONFIGURATION", "REQ-WORK-PERMISSION-ISOLATION"],
-      "resources": ["projects/unexamine/backend"],
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-WORK-MAIN-ENTRY",
+        "REQ-WORK-MANAGEMENT-BOUNDARY",
+        "REQ-PROJECT-TASK",
+        "REQ-MANUAL-WORK-LOG",
+        "REQ-WORK-CALENDAR-STATISTICS",
+        "REQ-WORK-CONFIGURATION",
+        "REQ-WORK-PERMISSION-ISOLATION"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
       "role": "backend",
       "title": "重建业务对象关联的项目任务和工作日志",
-      "useCaseIds": ["UC-WORK-PROJECT-TASK", "UC-WORK-MANUAL-LOG", "UC-WORK-CALENDAR-CONFIG"]
+      "useCaseIds": [
+        "UC-WORK-PROJECT-TASK",
+        "UC-WORK-MANUAL-LOG",
+        "UC-WORK-CALENDAR-CONFIG"
+      ]
     },
     {
       "acceptance": [
@@ -7901,15 +7968,34 @@
       ],
       "capabilityId": "CAP-WORK",
       "id": "TASK-0228",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product"
+      ],
       "kind": "frontend",
       "outcome": "形成客户详情、任务工作区和日历之间连续的协同界面。",
-      "outputs": ["projects/unexamine/frontend"],
-      "requirementIds": ["REQ-WORK-MAIN-ENTRY", "REQ-WORK-MANAGEMENT-BOUNDARY", "REQ-PROJECT-TASK", "REQ-MANUAL-WORK-LOG", "REQ-WORK-CALENDAR-STATISTICS", "REQ-WORK-CONFIGURATION", "REQ-WORK-PERMISSION-ISOLATION"],
-      "resources": ["projects/unexamine/frontend"],
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-WORK-MAIN-ENTRY",
+        "REQ-WORK-MANAGEMENT-BOUNDARY",
+        "REQ-PROJECT-TASK",
+        "REQ-MANUAL-WORK-LOG",
+        "REQ-WORK-CALENDAR-STATISTICS",
+        "REQ-WORK-CONFIGURATION",
+        "REQ-WORK-PERMISSION-ISOLATION"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
       "role": "frontend",
       "title": "重建客户上下文任务工作日志和日历界面",
-      "useCaseIds": ["UC-WORK-PROJECT-TASK", "UC-WORK-MANUAL-LOG", "UC-WORK-CALENDAR-CONFIG"]
+      "useCaseIds": [
+        "UC-WORK-PROJECT-TASK",
+        "UC-WORK-MANUAL-LOG",
+        "UC-WORK-CALENDAR-CONFIG"
+      ]
     },
     {
       "acceptance": [
@@ -7920,15 +8006,37 @@
       ],
       "capabilityId": "CAP-WORK",
       "id": "TASK-0229",
-      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "kind": "integration-test",
       "outcome": "验证任务和日志真实长在客户业务上下文中。",
-      "outputs": ["projects/unexamine/ai/evidence"],
-      "requirementIds": ["REQ-WORK-MAIN-ENTRY", "REQ-WORK-MANAGEMENT-BOUNDARY", "REQ-PROJECT-TASK", "REQ-MANUAL-WORK-LOG", "REQ-WORK-CALENDAR-STATISTICS", "REQ-WORK-CONFIGURATION", "REQ-WORK-PERMISSION-ISOLATION"],
-      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-WORK-MAIN-ENTRY",
+        "REQ-WORK-MANAGEMENT-BOUNDARY",
+        "REQ-PROJECT-TASK",
+        "REQ-MANUAL-WORK-LOG",
+        "REQ-WORK-CALENDAR-STATISTICS",
+        "REQ-WORK-CONFIGURATION",
+        "REQ-WORK-PERMISSION-ISOLATION"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "role": "test",
       "title": "验收客户跟进任务日志和日历闭环",
-      "useCaseIds": ["UC-WORK-PROJECT-TASK", "UC-WORK-MANUAL-LOG", "UC-WORK-CALENDAR-CONFIG"]
+      "useCaseIds": [
+        "UC-WORK-PROJECT-TASK",
+        "UC-WORK-MANUAL-LOG",
+        "UC-WORK-CALENDAR-CONFIG"
+      ]
     },
     {
       "acceptance": [
@@ -7939,15 +8047,31 @@
       ],
       "capabilityId": "CAP-NOTIFICATION",
       "id": "TASK-0230",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage"
+      ],
       "kind": "backend-manage",
       "outcome": "统一跨来源待办消息投影和可跳转业务结果链。",
-      "outputs": ["projects/unexamine/backend"],
-      "requirementIds": ["REQ-TODO-MAIN-ENTRY", "REQ-ACTION-RESULT-CHAIN", "REQ-MESSAGE-MAIN-ENTRY", "REQ-MESSAGE-NOTIFICATION", "REQ-MESSAGE-TEMPLATE-DELIVERY"],
-      "resources": ["projects/unexamine/backend"],
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-TODO-MAIN-ENTRY",
+        "REQ-ACTION-RESULT-CHAIN",
+        "REQ-MESSAGE-MAIN-ENTRY",
+        "REQ-MESSAGE-NOTIFICATION",
+        "REQ-MESSAGE-TEMPLATE-DELIVERY"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
       "role": "backend",
       "title": "重建待办消息投影和对象跳转链",
-      "useCaseIds": ["UC-NOTIFICATION-TODO", "UC-NOTIFICATION-MESSAGE-DELIVERY"]
+      "useCaseIds": [
+        "UC-NOTIFICATION-TODO",
+        "UC-NOTIFICATION-MESSAGE-DELIVERY"
+      ]
     },
     {
       "acceptance": [
@@ -7958,15 +8082,31 @@
       ],
       "capabilityId": "CAP-NOTIFICATION",
       "id": "TASK-0231",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product"
+      ],
       "kind": "frontend",
       "outcome": "形成清楚、可处理并能返回业务对象的统一工作收件箱。",
-      "outputs": ["projects/unexamine/frontend"],
-      "requirementIds": ["REQ-TODO-MAIN-ENTRY", "REQ-ACTION-RESULT-CHAIN", "REQ-MESSAGE-MAIN-ENTRY", "REQ-MESSAGE-NOTIFICATION", "REQ-MESSAGE-TEMPLATE-DELIVERY"],
-      "resources": ["projects/unexamine/frontend"],
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-TODO-MAIN-ENTRY",
+        "REQ-ACTION-RESULT-CHAIN",
+        "REQ-MESSAGE-MAIN-ENTRY",
+        "REQ-MESSAGE-NOTIFICATION",
+        "REQ-MESSAGE-TEMPLATE-DELIVERY"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
       "role": "frontend",
       "title": "重建审批任务待办与消息收件箱",
-      "useCaseIds": ["UC-NOTIFICATION-TODO", "UC-NOTIFICATION-MESSAGE-DELIVERY"]
+      "useCaseIds": [
+        "UC-NOTIFICATION-TODO",
+        "UC-NOTIFICATION-MESSAGE-DELIVERY"
+      ]
     },
     {
       "acceptance": [
@@ -7977,15 +8117,34 @@
       ],
       "capabilityId": "CAP-NOTIFICATION",
       "id": "TASK-0232",
-      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "kind": "integration-test",
       "outcome": "验证待办消息与 Flow、任务和客户对象形成闭环。",
-      "outputs": ["projects/unexamine/ai/evidence"],
-      "requirementIds": ["REQ-TODO-MAIN-ENTRY", "REQ-ACTION-RESULT-CHAIN", "REQ-MESSAGE-MAIN-ENTRY", "REQ-MESSAGE-NOTIFICATION", "REQ-MESSAGE-TEMPLATE-DELIVERY"],
-      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-TODO-MAIN-ENTRY",
+        "REQ-ACTION-RESULT-CHAIN",
+        "REQ-MESSAGE-MAIN-ENTRY",
+        "REQ-MESSAGE-NOTIFICATION",
+        "REQ-MESSAGE-TEMPLATE-DELIVERY"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "role": "test",
       "title": "验收跨来源待办消息处理和对象返回",
-      "useCaseIds": ["UC-NOTIFICATION-TODO", "UC-NOTIFICATION-MESSAGE-DELIVERY"]
+      "useCaseIds": [
+        "UC-NOTIFICATION-TODO",
+        "UC-NOTIFICATION-MESSAGE-DELIVERY"
+      ]
     },
     {
       "acceptance": [
@@ -7996,15 +8155,26 @@
       ],
       "capabilityId": "CAP-FILE",
       "id": "TASK-0233",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage"
+      ],
       "kind": "backend-manage",
       "outcome": "把文件能力归回业务对象上下文并统一权限访问。",
-      "outputs": ["projects/unexamine/backend"],
-      "requirementIds": ["REQ-FILE-STORAGE"],
-      "resources": ["projects/unexamine/backend"],
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-FILE-STORAGE"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
       "role": "backend",
       "title": "重建业务对象附件引用和受控访问",
-      "useCaseIds": ["UC-FILE-UPLOAD-ACCESS"]
+      "useCaseIds": [
+        "UC-FILE-UPLOAD-ACCESS"
+      ]
     },
     {
       "acceptance": [
@@ -8015,15 +8185,26 @@
       ],
       "capabilityId": "CAP-FILE",
       "id": "TASK-0234",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product"
+      ],
       "kind": "frontend",
       "outcome": "让附件自然出现在客户、任务和 Flow 的业务操作中。",
-      "outputs": ["projects/unexamine/frontend"],
-      "requirementIds": ["REQ-FILE-STORAGE"],
-      "resources": ["projects/unexamine/frontend"],
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-FILE-STORAGE"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
       "role": "frontend",
       "title": "重建记录任务和 Flow 上下文附件交互",
-      "useCaseIds": ["UC-FILE-UPLOAD-ACCESS"]
+      "useCaseIds": [
+        "UC-FILE-UPLOAD-ACCESS"
+      ]
     },
     {
       "acceptance": [
@@ -8034,15 +8215,29 @@
       ],
       "capabilityId": "CAP-FILE",
       "id": "TASK-0235",
-      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "kind": "integration-test",
       "outcome": "验证文件成为受控业务附件而非独立技术表单。",
-      "outputs": ["projects/unexamine/ai/evidence"],
-      "requirementIds": ["REQ-FILE-STORAGE"],
-      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-FILE-STORAGE"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "role": "test",
       "title": "验收业务对象附件上传访问和失败恢复",
-      "useCaseIds": ["UC-FILE-UPLOAD-ACCESS"]
+      "useCaseIds": [
+        "UC-FILE-UPLOAD-ACCESS"
+      ]
     },
     {
       "acceptance": [
@@ -8053,15 +8248,37 @@
       ],
       "capabilityId": "CAP-ANALYTICS",
       "id": "TASK-0236",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage"
+      ],
       "kind": "backend-manage",
       "outcome": "重建由真实业务数据驱动且执行权限的统计仪表盘服务。",
-      "outputs": ["projects/unexamine/backend"],
-      "requirementIds": ["REQ-DASHBOARD-ENTRY", "REQ-CONFIGURABLE-DASHBOARD", "REQ-DASHBOARD-DATA-COMPONENTS", "REQ-UI-PLATFORM-DASHBOARD", "REQ-UI-SYSTEM-DASHBOARD", "REQ-CONFIGURABLE-DATA-SOURCE", "REQ-DATA-SOURCE-CAPABILITIES", "REQ-REPORT-AGGREGATION", "REQ-KPI-CLOSED-LOOP", "REQ-DATA-KPI-DASHBOARD-EXPLAIN"],
-      "resources": ["projects/unexamine/backend"],
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-DASHBOARD-ENTRY",
+        "REQ-CONFIGURABLE-DASHBOARD",
+        "REQ-DASHBOARD-DATA-COMPONENTS",
+        "REQ-UI-PLATFORM-DASHBOARD",
+        "REQ-UI-SYSTEM-DASHBOARD",
+        "REQ-CONFIGURABLE-DATA-SOURCE",
+        "REQ-DATA-SOURCE-CAPABILITIES",
+        "REQ-REPORT-AGGREGATION",
+        "REQ-KPI-CLOSED-LOOP",
+        "REQ-DATA-KPI-DASHBOARD-EXPLAIN"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
       "role": "backend",
       "title": "重建版本化数据源指标仪表盘和 KPI 服务",
-      "useCaseIds": ["UC-ANALYTICS-DASHBOARD", "UC-ANALYTICS-DATASOURCE-REPORT", "UC-ANALYTICS-KPI"]
+      "useCaseIds": [
+        "UC-ANALYTICS-DASHBOARD",
+        "UC-ANALYTICS-DATASOURCE-REPORT",
+        "UC-ANALYTICS-KPI"
+      ]
     },
     {
       "acceptance": [
@@ -8072,15 +8289,37 @@
       ],
       "capabilityId": "CAP-ANALYTICS",
       "id": "TASK-0237",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product"
+      ],
       "kind": "frontend",
       "outcome": "形成可配置、可理解、可下钻的系统经营首页。",
-      "outputs": ["projects/unexamine/frontend"],
-      "requirementIds": ["REQ-DASHBOARD-ENTRY", "REQ-CONFIGURABLE-DASHBOARD", "REQ-DASHBOARD-DATA-COMPONENTS", "REQ-UI-PLATFORM-DASHBOARD", "REQ-UI-SYSTEM-DASHBOARD", "REQ-CONFIGURABLE-DATA-SOURCE", "REQ-DATA-SOURCE-CAPABILITIES", "REQ-REPORT-AGGREGATION", "REQ-KPI-CLOSED-LOOP", "REQ-DATA-KPI-DASHBOARD-EXPLAIN"],
-      "resources": ["projects/unexamine/frontend"],
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-DASHBOARD-ENTRY",
+        "REQ-CONFIGURABLE-DASHBOARD",
+        "REQ-DASHBOARD-DATA-COMPONENTS",
+        "REQ-UI-PLATFORM-DASHBOARD",
+        "REQ-UI-SYSTEM-DASHBOARD",
+        "REQ-CONFIGURABLE-DATA-SOURCE",
+        "REQ-DATA-SOURCE-CAPABILITIES",
+        "REQ-REPORT-AGGREGATION",
+        "REQ-KPI-CLOSED-LOOP",
+        "REQ-DATA-KPI-DASHBOARD-EXPLAIN"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
       "role": "frontend",
       "title": "重建可视化数据源仪表盘和系统经营首页",
-      "useCaseIds": ["UC-ANALYTICS-DASHBOARD", "UC-ANALYTICS-DATASOURCE-REPORT", "UC-ANALYTICS-KPI"]
+      "useCaseIds": [
+        "UC-ANALYTICS-DASHBOARD",
+        "UC-ANALYTICS-DATASOURCE-REPORT",
+        "UC-ANALYTICS-KPI"
+      ]
     },
     {
       "acceptance": [
@@ -8091,15 +8330,40 @@
       ],
       "capabilityId": "CAP-ANALYTICS",
       "id": "TASK-0238",
-      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "kind": "integration-test",
       "outcome": "用真实客户数据验收数据源、仪表盘、下钻和 KPI 闭环。",
-      "outputs": ["projects/unexamine/ai/evidence"],
-      "requirementIds": ["REQ-DASHBOARD-ENTRY", "REQ-CONFIGURABLE-DASHBOARD", "REQ-DASHBOARD-DATA-COMPONENTS", "REQ-UI-PLATFORM-DASHBOARD", "REQ-UI-SYSTEM-DASHBOARD", "REQ-CONFIGURABLE-DATA-SOURCE", "REQ-DATA-SOURCE-CAPABILITIES", "REQ-REPORT-AGGREGATION", "REQ-KPI-CLOSED-LOOP", "REQ-DATA-KPI-DASHBOARD-EXPLAIN"],
-      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-DASHBOARD-ENTRY",
+        "REQ-CONFIGURABLE-DASHBOARD",
+        "REQ-DASHBOARD-DATA-COMPONENTS",
+        "REQ-UI-PLATFORM-DASHBOARD",
+        "REQ-UI-SYSTEM-DASHBOARD",
+        "REQ-CONFIGURABLE-DATA-SOURCE",
+        "REQ-DATA-SOURCE-CAPABILITIES",
+        "REQ-REPORT-AGGREGATION",
+        "REQ-KPI-CLOSED-LOOP",
+        "REQ-DATA-KPI-DASHBOARD-EXPLAIN"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "role": "test",
       "title": "验收客户经营仪表盘权限下钻与 KPI",
-      "useCaseIds": ["UC-ANALYTICS-DASHBOARD", "UC-ANALYTICS-DATASOURCE-REPORT", "UC-ANALYTICS-KPI"]
+      "useCaseIds": [
+        "UC-ANALYTICS-DASHBOARD",
+        "UC-ANALYTICS-DATASOURCE-REPORT",
+        "UC-ANALYTICS-KPI"
+      ]
     },
     {
       "acceptance": [
@@ -8110,15 +8374,35 @@
       ],
       "capabilityId": "CAP-AI",
       "id": "TASK-0239",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage"
+      ],
       "kind": "backend-manage",
       "outcome": "重建受权限、来源解释和人工确认约束的上下文助手服务。",
-      "outputs": ["projects/unexamine/backend"],
-      "requirementIds": ["REQ-AI-MODEL-AUTHORIZATION", "REQ-AI-AGENT-POLICY-SCOPE", "REQ-AI-MAIN-ENTRY", "REQ-AI-CONTEXT-ENTRIES", "REQ-AI-PERMISSIONED-QUERY", "REQ-AI-RIGHT-ASSISTANT", "REQ-AI-CONFIRMED-WRITE", "REQ-AI-AUDIT-DEGRADE"],
-      "resources": ["projects/unexamine/backend"],
+      "outputs": [
+        "projects/unexamine/backend"
+      ],
+      "requirementIds": [
+        "REQ-AI-MODEL-AUTHORIZATION",
+        "REQ-AI-AGENT-POLICY-SCOPE",
+        "REQ-AI-MAIN-ENTRY",
+        "REQ-AI-CONTEXT-ENTRIES",
+        "REQ-AI-PERMISSIONED-QUERY",
+        "REQ-AI-RIGHT-ASSISTANT",
+        "REQ-AI-CONFIRMED-WRITE",
+        "REQ-AI-AUDIT-DEGRADE"
+      ],
+      "resources": [
+        "projects/unexamine/backend"
+      ],
       "role": "backend",
       "title": "重建上下文 AI 权限查询和确认写入服务",
-      "useCaseIds": ["UC-AI-MODEL-AGENT", "UC-AI-CONTEXT-QUERY", "UC-AI-CONFIRM-WRITE"]
+      "useCaseIds": [
+        "UC-AI-MODEL-AGENT",
+        "UC-AI-CONTEXT-QUERY",
+        "UC-AI-CONFIRM-WRITE"
+      ]
     },
     {
       "acceptance": [
@@ -8129,15 +8413,35 @@
       ],
       "capabilityId": "CAP-AI",
       "id": "TASK-0240",
-      "inputs": ["projects/unexamine/ai/planning/system-reconstruction-sequence.md", "projects/unexamine/frontend/src/product"],
+      "inputs": [
+        "projects/unexamine/ai/planning/system-reconstruction-sequence.md",
+        "projects/unexamine/frontend/src/product"
+      ],
       "kind": "frontend",
       "outcome": "让助手成为客户业务页面内可用、可解释和可确认的协作者。",
-      "outputs": ["projects/unexamine/frontend"],
-      "requirementIds": ["REQ-AI-MODEL-AUTHORIZATION", "REQ-AI-AGENT-POLICY-SCOPE", "REQ-AI-MAIN-ENTRY", "REQ-AI-CONTEXT-ENTRIES", "REQ-AI-PERMISSIONED-QUERY", "REQ-AI-RIGHT-ASSISTANT", "REQ-AI-CONFIRMED-WRITE", "REQ-AI-AUDIT-DEGRADE"],
-      "resources": ["projects/unexamine/frontend"],
+      "outputs": [
+        "projects/unexamine/frontend"
+      ],
+      "requirementIds": [
+        "REQ-AI-MODEL-AUTHORIZATION",
+        "REQ-AI-AGENT-POLICY-SCOPE",
+        "REQ-AI-MAIN-ENTRY",
+        "REQ-AI-CONTEXT-ENTRIES",
+        "REQ-AI-PERMISSIONED-QUERY",
+        "REQ-AI-RIGHT-ASSISTANT",
+        "REQ-AI-CONFIRMED-WRITE",
+        "REQ-AI-AUDIT-DEGRADE"
+      ],
+      "resources": [
+        "projects/unexamine/frontend"
+      ],
       "role": "frontend",
       "title": "重建客户详情右侧上下文助手和确认界面",
-      "useCaseIds": ["UC-AI-MODEL-AGENT", "UC-AI-CONTEXT-QUERY", "UC-AI-CONFIRM-WRITE"]
+      "useCaseIds": [
+        "UC-AI-MODEL-AGENT",
+        "UC-AI-CONTEXT-QUERY",
+        "UC-AI-CONFIRM-WRITE"
+      ]
     },
     {
       "acceptance": [
@@ -8148,15 +8452,38 @@
       ],
       "capabilityId": "CAP-AI",
       "id": "TASK-0241",
-      "inputs": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "inputs": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "kind": "integration-test",
       "outcome": "验证上下文助手的权限查询、来源解释、确认写入和降级闭环。",
-      "outputs": ["projects/unexamine/ai/evidence"],
-      "requirementIds": ["REQ-AI-MODEL-AUTHORIZATION", "REQ-AI-AGENT-POLICY-SCOPE", "REQ-AI-MAIN-ENTRY", "REQ-AI-CONTEXT-ENTRIES", "REQ-AI-PERMISSIONED-QUERY", "REQ-AI-RIGHT-ASSISTANT", "REQ-AI-CONFIRMED-WRITE", "REQ-AI-AUDIT-DEGRADE"],
-      "resources": ["projects/unexamine/backend/src/test", "projects/unexamine/frontend/src", "projects/unexamine/ai/evidence"],
+      "outputs": [
+        "projects/unexamine/ai/evidence"
+      ],
+      "requirementIds": [
+        "REQ-AI-MODEL-AUTHORIZATION",
+        "REQ-AI-AGENT-POLICY-SCOPE",
+        "REQ-AI-MAIN-ENTRY",
+        "REQ-AI-CONTEXT-ENTRIES",
+        "REQ-AI-PERMISSIONED-QUERY",
+        "REQ-AI-RIGHT-ASSISTANT",
+        "REQ-AI-CONFIRMED-WRITE",
+        "REQ-AI-AUDIT-DEGRADE"
+      ],
+      "resources": [
+        "projects/unexamine/backend/src/test",
+        "projects/unexamine/frontend/src",
+        "projects/unexamine/ai/evidence"
+      ],
       "role": "test",
       "title": "验收客户上下文助手查询和确认写入",
-      "useCaseIds": ["UC-AI-MODEL-AGENT", "UC-AI-CONTEXT-QUERY", "UC-AI-CONFIRM-WRITE"]
+      "useCaseIds": [
+        "UC-AI-MODEL-AGENT",
+        "UC-AI-CONTEXT-QUERY",
+        "UC-AI-CONFIRM-WRITE"
+      ]
     }
   ]
 }

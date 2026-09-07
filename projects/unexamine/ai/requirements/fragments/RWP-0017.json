@@ -1,1 +1,64 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0017","requirements":[{"id":"REQ-MODULE-GROUP","title":"模块组运行态导航","statement":"系统管理员可以创建、编辑、删除和排序模块组并把模块归属到组；发布后模块组显示在运行态顶栏，点击后左侧显示该组授权模块。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0095","B0096","B0097"],"acceptanceCriteria":["发布前草稿不会改变普通用户运行态。","发布后授权用户看到组名并能切换到组内模块，无权限组和模块不可见。","删除或调整模块组前检查模块依赖。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0095","classification":"requirement","requirementIds":["REQ-MODULE-GROUP"],"rationale":"模块组运行态语义。"},{"sourceBlock":"B0096","classification":"context","requirementIds":[],"rationale":"必需能力引导语。"},{"sourceBlock":"B0097","classification":"requirement","requirementIds":["REQ-MODULE-GROUP"],"rationale":"模块组生命周期和导航行为。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0095"
+      ],
+      "sourceBlock": "B0095"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0096"
+      ],
+      "sourceBlock": "B0096"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0097"
+      ],
+      "sourceBlock": "B0097"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0017",
+  "requirements": [
+    {
+      "id": "CAND-B0095",
+      "sourceBlocks": [
+        "B0095"
+      ],
+      "statement": "> 附录 A.1。模块组决定**运行态顶栏**显示的分组名；组内模块在**左侧二级导航**展示。",
+      "title": "5.3.1 模块组（v2 新增，运行态导航）",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0096",
+      "sourceBlocks": [
+        "B0096"
+      ],
+      "statement": "必须包含：",
+      "title": "5.3.1 模块组（v2 新增，运行态导航）",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0097",
+      "sourceBlocks": [
+        "B0097"
+      ],
+      "statement": "- 创建模块组。\n- 编辑 / 删除模块组。\n- 模块组排序。\n- 将模块归属到模块组。\n- 发布后在运行态顶栏显示组名。\n- 点击组名后，左侧展示该组下模块列表。",
+      "title": "5.3.1 模块组（v2 新增，运行态导航）",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

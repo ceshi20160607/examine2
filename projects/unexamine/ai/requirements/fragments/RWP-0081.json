@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0081","requirements":[{"id":"REQ-IMPORT-DRYRUN-BATCH-ROLLBACK","title":"导入预演、批次执行和并发安全回滚","statement":"正式导入前执行无副作用预演并统计预计新增、更新和失败，确认后生成导入批次执行；授权用户可按批次只回滚本次影响的数据，若记录在导入后被他人修改则阻止直接回滚并明确提示。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0484","B0485","B0486","B0487"],"acceptanceCriteria":["预演不写业务数据，结果逐行说明新增、更新或失败并汇总数量。","正式导入保存批次、行结果、变更前后版本和作业状态。","回滚只删除本批次新增或恢复本批次更新，其他数据不变。","记录当前版本与批次完成版本不一致时跳过并报告冲突，不覆盖他人后续修改。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0484","classification":"context","requirementIds":[],"rationale":"导入能力引导语。"},{"sourceBlock":"B0485","classification":"requirement","requirementIds":["REQ-IMPORT-DRYRUN-BATCH-ROLLBACK"],"rationale":"预演、统计、批次和回滚。"},{"sourceBlock":"B0486","classification":"context","requirementIds":[],"rationale":"回滚注意引导语。"},{"sourceBlock":"B0487","classification":"requirement","requirementIds":["REQ-IMPORT-DRYRUN-BATCH-ROLLBACK"],"rationale":"回滚范围与并发修改保护。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0484"
+      ],
+      "sourceBlock": "B0484"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0485"
+      ],
+      "sourceBlock": "B0485"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0486"
+      ],
+      "sourceBlock": "B0486"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0487"
+      ],
+      "sourceBlock": "B0487"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0081",
+  "requirements": [
+    {
+      "id": "CAND-B0484",
+      "sourceBlocks": [
+        "B0484"
+      ],
+      "statement": "导入必须支持：",
+      "title": "14.6 导入回滚和预演",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0485",
+      "sourceBlocks": [
+        "B0485"
+      ],
+      "statement": "- 导入前先预演。\n- 显示预计新增多少条、更新多少条、失败多少条。\n- 真正导入后生成导入批次。\n- 出问题时可以按批次回滚。",
+      "title": "14.6 导入回滚和预演",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0486",
+      "sourceBlocks": [
+        "B0486"
+      ],
+      "statement": "注意：",
+      "title": "14.6 导入回滚和预演",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0487",
+      "sourceBlocks": [
+        "B0487"
+      ],
+      "statement": "- 回滚只回滚本次导入影响的数据。\n- 如果导入后数据又被别人改过，要提示不能直接回滚。",
+      "title": "14.6 导入回滚和预演",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

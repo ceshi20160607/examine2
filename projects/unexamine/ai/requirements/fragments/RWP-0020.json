@@ -1,1 +1,149 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0020","requirements":[{"id":"REQ-DATA-DICTIONARY","title":"版本化数据字典","statement":"字典支持分类编码、字典项、排序、启停、颜色图标默认项、使用情况、导入导出、版本发布和引用影响分析；运行端只使用发布版本，草稿不影响已发布字段和 Flow。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0115","B0116","B0121","B0122"],"acceptanceCriteria":["发布字典后字段和 Flow 读取发布版本，修改草稿不改变运行结果。","停用或改名字典项后历史数据仍按保存快照正确显示。","删除或停用前显示字段、Flow、筛选和仪表盘引用。"],"decisionIds":[]},{"id":"REQ-HIERARCHICAL-CASCADE-DICTIONARY","title":"树形和级联字典","statement":"字典项支持 parentId、depthLevel、depthPath 的多层树；级联字段可绑定多层字典或模块数据源并配置显示值父级最大层级和中间层选择，按配置保存最终项或完整路径。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0117","B0118","B0119","B0120"],"acceptanceCriteria":["页面按父级逐层加载字典项或模块数据。","保存后列表筛选、详情和打印可读回最终项及配置要求的路径。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0115","classification":"context","requirementIds":[],"rationale":"字典能力引导语。"},{"sourceBlock":"B0116","classification":"requirement","requirementIds":["REQ-DATA-DICTIONARY"],"rationale":"字典生命周期目录。"},{"sourceBlock":"B0117","classification":"context","requirementIds":[],"rationale":"层级字典引导语。"},{"sourceBlock":"B0118","classification":"requirement","requirementIds":["REQ-HIERARCHICAL-CASCADE-DICTIONARY"],"rationale":"字典层级模型。"},{"sourceBlock":"B0119","classification":"context","requirementIds":[],"rationale":"级联字段引导语。"},{"sourceBlock":"B0120","classification":"requirement","requirementIds":["REQ-HIERARCHICAL-CASCADE-DICTIONARY"],"rationale":"级联字段行为。"},{"sourceBlock":"B0121","classification":"context","requirementIds":[],"rationale":"优化能力引导语。"},{"sourceBlock":"B0122","classification":"requirement","requirementIds":["REQ-DATA-DICTIONARY"],"rationale":"历史显示、类型和发布约束。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0115"
+      ],
+      "sourceBlock": "B0115"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0116"
+      ],
+      "sourceBlock": "B0116"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0117"
+      ],
+      "sourceBlock": "B0117"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0118"
+      ],
+      "sourceBlock": "B0118"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0119"
+      ],
+      "sourceBlock": "B0119"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0120"
+      ],
+      "sourceBlock": "B0120"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0121"
+      ],
+      "sourceBlock": "B0121"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0122"
+      ],
+      "sourceBlock": "B0122"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0020",
+  "requirements": [
+    {
+      "id": "CAND-B0115",
+      "sourceBlocks": [
+        "B0115"
+      ],
+      "statement": "必须包含：",
+      "title": "5.6 字典",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0116",
+      "sourceBlocks": [
+        "B0116"
+      ],
+      "statement": "- 字典列表。\n- 字典项。\n- 字典项排序。\n- 字典项启用停用。\n- 字典使用情况。\n- 字典分类。\n- 字典编码。\n- 字典项颜色、图标、默认项。\n- 字典项导入导出。\n- 字典版本和发布。\n- 字典被字段、流程条件、筛选、仪表盘引用的影响分析。",
+      "title": "5.6 字典",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0117",
+      "sourceBlocks": [
+        "B0117"
+      ],
+      "statement": "字典层级：",
+      "title": "5.6 字典",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0118",
+      "sourceBlocks": [
+        "B0118"
+      ],
+      "statement": "- 字典项支持父子级，比如省、市、区、街道。\n- 字典项保存 `parentId`、`depthLevel`、`depthPath`，`depthPath` 从顶级到当前项，用逗号分隔。\n- 页面查询省市区这类数据时，先按字典加载顶级，再按父级加载下一级。\n- 历史数据保存实际选中的字典项 ID，同时保留显示快照，避免字典改名后历史数据看不懂。",
+      "title": "5.6 字典",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0119",
+      "sourceBlocks": [
+        "B0119"
+      ],
+      "statement": "级联字段：",
+      "title": "5.6 字典",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0120",
+      "sourceBlocks": [
+        "B0120"
+      ],
+      "statement": "- 字段类型支持级联选择。\n- 级联字段可以绑定一个多层级字典，比如省市区。\n- 级联字段也可以绑定一个模块数据源，比如产品大类、产品小类、产品型号。\n- 配置时要指定数据来源、显示字段、值字段、父级字段、最大层级、是否允许只选中间层。\n- 保存时可以保存最终选中项，也可以按配置保存完整路径，方便列表筛选和打印展示。",
+      "title": "5.6 字典",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0121",
+      "sourceBlocks": [
+        "B0121"
+      ],
+      "statement": "优化：",
+      "title": "5.6 字典",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0122",
+      "sourceBlocks": [
+        "B0122"
+      ],
+      "statement": "- 字典项停用后，历史数据仍能显示原名称。\n- 字典可以导入导出。\n- 字典项支持颜色或图标，用于状态类字段。\n- 字典要支持普通列表字典、树形字典、级联字典、状态字典、系统内置字典。\n- 字典发布后运行端使用发布版本；草稿修改不影响已发布字段和流程。",
+      "title": "5.6 字典",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

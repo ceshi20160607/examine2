@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0112","requirements":[{"id":"REQ-DATA-CONFIG-RUNTIME-VERSIONS","title":"配置版本与运行快照数据模型","statement":"表结构从初始设计即支持配置草稿、发布、版本、回滚和运行快照；模块字段、页面、Flow、打印模板、仪表盘和数据源均有发布版本，运行数据保存实际使用版本，后续配置修改不影响历史运行。","type":"constraint","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0635","B0636","B0637","B0638"],"acceptanceCriteria":["每类列明配置有独立版本和发布关联，运行对象持久化其版本引用或完整快照。","历史 Flow、打印、仪表盘结果可由保存版本解释，不读取当前草稿替换历史。"],"decisionIds":[]},{"id":"REQ-DATA-QUERY-SEQUENCE-JOB-DETAIL","title":"索引值、序号和作业逐行结果模型","statement":"列表常用筛选使用类型化索引值而非全扫字段值；自动编号使用独立并发安全序号；导入导出保存作业和逐行成功失败明细，大日志与大作业明细支持保留策略和归档。","type":"constraint","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0637"],"acceptanceCriteria":["常用字段筛选可命中索引值结构，编号不使用查询最大值加一。","导入导出详情可定位每行结果、错误和结果文件，归档后仍可按策略查询审计摘要。"],"decisionIds":[]},{"id":"REQ-DATA-KPI-DASHBOARD-EXPLAIN","title":"KPI 与仪表盘可解释持久化模型","statement":"KPI 保存每次计算记录和来源以解释实际值；仪表盘持久化组件、版本、权限和缓存结构，使展示、发布、权限和计算结果可追溯。","type":"constraint","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0637"],"acceptanceCriteria":["KPI 达成率可追溯计算时间、规则和源记录集合。","仪表盘组件属于版本并有独立权限与上下文缓存，不以单段不可解释 JSON 代替全部关系。"],"decisionIds":[]},{"id":"REQ-DATA-APP-FILE-PERMISSION-MODEL","title":"应用、文件和权限解释数据模型","statement":"应用访问持久化密钥版本、幂等、限流和调用日志；文件持久化分片、预览和引用关系；权限保存足够来源与快照以解释允许和拒绝原因，并与永久审计和归档设计一致。","type":"constraint","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0637"],"acceptanceCriteria":["应用调用可关联凭证版本、幂等结果、限流决策和日志。","文件可从引用查到业务对象、分片和预览状态，权限预览可说明角色、范围及硬限制来源。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0635","classification":"requirement","requirementIds":["REQ-DATA-CONFIG-RUNTIME-VERSIONS"],"rationale":"数据设计必须面向上线追溯与恢复。"},{"sourceBlock":"B0636","classification":"context","requirementIds":[],"rationale":"落地设计引导语。"},{"sourceBlock":"B0637","classification":"requirement","requirementIds":["REQ-DATA-CONFIG-RUNTIME-VERSIONS","REQ-DATA-QUERY-SEQUENCE-JOB-DETAIL","REQ-DATA-KPI-DASHBOARD-EXPLAIN","REQ-DATA-APP-FILE-PERMISSION-MODEL"],"rationale":"版本、快照、查询、作业、KPI、仪表盘、应用、文件、权限与归档结构。"},{"sourceBlock":"B0638","classification":"requirement","requirementIds":["REQ-DATA-CONFIG-RUNTIME-VERSIONS"],"rationale":"要求从初始重构即按完整模型设计。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0635"
+      ],
+      "sourceBlock": "B0635"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0636"
+      ],
+      "sourceBlock": "B0636"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0637"
+      ],
+      "sourceBlock": "B0637"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0638"
+      ],
+      "sourceBlock": "B0638"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0112",
+  "requirements": [
+    {
+      "id": "CAND-B0635",
+      "sourceBlocks": [
+        "B0635"
+      ],
+      "statement": "成熟产品的表结构不能只满足增删改查，还要满足真实上线后的配置变更、运行追溯、权限解释、性能查询和失败恢复。",
+      "title": "14.37 落地级数据设计原则",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0636",
+      "sourceBlocks": [
+        "B0636"
+      ],
+      "statement": "必须做到：",
+      "title": "14.37 落地级数据设计原则",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0637",
+      "sourceBlocks": [
+        "B0637"
+      ],
+      "statement": "- 配置类能力要有草稿、发布、版本和回滚。\n- 运行类能力要保存快照，不能被配置修改影响。\n- 模块字段、页面、流程、打印模板、仪表盘、数据源都要支持发布版本。\n- 列表常用筛选字段要有索引值表，不能所有查询都扫字段值表。\n- 自动编号要有独立序号表，不能查询最大值加一。\n- 导入导出要有任务明细，能看到每一行成功或失败。\n- KPI 要有计算记录，能解释实际值来自哪里。\n- 仪表盘要有组件表、版本表、权限表和缓存表。\n- 应用访问要有密钥版本、幂等、限流和调用日志。\n- 文件要有分片、预览、引用关系。\n- 权限要能解释为什么能看、为什么不能看。\n- 大日志和大任务明细要支持归档。",
+      "title": "14.37 落地级数据设计原则",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0638",
+      "sourceBlocks": [
+        "B0638"
+      ],
+      "statement": "这些不是内置能力，而是重构版从一开始就要按这个方向设计。",
+      "title": "14.37 落地级数据设计原则",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

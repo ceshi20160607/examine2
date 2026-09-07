@@ -54,6 +54,10 @@ import com.unique.unexamine.authorization.manage.PermissionChecker;
 import com.unique.unexamine.authorization.manage.ChannelFieldPolicyResolver;
 import com.unique.unexamine.authorization.manage.FieldAccessDecision;
 import com.unique.unexamine.shared.manage.web.DomainException;
+import com.unique.unexamine.foundation.manage.control.BusinessAction;
+import com.unique.unexamine.foundation.manage.control.FoundationControlService;
+import com.unique.unexamine.flow.manage.FlowBindingService;
+import jakarta.validation.Validator;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +80,9 @@ import java.util.Set;
 
 @Service
 public class RuntimeDataService {
+    private final FoundationControlService actionControl;
+    private final FlowBindingService actionBindings;
+    private final Validator actionValidator;
     private final ModulePublicationService publicationService;
     private final DictionaryConfigurationService dictionaryConfigurationService;
     private final BusinessRecordBaseService recordService;
@@ -129,7 +136,11 @@ public class RuntimeDataService {
             AuditEventBaseService auditEventService,
             AuditFieldChangeBaseService fieldChangeService,
             RuntimeRuleIndexService ruleIndexService,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            FoundationControlService actionControl, FlowBindingService actionBindings, Validator actionValidator) {
+        this.actionControl = actionControl;
+        this.actionBindings = actionBindings;
+        this.actionValidator = actionValidator;
         this.publicationService = publicationService;
         this.dictionaryConfigurationService = dictionaryConfigurationService;
         this.recordService = recordService;
@@ -767,7 +778,30 @@ public class RuntimeDataService {
     }
 
     @Transactional
-    public RuntimeRecordView create(
+    public RuntimeRecordView create(AuthenticatedContext context, String moduleCode,
+            CreateRuntimeRecordRequest request, String traceId) {
+        return createAction(context, moduleCode, request, traceId, BusinessAction.Options.internal()).value();
+    }
+
+    @Transactional
+    public BusinessAction.Result<RuntimeRecordView> createAction(
+            AuthenticatedContext context, String moduleCode,
+            CreateRuntimeRecordRequest request, String traceId, BusinessAction.Options options) {
+        validateActionRequest(request);
+        requireAction(context, moduleCode, "CREATE", traceId);
+        PublishedModule published = published(context, moduleCode);
+        AuthenticatedContext dataContext = context;
+        BusinessAction.Input input = new BusinessAction.Input(context, dataContext.tenantId(),
+                published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
+                "CREATE", null, null, request, options, traceId);
+        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class,
+                () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
+                        actionVariables(request), traceId),
+                () -> createDirect(context, moduleCode, request, traceId));
+        return protectActionReplay(context, moduleCode, "CREATE", result, traceId);
+    }
+
+    private RuntimeRecordView createDirect(
             AuthenticatedContext context,
             String moduleCode,
             CreateRuntimeRecordRequest request,
@@ -811,6 +845,37 @@ public class RuntimeDataService {
         return view(context, moduleCode, "CREATE", List.of("PAGE"), recordService.selectById(record.getId()), published);
     }
 
+    private void validateActionRequest(Object request) {
+        var violations = actionValidator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new DomainException("ACTION_INPUT_INVALID", violations.iterator().next().getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private Map<String, Object> actionVariables(Object request) {
+        Map<String, Object> variables = objectMapper.convertValue(request, new TypeReference<>() {});
+        if (variables.get("fields") instanceof Map<?, ?> fields) {
+            fields.forEach((key, value) -> variables.putIfAbsent(String.valueOf(key), value));
+        }
+        return variables;
+    }
+
+    private BusinessAction.Result<RuntimeRecordView> protectActionReplay(
+            AuthenticatedContext context, String moduleCode, String action,
+            BusinessAction.Result<RuntimeRecordView> result, String traceId) {
+        if (!result.replayed()) return result;
+        RecordAccess access = requireRecordAccess(context, moduleCode, action, result.value().id(), false, traceId, true);
+        Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolveIntersection(context, moduleCode,
+                action, List.of("PAGE"), access.published().fields().stream().map(PublishedField::code).toList());
+        Map<String, JsonNode> fields = new LinkedHashMap<>();
+        result.value().fields().forEach((code, value) -> {
+            JsonNode protectedValue = fieldPolicyResolver.protect(value, decisions.get(code));
+            if (protectedValue != null) fields.put(code, protectedValue);
+        });
+        return new BusinessAction.Result<>(result.idempotencyRecordId(), result.outboxId(), result.idempotencyKey(),
+                result.status(), true, result.mode(), result.value().withFields(fields));
+    }
+
     public RuntimeImportValidation validateImport(
             AuthenticatedContext context,
             String moduleCode,
@@ -846,7 +911,30 @@ public class RuntimeDataService {
     }
 
     @Transactional
-    public RuntimeRecordView update(
+    public RuntimeRecordView update(AuthenticatedContext context, String moduleCode, Long recordId,
+            UpdateRuntimeRecordRequest request, String traceId) {
+        return updateAction(context, moduleCode, recordId, request, traceId, BusinessAction.Options.internal()).value();
+    }
+
+    @Transactional
+    public BusinessAction.Result<RuntimeRecordView> updateAction(
+            AuthenticatedContext context, String moduleCode, Long recordId,
+            UpdateRuntimeRecordRequest request, String traceId, BusinessAction.Options options) {
+        validateActionRequest(request);
+        RecordAccess access = requireRecordAccess(context, moduleCode, "UPDATE", recordId, false, traceId);
+        PublishedModule published = access.published();
+        AuthenticatedContext dataContext = access.sourceContext();
+        BusinessAction.Input input = new BusinessAction.Input(context, dataContext.tenantId(),
+                published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
+                "UPDATE", recordId, request.version(), request, options, traceId);
+        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class,
+                () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
+                        actionVariables(request), traceId),
+                () -> updateDirect(context, moduleCode, recordId, request, traceId));
+        return protectActionReplay(context, moduleCode, "UPDATE", result, traceId);
+    }
+
+    private RuntimeRecordView updateDirect(
             AuthenticatedContext context,
             String moduleCode,
             Long recordId,
@@ -1519,7 +1607,30 @@ public class RuntimeDataService {
     }
 
     @Transactional
-    public RuntimeRecordView delete(
+    public RuntimeRecordView delete(AuthenticatedContext context, String moduleCode, Long recordId,
+            RecordLifecycleRequest request, String traceId) {
+        return deleteAction(context, moduleCode, recordId, request, traceId, BusinessAction.Options.internal()).value();
+    }
+
+    @Transactional
+    public BusinessAction.Result<RuntimeRecordView> deleteAction(
+            AuthenticatedContext context, String moduleCode, Long recordId,
+            RecordLifecycleRequest request, String traceId, BusinessAction.Options options) {
+        validateActionRequest(request);
+        RecordAccess access = requireRecordAccess(context, moduleCode, "DELETE", recordId, false, traceId);
+        PublishedModule published = access.published();
+        AuthenticatedContext dataContext = access.sourceContext();
+        BusinessAction.Input input = new BusinessAction.Input(context, dataContext.tenantId(),
+                published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
+                "DELETE", recordId, request.version(), request, options, traceId);
+        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class,
+                () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
+                        actionVariables(request), traceId),
+                () -> deleteDirect(context, moduleCode, recordId, request, traceId));
+        return protectActionReplay(context, moduleCode, "DELETE", result, traceId);
+    }
+
+    private RuntimeRecordView deleteDirect(
             AuthenticatedContext context, String moduleCode, Long recordId,
             RecordLifecycleRequest request, String traceId) {
         RecordAccess access = requireRecordAccess(context, moduleCode, "DELETE", recordId, false, traceId);
@@ -1773,15 +1884,21 @@ public class RuntimeDataService {
     private RecordAccess requireRecordAccess(
             AuthenticatedContext context, String moduleCode, String actionCode,
             Long recordId, boolean activeOnly, String traceId) {
+        return requireRecordAccess(context, moduleCode, actionCode, recordId, activeOnly, traceId, false);
+    }
+
+    private RecordAccess requireRecordAccess(
+            AuthenticatedContext context, String moduleCode, String actionCode,
+            Long recordId, boolean activeOnly, String traceId, boolean currentRead) {
         requireAction(context, moduleCode, actionCode, traceId);
         PublishedModule currentPublished = published(context, moduleCode);
         LambdaQueryWrapper<BusinessRecord> ownBoundary = activeOnly
                 ? boundary(context, currentPublished.configuration().moduleId())
                 : baseBoundary(context, currentPublished.configuration().moduleId());
-        BusinessRecord own = recordService.selectList(ownBoundary.eq(BusinessRecord::getId, recordId))
+        BusinessRecord own = recordService.selectList(ownBoundary.eq(BusinessRecord::getId, recordId).last(currentRead, "FOR SHARE"))
                 .stream().findFirst().orElse(null);
         if (own != null) {
-            if (!withinScope(context, moduleCode, actionCode, recordId, currentPublished.configuration().moduleId())) {
+            if (!withinScope(context, moduleCode, actionCode, recordId, currentPublished.configuration().moduleId(), currentRead)) {
                 deny(context, moduleCode, actionCode, traceId,
                         Map.of("recordId", recordId, "reason", "DATA_SCOPE_DENIED"));
             }
@@ -1790,7 +1907,7 @@ public class RuntimeDataService {
 
         BusinessRecord sharedRecord = recordService.selectList(Wrappers.<BusinessRecord>lambdaQuery()
                         .eq(BusinessRecord::getSystemId, context.systemId())
-                        .eq(BusinessRecord::getId, recordId))
+                        .eq(BusinessRecord::getId, recordId).last(currentRead, "FOR SHARE"))
                 .stream().findFirst().orElse(null);
         if (sharedRecord == null || (activeOnly && (Boolean.TRUE.equals(sharedRecord.getArchived())
                 || Boolean.TRUE.equals(sharedRecord.getDeleted())))) {
@@ -1805,7 +1922,7 @@ public class RuntimeDataService {
                         .eq(BizTenantShare::getSystemId, context.systemId())
                         .eq(BizTenantShare::getSourceTenantId, sharedRecord.getTenantId())
                         .eq(BizTenantShare::getTargetTenantId, context.tenantId())
-                        .eq(BizTenantShare::getRecordId, recordId))
+                        .eq(BizTenantShare::getRecordId, recordId).last(currentRead, "FOR SHARE"))
                 .stream().findFirst().orElse(null);
         String shareStatus = effectiveShareStatus(share);
         if (share == null || !"ACTIVE".equals(shareStatus) || !shareAllows(share, actionCode)) {
@@ -1813,7 +1930,7 @@ public class RuntimeDataService {
                     share == null ? "NOT_FOUND" : (!"ACTIVE".equals(shareStatus) ? shareStatus : "ACTION_DENIED"));
             throw new DomainException("RECORD_NOT_FOUND", "业务数据不存在或共享授权已失效", HttpStatus.NOT_FOUND);
         }
-        if (!withinSharedScope(context, moduleCode, actionCode, sharedRecord)) {
+        if (!withinSharedScope(context, moduleCode, actionCode, sharedRecord, currentRead)) {
             recordShareUsage(context, share, actionCode, "DATA_SCOPE_DENIED");
             deny(context, moduleCode, actionCode, traceId,
                     Map.of("recordId", recordId, "shareId", share.getId(), "reason", "DATA_SCOPE_DENIED"));
@@ -1824,12 +1941,17 @@ public class RuntimeDataService {
 
     private boolean withinSharedScope(
             AuthenticatedContext context, String moduleCode, String actionCode, BusinessRecord record) {
+        return withinSharedScope(context, moduleCode, actionCode, record, false);
+    }
+
+    private boolean withinSharedScope(
+            AuthenticatedContext context, String moduleCode, String actionCode, BusinessRecord record, boolean currentRead) {
         LambdaQueryWrapper<BusinessRecord> query = Wrappers.<BusinessRecord>lambdaQuery()
                 .eq(BusinessRecord::getSystemId, context.systemId())
                 .eq(BusinessRecord::getModuleId, record.getModuleId())
                 .eq(BusinessRecord::getId, record.getId());
         applyDataScope(query, context, moduleCode, actionCode);
-        return !recordService.selectList(query).isEmpty();
+        return !recordService.selectList(query.last(currentRead, "FOR SHARE")).isEmpty();
     }
 
     private List<BizTenantShare> activeTargetShares(AuthenticatedContext context) {
@@ -1911,9 +2033,14 @@ public class RuntimeDataService {
             String actionCode,
             Long recordId,
             Long moduleId) {
+        return withinScope(context, moduleCode, actionCode, recordId, moduleId, false);
+    }
+
+    private boolean withinScope(AuthenticatedContext context, String moduleCode, String actionCode,
+                                Long recordId, Long moduleId, boolean currentRead) {
         LambdaQueryWrapper<BusinessRecord> query = baseBoundary(context, moduleId).eq(BusinessRecord::getId, recordId);
         applyDataScope(query, context, moduleCode, actionCode);
-        return !recordService.selectList(query).isEmpty();
+        return !recordService.selectList(query.last(currentRead, "FOR SHARE")).isEmpty();
     }
 
     private void applyDataScope(

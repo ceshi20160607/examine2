@@ -1,6 +1,14 @@
 package com.unique.unexamine.runtimedata.manage;
 
 import com.unique.unexamine.backgroundjobs.manage.BackgroundJobWorker;
+import com.unique.unexamine.foundation.manage.control.FoundationCommandExtension;
+import com.unique.unexamine.foundation.manage.control.FoundationExtensionDispatcher;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,8 +43,187 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "unexamine.actions.outbox.poll-delay-ms=3600000")
+@Import(RuntimeDataHttpTest.ActionDeliveryFixture.class)
 class RuntimeDataHttpTest {
+    static final AtomicInteger deliveryAttempts = new AtomicInteger();
+
+    @TestConfiguration
+    static class ActionDeliveryFixture {
+        @Bean
+        FoundationCommandExtension actionDeliveryFixture() {
+            return event -> {
+                if ("BUSINESS_ACTION_COMPLETED".equals(event.getEventType())
+                        && event.getPayloadJson().contains("deliver-once")) {
+                    if (deliveryAttempts.incrementAndGet() == 1) throw new IllegalStateException("controlled delivery failure");
+                }
+            };
+        }
+    }
+
+    @Autowired
+    private FoundationExtensionDispatcher actionDispatcher;
+
+    @Test
+    void actionBoundaryUsesRealApiAndReplaysCreateUpdateDeleteWithoutDuplicateWrites() {
+        Session owner = register("action_owner", "action-system", "action-owner@example.com");
+        long moduleId = createAndPublishCustomerModule(owner);
+        String path = "/api/runtime/modules/customer/records";
+        Map<String, Object> body = Map.of("title", "Action customer", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "Action customer", "level", "A"));
+        var first = actionRequest(path, HttpMethod.POST, owner, "action-create", body);
+        assertThat(first.getStatusCode()).as("create: %s", first.getBody()).isEqualTo(HttpStatus.OK);
+        long id = number(data(first).get("id"));
+        var reordered = new java.util.LinkedHashMap<String, Object>();
+        reordered.put("fields", new java.util.LinkedHashMap<>(Map.of("level", "A", "customer_name", "Action customer")));
+        reordered.put("participantMemberIds", List.of());
+        reordered.put("title", "Action customer");
+        assertThat(data(actionRequest(path, HttpMethod.POST, owner, "action-create", reordered))).isEqualTo(data(first));
+        var commandPayload = new java.util.LinkedHashMap<>(body);
+        commandPayload.put("moduleCode", "customer");
+        var commandReplay = exchange("/api/admin/system/foundation-control/commands", HttpMethod.POST, owner.token(),
+                Map.of("idempotencyKey", "action-create", "applicationCode", "runtime",
+                        "operationCode", "RUNTIME_RECORD_CREATE_DIRECT", "payload", commandPayload));
+        assertThat(commandReplay.getStatusCode()).as("command: %s", commandReplay.getBody()).isEqualTo(HttpStatus.OK);
+        assertThat(data(commandReplay)).containsEntry("replayed", true).containsEntry("resultReference", "business-record:" + id);
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isZero();
+        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + id + "'" )).isOne();
+        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION' and system_id=" + owner.systemId())).isOne();
+        assertThat(data(exchange(path + "/" + id, HttpMethod.GET, owner.token(), null)).get("title")).isEqualTo("Action customer");
+
+        var changed = new java.util.LinkedHashMap<>(body);
+        changed.put("title", "Different request");
+        assertThat(actionRequest(path, HttpMethod.POST, owner, "action-create", changed).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        var update = new java.util.LinkedHashMap<>(body);
+        update.put("title", "Updated customer");
+        update.put("version", data(first).get("version"));
+        var updated = actionRequest(path + "/" + id, HttpMethod.PUT, owner, "action-update", update);
+        assertThat(updated.getStatusCode()).as("update: %s", updated.getBody()).isEqualTo(HttpStatus.OK);
+        assertThat(data(actionRequest(path + "/" + id, HttpMethod.PUT, owner, "action-update", update))).isEqualTo(data(updated));
+        assertThat(actionRequest(path + "/" + id, HttpMethod.PUT, owner, "action-stale", update).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(count("core_idempotency_record", "idempotency_key='action-stale'")).isZero();
+        var deletion = Map.of("version", data(updated).get("version"), "reason", "remove customer");
+        var deleted = actionRequest(path + "/" + id + "/delete", HttpMethod.POST, owner, "action-delete", deletion);
+        assertThat(deleted.getStatusCode()).as("delete: %s", deleted.getBody()).isEqualTo(HttpStatus.OK);
+        assertThat(data(actionRequest(path + "/" + id + "/delete", HttpMethod.POST, owner, "action-delete", deletion))).isEqualTo(data(deleted));
+        assertThat(jdbc.queryForObject("select deleted from biz_record where id=?", Boolean.class, id)).isTrue();
+        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION' and system_id=" + owner.systemId())).isEqualTo(3);
+
+        commandPayload.put("title", "");
+        var invalidCommand = exchange("/api/admin/system/foundation-control/commands", HttpMethod.POST, owner.token(),
+                Map.of("idempotencyKey", "action-invalid", "applicationCode", "runtime",
+                        "operationCode", "RUNTIME_RECORD_CREATE_DIRECT", "payload", commandPayload));
+        assertThat(invalidCommand.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(count("core_idempotency_record", "idempotency_key='action-invalid'")).isZero();
+        commandPayload.put("title", "Invalid owner");
+        commandPayload.put("ownerMemberId", "not-a-number");
+        var invalidOwner = exchange("/api/admin/system/foundation-control/commands", HttpMethod.POST, owner.token(),
+                Map.of("idempotencyKey", "action-invalid-owner", "applicationCode", "runtime",
+                        "operationCode", "RUNTIME_RECORD_CREATE_DIRECT", "payload", commandPayload));
+        assertThat(invalidOwner.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+
+        // Revoking membership must also block reading a cached result.
+        jdbc.update("update sys_tenant_member set status='DISABLED' where tenant_id=?", owner.tenantId());
+        assertThat(actionRequest(path, HttpMethod.POST, owner, "action-create", body).getStatusCode().is4xxClientError()).isTrue();
+    }
+
+    @Test
+    void actionFailureRollsBackPartialDataResultAndEventAndAllowsCorrectedRetry() {
+        Session owner = register("action_rollback", "action-rollback", "action-rollback@example.com");
+        long moduleId = createAndPublishCustomerModule(owner);
+        String path = "/api/runtime/modules/customer/records";
+        Map<String, Object> body = Map.of("title", "write-failure", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "write-failure", "level", "A"));
+        jdbc.execute("create trigger b01_fail_value before insert on biz_record_value for each row "
+                + "begin if NEW.value_text='write-failure' then signal sqlstate '45000' set message_text='controlled value failure'; end if; end");
+        try {
+            assertThat(actionRequest(path, HttpMethod.POST, owner, "action-rollback", body).getStatusCode().is5xxServerError()).isTrue();
+            assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
+            assertThat(count("core_idempotency_record", "idempotency_key='action-rollback'")).isZero();
+            assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION' and system_id=" + owner.systemId())).isZero();
+        } finally {
+            jdbc.execute("drop trigger b01_fail_value");
+        }
+        assertThat(actionRequest(path, HttpMethod.POST, owner, "action-rollback", body).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+    }
+
+    @Test
+    void concurrentActionsAndRecoverableDeliveryDoNotRepeatBusiness() throws Exception {
+        Session owner = register("action_parallel", "action-parallel", "action-parallel@example.com");
+        long moduleId = createAndPublishCustomerModule(owner);
+        String path = "/api/runtime/modules/customer/records";
+        Map<String, Object> body = Map.of("title", "deliver-once", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "deliver-once", "level", "A"));
+        deliveryAttempts.set(0);
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            var results = executor.invokeAll(List.<Callable<ResponseEntity<Map>>>of(
+                    () -> actionRequest(path, HttpMethod.POST, owner, "action-parallel", body),
+                    () -> actionRequest(path, HttpMethod.POST, owner, "action-parallel", body)));
+            assertThat(results.get(0).get().getStatusCode()).as("parallel: %s", results.get(0).get().getBody()).isEqualTo(HttpStatus.OK);
+            assertThat(results.get(1).get().getStatusCode()).as("parallel: %s", results.get(1).get().getBody()).isEqualTo(HttpStatus.OK);
+            assertThat(data(results.get(0).get())).isEqualTo(data(results.get(1).get()));
+        }
+        long outboxId = jdbc.queryForObject("select o.id from core_event_outbox o join core_idempotency_record r "
+                + "on o.aggregate_id=cast(r.id as char) where o.aggregate_type='BUSINESS_ACTION' and r.idempotency_key='action-parallel'", Long.class);
+        assertThat(jdbc.queryForObject("select status from core_event_outbox where id=?", String.class, outboxId)).isEqualTo("FAILED");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        jdbc.update("update core_event_outbox set available_at=? where id=?", LocalDateTime.now().minusSeconds(1), outboxId);
+        actionDispatcher.retryDue();
+        actionDispatcher.dispatch(outboxId);
+        assertThat(jdbc.queryForObject("select status from core_event_outbox where id=?", String.class, outboxId))
+                .as("delivery: %s", jdbc.queryForMap("select status,available_at,retry_count,last_error from core_event_outbox where id=?", outboxId))
+                .isEqualTo("PUBLISHED");
+        assertThat(jdbc.queryForObject("select retry_count from core_event_outbox where id=?", Integer.class, outboxId)).isOne();
+        assertThat(deliveryAttempts.get()).isEqualTo(2);
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+    }
+
+    private ResponseEntity<Map> actionRequest(String path, HttpMethod method, Session owner, String key, Object body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(owner.token());
+        headers.set("Idempotency-Key", key);
+        return http.exchange(path, method, new HttpEntity<>(body, headers), Map.class);
+    }
+
+    @Test
+    void publishedDirectBindingAndUnmatchedConditionPreserveOrdinarySave() {
+        Session owner = register("action_binding", "action-binding", "action-binding@example.com");
+        long moduleId = createAndPublishCustomerModule(owner);
+        var flow = exchange("/api/flows", HttpMethod.POST, owner.token(), Map.of("code", "action_binding", "name", "Action binding"));
+        assertThat(flow.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long flowId = number(data(flow).get("id"));
+        var draft = exchange("/api/flows/" + flowId + "/draft", HttpMethod.PUT, owner.token(), Map.of(
+                "expectedVersion", 0, "nodes", List.of(
+                        Map.of("nodeKey", "start", "nodeType", "START", "name", "Start", "positionX", 0, "positionY", 0, "config", Map.of()),
+                        Map.of("nodeKey", "end", "nodeType", "END", "name", "End", "positionX", 400, "positionY", 0, "config", Map.of())),
+                "edges", List.of(Map.of("edgeKey", "finish", "sourceNodeKey", "start", "targetNodeKey", "end",
+                        "priorityOrder", 0, "config", Map.of()))));
+        assertThat(draft.getStatusCode()).as("flow draft: %s", draft.getBody()).isEqualTo(HttpStatus.OK);
+        assertThat(exchange("/api/flows/" + flowId + "/publish", HttpMethod.POST, owner.token(),
+                Map.of("expectedDraftRevision", data(draft).get("draftRevision"), "changeSummary", "Action fixture"))
+                .getStatusCode()).isEqualTo(HttpStatus.OK);
+        var binding = new java.util.LinkedHashMap<String, Object>(Map.of("moduleId", moduleId, "flowId", flowId,
+                "triggerEvent", "CREATE", "executionMode", "DIRECT", "priorityOrder", 0,
+                "mutuallyExclusive", true, "replaceExisting", false));
+        assertThat(exchange("/api/flow-bindings/publish", HttpMethod.POST, owner.token(), binding).getStatusCode()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = Map.of("title", "Bound save", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "Bound save", "level", "A", "amount", 5));
+        assertThat(actionRequest("/api/runtime/modules/customer/records", HttpMethod.POST, owner, "binding-direct", body)
+                .getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(count("flow_binding_resolution", "system_id=" + owner.systemId())).isOne();
+        binding.put("replaceExisting", true);
+        binding.put("executionMode", "AFTER_APPROVAL");
+        binding.put("conditionExpression", "amount > 10");
+        assertThat(exchange("/api/flow-bindings/publish", HttpMethod.POST, owner.token(), binding).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(actionRequest("/api/runtime/modules/customer/records", HttpMethod.POST, owner, "binding-miss", body)
+                .getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
+        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isZero();
+    }
     @Container
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")
             .withDatabaseName("unexamine")
@@ -219,7 +406,7 @@ class RuntimeDataHttpTest {
                 .isEqualTo("北京重要客户");
         assertThat(count("biz_record_relation", "source_record_id = " + recordId
                 + " and target_record_id = " + recordId)).isOne();
-        assertThat(count("audit_event", "event_code = 'BUSINESS_RECORD_UPDATE' and result_code = 'RECORD_VERSION_CONFLICT'"))
+        assertThat(count("audit_event", "event_code = 'BUSINESS_RECORD_UPDATE' and result_code = 'RECORD_VERSION_CONFLICT' and system_id=" + owner.systemId()))
                 .isOne();
 
         ResponseEntity<Map> colleaguePlatformLogin = http.postForEntity("/api/auth/login", Map.of(

@@ -1,1 +1,30 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0001","requirements":[],"decisions":[],"coverage":[{"sourceBlock":"B0002","classification":"context","requirementIds":[],"rationale":"说明最终方案不受旧代码限制，是需求解释原则。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0002"
+      ],
+      "sourceBlock": "B0002"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0001",
+  "requirements": [
+    {
+      "id": "CAND-B0002",
+      "sourceBlocks": [
+        "B0002"
+      ],
+      "statement": "> 这是最终版综合方案。它以现有项目能看到的功能为参照，但不被旧代码限制。\n> 重点是：完整产品应该包含哪些功能，现有功能应该如何升级，界面应该如何用更现代的方式呈现，系统如何更健壮、更好扩展。",
+      "title": "unexamine 全量重构产品方案",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

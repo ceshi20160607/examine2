@@ -1,1 +1,98 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0098","requirements":[{"id":"REQ-ERROR-TAXONOMY","title":"按能力域划分的错误码与双层信息","statement":"错误码按账号、系统、应用、模块、字段、权限、Flow、文件、导入导出和应用访问能力域划分；后端返回明确稳定错误码与用户可理解消息，技术日志记录脱敏详细原因，禁止将所有失败归为笼统参数错误或系统异常。","type":"quality","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0566","B0567","B0568","B0569","B0570"],"acceptanceCriteria":["每个列明能力域有不冲突的错误码命名范围和文档。","同一业务失败在接口、前端和日志中可用错误码及 requestId 对应。","用户消息不泄露堆栈、SQL 或密钥，技术日志保留诊断所需异常链和上下文。","未知异常使用兜底码但记录原始原因，不伪装成参数错误。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0566","classification":"requirement","requirementIds":["REQ-ERROR-TAXONOMY"],"rationale":"禁止笼统错误。"},{"sourceBlock":"B0567","classification":"context","requirementIds":[],"rationale":"能力域划分引导语。"},{"sourceBlock":"B0568","classification":"requirement","requirementIds":["REQ-ERROR-TAXONOMY"],"rationale":"错误能力域。"},{"sourceBlock":"B0569","classification":"context","requirementIds":[],"rationale":"错误要求引导语。"},{"sourceBlock":"B0570","classification":"requirement","requirementIds":["REQ-ERROR-TAXONOMY"],"rationale":"错误码、用户消息和技术日志。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0566"
+      ],
+      "sourceBlock": "B0566"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0567"
+      ],
+      "sourceBlock": "B0567"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0568"
+      ],
+      "sourceBlock": "B0568"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0569"
+      ],
+      "sourceBlock": "B0569"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0570"
+      ],
+      "sourceBlock": "B0570"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0098",
+  "requirements": [
+    {
+      "id": "CAND-B0566",
+      "sourceBlocks": [
+        "B0566"
+      ],
+      "statement": "错误不能都叫“参数错误”或“系统异常”。",
+      "title": "14.23 错误码和异常规范",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0567",
+      "sourceBlocks": [
+        "B0567"
+      ],
+      "statement": "按模块划分：",
+      "title": "14.23 错误码和异常规范",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0568",
+      "sourceBlocks": [
+        "B0568"
+      ],
+      "statement": "- 账号错误。\n- 系统错误。\n- 应用错误。\n- 模块错误。\n- 字段错误。\n- 权限错误。\n- 流程错误。\n- 文件错误。\n- 导入导出错误。\n- 应用访问错误。",
+      "title": "14.23 错误码和异常规范",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0569",
+      "sourceBlocks": [
+        "B0569"
+      ],
+      "statement": "要求：",
+      "title": "14.23 错误码和异常规范",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0570",
+      "sourceBlocks": [
+        "B0570"
+      ],
+      "statement": "- 后端抛出明确错误码。\n- 前端展示人能看懂的话。\n- 日志记录详细原因。\n- 用户提示和技术日志分开。",
+      "title": "14.23 错误码和异常规范",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

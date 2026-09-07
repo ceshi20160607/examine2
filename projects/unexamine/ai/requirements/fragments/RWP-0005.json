@@ -1,1 +1,64 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0005","requirements":[{"id":"REQ-PRODUCT-WORKSPACES","title":"平台、后台与系统运行态分离","statement":"产品必须提供平台主页面、平台后台、系统后台和进入系统后的运行态；系统运行态只承载业务使用，系统后台承载系统和模板配置。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0031","B0032","B0033"],"acceptanceCriteria":["四种工作空间具有明确入口和层级标识。","运行态不混入字段设计、Flow 设计或角色配置。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0031","classification":"context","requirementIds":[],"rationale":"工作空间目录引导语。"},{"sourceBlock":"B0032","classification":"requirement","requirementIds":["REQ-PRODUCT-WORKSPACES"],"rationale":"三个主工作空间。"},{"sourceBlock":"B0033","classification":"requirement","requirementIds":["REQ-PRODUCT-WORKSPACES"],"rationale":"系统运行态和后台边界。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0031"
+      ],
+      "sourceBlock": "B0031"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0032"
+      ],
+      "sourceBlock": "B0032"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0033"
+      ],
+      "sourceBlock": "B0033"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0005",
+  "requirements": [
+    {
+      "id": "CAND-B0031",
+      "sourceBlocks": [
+        "B0031"
+      ],
+      "statement": "产品统一为三个主要工作空间：",
+      "title": "4. 产品整体结构",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0032",
+      "sourceBlocks": [
+        "B0032"
+      ],
+      "statement": "- 登录后的平台主页面。\n- 平台后台。\n- 系统后台。",
+      "title": "4. 产品整体结构",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0033",
+      "sourceBlocks": [
+        "B0033"
+      ],
+      "statement": "进入具体系统后还有系统运行态。系统运行态用于使用低代码业务模块，系统后台用于配置系统及其模板能力，两者不能混在一起。",
+      "title": "4. 产品整体结构",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0107","requirements":[{"id":"REQ-FEATURE-FLAGS","title":"系统、应用、模块和角色范围功能开关","statement":"功能开关使用结构化配置，可按系统、应用、模块和角色控制功能、新页面或新版审批页是否生效；开关不得绕过原权限，关闭后安全回退稳定版本并记录变更。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0612","B0613","B0614","B0615"],"acceptanceCriteria":["开关可配置目标功能、生效范围、起止时间、回退值和操作者。","同一用户只有同时满足开关范围和权限授权才看到并使用功能。","关闭模块新页面或新版审批页后恢复已配置稳定版本，既有运行快照不被修改。","开关发布和回滚后相关缓存失效并写审计。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0612","classification":"requirement","requirementIds":["REQ-FEATURE-FLAGS"],"rationale":"功能开关能力。"},{"sourceBlock":"B0613","classification":"requirement","requirementIds":["REQ-FEATURE-FLAGS"],"rationale":"系统、角色、模块和 Flow 页面场景。"},{"sourceBlock":"B0614","classification":"requirement","requirementIds":["REQ-FEATURE-FLAGS"],"rationale":"结构化配置约束。"},{"sourceBlock":"B0615","classification":"requirement","requirementIds":["REQ-FEATURE-FLAGS"],"rationale":"系统、应用和模块范围。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0612"
+      ],
+      "sourceBlock": "B0612"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0613"
+      ],
+      "sourceBlock": "B0613"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0614"
+      ],
+      "sourceBlock": "B0614"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0615"
+      ],
+      "sourceBlock": "B0615"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0107",
+  "requirements": [
+    {
+      "id": "CAND-B0612",
+      "sourceBlocks": [
+        "B0612"
+      ],
+      "statement": "支持功能开关：",
+      "title": "14.32 灰度和功能开关",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0613",
+      "sourceBlocks": [
+        "B0613"
+      ],
+      "statement": "- 某个系统启用某功能。\n- 某个角色可见新功能。\n- 某个模块启用新页面。\n- 某个流程启用新版审批页。",
+      "title": "14.32 灰度和功能开关",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0614",
+      "sourceBlocks": [
+        "B0614"
+      ],
+      "statement": "功能开关使用结构化配置：",
+      "title": "14.32 灰度和功能开关",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0615",
+      "sourceBlocks": [
+        "B0615"
+      ],
+      "statement": "- 系统级开关。\n- 应用级开关。\n- 模块级开关。",
+      "title": "14.32 灰度和功能开关",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

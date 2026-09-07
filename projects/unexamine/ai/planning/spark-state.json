@@ -1,45 +1,490 @@
 {
   "schema_version": 1,
-  "phase": "planned_not_implemented",
+  "phase": "implementation_in_progress",
   "plan": "projects/unexamine/ai/planning/spark-execution-plan.md",
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B00.1",
-  "current_step": null,
+  "next_step": "B01.3",
+  "current_step": "B01.2",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
-  "environment_note": "Audit containers were stopped after inspection. Verify current status; never start/stop unrelated containers. Java21 required; default Java may be 8. Existing Windows full-test startup failures are not established business defects.",
+  "environment_note": "JDK21 native compile works. Windows TestRestTemplate loopback fails before assertions; verified workaround is native test-compile plus isolated Linux Maven surefire:test/Testcontainers. Do not retry full native suites or touch unrelated containers.",
   "architecture_choices": {
     "strategy": "modify_existing_shared_core_no_stack_replacement",
-    "action_executor_path": "to_confirm_in_B00.2",
+    "action_executor_path": "foundation/manage/control/FoundationControlService.execute; RuntimeDataService public writes enter this synchronous transaction; dispatcher handles delivery only",
     "custom_module_storage": "metadata_generic_records_values_indexes_relations",
     "frontend": "shared_shells_and_schema_renderers"
   },
   "current_scope": {
-    "source_rows": [],
-    "files": [],
-    "acceptance": []
+    "step": "B01.3",
+    "source_rows": [
+      "R0303",
+      "R0304",
+      "R1776",
+      "R1779",
+      "R2208",
+      "R2209",
+      "R2210",
+      "R2218",
+      "R2948"
+    ],
+    "files": [
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessAction.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationExtensionDispatcher.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java",
+      "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordView.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+      "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java"
+    ],
+    "entry_points": [
+      "FoundationControlService.execute: mode decision currently rejects non-DIRECT; this is the next edit point.",
+      "FlowBindingService.resolveForAction: published binding/condition/tenant resolution already in use.",
+      "RuntimeDataService.createAction/updateAction/deleteAction and physical private *Direct handlers already integrated.",
+      "RuntimeDataCommandExtension is now a synchronous compatibility adapter, not an outbox consumer."
+    ],
+    "acceptance": [
+      "AFTER_EXECUTION saves the business result and reliably starts the bound snapshot once.",
+      "FLOW_ONLY starts the Flow without calling the physical CRUD handler.",
+      "Repeat submission/delivery does not create duplicate instances; failed delivery can recover.",
+      "Preserve the five passing runtime tests. AFTER_APPROVAL remains B01.4; do not skip B01.3."
+    ]
   },
   "last_result": {
-    "kind": "planning_handoff",
-    "status": "ready_with_explicit_baseline_sync_step",
-    "changed_scope": "AGENTS, requirement clarification A.17, execution planning/index/state and old-plan entry notices only",
-    "implementation_started": false
+    "kind": "steps_verified",
+    "implementation_started": true,
+    "steps": [
+      "B01.1",
+      "B01.2"
+    ],
+    "evidence": "projects/unexamine/ai/evidence/spark-b01-direct-verification.json",
+    "checks": {
+      "compile": "JDK21 mvn -q -DskipTests test-compile: exit 0",
+      "behavior_tests": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": "180.211",
+        "cases": [
+          "actionBoundaryUsesRealApiAndReplaysCreateUpdateDeleteWithoutDuplicateWrites",
+          "publishedDirectBindingAndUnmatchedConditionPreserveOrdinarySave",
+          "publishedRuntimeStoresTypedValuesVersionsAndEnforcesActionScopeAndTenantBoundary",
+          "actionFailureRollsBackPartialDataResultAndEventAndAllowsCorrectedRetry",
+          "concurrentActionsAndRecoverableDeliveryDoNotRepeatBusiness"
+        ]
+      },
+      "legacy_control_regression": "FoundationControlHttpTest#systemControlJourneyIsIdempotentIsolatedAndDatabaseAuthoritative passed earlier in this turn; subsequent changes affected business-only execution and were covered by the final runtime tests.",
+      "diff_check": "git diff --check -- projects/unexamine/backend/src: passed"
+    },
+    "remaining": [
+      "B01.3: UPDATE/DELETE DIRECT already integrated; connect AFTER_EXECUTION/FLOW_ONLY to versioned Flow start and test once-only instance/recovery.",
+      "B01.4: AFTER_APPROVAL intent, rejection, once-only resume and conflict handling remain unimplemented.",
+      "Non-DIRECT matching bindings currently fail explicitly before saving; this is not completion of Flow requirements.",
+      "UI layout and visual business journeys were not changed/verified. Frontend stable Idempotency-Key reuse remains for shared action UI integration.",
+      "Application/Flow-specific caller, channel authorization and causation propagation remain for their planned packets."
+    ],
+    "usage_report": "projects/unexamine/ai/evidence/spark-usage-current.json"
   },
-  "blockers": [
+  "blockers": [],
+  "evidence": [
     {
-      "id": "BASELINE-A17",
-      "kind": "engineering_metadata",
-      "status": "open",
-      "owner_step": "B00.3",
-      "summary": "Appending the user-confirmed A.17 made workspace requirement SHA and old intake/downstream bindings stale. New Spark ledger matches current source.",
-      "resolution": "Incrementally refresh intake and affected traceability as specified in B00.3; verify unchanged old blocks before rebinding. Do not bulk replace hashes or rerun old scheduling.",
-      "blocks": "Workspace validation and generator-dependent implementation until corrected."
+      "permission_or_failure_result": {
+        "workspace_validate": "failed_stale_requirement_baseline_after_A17",
+        "reason": "A.17 appended to requirement source but intake/traceability not synchronized"
+      },
+      "tested_file_hashes": [
+        {
+          "sha256": "5652719AC76557871BEE31AC069BDD58467FB091A83FC568B42A363AF443D194",
+          "path": "projects/unexamine/ai/planning/spark-state.json"
+        }
+      ],
+      "checks_actual_results": [
+        "git status --short --branch shows clean tree",
+        "java/maven/node versions captured from command line",
+        "container status captured: dm8 and redis up",
+        "workspace-validate not rerun by design; remains failed_stale_requirement_baseline_after_A17"
+      ],
+      "step": "B00.1",
+      "remaining": "B00.2 (决定统一动作执行器位置), B00.3 (执行工程元数据同步)",
+      "changed_files": [
+        "projects/unexamine/ai/planning/spark-state.json"
+      ],
+      "readback": [
+        "B00.1 scope filled; next_step set to B00.2; B00 blocker remains until B00.3",
+        "FoundationControlService/Dispatcher可见但FoundationCommandExtension实现为空",
+        "RuntimeDataService.create/update/transfer/convert链路直接在controller/service内完成",
+        "FlowRuntimeService.WRITEBACK节点回写业务数据；应用桥接支持FLOW start和MODULE CREATE/UPDATE"
+      ]
+    },
+    {
+      "permission_or_failure_result": {
+        "workspace_validate": "not_run_in_step",
+        "reason": "B00.2 only verifies architecture decision and dispatcher feasibility; B00.3 handles requirement sync again."
+      },
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/ai/planning/spark-state.json",
+          "sha256": "5e6ff73fc800dcde1fb3c4395ce2db78385b25e8cdcb8d415ad1515ab1c335e9"
+        }
+      ],
+      "checks_actual_results": [
+        "rg -n \"implements FoundationCommandExtension|FoundationCommandExtension\" backend/src/main/java/com/unique/unexamine | Select-Object -First 20",
+        "rg -n \"public RuntimeRecordView create|public RuntimeRecordView update|public RuntimeRecordConversionExecution convert\" runtimedata/manage/RuntimeDataService.java",
+        "rg -n \"executeModule|FLOW|MODULE\" application/manage/ApplicationBridgeService.java",
+        "rg -n \"afterCommit\\(\" foundation/manage/control/FoundationControlService.java"
+      ],
+      "step": "B00.2",
+      "remaining": "B00.3 (更新 intake/workspace 验证链路), then B01.1 开始接入统一动作执行器",
+      "changed_files": [
+        "projects/unexamine/ai/planning/spark-state.json"
+      ],
+      "readback": [
+        "foundation/control 已具备 outbox + 幂等 + afterCommit 执行骨架，但当前操作白名单只覆盖管理运维类操作。",
+        "RuntimeDataService/ApplicationBridge 无共享动作中台；转移/转化/审批写回路径也不共用统一总线。",
+        "FLOW 更新/写回节点已经有专用入口，可在 B00.2 决策中复用为业务动作执行的 FLOW 分支。"
+      ]
+    },
+    {
+      "permission_or_failure_result": {
+        "workspace_validate": "ok",
+        "reason": "all outdated source hashes in requirement audit and architecture/usecase/task pipeline were refreshed after A.17"
+      },
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/ai/planning/spark-state.json",
+          "sha256": "f3dc041f8f618f111531d2e3deeb4c1b88c8dbd4fece7bde972e9e09c3928042"
+        }
+      ],
+      "checks_actual_results": [
+        "workspace-validate: passed",
+        "requirements-validate: ok",
+        "architecture-validate: ok",
+        "use-cases-validate: ok",
+        "tasks-validate: ok",
+        "task-graph-validate: ok",
+        "evidence/requirement-fragment-audit.json: 117 条 audits 的 fragmentSha256 与当前 fragments 文件一致"
+      ],
+      "step": "B00.3",
+      "remaining": "B01.1（统一动作执行入口对接）",
+      "changed_files": [
+        "projects/unexamine/ai/evidence/requirement-fragment-audit.json",
+        "projects/unexamine/ai/architecture/design.json",
+        "projects/unexamine/ai/requirements/use-cases.json",
+        "projects/unexamine/ai/planning/task-layering.json",
+        "projects/unexamine/ai/planning/task-catalog.json",
+        "projects/unexamine/ai/planning/task-graph.json"
+      ],
+      "readback": [
+        "B00.3 元数据绑定阻塞已清除",
+        "workspace-validate 通过，未更改产品实现代码",
+        "可继续进入 B01.1 进行统一动作入口对接"
+      ]
+    },
+    {
+      "step": "B01.1",
+      "source_rows": [
+        "R0140",
+        "R0141",
+        "R0142",
+        "R0143",
+        "R1934",
+        "R1935",
+        "R1936",
+        "R1937",
+        "R1938"
+      ],
+      "changed_files": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java"
+      ],
+      "checks_actual_results": [
+        "FoundationControlService 提交命令白名单新增 RUNTIME_RECORD_CREATE_DIRECT",
+        "FoundationControlService outbox payload 追加 platformId/tenantMemberId/memberId/username/displayName",
+        "新增 RuntimeDataCommandExtension，实现 RUNTIME_RECORD_CREATE_DIRECT 的 DIRECT 模式 create 分发",
+        "cd projects/unexamine/backend; $env:JAVA_HOME='D:\\\\dev\\\\jdk21'; mvn -q -DskipTests compile",
+        "编译通过: 0"
+      ],
+      "readback": [
+        "FoundationControlService -> FoundationExtensionDispatcher 的命令总线具备可执行 DIRECT 创建设备入口",
+        "公共动作上下文可由 command payload 恢复并带入 permissionResolver，避免依赖线程上下文",
+        "后续可在 B01.2 继续补齐 UPDATE/AFTER_EXECUTION/FLOW_ONLY"
+      ],
+      "permission_or_failure_result": {
+        "compile": "ok",
+        "reason": "Java8 报错环境不兼容；已切换 JAVA_HOME 到 D:\\dev\\jdk21 后通过"
+      },
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+          "sha256": "CDCF9E002027907DED365762CBE7CF017A9800AC308E7184A40AA542B5C4BBB3"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java",
+          "sha256": "0ABFFF5B10876B882979C99FC9BE5E0357D1829118587049EB53C6548ED59D5F"
+        }
+      ],
+      "remaining": "B01.2（接入更新/删除及 AFTER_EXECUTION/FLOW_ONLY）",
+      "next_step": "B01.2"
+    },
+    {
+      "step": "B01.2",
+      "source_rows": [
+        "R0140",
+        "R0141",
+        "R0142",
+        "R0143",
+        "R1938",
+        "R1939",
+        "R1940"
+      ],
+      "changed_files": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java"
+      ],
+      "checks_actual_results": [
+        "FoundationControlService 白名单新增 RUNTIME_RECORD_UPDATE_DIRECT 与 RUNTIME_RECORD_DELETE_DIRECT",
+        "RuntimeDataCommandExtension 扩展为 CREATE/UPDATE/DELETE 三类 DIRECT 分支",
+        "CREATE、UPDATE 使用标准入参映射（title/recordNumber/status/ownerMemberId/departmentId/participantMemberIds/fields/version），DELETE 使用 RecordLifecycleRequest(reason,version)",
+        "AFTER_EXECUTION 与 FLOW_ONLY 模式返回明确不支持错误并不执行",
+        "cd projects/unexamine/backend; $env:JAVA_HOME='D:\\dev\\jdk21'; mvn -q -DskipTests compile",
+        "编译通过: 0"
+      ],
+      "readback": [
+        "公共命令总线在同一扩展内完成更新/删除通道对齐，避免并行新增实现",
+        "未新增数据库表与 Flow 实现，B01.2 后继续等待 B01.3/Flow 执行模式接入",
+        "命令执行模式仍保持显式保护，AFTER_EXECUTION 与 FLOW_ONLY 当前阶段不会静默吞掉或伪执行"
+      ],
+      "permission_or_failure_result": {
+        "compile": "ok",
+        "java21_note": "使用 D:/dev/jdk21 编译成功；低版本 JDK 下仍受环境兼容影响"
+      },
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+          "sha256": "15DCA1DD48CF5D234C2FD655D2894E6021E0D72E46085EDBE525BC221F99F3AE"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java",
+          "sha256": "9913555D91A6118FD30F53DDCF404DCBCDC0323B824905E1FEF180C1F095C6DE"
+        }
+      ],
+      "remaining": "继续 B01.3（AFTER_APPROVAL 与一次性恢复接口）",
+      "next_step": "B01.3"
+    },
+    {
+      "step": "B01.1",
+      "verified_at": "2026-09-07T06:37:17.490414+00:00",
+      "source_rows": [
+        "R0303",
+        "R0304",
+        "R1776",
+        "R1779",
+        "R2208",
+        "R2209",
+        "R2210",
+        "R2218",
+        "R2948"
+      ],
+      "changed_files": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessAction.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationExtensionDispatcher.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java",
+        "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordView.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java"
+      ],
+      "checks_actual_results": [
+        "JDK21 compile passed",
+        "5 final real HTTP/MySQL/Redis behavior tests passed"
+      ],
+      "readback": [
+        "HTTP create/update/delete all enter FoundationControlService.execute through RuntimeDataService; compatibility command endpoint replays the same stored record.",
+        "No binding or unmatched condition saves normally; published DIRECT binding is resolved without starting a Flow.",
+        "Sequential/concurrent duplicate keys return identical saved results; changed payload or stale revision fails without another write/event.",
+        "Real SQL failure after the main record insert rolls back partial business data, idempotency result and outbox; retry with the same key succeeds after recovery.",
+        "Delivery failure is persisted as FAILED; retry worker rereads it and publishes it without repeating business CRUD.",
+        "Inactive membership blocks even a cached result; malformed identity/version values are rejected instead of silently replaced.",
+        "Original typed-field, permission, version and tenant-boundary HTTP journey still passes."
+      ],
+      "permission_or_failure_result": {
+        "native_windows": "3 startup errors: TestRestTemplate loopback Invalid argument: connect; no behavior assertions ran.",
+        "linux_initial": "2 failures exposed stored-result time-format incompatibility, now fixed.",
+        "linux_intermediate": "Membership revocation enforcement fixed. Fixture coordinates, test clock and tenant-scoped audit assertion corrected.",
+        "linux_final": "5 passed, 0 failed, 0 skipped"
+      },
+      "evidence": "projects/unexamine/ai/evidence/spark-b01-direct-verification.json",
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessAction.java",
+          "sha256": "6deb3981f8c5484a19cb8c4fca4faf48404dcb71e27cc186b2958ae78d6937c0"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
+          "sha256": "5045f059a304e9f486a2a14d9bfddda2792af85c91eb89acf58e481e05b44383"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+          "sha256": "0ebf6f73030692116355a98bf190d8770db6ea98f2212df8ae37eb5388031299"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationExtensionDispatcher.java",
+          "sha256": "f7878f6cfc03cfeeae5bfb2b1b8e7c4fe256a829ae18250aff7df7b190df9949"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java",
+          "sha256": "96449033e3093badbd42b9c9f960b8ebb206e46854c5d958227be2e9a09c6129"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
+          "sha256": "e54ac9adcf43c1ae16f8fbea5ed0adfc7a131f09fb502c07a6395a0362de2962"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+          "sha256": "84ccc86f7905248621ccb84e42e54e66274b8422d687c9d0062ced48586774c1"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+          "sha256": "c9ea95c56b583002e6450077fb5d65abb0776f46d1b21077bd24a56d1274352d"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordView.java",
+          "sha256": "867e9b8a6ea913005f8b8813eb21e6b6056661eab24f714c6aa49dd598d9a470"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+          "sha256": "48e40359d80ef513092212019bc7f8e6efb7dfdd04b048f3b53ded2f274cd47b"
+        },
+        {
+          "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+          "sha256": "3cc7d942347c3a160f8fed821dfa9f95132d6f2c1d99c466a882e7606d1538ae"
+        }
+      ],
+      "remaining": [
+        "B01.3: UPDATE/DELETE DIRECT already integrated; connect AFTER_EXECUTION/FLOW_ONLY to versioned Flow start and test once-only instance/recovery.",
+        "B01.4: AFTER_APPROVAL intent, rejection, once-only resume and conflict handling remain unimplemented.",
+        "Non-DIRECT matching bindings currently fail explicitly before saving; this is not completion of Flow requirements.",
+        "UI layout and visual business journeys were not changed/verified. Frontend stable Idempotency-Key reuse remains for shared action UI integration.",
+        "Application/Flow-specific caller, channel authorization and causation propagation remain for their planned packets."
+      ],
+      "next_step": "B01.2",
+      "correction": "Earlier compile-only completion entries are historical, not acceptance evidence; this record supplies real behavior evidence."
+    },
+    {
+      "step": "B01.2",
+      "verified_at": "2026-09-07T06:37:17.490414+00:00",
+      "source_rows": [
+        "R0303",
+        "R0304",
+        "R1776",
+        "R1779",
+        "R2208",
+        "R2209",
+        "R2210",
+        "R2218",
+        "R2948"
+      ],
+      "changed_files": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessAction.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationExtensionDispatcher.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java",
+        "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordView.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java"
+      ],
+      "checks_actual_results": [
+        "JDK21 compile passed",
+        "5 final real HTTP/MySQL/Redis behavior tests passed"
+      ],
+      "readback": [
+        "HTTP create/update/delete all enter FoundationControlService.execute through RuntimeDataService; compatibility command endpoint replays the same stored record.",
+        "No binding or unmatched condition saves normally; published DIRECT binding is resolved without starting a Flow.",
+        "Sequential/concurrent duplicate keys return identical saved results; changed payload or stale revision fails without another write/event.",
+        "Real SQL failure after the main record insert rolls back partial business data, idempotency result and outbox; retry with the same key succeeds after recovery.",
+        "Delivery failure is persisted as FAILED; retry worker rereads it and publishes it without repeating business CRUD.",
+        "Inactive membership blocks even a cached result; malformed identity/version values are rejected instead of silently replaced.",
+        "Original typed-field, permission, version and tenant-boundary HTTP journey still passes."
+      ],
+      "permission_or_failure_result": {
+        "native_windows": "3 startup errors: TestRestTemplate loopback Invalid argument: connect; no behavior assertions ran.",
+        "linux_initial": "2 failures exposed stored-result time-format incompatibility, now fixed.",
+        "linux_intermediate": "Membership revocation enforcement fixed. Fixture coordinates, test clock and tenant-scoped audit assertion corrected.",
+        "linux_final": "5 passed, 0 failed, 0 skipped"
+      },
+      "evidence": "projects/unexamine/ai/evidence/spark-b01-direct-verification.json",
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessAction.java",
+          "sha256": "6deb3981f8c5484a19cb8c4fca4faf48404dcb71e27cc186b2958ae78d6937c0"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
+          "sha256": "5045f059a304e9f486a2a14d9bfddda2792af85c91eb89acf58e481e05b44383"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+          "sha256": "0ebf6f73030692116355a98bf190d8770db6ea98f2212df8ae37eb5388031299"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationExtensionDispatcher.java",
+          "sha256": "f7878f6cfc03cfeeae5bfb2b1b8e7c4fe256a829ae18250aff7df7b190df9949"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java",
+          "sha256": "96449033e3093badbd42b9c9f960b8ebb206e46854c5d958227be2e9a09c6129"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
+          "sha256": "e54ac9adcf43c1ae16f8fbea5ed0adfc7a131f09fb502c07a6395a0362de2962"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+          "sha256": "84ccc86f7905248621ccb84e42e54e66274b8422d687c9d0062ced48586774c1"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+          "sha256": "c9ea95c56b583002e6450077fb5d65abb0776f46d1b21077bd24a56d1274352d"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordView.java",
+          "sha256": "867e9b8a6ea913005f8b8813eb21e6b6056661eab24f714c6aa49dd598d9a470"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+          "sha256": "48e40359d80ef513092212019bc7f8e6efb7dfdd04b048f3b53ded2f274cd47b"
+        },
+        {
+          "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+          "sha256": "3cc7d942347c3a160f8fed821dfa9f95132d6f2c1d99c466a882e7606d1538ae"
+        }
+      ],
+      "remaining": [
+        "B01.3: UPDATE/DELETE DIRECT already integrated; connect AFTER_EXECUTION/FLOW_ONLY to versioned Flow start and test once-only instance/recovery.",
+        "B01.4: AFTER_APPROVAL intent, rejection, once-only resume and conflict handling remain unimplemented.",
+        "Non-DIRECT matching bindings currently fail explicitly before saving; this is not completion of Flow requirements.",
+        "UI layout and visual business journeys were not changed/verified. Frontend stable Idempotency-Key reuse remains for shared action UI integration.",
+        "Application/Flow-specific caller, channel authorization and causation propagation remain for their planned packets."
+      ],
+      "next_step": "B01.3",
+      "correction": "Earlier compile-only completion entries are historical, not acceptance evidence; this record supplies real behavior evidence."
     }
   ],
-  "evidence": [],
   "step_record_contract": {
     "required": [
       "step",
@@ -61,9 +506,9 @@
       "name": "接手基线与核心落点",
       "depends_on": [],
       "steps": {
-        "B00.1": "unverified",
-        "B00.2": "unverified",
-        "B00.3": "unverified"
+        "B00.1": "verified",
+        "B00.2": "verified",
+        "B00.3": "verified"
       }
     },
     {
@@ -73,8 +518,8 @@
         "B00"
       ],
       "steps": {
-        "B01.1": "unverified",
-        "B01.2": "unverified",
+        "B01.1": "verified",
+        "B01.2": "verified",
         "B01.3": "unverified",
         "B01.4": "unverified"
       }
@@ -332,7 +777,7 @@
     "source_and_clause_hashes": "passed",
     "package_step_counts_and_dependencies": "passed",
     "referenced_entry_files": "passed",
-    "workspace_validate": "failed_stale_requirement_baseline_after_A17",
+    "workspace_validate": "passed",
     "product_tests": "not_run_planning_only"
   }
 }

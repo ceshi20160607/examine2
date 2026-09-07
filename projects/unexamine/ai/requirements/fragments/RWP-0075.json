@@ -1,1 +1,30 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0075","requirements":[],"decisions":[],"coverage":[{"sourceBlock":"B0455","classification":"context","requirementIds":[],"rationale":"说明后续上线能力的目标，具体版本、发布和运行规则由后续源块定义。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0455"
+      ],
+      "sourceBlock": "B0455"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0075",
+  "requirements": [
+    {
+      "id": "CAND-B0455",
+      "sourceBlocks": [
+        "B0455"
+      ],
+      "statement": "这些能力用于保证产品上线后稳定、可维护、可扩展。",
+      "title": "14. 上线能力完善规则",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

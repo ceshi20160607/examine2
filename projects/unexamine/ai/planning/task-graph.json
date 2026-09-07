@@ -1418,7 +1418,7 @@
   "schemaVersion": 1,
   "source": {
     "taskCatalogPath": "task-catalog.json",
-    "taskCatalogSha256": "3346dca35025e45953223e7bb960bce5150e5b5f05f5e8e160a144e94b506de7"
+    "taskCatalogSha256": "3a2f64d3eb7deb39424a320227e1aea1f388238d2825b7b152d1cfa93255a992"
   },
   "taskSchedules": [
     {

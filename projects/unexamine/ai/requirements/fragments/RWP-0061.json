@@ -1,1 +1,47 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0061","requirements":[{"id":"REQ-ROBUST-PERMISSION-RUNTIME","title":"服务端权限、验签与缓存一致性","statement":"前端权限只用于交互，所有后端业务接口必须重新校验权限，需要签名的应用访问必须验签，数据范围在查询层生效；权限变更后立即失效或刷新相关缓存，不能继续使用旧权限。","type":"quality","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0404","B0405"],"acceptanceCriteria":["绕过前端直接调用无权接口被服务端拒绝。","伪造、过期、重放或签名不匹配的应用请求在进入业务前被拒绝并审计。","无数据范围条件的底层查询不能从受保护业务接口返回越权数据。","撤销角色、数据或字段权限后，用户下一次请求按新权限执行。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0404","classification":"context","requirementIds":[],"rationale":"权限健壮引导语。"},{"sourceBlock":"B0405","classification":"requirement","requirementIds":["REQ-ROBUST-PERMISSION-RUNTIME"],"rationale":"服务端校验、应用验签、查询过滤和缓存刷新。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0404"
+      ],
+      "sourceBlock": "B0404"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0405"
+      ],
+      "sourceBlock": "B0405"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0061",
+  "requirements": [
+    {
+      "id": "CAND-B0404",
+      "sourceBlocks": [
+        "B0404"
+      ],
+      "statement": "必须：",
+      "title": "8.3 权限健壮",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0405",
+      "sourceBlocks": [
+        "B0405"
+      ],
+      "statement": "- 前端不能作为唯一权限。\n- 后端接口必须校验。\n- 需要签名的应用访问必须验签。\n- 数据范围必须在查询层生效。\n- 权限变更要刷新缓存。",
+      "title": "8.3 权限健壮",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

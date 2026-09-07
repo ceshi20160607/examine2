@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0002","requirements":[{"id":"REQ-PRODUCT-POSITION","title":"可配置业务系统平台","statement":"Unexamine 必须成为普通企业团队可长期使用的可配置业务系统平台，覆盖建模、页面、审批、仪表盘、权限、成员、文件、导出、外部接入、审计和稳定部署，而不是低代码演示或接口调试后台。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0004","B0005","B0006","B0007"],"acceptanceCriteria":["不会写代码的企业管理员可以完成业务系统配置并交给普通用户长期使用。","产品入口和页面承接完整业务，不以调接口作为主要使用方式。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0004","classification":"requirement","requirementIds":["REQ-PRODUCT-POSITION"],"rationale":"产品定位。"},{"sourceBlock":"B0005","classification":"context","requirementIds":[],"rationale":"能力目录引导语。"},{"sourceBlock":"B0006","classification":"requirement","requirementIds":["REQ-PRODUCT-POSITION"],"rationale":"平台覆盖能力目录。"},{"sourceBlock":"B0007","classification":"requirement","requirementIds":["REQ-PRODUCT-POSITION"],"rationale":"长期可用产品约束。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0004"
+      ],
+      "sourceBlock": "B0004"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0005"
+      ],
+      "sourceBlock": "B0005"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0006"
+      ],
+      "sourceBlock": "B0006"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0007"
+      ],
+      "sourceBlock": "B0007"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0002",
+  "requirements": [
+    {
+      "id": "CAND-B0004",
+      "sourceBlocks": [
+        "B0004"
+      ],
+      "statement": "unexamine 要做成一个“可配置业务系统平台”。",
+      "title": "1. 方案定位",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0005",
+      "sourceBlocks": [
+        "B0005"
+      ],
+      "statement": "它要覆盖日常小型和中型内部系统的大多数需求：",
+      "title": "1. 方案定位",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0006",
+      "sourceBlocks": [
+        "B0006"
+      ],
+      "statement": "- 搭业务表。\n- 搭表单。\n- 搭列表。\n- 搭详情。\n- 搭审批。\n- 搭仪表盘。\n- 分权限。\n- 管成员。\n- 上传附件。\n- 导出数据。\n- 外部系统接入。\n- 查看日志。\n- 稳定部署上线。",
+      "title": "1. 方案定位",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0007",
+      "sourceBlocks": [
+        "B0007"
+      ],
+      "statement": "它不是单纯的“低代码演示项目”，也不是开发人员自己调接口的后台，而是一个普通企业团队可以长期使用的产品。",
+      "title": "1. 方案定位",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

@@ -34,4 +34,11 @@ public record RuntimeRecordView(
         List<String> sharedActions,
         LocalDateTime shareExpiresAt,
         Map<String, JsonNode> fields) {
+    public RuntimeRecordView withFields(Map<String, JsonNode> visibleFields) {
+        return new RuntimeRecordView(id, recordNumber, title, status, ownerMemberId, departmentId,
+                createdByMemberId, updatedByMemberId, createdConfigVersionId, updatedConfigVersionId,
+                participantMemberIds, archived, archivedAt, deleted, deletedAt, version, createdAt, updatedAt,
+                dataTenantId, dataTenantName, ownedByCurrentTenant, shared, shareId, shareStatus, sharedActions,
+                shareExpiresAt, visibleFields);
+    }
 }

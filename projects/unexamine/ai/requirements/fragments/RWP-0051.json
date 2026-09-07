@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0051","requirements":[{"id":"REQ-TECH-FRONTEND-CORE","title":"Vue 单体前端技术基线","statement":"前端使用 Vue 3、TypeScript、Vite、Pinia 和 Vue Router，统计图使用 ECharts，高级 JSON 或表达式编辑使用 Monaco Editor，Flow 设计器基于成熟 Vue Flow 画布库而非自研画布底层。","type":"constraint","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0347","B0348","B0350"],"acceptanceCriteria":["前端生产构建通过 TypeScript 类型检查并由 Vite 生成单一应用产物。","状态、路由、图表、高级编辑和 Flow 画布分别使用约定技术，不存在另一套并行框架。"],"decisionIds":[]},{"id":"REQ-TECH-FRONTEND-COMPONENTS","title":"Ant Design Vue 与 TanStack Table 组件基线","statement":"基础 UI 统一使用 Ant Design Vue；高级表格基于 TanStack Table 封装，以满足企业后台交付速度、可控样式和通用列表能力，不并行引入其他基础 UI 或表格框架。","type":"constraint","priority":"must","origin":"proposed","status":"confirmed","sourceBlocks":["B0348","B0349","B0350"],"acceptanceCriteria":["通用布局、表单、反馈和导航组件来自统一 Ant Design Vue 主题。","高级表格封装覆盖需求规定的筛选、列、视图、固定、批量和键盘能力。","依赖清单不存在第二套基础 UI 或高级表格框架。"],"decisionIds":["DEC-20260817-004"]}],"decisions":[{"id":"DEC-20260817-004","question":"基础 UI 和高级表格采用哪组候选技术？","sourceBlocks":["B0348","B0349","B0350"],"options":["Ant Design Vue + TanStack Table","Element Plus + AG Grid","Naive UI + TanStack Table","Arco Design Vue + AG Grid"],"status":"resolved","resolution":"采用现有工程已接入的 Ant Design Vue，并用 TanStack Table 构建统一高级表格封装；Flow、图表和高级编辑分别使用 Vue Flow、ECharts、Monaco Editor。","resolvedBy":"pm"}],"coverage":[{"sourceBlock":"B0347","classification":"context","requirementIds":[],"rationale":"前端推荐引导语。"},{"sourceBlock":"B0348","classification":"engineering-setting","requirementIds":["REQ-TECH-FRONTEND-CORE","REQ-TECH-FRONTEND-COMPONENTS"],"rationale":"前端技术候选范围。"},{"sourceBlock":"B0349","classification":"context","requirementIds":[],"rationale":"选型依据引导语。"},{"sourceBlock":"B0350","classification":"engineering-setting","requirementIds":["REQ-TECH-FRONTEND-CORE","REQ-TECH-FRONTEND-COMPONENTS"],"rationale":"技术选择取舍和禁止自研画布。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0347"
+      ],
+      "sourceBlock": "B0347"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0348"
+      ],
+      "sourceBlock": "B0348"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0349"
+      ],
+      "sourceBlock": "B0349"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0350"
+      ],
+      "sourceBlock": "B0350"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0051",
+  "requirements": [
+    {
+      "id": "CAND-B0347",
+      "sourceBlocks": [
+        "B0347"
+      ],
+      "statement": "推荐：",
+      "title": "7.1 前端技术",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0348",
+      "sourceBlocks": [
+        "B0348"
+      ],
+      "statement": "- Vue 3。\n- TypeScript。\n- Vite。\n- Pinia。\n- Vue Router。\n- Ant Design Vue、Naive UI、Element Plus 或 Arco Design Vue 选一种作为基础 UI。\n- TanStack Table 或 AG Grid 做高级表格。\n- Vue Flow 做流程设计器。\n- ECharts 做统计图。\n- Monaco Editor 做高级 JSON 或表达式编辑。",
+      "title": "7.1 前端技术",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0349",
+      "sourceBlocks": [
+        "B0349"
+      ],
+      "statement": "技术选型：",
+      "title": "7.1 前端技术",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0350",
+      "sourceBlocks": [
+        "B0350"
+      ],
+      "statement": "- 如果要快速做企业后台，优先 Ant Design Vue 或 Element Plus。\n- 如果要主题更灵活，优先 Naive UI。\n- 如果要设计更年轻一些，可以考虑 Arco Design Vue。\n- 如果表格要非常强，考虑 AG Grid。\n- 如果想完全掌控表格样式，考虑 TanStack Table。\n- 流程设计器使用 Vue Flow 这类成熟画布库，不从零手写画布底层。",
+      "title": "7.1 前端技术",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

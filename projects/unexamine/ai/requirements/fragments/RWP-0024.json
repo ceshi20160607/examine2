@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0024","requirements":[{"id":"REQ-DATA-SOURCE-CAPABILITIES","title":"单模块、多模块和版本化数据源","statement":"数据源支持单模块和基于关联、子表、级联的多模块查询，可选择输出字段、固定筛选、默认排序和时间字段并发布版本；仪表盘、KPI、统计导出、打印和 AI 只读取已发布数据源说明与口径。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0153","B0154","B0155","B0156"],"acceptanceCriteria":["配置多模块数据源后可按关联关系查询且不会暴露未选择或无权限字段。","修改草稿不改变现有仪表盘结果，发布后消费者使用同一版本和统计口径。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0153","classification":"context","requirementIds":[],"rationale":"数据源能力引导语。"},{"sourceBlock":"B0154","classification":"requirement","requirementIds":["REQ-DATA-SOURCE-CAPABILITIES"],"rationale":"数据源配置能力。"},{"sourceBlock":"B0155","classification":"context","requirementIds":[],"rationale":"使用场景引导语。"},{"sourceBlock":"B0156","classification":"requirement","requirementIds":["REQ-DATA-SOURCE-CAPABILITIES"],"rationale":"数据源消费者目录。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0153"
+      ],
+      "sourceBlock": "B0153"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0154"
+      ],
+      "sourceBlock": "B0154"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0155"
+      ],
+      "sourceBlock": "B0155"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0156"
+      ],
+      "sourceBlock": "B0156"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0024",
+  "requirements": [
+    {
+      "id": "CAND-B0153",
+      "sourceBlocks": [
+        "B0153"
+      ],
+      "statement": "数据源能力：",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0154",
+      "sourceBlocks": [
+        "B0154"
+      ],
+      "statement": "- 单模块数据源，比如客户、合同、工单。\n- 多模块关联数据源，比如客户加合同、订单加明细、工单加维修记录。\n- 关联方式来自字段配置里的关联模块、子表和级联字段。\n- 支持选择输出字段，避免把所有字段都暴露给统计页面。\n- 支持固定筛选条件，比如只看已成交合同、未关闭工单。\n- 支持默认排序和默认时间字段。\n- 支持数据源发布版本，仪表盘使用已发布的数据源。",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0155",
+      "sourceBlocks": [
+        "B0155"
+      ],
+      "statement": "数据源使用场景：",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0156",
+      "sourceBlocks": [
+        "B0156"
+      ],
+      "statement": "- 仪表盘图表读取数据源。\n- KPI 目标从数据源取统计口径。\n- 报表和导出读取数据源。\n- Agent 读取数据源说明后，可以知道某个指标应该怎样查询。",
+      "title": "5.8 页面",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

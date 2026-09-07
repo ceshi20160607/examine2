@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0109","requirements":[{"id":"REQ-PLATFORM-QUOTAS","title":"系统、应用、模块、文件和调用配额","statement":"平台可配置每系统用户数和应用数、每应用授权资源数、每模块字段数、单文件大小、每日导出次数及应用调用次数配额，用于隔离误操作和支撑授权方案；达到配额前可预警，超限时明确拒绝且不产生部分数据。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0622","B0623","B0624","B0625"],"acceptanceCriteria":["平台管理员可查看和调整各系统有效配额及当前用量。","并发创建或调用在配额边界由原子计数保证不超额。","接近阈值产生有接收人的预警，超限返回具体配额、用量和处理建议。","降低配额不删除既有数据，但阻止继续新增并记录审计。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0622","classification":"requirement","requirementIds":["REQ-PLATFORM-QUOTAS"],"rationale":"平台配额能力。"},{"sourceBlock":"B0623","classification":"requirement","requirementIds":["REQ-PLATFORM-QUOTAS"],"rationale":"用户、应用、资源、字段、文件、导出和调用配额。"},{"sourceBlock":"B0624","classification":"context","requirementIds":[],"rationale":"配额价值引导语。"},{"sourceBlock":"B0625","classification":"requirement","requirementIds":["REQ-PLATFORM-QUOTAS"],"rationale":"平台保护和授权方案。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0622"
+      ],
+      "sourceBlock": "B0622"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0623"
+      ],
+      "sourceBlock": "B0623"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0624"
+      ],
+      "sourceBlock": "B0624"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0625"
+      ],
+      "sourceBlock": "B0625"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0109",
+  "requirements": [
+    {
+      "id": "CAND-B0622",
+      "sourceBlocks": [
+        "B0622"
+      ],
+      "statement": "平台可以设置配额：",
+      "title": "14.34 容量和配额",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0623",
+      "sourceBlocks": [
+        "B0623"
+      ],
+      "statement": "- 每个系统最大用户数。\n- 每个系统最大应用数。\n- 每个应用最大授权资源数。\n- 每个模块最大字段数。\n- 单文件最大大小。\n- 每日导出次数。\n- 应用调用次数。",
+      "title": "14.34 容量和配额",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0624",
+      "sourceBlocks": [
+        "B0624"
+      ],
+      "statement": "好处：",
+      "title": "14.34 容量和配额",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0625",
+      "sourceBlocks": [
+        "B0625"
+      ],
+      "statement": "- 防止某个系统误操作拖垮平台。\n- 支撑不同版本授权。",
+      "title": "14.34 容量和配额",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

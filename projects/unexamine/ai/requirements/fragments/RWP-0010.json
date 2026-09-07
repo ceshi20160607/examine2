@@ -1,1 +1,30 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0010","requirements":[{"id":"REQ-SYSTEM-RUNTIME-SHELL","title":"模块组和模块驱动的系统运行态","statement":"系统运行态以顶部模块组和左侧模块形成导航，内容区承载模块列表、表单、详情、关联、文件、评论、历史、Flow 状态和仪表盘，只显示权限内页面、动作、字段和数据，不展示复杂配置入口。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0070"],"acceptanceCriteria":["切换模块组后左侧模块列表和内容区同步刷新。","列表提供搜索、高级筛选、排序、分页、保存视图、列设置及权限内动作。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0070","classification":"requirement","requirementIds":["REQ-SYSTEM-RUNTIME-SHELL"],"rationale":"运行态完整结构。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0070"
+      ],
+      "sourceBlock": "B0070"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0010",
+  "requirements": [
+    {
+      "id": "CAND-B0070",
+      "sourceBlocks": [
+        "B0070"
+      ],
+      "statement": "- 模块组在顶部形成业务分组导航。\n- 当前模块组下的模块在左侧形成二级导航。\n- 内容区显示模块列表、表单、详情、关联数据、文件、评论、变更历史、Flow状态和仪表盘。\n- 用户只看到自己有权限的模块、页面、动作、字段和数据。\n- 运行态不展示字段设计、Flow设计、角色配置等复杂后台入口。\n- 数据列表支持搜索、高级筛选、排序、分页、保存视图、列设置和按权限显示的模块动作。",
+      "title": "4.5 系统运行态",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

@@ -3,6 +3,9 @@ package com.unique.unexamine.foundation.manage.control;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.unique.unexamine.flow.manage.FlowBindingModels;
+import org.springframework.beans.factory.ObjectProvider;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.PermissionResolutionResult;
@@ -37,6 +40,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 @Service
 public class FoundationControlService {
@@ -44,7 +49,12 @@ public class FoundationControlService {
     public static final String DEFAULT_OPERATION = "CONFIG_RELOAD";
     public static final int RATE_LIMIT = 5;
     public static final Duration RATE_WINDOW = Duration.ofSeconds(60);
-    private static final Set<String> OPERATIONS = Set.of("CONFIG_RELOAD", "PERMISSION_CONTEXT_REFRESH");
+    private static final Set<String> OPERATIONS = Set.of(
+            "CONFIG_RELOAD",
+            "PERMISSION_CONTEXT_REFRESH",
+            "RUNTIME_RECORD_CREATE_DIRECT",
+            "RUNTIME_RECORD_UPDATE_DIRECT",
+            "RUNTIME_RECORD_DELETE_DIRECT");
 
     private final CoreIdempotencyRecordBaseService idempotencyService;
     private final CoreEventOutboxBaseService outboxService;
@@ -56,7 +66,10 @@ public class FoundationControlService {
     private final StringRedisTemplate redis;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final ObjectMapper actionJsonMapper;
     private final JdbcTemplate jdbc;
+    private final BusinessActionMapper actionMapper;
+    private final ObjectProvider<RuntimeDataCommandExtension> runtimeCommands;
 
     public FoundationControlService(CoreIdempotencyRecordBaseService idempotencyService,
                                     CoreEventOutboxBaseService outboxService,
@@ -68,7 +81,9 @@ public class FoundationControlService {
                                     StringRedisTemplate redis,
                                     AuditRecorder auditRecorder,
                                     ObjectMapper objectMapper,
-                                    JdbcTemplate jdbc) {
+                                    JdbcTemplate jdbc,
+                                    BusinessActionMapper actionMapper,
+                                    ObjectProvider<RuntimeDataCommandExtension> runtimeCommands) {
         this.idempotencyService = idempotencyService;
         this.outboxService = outboxService;
         this.cacheEpochService = cacheEpochService;
@@ -79,7 +94,13 @@ public class FoundationControlService {
         this.redis = redis;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        var storageDates = new com.fasterxml.jackson.databind.module.SimpleModule("business-action-storage-v1");
+        storageDates.addSerializer(LocalDateTime.class,
+                new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        this.actionJsonMapper = objectMapper.copy().registerModule(storageDates);
         this.jdbc = jdbc;
+        this.actionMapper = actionMapper;
+        this.runtimeCommands = runtimeCommands;
     }
 
     @Transactional
@@ -88,6 +109,9 @@ public class FoundationControlService {
                                                          String traceId) {
         requireContext(context);
         String operation = input.operationCode().strip().toUpperCase(Locale.ROOT);
+        if (operation.startsWith("RUNTIME_RECORD_")) {
+            return runtimeCommands.getObject().execute(context, input, traceId);
+        }
         if (!OPERATIONS.contains(operation)) {
             throw new DomainException("FOUNDATION_OPERATION_NOT_ALLOWED", "该运行控制动作不受支持",
                     HttpStatus.UNPROCESSABLE_ENTITY);
@@ -173,14 +197,20 @@ public class FoundationControlService {
         event.setAggregateType("FOUNDATION_COMMAND");
         event.setAggregateId(claimed.getId().toString());
         event.setEventType("FOUNDATION_COMMAND_COMMITTED");
-        event.setPayloadJson(json(Map.of(
-                "operationCode", operation,
-                "applicationCode", application,
-                "requestId", traceId,
-                "accountId", context.accountId(),
-                "systemId", context.systemId(),
-                "tenantId", context.tenantId(),
-                "payload", input.payload())));
+        Map<String, Object> eventPayload = new LinkedHashMap<>();
+        eventPayload.put("operationCode", operation);
+        eventPayload.put("applicationCode", application);
+        eventPayload.put("requestId", traceId);
+        eventPayload.put("accountId", context.accountId());
+        eventPayload.put("platformId", context.platformId());
+        eventPayload.put("systemId", context.systemId());
+        eventPayload.put("tenantId", context.tenantId());
+        eventPayload.put("tenantMemberId", context.tenantMemberId());
+        eventPayload.put("memberId", context.memberId());
+        eventPayload.put("username", context.username());
+        eventPayload.put("displayName", context.displayName());
+        eventPayload.put("payload", input.payload());
+        event.setPayloadJson(json(eventPayload));
         event.setStatus("PENDING");
         event.setAvailableAt(LocalDateTime.now());
         event.setRetryCount(0);
@@ -205,6 +235,114 @@ public class FoundationControlService {
                         "resultReference", result.resultReference()));
         afterCommit(event.getId());
         return result;
+    }
+
+    /** Business writes, their result and their completion event share this transaction. */
+    @Transactional
+    public <T> BusinessAction.Result<T> execute(
+            BusinessAction.Input input, Class<T> resultType,
+            Supplier<FlowBindingModels.ResolutionView> resolveBinding, Supplier<T> business) {
+        AuthenticatedContext actor = input.actor();
+        requireContext(actor);
+        if (actionMapper.activeActor(actor) != 1) {
+            throw new DomainException("ACTION_ACTOR_INACTIVE", "当前成员或租户已停用，无法执行业务动作", HttpStatus.FORBIDDEN);
+        }
+        BusinessAction.Options options = input.options();
+        String key = options.effectiveKey();
+        if (!key.matches("[A-Za-z0-9._:-]{3,200}")) {
+            throw new DomainException("IDEMPOTENCY_KEY_INVALID", "请求标识格式不正确", HttpStatus.BAD_REQUEST);
+        }
+        if (options.depth() < 0 || options.depth() > 16) {
+            throw new DomainException("ACTION_CAUSATION_DEPTH_EXCEEDED", "业务动作联动层数超出限制", HttpStatus.CONFLICT);
+        }
+        String operation = "BUSINESS_" + input.actionCode();
+        String scope = "business:" + hash(List.of(actor.accountId(), actor.systemId(), actor.tenantId(),
+                actor.tenantMemberId(), input.dataTenantId(), input.moduleId(), options.applicationCode()));
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("recordId", input.recordId());
+        request.put("expectedVersion", input.expectedVersion());
+        request.put("payload", input.payload());
+        String requestHash = hash(canonical(objectMapper.valueToTree(request)));
+        String claim = UUID.randomUUID().toString();
+        actionMapper.claim(scope, operation, key, requestHash, claim);
+        CoreIdempotencyRecord record = actionMapper.lock(scope, operation, key);
+        if (!requestHash.equals(record.getRequestHash())) {
+            throw new DomainException("IDEMPOTENCY_KEY_REUSED", "同一请求标识已用于不同内容", HttpStatus.CONFLICT);
+        }
+        if ("COMPLETED".equals(record.getStatus())) {
+            try {
+                BusinessAction.Result<T> stored = actionJsonMapper.readValue(record.getResponseJson(),
+                        objectMapper.getTypeFactory().constructParametricType(BusinessAction.Result.class, resultType));
+                return new BusinessAction.Result<>(stored.idempotencyRecordId(), stored.outboxId(), key,
+                        stored.status(), true, stored.mode(), stored.value());
+            } catch (JsonProcessingException exception) {
+                org.slf4j.LoggerFactory.getLogger(getClass()).warn("Cannot decode action result {}", record.getId(), exception);
+                throw new DomainException("IDEMPOTENCY_RESULT_INVALID", "首次结果无法读取，已阻止重复执行", HttpStatus.CONFLICT);
+            }
+        }
+        if (!claim.equals(record.getResponseCode())) {
+            throw new DomainException("IDEMPOTENCY_REQUEST_IN_PROGRESS", "相同动作正在处理", HttpStatus.CONFLICT);
+        }
+        FlowBindingModels.ResolutionView binding = resolveBinding.get();
+        BusinessAction.Mode mode = binding == null ? BusinessAction.Mode.DIRECT
+                : BusinessAction.Mode.valueOf(binding.executionMode());
+        if (mode != BusinessAction.Mode.DIRECT) {
+            throw new DomainException("ACTION_MODE_NOT_IMPLEMENTED", "此动作的 Flow 执行模式尚未接通：" + mode,
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        T value = business.get();
+        CoreEventOutbox event = new CoreEventOutbox();
+        event.setContextType("SYSTEM");
+        event.setSystemId(actor.systemId());
+        event.setTenantId(input.dataTenantId());
+        event.setAggregateType("BUSINESS_ACTION");
+        event.setAggregateId(record.getId().toString());
+        event.setEventType("BUSINESS_ACTION_COMPLETED");
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("action", input);
+        payload.put("binding", binding);
+        payload.put("mode", mode);
+        payload.put("result", value);
+        event.setPayloadJson(actionJson(payload));
+        event.setStatus("PENDING");
+        event.setAvailableAt(LocalDateTime.now());
+        event.setRetryCount(0);
+        outboxService.insert(event);
+        BusinessAction.Result<T> result = new BusinessAction.Result<>(record.getId(), event.getId(), key,
+                "COMPLETED", false, mode, value);
+        record.setStatus("COMPLETED");
+        record.setResponseCode("SUCCESS");
+        record.setResponseJson(actionJson(result));
+        record.setLockedUntil(null);
+        if (idempotencyService.updateById(record) != 1) {
+            throw new DomainException("IDEMPOTENCY_COMPLETION_CONFLICT", "动作结果保存冲突，业务已回滚", HttpStatus.CONFLICT);
+        }
+        afterCommit(event.getId());
+        return result;
+    }
+
+    private JsonNode canonical(JsonNode node) {
+        if (node.isObject()) {
+            var sorted = objectMapper.createObjectNode();
+            var fields = new TreeMap<String, JsonNode>();
+            node.fields().forEachRemaining(entry -> fields.put(entry.getKey(), entry.getValue()));
+            fields.forEach((key, value) -> sorted.set(key, canonical(value)));
+            return sorted;
+        }
+        if (node.isArray()) {
+            var sorted = objectMapper.createArrayNode();
+            node.forEach(value -> sorted.add(canonical(value)));
+            return sorted;
+        }
+        return node;
+    }
+
+    private String actionJson(Object value) {
+        try {
+            return actionJsonMapper.writeValueAsString(value);
+        } catch (JsonProcessingException exception) {
+            throw new DomainException("ACTION_RESULT_INVALID", "业务动作结果无法保存", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -335,11 +473,20 @@ public class FoundationControlService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    dispatcher.dispatch(outboxId);
+                    dispatchCommitted(outboxId);
                 }
             });
         } else {
+            dispatchCommitted(outboxId);
+        }
+    }
+
+    private void dispatchCommitted(long outboxId) {
+        try {
             dispatcher.dispatch(outboxId);
+        } catch (RuntimeException exception) {
+            // The business transaction is already durable. The worker retries the pending event.
+            org.slf4j.LoggerFactory.getLogger(getClass()).warn("Outbox delivery deferred: {}", outboxId, exception);
         }
     }
 

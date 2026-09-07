@@ -1,1 +1,115 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0009","requirements":[{"id":"REQ-SYSTEM-ADMIN","title":"固定系统后台与模板配置","statement":"系统后台只面向系统管理员及配置授权人员，固定包含系统信息、组织、角色权限、数据字典、模板配置、业务参数、Flow、应用、AI、审计和运维；模板配置同级类别仅为模块信息、字段、动作、模块 Flow 和模块应用。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0063","B0064","B0065","B0066","B0067","B0068"],"acceptanceCriteria":["系统后台按固定菜单显示当前系统层级。","页面、菜单、发布、版本、回滚都位于对应模板类别内部。","导入、导出、转移、转化、打印、审批和 Flow 触发只作为模块动作配置。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0063","classification":"context","requirementIds":[],"rationale":"系统后台角色引导语。"},{"sourceBlock":"B0064","classification":"requirement","requirementIds":["REQ-SYSTEM-ADMIN"],"rationale":"固定一级菜单。"},{"sourceBlock":"B0065","classification":"context","requirementIds":[],"rationale":"模板配置引导语。"},{"sourceBlock":"B0066","classification":"requirement","requirementIds":["REQ-SYSTEM-ADMIN"],"rationale":"模板配置同级类别。"},{"sourceBlock":"B0067","classification":"requirement","requirementIds":["REQ-SYSTEM-ADMIN"],"rationale":"模板内部生命周期边界。"},{"sourceBlock":"B0068","classification":"requirement","requirementIds":["REQ-SYSTEM-ADMIN"],"rationale":"模块动作边界。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0063"
+      ],
+      "sourceBlock": "B0063"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0064"
+      ],
+      "sourceBlock": "B0064"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0065"
+      ],
+      "sourceBlock": "B0065"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0066"
+      ],
+      "sourceBlock": "B0066"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0067"
+      ],
+      "sourceBlock": "B0067"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0068"
+      ],
+      "sourceBlock": "B0068"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0009",
+  "requirements": [
+    {
+      "id": "CAND-B0063",
+      "sourceBlocks": [
+        "B0063"
+      ],
+      "statement": "系统后台面向系统管理员和获得配置权限的人员，包含：",
+      "title": "4.4 系统后台",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0064",
+      "sourceBlocks": [
+        "B0064"
+      ],
+      "statement": "- 系统信息。\n- 组织架构。\n- 角色权限。\n- 数据字典。\n- 模板配置。\n- 其他业务参数配置。\n- Flow配置。\n- 应用配置。\n- AI配置。\n- 审计日志。\n- 运维配置。",
+      "title": "4.4 系统后台",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0065",
+      "sourceBlocks": [
+        "B0065"
+      ],
+      "statement": "模板配置统一包含：",
+      "title": "4.4 系统后台",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0066",
+      "sourceBlocks": [
+        "B0066"
+      ],
+      "statement": "- 模块信息。\n- 模块字段。\n- 模块动作。\n- 模块Flow。\n- 模块应用。",
+      "title": "4.4 系统后台",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0067",
+      "sourceBlocks": [
+        "B0067"
+      ],
+      "statement": "模块页面、菜单和发布生命周期属于模块信息及模块动作的配置内容，不再扩展为模板配置下的同级类别。所有模板配置都必须支持草稿、发布、版本、回滚和影响检查。",
+      "title": "4.4 系统后台",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0068",
+      "sourceBlocks": [
+        "B0068"
+      ],
+      "statement": "模块导入、导出、转移、转化、打印、审批和Flow触发等都在模块动作中配置，不建立重复的独立配置中心。",
+      "title": "4.4 系统后台",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

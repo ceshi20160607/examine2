@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0103","requirements":[{"id":"REQ-UI-PERMISSION-GUARDS","title":"前端路由、菜单、按钮和字段权限体验","statement":"前端根据最终权限执行路由守卫、菜单过滤、按钮可用、字段可见和字段可编辑控制，直接访问无权页面时显示明确提示并提供安全返回；这些只优化体验，所有请求仍由后端独立校验。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0592","B0593","B0594","B0595"],"acceptanceCriteria":["无菜单权限的入口不显示，直接输入地址得到无权页面而非业务数据。","按钮和字段状态与用户最终权限预览一致。","修改前端状态或直接构造请求不能绕过后端功能、数据或字段权限。","权限变化后前端刷新权限缓存和可访问路由。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0592","classification":"context","requirementIds":[],"rationale":"前端权限引导语。"},{"sourceBlock":"B0593","classification":"requirement","requirementIds":["REQ-UI-PERMISSION-GUARDS"],"rationale":"路由、菜单、按钮和字段权限。"},{"sourceBlock":"B0594","classification":"context","requirementIds":[],"rationale":"权限边界引导语。"},{"sourceBlock":"B0595","classification":"requirement","requirementIds":["REQ-UI-PERMISSION-GUARDS"],"rationale":"前端体验与后端校验边界。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0592"
+      ],
+      "sourceBlock": "B0592"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0593"
+      ],
+      "sourceBlock": "B0593"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0594"
+      ],
+      "sourceBlock": "B0594"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0595"
+      ],
+      "sourceBlock": "B0595"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0103",
+  "requirements": [
+    {
+      "id": "CAND-B0592",
+      "sourceBlocks": [
+        "B0592"
+      ],
+      "statement": "前端需要：",
+      "title": "14.28 前端权限和路由守卫",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0593",
+      "sourceBlocks": [
+        "B0593"
+      ],
+      "statement": "- 路由守卫。\n- 菜单过滤。\n- 按钮权限。\n- 字段可见控制。\n- 字段可编辑控制。\n- 直接访问无权限页面时提示。",
+      "title": "14.28 前端权限和路由守卫",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0594",
+      "sourceBlocks": [
+        "B0594"
+      ],
+      "statement": "注意：",
+      "title": "14.28 前端权限和路由守卫",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0595",
+      "sourceBlocks": [
+        "B0595"
+      ],
+      "statement": "- 前端只是体验优化。\n- 后端必须再次校验。",
+      "title": "14.28 前端权限和路由守卫",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

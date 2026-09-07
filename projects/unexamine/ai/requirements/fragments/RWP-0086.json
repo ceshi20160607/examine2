@@ -1,1 +1,98 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0086","requirements":[{"id":"REQ-DATA-ARCHIVE-RESTORE","title":"业务记录软删除、归档查询和恢复","statement":"业务记录支持软删除与恢复、单条或批量归档及独立归档查询，适用于长期完成的工单、合同和项目；归档数据保留关联、附件、历史和权限边界，不进入普通活跃列表。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0510","B0511","B0512","B0513","B0514"],"acceptanceCriteria":["软删除记录可由有权用户恢复且关联与历史完整。","归档后记录从普通列表和活跃统计排除，在归档查询中按权限可见。","批量归档逐条校验状态与权限，失败项不影响已明确成功项且结果可追踪。","恢复归档记录时处理唯一规则、模块状态和后续修改冲突。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0510","classification":"context","requirementIds":[],"rationale":"数据增长背景。"},{"sourceBlock":"B0511","classification":"context","requirementIds":[],"rationale":"归档能力引导语。"},{"sourceBlock":"B0512","classification":"requirement","requirementIds":["REQ-DATA-ARCHIVE-RESTORE"],"rationale":"删除、恢复、归档和查询。"},{"sourceBlock":"B0513","classification":"context","requirementIds":[],"rationale":"归档场景引导语。"},{"sourceBlock":"B0514","classification":"requirement","requirementIds":["REQ-DATA-ARCHIVE-RESTORE"],"rationale":"工单、合同和项目场景。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0510"
+      ],
+      "sourceBlock": "B0510"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0511"
+      ],
+      "sourceBlock": "B0511"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0512"
+      ],
+      "sourceBlock": "B0512"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0513"
+      ],
+      "sourceBlock": "B0513"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0514"
+      ],
+      "sourceBlock": "B0514"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0086",
+  "requirements": [
+    {
+      "id": "CAND-B0510",
+      "sourceBlocks": [
+        "B0510"
+      ],
+      "statement": "业务系统使用久了之后，数据会越来越多。",
+      "title": "14.11 数据归档和恢复",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0511",
+      "sourceBlocks": [
+        "B0511"
+      ],
+      "statement": "必须支持：",
+      "title": "14.11 数据归档和恢复",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0512",
+      "sourceBlocks": [
+        "B0512"
+      ],
+      "statement": "- 软删除。\n- 恢复。\n- 归档。\n- 归档查询。\n- 批量归档。",
+      "title": "14.11 数据归档和恢复",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0513",
+      "sourceBlocks": [
+        "B0513"
+      ],
+      "statement": "使用场景：",
+      "title": "14.11 数据归档和恢复",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0514",
+      "sourceBlocks": [
+        "B0514"
+      ],
+      "statement": "- 已完成很久的工单归档。\n- 历史合同归档。\n- 老项目归档。",
+      "title": "14.11 数据归档和恢复",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

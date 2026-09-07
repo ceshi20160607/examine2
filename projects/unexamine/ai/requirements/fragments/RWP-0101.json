@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0101","requirements":[{"id":"REQ-CACHE-CONTEXT-INVALIDATION","title":"上下文隔离且可回源的配置权限缓存","statement":"当前用户权限、系统配置、字典、菜单以及已发布页面、字段和打印模板可缓存；缓存键必须包含适用的 systemId 和 tenantId，权限变更或配置发布后精准失效，不缓存敏感明文，未命中或缓存故障时安全回源。","type":"quality","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0582","B0583","B0584","B0585"],"acceptanceCriteria":["相同对象在不同系统或租户生成不同缓存键且不能串读。","权限撤销或配置发布完成后相关缓存失效，下一次请求读取新版本。","Redis 不可用或缓存数据无效时从权威存储回源且不放宽权限。","缓存值、键和日志不包含密码、token、密钥等敏感明文。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0582","classification":"context","requirementIds":[],"rationale":"可缓存对象引导语。"},{"sourceBlock":"B0583","classification":"requirement","requirementIds":["REQ-CACHE-CONTEXT-INVALIDATION"],"rationale":"权限和发布配置缓存范围。"},{"sourceBlock":"B0584","classification":"context","requirementIds":[],"rationale":"缓存要求引导语。"},{"sourceBlock":"B0585","classification":"requirement","requirementIds":["REQ-CACHE-CONTEXT-INVALIDATION"],"rationale":"上下文、失效、敏感保护和回源。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0582"
+      ],
+      "sourceBlock": "B0582"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0583"
+      ],
+      "sourceBlock": "B0583"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0584"
+      ],
+      "sourceBlock": "B0584"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0585"
+      ],
+      "sourceBlock": "B0585"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0101",
+  "requirements": [
+    {
+      "id": "CAND-B0582",
+      "sourceBlocks": [
+        "B0582"
+      ],
+      "statement": "可以缓存：",
+      "title": "14.26 缓存策略",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0583",
+      "sourceBlocks": [
+        "B0583"
+      ],
+      "statement": "- 当前用户权限。\n- 系统配置。\n- 字典项。\n- 菜单。\n- 页面发布配置。\n- 字段发布配置。\n- 打印模板发布配置。",
+      "title": "14.26 缓存策略",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0584",
+      "sourceBlocks": [
+        "B0584"
+      ],
+      "statement": "要求：",
+      "title": "14.26 缓存策略",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0585",
+      "sourceBlocks": [
+        "B0585"
+      ],
+      "statement": "- 缓存 key 带 systemId、tenantId。\n- 权限变更后清缓存。\n- 配置发布后清缓存。\n- 不缓存敏感明文。\n- 缓存失效时能自动回源。",
+      "title": "14.26 缓存策略",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

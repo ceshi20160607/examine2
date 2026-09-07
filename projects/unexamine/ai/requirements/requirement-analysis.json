@@ -4077,6 +4077,18 @@
         "REQ-MODULE-APPLICATION-BINDING"
       ],
       "sourceBlock": "B0719"
+    },
+    {
+      "classification": "context",
+      "requirementIds": [],
+      "rationale": "A.17 澄清段落一：记录本轮确认要求（不影响既有需求）。",
+      "sourceBlock": "B0721"
+    },
+    {
+      "classification": "context",
+      "requirementIds": [],
+      "rationale": "A.17 澄清段落二：动作入口、统一页面、审批扩展与外部渠道补充。",
+      "sourceBlock": "B0722"
     }
   ],
   "decisions": [
@@ -7833,9 +7845,9 @@
   "schemaVersion": 1,
   "source": {
     "fragmentIndexPath": "fragment-index.json",
-    "fragmentIndexSha256": "15285412ddacc04f1e337a1953b7351be9b9aa8f9590bfa967e2e01e209dfa95",
+    "fragmentIndexSha256": "2f55dc2c3fb6376167dc597285d418fd480128992c4cdaec22e2cbc2125f416f",
     "intakePath": "requirement-intake.json",
-    "intakeSha256": "ce6ba0a28d3392d4bcfd9f625d9ed790015520033d441e411bedad95a8cfd3ed",
-    "requirementsSha256": "b090f848d32b25ae0d36bf3a392fed5ccf5ac90db43088d5e2ed8281b9496316"
+    "intakeSha256": "40d80de1ecd852527e2e87dc6bcb5f7183ad7714c18999f5c6433afc40ea0d75",
+    "requirementsSha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219"
   }
 }

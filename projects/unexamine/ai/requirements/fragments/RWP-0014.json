@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0014","requirements":[{"id":"REQ-AUTHENTICATION-ACCOUNT","title":"完整账号认证与安全流程","statement":"产品必须提供登录、注册、退出、刷新、改密、重置、当前用户、登录日志、失败限制、令牌自动刷新、账号停用和强制下线的真实页面流程；注册创建系统后创建人成为系统超级管理员并进入配置引导。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0079","B0080","B0081","B0082"],"acceptanceCriteria":["默认或注册账号可以从真实登录页进入正确首页，过期令牌可安全刷新。","连续失败触发限制，停用或强制下线后现有会话失效。","注册并创建系统后生成主租户、超级管理员映射并打开系统后台引导。"],"decisionIds":[]},{"id":"REQ-ENTERPRISE-SSO","title":"平台身份源与系统成员映射","statement":"平台后台必须完整配置并发布 OIDC、SAML2、OAuth2、LDAP/AD、企业微信/钉钉等身份源；系统后台继承已发布身份源并配置域名、组织部门、员工账号和系统成员映射、JIT、MFA、预检确认及可追踪登录日志。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0080"],"acceptanceCriteria":["身份源可测试后发布，系统只能选择允许范围。","外部身份未映射部门、员工或系统成员时给出明确反馈和申请入口，不建立越权上下文。","SSO 日志保存身份源、外部用户、绑定结果、MFA、设备、requestId、traceId 和失败原因。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0079","classification":"context","requirementIds":[],"rationale":"必需能力引导语。"},{"sourceBlock":"B0080","classification":"requirement","requirementIds":["REQ-AUTHENTICATION-ACCOUNT","REQ-ENTERPRISE-SSO"],"rationale":"账号与 SSO 必需能力。"},{"sourceBlock":"B0081","classification":"context","requirementIds":[],"rationale":"优化能力引导语。"},{"sourceBlock":"B0082","classification":"requirement","requirementIds":["REQ-AUTHENTICATION-ACCOUNT","REQ-ENTERPRISE-SSO"],"rationale":"部署开关和账号状态补充。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0079"
+      ],
+      "sourceBlock": "B0079"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0080"
+      ],
+      "sourceBlock": "B0080"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0081"
+      ],
+      "sourceBlock": "B0081"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0082"
+      ],
+      "sourceBlock": "B0082"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0014",
+  "requirements": [
+    {
+      "id": "CAND-B0079",
+      "sourceBlocks": [
+        "B0079"
+      ],
+      "statement": "必须包含：",
+      "title": "5.1 账号和登录",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0080",
+      "sourceBlocks": [
+        "B0080"
+      ],
+      "statement": "- 登录。\n- 注册。\n- 退出登录。\n- 刷新登录状态。\n- 修改密码。\n- 重置密码。\n- 当前用户信息。\n- 登录日志。\n- 登录失败限制。\n- token 过期自动刷新。\n- 登录、注册并创建系统、找回/重置密码必须有真实页面流程，不只是原型抽屉或演示按钮。\n- 注册创建系统后，创建人成为该系统超级管理员并进入系统后台配置引导。\n- 企业 SSO 必须有平台级统一认证配置，不只是登录页按钮或接口占位。\n- 平台级身份源配置至少包含 OIDC、SAML 2.0、OAuth2、LDAP / AD、企业微信 / 钉钉、回调地址、证书/JWKS、域名白名单、属性映射、JIT、MFA、测试发布和登录审计。\n- 系统后台必须有一级统一认证配置页，继承平台已发布身份源，配置可用身份源范围、租户域名限制、组织部门映射、员工绑定、系统成员映射、JIT 系统成员策略、无成员映射反馈和申请授权入口。\n- 系统 SSO 配置必须和组织架构联动：外部部门映射系统部门树，externalUserId/email/mobile/employeeNo 绑定平台账号、系统员工和 systemMemberId；未匹配部门、未绑定员工必须有预检、草稿、人工确认、同步任务和登录日志 traceId。\n- SSO 登录日志必须记录 identityProvider、externalUserId、账号绑定结果、系统成员映射结果、认证方式、MFA、IP、设备、requestId、traceId 和失败原因。",
+      "title": "5.1 账号和登录",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0081",
+      "sourceBlocks": [
+        "B0081"
+      ],
+      "statement": "优化：",
+      "title": "5.1 账号和登录",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0082",
+      "sourceBlocks": [
+        "B0082"
+      ],
+      "statement": "- 支持验证码或短信验证，按部署需要开启。\n- 支持单点登录接口，并按企业身份源配置、系统继承和成员映射完整落地。\n- 支持账号停用。\n- 支持强制下线。",
+      "title": "5.1 账号和登录",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

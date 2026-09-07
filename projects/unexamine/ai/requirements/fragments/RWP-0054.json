@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0054","requirements":[{"id":"REQ-TECH-LOWCODE-RECORD-STORAGE","title":"低代码主记录与字段值存储","statement":"低代码业务数据统一以通用主记录和字段值保存：主记录归属系统、租户和模块并保存状态与创建人，应用仅作为访问来源；字段值保留类型化查询值，附件、人员、部门和关联关系使用独立结构。","type":"constraint","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0369","B0370"],"acceptanceCriteria":["不同低代码模块使用同一通用记录模型且按系统、租户和模块隔离。","通过应用创建的记录仍归属目标系统模块，能追踪应用来源但不会改变归属。","附件、人员、部门和记录关联不只存为不可查询 JSON。"],"decisionIds":[]},{"id":"REQ-TECH-LOWCODE-QUERY-INDEX","title":"低代码查询索引与编号结构","statement":"通用记录列表和常用筛选字段必须有可配置索引设计，自动编号使用独立序号表，记录关联使用明确关联表而非仅写入 JSON。","type":"quality","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0371","B0372"],"acceptanceCriteria":["发布模块时可为常用筛选字段建立或更新通用索引元数据和索引值。","并发生成的自动编号唯一且顺序策略可追踪。","正反向关联均可由关联表查询并受数据权限过滤。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0369","classification":"context","requirementIds":[],"rationale":"业务数据存储引导语。"},{"sourceBlock":"B0370","classification":"engineering-setting","requirementIds":["REQ-TECH-LOWCODE-RECORD-STORAGE"],"rationale":"主记录、字段值及独立类型结构。"},{"sourceBlock":"B0371","classification":"context","requirementIds":[],"rationale":"查询优化引导语。"},{"sourceBlock":"B0372","classification":"requirement","requirementIds":["REQ-TECH-LOWCODE-QUERY-INDEX"],"rationale":"索引、编号和关联表约束。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0369"
+      ],
+      "sourceBlock": "B0369"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0370"
+      ],
+      "sourceBlock": "B0370"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0371"
+      ],
+      "sourceBlock": "B0371"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0372"
+      ],
+      "sourceBlock": "B0372"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0054",
+  "requirements": [
+    {
+      "id": "CAND-B0369",
+      "sourceBlocks": [
+        "B0369"
+      ],
+      "statement": "业务数据可以采用“主记录 + 字段值”的方式：",
+      "title": "7.4 数据保存方式",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0370",
+      "sourceBlocks": [
+        "B0370"
+      ],
+      "statement": "- 主记录保存系统、租户、模块、状态和创建人；应用只记录为访问来源，不决定模块归属。\n- 字段值保存每个字段的值。\n- 常用字段可以有 typed value，方便查询。\n- 附件、人员、部门、关联关系单独处理。",
+      "title": "7.4 数据保存方式",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0371",
+      "sourceBlocks": [
+        "B0371"
+      ],
+      "statement": "优化：",
+      "title": "7.4 数据保存方式",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0372",
+      "sourceBlocks": [
+        "B0372"
+      ],
+      "statement": "- 列表查询要有索引设计。\n- 常用筛选字段要能建索引。\n- 自动编号要单独序号表。\n- 关联关系要有明确表，不要只塞 JSON。",
+      "title": "7.4 数据保存方式",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

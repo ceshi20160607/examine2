@@ -1,1 +1,98 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0056","requirements":[{"id":"REQ-TECH-PERMISSION-ENFORCEMENT","title":"权限全链路执行","statement":"权限不止控制菜单，必须同时覆盖前端菜单、页面和按钮可见可用，后端接口拦截，查询层数据范围，字段可见和可编辑，应用访问授权，并对操作进行审计；前端隐藏不能替代后端判断。","type":"constraint","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0379","B0380","B0381","B0382","B0383"],"acceptanceCriteria":["移除前端限制直接请求接口时，后端仍拒绝无功能、数据、字段或应用权限的操作。","列表查询在数据库查询层加入数据范围，响应前执行字段可见过滤。","保存时后端拒绝修改无编辑权限字段并写入审计。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0379","classification":"context","requirementIds":[],"rationale":"权限执行引导语。"},{"sourceBlock":"B0380","classification":"requirement","requirementIds":["REQ-TECH-PERMISSION-ENFORCEMENT"],"rationale":"权限执行层次。"},{"sourceBlock":"B0381","classification":"requirement","requirementIds":["REQ-TECH-PERMISSION-ENFORCEMENT"],"rationale":"禁止只做菜单权限。"},{"sourceBlock":"B0382","classification":"context","requirementIds":[],"rationale":"完整权限引导语。"},{"sourceBlock":"B0383","classification":"requirement","requirementIds":["REQ-TECH-PERMISSION-ENFORCEMENT"],"rationale":"功能、数据、字段和应用访问权限。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0379"
+      ],
+      "sourceBlock": "B0379"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0380"
+      ],
+      "sourceBlock": "B0380"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0381"
+      ],
+      "sourceBlock": "B0381"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0382"
+      ],
+      "sourceBlock": "B0382"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0383"
+      ],
+      "sourceBlock": "B0383"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0056",
+  "requirements": [
+    {
+      "id": "CAND-B0379",
+      "sourceBlocks": [
+        "B0379"
+      ],
+      "statement": "权限必须做到：",
+      "title": "7.6 权限体系",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0380",
+      "sourceBlocks": [
+        "B0380"
+      ],
+      "statement": "- 前端隐藏。\n- 后端拦截。\n- 数据过滤。\n- 字段控制。\n- 操作审计。",
+      "title": "7.6 权限体系",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0381",
+      "sourceBlocks": [
+        "B0381"
+      ],
+      "statement": "权限不能只做菜单级。",
+      "title": "7.6 权限体系",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0382",
+      "sourceBlocks": [
+        "B0382"
+      ],
+      "statement": "完整权限至少包含：",
+      "title": "7.6 权限体系",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0383",
+      "sourceBlocks": [
+        "B0383"
+      ],
+      "statement": "- 菜单可见。\n- 页面可见。\n- 按钮可用。\n- 数据范围。\n- 字段可见。\n- 字段可编辑。\n- 应用访问可用。",
+      "title": "7.6 权限体系",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

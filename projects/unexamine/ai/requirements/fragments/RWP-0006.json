@@ -1,1 +1,30 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0006","requirements":[{"id":"REQ-IDENTITY-CONTEXT","title":"统一账号与显式系统租户身份","statement":"用户以平台账号认证，平台账号、系统成员和租户成员显式映射；进入系统必须建立系统上下文，多租户系统还必须建立租户上下文，最终权限合并当前上下文全部有效角色且不能切换角色视角。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0035"],"acceptanceCriteria":["平台入口和系统专属入口登录后都生成正确成员、系统和租户上下文。","缺少系统成员映射时不能以平台身份访问系统业务。","同一上下文多个有效角色的允许权限取并集，拒绝权限仍执行资源和数据校验。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0035","classification":"requirement","requirementIds":["REQ-IDENTITY-CONTEXT"],"rationale":"统一账号与上下文完整规则。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0035"
+      ],
+      "sourceBlock": "B0035"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0006",
+  "requirements": [
+    {
+      "id": "CAND-B0035",
+      "sourceBlocks": [
+        "B0035"
+      ],
+      "statement": "- 用户首先以统一平台账号登录。\n- 平台账号可以创建系统，也可以被授权进入其他系统。\n- 用户从平台主页面进入系统时必须生成系统上下文；多租户系统还必须生成租户上下文。\n- 平台账号、系统成员和租户成员是显式映射关系，平台身份不能直接替代系统内身份。\n- 直接从系统专属域名、系统编码或专属路径登录的普通系统用户，认证成功后直接进入其有权限的系统和租户上下文。\n- 用户不能切换角色视角；最终权限由当前上下文内全部有效角色合并计算。",
+      "title": "4.1 统一账号与上下文",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

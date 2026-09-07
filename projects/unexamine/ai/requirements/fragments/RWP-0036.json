@@ -1,1 +1,217 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0036","requirements":[{"id":"REQ-AI-MODEL-AUTHORIZATION","title":"平台模型授权与系统 Agent 策略","statement":"平台配置本地或外部模型供应商、模型、地址、密钥、额度、并发、脱敏、数据出境和授权系统；系统管理员配置 Agent 可访问模块、字段、动作、数据范围和确认策略，平台 Agent 不得绕过系统成员权限。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0243","B0244","B0245","B0246","B0247","B0248","B0249"],"acceptanceCriteria":["模型密钥安全保存且按平台授权分配到系统。","系统 Agent 每次运行绑定策略版本、当前成员权限和脱敏规则。","平台 Agent 需要业务数据时先引导切换系统，不能携带系统业务写入负载。"],"decisionIds":[]},{"id":"REQ-AI-CONTEXT-ENTRIES","title":"平台、系统、配置、详情和工作 Agent 入口","statement":"平台主页面、系统运行态、系统后台、业务详情和任务分别提供符合上下文的 Agent，支持平台信息、业务查询、配置草稿、当前记录总结和任务/日志辅助，但每个入口只处理授权范围。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0250","B0251"],"acceptanceCriteria":["不同入口展示明确 Agent 身份和作用范围。","详情 Agent 只读取当前记录权限数据，工作 Agent 只在用户主动操作时提供候选内容。"],"decisionIds":[]},{"id":"REQ-AI-CONFIRMED-WRITE","title":"结构化识别和人工确认写入","statement":"Agent 根据对话生成模块字段、页面、Flow 草稿、打印导出配置或业务写入前必须展示目标系统模块、字段映射、关联、附件、负责人、时间、标签和置信度，低置信度要求补充，确认前不得写入且不能绕过校验权限。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0252","B0253","B0254"],"acceptanceCriteria":["用户确认后才执行写入并可从结果追溯原始对话、确认人、模型和提示词版本。","取消确认不会产生业务数据、Flow 或配置草稿。","必填、唯一、Flow 前置和权限失败返回具体字段或规则。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0243","classification":"requirement","requirementIds":["REQ-AI-MODEL-AUTHORIZATION"],"rationale":"智能能力总约束。"},{"sourceBlock":"B0244","classification":"context","requirementIds":[],"rationale":"智能能力目录引导语。"},{"sourceBlock":"B0245","classification":"requirement","requirementIds":["REQ-AI-MODEL-AUTHORIZATION","REQ-AI-CONFIRMED-WRITE"],"rationale":"智能能力目录。"},{"sourceBlock":"B0246","classification":"context","requirementIds":[],"rationale":"平台 Agent 引导语。"},{"sourceBlock":"B0247","classification":"requirement","requirementIds":["REQ-AI-MODEL-AUTHORIZATION"],"rationale":"平台模型与 Agent 规则。"},{"sourceBlock":"B0248","classification":"context","requirementIds":[],"rationale":"系统 Agent 引导语。"},{"sourceBlock":"B0249","classification":"requirement","requirementIds":["REQ-AI-MODEL-AUTHORIZATION","REQ-AI-CONFIRMED-WRITE"],"rationale":"系统 Agent 权限和确认。"},{"sourceBlock":"B0250","classification":"context","requirementIds":[],"rationale":"运行入口引导语。"},{"sourceBlock":"B0251","classification":"requirement","requirementIds":["REQ-AI-CONTEXT-ENTRIES"],"rationale":"Agent 上下文入口。"},{"sourceBlock":"B0252","classification":"context","requirementIds":[],"rationale":"对话录入引导语。"},{"sourceBlock":"B0253","classification":"requirement","requirementIds":["REQ-AI-CONFIRMED-WRITE"],"rationale":"结构化识别和确认规则。"},{"sourceBlock":"B0254","classification":"requirement","requirementIds":["REQ-AI-CONFIRMED-WRITE"],"rationale":"对话写入边界。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0243"
+      ],
+      "sourceBlock": "B0243"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0244"
+      ],
+      "sourceBlock": "B0244"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0245"
+      ],
+      "sourceBlock": "B0245"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0246"
+      ],
+      "sourceBlock": "B0246"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0247"
+      ],
+      "sourceBlock": "B0247"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0248"
+      ],
+      "sourceBlock": "B0248"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0249"
+      ],
+      "sourceBlock": "B0249"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0250"
+      ],
+      "sourceBlock": "B0250"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0251"
+      ],
+      "sourceBlock": "B0251"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0252"
+      ],
+      "sourceBlock": "B0252"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0253"
+      ],
+      "sourceBlock": "B0253"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0254"
+      ],
+      "sourceBlock": "B0254"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0036",
+  "requirements": [
+    {
+      "id": "CAND-B0243",
+      "sourceBlocks": [
+        "B0243"
+      ],
+      "statement": "智能能力作为正式扩展能力纳入架构，所有动作都受权限、审计和人工确认控制。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0244",
+      "sourceBlocks": [
+        "B0244"
+      ],
+      "statement": "包含：",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0245",
+      "sourceBlocks": [
+        "B0245"
+      ],
+      "statement": "- 用一句话生成模块字段。\n- 根据模块自动生成页面。\n- 根据业务描述生成流程草稿。\n- 智能解释错误原因。\n- 智能生成打印模板和导出字段配置。\n- 智能查询数据。\n- 智能总结审批记录。\n- 平台级 AI Agent 配置。\n- 系统级 AI Agent 授权和配置。\n- 通过 AI Agent 对话解析用户意图，并在权限范围内写入对应系统、模块、字段和子表。\n- 通过 AI Agent 对话查询权限范围内的数据、统计、趋势、待办和业务摘要。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0246",
+      "sourceBlocks": [
+        "B0246"
+      ],
+      "statement": "平台级 AI Agent：",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0247",
+      "sourceBlocks": [
+        "B0247"
+      ],
+      "statement": "- 平台后台提供 AI Agent 配置入口。\n- 平台可以配置本地模型，也可以配置外部模型服务。\n- 平台可以购买或开通模型授权，再分配给具体系统使用。\n- 平台配置模型供应商、模型、API 地址、密钥、调用额度、并发限制、日志脱敏、数据出境策略。\n- 平台可以配置默认 Agent 能力：对话理解、数据查询、数据录入、流程草稿、报表分析、错误解释。\n- 平台级 Agent 默认不能绕过系统权限访问业务数据。\n- 平台主页面的 Agent 只处理平台授权、平台日志、平台任务、模型额度、系统健康和系统切换引导；不能直接打开或写入系统业务模块。需要处理系统业务数据时，必须先进入目标系统，并取得系统成员、系统角色、字段权限和数据范围后，由系统 Agent 处理。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0248",
+      "sourceBlocks": [
+        "B0248"
+      ],
+      "statement": "系统级 AI Agent：",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0249",
+      "sourceBlocks": [
+        "B0249"
+      ],
+      "statement": "- 系统可以使用平台购买授权的模型能力。\n- 系统也可以在权限允许时配置外部第三方模型。\n- 系统管理员配置 Agent 可访问的模块、字段、动作、数据范围和确认策略。\n- 系统 Agent 录入数据前必须展示解析结果，用户确认后才保存。\n- 系统 Agent 查询数据时必须按当前用户的系统角色、数据范围、字段权限和脱敏规则返回。\n- Agent 的所有写入、查询、失败、人工确认、模型调用都要进入系统业务日志或平台日志。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0250",
+      "sourceBlocks": [
+        "B0250"
+      ],
+      "statement": "AI Agent 运行入口：",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0251",
+      "sourceBlocks": [
+        "B0251"
+      ],
+      "statement": "- 平台主页面可以有平台 Agent，用于查询授权系统、平台日志、平台任务、模型额度、系统健康和平台 Flow。\n- 平台 Agent 的写入确认只允许生成平台任务、平台消息和平台日志，不能复用系统业务写入确认，也不能携带系统业务模块写入 payload。\n- 平台 Agent 涉及业务系统数据时，必须先引导用户通过系统切换进入对应系统，获得系统成员、系统角色、字段权限和数据范围后，再由系统 Agent 或业务页面处理。\n- 系统运行态可以有系统 Agent，用于查询权限内业务数据、统计、待办、消息、工作任务和工作日志。\n- 系统后台可以有配置 Agent，用于辅助生成模块字段、流程草稿、字段权限建议、字典项和筛选场景。\n- 业务详情中可以出现上下文 Agent，用于总结当前数据、审批记录、附件、操作日志和下一步动作。\n- 任务中可以出现工作 Agent，用于从消息、待办、会议纪要和聊天内容中提取任务，或在用户手动新建工作日志后辅助整理内容、总结项目进度。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0252",
+      "sourceBlocks": [
+        "B0252"
+      ],
+      "statement": "AI Agent 对话录入规则：",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0253",
+      "sourceBlocks": [
+        "B0253"
+      ],
+      "statement": "- Agent 解析用户对话后，必须展示结构化识别结果。\n- 结构化结果要明确目标系统、目标模块、字段映射、关联对象、附件、负责人、截止时间、标签和置信度。\n- 用户确认前不能直接写入业务数据。\n- 低置信度字段必须要求用户补充或选择。\n- Agent 写入后的数据要能回到原始对话、确认人、模型、提示词版本和日志。\n- Agent 不能绕过必填校验、唯一校验、流程前置条件和角色权限。",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0254",
+      "sourceBlocks": [
+        "B0254"
+      ],
+      "statement": "AI Agent 查询规则：",
+      "title": "5.19 智能能力",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

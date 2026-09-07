@@ -1,1 +1,81 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0021","requirements":[{"id":"REQ-ORGANIZATION-MEMBER","title":"组织部门与成员统一来源","statement":"平台、系统和租户上下文分别提供部门树、成员列表搜索、部门归属、角色、人员和部门选择器；人员字段、Flow 审批人和数据权限共用当前上下文的同一成员数据。","type":"functional","priority":"must","origin":"explicit","status":"confirmed","sourceBlocks":["B0124","B0125","B0126","B0127"],"acceptanceCriteria":["部门树支持权限内拖拽调整。","成员选择器支持搜索、部门筛选和多选，且不会混入其他系统或租户成员。","成员角色或部门变化后字段选择、Flow 候选人与数据权限同步刷新。"],"decisionIds":[]}],"decisions":[],"coverage":[{"sourceBlock":"B0124","classification":"context","requirementIds":[],"rationale":"必需能力引导语。"},{"sourceBlock":"B0125","classification":"requirement","requirementIds":["REQ-ORGANIZATION-MEMBER"],"rationale":"部门成员能力目录。"},{"sourceBlock":"B0126","classification":"context","requirementIds":[],"rationale":"优化能力引导语。"},{"sourceBlock":"B0127","classification":"requirement","requirementIds":["REQ-ORGANIZATION-MEMBER"],"rationale":"拖拽、搜索和统一成员来源。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0124"
+      ],
+      "sourceBlock": "B0124"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0125"
+      ],
+      "sourceBlock": "B0125"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0126"
+      ],
+      "sourceBlock": "B0126"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0127"
+      ],
+      "sourceBlock": "B0127"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0021",
+  "requirements": [
+    {
+      "id": "CAND-B0124",
+      "sourceBlocks": [
+        "B0124"
+      ],
+      "statement": "必须包含：",
+      "title": "5.7 部门和成员",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0125",
+      "sourceBlocks": [
+        "B0125"
+      ],
+      "statement": "- 部门树。\n- 成员列表。\n- 成员搜索。\n- 成员部门归属。\n- 成员角色。\n- 人员选择器。\n- 部门选择器。",
+      "title": "5.7 部门和成员",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0126",
+      "sourceBlocks": [
+        "B0126"
+      ],
+      "statement": "优化：",
+      "title": "5.7 部门和成员",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0127",
+      "sourceBlocks": [
+        "B0127"
+      ],
+      "statement": "- 部门树支持拖拽调整。\n- 成员选择器支持搜索、按部门筛选、多选。\n- 人员字段、流程审批人、数据权限共用同一套成员数据。",
+      "title": "5.7 部门和成员",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}

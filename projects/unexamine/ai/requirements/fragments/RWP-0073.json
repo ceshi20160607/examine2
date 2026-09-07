@@ -1,1 +1,47 @@
-{"schemaVersion":1,"source":{"planPath":"../analysis-plan.json","planSha256":"ad195f56ec3162f4f80307949d8e01c74cbfed2a57d7e2f5460bf998a7353192"},"packetId":"RWP-0073","requirements":[],"decisions":[],"coverage":[{"sourceBlock":"B0448","classification":"context","requirementIds":[],"rationale":"关键升级方向引导语。"},{"sourceBlock":"B0449","classification":"duplicate","requirementIds":[],"rationale":"汇总此前已原子化的平台与系统页面、权限、记录、Flow、健壮性和现代能力，不新增范围。"}]}
+{
+  "coverage": [
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0448"
+      ],
+      "sourceBlock": "B0448"
+    },
+    {
+      "classification": "unreviewed",
+      "rationale": "Lossless literal candidate; semantic classification is still required.",
+      "requirementIds": [
+        "CAND-B0449"
+      ],
+      "sourceBlock": "B0449"
+    }
+  ],
+  "decisions": [],
+  "packetId": "RWP-0073",
+  "requirements": [
+    {
+      "id": "CAND-B0448",
+      "sourceBlocks": [
+        "B0448"
+      ],
+      "statement": "这份方案的关键升级点：",
+      "title": "12. 关键升级方向",
+      "type": "source-literal"
+    },
+    {
+      "id": "CAND-B0449",
+      "sourceBlocks": [
+        "B0449"
+      ],
+      "statement": "- 不只做基础功能，而是覆盖完整产品能力。\n- 不只修补旧页面，而是统一平台主页面、系统运行态、平台后台和系统后台。\n- 不只做菜单权限，而是补齐页面、操作、字段、数据和应用访问权限。\n- 不只做记录增删改查，而是补齐字段关联、子表、历史、附件、模块数据导入导出、流程触发。\n- 不只做流程数据表，而是做可视化流程设计、发布检查、审批工作台。\n- 不只做能启动，而是补齐配置检查、日志、任务状态、部署脚本、版本信息。\n- 不只做传统后台，而是加入命令中心、智能助手、Schema 驱动页面、高级表格、流程模拟等更现代的能力。",
+      "title": "12. 关键升级方向",
+      "type": "source-literal"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "planPath": "../analysis-plan.json",
+    "planSha256": "ece89d76cc8979bb8ff3c4b80326d77880a565bde040849307d9bfcfe2ebf059"
+  }
+}
