@@ -1,0 +1,37 @@
+{
+  "thread_id": "01a06f53-2b57-7333-8b55-0d0183b53303",
+  "started_at": "2026-09-07T08:08:26.655Z",
+  "sampled_at": "2026-09-07T08:46:32.958801+00:00",
+  "baseline": {
+    "timestamp": "2026-09-07T07:41:58.128Z",
+    "input_tokens": 10716680,
+    "cached_input_tokens": 10434432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 89747,
+    "reasoning_output_tokens": 39331,
+    "total_tokens": 10806427
+  },
+  "latest": {
+    "timestamp": "2026-09-07T08:44:57.970Z",
+    "input_tokens": 16560580,
+    "cached_input_tokens": 16184192,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 140240,
+    "reasoning_output_tokens": 67431,
+    "total_tokens": 16700820
+  },
+  "delta": {
+    "input_tokens": 5843900,
+    "cached_input_tokens": 5749760,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 50493,
+    "reasoning_output_tokens": 28100,
+    "total_tokens": 5894393,
+    "uncached_input_tokens": 94140
+  },
+  "cost": null,
+  "notes": [
+    "Input includes cached input; reasoning is a subset of output, not added twice.",
+    "Cumulative traffic is not context size or a currency bill. Final unsampled output is excluded."
+  ]
+}

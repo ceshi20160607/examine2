@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ApartmentOutlined, BarChartOutlined, BellOutlined, CheckSquareOutlined, DatabaseOutlined, FolderOpenOutlined, HomeOutlined, ProjectOutlined, RobotOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons-vue'
-import { useRouter } from 'vue-router'
+import { ApartmentOutlined, BellOutlined, CheckSquareOutlined, DatabaseOutlined, FolderOpenOutlined, HomeOutlined, ProjectOutlined, RobotOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import ProductMark from './ProductMark.vue'
 import WorkspaceContext from './WorkspaceContext.vue'
 import CommandCenter from './CommandCenter.vue'
@@ -19,7 +20,6 @@ withDefaults(defineProps<{
   showMessages?: boolean
   showFiles?: boolean
   showAi?: boolean
-  showKpi?: boolean
   showAdmin?: boolean
 }>(), {
   showRuntime: false,
@@ -29,11 +29,21 @@ withDefaults(defineProps<{
   showMessages: false,
   showFiles: false,
   showAi: false,
-  showKpi: false,
   showAdmin: false,
 })
 const emit = defineEmits<{ navigate: [key: string]; command: [command: CommandCenterItem] }>()
 const router = useRouter()
+const route = useRoute()
+const notice = computed(() => ({
+  'access-denied': { message: '当前身份不能打开该工作区', description: '已返回系统首页；左侧只显示当前身份可以使用的功能。' },
+  'route-unavailable': { message: '原地址不可用', description: '已返回当前系统首页，可从左侧重新进入业务模块。' },
+}[String(route.query.notice || '')]))
+
+function dismissNotice() {
+  const query = { ...route.query }
+  delete query.notice
+  void router.replace({ path: route.path, query })
+}
 </script>
 
 <template>
@@ -59,7 +69,6 @@ const router = useRouter()
           <button v-if="showRuntime" :class="['system-nav__item', { active: activeKey === 'runtime' }]" @click="emit('navigate', 'runtime')"><DatabaseOutlined />业务模块</button>
           <button v-if="showFlow" :class="['system-nav__item', { active: activeKey === 'flow' }]" @click="emit('navigate', 'flow')"><ApartmentOutlined />流程</button>
           <button v-if="showTasks" :class="['system-nav__item', { active: activeKey === 'tasks' }]" @click="emit('navigate', 'tasks')"><ProjectOutlined />任务</button>
-          <button v-if="showKpi" :class="['system-nav__item', { active: activeKey === 'kpi' }]" @click="emit('navigate', 'kpi')"><BarChartOutlined />业务指标</button>
           <p v-if="showTodos || showMessages || showFiles" class="nav-section-title">协作</p>
           <button v-if="showTodos" :class="['system-nav__item', { active: activeKey === 'todos' }]" @click="emit('navigate', 'todos')"><CheckSquareOutlined />系统待办</button>
           <button v-if="showMessages" :class="['system-nav__item', { active: activeKey === 'messages' }]" @click="emit('navigate', 'messages')"><BellOutlined />系统消息</button>
@@ -68,7 +77,10 @@ const router = useRouter()
         </div>
         <button v-if="showAdmin && systemContext?.systemId" type="button" class="system-nav__manage" @click="router.push(`/systems/${systemContext.systemId}/admin`)"><SettingOutlined /><span><strong>系统管理</strong><small>配置当前系统</small></span></button>
       </aside>
-      <main class="system-workspace"><slot /></main>
+      <main class="system-workspace">
+        <a-alert v-if="notice" type="warning" show-icon closable :message="notice.message" :description="notice.description" class="workspace-notice" @close="dismissNotice" />
+        <slot />
+      </main>
     </div>
   </div>
 </template>

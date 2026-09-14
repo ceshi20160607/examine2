@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { allowsPermission, buildPlatformNavigation, hasPlatformManagementAccess, hasResourceAccess, hasRuntimeModuleAccess } from './permissions'
+import {
+  allowsPermission,
+  buildPlatformNavigation,
+  hasPlatformAdminCapability,
+  hasPlatformManagementAccess,
+  hasResourceAccess,
+  hasRuntimeModuleAccess,
+  hasWorkConfigurationAccess,
+} from './permissions'
 
 describe('system navigation permissions', () => {
   it('keeps wildcard administrators unrestricted', () => {
@@ -41,12 +49,23 @@ describe('system navigation permissions', () => {
     ])
     const ordinary = [{ resourceType: 'MODULE', resourceCode: 'customer', actionCode: 'LIST' }]
     expect(buildPlatformNavigation(ordinary).map(item => item.label)).toEqual([
-      '首页', '系统', '任务',
+      '首页', '系统',
     ])
+    const worker = [...ordinary, { resourceType: 'WORK', resourceCode: 'PLATFORM', actionCode: 'VIEW' }]
+    expect(buildPlatformNavigation(worker).map(item => item.label)).toContain('任务')
     const todoReader = [...ordinary, { resourceType: 'TODO', resourceCode: 'PLATFORM', actionCode: 'VIEW' }]
     expect(buildPlatformNavigation(todoReader).map(item => item.label)).not.toContain('待办')
     expect(hasPlatformManagementAccess(wildcard)).toBe(true)
     expect(hasPlatformManagementAccess(ordinary)).toBe(false)
     expect(buildPlatformNavigation(ordinary).every(item => Boolean(item.path))).toBe(true)
+  })
+
+  it('separates runtime work access and each platform administration capability', () => {
+    const workManager = [{ resourceType: 'WORK', resourceCode: 'PLATFORM', actionCode: 'CONFIGURE' }]
+    expect(hasWorkConfigurationAccess(workManager, 'PLATFORM')).toBe(true)
+    expect(buildPlatformNavigation(workManager).map(item => item.label)).not.toContain('任务')
+    expect(hasPlatformManagementAccess(workManager)).toBe(true)
+    expect(hasPlatformAdminCapability(workManager, 'work')).toBe(true)
+    expect(hasPlatformAdminCapability(workManager, 'flow')).toBe(false)
   })
 })

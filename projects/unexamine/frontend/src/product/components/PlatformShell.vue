@@ -6,7 +6,7 @@ import WorkspaceContext from './WorkspaceContext.vue'
 import { api } from '../api'
 import { clearSession, platformContext, platformTokens } from '../session'
 import { computed } from 'vue'
-import { buildPlatformNavigation, hasPlatformManagementAccess, hasResourceAccess } from '../permissions'
+import { buildPlatformNavigation, hasResourceAccess, platformAdminEntryPath } from '../permissions'
 import CommandCenter from './CommandCenter.vue'
 import type { CommandCenterItem } from '../types'
 
@@ -15,7 +15,13 @@ const route = useRoute()
 const navigation = computed(() => buildPlatformNavigation(platformContext.value?.permissions))
 const showTodos = computed(() => hasResourceAccess(platformContext.value?.permissions, 'TODO'))
 const showMessages = computed(() => hasResourceAccess(platformContext.value?.permissions, 'MESSAGE'))
-const showManagement = computed(() => hasPlatformManagementAccess(platformContext.value?.permissions))
+const managementPath = computed(() => platformAdminEntryPath(platformContext.value?.permissions))
+const notice = computed(() => ({
+  'access-denied': { message: '当前账号不能打开该页面', description: '已返回平台首页；导航只显示当前账号可以使用的功能。' },
+  'route-unavailable': { message: '原地址不可用', description: '已返回平台首页，可从左侧导航重新进入。' },
+  'system-context-required': { message: '请先选择系统', description: '进入系统业务前，需要先从“系统”选择可用系统和工作空间。' },
+  'system-context-changed': { message: '系统上下文已变化', description: '原地址不属于当前系统，请重新选择要进入的系统。' },
+}[String(route.query.notice || '')]))
 const navigationIcons = {
   home: DashboardOutlined,
   systems: AppstoreOutlined,
@@ -35,12 +41,18 @@ async function logout() {
   }
 }
 
+function dismissNotice() {
+  const query = { ...route.query }
+  delete query.notice
+  void router.replace({ path: route.path, query })
+}
+
 function executeCommand(command: CommandCenterItem) {
   const routes: Partial<Record<CommandCenterItem['target'], string>> = {
     PLATFORM_SYSTEMS: '/platform', PLATFORM_DASHBOARD: '/platform/dashboard', PLATFORM_FLOWS: '/platform/flows',
     PLATFORM_APPLICATIONS: '/platform/applications', PLATFORM_TASKS: '/platform/tasks', PLATFORM_AI: '/platform/ai',
     PLATFORM_TODOS: '/platform/todos', PLATFORM_MESSAGES: '/platform/messages', PLATFORM_PROFILE: '/profile',
-    PLATFORM_ADMIN: '/platform/admin/configurations',
+    PLATFORM_ADMIN: managementPath.value || undefined,
   }
   const path = routes[command.target]
   if (path) void router.push(path)
@@ -86,11 +98,14 @@ function executeCommand(command: CommandCenterItem) {
           </nav>
         </div>
         <div class="side-nav__footer">
-          <button v-if="showManagement" type="button" class="side-nav__manage" @click="router.push('/platform/admin/configurations')"><SettingOutlined /><span><strong>平台管理</strong><small>身份、配置与运行管理</small></span></button>
+          <button v-if="managementPath" type="button" class="side-nav__manage" @click="router.push(managementPath)"><SettingOutlined /><span><strong>平台管理</strong><small>身份、配置与运行管理</small></span></button>
           <div class="side-nav__scope"><strong>平台范围</strong><span>汇总获权系统与个人工作，不混入单个系统业务。</span></div>
         </div>
       </aside>
-      <main class="workspace"><slot /></main>
+      <main class="workspace">
+        <a-alert v-if="notice" type="warning" show-icon closable :message="notice.message" :description="notice.description" class="workspace-notice" @close="dismissNotice" />
+        <slot />
+      </main>
     </div>
   </div>
 </template>

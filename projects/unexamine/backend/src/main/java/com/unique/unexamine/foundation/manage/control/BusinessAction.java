@@ -23,5 +23,27 @@ public final class BusinessAction {
                         Object payload, Options options, String traceId) {}
 
     public record Result<T>(long idempotencyRecordId, long outboxId, String idempotencyKey,
-                            String status, boolean replayed, Mode mode, T value) {}
+                            String status, boolean replayed, Mode mode, T value, Long flowInstanceId) {}
+
+    public record Delivery(long actionId, String actionCode, Mode mode, String status, Long flowInstanceId,
+                           String businessStatus, String errorCode, String message, Long recordId) {}
+
+    /** Only the locked approval coordinator can issue a permit; callers cannot select a bypass mode. */
+    public static final class ApprovedExecution {
+        private final Input input;
+        private final com.fasterxml.jackson.databind.JsonNode configurationSnapshot;
+        ApprovedExecution(Input input, com.fasterxml.jackson.databind.JsonNode configurationSnapshot) {
+            this.input = input;
+            this.configurationSnapshot = configurationSnapshot;
+        }
+        public Input input() { return input; }
+        public com.fasterxml.jackson.databind.JsonNode configurationSnapshot() { return configurationSnapshot; }
+    }
+
+    static com.fasterxml.jackson.databind.ObjectMapper storageMapper(com.fasterxml.jackson.databind.ObjectMapper mapper) {
+        var dates = new com.fasterxml.jackson.databind.module.SimpleModule("business-action-storage-v1");
+        dates.addSerializer(java.time.LocalDateTime.class,
+                new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        return mapper.copy().registerModule(dates);
+    }
 }

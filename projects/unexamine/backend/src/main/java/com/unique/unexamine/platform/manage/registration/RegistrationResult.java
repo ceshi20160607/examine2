@@ -10,5 +10,6 @@ public record RegistrationResult(
         Long tenantId,
         String tenantName,
         String tenantMode,
-        SessionTokens tokens) {
+        SessionTokens tokens,
+        SessionTokens platformTokens) {
 }

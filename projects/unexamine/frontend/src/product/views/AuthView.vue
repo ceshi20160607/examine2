@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import ProductMark from '../components/ProductMark.vue'
 import { isVerificationArtifactName } from '../presentation'
-import { setPlatformSession, setSystemSession, type CurrentContext, type SessionTokens } from '../session'
+import { clearSystemSession, setPlatformSession, setSystemSession, type CurrentContext, type SessionTokens } from '../session'
 
 const props = defineProps<{ initialMode: 'login' | 'register' }>()
 const router = useRouter()
@@ -40,6 +40,7 @@ async function submitLogin() {
     })
     const context = await loadContext(tokens.accessToken)
     setPlatformSession(tokens, context)
+    clearSystemSession()
     await router.replace('/platform/dashboard')
   } catch (reason) {
     error.value = readableError(reason)
@@ -59,12 +60,16 @@ async function submitRegister() {
       systemName: string
       tenantName: string
       tokens: SessionTokens
+      platformTokens: SessionTokens
     }>('/api/auth/register', { method: 'POST', body: JSON.stringify(register) })
-    const context = await loadContext(result.tokens.accessToken)
-    setPlatformSession(result.tokens, context)
-    setSystemSession(result.tokens, { ...context, systemName: result.systemName, tenantName: result.tenantName })
+    const [platform, system] = await Promise.all([
+      loadContext(result.platformTokens.accessToken),
+      loadContext(result.tokens.accessToken),
+    ])
+    setPlatformSession(result.platformTokens, platform)
+    setSystemSession(result.tokens, { ...system, systemName: result.systemName, tenantName: result.tenantName })
     message.success('系统已创建，正在进入系统')
-    await router.replace(`/systems/${result.systemId}`)
+    await router.replace(`/systems/${result.systemId}/admin`)
   } catch (reason) {
     error.value = readableError(reason)
   } finally {

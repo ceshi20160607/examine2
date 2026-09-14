@@ -3,40 +3,53 @@ import { ArrowLeftOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { platformContext } from '../session'
+import { hasPlatformAdminCapability, type PlatformAdminCapability } from '../permissions'
 import { isHeavyConfigurationSection } from '../responsive'
 import ProductMark from './ProductMark.vue'
 import WorkspaceContext from './WorkspaceContext.vue'
 
 const route = useRoute()
 const router = useRouter()
-const navigation = [
-  { key: 'platform-info', path: '/platform/admin/configurations', category: 'PLATFORM_INFO', label: '平台信息', description: '平台资料与统一认证' },
-  { key: 'organization', path: '/platform/admin/configurations', category: 'ORGANIZATION', label: '组织架构', description: '平台成员与组织关系' },
-  { key: 'authorization', path: '/platform/admin/configurations', category: 'AUTHORIZATION', label: '角色权限', description: '平台角色与访问范围' },
-  { key: 'dictionary', path: '/platform/admin/configurations', category: 'DICTIONARY', label: '数据字典', description: '平台公共基础数据' },
-  { key: 'systems', path: '/platform/admin/configurations', category: 'SYSTEM', label: '系统配置', description: '系统创建与全局策略' },
-  { key: 'parameters', path: '/platform/admin/configurations', category: 'BUSINESS_PARAMETER', label: '其他业务参数', description: '首页、消息与业务参数' },
-  { key: 'flow', path: '/platform/admin/flows', label: '流程配置', description: '平台流程设计与发布' },
-  { key: 'applications', path: '/platform/admin/applications', label: '应用配置', description: '平台应用与访问授权' },
-  { key: 'ai', path: '/platform/admin/ai', label: '智能助手配置', description: '模型、额度与系统授权' },
-  { key: 'audit', path: '/platform/admin/configurations', category: 'AUDIT', label: '审计日志', description: '平台关键操作记录' },
-  { key: 'operations', path: '/platform/admin/configurations', category: 'OPERATIONS', label: '运维配置', description: '平台运行与健康策略' },
-]
+interface PlatformAdminNavigationItem {
+  key: string
+  path: string
+  category?: string
+  capability: PlatformAdminCapability
+  label: string
+  description: string
+}
 
-function isActive(item: typeof navigation[number]) {
+const allNavigation: PlatformAdminNavigationItem[] = [
+  { key: 'platform-info', path: '/platform/admin/configurations', category: 'PLATFORM_INFO', capability: 'configuration', label: '平台信息', description: '平台资料与全局规则' },
+  { key: 'identity', path: '/platform/admin/identity-providers', capability: 'identity', label: '统一认证', description: '身份源、测试与发布' },
+  { key: 'organization', path: '/platform/admin/configurations', category: 'ORGANIZATION', capability: 'configuration', label: '组织架构', description: '平台成员与组织关系' },
+  { key: 'authorization', path: '/platform/admin/configurations', category: 'AUTHORIZATION', capability: 'configuration', label: '角色权限', description: '平台角色与访问范围' },
+  { key: 'dictionary', path: '/platform/admin/configurations', category: 'DICTIONARY', capability: 'configuration', label: '数据字典', description: '平台公共基础数据' },
+  { key: 'systems', path: '/platform/admin/configurations', category: 'SYSTEM', capability: 'configuration', label: '系统配置', description: '系统创建与全局策略' },
+  { key: 'parameters', path: '/platform/admin/configurations', category: 'BUSINESS_PARAMETER', capability: 'configuration', label: '业务参数', description: '平台参数与首页配置' },
+  { key: 'work', path: '/platform/admin/work', capability: 'work', label: '工作配置', description: '任务、日志字段与统计口径' },
+  { key: 'flow', path: '/platform/admin/flows', capability: 'flow', label: '流程配置', description: '平台流程设计与发布' },
+  { key: 'applications', path: '/platform/admin/applications', capability: 'application', label: '应用配置', description: '平台应用与访问授权' },
+  { key: 'ai', path: '/platform/admin/ai', capability: 'ai', label: '智能助手配置', description: '模型、额度与系统授权' },
+  { key: 'messages', path: '/platform/admin/messages', capability: 'message', label: '消息模板', description: '模板、渠道与投递诊断' },
+  { key: 'audit', path: '/platform/admin/configurations', category: 'AUDIT', capability: 'configuration', label: '审计日志', description: '平台关键操作记录' },
+  { key: 'operations', path: '/platform/admin/configurations', category: 'OPERATIONS', capability: 'configuration', label: '运维配置', description: '平台运行与健康策略' },
+]
+const navigation = computed(() => allNavigation.filter(item => hasPlatformAdminCapability(platformContext.value?.permissions, item.capability)))
+
+function isActive(item: PlatformAdminNavigationItem) {
   if (item.category) {
-    if (route.path === '/platform/admin/identity-providers') return item.category === 'PLATFORM_INFO'
-    if (route.path === '/platform/admin/dashboards' || route.path === '/platform/admin/messages') return item.category === 'BUSINESS_PARAMETER'
+    if (route.path === '/platform/admin/dashboards') return item.category === 'BUSINESS_PARAMETER'
     return route.path === item.path && String(route.query.category || 'PLATFORM_INFO') === item.category
   }
   return route.path === item.path
 }
 
-const activeKey = computed(() => navigation.find(item => isActive(item))?.key || 'platform-info')
+const activeKey = computed(() => navigation.value.find(item => isActive(item))?.key || navigation.value[0]?.key || '')
 const showDesktopGuidance = computed(() => isHeavyConfigurationSection(activeKey.value)
   || route.path === '/platform/admin/identity-providers')
 
-function navigate(item: typeof navigation[number]) {
+function navigate(item: PlatformAdminNavigationItem) {
   void router.push(item.category ? { path: item.path, query: { category: item.category } } : item.path)
 }
 </script>

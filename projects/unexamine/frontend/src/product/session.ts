@@ -58,6 +58,8 @@ export const platformContext = ref<CurrentContext | null>(read(PLATFORM_CONTEXT_
 export const systemContext = ref<CurrentContext | null>(read(SYSTEM_CONTEXT_KEY))
 export const isAuthenticated = computed(() => Boolean(platformTokens.value?.accessToken))
 
+export type SessionScope = 'platform' | 'system'
+
 export function setPlatformSession(tokens: SessionTokens, context?: CurrentContext) {
   platformTokens.value = tokens
   persist(PLATFORM_TOKENS_KEY, tokens)
@@ -77,6 +79,31 @@ export function setSystemSession(tokens: SessionTokens, context: CurrentContext)
   systemContext.value = context
   persist(SYSTEM_TOKENS_KEY, tokens)
   persist(SYSTEM_CONTEXT_KEY, context)
+}
+
+export function sessionScopeForAccessToken(accessToken: string): SessionScope | null {
+  if (platformTokens.value?.accessToken === accessToken) return 'platform'
+  if (systemTokens.value?.accessToken === accessToken) return 'system'
+  return null
+}
+
+export function tokensForScope(scope: SessionScope) {
+  return scope === 'platform' ? platformTokens.value : systemTokens.value
+}
+
+export function replaceSessionTokens(scope: SessionScope, tokens: SessionTokens) {
+  if (scope === 'platform') {
+    platformTokens.value = tokens
+    persist(PLATFORM_TOKENS_KEY, tokens)
+    return
+  }
+  systemTokens.value = tokens
+  persist(SYSTEM_TOKENS_KEY, tokens)
+}
+
+export function clearSessionScope(scope: SessionScope) {
+  if (scope === 'platform') clearSession()
+  else clearSystemSession()
 }
 
 export function clearSession() {

@@ -780,7 +780,7 @@ public class RuntimeDataService {
     @Transactional
     public RuntimeRecordView create(AuthenticatedContext context, String moduleCode,
             CreateRuntimeRecordRequest request, String traceId) {
-        return createAction(context, moduleCode, request, traceId, BusinessAction.Options.internal()).value();
+        return requireSavedRecord(createAction(context, moduleCode, request, traceId, BusinessAction.Options.internal()));
     }
 
     @Transactional
@@ -794,9 +794,10 @@ public class RuntimeDataService {
         BusinessAction.Input input = new BusinessAction.Input(context, dataContext.tenantId(),
                 published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
                 "CREATE", null, null, request, options, traceId);
-        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class,
+        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
                 () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
                         actionVariables(request), traceId),
+                () -> validateImport(context, moduleCode, null, request, null, traceId),
                 () -> createDirect(context, moduleCode, request, traceId));
         return protectActionReplay(context, moduleCode, "CREATE", result, traceId);
     }
@@ -845,11 +846,57 @@ public class RuntimeDataService {
         return view(context, moduleCode, "CREATE", List.of("PAGE"), recordService.selectById(record.getId()), published);
     }
 
+    private RuntimeRecordView requireSavedRecord(BusinessAction.Result<RuntimeRecordView> result) {
+        if (result.value() == null) {
+            // Legacy callers require a record. Fail inside their transaction, before a Flow can commit alone.
+            throw new DomainException("ACTION_RECEIPT_REQUIRED", "当前入口尚不能处理流程结果，请从业务模块页面提交此操作",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        return result.value();
+    }
+
     private void validateActionRequest(Object request) {
         var violations = actionValidator.validate(request);
         if (!violations.isEmpty()) {
             throw new DomainException("ACTION_INPUT_INVALID", violations.iterator().next().getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public BusinessAction.Delivery actionDelivery(AuthenticatedContext context, String moduleCode, long actionId, String traceId) {
+        return actionControl.actionDelivery(context, moduleCode, actionId);
+    }
+
+    public BusinessAction.Delivery retryApproval(AuthenticatedContext context, String moduleCode, long actionId) {
+        return actionControl.retryApproval(context, moduleCode, actionId);
+    }
+
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public RuntimeRecordView resumeApprovedAction(BusinessAction.ApprovedExecution permit, AuthenticatedContext actor) {
+        BusinessAction.Input input = permit.input();
+        requireAction(actor, input.moduleCode(), input.actionCode(), input.traceId());
+        PublishedModule current;
+        if (input.recordId() == null) {
+            current = published(actor, input.moduleCode());
+        } else {
+            RecordAccess access = requireRecordAccess(actor, input.moduleCode(), input.actionCode(), input.recordId(), false, input.traceId());
+            if (!Objects.equals(access.record().getTenantId(), input.dataTenantId())) {
+                throw new DomainException("ACTION_DATA_TENANT_CHANGED", "业务数据归属已变化，请重新提交审批", HttpStatus.CONFLICT);
+            }
+            current = access.published();
+        }
+        if (!Objects.equals(current.configuration().moduleId(), input.moduleId())
+                || !Objects.equals(current.configuration().versionId(), input.configVersionId())
+                || !current.configuration().configuration().equals(permit.configurationSnapshot())) {
+            throw new DomainException("ACTION_CONFIGURATION_CHANGED", "模块配置已变化，请按新配置重新提交审批", HttpStatus.CONFLICT);
+        }
+        // These are the same physical handlers used by DIRECT, with their current validations and version checks.
+        return switch (input.actionCode()) {
+            case "CREATE" -> createDirect(actor, input.moduleCode(), objectMapper.convertValue(input.payload(), CreateRuntimeRecordRequest.class), input.traceId());
+            case "UPDATE" -> updateDirect(actor, input.moduleCode(), input.recordId(), objectMapper.convertValue(input.payload(), UpdateRuntimeRecordRequest.class), input.traceId());
+            case "DELETE" -> deleteDirect(actor, input.moduleCode(), input.recordId(), objectMapper.convertValue(input.payload(), RecordLifecycleRequest.class), input.traceId());
+            default -> throw new DomainException("ACTION_APPROVAL_HANDLER_MISSING", "此操作尚未接入审批后执行", HttpStatus.UNPROCESSABLE_ENTITY);
+        };
     }
 
     private Map<String, Object> actionVariables(Object request) {
@@ -863,7 +910,7 @@ public class RuntimeDataService {
     private BusinessAction.Result<RuntimeRecordView> protectActionReplay(
             AuthenticatedContext context, String moduleCode, String action,
             BusinessAction.Result<RuntimeRecordView> result, String traceId) {
-        if (!result.replayed()) return result;
+        if (!result.replayed() || result.value() == null) return result;
         RecordAccess access = requireRecordAccess(context, moduleCode, action, result.value().id(), false, traceId, true);
         Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolveIntersection(context, moduleCode,
                 action, List.of("PAGE"), access.published().fields().stream().map(PublishedField::code).toList());
@@ -873,7 +920,7 @@ public class RuntimeDataService {
             if (protectedValue != null) fields.put(code, protectedValue);
         });
         return new BusinessAction.Result<>(result.idempotencyRecordId(), result.outboxId(), result.idempotencyKey(),
-                result.status(), true, result.mode(), result.value().withFields(fields));
+                result.status(), true, result.mode(), result.value().withFields(fields), result.flowInstanceId());
     }
 
     public RuntimeImportValidation validateImport(
@@ -913,7 +960,7 @@ public class RuntimeDataService {
     @Transactional
     public RuntimeRecordView update(AuthenticatedContext context, String moduleCode, Long recordId,
             UpdateRuntimeRecordRequest request, String traceId) {
-        return updateAction(context, moduleCode, recordId, request, traceId, BusinessAction.Options.internal()).value();
+        return requireSavedRecord(updateAction(context, moduleCode, recordId, request, traceId, BusinessAction.Options.internal()));
     }
 
     @Transactional
@@ -927,9 +974,12 @@ public class RuntimeDataService {
         BusinessAction.Input input = new BusinessAction.Input(context, dataContext.tenantId(),
                 published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
                 "UPDATE", recordId, request.version(), request, options, traceId);
-        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class,
+        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
                 () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
                         actionVariables(request), traceId),
+                () -> validateImport(context, moduleCode, recordId, new CreateRuntimeRecordRequest(
+                        request.title(), request.recordNumber(), request.status(), request.ownerMemberId(),
+                        request.departmentId(), request.participantMemberIds(), request.fields()), request.version(), traceId),
                 () -> updateDirect(context, moduleCode, recordId, request, traceId));
         return protectActionReplay(context, moduleCode, "UPDATE", result, traceId);
     }
@@ -1609,7 +1659,7 @@ public class RuntimeDataService {
     @Transactional
     public RuntimeRecordView delete(AuthenticatedContext context, String moduleCode, Long recordId,
             RecordLifecycleRequest request, String traceId) {
-        return deleteAction(context, moduleCode, recordId, request, traceId, BusinessAction.Options.internal()).value();
+        return requireSavedRecord(deleteAction(context, moduleCode, recordId, request, traceId, BusinessAction.Options.internal()));
     }
 
     @Transactional
@@ -1623,9 +1673,15 @@ public class RuntimeDataService {
         BusinessAction.Input input = new BusinessAction.Input(context, dataContext.tenantId(),
                 published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
                 "DELETE", recordId, request.version(), request, options, traceId);
-        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class,
+        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
                 () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
                         actionVariables(request), traceId),
+                () -> {
+                    if (Boolean.TRUE.equals(access.record().getDeleted())) {
+                        throw new DomainException("RECORD_ALREADY_DELETED", "业务数据已在回收站", HttpStatus.CONFLICT);
+                    }
+                    requireLifecycleVersion(context, moduleCode, "DELETE", access.record(), request.version(), traceId);
+                },
                 () -> deleteDirect(context, moduleCode, recordId, request, traceId));
         return protectActionReplay(context, moduleCode, "DELETE", result, traceId);
     }
@@ -2195,6 +2251,9 @@ public class RuntimeDataService {
         Map<String, JsonNode> normalized = new LinkedHashMap<>();
         for (PublishedField field : fields) {
             JsonNode value = submitted.get(field.code());
+            if (empty(value) && "CREATE".equalsIgnoreCase(actionCode)) {
+                value = configuredDefault(field);
+            }
             if (empty(value)) {
                 if (field.required()) {
                     errors.add(field.code() + ": 必填字段不能为空");
@@ -2225,6 +2284,26 @@ public class RuntimeDataService {
             throw new DomainException("FIELD_VALIDATION_FAILED", String.join("；", errors), HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return normalized;
+    }
+
+    private JsonNode configuredDefault(PublishedField field) {
+        JsonNode configured = field.config().get("defaultValue");
+        if (empty(configured)) return null;
+        if (!configured.isTextual()) return configured;
+        String value = configured.textValue().strip();
+        if (value.isEmpty()) return null;
+        if ("BOOLEAN".equals(field.type())) {
+            if ("true".equalsIgnoreCase(value)) return BooleanNode.TRUE;
+            if ("false".equalsIgnoreCase(value)) return BooleanNode.FALSE;
+        }
+        if (Set.of("MEMBER", "DEPARTMENT", "REFERENCE").contains(field.type())) {
+            try {
+                return LongNode.valueOf(Long.parseLong(value));
+            } catch (NumberFormatException ignored) {
+                return configured;
+            }
+        }
+        return configured;
     }
 
     private void validateReferenceValue(AuthenticatedContext context, PublishedField field, JsonNode value) {

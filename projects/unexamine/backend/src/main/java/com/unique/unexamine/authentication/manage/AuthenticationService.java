@@ -212,7 +212,7 @@ public class AuthenticationService {
         sessionService.updateById(session);
         auditRecorder.record(traceId, account.getId(), session.getSystemId(), session.getTenantId(), session.getMemberId(),
                 "AUTH_REFRESH", "AUTH_SESSION", session.getId().toString(), "SUCCESS", Map.of("rotated", true));
-        return new SessionTokens(accessToken, refreshToken, accessExpiresAt, refreshExpiresAt);
+        return sessionTokens(accessToken, refreshToken, accessExpiresAt, refreshExpiresAt);
     }
 
     @Transactional
@@ -260,7 +260,19 @@ public class AuthenticationService {
         session.setRefreshExpiresAt(now.plusDays(refreshDays));
         session.setRevoked(false);
         sessionService.insert(session);
-        return new SessionTokens(accessToken, refreshToken, session.getAccessExpiresAt(), session.getRefreshExpiresAt());
+        return sessionTokens(accessToken, refreshToken, session.getAccessExpiresAt(), session.getRefreshExpiresAt());
+    }
+
+    private SessionTokens sessionTokens(
+            String accessToken,
+            String refreshToken,
+            LocalDateTime accessExpiresAt,
+            LocalDateTime refreshExpiresAt) {
+        return new SessionTokens(
+                accessToken,
+                refreshToken,
+                accessExpiresAt.atZone(clock.getZone()).toOffsetDateTime(),
+                refreshExpiresAt.atZone(clock.getZone()).toOffsetDateTime());
     }
 
     private void refreshSystemAuthorizationSnapshot(AuthenticationSession session) {

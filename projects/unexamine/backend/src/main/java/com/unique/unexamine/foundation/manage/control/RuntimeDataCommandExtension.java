@@ -70,7 +70,8 @@ public class RuntimeDataCommandExtension {
         };
         var event = outboxService.selectById(result.outboxId());
         return new FoundationControlModels.CommandResult(result.idempotencyRecordId(), result.outboxId(),
-                result.idempotencyKey(), operationCode, "business-record:" + result.value().id(), result.status(),
+                result.idempotencyKey(), operationCode, result.value() == null ? "flow-instance:" + result.flowInstanceId()
+                        : "business-record:" + result.value().id(), result.status(),
                 result.replayed(), event.getCreatedAt().toString(), event.getStatus());
     }
 

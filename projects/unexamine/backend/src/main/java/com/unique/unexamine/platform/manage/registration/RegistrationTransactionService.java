@@ -90,7 +90,8 @@ public class RegistrationTransactionService {
         var tenantMember = initialized.tenantMember();
         var role = initialized.administratorRole();
 
-        SessionTokens tokens = authenticationService.createSystemSession(
+        SessionTokens platformTokens = authenticationService.createPlatformSession(account.getId(), "NONE");
+        SessionTokens systemTokens = authenticationService.createSystemSession(
                 account.getId(), system.getId(), tenant.getId(), member.getId(), tenantMember.getId(),
                 new ResolvedPermissions(
                         List.of(role.getId()),
@@ -105,7 +106,7 @@ public class RegistrationTransactionService {
                         "rootDepartmentId", initialized.rootDepartment().getId()));
 
         return new RegistrationResult(account.getId(), system.getId(), system.getCode(), system.getName(), tenant.getId(),
-                tenant.getName(), system.getTenantMode(), tokens);
+                tenant.getName(), system.getTenantMode(), systemTokens, platformTokens);
     }
 
     private String blankToNull(String value) {

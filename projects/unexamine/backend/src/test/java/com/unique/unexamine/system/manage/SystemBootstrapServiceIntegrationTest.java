@@ -63,6 +63,8 @@ class SystemBootstrapServiceIntegrationTest {
         assertThat(result.tenantMode()).isEqualTo("SINGLE");
         assertThat(result.tenantName()).isEqualTo("默认主租户");
         assertThat(result.tokens().accessToken()).isNotBlank();
+        assertThat(result.platformTokens().accessToken()).isNotBlank();
+        assertThat(result.platformTokens().accessToken()).isNotEqualTo(result.tokens().accessToken());
         assertCompleteBootstrap(result.systemId(), result.tenantId(), "skeleton_owner");
     }
 

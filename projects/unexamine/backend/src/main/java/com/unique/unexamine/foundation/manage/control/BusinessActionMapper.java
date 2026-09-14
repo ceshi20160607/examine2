@@ -12,5 +12,8 @@ public interface BusinessActionMapper {
     CoreIdempotencyRecord lock(@Param("contextKey") String contextKey, @Param("operation") String operation,
                                @Param("key") String key);
     CoreEventOutbox lockEvent(@Param("id") long id);
+    CoreIdempotencyRecord lockResult(@Param("id") long id);
+    com.unique.unexamine.flow.base.entity.FlowInstance lockApprovalFlow(@Param("id") long id);
+    java.util.List<Long> completedApprovalActions();
     int activeActor(@Param("actor") com.unique.unexamine.authentication.manage.AuthenticatedContext actor);
 }

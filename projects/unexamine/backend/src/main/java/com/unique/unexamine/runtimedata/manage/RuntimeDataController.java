@@ -160,13 +160,13 @@ public class RuntimeDataController {
     }
 
     @PostMapping("/{recordId}/delete")
-    public ApiResult<RuntimeRecordView> delete(
+    public ApiResult<?> delete(
             @PathVariable String moduleCode,
             @PathVariable Long recordId,
             @Valid @RequestBody RecordLifecycleRequest body,
             HttpServletRequest request) {
-        return ApiResult.ok(runtimeDataService.deleteAction(AuthenticationContextHolder.require(), moduleCode,
-                recordId, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))).value());
+        return actionResponse(runtimeDataService.deleteAction(AuthenticationContextHolder.require(), moduleCode,
+                recordId, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))), request);
     }
 
     @PostMapping("/{recordId}/restore")
@@ -190,21 +190,38 @@ public class RuntimeDataController {
     }
 
     @PostMapping
-    public ApiResult<RuntimeRecordView> create(
+    public ApiResult<?> create(
             @PathVariable String moduleCode,
             @Valid @RequestBody CreateRuntimeRecordRequest body,
             HttpServletRequest request) {
-        return ApiResult.ok(runtimeDataService.createAction(
-                AuthenticationContextHolder.require(), moduleCode, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))).value());
+        return actionResponse(runtimeDataService.createAction(
+                AuthenticationContextHolder.require(), moduleCode, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))), request);
     }
 
     @PutMapping("/{recordId}")
-    public ApiResult<RuntimeRecordView> update(
+    public ApiResult<?> update(
             @PathVariable String moduleCode,
             @PathVariable Long recordId,
             @Valid @RequestBody UpdateRuntimeRecordRequest body,
             HttpServletRequest request) {
-        return ApiResult.ok(runtimeDataService.updateAction(
-                AuthenticationContextHolder.require(), moduleCode, recordId, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))).value());
+        return actionResponse(runtimeDataService.updateAction(
+                AuthenticationContextHolder.require(), moduleCode, recordId, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))), request);
+    }
+
+    @GetMapping("/action-results/{actionId}")
+    public ApiResult<BusinessAction.Delivery> actionDelivery(@PathVariable String moduleCode, @PathVariable long actionId,
+                                                           HttpServletRequest request) {
+        return ApiResult.ok(runtimeDataService.actionDelivery(AuthenticationContextHolder.require(), moduleCode,
+                actionId, TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/action-results/{actionId}/retry")
+    public ApiResult<BusinessAction.Delivery> retryApproval(@PathVariable String moduleCode, @PathVariable long actionId) {
+        return ApiResult.ok(runtimeDataService.retryApproval(AuthenticationContextHolder.require(), moduleCode, actionId));
+    }
+
+    private ApiResult<?> actionResponse(BusinessAction.Result<RuntimeRecordView> result, HttpServletRequest request) {
+        // Older clients retain the record response; Flow-only can never masquerade as a saved record.
+        return ApiResult.ok("return=action".equals(request.getHeader("Prefer")) || result.value() == null ? result : result.value());
     }
 }

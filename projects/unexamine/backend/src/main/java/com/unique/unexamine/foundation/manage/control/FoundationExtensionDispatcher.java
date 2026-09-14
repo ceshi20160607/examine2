@@ -18,13 +18,16 @@ public class FoundationExtensionDispatcher {
     private final List<FoundationCommandExtension> extensions;
     private final BusinessActionMapper actionMapper;
     private final TransactionTemplate transactions;
+    private final org.springframework.beans.factory.ObjectProvider<BusinessActionApprovalCoordinator> approvals;
 
     public FoundationExtensionDispatcher(CoreEventOutboxBaseService outboxService,
                                          List<FoundationCommandExtension> extensions,
-                                         BusinessActionMapper actionMapper, PlatformTransactionManager transactionManager) {
+                                         BusinessActionMapper actionMapper, PlatformTransactionManager transactionManager,
+                                         org.springframework.beans.factory.ObjectProvider<BusinessActionApprovalCoordinator> approvals) {
         this.outboxService = outboxService;
         this.extensions = extensions;
         this.actionMapper = actionMapper;
+        this.approvals = approvals;
         this.transactions = new TransactionTemplate(transactionManager);
         this.transactions.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
@@ -59,12 +62,13 @@ public class FoundationExtensionDispatcher {
     @Scheduled(fixedDelayString = "${unexamine.actions.outbox.poll-delay-ms:1000}")
     public void retryDue() {
         for (CoreEventOutbox event : outboxService.selectList(Wrappers.<CoreEventOutbox>lambdaQuery()
-                .in(CoreEventOutbox::getAggregateType, "BUSINESS_ACTION", "FOUNDATION_COMMAND")
+                .in(CoreEventOutbox::getAggregateType, "BUSINESS_ACTION", "BUSINESS_ACTION_COMPLETION", "FOUNDATION_COMMAND")
                 .in(CoreEventOutbox::getStatus, "PENDING", "FAILED")
                 .le(CoreEventOutbox::getAvailableAt, LocalDateTime.now())
                 .orderByAsc(CoreEventOutbox::getId).last("limit 50"))) {
             dispatch(event.getId());
         }
+        approvals.getObject().reconcileDue();
     }
 
     private boolean ready(CoreEventOutbox event) {

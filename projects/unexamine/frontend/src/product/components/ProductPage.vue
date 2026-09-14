@@ -7,7 +7,7 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <main class="product-page" :data-density="density">
+  <section class="product-page" :data-density="density">
     <slot />
-  </main>
+  </section>
 </template>

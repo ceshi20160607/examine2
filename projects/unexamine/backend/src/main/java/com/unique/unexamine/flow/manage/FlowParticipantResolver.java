@@ -256,14 +256,22 @@ public class FlowParticipantResolver {
             return java.util.Optional.empty();
         }
         Long recordId = asLong(instance.getBusinessId());
+        Long intendedOwner = null;
+        Map<String, Object> intent = readBusinessSnapshot(instance);
+        if (recordId == null && "AFTER_APPROVAL".equals(intent.get("executionMode"))) {
+            recordId = asLong(intent.get("targetRecordId"));
+            intendedOwner = asLong(intent.get("proposedOwnerMemberId"));
+        }
         BusinessRecord record = recordId == null ? null : recordService.selectById(recordId);
-        if (record == null || !Objects.equals(record.getSystemId(), context.systemId())
-                || !Objects.equals(record.getTenantId(), context.tenantId()) || record.getOwnerMemberId() == null) {
+        if (record != null && (!Objects.equals(record.getSystemId(), context.systemId())
+                || !Objects.equals(record.getTenantId(), context.tenantId()))) {
             return java.util.Optional.empty();
         }
+        Long ownerId = intendedOwner != null ? intendedOwner : record == null ? null : record.getOwnerMemberId();
+        if (ownerId == null) return java.util.Optional.empty();
         return tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
                         .eq(SystemTenantMember::getTenantId, context.tenantId())
-                        .eq(SystemTenantMember::getSystemMemberId, record.getOwnerMemberId())
+                        .eq(SystemTenantMember::getSystemMemberId, ownerId)
                         .eq(SystemTenantMember::getStatus, "ACTIVE"))
                 .stream().map(SystemTenantMember::getId).findFirst();
     }

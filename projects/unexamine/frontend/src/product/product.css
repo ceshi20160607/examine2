@@ -1707,12 +1707,41 @@ button, input { font: inherit; }
 .platform-admin-nav { padding: 18px 14px 28px; border-right: 1px solid var(--ux-color-border); background: var(--ux-color-surface); }
 .platform-admin-nav__item { width: 100%; min-height: 58px; display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: center; gap: 10px; margin-bottom: 4px; padding: 8px 10px; border: 0; border-radius: var(--ux-radius-control); color: var(--ux-color-text-secondary); background: transparent; text-align: left; cursor: pointer; }
 .platform-admin-nav__item > svg { justify-self: center; }
+.platform-admin-nav__mark {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: var(--ux-color-text-secondary);
+  background: var(--ux-color-surface-soft);
+  font-size: 11px;
+  font-weight: 750;
+}
 .platform-admin-nav__item > span { min-width: 0; display: grid; gap: 2px; }
 .platform-admin-nav__item strong { color: inherit; font-size: 13px; }
 .platform-admin-nav__item small { overflow: hidden; color: var(--ux-color-text-tertiary); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .platform-admin-nav__item:hover { background: #f7f9fc; }
 .platform-admin-nav__item.active { color: #1554c5; background: var(--ux-color-primary-soft); }
+.platform-admin-nav__item.active .platform-admin-nav__mark { color: #1554c5; background: #dce8ff; }
 .platform-admin-workspace { min-width: 0; padding: var(--ux-space-8) var(--ux-space-10) 48px; background: var(--ux-color-surface-subtle); }
+
+.workspace-notice { max-width: var(--ux-content-max); margin: 0 auto var(--ux-space-5); }
+.system-row--disabled { cursor: default; background: var(--ux-color-surface-soft); }
+.system-row--disabled:hover { background: var(--ux-color-surface-soft); }
+
+@media (min-width: 821px) {
+  .side-nav,
+  .system-nav,
+  .platform-admin-nav,
+  .system-admin-nav {
+    position: sticky;
+    top: 64px;
+    align-self: start;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+}
 
 .side-nav__item,
 .system-nav__item,

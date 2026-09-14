@@ -1,7 +1,9 @@
 package com.unique.unexamine.platform.manage.registration;
 
 import com.unique.unexamine.audit.manage.AuditRecorder;
+import com.unique.unexamine.shared.manage.web.DomainException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -19,10 +21,19 @@ public class RegistrationService {
     public RegistrationResult register(RegistrationRequest request, String traceId) {
         try {
             return transactionService.create(request, traceId);
+        } catch (DomainException exception) {
+            if (exception.status() == HttpStatus.CONFLICT) {
+                recordConflict(traceId, exception.code());
+            }
+            throw exception;
         } catch (DataIntegrityViolationException exception) {
-            auditRecorder.recordFailure(traceId, null, "ACCOUNT_REGISTER_SYSTEM_CREATED", "RESOURCE_CONFLICT",
-                    Map.of("reason", "UNIQUE_VALUE_CONFLICT"));
+            recordConflict(traceId, "UNIQUE_VALUE_CONFLICT");
             throw exception;
         }
+    }
+
+    private void recordConflict(String traceId, String reason) {
+        auditRecorder.recordFailure(traceId, null, "ACCOUNT_REGISTER_SYSTEM_CREATED", "RESOURCE_CONFLICT",
+                Map.of("reason", reason));
     }
 }

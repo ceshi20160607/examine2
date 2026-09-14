@@ -1,10 +1,10 @@
 package com.unique.unexamine.authentication.manage;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record SessionTokens(
         String accessToken,
         String refreshToken,
-        LocalDateTime accessExpiresAt,
-        LocalDateTime refreshExpiresAt) {
+        OffsetDateTime accessExpiresAt,
+        OffsetDateTime refreshExpiresAt) {
 }

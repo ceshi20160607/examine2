@@ -70,6 +70,8 @@ public class FoundationControlService {
     private final JdbcTemplate jdbc;
     private final BusinessActionMapper actionMapper;
     private final ObjectProvider<RuntimeDataCommandExtension> runtimeCommands;
+    private final ObjectProvider<com.unique.unexamine.flow.manage.BusinessActionFlowExtension> businessFlows;
+    private final ObjectProvider<BusinessActionApprovalCoordinator> approvals;
 
     public FoundationControlService(CoreIdempotencyRecordBaseService idempotencyService,
                                     CoreEventOutboxBaseService outboxService,
@@ -83,7 +85,9 @@ public class FoundationControlService {
                                     ObjectMapper objectMapper,
                                     JdbcTemplate jdbc,
                                     BusinessActionMapper actionMapper,
-                                    ObjectProvider<RuntimeDataCommandExtension> runtimeCommands) {
+                                    ObjectProvider<RuntimeDataCommandExtension> runtimeCommands,
+                                    ObjectProvider<com.unique.unexamine.flow.manage.BusinessActionFlowExtension> businessFlows,
+                                    ObjectProvider<BusinessActionApprovalCoordinator> approvals) {
         this.idempotencyService = idempotencyService;
         this.outboxService = outboxService;
         this.cacheEpochService = cacheEpochService;
@@ -94,13 +98,12 @@ public class FoundationControlService {
         this.redis = redis;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
-        var storageDates = new com.fasterxml.jackson.databind.module.SimpleModule("business-action-storage-v1");
-        storageDates.addSerializer(LocalDateTime.class,
-                new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        this.actionJsonMapper = objectMapper.copy().registerModule(storageDates);
+        this.actionJsonMapper = BusinessAction.storageMapper(objectMapper);
         this.jdbc = jdbc;
         this.actionMapper = actionMapper;
         this.runtimeCommands = runtimeCommands;
+        this.businessFlows = businessFlows;
+        this.approvals = approvals;
     }
 
     @Transactional
@@ -240,8 +243,8 @@ public class FoundationControlService {
     /** Business writes, their result and their completion event share this transaction. */
     @Transactional
     public <T> BusinessAction.Result<T> execute(
-            BusinessAction.Input input, Class<T> resultType,
-            Supplier<FlowBindingModels.ResolutionView> resolveBinding, Supplier<T> business) {
+            BusinessAction.Input input, Class<T> resultType, JsonNode effectiveConfiguration,
+            Supplier<FlowBindingModels.ResolutionView> resolveBinding, Runnable validateDeferred, Supplier<T> business) {
         AuthenticatedContext actor = input.actor();
         requireContext(actor);
         if (actionMapper.activeActor(actor) != 1) {
@@ -274,7 +277,7 @@ public class FoundationControlService {
                 BusinessAction.Result<T> stored = actionJsonMapper.readValue(record.getResponseJson(),
                         objectMapper.getTypeFactory().constructParametricType(BusinessAction.Result.class, resultType));
                 return new BusinessAction.Result<>(stored.idempotencyRecordId(), stored.outboxId(), key,
-                        stored.status(), true, stored.mode(), stored.value());
+                        stored.status(), true, stored.mode(), stored.value(), stored.flowInstanceId());
             } catch (JsonProcessingException exception) {
                 org.slf4j.LoggerFactory.getLogger(getClass()).warn("Cannot decode action result {}", record.getId(), exception);
                 throw new DomainException("IDEMPOTENCY_RESULT_INVALID", "首次结果无法读取，已阻止重复执行", HttpStatus.CONFLICT);
@@ -286,30 +289,39 @@ public class FoundationControlService {
         FlowBindingModels.ResolutionView binding = resolveBinding.get();
         BusinessAction.Mode mode = binding == null ? BusinessAction.Mode.DIRECT
                 : BusinessAction.Mode.valueOf(binding.executionMode());
-        if (mode != BusinessAction.Mode.DIRECT) {
-            throw new DomainException("ACTION_MODE_NOT_IMPLEMENTED", "此动作的 Flow 执行模式尚未接通：" + mode,
-                    HttpStatus.UNPROCESSABLE_ENTITY);
+        Long flowInstanceId = null;
+        T value = null;
+        if (mode == BusinessAction.Mode.FLOW_ONLY || mode == BusinessAction.Mode.AFTER_APPROVAL) {
+            validateDeferred.run();
+            flowInstanceId = businessFlows.getObject().start(input, binding, record.getId(), Map.of());
+        } else {
+            value = business.get();
         }
-        T value = business.get();
         CoreEventOutbox event = new CoreEventOutbox();
         event.setContextType("SYSTEM");
         event.setSystemId(actor.systemId());
         event.setTenantId(input.dataTenantId());
         event.setAggregateType("BUSINESS_ACTION");
         event.setAggregateId(record.getId().toString());
-        event.setEventType("BUSINESS_ACTION_COMPLETED");
+        event.setEventType(mode == BusinessAction.Mode.AFTER_APPROVAL ? "BUSINESS_ACTION_APPROVAL_REQUESTED" : "BUSINESS_ACTION_COMPLETED");
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("action", input);
         payload.put("binding", binding);
         payload.put("mode", mode);
         payload.put("result", value);
+        payload.put("flowInstanceId", flowInstanceId);
+        if (mode == BusinessAction.Mode.AFTER_APPROVAL) {
+            payload.put("approvalStatus", "PENDING_APPROVAL");
+            payload.put("configurationSnapshot", effectiveConfiguration.deepCopy());
+        }
         event.setPayloadJson(actionJson(payload));
         event.setStatus("PENDING");
         event.setAvailableAt(LocalDateTime.now());
         event.setRetryCount(0);
         outboxService.insert(event);
         BusinessAction.Result<T> result = new BusinessAction.Result<>(record.getId(), event.getId(), key,
-                "COMPLETED", false, mode, value);
+                mode == BusinessAction.Mode.AFTER_APPROVAL ? "PENDING_APPROVAL"
+                        : mode == BusinessAction.Mode.FLOW_ONLY ? "FLOW_STARTED" : "COMPLETED", false, mode, value, flowInstanceId);
         record.setStatus("COMPLETED");
         record.setResponseCode("SUCCESS");
         record.setResponseJson(actionJson(result));
@@ -317,8 +329,53 @@ public class FoundationControlService {
         if (idempotencyService.updateById(record) != 1) {
             throw new DomainException("IDEMPOTENCY_COMPLETION_CONFLICT", "动作结果保存冲突，业务已回滚", HttpStatus.CONFLICT);
         }
+        if (mode == BusinessAction.Mode.AFTER_APPROVAL) {
+            auditRecorder.record(input.traceId(), actor.accountId(), actor.systemId(), actor.tenantId(), actor.memberId(),
+                    "BUSINESS_ACTION_APPROVAL_REQUESTED", "BUSINESS_ACTION", record.getId().toString(), "PENDING_APPROVAL",
+                    Map.of("moduleCode", input.moduleCode(), "actionCode", input.actionCode(), "flowInstanceId", flowInstanceId,
+                            "configVersionId", input.configVersionId()));
+        }
         afterCommit(event.getId());
         return result;
+    }
+
+    @Transactional(readOnly = true)
+    public BusinessAction.Delivery actionDelivery(AuthenticatedContext actor, String moduleCode, long actionId) {
+        requireContext(actor);
+        CoreEventOutbox event = outboxService.selectList(Wrappers.<CoreEventOutbox>lambdaQuery()
+                .eq(CoreEventOutbox::getAggregateType, "BUSINESS_ACTION")
+                .eq(CoreEventOutbox::getAggregateId, Long.toString(actionId))
+                .eq(CoreEventOutbox::getSystemId, actor.systemId())).stream().findFirst().orElse(null);
+        try {
+            JsonNode payload = event == null ? actionJsonMapper.createObjectNode() : actionJsonMapper.readTree(event.getPayloadJson());
+            JsonNode original = payload.path("action");
+            if (actionMapper.activeActor(actor) != 1 || !moduleCode.equals(original.path("moduleCode").asText())
+                    || original.path("actor").path("accountId").asLong(-1) != actor.accountId()
+                    || original.path("actor").path("tenantMemberId").asLong(-1) != actor.tenantMemberId()) {
+                throw new DomainException("ACTION_RESULT_NOT_FOUND", "操作结果不存在或无权访问", HttpStatus.NOT_FOUND);
+            }
+            BusinessAction.Mode mode = BusinessAction.Mode.valueOf(payload.path("mode").asText());
+            Long instanceId = payload.path("flowInstanceId").isNumber() ? payload.path("flowInstanceId").longValue() : null;
+            String status = instanceId != null ? "STARTED" : mode == BusinessAction.Mode.DIRECT ? "NONE"
+                    : "FAILED".equals(event.getStatus()) ? "RETRYING" : "PENDING";
+            String businessStatus = mode == BusinessAction.Mode.AFTER_APPROVAL
+                    ? payload.path("approvalStatus").asText("PENDING_APPROVAL")
+                    : mode == BusinessAction.Mode.FLOW_ONLY ? "FLOW_STARTED" : "COMPLETED";
+            return new BusinessAction.Delivery(actionId, original.path("actionCode").asText(), mode, status, instanceId,
+                    businessStatus, payload.path("errorCode").asText(null), payload.path("errorMessage").asText(null),
+                    payload.path("result").path("id").isNumber() ? payload.path("result").path("id").longValue() : null);
+        } catch (JsonProcessingException exception) {
+            throw new DomainException("ACTION_RESULT_INVALID", "操作结果暂时无法读取", HttpStatus.CONFLICT);
+        }
+    }
+
+    public BusinessAction.Delivery retryApproval(AuthenticatedContext actor, String moduleCode, long actionId) {
+        BusinessAction.Delivery delivery = actionDelivery(actor, moduleCode, actionId);
+        if (delivery.mode() != BusinessAction.Mode.AFTER_APPROVAL) {
+            throw new DomainException("ACTION_NOT_APPROVAL", "该操作不是待审批的业务操作", HttpStatus.CONFLICT);
+        }
+        approvals.getObject().retry(actionId);
+        return actionDelivery(actor, moduleCode, actionId);
     }
 
     private JsonNode canonical(JsonNode node) {

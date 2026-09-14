@@ -1,0 +1,77 @@
+{
+  "step": "B04.1a",
+  "status": "vertical_slice_verified",
+  "verified_at": "2026-09-15T00:03:56.589376+08:00",
+  "verification_scope": "A real browser golden path from system-admin module creation and publication through role assignment to ordinary-member list/detail/create/update, backed by database and audit readback. This proves the first usable slice only; it does not mark B03, B04, B05 or B06 complete.",
+  "source_rows": [
+    "R0162",
+    "R0292",
+    "R0293",
+    "R0295",
+    "R0313",
+    "R0315",
+    "R0437",
+    "R0451",
+    "R0518",
+    "R0606",
+    "R0798",
+    "R0819",
+    "R1413",
+    "R1414"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/ai/evidence/spark-golden-path-module-record-verification.json",
+    "projects/unexamine/ai/planning/spark-state.json"
+  ],
+  "checks_actual_results": [
+    "Backend JDK 21 test-compile passed.",
+    "RuntimeDataHttpTest#configuredFieldDefaultIsValidatedAndStoredWhenCreateOmitsTheField passed in the isolated Linux Maven/Testcontainers path.",
+    "Frontend RuntimeWorkspaceView focused tests passed: 3 files, 13 tests.",
+    "Frontend production build passed for 3958 modules; only the existing chunk-size warning remained.",
+    "Real browser: system administrator created the 客户管理 / 客户档案 module, configured required text and status fields, passed publication checks, published v1 and entered the runtime.",
+    "Real browser: an ordinary member with a published 业务成员 role saw only the authorized module and could list, open detail, update and create records without entering JSON or a duplicate title.",
+    "Direct HTTP call to an ungranted archive action returned HTTP 403 / PERMISSION_DENIED.",
+    "Database readback found the ordinary-member-created record with title and required text equal to 普通用户新增客户, configured status default active, owner/creator/updater member 68, and immutable BUSINESS_RECORD_CREATED audit.",
+    "The retained B03 browser fixture system 52/account 50 was disabled and its sessions revoked; the previously blocked registration offset test passed.",
+    "Temporary golden-path account/system/member sessions were disabled or revoked after verification; immutable audit remained. The unused second draft module was removed with its one audit row retained."
+  ],
+  "readback": [
+    "Record 62 was created by ordinary system member 68 and stored both configured values; record 61 was updated by member 68 and reopened as 客户状态=启用.",
+    "Role 业务成员 is published and assigned to the temporary member with LIST, DETAIL, CREATE and UPDATE at ALL data scope and PAGE read/write access to both fields.",
+    "Revoking the temporary account sessions and reloading the browser returned the user to /login, proving forced-offline behavior.",
+    "The runnable acceptance system retains one published 客户档案 module and three readable records; the throwaway 客户回访 draft no longer exists."
+  ],
+  "permission_or_failure_result": {
+    "permission_enforcement": "An ordinary member could execute only the four granted module actions; a direct archive request was rejected with 403/PERMISSION_DENIED.",
+    "configured_default": "A missing create payload value used the published field default and was then normalized, validated and persisted as active.",
+    "first_create_observation": "The first module create with a new group showed a success toast followed by a generic request failure until manual refresh. Server data was complete and a second create/readback did not reproduce it, so no speculative patch was made.",
+    "cleanup": "Six temporary account sessions were revoked; one temporary account, platform member, two system members, two tenant memberships and temporary system 53 were disabled. No audit row was deleted.",
+    "workspace_preservation": "Pre-existing staged/unstaged implementation was preserved; no reset or regeneration ran."
+  },
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "a9530137a728ed89b74cd78d15278334d41f61c98fd8461929ee9fb7cc5bc134"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+      "sha256": "8c53aef21f7b3d0923554c7493f95bd0a33fef3a4fa54907e5d1080578a4a6f0"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "55b8c9eec31559c053f95d1f3c0309bbb20a1af298b736945291274e453bea15"
+    }
+  ],
+  "remaining": [
+    "B05.1a: verify and complete the shared text/number/date/boolean field registry with one representative of each family through configure, publish, default, invalid-input rejection, create/update, reopen, list/detail, applicable filter/sort and field permission.",
+    "B04 still needs dictionary variants, version rollback, destructive dependency checks and tenant extension merge verification.",
+    "B03.1b password recovery and B03.1c enterprise identity mapping remain required and deferred, not complete.",
+    "The non-reproduced first-create/new-group UI readback error remains an observed risk; re-open only if it reproduces during the next module/configuration journey."
+  ],
+  "next_step": "B05.1a",
+  "evidence": "projects/unexamine/ai/evidence/spark-golden-path-module-record-verification.json",
+  "usage_report": "projects/unexamine/ai/evidence/spark-usage-golden-path.json"
+}

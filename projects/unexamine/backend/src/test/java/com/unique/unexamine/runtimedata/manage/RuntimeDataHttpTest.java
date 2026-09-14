@@ -48,12 +48,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import(RuntimeDataHttpTest.ActionDeliveryFixture.class)
 class RuntimeDataHttpTest {
     static final AtomicInteger deliveryAttempts = new AtomicInteger();
+    static final java.util.concurrent.atomic.AtomicBoolean failBoundDelivery = new java.util.concurrent.atomic.AtomicBoolean();
 
     @TestConfiguration
     static class ActionDeliveryFixture {
         @Bean
+        @org.springframework.core.annotation.Order(Integer.MAX_VALUE)
         FoundationCommandExtension actionDeliveryFixture() {
             return event -> {
+                if (event.getPayloadJson().contains("bound-delivery") && failBoundDelivery.compareAndSet(true, false)) {
+                    throw new IllegalStateException("controlled failure after the Flow insert");
+                }
                 if ("BUSINESS_ACTION_COMPLETED".equals(event.getEventType())
                         && event.getPayloadJson().contains("deliver-once")) {
                     if (deliveryAttempts.incrementAndGet() == 1) throw new IllegalStateException("controlled delivery failure");
@@ -64,6 +69,12 @@ class RuntimeDataHttpTest {
 
     @Autowired
     private FoundationExtensionDispatcher actionDispatcher;
+    @Autowired
+    private RuntimeDataService runtimeActions;
+    @Autowired
+    private com.unique.unexamine.authorization.manage.PermissionResolver testActionPermissions;
+    @Autowired
+    private com.unique.unexamine.foundation.manage.control.BusinessActionApprovalCoordinator approvalActions;
 
     @Test
     void actionBoundaryUsesRealApiAndReplaysCreateUpdateDeleteWithoutDuplicateWrites() {
@@ -152,6 +163,34 @@ class RuntimeDataHttpTest {
     }
 
     @Test
+    void configuredFieldDefaultIsValidatedAndStoredWhenCreateOmitsTheField() {
+        Session owner = register("default_owner", "default-system", "default-owner@example.com");
+        long groupId = number(data(exchange("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
+                Map.of("code", "customers", "name", "客户管理", "sortOrder", 10))).get("id"));
+        Map<String, Object> moduleDraft = data(exchange("/api/admin/module-config/modules", HttpMethod.POST,
+                owner.token(), Map.of("groupId", groupId, "code", "default_customer", "name", "客户档案")));
+        long moduleId = number(((Map<?, ?>) moduleDraft.get("module")).get("id"));
+        createField(owner, moduleId, "customer_name", "客户名称", "TEXT", true, 10, Map.of());
+        createField(owner, moduleId, "customer_status", "客户状态", "STATUS", true, 20,
+                Map.of("defaultValue", "active", "options", List.of(
+                        Map.of("value", "active", "label", "启用", "status", "ACTIVE"),
+                        Map.of("value", "inactive", "label", "停用", "status", "ACTIVE"))));
+        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", revision)).getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        ResponseEntity<Map> created = exchange("/api/runtime/modules/default_customer/records", HttpMethod.POST,
+                owner.token(), Map.of("title", "默认值客户", "participantMemberIds", List.of(),
+                        "fields", Map.of("customer_name", "默认值客户")));
+        assertThat(created.getStatusCode()).as("create: %s", created.getBody()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> fields = map(data(created).get("fields"));
+        assertThat(fields).containsEntry("customer_status", "active");
+        long recordId = number(data(created).get("id"));
+        assertThat(jdbc.queryForObject("select value_text from biz_record_value where record_id=? and field_code='customer_status'",
+                String.class, recordId)).isEqualTo("active");
+    }
+
+    @Test
     void concurrentActionsAndRecoverableDeliveryDoNotRepeatBusiness() throws Exception {
         Session owner = register("action_parallel", "action-parallel", "action-parallel@example.com");
         long moduleId = createAndPublishCustomerModule(owner);
@@ -224,6 +263,330 @@ class RuntimeDataHttpTest {
         assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
         assertThat(count("flow_instance", "system_id=" + owner.systemId())).isZero();
     }
+    @Test
+    void boundAfterExecutionPinsVersionAndRecoversWithoutRepeatingCrudOrFlow() {
+        Session owner = register("bound_after", "bound-after", "bound-after@example.com");
+        long moduleId = createAndPublishCustomerModule(owner);
+        long flowId = number(data(exchange("/api/flows", HttpMethod.POST, owner.token(),
+                Map.of("code", "bound_after", "name", "Bound after"))).get("id"));
+        long originalVersion = publishActionFlow(owner, flowId, "original_end");
+        publishActionBinding(owner, moduleId, flowId, "CREATE", "AFTER_EXECUTION");
+        String path = "/api/runtime/modules/customer/records";
+        var body = Map.of("title", "bound-delivery", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "Bound customer", "level", "A", "amount", 8));
+        failBoundDelivery.set(true);
+        var created = actionEnvelope(path, HttpMethod.POST, owner, "bound-after-create", body);
+        assertThat(created.getStatusCode()).as("create: %s", created.getBody()).isEqualTo(HttpStatus.OK);
+        var result = data(created);
+        var record = map(result.get("value"));
+        long recordId = number(record.get("id"));
+        long actionId = number(result.get("idempotencyRecordId"));
+        long outboxId = number(result.get("outboxId"));
+        String receipt = path + "/action-results/" + actionId;
+        assertThat(result).containsEntry("mode", "AFTER_EXECUTION").containsEntry("status", "COMPLETED");
+        assertThat(data(exchange(path + "/" + recordId, HttpMethod.GET, owner.token(), null))).containsEntry("title", "bound-delivery");
+        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isZero();
+        assertThat(data(exchange(receipt, HttpMethod.GET, owner.token(), null))).containsEntry("status", "RETRYING");
+        assertThat(jdbc.queryForObject("select status from core_event_outbox where id=?", String.class, outboxId)).isEqualTo("FAILED");
+        long newerVersion = publishActionFlow(owner, flowId, "new_end");
+        assertThat(newerVersion).isNotEqualTo(originalVersion);
+        publishActionBinding(owner, moduleId, flowId, "CREATE", "FLOW_ONLY");
+        assertThat(data(actionEnvelope(path, HttpMethod.POST, owner, "bound-after-create", body)))
+                .containsEntry("mode", "AFTER_EXECUTION").containsEntry("replayed", true).containsEntry("value", record);
+        jdbc.update("update core_event_outbox set available_at=? where id=?", java.time.LocalDateTime.now().minusSeconds(1), outboxId);
+        actionDispatcher.dispatch(outboxId);
+        actionDispatcher.dispatch(outboxId);
+        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isOne();
+        assertThat(jdbc.queryForObject("select flow_version_id from flow_instance where system_id=?", Long.class, owner.systemId())).isEqualTo(originalVersion);
+        assertThat(jdbc.queryForObject("select current_node_key from flow_instance where system_id=?", String.class, owner.systemId())).isEqualTo("original_end");
+        assertThat(data(exchange(receipt, HttpMethod.GET, owner.token(), null))).containsEntry("status", "STARTED");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + recordId + "'" )).isOne();
+        Session outsider = register("bound_other", "bound-other", "bound-other@example.com");
+        assertThat(exchange(receipt, HttpMethod.GET, outsider.token(), null).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+
+        publishActionBinding(owner, moduleId, flowId, "UPDATE", "AFTER_EXECUTION");
+        var update = new java.util.LinkedHashMap<String, Object>(body);
+        update.put("version", record.get("version"));
+        update.put("title", "After updated");
+        var updated = data(actionEnvelope(path + "/" + recordId, HttpMethod.PUT, owner, "bound-after-update", update));
+        assertThat(updated).containsEntry("mode", "AFTER_EXECUTION");
+        assertThat(data(actionEnvelope(path + "/" + recordId, HttpMethod.PUT, owner, "bound-after-update", update)))
+                .containsEntry("replayed", true).containsEntry("value", updated.get("value"));
+        publishActionBinding(owner, moduleId, flowId, "DELETE", "AFTER_EXECUTION");
+        var deletion = Map.of("version", map(updated.get("value")).get("version"), "reason", "delete after Flow");
+        var deleted = data(actionEnvelope(path + "/" + recordId + "/delete", HttpMethod.POST, owner, "bound-after-delete", deletion));
+        assertThat(map(deleted.get("value"))).containsEntry("deleted", true);
+        assertThat(data(actionEnvelope(path + "/" + recordId + "/delete", HttpMethod.POST, owner, "bound-after-delete", deletion)))
+                .containsEntry("replayed", true);
+        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isEqualTo(3);
+    }
+
+    @Test
+    void flowOnlyReusesTheSameBoundaryForTwoModulesAndNeverWritesCrud() {
+        Session owner = register("bound_only", "bound-only", "bound-only@example.com");
+        long customerModule = createAndPublishCustomerModule(owner);
+        long opportunityModule = createAndPublishOpportunityModule(owner);
+        long flowId = number(data(exchange("/api/flows", HttpMethod.POST, owner.token(),
+                Map.of("code", "bound_only", "name", "Bound only"))).get("id"));
+        publishActionFlow(owner, flowId, "end");
+        String customers = "/api/runtime/modules/customer/records";
+        String opportunities = "/api/runtime/modules/opportunity/records";
+        var customer = Map.of("title", "Customer", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "Customer", "level", "A"));
+        var original = data(actionRequest(customers, HttpMethod.POST, owner, "only-original", customer));
+        long recordId = number(original.get("id"));
+        publishActionBinding(owner, customerModule, flowId, "CREATE", "FLOW_ONLY");
+        publishActionBinding(owner, opportunityModule, flowId, "CREATE", "FLOW_ONLY");
+        var started = actionEnvelope(customers, HttpMethod.POST, owner, "only-create", customer);
+        assertThat(started.getStatusCode()).as("Flow-only: %s", started.getBody()).isEqualTo(HttpStatus.OK);
+        assertThat(data(started)).containsEntry("mode", "FLOW_ONLY").containsEntry("status", "FLOW_STARTED").containsEntry("value", null);
+        assertThat(data(started).get("flowInstanceId")).isNotNull();
+        assertThat(data(actionEnvelope(customers, HttpMethod.POST, owner, "only-create", customer)))
+                .containsEntry("flowInstanceId", data(started).get("flowInstanceId")).containsEntry("replayed", true);
+        var opportunity = Map.of("title", "Opportunity", "participantMemberIds", List.of(),
+                "fields", Map.of("opportunity_name", "Opportunity", "source_level", "A"));
+        assertThat(data(actionEnvelope(opportunities, HttpMethod.POST, owner, "only-create", opportunity)))
+                .containsEntry("mode", "FLOW_ONLY").containsEntry("value", null);
+        var invalid = Map.of("title", "Invalid", "participantMemberIds", List.of(), "fields", Map.of());
+        assertThat(actionEnvelope(opportunities, HttpMethod.POST, owner, "only-invalid", invalid).getStatusCode().is4xxClientError()).isTrue();
+        assertThat(count("core_idempotency_record", "idempotency_key='only-invalid'")).isZero();
+        publishActionBinding(owner, customerModule, flowId, "UPDATE", "FLOW_ONLY");
+        publishActionBinding(owner, customerModule, flowId, "DELETE", "FLOW_ONLY");
+        var update = new java.util.LinkedHashMap<String, Object>(customer);
+        update.put("title", "Must not save");
+        update.put("version", original.get("version"));
+        assertThat(data(actionEnvelope(customers + "/" + recordId, HttpMethod.PUT, owner, "only-update", update)))
+                .containsEntry("mode", "FLOW_ONLY").containsEntry("value", null);
+        update.put("version", 999);
+        assertThat(actionEnvelope(customers + "/" + recordId, HttpMethod.PUT, owner, "only-stale", update).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(data(actionEnvelope(customers + "/" + recordId + "/delete", HttpMethod.POST, owner, "only-delete",
+                Map.of("version", original.get("version"), "reason", "Flow only deletion")))).containsEntry("mode", "FLOW_ONLY");
+        assertThat(data(exchange(customers + "/" + recordId, HttpMethod.GET, owner.token(), null)))
+                .containsEntry("title", "Customer").containsEntry("version", original.get("version")).containsEntry("deleted", false);
+        assertThat(count("biz_record", "module_id=" + customerModule)).isOne();
+        assertThat(count("biz_record", "module_id=" + opportunityModule)).isZero();
+        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isEqualTo(4);
+        assertThat(count("audit_event", "event_code in ('BUSINESS_RECORD_UPDATED','BUSINESS_RECORD_DELETED') and system_id=" + owner.systemId())).isZero();
+        // An unadapted importer/AI/application caller must not commit a Flow and then dereference a null record.
+        long memberId = memberId(owner.systemId(), owner.accountId());
+        long tenantMemberId = jdbc.queryForObject("select id from sys_tenant_member where tenant_id=? and system_member_id=?",
+                Long.class, owner.tenantId(), memberId);
+        var permissions = testActionPermissions.resolve(owner.systemId(), owner.tenantId(), tenantMemberId);
+        var context = new com.unique.unexamine.authentication.manage.AuthenticatedContext(null, owner.accountId(), null,
+                owner.systemId(), owner.tenantId(), memberId, tenantMemberId, "bound_only", "Bound only", "NONE",
+                permissions.roleIds(), permissions.permissions(), permissions.dataScopes());
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> runtimeActions.create(context, "customer",
+                new CreateRuntimeRecordRequest("Legacy call", null, null, null, null, List.of(), Map.of(
+                        "customer_name", new com.fasterxml.jackson.databind.node.TextNode("Legacy"),
+                        "level", new com.fasterxml.jackson.databind.node.TextNode("A"))), "legacy-flow-only"))
+                .isInstanceOf(com.unique.unexamine.shared.manage.web.DomainException.class)
+                .hasMessageContaining("当前入口尚不能处理流程结果");
+        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isEqualTo(4);
+        assertThat(count("biz_record", "module_id=" + customerModule)).isOne();
+    }
+
+    @Test
+    void approvalIntentsStayInvisibleAndResumeOnceWhileRejectionAndWithdrawalNeverWrite() {
+        Session owner = register("intent_owner", "intent-system", "intent-owner@example.com");
+        long moduleId = createAndPublishCustomerModule(owner);
+        long flowId = publishApprovalActionFlow(owner, "intent_flow");
+        publishActionBinding(owner, moduleId, flowId, "CREATE", "AFTER_APPROVAL");
+        String path = "/api/runtime/modules/customer/records";
+        var body = Map.of("title", "Approved customer", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "Approved customer", "level", "A"));
+        var pendingResponse = actionEnvelope(path, HttpMethod.POST, owner, "intent-create", body);
+        assertThat(pendingResponse.getStatusCode()).as("pending: %s", pendingResponse.getBody()).isEqualTo(HttpStatus.OK);
+        var pending = data(pendingResponse);
+        long actionId = number(pending.get("idempotencyRecordId"));
+        long instanceId = number(pending.get("flowInstanceId"));
+        String receipt = path + "/action-results/" + actionId;
+        assertThat(pending).containsEntry("status", "PENDING_APPROVAL").containsEntry("value", null);
+        assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
+        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and system_id=" + owner.systemId())).isZero();
+        assertThat(jdbc.queryForObject("select business_id from flow_instance where id=?", String.class, instanceId)).isNull();
+        assertThat(data(actionEnvelope(path, HttpMethod.POST, owner, "intent-create", body)))
+                .containsEntry("replayed", true).containsEntry("flowInstanceId", pending.get("flowInstanceId"));
+        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isOne();
+        assertThat(data(exchange(receipt + "/retry", HttpMethod.POST, owner.token(), Map.of("approved", true))))
+                .containsEntry("businessStatus", "PENDING_APPROVAL");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
+        finishApprovalTask(owner, instanceId, "APPROVE");
+        var one = java.util.concurrent.CompletableFuture.runAsync(() -> approvalActions.reconcile(actionId));
+        var two = java.util.concurrent.CompletableFuture.runAsync(() -> approvalActions.reconcile(actionId));
+        java.util.concurrent.CompletableFuture.allOf(one, two).join();
+        approvalActions.reconcileDue();
+        var executed = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-create", body));
+        assertThat(executed).containsEntry("status", "EXECUTED").containsEntry("replayed", true);
+        var record = map(executed.get("value"));
+        long recordId = number(record.get("id"));
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION_COMPLETION' and aggregate_id='" + actionId + "'" )).isOne();
+        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + recordId + "'" )).isOne();
+        assertThat(data(exchange(receipt, HttpMethod.GET, owner.token(), null))).containsEntry("businessStatus", "EXECUTED");
+
+        publishActionBinding(owner, moduleId, flowId, "UPDATE", "AFTER_APPROVAL");
+        var update = new java.util.LinkedHashMap<String, Object>(body);
+        update.put("title", "Approved update"); update.put("version", record.get("version"));
+        var change = data(actionEnvelope(path + "/" + recordId, HttpMethod.PUT, owner, "intent-update", update));
+        assertThat(data(exchange(path + "/" + recordId, HttpMethod.GET, owner.token(), null))).containsEntry("title", "Approved customer");
+        finishApprovalTask(owner, number(change.get("flowInstanceId")), "APPROVE");
+        actionDispatcher.retryDue();
+        var updated = data(actionEnvelope(path + "/" + recordId, HttpMethod.PUT, owner, "intent-update", update));
+        assertThat(map(updated.get("value"))).containsEntry("title", "Approved update");
+        publishActionBinding(owner, moduleId, flowId, "DELETE", "AFTER_APPROVAL");
+        var deletion = Map.of("version", map(updated.get("value")).get("version"), "reason", "delete only after approval");
+        var remove = data(actionEnvelope(path + "/" + recordId + "/delete", HttpMethod.POST, owner, "intent-delete", deletion));
+        var withdrawn = exchange("/api/flow-runtime/instances/" + remove.get("flowInstanceId") + "/actions", HttpMethod.POST,
+                owner.token(), Map.of("actionCode", "WITHDRAW", "comment", "keep the record", "idempotencyKey", "intent-withdraw"));
+        assertThat(withdrawn.getStatusCode()).as("withdraw: %s", withdrawn.getBody()).isEqualTo(HttpStatus.OK);
+        approvalActions.reconcileDue();
+        assertThat(data(actionEnvelope(path + "/" + recordId + "/delete", HttpMethod.POST, owner, "intent-delete", deletion)))
+                .containsEntry("status", "WITHDRAWN").containsEntry("value", null);
+        assertThat(data(exchange(path + "/" + recordId, HttpMethod.GET, owner.token(), null))).containsEntry("deleted", false);
+        var rejected = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-reject", body));
+        finishApprovalTask(owner, number(rejected.get("flowInstanceId")), "REJECT");
+        approvalActions.reconcileDue();
+        var rejectedReceipt = path + "/action-results/" + rejected.get("idempotencyRecordId");
+        assertThat(data(exchange(rejectedReceipt + "/retry", HttpMethod.POST, owner.token(), null))).containsEntry("businessStatus", "REJECTED");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        Session outsider = register("intent_other", "intent-other", "intent-other@example.com");
+        assertThat(exchange(rejectedReceipt + "/retry", HttpMethod.POST, outsider.token(), null).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        var approvedDelete = data(actionEnvelope(path + "/" + recordId + "/delete", HttpMethod.POST, owner, "intent-delete-approved", deletion));
+        finishApprovalTask(owner, number(approvedDelete.get("flowInstanceId")), "APPROVE");
+        approvalActions.reconcileDue();
+        var deleted = data(actionEnvelope(path + "/" + recordId + "/delete", HttpMethod.POST, owner, "intent-delete-approved", deletion));
+        assertThat(deleted).containsEntry("status", "EXECUTED").containsEntry("replayed", true);
+        assertThat(map(deleted.get("value"))).containsEntry("deleted", true);
+        approvalActions.reconcile(number(approvedDelete.get("idempotencyRecordId")));
+        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_DELETED' and object_id='" + recordId + "'" )).isOne();
+        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION_COMPLETION' and aggregate_id='" + approvedDelete.get("idempotencyRecordId") + "'" )).isOne();
+    }
+
+    @Test
+    void approvedActionsRecheckAuthorityVersionsAndConfigurationAndRollBackFailedWrites() {
+        Session owner = register("intent_conflict", "intent-conflict", "intent-conflict@example.com");
+        long moduleId = createAndPublishCustomerModule(owner);
+        long flowId = publishApprovalActionFlow(owner, "intent_conflict_flow");
+        publishActionBinding(owner, moduleId, flowId, "CREATE", "AFTER_APPROVAL");
+        String path = "/api/runtime/modules/customer/records";
+        var body = Map.of("title", "Intent conflict", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "Intent conflict", "level", "A"));
+        var pending = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-revoke", body));
+        finishApprovalTask(owner, number(pending.get("flowInstanceId")), "APPROVE");
+        long actorMember = memberId(owner.systemId(), owner.accountId());
+        jdbc.update("update sys_tenant_member set status='DISABLED' where tenant_id=? and system_member_id=?", owner.tenantId(), actorMember);
+        approvalActions.reconcile(number(pending.get("idempotencyRecordId")));
+        jdbc.update("update sys_tenant_member set status='ACTIVE' where tenant_id=? and system_member_id=?", owner.tenantId(), actorMember);
+        String receipt = path + "/action-results/" + pending.get("idempotencyRecordId");
+        assertThat(data(exchange(receipt, HttpMethod.GET, owner.token(), null)))
+                .containsEntry("businessStatus", "CONFLICT").containsEntry("errorCode", "ACTION_ACTOR_INACTIVE");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
+        assertThat(data(exchange(receipt + "/retry", HttpMethod.POST, owner.token(), null))).containsEntry("businessStatus", "EXECUTED");
+        var record = map(data(actionEnvelope(path, HttpMethod.POST, owner, "intent-revoke", body)).get("value"));
+        long recordId = number(record.get("id"));
+        publishActionBinding(owner, moduleId, flowId, "UPDATE", "AFTER_APPROVAL");
+        var update = new java.util.LinkedHashMap<String, Object>(body);
+        update.put("version", record.get("version")); update.put("title", "Must not overwrite");
+        var stale = data(actionEnvelope(path + "/" + recordId, HttpMethod.PUT, owner, "intent-stale", update));
+        jdbc.update("update biz_record set title='Changed elsewhere', version=version+1 where id=?", recordId);
+        finishApprovalTask(owner, number(stale.get("flowInstanceId")), "APPROVE");
+        approvalActions.reconcileDue();
+        assertThat(data(exchange(path + "/action-results/" + stale.get("idempotencyRecordId") + "/retry", HttpMethod.POST, owner.token(), null)))
+                .containsEntry("businessStatus", "CONFLICT").containsEntry("errorCode", "RECORD_VERSION_CONFLICT");
+        assertThat(data(exchange(path + "/" + recordId, HttpMethod.GET, owner.token(), null))).containsEntry("title", "Changed elsewhere");
+
+        var failing = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-sql-fail", body));
+        finishApprovalTask(owner, number(failing.get("flowInstanceId")), "APPROVE");
+        jdbc.execute("CREATE TRIGGER b01_approval_fail BEFORE INSERT ON biz_record_value FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='approval controlled failure'");
+        try { approvalActions.reconcile(number(failing.get("idempotencyRecordId"))); }
+        finally { jdbc.execute("DROP TRIGGER b01_approval_fail"); }
+        String failureReceipt = path + "/action-results/" + failing.get("idempotencyRecordId");
+        assertThat(data(exchange(failureReceipt, HttpMethod.GET, owner.token(), null)))
+                .containsEntry("businessStatus", "EXECUTION_FAILED").containsEntry("errorCode", "ACTION_EXECUTION_FAILED");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION_COMPLETION' and aggregate_id='" + failing.get("idempotencyRecordId") + "'" )).isZero();
+        assertThat(data(exchange(failureReceipt + "/retry", HttpMethod.POST, owner.token(), null))).containsEntry("businessStatus", "EXECUTED");
+        assertThat(data(exchange(failureReceipt + "/retry", HttpMethod.POST, owner.token(), null))).containsEntry("businessStatus", "EXECUTED");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
+
+        var configChanged = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-config", body));
+        createField(owner, moduleId, "new_optional", "New optional", "TEXT", false, 90, Map.of());
+        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST, owner.token(),
+                Map.of("expectedDraftRevision", revision)).getStatusCode()).isEqualTo(HttpStatus.OK);
+        finishApprovalTask(owner, number(configChanged.get("flowInstanceId")), "APPROVE");
+        approvalActions.reconcileDue();
+        assertThat(data(exchange(path + "/action-results/" + configChanged.get("idempotencyRecordId"), HttpMethod.GET, owner.token(), null)))
+                .containsEntry("businessStatus", "CONFLICT").containsEntry("errorCode", "ACTION_CONFIGURATION_CHANGED");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
+        // A mismatched intent snapshot must fail even if the base publication/version id is unchanged.
+        var drift = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-effective-drift", body));
+        long currentVersion = jdbc.queryForObject("select current_version_id from cfg_module_publication where module_id=?", Long.class, moduleId);
+        jdbc.update("update core_event_outbox set payload_json=JSON_SET(payload_json, '$.configurationSnapshot.module.name', 'Mismatched intent snapshot') where id=?",
+                number(drift.get("outboxId")));
+        finishApprovalTask(owner, number(drift.get("flowInstanceId")), "APPROVE");
+        approvalActions.reconcileDue();
+        assertThat(data(exchange(path + "/action-results/" + drift.get("idempotencyRecordId"), HttpMethod.GET, owner.token(), null)))
+                .containsEntry("businessStatus", "CONFLICT").containsEntry("errorCode", "ACTION_CONFIGURATION_CHANGED");
+        assertThat(jdbc.queryForObject("select current_version_id from cfg_module_publication where module_id=?", Long.class, moduleId)).isEqualTo(currentVersion);
+        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
+    }
+
+    private long publishApprovalActionFlow(Session owner, String code) {
+        long flowId = number(data(exchange("/api/flows", HttpMethod.POST, owner.token(), Map.of("code", code, "name", code))).get("id"));
+        var draft = exchange("/api/flows/" + flowId + "/draft", HttpMethod.PUT, owner.token(), Map.of(
+                "expectedVersion", 0, "nodes", List.of(
+                        Map.of("nodeKey", "start", "nodeType", "START", "name", "Start", "positionX", 0, "positionY", 0, "config", Map.of()),
+                        Map.of("nodeKey", "approve", "nodeType", "APPROVAL", "name", "Owner approval", "positionX", 200, "positionY", 0,
+                                "assigneePolicy", Map.of("type", "RECORD_OWNER"), "config", Map.of()),
+                        Map.of("nodeKey", "end", "nodeType", "END", "name", "End", "positionX", 400, "positionY", 0, "config", Map.of())),
+                "edges", List.of(Map.of("edgeKey", "review", "sourceNodeKey", "start", "targetNodeKey", "approve", "priorityOrder", 0, "config", Map.of()),
+                        Map.of("edgeKey", "finish", "sourceNodeKey", "approve", "targetNodeKey", "end", "priorityOrder", 0, "config", Map.of()))));
+        assertThat(draft.getStatusCode()).as("approval draft: %s", draft.getBody()).isEqualTo(HttpStatus.OK);
+        var published = exchange("/api/flows/" + flowId + "/publish", HttpMethod.POST, owner.token(),
+                Map.of("expectedDraftRevision", data(draft).get("draftRevision"), "changeSummary", "Intent approval"));
+        assertThat(published.getStatusCode()).as("approval publish: %s", published.getBody()).isEqualTo(HttpStatus.OK);
+        return flowId;
+    }
+
+    private void finishApprovalTask(Session owner, long instanceId, String decision) {
+        long taskId = jdbc.queryForObject("select id from flow_task where instance_id=? and status='PENDING'", Long.class, instanceId);
+        var result = exchange("/api/flow-runtime/tasks/" + taskId + "/actions", HttpMethod.POST, owner.token(),
+                Map.of("actionCode", decision, "comment", "Intent contract " + decision, "idempotencyKey", "intent-task-" + taskId + "-" + decision));
+        assertThat(result.getStatusCode()).as("approval outcome: %s", result.getBody()).isEqualTo(HttpStatus.OK);
+    }
+
+    private long publishActionFlow(Session owner, long flowId, String endKey) {
+        var flow = data(exchange("/api/flows/" + flowId, HttpMethod.GET, owner.token(), null));
+        var draft = exchange("/api/flows/" + flowId + "/draft", HttpMethod.PUT, owner.token(), Map.of(
+                "expectedVersion", flow.get("version"), "nodes", List.of(
+                        Map.of("nodeKey", "start", "nodeType", "START", "name", "Start", "positionX", 0, "positionY", 0, "config", Map.of()),
+                        Map.of("nodeKey", endKey, "nodeType", "END", "name", "End", "positionX", 400, "positionY", 0, "config", Map.of())),
+                "edges", List.of(Map.of("edgeKey", "finish", "sourceNodeKey", "start", "targetNodeKey", endKey,
+                        "priorityOrder", 0, "config", Map.of()))));
+        assertThat(draft.getStatusCode()).as("draft: %s", draft.getBody()).isEqualTo(HttpStatus.OK);
+        var published = exchange("/api/flows/" + flowId + "/publish", HttpMethod.POST, owner.token(),
+                Map.of("expectedDraftRevision", data(draft).get("draftRevision"), "changeSummary", endKey));
+        assertThat(published.getStatusCode()).as("publish: %s", published.getBody()).isEqualTo(HttpStatus.OK);
+        return number(data(published).get("versionId"));
+    }
+
+    private void publishActionBinding(Session owner, long moduleId, long flowId, String action, String mode) {
+        var binding = exchange("/api/flow-bindings/publish", HttpMethod.POST, owner.token(), Map.of(
+                "moduleId", moduleId, "flowId", flowId, "triggerEvent", action, "executionMode", mode,
+                "priorityOrder", 0, "mutuallyExclusive", true, "replaceExisting", true));
+        assertThat(binding.getStatusCode()).as("binding: %s", binding.getBody()).isEqualTo(HttpStatus.OK);
+    }
+
+    private ResponseEntity<Map> actionEnvelope(String path, HttpMethod method, Session owner, String key, Object body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(owner.token());
+        headers.set("Idempotency-Key", key);
+        headers.set("Prefer", "return=action");
+        return http.exchange(path, method, new HttpEntity<>(body, headers), Map.class);
+    }
+
     @Container
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")
             .withDatabaseName("unexamine")

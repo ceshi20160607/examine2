@@ -1,0 +1,122 @@
+{
+  "step": "B02.3",
+  "status": "verified",
+  "verified_at": "2026-09-11T18:14:42.2716784+08:00",
+  "verification_scope": "Frozen customer runtime reference at 1440x900 for the shared list, detail and edit states, plus one basic narrow-width reachability check.",
+  "source_rows": [
+    "R2775",
+    "R2777",
+    "R2778",
+    "R2782",
+    "R2784",
+    "R2949"
+  ],
+  "changed_files": [
+    "projects/unexamine/ai/evidence/spark-b02-list-1440x900.png",
+    "projects/unexamine/ai/evidence/spark-b02-detail-1440x900.png",
+    "projects/unexamine/ai/evidence/spark-b02-edit-1440x900.png",
+    "projects/unexamine/ai/evidence/spark-b02-reference-verification.json",
+    "projects/unexamine/ai/planning/spark-state.json"
+  ],
+  "checks_actual_results": [
+    "The list reference was captured from /systems/18?workspace=runtime&module=customer at a true 1440x900 browser viewport; document scrollWidth was 1440 and no horizontal document overflow existed.",
+    "The detail reference was captured after opening existing record 18; the stable right drawer measured 520px and exposed overview, relation and history tabs plus one primary edit action.",
+    "The edit reference was captured after opening the existing record form without changing or saving data; the stable right drawer measured 560px and exposed one primary save action.",
+    "At 760x900, document scrollWidth was 745, the main work area remained readable, bottom navigation remained visible, and the new-record action remained reachable; the viewport was restored to 1440x900.",
+    "All nine shared-page files retained the exact hashes verified by B02.2. The reference capture did not change product code or business records."
+  ],
+  "screenshots": [
+    {
+      "path": "projects/unexamine/ai/evidence/spark-b02-list-1440x900.png",
+      "sha256": "9147a28c03c6333c5c4d1235907772f3f9d5222669634e42fc46f72f4347d2cc",
+      "width": 1440,
+      "height": 900,
+      "url": "/systems/18?workspace=runtime&module=customer",
+      "context": "Published customer module list with existing representative record, no row selected and therefore no batch bar."
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/spark-b02-detail-1440x900.png",
+      "sha256": "da8954ccc3cb838e597fbe4d327f3bf00ee22bd5a9dc28144ed96af37cf5014c",
+      "width": 1440,
+      "height": 900,
+      "url": "/systems/18?workspace=runtime&module=customer&recordId=18",
+      "context": "Existing customer record detail in the 520px right drawer after the opening animation settled."
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/spark-b02-edit-1440x900.png",
+      "sha256": "b32bd092652d07c5408e1d67ad2c933201eee43567beb7f16d40e02ccae27a2a",
+      "width": 1440,
+      "height": 900,
+      "url": "/systems/18?workspace=runtime&module=customer",
+      "context": "Existing customer record edit form in the 560px right drawer; no values changed and save was not invoked."
+    }
+  ],
+  "readback": [
+    "The desktop list has a clear page title, one blue new-record primary action, compact secondary actions, module navigation on the left and data on the right.",
+    "Detail and edit use the same right-side interaction model and leave enough of the source list visible to preserve context.",
+    "The unselected list omits batch actions; B02.2 already verified that the shared batch region appears only after selection.",
+    "The narrow check exercises the shared responsive fallback only. It does not claim the complete B19 mobile or accessibility matrix."
+  ],
+  "permission_or_failure_result": {
+    "browser_identity": "Local default platform administrator; credentials are intentionally omitted from this evidence.",
+    "expired_session": "An initial expired-session capture was rejected and overwritten after entering the system through the real platform system-entry flow.",
+    "capture_timing": "Initial detail/edit images were taken during the drawer opening animation and were rejected. Final images were captured after animation settlement and DOM readback confirmed 520px and 560px drawer widths.",
+    "data_mutation": "No business create, update, delete or save action was performed in B02.3."
+  },
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ProductListWorkspace.vue",
+      "sha256": "1c11dd41de12e00db8ed4f46b25ecf6c06b022cfe6cc15994034ad15df668799"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ProductFilterBar.vue",
+      "sha256": "256de28c9435cf67baddb27177da664cd5b3398977b2e226b8d291890c1eede7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ProductFormDrawer.vue",
+      "sha256": "2170cb36ac52aac430c78920f21369e19dafeb5cf4a271b30a04e6bf9c0f8b42"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ProductDetailDrawer.vue",
+      "sha256": "7535768a31063e262a19c49bf8d0f38d8fdc80a18dcadad1a059d4be61587b0e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "62af53696615cbcbe54e433a6573a03e5616de4d008d2d611d607080efa2c256"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/OrdinaryTasksView.vue",
+      "sha256": "dfc341c982db55944813f30b96fc9708937595402b275d402ab9b62de814064d"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/WorkHubView.vue",
+      "sha256": "036b8318baf21508834f0d30d40c6f1f08715b685e91ded70776a0f239eb0106"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/design-system.css",
+      "sha256": "006fea6108617174cd41ec10c3a334d664c3e93f226fbd404f952e37900c7973"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/design-system.test.ts",
+      "sha256": "72ee07d875c2d75c69adfc0da145707eeecc5c0bd513bc3964d6fa48f2bc58c6"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/spark-b02-list-1440x900.png",
+      "sha256": "9147a28c03c6333c5c4d1235907772f3f9d5222669634e42fc46f72f4347d2cc"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/spark-b02-detail-1440x900.png",
+      "sha256": "da8954ccc3cb838e597fbe4d327f3bf00ee22bd5a9dc28144ed96af37cf5014c"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/spark-b02-edit-1440x900.png",
+      "sha256": "b32bd092652d07c5408e1d67ad2c933201eee43567beb7f16d40e02ccae27a2a"
+    }
+  ],
+  "remaining": [
+    "Complete mobile breakpoint, accessibility and cross-module visual convergence remains B19.",
+    "Other product capability pages retain their owning package work; this reference freezes the shared runtime list/detail/edit pattern rather than claiming product completion."
+  ],
+  "next_step": "B03.1",
+  "usage_report": "projects/unexamine/ai/evidence/spark-usage-b02-reference.json"
+}

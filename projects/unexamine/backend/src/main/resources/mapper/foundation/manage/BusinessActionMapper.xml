@@ -20,9 +20,27 @@
     SELECT COUNT(*) FROM sys_tenant_member tm
     JOIN sys_member m ON m.id = tm.system_member_id AND m.system_id = tm.system_id
     JOIN sys_tenant t ON t.id = tm.tenant_id AND t.system_id = tm.system_id
+    JOIN sys_system s ON s.id = tm.system_id
+    JOIN plat_account a ON a.id = m.account_id
     WHERE tm.id = #{actor.tenantMemberId} AND tm.system_id = #{actor.systemId}
       AND tm.tenant_id = #{actor.tenantId} AND tm.system_member_id = #{actor.memberId}
       AND m.account_id = #{actor.accountId}
       AND tm.status = 'ACTIVE' AND m.status = 'ACTIVE' AND t.status = 'ACTIVE'
+      AND s.status = 'ACTIVE' AND a.status = 'ACTIVE'
+  </select>
+  <select id="lockResult" resultType="com.unique.unexamine.foundation.base.entity.CoreIdempotencyRecord">
+    SELECT * FROM core_idempotency_record WHERE id = #{id} FOR UPDATE
+  </select>
+  <select id="lockApprovalFlow" resultType="com.unique.unexamine.flow.base.entity.FlowInstance">
+    SELECT * FROM flow_instance WHERE id = #{id} FOR SHARE
+  </select>
+  <select id="completedApprovalActions" resultType="long">
+    SELECT c.id FROM core_idempotency_record c
+    JOIN core_event_outbox e ON e.id = CAST(JSON_UNQUOTE(JSON_EXTRACT(c.response_json, '$.outboxId')) AS UNSIGNED)
+    JOIN flow_instance f ON f.id = CAST(JSON_UNQUOTE(JSON_EXTRACT(e.payload_json, '$.flowInstanceId')) AS UNSIGNED)
+    WHERE e.aggregate_type = 'BUSINESS_ACTION' AND e.event_type = 'BUSINESS_ACTION_APPROVAL_REQUESTED'
+      AND JSON_UNQUOTE(JSON_EXTRACT(c.response_json, '$.status')) = 'PENDING_APPROVAL'
+      AND f.status IN ('COMPLETED','REJECTED','WITHDRAWN','TERMINATED','RETURNED')
+    ORDER BY c.id LIMIT 50
   </select>
 </mapper>

@@ -5,6 +5,8 @@ import PlatformAdminShell from '../components/PlatformAdminShell.vue'
 import ProductPage from '../components/ProductPage.vue'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import FixedConfigurationsView from './FixedConfigurationsView.vue'
+import { hasPlatformAdminCapability } from '../permissions'
+import { platformContext } from '../session'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,6 +22,8 @@ const titles: Record<string, { title: string; description: string }> = {
   OPERATIONS: { title: '运维配置', description: '维护平台运行、健康与恢复策略。' },
 }
 const heading = computed(() => titles[category.value] ?? { title: '平台信息', description: '维护平台资料与全局身份接入。' })
+const canManageIdentity = computed(() => hasPlatformAdminCapability(platformContext.value?.permissions, 'identity'))
+const canManageMessages = computed(() => hasPlatformAdminCapability(platformContext.value?.permissions, 'message'))
 </script>
 
 <template>
@@ -28,12 +32,12 @@ const heading = computed(() => titles[category.value] ?? { title: '平台信息'
       <ProductPageHeader density="configuration" kicker="平台管理" :title="heading.title" :description="heading.description" />
       <nav v-if="category === 'PLATFORM_INFO'" class="admin-subnav admin-subnav--text" aria-label="平台信息任务">
         <button class="active" type="button"><span><strong>平台资料</strong><small>平台名称与基础信息</small></span></button>
-        <button type="button" @click="router.push('/platform/admin/identity-providers')"><span><strong>统一认证</strong><small>身份源、测试与发布</small></span></button>
+        <button v-if="canManageIdentity" type="button" @click="router.push('/platform/admin/identity-providers')"><span><strong>统一认证</strong><small>身份源、测试与发布</small></span></button>
       </nav>
       <nav v-else-if="category === 'BUSINESS_PARAMETER'" class="admin-subnav admin-subnav--text" aria-label="平台业务参数任务">
         <button class="active" type="button"><span><strong>参数配置</strong><small>平台级业务参数</small></span></button>
         <button type="button" @click="router.push('/platform/admin/dashboards')"><span><strong>首页配置</strong><small>组件、布局与发布</small></span></button>
-        <button type="button" @click="router.push('/platform/admin/messages')"><span><strong>消息模板</strong><small>模板、渠道与诊断</small></span></button>
+        <button v-if="canManageMessages" type="button" @click="router.push('/platform/admin/messages')"><span><strong>消息模板</strong><small>模板、渠道与诊断</small></span></button>
       </nav>
       <FixedConfigurationsView context="platform" :initial-category="category" single-category />
     </ProductPage>

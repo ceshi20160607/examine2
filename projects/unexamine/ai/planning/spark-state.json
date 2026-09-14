@@ -5,8 +5,8 @@
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B01.3",
-  "current_step": "B01.2",
+  "next_step": "B05.1a",
+  "current_step": "B05.1a",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
@@ -18,81 +18,132 @@
     "frontend": "shared_shells_and_schema_renderers"
   },
   "current_scope": {
-    "step": "B01.3",
+    "step": "B05.1a",
     "source_rows": [
-      "R0303",
-      "R0304",
-      "R1776",
-      "R1779",
-      "R2208",
-      "R2209",
-      "R2210",
-      "R2218",
-      "R2948"
+      "R0459",
+      "R0512",
+      "R0514",
+      "R0515",
+      "R0516",
+      "R0518",
+      "R0525",
+      "R0526",
+      "R0527",
+      "R0533",
+      "R0535",
+      "R0536",
+      "R0553",
+      "R0555",
+      "R0557"
     ],
     "files": [
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessAction.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationExtensionDispatcher.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java",
-      "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordView.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
-      "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java"
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata",
+      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "projects/unexamine/frontend/src/product/components"
     ],
     "entry_points": [
-      "FoundationControlService.execute: mode decision currently rejects non-DIRECT; this is the next edit point.",
-      "FlowBindingService.resolveForAction: published binding/condition/tenant resolution already in use.",
-      "RuntimeDataService.createAction/updateAction/deleteAction and physical private *Direct handlers already integrated.",
-      "RuntimeDataCommandExtension is now a synchronous compatibility adapter, not an outbox consumer."
+      "Inventory the actual configuration, server normalization/validation/storage/query and shared rendering paths for existing text, number, date and boolean fields; keep one registry instead of adding page-specific branches.",
+      "Use the retained 客户档案 acceptance module or one bounded test fixture to exercise one representative field from each family through configuration and publication.",
+      "Fix only failures in the real configure-to-runtime chain. Add focused contract coverage for configured defaults and invalid values; do not repeat full suites after relevant checks pass.",
+      "Do not start approval or application expansion until this basic field-family matrix is read back from the real UI and database."
     ],
     "acceptance": [
-      "AFTER_EXECUTION saves the business result and reliably starts the bound snapshot once.",
-      "FLOW_ONLY starts the Flow without calling the physical CRUD handler.",
-      "Repeat submission/delivery does not create duplicate instances; failed delivery can recover.",
-      "Preserve the five passing runtime tests. AFTER_APPROVAL remains B01.4; do not skip B01.3."
+      "Each representative field can be configured without JSON and displays only relevant options.",
+      "Published defaults apply on omitted create input; invalid input is rejected server-side without a record or audit-success row.",
+      "Values survive create/update/reopen and appear correctly in list and detail; applicable filter/sort is verified.",
+      "A role with field restrictions cannot recover hidden values from the page or direct API.",
+      "Record exact unsupported behavior as remaining B05 work; do not claim all field types complete."
     ]
   },
   "last_result": {
-    "kind": "steps_verified",
-    "implementation_started": true,
-    "steps": [
-      "B01.1",
-      "B01.2"
+    "step": "B04.1a",
+    "status": "vertical_slice_verified",
+    "verified_at": "2026-09-15T00:03:56.589376+08:00",
+    "verification_scope": "A real browser golden path from system-admin module creation and publication through role assignment to ordinary-member list/detail/create/update, backed by database and audit readback. This proves the first usable slice only; it does not mark B03, B04, B05 or B06 complete.",
+    "source_rows": [
+      "R0162",
+      "R0292",
+      "R0293",
+      "R0295",
+      "R0313",
+      "R0315",
+      "R0437",
+      "R0451",
+      "R0518",
+      "R0606",
+      "R0798",
+      "R0819",
+      "R1413",
+      "R1414"
     ],
-    "evidence": "projects/unexamine/ai/evidence/spark-b01-direct-verification.json",
-    "checks": {
-      "compile": "JDK21 mvn -q -DskipTests test-compile: exit 0",
-      "behavior_tests": {
-        "tests": 5,
-        "failures": 0,
-        "errors": 0,
-        "skipped": 0,
-        "seconds": "180.211",
-        "cases": [
-          "actionBoundaryUsesRealApiAndReplaysCreateUpdateDeleteWithoutDuplicateWrites",
-          "publishedDirectBindingAndUnmatchedConditionPreserveOrdinarySave",
-          "publishedRuntimeStoresTypedValuesVersionsAndEnforcesActionScopeAndTenantBoundary",
-          "actionFailureRollsBackPartialDataResultAndEventAndAllowsCorrectedRetry",
-          "concurrentActionsAndRecoverableDeliveryDoNotRepeatBusiness"
-        ]
-      },
-      "legacy_control_regression": "FoundationControlHttpTest#systemControlJourneyIsIdempotentIsolatedAndDatabaseAuthoritative passed earlier in this turn; subsequent changes affected business-only execution and were covered by the final runtime tests.",
-      "diff_check": "git diff --check -- projects/unexamine/backend/src: passed"
+    "changed_files": [
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "projects/unexamine/ai/evidence/spark-golden-path-module-record-verification.json",
+      "projects/unexamine/ai/planning/spark-state.json"
+    ],
+    "checks_actual_results": [
+      "Backend JDK 21 test-compile passed.",
+      "RuntimeDataHttpTest#configuredFieldDefaultIsValidatedAndStoredWhenCreateOmitsTheField passed in the isolated Linux Maven/Testcontainers path.",
+      "Frontend RuntimeWorkspaceView focused tests passed: 3 files, 13 tests.",
+      "Frontend production build passed for 3958 modules; only the existing chunk-size warning remained.",
+      "Real browser: system administrator created the 客户管理 / 客户档案 module, configured required text and status fields, passed publication checks, published v1 and entered the runtime.",
+      "Real browser: an ordinary member with a published 业务成员 role saw only the authorized module and could list, open detail, update and create records without entering JSON or a duplicate title.",
+      "Direct HTTP call to an ungranted archive action returned HTTP 403 / PERMISSION_DENIED.",
+      "Database readback found the ordinary-member-created record with title and required text equal to 普通用户新增客户, configured status default active, owner/creator/updater member 68, and immutable BUSINESS_RECORD_CREATED audit.",
+      "The retained B03 browser fixture system 52/account 50 was disabled and its sessions revoked; the previously blocked registration offset test passed.",
+      "Temporary golden-path account/system/member sessions were disabled or revoked after verification; immutable audit remained. The unused second draft module was removed with its one audit row retained."
+    ],
+    "readback": [
+      "Record 62 was created by ordinary system member 68 and stored both configured values; record 61 was updated by member 68 and reopened as 客户状态=启用.",
+      "Role 业务成员 is published and assigned to the temporary member with LIST, DETAIL, CREATE and UPDATE at ALL data scope and PAGE read/write access to both fields.",
+      "Revoking the temporary account sessions and reloading the browser returned the user to /login, proving forced-offline behavior.",
+      "The runnable acceptance system retains one published 客户档案 module and three readable records; the throwaway 客户回访 draft no longer exists."
+    ],
+    "permission_or_failure_result": {
+      "permission_enforcement": "An ordinary member could execute only the four granted module actions; a direct archive request was rejected with 403/PERMISSION_DENIED.",
+      "configured_default": "A missing create payload value used the published field default and was then normalized, validated and persisted as active.",
+      "first_create_observation": "The first module create with a new group showed a success toast followed by a generic request failure until manual refresh. Server data was complete and a second create/readback did not reproduce it, so no speculative patch was made.",
+      "cleanup": "Six temporary account sessions were revoked; one temporary account, platform member, two system members, two tenant memberships and temporary system 53 were disabled. No audit row was deleted.",
+      "workspace_preservation": "Pre-existing staged/unstaged implementation was preserved; no reset or regeneration ran."
     },
-    "remaining": [
-      "B01.3: UPDATE/DELETE DIRECT already integrated; connect AFTER_EXECUTION/FLOW_ONLY to versioned Flow start and test once-only instance/recovery.",
-      "B01.4: AFTER_APPROVAL intent, rejection, once-only resume and conflict handling remain unimplemented.",
-      "Non-DIRECT matching bindings currently fail explicitly before saving; this is not completion of Flow requirements.",
-      "UI layout and visual business journeys were not changed/verified. Frontend stable Idempotency-Key reuse remains for shared action UI integration.",
-      "Application/Flow-specific caller, channel authorization and causation propagation remain for their planned packets."
+    "tested_file_hashes": [
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "sha256": "a9530137a728ed89b74cd78d15278334d41f61c98fd8461929ee9fb7cc5bc134"
+      },
+      {
+        "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "sha256": "8c53aef21f7b3d0923554c7493f95bd0a33fef3a4fa54907e5d1080578a4a6f0"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "sha256": "55b8c9eec31559c053f95d1f3c0309bbb20a1af298b736945291274e453bea15"
+      }
     ],
-    "usage_report": "projects/unexamine/ai/evidence/spark-usage-current.json"
+    "remaining": [
+      "B05.1a: verify and complete the shared text/number/date/boolean field registry with one representative of each family through configure, publish, default, invalid-input rejection, create/update, reopen, list/detail, applicable filter/sort and field permission.",
+      "B04 still needs dictionary variants, version rollback, destructive dependency checks and tenant extension merge verification.",
+      "B03.1b password recovery and B03.1c enterprise identity mapping remain required and deferred, not complete.",
+      "The non-reproduced first-create/new-group UI readback error remains an observed risk; re-open only if it reproduces during the next module/configuration journey."
+    ],
+    "next_step": "B05.1a",
+    "evidence": "projects/unexamine/ai/evidence/spark-golden-path-module-record-verification.json",
+    "usage_report": "projects/unexamine/ai/evidence/spark-usage-golden-path.json"
   },
-  "blockers": [],
+  "blockers": [
+    {
+      "id": "B03_BROWSER_FIXTURE_CLEANUP_DOCKER",
+      "step": "B03.1b",
+      "kind": "external_environment",
+      "status": "resolved",
+      "detail": "Docker recovered. Active sessions for account 50 were revoked, account 50 and guarded system 52/code system_6360a030b7 were disabled, immutable audit was retained, and the focused registration offset assertion passed.",
+      "resolved_at": "2026-09-15T00:03:56.589376+08:00"
+    }
+  ],
   "evidence": [
     {
       "permission_or_failure_result": {
@@ -483,6 +534,291 @@
       ],
       "next_step": "B01.3",
       "correction": "Earlier compile-only completion entries are historical, not acceptance evidence; this record supplies real behavior evidence."
+    },
+    {
+      "step": "B01.3",
+      "status": "verified",
+      "evidence": "projects/unexamine/ai/evidence/spark-b01-flow-verification.json",
+      "verification_scope": "Pinned bound Flow integration, record-less receipts, two configured modules, delivery rollback/recovery and legacy compatibility rollback. Full product/UI/channel completion is not claimed.",
+      "remaining": [
+        "This verifies B01.3's runtime integration, not completion of all Flow requirements or the system.",
+        "AFTER_APPROVAL pending intent and once-only resume remain B01.4; advanced approvals and the real approval journey remain B08-B10.",
+        "Import, AI and application callers still need receipt adaptation (B13/B17/B11). FLOW_ONLY currently fails explicitly and transactionally there instead of creating a Flow followed by a null-record error.",
+        "A bound Flow requires an active initiator membership in the data tenant. A shared-data actor without one has an explicit start failure; complete cross-tenant delegation semantics remain B03/B11.",
+        "Existing Flow writeback/status paths and durable causation propagation must join the common action contract in B08-B10.",
+        "Page response handling was built and unit-tested, not browser visually accepted. Shared shells/layouts remain B02, field runtime B05, complete shared forms B06.",
+        "UI request identity survives retries in the current open form; restoration of pending submissions across reloads remains for B06."
+      ]
+    },
+    {
+      "step": "B01.4",
+      "status": "verified",
+      "evidence": "projects/unexamine/ai/evidence/spark-b01-approval-verification.json",
+      "verification_scope": "Pending CRUD intents; real simple owner approvals; once-only resume and completion event; rejection/withdrawal; active-actor, record-version and effective-configuration guards; rollback and explicit retry. Advanced Flow/UI/channels remain in their assigned packets."
+    },
+    {
+      "step": "B02.1",
+      "status": "verified",
+      "verified_at": "2026-09-11T16:17:17.294808+08:00",
+      "evidence": "projects/unexamine/ai/evidence/spark-b02-shell-verification.json",
+      "verification_scope": "Four workspace shells, route ownership, permission-filtered navigation, visible fallback/empty/error states, runtime/admin separation, and live DIRECT receipt display. It does not certify all B02 source-row business capabilities.",
+      "remaining": [
+        "B02.2 still needs reusable list, filter, form, detail and action containers, with the runtime module and one fixed capability page migrated to them.",
+        "B02.3 still needs saved 1440x900 list, edit and detail reference screenshots; this step only used the viewport for live shell acceptance.",
+        "Disabled-system restricted administration and richer system-card identity/tenant/recent-access data depend on the B03 identity, membership and status contract; current runtime denial is explicit.",
+        "Lower-privilege navigation was contract-tested at the route/permission layer; the browser journey used the local default super administrator.",
+        "Advanced Flow, application, task and channel business behavior remains in their assigned packages; this evidence certifies shell ownership and routing only."
+      ]
+    },
+    {
+      "step": "B02.2",
+      "status": "verified",
+      "verified_at": "2026-09-11T17:33:50.154759+08:00",
+      "evidence": "projects/unexamine/ai/evidence/spark-b02-page-framework-verification.json",
+      "verification_scope": "Reusable list/filter/detail/form/action containers, migrated runtime-module and ordinary-task pages, list/detail URL context restoration, selection-dependent batch actions, and the existing unified action executor through a real save.",
+      "remaining": [
+        "B02.3 still needs three saved 1440x900 reference screenshots for list, edit and detail plus one basic narrow-width no-crash check.",
+        "This step migrates the runtime module and ordinary-task fixed page required by B02.2. Other capability pages keep their existing layouts until their owning package changes them, avoiding another broad cosmetic rewrite.",
+        "Full configurable field rendering and complete reusable business forms remain B05 and B06; this step standardizes their page containers and preserves the B01 action executor.",
+        "The browser log buffer retained setup/HMR errors from an expired pre-verification session and intermediate syntax fixes. A baseline count was taken after the final code loaded; final reloads produced no new warning or error entries.",
+        "Advanced Flow, applications, channels and the remaining product requirements retain their assigned packages; B02.2 does not claim product completion."
+      ]
+    },
+    {
+      "step": "B02.3",
+      "verified_at": "2026-09-11T18:14:42.2716784+08:00",
+      "source_rows": [
+        "R2775",
+        "R2777",
+        "R2778",
+        "R2782",
+        "R2784",
+        "R2949"
+      ],
+      "changed_files": [
+        "projects/unexamine/ai/evidence/spark-b02-list-1440x900.png",
+        "projects/unexamine/ai/evidence/spark-b02-detail-1440x900.png",
+        "projects/unexamine/ai/evidence/spark-b02-edit-1440x900.png",
+        "projects/unexamine/ai/evidence/spark-b02-reference-verification.json"
+      ],
+      "checks_actual_results": [
+        "Three true 1440x900 PNG references captured from the existing customer runtime list/detail/edit journey.",
+        "Desktop document scrollWidth equaled viewport width; stable detail/edit drawers measured 520px/560px.",
+        "Basic 760x900 check retained reachable navigation, main content and primary create action without horizontal overflow.",
+        "All B02.2 shared-page component hashes matched; no product code or business record was changed."
+      ],
+      "readback": [
+        "The frozen reference has one page primary action and compact secondary actions.",
+        "Detail and edit preserve list context in consistent right-side drawers.",
+        "Full responsive/accessibility convergence remains assigned to B19."
+      ],
+      "permission_or_failure_result": {
+        "expired_session": "Rejected and overwritten after real platform system entry.",
+        "animation_capture": "Rejected and overwritten after DOM width readback confirmed settled drawers.",
+        "data_mutation": "No business save action performed."
+      },
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/ai/evidence/spark-b02-list-1440x900.png",
+          "sha256": "9147a28c03c6333c5c4d1235907772f3f9d5222669634e42fc46f72f4347d2cc"
+        },
+        {
+          "path": "projects/unexamine/ai/evidence/spark-b02-detail-1440x900.png",
+          "sha256": "da8954ccc3cb838e597fbe4d327f3bf00ee22bd5a9dc28144ed96af37cf5014c"
+        },
+        {
+          "path": "projects/unexamine/ai/evidence/spark-b02-edit-1440x900.png",
+          "sha256": "b32bd092652d07c5408e1d67ad2c933201eee43567beb7f16d40e02ccae27a2a"
+        }
+      ],
+      "remaining": "B03.1 (credential/session/registration/system bootstrap and enterprise identity flows)",
+      "next_step": "B03.1",
+      "evidence": "projects/unexamine/ai/evidence/spark-b02-reference-verification.json"
+    },
+    {
+      "step": "B03.1a",
+      "source_rows": [
+        "R0331",
+        "R0333",
+        "R0336",
+        "R0339",
+        "R0340",
+        "R0341",
+        "R0359",
+        "R0392",
+        "R2792",
+        "R2793"
+      ],
+      "changed_files": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/AuthenticationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/SessionTokens.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/platform/manage/registration/RegistrationResult.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/platform/manage/registration/RegistrationService.java",
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/platform/manage/registration/RegistrationTransactionService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/authentication/manage/AuthenticationRegistrationHttpTest.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemBootstrapServiceIntegrationTest.java",
+        "projects/unexamine/frontend/src/product/api.test.ts",
+        "projects/unexamine/frontend/src/product/api.ts",
+        "projects/unexamine/frontend/src/product/session.ts",
+        "projects/unexamine/frontend/src/product/views/AuthView.vue",
+        "projects/unexamine/ai/evidence/spark-b03-auth-session-verification.json",
+        "projects/unexamine/ai/evidence/spark-usage-b03-auth-session.json",
+        "projects/unexamine/ai/planning/spark-state.json"
+      ],
+      "checks_actual_results": [
+        "JDK 21 mvn -q -DskipTests test-compile passed after all source and test changes.",
+        "SystemBootstrapServiceIntegrationTest: 2 passed, including forced mid-transaction rollback and retry without duplicate bootstrap rows.",
+        "AuthenticationRegistrationHttpTest#registrationCreatesACompleteSingleTenantSystemAndConflictRollsBack: 1 passed after adding business-conflict failure audit.",
+        "Frontend focused tests: 2 files, 12 tests passed; 401 refresh rotates storage once and retries the original request with the new token.",
+        "Frontend production build passed (3958 modules); only the pre-existing large-chunk warning remained.",
+        "Real browser registration reached /systems/52/admin and displayed the created system plus system information, organization, roles, flow, application and audit navigation; browser warning/error count was 0.",
+        "Database readback for the browser-created system showed exactly one platform session, one system session, main tenant, root department, active member, built-in administrator role and wildcard ALL permission.",
+        "Timezone regression check: the first reload converted the previously timezone-less system session; a second reload left successful AUTH_REFRESH count unchanged at 2, proving a fresh offset-bearing token was not refreshed again."
+      ],
+      "readback": [
+        "Registration keeps the existing tokens response field as the system session for compatibility and adds platformTokens for the independent platform session.",
+        "The creator is stored into both contexts and lands directly in /systems/{systemId}/admin.",
+        "Registration conflicts now leave no second account/system and persist ACCOUNT_REGISTER_SYSTEM_CREATED / RESOURCE_CONFLICT in a separate audit transaction.",
+        "Session expiry values are serialized with an explicit UTC offset derived from the server Clock zone, so browser expiry checks are based on an unambiguous instant.",
+        "The API client refreshes only the matching platform or system scope, deduplicates concurrent refreshes, stores rotated tokens and retries the failed request once."
+      ],
+      "permission_or_failure_result": {
+        "workspace_preservation": "All pre-existing staged/unstaged changes were preserved; no reset or regeneration ran.",
+        "native_windows_backend": "Runtime still cannot start Undertow because the recorded Windows XNIO provider issue remains; Linux container supplied real HTTP/browser execution.",
+        "broad_http_class": "The broad class exposed pre-existing TestRestTemplate empty-body POST content-type and 401 error-body reading failures; only the bounded registration/bootstrap acceptance tests were used for this substep.",
+        "cleanup": "Deletion was correctly rejected by the immutable audit trigger. Before the allowed disable/revoke transaction could run, Docker Desktop disconnected and stopped MySQL. Exact pending objects are system id 52/code system_6360a030b7 and creator account id 50; they remain retained with immutable audit events.",
+        "external_cleanup_blocker": "When Docker is available, revoke active auth_session rows for account 50 and disable account 50 plus system 52 using both ids/code as guards; do not delete or bypass immutable audit records."
+      },
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/AuthenticationService.java",
+          "sha256": "CE2EBDE84B312C0C21988DEDD3F9694C20D91F3684B41F7CD493B3A36DE9B20C"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/SessionTokens.java",
+          "sha256": "7E16E9FED8E004A2053B6DDDD28CEC970B9697412C884C5F69C2CC5EB96FD059"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/platform/manage/registration/RegistrationResult.java",
+          "sha256": "D5F8B4C7B603C5F22645DBBB07C9C2299AEB65703D56B6FA06FBC67B200AF8CE"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/platform/manage/registration/RegistrationService.java",
+          "sha256": "5BF10D8F4FD8EB42CEE9BAC1E07796CF71C9C638BF0ED5CA5D3479D9B177BE85"
+        },
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/platform/manage/registration/RegistrationTransactionService.java",
+          "sha256": "0544DD3F557E36A640241B41EA9EA980499685C9388DFBF4A3946F1C5273D348"
+        },
+        {
+          "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/authentication/manage/AuthenticationRegistrationHttpTest.java",
+          "sha256": "AE88F7478DDBD1DEADB1B3949AFAB2B8AFC9E29E7D699B1669C3B1AC36E528EE"
+        },
+        {
+          "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/system/manage/SystemBootstrapServiceIntegrationTest.java",
+          "sha256": "7C048838908ABC0D88FF2270432C1ADD42A51B329823963AB89303649AE58D17"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/api.test.ts",
+          "sha256": "D69275EB8D3D7AEC7427DA03F704E2DFB5A0A4EBC7E82A8F1EE4A6DFCE197777"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/api.ts",
+          "sha256": "4C6BD76A7A9A508F5F359DA58F7A7A8B1E882DCE9E35F5F33F89670C86E89F1F"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/session.ts",
+          "sha256": "7FC8BAB60F4531B54BE15E3DCE4CFA42BE45002F7D1EDB1EBF51A44860605E71"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/views/AuthView.vue",
+          "sha256": "9E51D3540CB48C2B35DD2BE32411A8755D7D8FBB2FD753EA4E3AD00233E5A04F"
+        }
+      ],
+      "remaining": [
+        "B03.1b: implement and verify unauthenticated password recovery/reset, then recheck login/logout/password change/failure limiting/current-user/session revocation through real HTTP and UI.",
+        "At B03.1b start, finish the exact retained-fixture revoke/disable cleanup and rerun the registration HTTP offset assertion when Docker becomes available.",
+        "B03.1c: verify published enterprise identity providers and structured system member mapping, recording unsupported real external connectivity as a blocker.",
+        "B03.1 remains unverified until B03.1b and B03.1c pass."
+      ],
+      "next_step": "B03.1b"
+    },
+    {
+      "step": "B04.1a",
+      "status": "vertical_slice_verified",
+      "verified_at": "2026-09-15T00:03:56.589376+08:00",
+      "verification_scope": "A real browser golden path from system-admin module creation and publication through role assignment to ordinary-member list/detail/create/update, backed by database and audit readback. This proves the first usable slice only; it does not mark B03, B04, B05 or B06 complete.",
+      "source_rows": [
+        "R0162",
+        "R0292",
+        "R0293",
+        "R0295",
+        "R0313",
+        "R0315",
+        "R0437",
+        "R0451",
+        "R0518",
+        "R0606",
+        "R0798",
+        "R0819",
+        "R1413",
+        "R1414"
+      ],
+      "changed_files": [
+        "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/spark-golden-path-module-record-verification.json",
+        "projects/unexamine/ai/planning/spark-state.json"
+      ],
+      "checks_actual_results": [
+        "Backend JDK 21 test-compile passed.",
+        "RuntimeDataHttpTest#configuredFieldDefaultIsValidatedAndStoredWhenCreateOmitsTheField passed in the isolated Linux Maven/Testcontainers path.",
+        "Frontend RuntimeWorkspaceView focused tests passed: 3 files, 13 tests.",
+        "Frontend production build passed for 3958 modules; only the existing chunk-size warning remained.",
+        "Real browser: system administrator created the 客户管理 / 客户档案 module, configured required text and status fields, passed publication checks, published v1 and entered the runtime.",
+        "Real browser: an ordinary member with a published 业务成员 role saw only the authorized module and could list, open detail, update and create records without entering JSON or a duplicate title.",
+        "Direct HTTP call to an ungranted archive action returned HTTP 403 / PERMISSION_DENIED.",
+        "Database readback found the ordinary-member-created record with title and required text equal to 普通用户新增客户, configured status default active, owner/creator/updater member 68, and immutable BUSINESS_RECORD_CREATED audit.",
+        "The retained B03 browser fixture system 52/account 50 was disabled and its sessions revoked; the previously blocked registration offset test passed.",
+        "Temporary golden-path account/system/member sessions were disabled or revoked after verification; immutable audit remained. The unused second draft module was removed with its one audit row retained."
+      ],
+      "readback": [
+        "Record 62 was created by ordinary system member 68 and stored both configured values; record 61 was updated by member 68 and reopened as 客户状态=启用.",
+        "Role 业务成员 is published and assigned to the temporary member with LIST, DETAIL, CREATE and UPDATE at ALL data scope and PAGE read/write access to both fields.",
+        "Revoking the temporary account sessions and reloading the browser returned the user to /login, proving forced-offline behavior.",
+        "The runnable acceptance system retains one published 客户档案 module and three readable records; the throwaway 客户回访 draft no longer exists."
+      ],
+      "permission_or_failure_result": {
+        "permission_enforcement": "An ordinary member could execute only the four granted module actions; a direct archive request was rejected with 403/PERMISSION_DENIED.",
+        "configured_default": "A missing create payload value used the published field default and was then normalized, validated and persisted as active.",
+        "first_create_observation": "The first module create with a new group showed a success toast followed by a generic request failure until manual refresh. Server data was complete and a second create/readback did not reproduce it, so no speculative patch was made.",
+        "cleanup": "Six temporary account sessions were revoked; one temporary account, platform member, two system members, two tenant memberships and temporary system 53 were disabled. No audit row was deleted.",
+        "workspace_preservation": "Pre-existing staged/unstaged implementation was preserved; no reset or regeneration ran."
+      },
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+          "sha256": "a9530137a728ed89b74cd78d15278334d41f61c98fd8461929ee9fb7cc5bc134"
+        },
+        {
+          "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+          "sha256": "8c53aef21f7b3d0923554c7493f95bd0a33fef3a4fa54907e5d1080578a4a6f0"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+          "sha256": "55b8c9eec31559c053f95d1f3c0309bbb20a1af298b736945291274e453bea15"
+        }
+      ],
+      "remaining": [
+        "B05.1a: verify and complete the shared text/number/date/boolean field registry with one representative of each family through configure, publish, default, invalid-input rejection, create/update, reopen, list/detail, applicable filter/sort and field permission.",
+        "B04 still needs dictionary variants, version rollback, destructive dependency checks and tenant extension merge verification.",
+        "B03.1b password recovery and B03.1c enterprise identity mapping remain required and deferred, not complete.",
+        "The non-reproduced first-create/new-group UI readback error remains an observed risk; re-open only if it reproduces during the next module/configuration journey."
+      ],
+      "next_step": "B05.1a",
+      "evidence": "projects/unexamine/ai/evidence/spark-golden-path-module-record-verification.json",
+      "usage_report": "projects/unexamine/ai/evidence/spark-usage-golden-path.json"
     }
   ],
   "step_record_contract": {
@@ -520,8 +856,8 @@
       "steps": {
         "B01.1": "verified",
         "B01.2": "verified",
-        "B01.3": "unverified",
-        "B01.4": "unverified"
+        "B01.3": "verified",
+        "B01.4": "verified"
       }
     },
     {
@@ -531,9 +867,9 @@
         "B01"
       ],
       "steps": {
-        "B02.1": "unverified",
-        "B02.2": "unverified",
-        "B02.3": "unverified"
+        "B02.1": "verified",
+        "B02.2": "verified",
+        "B02.3": "verified"
       }
     },
     {
@@ -779,5 +1115,14 @@
     "referenced_entry_files": "passed",
     "workspace_validate": "passed",
     "product_tests": "not_run_planning_only"
+  },
+  "execution_priority": {
+    "mode": "user_directed_real_vertical_slice",
+    "reason": "Do not spend more cycles proving isolated infrastructure while the product is not visibly usable. Stabilize and verify a real configurable-module journey first, then complete field families before approval and application packages.",
+    "deferred_required_steps": [
+      "B03.1b",
+      "B03.1c"
+    ],
+    "rule": "Deferred means still required; no historical report may mark it complete."
   }
 }

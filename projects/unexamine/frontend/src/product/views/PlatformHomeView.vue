@@ -4,12 +4,14 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
+import ProductState from '../components/ProductState.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
 import PlatformShell from '../components/PlatformShell.vue'
 import { isVerificationArtifactName, userFacingWorkspaceName } from '../presentation'
 import { clearSession, platformContext, platformTokens } from '../session'
 import { establishSystemSession } from '../system-entry'
 import type { SystemAccessRequest, SystemDirectoryItem } from '../types'
+import { platformAdminEntryPath } from '../permissions'
 
 interface AccessibleSystem {
   systemId: number
@@ -41,6 +43,7 @@ const canCreateSystem = computed(() => platformContext.value?.permissions.some((
   (permission.resourceType === '*' || permission.resourceType === 'PLATFORM')
   && (permission.resourceCode === '*' || permission.resourceCode === 'SYSTEM')
   && (permission.actionCode === '*' || permission.actionCode === 'CREATE')) ?? false)
+const managementPath = computed(() => platformAdminEntryPath(platformContext.value?.permissions))
 
 async function loadSystems() {
   if (!platformTokens.value?.accessToken) {
@@ -132,6 +135,10 @@ function latestRequest(systemId: number) {
 
 async function enterSystem(system: AccessibleSystem) {
   if (!platformTokens.value?.accessToken || !platformContext.value) return
+  if (system.status !== 'ACTIVE') {
+    error.value = `系统“${system.systemName}”已停用，当前不能进入业务运行态。`
+    return
+  }
   entering.value = system.systemId
   try {
     await establishSystemSession(system.systemId)
@@ -154,18 +161,25 @@ onMounted(loadSystems)
         <a-button v-if="canCreateSystem" type="primary" @click="openCreateSystem"><PlusOutlined />新建系统</a-button>
       </template>
     </ProductPageHeader>
-    <a-alert v-if="error" type="error" show-icon :message="error" class="section-alert" />
+    <a-alert v-if="error && visibleSystems.length" type="error" show-icon :message="error" class="section-alert" />
     <a-alert v-if="success" type="success" show-icon :message="success" class="section-alert" closable @close="success = ''" />
     <a-spin :spinning="loading">
       <div v-if="visibleSystems.length" class="system-list">
-        <article v-for="system in visibleSystems" :key="system.systemId" class="system-row" @click="enterSystem(system)">
+        <article v-for="system in visibleSystems" :key="system.systemId" :class="['system-row', { 'system-row--disabled': system.status !== 'ACTIVE' }]" @click="system.status === 'ACTIVE' && enterSystem(system)">
           <div class="system-row__mark"><AppstoreOutlined /></div>
           <div class="system-row__main"><h2>{{ system.systemName }}</h2><p>独立业务工作区</p></div>
           <div class="system-row__meta"><span>{{ userFacingWorkspaceName(system.defaultTenantName) }}</span><ProductStatusTag :status="system.status" /></div>
-          <a-button type="primary" ghost :loading="entering === system.systemId" @click.stop="enterSystem(system)">进入<ArrowRightOutlined /></a-button>
+          <a-button v-if="system.status === 'ACTIVE'" type="primary" ghost :loading="entering === system.systemId" @click.stop="enterSystem(system)">进入<ArrowRightOutlined /></a-button>
+          <a-button v-else-if="managementPath" @click.stop="router.push(managementPath)">前往管理</a-button>
+          <a-button v-else disabled>已停用</a-button>
         </article>
       </div>
-      <a-empty v-else-if="!loading" description="当前账号还没有可进入的系统" />
+      <ProductState v-else-if="!loading && error" state="error" title="系统列表加载失败" :description="error">
+        <template #actions><a-button type="primary" @click="loadSystems">重新加载</a-button></template>
+      </ProductState>
+      <ProductState v-else-if="!loading" state="empty" title="当前账号还没有可进入的系统" description="可以新建系统，或从下方目录申请已有系统的访问权限。">
+        <template v-if="canCreateSystem" #actions><a-button type="primary" @click="openCreateSystem"><PlusOutlined />新建系统</a-button></template>
+      </ProductState>
 
       <section v-if="requestableSystems.length" class="access-directory panel-card">
         <div class="panel-title"><strong>申请访问其他系统</strong><span>批准前不会获得任何业务权限</span></div>

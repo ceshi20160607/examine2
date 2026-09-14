@@ -6,13 +6,18 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { statusTone } from '../responsive'
 import { systemContext, systemTokens } from '../session'
-import { conversionTargetCodes } from '../runtime-actions'
+import { conversionTargetCodes, createRuntimeAction, businessActionMessage, type BusinessActionResult } from '../runtime-actions'
+import BusinessActionReceipt from '../components/BusinessActionReceipt.vue'
 import { authorizedBlob, saveBlob } from '../file'
 import { allowsPermission } from '../permissions'
 import ModuleImportDrawer from '../components/ModuleImportDrawer.vue'
 import ModuleExportDrawer from '../components/ModuleExportDrawer.vue'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductPage from '../components/ProductPage.vue'
+import ProductListWorkspace from '../components/ProductListWorkspace.vue'
+import ProductFilterBar from '../components/ProductFilterBar.vue'
+import ProductDetailDrawer from '../components/ProductDetailDrawer.vue'
+import ProductFormDrawer from '../components/ProductFormDrawer.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
 import PersonSelect from '../components/PersonSelect.vue'
 import DepartmentSelect from '../components/DepartmentSelect.vue'
@@ -47,6 +52,9 @@ const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
 const saving = ref(false)
+const saveAction = createRuntimeAction()
+const deleteAction = createRuntimeAction()
+const lastAction = ref<{ moduleCode: string; result: BusinessActionResult<unknown> }>()
 const error = ref('')
 const modules = ref<RuntimeModuleCatalogItem[]>([])
 const activeCode = ref('')
@@ -152,6 +160,9 @@ const attachmentFieldTypes = new Set(['ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP
 const recordAttachmentFields = computed(() => detailFields.value.filter(field => attachmentFieldTypes.has(field.fieldType)))
 const detailValueFields = computed(() => detailFields.value.filter(field => !attachmentFieldTypes.has(field.fieldType)))
 const formValueFields = computed(() => formFields.value.filter(field => !attachmentFieldTypes.has(field.fieldType)))
+const recordTitleField = computed(() => formValueFields.value.find(field => field.required
+  && ['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL'].includes(field.fieldType)
+  && !Boolean(fieldConfig(field).sensitive)))
 const selectedAttachmentField = computed(() => recordAttachmentFields.value.find(field => field.code === attachmentFieldCode.value))
 const canViewAttachments = computed(() => allowsPermission(systemContext.value?.permissions, 'FILE', 'OBJECT', 'VIEW')
   || allowsPermission(systemContext.value?.permissions, 'FILE', '*', 'VIEW'))
@@ -312,6 +323,7 @@ async function loadModules() {
     }
   } catch (reason) {
     error.value = readable(reason)
+    syncListRoute()
   } finally {
     loading.value = false
   }
@@ -319,7 +331,11 @@ async function loadModules() {
 
 async function loadPeopleDirectory() {
   if (!token.value) return
-  peopleDirectory.value = await api<SystemPeopleDirectory>('/api/system-directory', {}, token.value)
+  try {
+    peopleDirectory.value = await api<SystemPeopleDirectory>('/api/system-directory', {}, token.value)
+  } catch (reason) {
+    if (!error.value) error.value = readable(reason)
+  }
 }
 
 function applyRouteFilters() {
@@ -340,6 +356,53 @@ function applyRouteFilters() {
   } catch { /* Ignore malformed URL state and keep the ordinary unfiltered list. */ }
 }
 
+function routeValue(key: string) {
+  const value = route.query[key]
+  return Array.isArray(value) ? value[0] : value
+}
+
+function applyRouteListState() {
+  const stateKeys = ['search', 'filters', 'lifecycle', 'tenantScope', 'sort', 'direction', 'page', 'pageSize']
+  if (!stateKeys.some(key => routeValue(key) !== undefined && routeValue(key) !== null)) return
+  searchText.value = String(routeValue('search') || '').slice(0, 200)
+  const requestedLifecycle = String(routeValue('lifecycle') || '')
+  if (['ACTIVE', 'ARCHIVED', 'DELETED'].includes(requestedLifecycle)) lifecycleState.value = requestedLifecycle as typeof lifecycleState.value
+  const requestedTenantScope = String(routeValue('tenantScope') || '')
+  if (['ALL', 'OWN', 'SHARED'].includes(requestedTenantScope)) tenantScope.value = requestedTenantScope as typeof tenantScope.value
+  const requestedSort = String(routeValue('sort') || '')
+  if (sortFieldOptions.value.some(option => option.value === requestedSort)) sortField.value = requestedSort
+  const requestedDirection = String(routeValue('direction') || '')
+  if (requestedDirection === 'ASC' || requestedDirection === 'DESC') sortDirection.value = requestedDirection
+  const requestedPage = Number(routeValue('page'))
+  if (Number.isInteger(requestedPage) && requestedPage > 0) page.value = requestedPage
+  const requestedPageSize = Number(routeValue('pageSize'))
+  if (Number.isInteger(requestedPageSize) && requestedPageSize >= 10 && requestedPageSize <= 200) pageSize.value = requestedPageSize
+  applyRouteFilters()
+}
+
+function syncListRoute(recordId?: number) {
+  if (!activeCode.value) return
+  const query = { ...route.query, workspace: 'runtime', module: activeCode.value } as Record<string, string | undefined>
+  const setOptional = (key: string, value: string, ordinary: string) => {
+    if (value && value !== ordinary) query[key] = value
+    else delete query[key]
+  }
+  setOptional('search', searchText.value.trim(), '')
+  setOptional('filters', listFilters.value.length ? JSON.stringify(listFilters.value) : '', '')
+  setOptional('lifecycle', lifecycleState.value, 'ACTIVE')
+  setOptional('tenantScope', tenantScope.value, 'ALL')
+  setOptional('sort', sortField.value, 'updatedAt')
+  setOptional('direction', sortDirection.value, 'DESC')
+  setOptional('page', String(page.value), '1')
+  setOptional('pageSize', String(pageSize.value), '20')
+  const openRecordId = recordId || (detailOpen.value ? detail.value?.id : undefined)
+  if (openRecordId) query.recordId = String(openRecordId)
+  else delete query.recordId
+  const keys = new Set([...Object.keys(route.query), ...Object.keys(query)])
+  const unchanged = [...keys].every(key => String(route.query[key] ?? '') === String(query[key] ?? ''))
+  if (!unchanged) void router.replace({ path: route.path, query })
+}
+
 async function selectModule(code: string, fromRoute = false) {
   activeCode.value = code
   lifecycleState.value = 'ACTIVE'
@@ -358,7 +421,7 @@ async function selectModule(code: string, fromRoute = false) {
   await loadSavedViews()
   const preferred = savedViews.value.find((view) => view.defaultView)
   if (preferred) applySavedView(preferred, false)
-  if (fromRoute) applyRouteFilters()
+  if (fromRoute) applyRouteListState()
   await loadRecords()
 }
 
@@ -373,8 +436,27 @@ async function loadConfiguration() {
 }
 
 function fieldConfig(field: RuntimeField) {
-  try { return JSON.parse(field.configJson || '{}') as { maxDepth?: number; allowIntermediate?: boolean; saveMode?: 'FINAL' | 'PATH' } }
+  try { return JSON.parse(field.configJson || '{}') as {
+    maxDepth?: number
+    allowIntermediate?: boolean
+    saveMode?: 'FINAL' | 'PATH'
+    defaultValue?: unknown
+    sensitive?: boolean
+  } }
   catch { return {} }
+}
+
+function initialFieldValue(field: RuntimeField) {
+  const configured = fieldConfig(field).defaultValue
+  if (configured === undefined || configured === null || configured === '') {
+    return field.fieldType === 'BOOLEAN' ? false : undefined
+  }
+  if (field.fieldType === 'BOOLEAN') return configured === true || String(configured).toLowerCase() === 'true'
+  if (['NUMBER', 'MONEY', 'MEMBER', 'DEPARTMENT', 'REFERENCE'].includes(field.fieldType)) {
+    const numeric = Number(configured)
+    return Number.isFinite(numeric) ? numeric : configured
+  }
+  return configured
 }
 
 async function loadCascadeOptions() {
@@ -447,8 +529,10 @@ async function loadRecords() {
       detailOpen.value = false
       detail.value = undefined
     }
+    syncListRoute()
   } catch (reason) {
     error.value = readable(reason)
+    syncListRoute()
   } finally {
     loading.value = false
   }
@@ -692,6 +776,8 @@ async function openDetail(record: RuntimeRecord) {
     conversionLinks.value = recordConversions.links
     printTemplates.value = availablePrintTemplates
     detailOpen.value = true
+    lastOpenedRouteRecordId.value = record.id
+    syncListRoute(record.id)
   } catch (reason) {
     if (reason instanceof ApiError && ['PERMISSION_DENIED', 'RECORD_NOT_FOUND', 'TENANT_SHARE_NOT_ACTIVE',
       'TENANT_SHARE_ACTION_DENIED', 'RECORD_DATA_SCOPE_DENIED'].includes(reason.code)) {
@@ -703,6 +789,13 @@ async function openDetail(record: RuntimeRecord) {
     }
     message.error(readable(reason))
   }
+}
+
+function closeDetail() {
+  detailOpen.value = false
+  detail.value = undefined
+  lastOpenedRouteRecordId.value = undefined
+  syncListRoute()
 }
 
 async function handleAiBusinessWritten(value: { moduleCode: string; recordId: number; recordPath?: string }) {
@@ -865,7 +958,7 @@ function openCreate() {
     title: '', recordNumber: '', status: 'ACTIVE', ownerMemberId: systemContext.value?.memberId || undefined,
     departmentId: undefined, participantText: '', fields: {},
   })
-  fields.value.forEach((field) => { form.fields[field.code] = field.fieldType === 'BOOLEAN' ? false : undefined })
+  fields.value.forEach((field) => { form.fields[field.code] = initialFieldValue(field) })
   formSnapshot.value = serializeForm()
   restoreFormDraft()
   formOpen.value = true
@@ -891,6 +984,7 @@ function openEdit(record: RuntimeRecord) {
   restoreFormDraft()
   formOpen.value = true
   detailOpen.value = false
+  syncListRoute()
   loadReferenceOptions()
 }
 
@@ -914,6 +1008,7 @@ async function openLifecycle(record: RuntimeRecord, action: 'ARCHIVE' | 'DELETE'
 }
 
 async function submitLifecycle() {
+  if (lifecycleSaving.value) return
   if (!lifecycleRecord.value || !lifecycleReason.value.trim()) {
     message.warning('请填写操作原因')
     return
@@ -921,15 +1016,17 @@ async function submitLifecycle() {
   lifecycleSaving.value = true
   try {
     const action = lifecycleAction.value.toLowerCase()
-    await api<RuntimeRecord>(
-      `/api/runtime/modules/${activeCode.value}/records/${lifecycleRecord.value.id}/${action}`,
-      { method: 'POST', body: JSON.stringify({ reason: lifecycleReason.value.trim(), version: lifecycleRecord.value.version }) },
-      token.value,
-    )
+    const submittedModule = activeCode.value
+    const path = `/api/runtime/modules/${submittedModule}/records/${lifecycleRecord.value.id}/${action}`
+    const body = { reason: lifecycleReason.value.trim(), version: lifecycleRecord.value.version }
+    const result = action === 'delete' ? await deleteAction<RuntimeRecord>(path, 'POST', body, token.value) : undefined
+    if (result) lastAction.value = { moduleCode: submittedModule, result }
+    if (!result) await api<RuntimeRecord>(path, { method: 'POST', body: JSON.stringify(body) }, token.value)
     lifecycleOpen.value = false
     detailOpen.value = false
-    message.success(lifecycleAction.value === 'ARCHIVE' ? '记录已归档' : lifecycleAction.value === 'DELETE' ? '记录已移入回收站' : '记录已恢复')
-    await loadRecords()
+    const completed = lifecycleAction.value === 'ARCHIVE' ? '记录已归档' : lifecycleAction.value === 'DELETE' ? '记录已移入回收站' : '记录已恢复'
+    message.success(result ? businessActionMessage(result, completed) : completed)
+    await loadRecords().catch(() => message.warning('操作已成功，请刷新列表查看最新结果'))
   } catch (reason) {
     message.error(readable(reason))
   } finally {
@@ -959,17 +1056,24 @@ function numericFieldValue(fieldCode: string) {
 }
 
 async function saveRecord() {
-  if (!form.title.trim()) {
-    formError.value = '标题不能为空'
+  if (saving.value) return
+  const titleField = recordTitleField.value
+  const title = titleField ? String(form.fields[titleField.code] ?? '').trim() : form.title.trim()
+  if (!title) {
+    formError.value = titleField ? `${titleField.name}不能为空` : '标题不能为空'
+    if (titleField) fieldErrors[titleField.code] = '请填写用于标识记录的内容'
     await nextTick()
-    document.querySelector<HTMLElement>('#runtime-record-title')?.focus()
+    const target = titleField
+      ? document.querySelector<HTMLElement>(`[data-runtime-field="${titleField.code}"] input, [data-runtime-field="${titleField.code}"] textarea`)
+      : document.querySelector<HTMLElement>('#runtime-record-title')
+    target?.focus()
     return
   }
   saving.value = true
   clearFormErrors()
   try {
     const body = {
-      title: form.title,
+      title,
       recordNumber: form.recordNumber || null,
       status: form.status,
       ownerMemberId: form.ownerMemberId || null,
@@ -978,20 +1082,20 @@ async function saveRecord() {
       fields: normalizedFields(),
       ...(editing.value ? { version: editing.value.version } : {}),
     }
+    const submittedModule = activeCode.value
     const path = editing.value
       ? `/api/runtime/modules/${activeCode.value}/records/${editing.value.id}`
       : `/api/runtime/modules/${activeCode.value}/records`
     const wasEditing = Boolean(editing.value)
-    const saved = await api<RuntimeRecord>(path, {
-      method: wasEditing ? 'PUT' : 'POST', body: JSON.stringify(body),
-    }, token.value)
+    const result = await saveAction<RuntimeRecord>(path, wasEditing ? 'PUT' : 'POST', body, token.value)
+    lastAction.value = { moduleCode: submittedModule, result }
     localStorage.removeItem(formDraftKey())
     formSnapshot.value = serializeForm()
     formOpen.value = false
-    message.success(wasEditing ? '业务数据已更新' : '业务数据已创建')
+    message.success(businessActionMessage(result, wasEditing ? '业务数据已更新' : '业务数据已创建'))
     page.value = 1
-    await loadRecords()
-    if (wasEditing) await openDetail(saved)
+    await loadRecords().catch(() => message.warning('操作已成功，请刷新列表查看最新结果'))
+    if (wasEditing && result.value) await openDetail(result.value).catch(() => message.warning('操作已成功，请重新打开详情'))
   } catch (reason) {
     applyFormError(reason)
     message.error(readable(reason))
@@ -1185,20 +1289,21 @@ defineExpose({ refresh: loadModules, executeCommand })
       </template>
       <template #primary><a-button v-if="hasAction('CREATE') && lifecycleState === 'ACTIVE'" type="primary" @click="runAction('CREATE', openCreate)"><PlusOutlined />新建{{ activeModule?.moduleName }}</a-button></template>
     </ProductPageHeader>
+    <BusinessActionReceipt :module-code="activeCode" :result="lastAction?.moduleCode === activeCode ? lastAction.result : undefined"
+      @executed="loadRecords" />
     <a-alert v-if="dashboardReturn" type="info" show-icon class="section-alert"
       message="当前列表来自经营看板下钻" :description="listFilters.length ? `已应用 ${listFilters.length} 个看板筛选条件。` : '看板筛选字段在当前权限范围内不可用，已显示普通列表。'">
       <template #action><a-button type="link" @click="returnToDashboard">返回经营看板</a-button></template>
-    </a-alert>
-    <a-alert v-if="error" type="error" show-icon :message="error" class="section-alert">
-      <template #action><a-button size="small" @click="loadRecords">保留条件重试</a-button></template>
     </a-alert>
     <nav v-if="groupedModules.length > 1" class="runtime-group-tabs" aria-label="业务模块组">
       <button v-for="group in groupedModules" :key="group.id" type="button" :class="{ active: activeGroup?.id === group.id }" @click="selectGroup(group.id)">
         <strong>{{ group.name }}</strong><small>{{ group.modules.length }} 个模块</small>
       </button>
     </nav>
-    <div class="runtime-layout">
-      <aside class="runtime-modules panel-card">
+    <ProductListWorkspace :loading="loading" :has-content="Boolean(activeCode && records.length)" :empty="!loading && !records.length" :error="error"
+      :empty-title="activeCode ? '当前条件下没有记录' : '当前没有可用的业务模块'"
+      :empty-description="activeCode ? '可以调整搜索或筛选条件，也可以新建第一条记录。' : '系统管理员发布并授权模块后，业务入口会显示在这里。'">
+      <template #navigation>
         <div class="panel-title"><strong>{{ activeGroup?.name || '业务模块' }}</strong><span>{{ activeGroup?.modules.length || 0 }}</span></div>
         <section v-if="activeGroup" class="runtime-group">
           <button v-for="module in activeGroup.modules" :key="module.moduleId" type="button"
@@ -1206,14 +1311,14 @@ defineExpose({ refresh: loadModules, executeCommand })
             <span>{{ (module.menuIcon || module.menuName || module.moduleName).slice(0, 1).toUpperCase() }}</span><strong>{{ module.menuName || module.moduleName }}</strong>
           </button></section>
         <a-empty v-if="!modules.length && !loading" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="没有可见的已发布模块" />
-      </aside>
-      <main class="record-panel panel-card">
-        <template v-if="activeCode">
-          <div class="record-query-bar">
+      </template>
+      <template v-if="activeCode" #toolbar>
+        <ProductFilterBar label="业务记录搜索与筛选">
             <a-input-search v-model:value="searchText" allow-clear placeholder="搜索标题、编号和业务字段" class="record-search" @search="applyListQuery"><template #prefix><SearchOutlined /></template></a-input-search>
             <a-radio-group v-model:value="lifecycleState" button-style="solid" size="small" @change="changeLifecycleState">
               <a-radio-button value="ACTIVE">正常</a-radio-button><a-radio-button value="ARCHIVED">已归档</a-radio-button><a-radio-button value="DELETED">回收站</a-radio-button>
             </a-radio-group>
+          <template #tools>
             <a-button :class="{ 'record-filter-active': listFilters.length }" @click="filterOpen = true"><FilterOutlined />筛选<span v-if="listFilters.length">（{{ listFilters.length }}）</span></a-button>
             <a-select v-if="savedViews.length" :value="activeViewCode || undefined" allow-clear placeholder="常用视图" style="width:160px" :options="savedViews.map(view => ({ value: view.code, label: `${view.name}${view.defaultView ? ' · 默认' : ''}` }))" @change="selectSavedView" />
             <a-popover v-model:open="columnOpen" trigger="click" placement="bottomRight">
@@ -1226,9 +1331,16 @@ defineExpose({ refresh: loadModules, executeCommand })
               </div></template>
               <a-button aria-label="列表设置" title="调整列表字段与保存视图"><SettingOutlined /></a-button>
             </a-popover>
-          </div>
-          <div class="record-summary"><div><a-segmented v-if="showTenantScope" v-model:value="tenantScope" size="small" :options="[{ label: '全部', value: 'ALL' }, { label: '当前工作空间', value: 'OWN' }, { label: '共享给我', value: 'SHARED' }]" @change="page = 1; activeViewCode = ''; loadRecords()" /><strong>{{ loading ? '正在加载…' : `共 ${total} 条记录` }}</strong><small v-if="queryCustomized">{{ querySummary }}</small></div></div>
-          <div v-if="selectedRowKeys.length" class="runtime-batch-bar"><strong>已选择 {{ selectedRowKeys.length }} 条</strong><span>可以导出已选记录；修改、归档等操作请在对应记录中确认。</span><a-button v-if="hasAction('EXPORT')" size="small" @click="exportOpen = true">导出已选</a-button><a-button type="link" size="small" @click="selectedRowKeys = []">清除选择</a-button></div>
+          </template>
+        </ProductFilterBar>
+      </template>
+      <template v-if="activeCode" #summary><div class="record-summary"><div><a-segmented v-if="showTenantScope" v-model:value="tenantScope" size="small" :options="[{ label: '全部', value: 'ALL' }, { label: '当前工作空间', value: 'OWN' }, { label: '共享给我', value: 'SHARED' }]" @change="page = 1; activeViewCode = ''; loadRecords()" /><strong>{{ loading ? '正在加载…' : `共 ${total} 条记录` }}</strong><small v-if="queryCustomized">{{ querySummary }}</small></div></div></template>
+      <template v-if="selectedRowKeys.length" #batch><div class="runtime-batch-bar"><strong>已选择 {{ selectedRowKeys.length }} 条</strong><span>可以导出已选记录；修改、归档等操作请在对应记录中确认。</span><a-button v-if="hasAction('EXPORT')" size="small" @click="exportOpen = true">导出已选</a-button><a-button type="link" size="small" @click="selectedRowKeys = []">清除选择</a-button></div></template>
+      <template #state-actions="{ state }">
+        <a-button v-if="state === 'error'" type="primary" @click="activeCode ? loadRecords() : loadModules()">保留条件重试</a-button>
+        <a-button v-else-if="activeCode && hasAction('CREATE') && lifecycleState === 'ACTIVE'" type="primary" @click="runAction('CREATE', openCreate)">新建第一条记录</a-button>
+      </template>
+      <template v-if="activeCode && records.length">
           <a-table class="record-table" :data-source="records" :loading="loading" row-key="id" :pagination="false" :row-selection="hasAction('EXPORT') ? rowSelection : undefined" :custom-row="rowHandlers" :scroll="{ y: pageSize >= 100 ? 560 : undefined }" :virtual="pageSize >= 100">
             <a-table-column v-for="column in displayedColumns" :key="column.code" :title="column.label" :width="column.width" :fixed="fixedFieldCodes.includes(column.code) ? 'left' : undefined">
               <template #default="{ record }"><template v-if="column.code === 'title'"><strong class="record-title">{{ record.title }}</strong><small>{{ userFacingRecordNumber(record.recordNumber, '未设置业务编号') }} · {{ userFacingWorkspaceName(record.dataTenantName) }}</small></template>
@@ -1247,13 +1359,10 @@ defineExpose({ refresh: loadModules, executeCommand })
               </dl>
               <footer><span>{{ record.shared ? `${userFacingWorkspaceName(record.dataTenantName)}共享` : '当前工作空间记录' }}</span><strong>查看详情 →</strong></footer>
             </button>
-            <a-empty v-if="!loading && !records.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="当前条件下没有记录" />
           </div>
-          <div class="record-pagination"><a-pagination v-model:current="page" v-model:page-size="pageSize" :total="total" show-size-changer @change="loadRecords" /></div>
-        </template>
-        <a-empty v-else description="发布模块后，业务页面会在这里出现" />
-      </main>
-    </div>
+      </template>
+      <template v-if="activeCode" #pagination><a-pagination v-model:current="page" v-model:page-size="pageSize" :total="total" show-size-changer @change="loadRecords" /></template>
+    </ProductListWorkspace>
 
     <a-drawer v-model:open="filterOpen" title="高级筛选与服务端排序" width="520" :mask-closable="false">
       <a-alert type="info" show-icon class="section-alert" message="所有条件均由服务端执行权限校验" description="不可读或已脱敏字段不能用于筛选、排序或保存视图。查询失败不会清空当前条件。" />
@@ -1281,7 +1390,7 @@ defineExpose({ refresh: loadModules, executeCommand })
       <template v-if="activeSavedView" #footer><div class="drawer-footer"><a-button danger @click="deleteCurrentView">删除视图</a-button><span></span><a-button @click="saveViewOpen = false">取消</a-button><a-button type="primary" :loading="saveViewSaving" @click="saveCurrentView">更新视图</a-button></div></template>
     </a-modal>
 
-    <a-drawer v-model:open="detailOpen" :title="detail?.title" :width="assistantOpen ? 'min(980px, 100vw)' : 'min(520px, 100vw)'" class="detail-drawer">
+    <ProductDetailDrawer :open="detailOpen" :title="detail?.title" :width="assistantOpen ? 'min(980px, 100vw)' : 'min(520px, 100vw)'" class="detail-drawer" @close="closeDetail">
       <template #extra><a-button v-if="detail && canUseAi" @click="assistantOpen = !assistantOpen"><RobotOutlined />{{ assistantOpen ? '收起助手' : '询问当前记录' }}</a-button></template>
       <template v-if="detail"><div :class="['record-detail-shell', { 'record-detail-shell--assistant': assistantOpen && canUseAi }]"><section class="record-detail-main"><div class="detail-meta"><span>{{ userFacingRecordNumber(detail.recordNumber, '未设置业务编号') }}</span><ProductStatusTag :status="detail.status" /><a-tag :color="detail.shared ? 'orange' : 'blue'">数据归属：{{ userFacingWorkspaceName(detail.dataTenantName) }}</a-tag><span v-if="detail.shared" class="detail-share-status">共享状态：<ProductStatusTag :status="detail.shareStatus" /></span></div>
         <a-tabs class="detail-tabs-runtime">
@@ -1294,8 +1403,9 @@ defineExpose({ refresh: loadModules, executeCommand })
               <ul v-if="entry.changes.length" class="timeline-changes"><li v-for="change in entry.changes" :key="`${entry.eventId}-${change.fieldCode}`"><strong>{{ change.fieldName }}</strong>：<template v-if="change.masked">无查看权限</template><template v-else>{{ timelineFieldValue(change.fieldCode, change.beforeValue) }} → {{ timelineFieldValue(change.fieldCode, change.afterValue) }}</template></li></ul>
             </a-timeline-item></a-timeline><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无变更记录" /></a-tab-pane>
         </a-tabs></section><AiContextAssistantPanel v-if="assistantOpen && canUseAi" :key="`${activeCode}-${detail.id}`" :module-code="activeCode" :module-name="activeModule?.moduleName || activeCode" :record="detail" :visible-fields="detailValueFields" :modules="modules" @business-written="handleAiBusinessWritten" /></div></template>
-      <template #footer><div class="drawer-footer"><a-button @click="detailOpen = false">关闭</a-button><a-dropdown v-if="detail" trigger="click"><a-button><MoreOutlined />更多操作</a-button><template #overlay><a-menu @click="runDetailMenu(String($event.key))"><a-menu-item v-if="printTemplates.length" key="print">打印</a-menu-item><a-menu-item v-if="detail.ownedByCurrentTenant && hasAction('SHARE')" key="share">共享</a-menu-item><a-menu-item v-if="!detail.archived && !detail.deleted && recordAllowsAction(detail, 'TRANSFER')" key="transfer">转交</a-menu-item><a-menu-item v-if="!detail.archived && !detail.deleted && recordAllowsAction(detail, 'CONVERT') && conversionTargetOptions.length" key="convert">转化</a-menu-item><a-menu-item v-if="!detail.archived && !detail.deleted && recordAllowsAction(detail, 'ARCHIVE')" key="archive">归档</a-menu-item><a-menu-item v-if="(detail.archived || detail.deleted) && recordAllowsAction(detail, 'RESTORE')" key="restore">恢复</a-menu-item><a-menu-divider /><a-menu-item v-if="!detail.deleted && recordAllowsAction(detail, 'DELETE')" key="delete" danger>删除</a-menu-item></a-menu></template></a-dropdown><a-button v-if="detail && !detail.archived && !detail.deleted && actionVisibleForRecord(detail)" type="primary" @click="openEdit(detail)">编辑</a-button></div></template>
-    </a-drawer>
+      <template #actions><a-dropdown v-if="detail" trigger="click"><a-button><MoreOutlined />更多操作</a-button><template #overlay><a-menu @click="runDetailMenu(String($event.key))"><a-menu-item v-if="printTemplates.length" key="print">打印</a-menu-item><a-menu-item v-if="detail.ownedByCurrentTenant && hasAction('SHARE')" key="share">共享</a-menu-item><a-menu-item v-if="!detail.archived && !detail.deleted && recordAllowsAction(detail, 'TRANSFER')" key="transfer">转交</a-menu-item><a-menu-item v-if="!detail.archived && !detail.deleted && recordAllowsAction(detail, 'CONVERT') && conversionTargetOptions.length" key="convert">转化</a-menu-item><a-menu-item v-if="!detail.archived && !detail.deleted && recordAllowsAction(detail, 'ARCHIVE')" key="archive">归档</a-menu-item><a-menu-item v-if="(detail.archived || detail.deleted) && recordAllowsAction(detail, 'RESTORE')" key="restore">恢复</a-menu-item><a-menu-divider /><a-menu-item v-if="!detail.deleted && recordAllowsAction(detail, 'DELETE')" key="delete" danger>删除</a-menu-item></a-menu></template></a-dropdown></template>
+      <template #primary><a-button v-if="detail && !detail.archived && !detail.deleted && actionVisibleForRecord(detail)" type="primary" @click="openEdit(detail)">编辑</a-button></template>
+    </ProductDetailDrawer>
 
     <a-modal v-model:open="printOpen" title="记录打印与 PDF 预览" width="920" :footer="null" @cancel="clearPrintPreview">
       <div class="print-runtime-toolbar"><a-select v-model:value="selectedPrintTemplateId" style="min-width:320px" :options="printTemplates.map(item => ({ value: item.templateId, label: `${item.name} · v${item.versionNumber} · ${item.pageSize}` }))" /><a-button type="primary" :loading="printing" @click="generatePrint"><PrinterOutlined />按发布版本生成</a-button><a-button :disabled="!printPreviewUrl" @click="openOriginalPrint">打开原始 PDF</a-button><a-button :disabled="!printJob" @click="downloadPrint"><ExportOutlined />下载 PDF</a-button></div>
@@ -1313,11 +1423,11 @@ defineExpose({ refresh: loadModules, executeCommand })
       </section>
       <a-empty v-else description="选择已发布模板后生成 PDF；系统会在此刻重新校验记录和字段权限" />
     </a-modal>
-    <a-drawer :open="formOpen" :title="editing ? `编辑${activeModule?.moduleName}` : `新建${activeModule?.moduleName}`" width="560" :mask-closable="false" :keyboard="false" @close="requestCloseForm">
-      <a-alert v-if="formError" type="error" show-icon :message="formError" class="section-alert" />
-      <a-alert v-else-if="formDraftRestored" type="info" show-icon message="已恢复自动保存的草稿" class="section-alert" />
+    <ProductFormDrawer :open="formOpen" :title="editing ? `编辑${activeModule?.moduleName}` : `新建${activeModule?.moduleName}`" :saving="saving" :error="formError" @close="requestCloseForm" @save="saveRecord">
+      <a-alert v-if="formDraftRestored" type="info" show-icon message="已恢复自动保存的草稿" class="section-alert" />
       <div class="form-change-state"><a-tag :color="formDirty ? 'orange' : 'green'">{{ formDirty ? '有未提交修改 · 已自动保存草稿' : '尚未修改' }}</a-tag></div>
-      <a-form layout="vertical"><div class="form-grid"><a-form-item label="标题" required><a-input id="runtime-record-title" v-model:value="form.title" /></a-form-item><a-form-item label="业务编号"><a-input v-model:value="form.recordNumber" /></a-form-item></div>
+      <a-alert v-if="recordTitleField" type="info" show-icon class="section-alert" :message="`记录名称使用“${recordTitleField.name}”，无需重复填写标题`" />
+      <a-form layout="vertical"><div class="form-grid"><a-form-item v-if="!recordTitleField" label="标题" required><a-input id="runtime-record-title" v-model:value="form.title" /></a-form-item><a-form-item label="业务编号"><a-input v-model:value="form.recordNumber" /></a-form-item></div>
         <a-divider>模块字段</a-divider>
         <a-form-item v-for="field in formValueFields" :key="field.code" :label="field.name" :required="field.required" :data-runtime-field="field.code"
           :validate-status="fieldErrors[field.code] ? 'error' : undefined" :help="fieldErrors[field.code]">
@@ -1336,8 +1446,7 @@ defineExpose({ refresh: loadModules, executeCommand })
           <a-input v-else v-model:value="form.fields[field.code]" />
         </a-form-item>
       </a-form>
-      <template #footer><div class="drawer-footer"><a-button @click="requestCloseForm">取消</a-button><a-button type="primary" :loading="saving" @click="saveRecord">保存</a-button></div></template>
-    </a-drawer>
+    </ProductFormDrawer>
     <a-modal v-model:open="lifecycleOpen" :title="lifecycleAction === 'ARCHIVE' ? '确认归档记录' : lifecycleAction === 'DELETE' ? '确认删除记录' : '确认恢复记录'"
       :confirm-loading="lifecycleSaving" ok-text="确认执行" cancel-text="取消" @ok="submitLifecycle">
       <a-alert v-if="lifecycleImpact" type="warning" show-icon

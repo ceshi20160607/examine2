@@ -131,7 +131,22 @@ class AuthenticationRegistrationHttpTest {
         assertThat(result).containsEntry("systemCode", "customer_ops")
                 .containsEntry("tenantMode", "SINGLE")
                 .containsEntry("tenantName", "默认主租户");
-        assertThat(((Map<?, ?>) result.get("tokens")).containsKey("accessToken")).isTrue();
+        Map<?, ?> systemTokens = (Map<?, ?>) result.get("tokens");
+        Map<?, ?> platformTokens = (Map<?, ?>) result.get("platformTokens");
+        assertThat(platformTokens.containsKey("accessToken")).isTrue();
+        assertThat(systemTokens.containsKey("accessToken")).isTrue();
+        assertThat(systemTokens.get("accessToken")).isNotEqualTo(platformTokens.get("accessToken"));
+        assertThat(platformTokens.get("accessExpiresAt").toString()).matches(".*(?:Z|[+-]\\d{2}:\\d{2})$");
+        assertThat(systemTokens.get("accessExpiresAt").toString()).matches(".*(?:Z|[+-]\\d{2}:\\d{2})$");
+
+        Map<String, Object> platformContext = data(exchangeWithBearer(
+                "/api/auth/me", HttpMethod.GET, (String) platformTokens.get("accessToken"), null));
+        Map<String, Object> systemContext = data(exchangeWithBearer(
+                "/api/auth/me", HttpMethod.GET, (String) systemTokens.get("accessToken"), null));
+        assertThat(platformContext.get("systemId")).isNull();
+        assertThat(platformContext.get("tenantId")).isNull();
+        assertThat(((Number) systemContext.get("systemId")).longValue()).isEqualTo(systemId);
+        assertThat(((Number) systemContext.get("tenantId")).longValue()).isEqualTo(tenantId);
 
         assertThat(count("plat_account", "username = 'owner_one'")).isOne();
         assertThat(count("sys_system", "code = 'customer_ops'")).isOne();
@@ -141,6 +156,8 @@ class AuthenticationRegistrationHttpTest {
         assertThat(count("sys_tenant_member", "tenant_id = " + tenantId + " and tenant_admin = 1 and department_id in "
                 + "(select id from sys_department where tenant_id = " + tenantId + " and code = 'root')")).isOne();
         assertThat(count("sys_member_role", "tenant_id = " + tenantId)).isOne();
+        assertThat(count("auth_session", "account_id = (select id from plat_account where username = 'owner_one') and system_id is null")).isOne();
+        assertThat(count("auth_session", "account_id = (select id from plat_account where username = 'owner_one') and system_id = " + systemId)).isOne();
         assertThat(jdbc.queryForObject(
                 "select count(*) from sys_role_permission p join sys_role r on r.id = p.role_id where r.tenant_id = ? and p.data_scope_type = 'ALL'",
                 Integer.class, tenantId)).isOne();

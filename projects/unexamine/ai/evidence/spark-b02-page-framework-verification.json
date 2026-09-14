@@ -1,0 +1,105 @@
+{
+  "step": "B02.2",
+  "status": "verified",
+  "verified_at": "2026-09-11T17:33:50.154759+08:00",
+  "verification_scope": "Reusable list/filter/detail/form/action containers, migrated runtime-module and ordinary-task pages, list/detail URL context restoration, selection-dependent batch actions, and the existing unified action executor through a real save.",
+  "source_rows": [
+    "R0292",
+    "R0293",
+    "R0294",
+    "R0295",
+    "R0296",
+    "R0297",
+    "R2775",
+    "R2776",
+    "R2777",
+    "R2778",
+    "R2779",
+    "R2782",
+    "R2784",
+    "R2949"
+  ],
+  "changed_files": [
+    "projects/unexamine/frontend/src/product/components/ProductListWorkspace.vue",
+    "projects/unexamine/frontend/src/product/components/ProductFilterBar.vue",
+    "projects/unexamine/frontend/src/product/components/ProductFormDrawer.vue",
+    "projects/unexamine/frontend/src/product/components/ProductDetailDrawer.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/OrdinaryTasksView.vue",
+    "projects/unexamine/frontend/src/product/views/WorkHubView.vue",
+    "projects/unexamine/frontend/src/product/design-system.css",
+    "projects/unexamine/frontend/src/product/design-system.test.ts"
+  ],
+  "checks_actual_results": [
+    "npm run build passed (vue-tsc and Vite; the pre-existing large-bundle warning remains).",
+    "Targeted Vitest passed: 3 files, 15 tests, including the shared page-structure contract and existing runtime-action/shell contracts.",
+    "git diff --check passed for the product frontend.",
+    "At 1440x900, platform ordinary tasks used the common list/filter/detail/form layout with no horizontal overflow; task status and task detail were restored from URL state.",
+    "At 1440x900, the customer runtime module restored module/search state after reload, opened row detail with recordId state, exposed overview/relation/history tabs, and opened the common right-side edit/create form.",
+    "The module batch bar was absent before selection, appeared for one selected row, and disappeared after clearing selection.",
+    "A real DIRECT create through ProductFormDrawer returned the success receipt and list row; temporary record 59 and its value were removed in a guarded transaction, and database/UI readback confirmed absence."
+  ],
+  "readback": [
+    "ProductListWorkspace owns navigation/content placement and consistent loading, empty, error/retry, batch and pagination regions without owning business data calls.",
+    "ProductFilterBar gives quick search/status controls and advanced tools distinct placement and labels.",
+    "ProductDetailDrawer and ProductFormDrawer keep details and editing on the right and enforce one primary footer action through ProductActionBar.",
+    "Runtime list state now keeps module, search, structured filters, lifecycle, tenant scope, sorting and pagination in route state. Record detail uses recordId; closing or editing removes stale detail state.",
+    "Ordinary tasks keep selected task tab, task-status filter and task detail in route state; refresh returns to the same work context.",
+    "The real create showed “业务变更已生效 / 业务数据已保存，并已返回服务端的最新结果”; after cleanup and reload only the original matching record remained and the temporary receipt was gone.",
+    "Final page reload after a browser-log baseline added zero warnings and zero errors."
+  ],
+  "permission_or_failure_result": {
+    "permission_visibility": "Existing shell/permission tests remained green; runtime configuration controls were not introduced into either migrated page.",
+    "first_build": "Failed on a dangling v-else-if after moving the form error into ProductFormDrawer; fixed before acceptance and not counted as passing.",
+    "first_contract_test": "Failed because the test expected the form primary action to be a caller slot, while ProductFormDrawer intentionally owns it; corrected to assert the actual one-button contract.",
+    "browser_identity": "Local default platform super administrator; credentials were not stored in evidence.",
+    "temporary_data_cleanup": "biz_record_value for record 59 and the exact titled biz_record were deleted transactionally; final database count was 0 and the UI row was absent."
+  },
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ProductListWorkspace.vue",
+      "sha256": "1c11dd41de12e00db8ed4f46b25ecf6c06b022cfe6cc15994034ad15df668799"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ProductFilterBar.vue",
+      "sha256": "256de28c9435cf67baddb27177da664cd5b3398977b2e226b8d291890c1eede7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ProductFormDrawer.vue",
+      "sha256": "2170cb36ac52aac430c78920f21369e19dafeb5cf4a271b30a04e6bf9c0f8b42"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ProductDetailDrawer.vue",
+      "sha256": "7535768a31063e262a19c49bf8d0f38d8fdc80a18dcadad1a059d4be61587b0e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "62af53696615cbcbe54e433a6573a03e5616de4d008d2d611d607080efa2c256"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/OrdinaryTasksView.vue",
+      "sha256": "dfc341c982db55944813f30b96fc9708937595402b275d402ab9b62de814064d"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/WorkHubView.vue",
+      "sha256": "036b8318baf21508834f0d30d40c6f1f08715b685e91ded70776a0f239eb0106"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/design-system.css",
+      "sha256": "006fea6108617174cd41ec10c3a334d664c3e93f226fbd404f952e37900c7973"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/design-system.test.ts",
+      "sha256": "72ee07d875c2d75c69adfc0da145707eeecc5c0bd513bc3964d6fa48f2bc58c6"
+    }
+  ],
+  "remaining": [
+    "B02.3 still needs three saved 1440x900 reference screenshots for list, edit and detail plus one basic narrow-width no-crash check.",
+    "This step migrates the runtime module and ordinary-task fixed page required by B02.2. Other capability pages keep their existing layouts until their owning package changes them, avoiding another broad cosmetic rewrite.",
+    "Full configurable field rendering and complete reusable business forms remain B05 and B06; this step standardizes their page containers and preserves the B01 action executor.",
+    "The browser log buffer retained setup/HMR errors from an expired pre-verification session and intermediate syntax fixes. A baseline count was taken after the final code loaded; final reloads produced no new warning or error entries.",
+    "Advanced Flow, applications, channels and the remaining product requirements retain their assigned packages; B02.2 does not claim product completion."
+  ],
+  "next_step": "B02.3",
+  "usage_report": "projects/unexamine/ai/evidence/spark-usage-b02-page-framework.json"
+}

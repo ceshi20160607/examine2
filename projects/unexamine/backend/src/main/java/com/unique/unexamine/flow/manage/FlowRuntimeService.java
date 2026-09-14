@@ -235,6 +235,9 @@ public class FlowRuntimeService {
     @Transactional
     public FlowRuntimeModels.ActionResult start(
             AuthenticatedContext context, FlowRuntimeModels.StartRequest input, String traceId) {
+        if (input.idempotencyKey().startsWith("business-action:")) {
+            throw invalid("FLOW_START_KEY_RESERVED", "该请求标识由业务动作保留使用");
+        }
         requireAction(context, "START");
         FlowDefinition definition = requireFlow(context, input.flowId());
         requireBusinessAccess(context, input.businessType());
@@ -250,6 +253,71 @@ public class FlowRuntimeService {
         if (version == null || !Objects.equals(version.getFlowId(), definition.getId())) {
             throw invalid("FLOW_RUNTIME_VERSION_INCOMPATIBLE", "Flow 当前发布版本不存在或不兼容");
         }
+        return startVersion(context, input, traceId, version);
+    }
+
+    /** Internal entry: the authorized action pins the definition; no manual Flow START permission is needed. */
+    @Transactional
+    public Long startBoundAction(com.unique.unexamine.foundation.manage.control.BusinessAction.Input action,
+                                 FlowBindingModels.ResolutionView binding, Long actionId, Map<String, Object> businessResult) {
+        AuthenticatedContext actor = action.actor();
+        FlowVersion version = versionService.selectById(binding.flowVersionId());
+        FlowDefinition definition = definitionService.selectById(binding.flowId());
+        if (version == null || definition == null || !"SYSTEM".equals(definition.getContextType())
+                || !Objects.equals(definition.getSystemId(), actor.systemId())
+                || !Objects.equals(definition.getOwnerTenantId(), binding.sourceTenantId())
+                || !Objects.equals(action.dataTenantId(), binding.requestedTenantId())
+                || !Objects.equals(version.getFlowId(), definition.getId())
+                || !Objects.equals(version.getDefinitionHash(), binding.definitionHash())
+                || !readMap(version.getSnapshotJson()).equals(binding.definitionSnapshot())) {
+            throw invalid("FLOW_ACTION_SNAPSHOT_INVALID", "动作绑定的流程快照不存在或不属于当前业务范围");
+        }
+        String key = "business-action:" + actionId;
+        FlowAction replay = findStartReplay(actor.accountId(), key);
+        if (replay != null) return replay.getInstanceId();
+        Long tenantMemberId = participantResolver.tenantMemberIdForAccount(actor.systemId(), action.dataTenantId(), actor.accountId());
+        if (tenantMemberId == null) {
+            throw invalid("FLOW_ACTION_STARTER_UNAVAILABLE", "发起人在业务所属租户没有有效成员身份，流程尚未发起");
+        }
+        ResolvedPermissions permissions = permissionResolver.resolve(actor.systemId(), action.dataTenantId(), tenantMemberId);
+        AuthenticatedContext context = new AuthenticatedContext(null, actor.accountId(), actor.platformId(),
+                actor.systemId(), action.dataTenantId(), actor.memberId(), tenantMemberId, actor.username(), actor.displayName(),
+                actor.mfaLevel(), permissions.roleIds(), permissions.permissions(), permissions.dataScopes());
+        Map<String, Object> intent = objectMapper.convertValue(action.payload(), new com.fasterxml.jackson.core.type.TypeReference<>() {});
+        Map<String, Object> business = businessResult.isEmpty() ? intent : businessResult;
+        Map<String, Object> variables = new LinkedHashMap<>(business);
+        if (business.get("fields") instanceof Map<?, ?> fields) {
+            fields.forEach((code, value) -> variables.putIfAbsent(String.valueOf(code), value));
+        }
+        // Trusted metadata is separate from user variables; a field cannot replace the action identity.
+        Map<String, Object> snapshot = new LinkedHashMap<>();
+        snapshot.put("actionId", actionId);
+        snapshot.put("actionCode", action.actionCode());
+        snapshot.put("executionMode", binding.executionMode());
+        snapshot.put("targetRecordId", action.recordId());
+        if (Set.of("CREATE", "UPDATE").contains(action.actionCode())) {
+            snapshot.put("proposedOwnerMemberId", intent.get("ownerMemberId") == null ? actor.memberId() : intent.get("ownerMemberId"));
+        }
+        snapshot.put("moduleId", action.moduleId());
+        snapshot.put("configVersionId", action.configVersionId());
+        snapshot.put("actorTenantId", actor.tenantId());
+        snapshot.put("dataTenantId", action.dataTenantId());
+        snapshot.put("channel", action.options().channel());
+        snapshot.put("causationId", action.options().causationId());
+        snapshot.put("depth", action.options().depth());
+        snapshot.put("intent", intent);
+        snapshot.put("record", businessResult);
+        Object recordId = businessResult.getOrDefault("id", action.recordId());
+        // The Flow reviews an intent. Its writeback/status nodes must not mutate the effective target before approval.
+        if ("AFTER_APPROVAL".equals(binding.executionMode())) recordId = null;
+        String title = String.valueOf(business.getOrDefault("title", action.moduleCode() + " · " + action.actionCode()));
+        var request = new FlowRuntimeModels.StartRequest(binding.flowId(), title, "MODULE:" + action.moduleCode(),
+                recordId == null ? null : recordId.toString(), snapshot, variables, key);
+        return startVersion(context, request, action.traceId(), version).instance().id();
+    }
+
+    private FlowRuntimeModels.ActionResult startVersion(AuthenticatedContext context, FlowRuntimeModels.StartRequest input,
+                                                       String traceId, FlowVersion version) {
         Map<String, Object> snapshot = readMap(version.getSnapshotJson());
         Map<String, Object> startNode = nodes(snapshot).stream()
                 .filter(node -> "START".equals(string(node.get("nodeType")))).findFirst()
@@ -260,7 +328,7 @@ public class FlowRuntimeService {
         instance.setPlatformId(context.platformId());
         instance.setSystemId(context.systemId());
         instance.setTenantId(context.tenantId());
-        instance.setFlowId(definition.getId());
+        instance.setFlowId(version.getFlowId());
         instance.setFlowVersionId(version.getId());
         instance.setBusinessType(blankToNull(input.businessType()));
         instance.setBusinessId(blankToNull(input.businessId()));
@@ -282,10 +350,10 @@ public class FlowRuntimeService {
         advance(context, instance, snapshot, string(startNode.get("nodeKey")),
                 variables(instance.getId()), null);
         FlowAction action = insertAction(instance.getId(), null, string(startNode.get("nodeKey")), "START",
-                null, Map.of("flowId", definition.getId(), "variables", safeMap(input.variables())),
+                null, Map.of("flowId", version.getFlowId(), "variables", safeMap(input.variables())),
                 result(instance), input.idempotencyKey(), context.accountId());
         audit(context, traceId, "FLOW_INSTANCE_STARTED", "FLOW_INSTANCE", instance.getId(),
-                Map.of("flowId", definition.getId(), "flowVersionId", version.getId(),
+                Map.of("flowId", version.getFlowId(), "flowVersionId", version.getId(),
                         "status", instance.getStatus()));
         return new FlowRuntimeModels.ActionResult(action.getId(), false,
                 view(context, instanceService.selectById(instance.getId())));
@@ -858,7 +926,9 @@ public class FlowRuntimeService {
                 messageService.notifyFlowEvent(context, instance.getId(),
                         "instance-" + instance.getId() + "-completed",
                         "流程已完成：" + instance.getTitle(),
-                        "流程已到达结束节点，业务结果和完整处理历史可以在流程运行页查看。",
+                        "AFTER_APPROVAL".equals(readMap(instance.getBusinessSnapshotJson()).get("executionMode"))
+                                ? "审批流程已完成，业务操作将按当前权限和数据版本执行，请在模块页面查看是否生效。"
+                                : "流程已到达结束节点，业务结果和完整处理历史可以在流程运行页查看。",
                         List.of(instance.getStartedByAccountId()));
                 return;
             }
