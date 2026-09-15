@@ -5,8 +5,8 @@
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B05.2b2",
-  "current_step": "B05.2b2",
+  "next_step": "B06.1b1",
+  "current_step": "B06.1b1",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
@@ -19,66 +19,71 @@
     "form_configuration": "shared_drag_drop_field_designer_left_types_center_canvas_right_typed_properties"
   },
   "current_scope": {
-    "step": "B05.2b2",
+    "step": "B06.1b1",
     "source_rows": [
-      "R0498",
-      "R0512",
-      "R0518",
-      "R0519",
-      "R0527",
-      "R0553",
-      "R0557",
-      "R2577",
-      "R2583",
-      "R2584",
-      "R2588",
-      "R2589",
-      "R2590",
-      "R2591",
+      "R0620",
+      "R0622",
+      "R0630",
+      "R0654",
+      "R1481",
+      "R1484",
+      "R1488",
       "R2949"
     ],
     "files": [
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/ChannelFieldPolicyResolver.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage",
-      "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
       "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue"
+      "projects/unexamine/frontend/src/product/components",
+      "projects/unexamine/frontend/src/product/form-layout.ts"
     ],
     "entry_points": [
-      "Read the existing secret ciphers, field protection, audit/history and FoundationControlService pending-intent/receipt payload paths; choose one shared encrypted value protocol and preserve current action semantics.",
-      "Add ordinary SECRET password input with explicit keep/replace/clear behavior; prevent plaintext local draft, audit/history and pending-intent storage.",
-      "Default masked in lists, queries and readback; detail/application plaintext only under explicit applicable permission/authorization per R2589/R2591. Do not impose unconditional never-readable behavior.",
-      "Verify encrypted database readback, denied/masked projections, permitted detail read, rejected writes without partial state and AFTER_APPROVAL pending intent/resume without plaintext leakage."
+      "Read §5.8 LIST/DETAIL and §6.8 clauses only; keep B06.1b dynamic component/field obligations open.",
+      "Replace LIST/DETAIL schematic preview with reusable real renderer/layout consumption; preserve their separate saved schemas and existing runtime columns/settings.",
+      "Verify a second module with a different structure using the same page code; then continue B07/B08/B09 main business journeys."
     ],
     "acceptance": [
-      "SECRET is visually configured, published and written through the common action/field protocol with encrypted value and intent storage.",
-      "Audit/history/client drafts reveal no secret; unchanged masked values are not written back as replacement plaintext.",
-      "Sensitive list/query readback cannot leak plaintext; explicit authorized detail/application read remains possible under requirement-defined policies.",
-      "Focused behavior tests plus one retained-module real journey; B06 drag/drop and all deferred requirements stay open."
+      "Changing LIST/DETAIL layout visibly affects real preview and published runtime.",
+      "Existing record detail/history/relationships and list setting behavior stay available.",
+      "Two different module structures configure/publish/run without per-module CRUD pages; focused tests/build and real journey only."
     ]
   },
   "last_result": {
-    "step": "B05.2b1",
+    "step": "B06.1a",
     "status": "verified",
-    "verified_at": "2026-09-15T14:31:28.822840+08:00",
-    "verification_scope": "Bounded RICH_TEXT/JSON configuration-to-runtime contribution only; this does not complete the entire field family, drag/drop designer, or any cross-package requirement.",
-    "evidence_path": "projects/unexamine/ai/evidence/spark-b05-structured-content-verification.json",
-    "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b05-structured-content.json",
+    "verified_at": "2026-09-15T15:52:00.105807+08:00",
+    "verification_scope": "Drag/configure/save/publish/create/edit main form journey for supported core fields only. Not completion of B05/B06, every field type, or approval/application/channel requirements.",
     "checks_actual_results": [
-      "Focused backend protocol 3 tests and isolated HTTP 1 test passed; native JDK 21 compilation/package passed.",
-      "Final frontend 4 files/17 tests and production build passed; existing chunk warning remains.",
-      "Real typed configuration -> publication -> missing-company error -> valid create/reopen/update/history/plain-text search passed.",
-      "Native keyboard-selected bold persisted in database and rendered; normal viewport restored."
+      "Final native JDK21 Maven FormLayoutProtocolTest: 3 tests, 0 failures/errors; package -DskipTests passed.",
+      "Final Vitest: 4 files, 17 tests passed (3 new form layout behavior tests plus directly related existing checks).",
+      "Final vue-tsc and Vite production build passed, 3983 modules. Existing chunk-size warning remains.",
+      "Real pointer type drag -> name/placeholder/width -> save -> code replacement/DB readback passed.",
+      "Real saved-field drags moved phone to contact section and email before phone; section set to one column; save/reopen preserved placement/order/width.",
+      "Unsaved task switch kept current canvas and showed save-first warning. Mobile preview used real core inputs and a single-column canvas.",
+      "Server publication check passed; published version 6 -> runtime create -> list -> detail -> edit readback passed.",
+      "Invalid phone update showed named field error and was audited as FIELD_VALIDATION_FAILED; corrected update succeeded, record 69 revision 1.",
+      "All normal configuration and business form interactions used typed UI controls, no raw JSON, technical field IDs or request payload entry.",
+      "Final packaged backend restarted successfully; /actuator/health returned UP after startup. Live database version38 and record69 retained.",
+      "Final real navigation tests: changed group title -> roles navigation/refresh/template tenant switch all blocked with canvas retained; restoring saved title -> roles navigation succeeded. No extra page writes were made for these temporary checks."
     ],
+    "next_step": "B06.1b1",
+    "evidence_path": "projects/unexamine/ai/evidence/spark-b06-drag-form-verification.json",
+    "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b06-drag-form.json",
     "readback": [
-      "客户档案 module 28 is published at version id 37/version 5/draft revision 13; RICH_TEXT field 52 and JSON field 53 have typed configuration.",
-      "Record 68/version 2 retains <b> rich text and typed JSON company/合作中=false; one successful create, two successful updates, and failed create audit 2751 retained.",
-      "Full before/after values, commands, 18 tested source hashes and failed-attempt corrections are in the referenced evidence file."
+      "Module 28 version 6/id38/draft16; FORM page66 revision2 has main 2-column and contact 1-column sections; phone field54 retains span2 clamped to its section.",
+      "Record69 revision1 uses config38 and retains email/phone. Audits2765 create,2766 rejected invalid update,2767 successful correction retained; prior record68 remains revision2."
     ],
-    "remaining": "B05.2b2 SECRET encryption and sensitive field policy; remaining full field families/import/export/query requirements; B06 complete left-palette/center-canvas/right-properties drag/drop designer and preview-to-runtime. Full approval, applications, channels and all other requirements remain required.",
-    "next_step": "B05.2b2"
+    "remaining": [
+      "B06.1b1: shared LIST/DETAIL configuration, preview and runtime consumption, plus verification with a second structurally different module.",
+      "B06.1b: component conditions/linkage/hidden/readonly behavior and complete field renderer families and cross-channel permissions.",
+      "B06.2/6.3 full query/view/detail/relationship behavior; B05.2b2 SECRET and remaining B05 families/import/export/query requirements.",
+      "Complete B07 actions, B08-B10 Flow/approval including timeout/repeat approver/dynamic nodes, B11-B12 applications/real external channels, and all other open requirements."
+    ],
+    "known_check_gaps": [
+      {
+        "check": "Optional expanded admin-workflow.test.ts source assertion",
+        "result": "2/3 passed; one existing assertion expects label=其他业务参数 while baseline/current navigation uses 业务参数. HEAD source independently confirms it pre-existed. It was left unchanged; no product navigation labels changed. Core selected tests 17/17 passed and final build/real navigation passed."
+      }
+    ]
   },
   "blockers": [
     {
@@ -1117,6 +1122,44 @@
       "path": "projects/unexamine/ai/evidence/spark-b05-structured-content-verification.json",
       "verification_scope": "Bounded RICH_TEXT/JSON configuration-to-runtime contribution only; this does not complete the entire field family, drag/drop designer, or any cross-package requirement.",
       "next_step": "B05.2b2"
+    },
+    {
+      "step": "B06.1a",
+      "status": "verified",
+      "verified_at": "2026-09-15T15:52:00.105807+08:00",
+      "verification_scope": "Drag/configure/save/publish/create/edit main form journey for supported core fields only. Not completion of B05/B06, every field type, or approval/application/channel requirements.",
+      "checks_actual_results": [
+        "Final native JDK21 Maven FormLayoutProtocolTest: 3 tests, 0 failures/errors; package -DskipTests passed.",
+        "Final Vitest: 4 files, 17 tests passed (3 new form layout behavior tests plus directly related existing checks).",
+        "Final vue-tsc and Vite production build passed, 3983 modules. Existing chunk-size warning remains.",
+        "Real pointer type drag -> name/placeholder/width -> save -> code replacement/DB readback passed.",
+        "Real saved-field drags moved phone to contact section and email before phone; section set to one column; save/reopen preserved placement/order/width.",
+        "Unsaved task switch kept current canvas and showed save-first warning. Mobile preview used real core inputs and a single-column canvas.",
+        "Server publication check passed; published version 6 -> runtime create -> list -> detail -> edit readback passed.",
+        "Invalid phone update showed named field error and was audited as FIELD_VALIDATION_FAILED; corrected update succeeded, record 69 revision 1.",
+        "All normal configuration and business form interactions used typed UI controls, no raw JSON, technical field IDs or request payload entry.",
+        "Final packaged backend restarted successfully; /actuator/health returned UP after startup. Live database version38 and record69 retained.",
+        "Final real navigation tests: changed group title -> roles navigation/refresh/template tenant switch all blocked with canvas retained; restoring saved title -> roles navigation succeeded. No extra page writes were made for these temporary checks."
+      ],
+      "next_step": "B06.1b1",
+      "evidence_path": "projects/unexamine/ai/evidence/spark-b06-drag-form-verification.json",
+      "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b06-drag-form.json",
+      "readback": [
+        "Module 28 version 6/id38/draft16; FORM page66 revision2 has main 2-column and contact 1-column sections; phone field54 retains span2 clamped to its section.",
+        "Record69 revision1 uses config38 and retains email/phone. Audits2765 create,2766 rejected invalid update,2767 successful correction retained; prior record68 remains revision2."
+      ],
+      "remaining": [
+        "B06.1b1: shared LIST/DETAIL configuration, preview and runtime consumption, plus verification with a second structurally different module.",
+        "B06.1b: component conditions/linkage/hidden/readonly behavior and complete field renderer families and cross-channel permissions.",
+        "B06.2/6.3 full query/view/detail/relationship behavior; B05.2b2 SECRET and remaining B05 families/import/export/query requirements.",
+        "Complete B07 actions, B08-B10 Flow/approval including timeout/repeat approver/dynamic nodes, B11-B12 applications/real external channels, and all other open requirements."
+      ],
+      "known_check_gaps": [
+        {
+          "check": "Optional expanded admin-workflow.test.ts source assertion",
+          "result": "2/3 passed; one existing assertion expects label=其他业务参数 while baseline/current navigation uses 业务参数. HEAD source independently confirms it pre-existed. It was left unchanged; no product navigation labels changed. Core selected tests 17/17 passed and final build/real navigation passed."
+        }
+      ]
     }
   ],
   "step_record_contract": {
@@ -1219,9 +1262,11 @@
         "B05"
       ],
       "steps": {
-        "B06.1": "unverified",
+        "B06.1": "in_progress",
         "B06.2": "unverified",
-        "B06.3": "unverified"
+        "B06.3": "unverified",
+        "B06.1a": "verified",
+        "B06.1b1": "unverified"
       }
     },
     {
@@ -1416,12 +1461,14 @@
   },
   "execution_priority": {
     "mode": "user_directed_real_vertical_slice",
-    "reason": "Do not spend more cycles proving isolated infrastructure while the product is not visibly usable. Stabilize and verify a real configurable-module journey first, then complete field families before approval and application packages.",
+    "reason": "User prioritizes the usable shared configurable module/form/page/action/approval/application main journeys; complete deferred full requirements afterward without substituting historical completion.",
     "deferred_required_steps": [
       "B03.1b",
-      "B03.1c"
+      "B03.1c",
+      "B05.2b2"
     ],
-    "rule": "Deferred means still required; no historical report may mark it complete."
+    "rule": "Deferred means still required; no historical report may mark it complete.",
+    "current_main_path": "B06.1a verified -> B06.1b1 main list/detail configuration-to-runtime and second module -> B07 actions -> B08/B09 approval -> application opening. Deferred requirements remain required."
   },
   "form_designer_contract": {
     "source_rows": [
@@ -1439,7 +1486,7 @@
     ],
     "ordinary_path": "Drag a field type from the left palette into the center form canvas, position/reorder/group it, and configure its type-specific properties on the right. Preview, draft save, publication and runtime share the same field registry and renderer. No hand-written JSON.",
     "internal_protocol": "Page schema and JSON are internal persistence/transport formats; a JSON business field must not turn form, page, Flow or application configuration into a raw-JSON editor.",
-    "current_observed_gap": "Field-type palette is now reachable and click opens typed properties; native drag attempts did not open a drawer. Palette remains on the right, field configuration uses a drawer and page layout is a separate selection/reordering view. Complete left-types/center-canvas/right-properties drag-to-runtime acceptance remains B06.",
+    "current_observed_gap": "B06.1a pointer drag, three-panel typed configuration, groups/order/width, shared core preview/runtime, explicit save/publish and real record readback verified. LIST/DETAIL shared schema/renderer and remaining conditions/field families still open.",
     "completion_packet": "B06",
     "acceptance": "Use real drag/drop to create and arrange a form, edit typed properties and groups, preview, publish and reopen in the runtime. A field table, modal or checkbox selection alone is insufficient."
   },
@@ -1448,6 +1495,14 @@
       "scope": "SECRET input, encrypted field/action-intent storage, redacted audit/history/client drafts and published sensitive masking across list/detail/query.",
       "requirement_rule": "Default masked; detail and application plaintext only with explicit applicable permission/authorization, as required by R2589/R2591. Do not replace this with an unconditional never-readable policy.",
       "reason": "Security spans the common action receipt/pending-intent path and must be verified separately from rich/JSON rendering."
+    },
+    "B06.1b": {
+      "scope": "Remaining section/component display conditions, linkage, readonly/hidden behavior and the complete list/detail component schema. Complete all field renderer families and cross-channel permission checks.",
+      "reason": "B06.1a prioritizes the actual configurable form main journey; it does not complete all B06.1 obligations."
+    },
+    "B06.1b1": {
+      "scope": "Main LIST/DETAIL configuration, real preview/runtime and second structurally different module verification.",
+      "reason": "Next core usability step, before action/approval/application main journeys; does not complete all B06 obligations."
     }
   }
 }

@@ -26,6 +26,7 @@ import WorkConfigurationView from './WorkConfigurationView.vue'
 const route = useRoute()
 const router = useRouter()
 const templateSection = ref<'main' | 'tenant'>('main')
+const moduleConfiguration = ref<InstanceType<typeof ModuleConfigurationView>>()
 const systemInfoSection = ref<'settings' | 'identity'>('settings')
 const parameterSection = ref<'settings' | 'dashboard' | 'print' | 'messages' | 'work'>('settings')
 
@@ -87,8 +88,13 @@ function syncParameterSection() {
 }
 
 async function navigate(key: string) {
-  active.value = key
+  // Keep the editor mounted until its navigation guard permits leaving.
   await router.replace({ query: { ...route.query, section: key } })
+}
+
+function selectTemplateSection(value: unknown) {
+  if (moduleConfiguration.value && !moduleConfiguration.value.canLeaveForm()) return
+  templateSection.value = value === 'tenant' ? 'tenant' : 'main'
 }
 
 function contextChanged() {
@@ -120,9 +126,9 @@ watch(parameterSections, syncParameterSection, { immediate: true })
     </template>
     <template v-else-if="active === 'templates'">
       <ProductPageHeader kicker="系统管理" title="业务模块" description="从业务名称开始，按字段、页面和功能逐步搭建并发布。">
-        <template #actions><a-segmented v-model:value="templateSection" :options="[{ value: 'main', label: '模块搭建' }, { value: 'tenant', label: '组织扩展' }]" /></template>
+        <template #actions><a-space><a-button :type="templateSection === 'main' ? 'primary' : 'default'" @click="selectTemplateSection('main')">模块搭建</a-button><a-button :type="templateSection === 'tenant' ? 'primary' : 'default'" @click="selectTemplateSection('tenant')">组织扩展</a-button></a-space></template>
       </ProductPageHeader>
-      <ModuleConfigurationView v-if="templateSection === 'main'" />
+      <ModuleConfigurationView v-if="templateSection === 'main'" ref="moduleConfiguration" />
       <TenantExtensionsView v-else />
     </template>
     <FlowDesignerView v-else-if="active === 'flow'" context="system" />

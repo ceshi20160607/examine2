@@ -80,7 +80,7 @@ export function supportsTextConstraints(fieldType: string) {
   return textRuntimeFieldTypes.has(fieldType) || fieldType === 'RICH_TEXT'
 }
 export function isSharedRuntimeField(fieldType: string) {
-  return isBasicRuntimeField(fieldType) || ['RICH_TEXT', 'JSON'].includes(fieldType)
+  return isBasicRuntimeField(fieldType) || ['RICH_TEXT', 'JSON', 'MONEY', 'SINGLE_SELECT', 'STATUS'].includes(fieldType)
 }
 export function supportsFieldSearch(fieldType: string) { return !['JSON', 'SECRET'].includes(fieldType) }
 export function supportsContentSort(fieldType: string) { return !['RICH_TEXT', 'JSON', 'SECRET'].includes(fieldType) }

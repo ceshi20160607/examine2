@@ -627,6 +627,10 @@ public class ModulePublicationService {
             String path = "pages." + page.getPageType() + ".layout.fieldCodes";
             try {
                 JsonNode layout = objectMapper.readTree(page.getLayoutJson());
+                if ("FORM".equals(page.getPageType())) {
+                    FormLayoutProtocol.validate(layout, activeFields.keySet()).forEach(problem -> issues.add(
+                            new PublicationCheckIssue("pages.FORM.layout." + problem.path(), "FORM_LAYOUT_INVALID", problem.message())));
+                }
                 int schemaVersion = layout.path("schemaVersion").asInt(1);
                 if (schemaVersion != 1) {
                     issues.add(new PublicationCheckIssue("pages." + page.getPageType() + ".layout.schemaVersion",

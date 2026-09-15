@@ -16,6 +16,7 @@ import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductPage from '../components/ProductPage.vue'
 import ProductListWorkspace from '../components/ProductListWorkspace.vue'
 import RuntimeFieldInput from '../components/RuntimeFieldInput.vue'
+import SchemaFormLayout from '../components/SchemaFormLayout.vue'
 import { fieldFamily, filterOperators, isSharedRuntimeField, supportsContentSort } from '../field-capabilities'
 import StructuredValueDisplay from '../components/StructuredValueDisplay.vue'
 import { sanitizeRichMarkup, richPlainText, structuredSummary, emptyJsonValue, newJsonSchema, type JsonSchema } from '../structured-content'
@@ -164,6 +165,7 @@ const detailFields = computed(() => fieldsForPage('DETAIL').filter((field) => fi
 const attachmentFieldTypes = new Set(['ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP'])
 const recordAttachmentFields = computed(() => detailFields.value.filter(field => attachmentFieldTypes.has(field.fieldType)))
 const detailValueFields = computed(() => detailFields.value.filter(field => !attachmentFieldTypes.has(field.fieldType)))
+const formLayout = computed(() => configuration.value?.configuration.pages.find(page => page.pageType === 'FORM')?.layoutJson)
 const formValueFields = computed(() => formFields.value.filter(field => !attachmentFieldTypes.has(field.fieldType)))
 const recordTitleField = computed(() => formValueFields.value.find(field => field.required
   && ['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL'].includes(field.fieldType)
@@ -1069,7 +1071,7 @@ function options(field: RuntimeField) {
   try {
     const config = JSON.parse(field.configJson) as { options?: Array<{ value?: string; code?: string; label?: string; status?: string; disabled?: boolean }> }
     return (config.options || []).filter((option) => option.status !== 'DISABLED' && !option.disabled)
-      .map((option) => ({ value: option.value || option.code, label: option.label || option.value || option.code }))
+      .flatMap((option) => { const value = option.value || option.code; return value ? [{ value, label: option.label || value }] : [] })
   } catch { return [] }
 }
 
@@ -1475,9 +1477,9 @@ defineExpose({ refresh: loadModules, executeCommand })
       <a-alert v-if="recordTitleField" type="info" show-icon class="section-alert" :message="`记录名称使用“${recordTitleField.name}”，无需重复填写标题`" />
       <a-form layout="vertical"><div class="form-grid"><a-form-item v-if="!recordTitleField" label="标题" required><a-input id="runtime-record-title" v-model:value="form.title" /></a-form-item><a-form-item label="业务编号"><a-input v-model:value="form.recordNumber" /></a-form-item></div>
         <a-divider>模块字段</a-divider>
-        <a-form-item v-for="field in formValueFields" :key="field.code" :label="field.name" :required="field.required" :data-runtime-field="field.code"
+        <SchemaFormLayout :layout="formLayout" :fields="formValueFields"><template #field="{ field }"><a-form-item :label="field.name" :required="field.required" :data-runtime-field="field.code"
           :validate-status="fieldErrors[field.code] ? 'error' : undefined" :help="fieldErrors[field.code]">
-          <RuntimeFieldInput v-if="isSharedRuntimeField(field.fieldType)" v-model="form.fields[field.code]" :field="field" />
+          <RuntimeFieldInput v-if="isSharedRuntimeField(field.fieldType)" v-model="form.fields[field.code]" :field="field" :options="options(field)" />
           <a-input-number v-else-if="field.fieldType === 'MONEY'" v-model:value="form.fields[field.code]" style="width:100%" />
           <a-select v-else-if="['SINGLE_SELECT', 'STATUS'].includes(field.fieldType)" v-model:value="form.fields[field.code]" :options="options(field)" allow-clear />
           <a-cascader v-else-if="field.fieldType === 'CASCADE'" v-model:value="form.fields[field.code]" :options="cascadeOptions[field.code] || []"
@@ -1486,7 +1488,7 @@ defineExpose({ refresh: loadModules, executeCommand })
           <DepartmentSelect v-else-if="field.fieldType === 'DEPARTMENT'" :model-value="numericFieldValue(field.code)" :departments="peopleDirectory.departments" @update:model-value="form.fields[field.code] = $event" />
           <a-select v-else-if="field.fieldType === 'REFERENCE'" v-model:value="form.fields[field.code]" show-search allow-clear :loading="referenceLoading" :filter-option="(input: string, option: { label?: string; description?: string }) => `${option.label || ''} ${option.description || ''}`.toLowerCase().includes(input.toLowerCase())" :options="referenceOptions[field.code] || []" placeholder="搜索并选择业务记录"><template #option="{ label, description }"><span class="reference-option"><strong>{{ label }}</strong><small>{{ description }}</small></span></template></a-select>
           <a-input v-else v-model:value="form.fields[field.code]" />
-        </a-form-item>
+        </a-form-item></template></SchemaFormLayout>
       </a-form>
     </ProductFormDrawer>
     <a-modal v-model:open="lifecycleOpen" :title="lifecycleAction === 'ARCHIVE' ? '确认归档记录' : lifecycleAction === 'DELETE' ? '确认删除记录' : '确认恢复记录'"

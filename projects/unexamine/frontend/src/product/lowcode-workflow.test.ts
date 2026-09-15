@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const productRoot = fileURLToPath(new URL('.', import.meta.url))
+const fieldProperties = readFileSync(`${productRoot}/components/ModuleFieldProperties.vue`, 'utf8')
 const moduleConfiguration = readFileSync(`${productRoot}/views/ModuleConfigurationView.vue`, 'utf8')
 
 describe('low-code module lifecycle contract', () => {
@@ -28,24 +29,24 @@ describe('low-code module lifecycle contract', () => {
   })
 
   it('provides business-name selectors for dependent configuration', () => {
-    expect(moduleConfiguration).toContain('label="授权模型"')
+    expect(fieldProperties).toContain('label="授权模型"')
     expect(moduleConfiguration).toContain('label="字段对应关系"')
     expect(moduleConfiguration).toContain(':options="conditionOperatorOptions"')
     expect(moduleConfiguration).toContain('{{ fieldName(condition.field) }}')
   })
 
   it('keeps field uniqueness on a structured switch and identifies its managed index', () => {
-    expect(moduleConfiguration).toContain('v-model:checked="fieldForm.uniqueValue"')
-    expect(moduleConfiguration).toContain('由数据库并发保证')
+    expect(fieldProperties).toContain('v-model:checked="fieldForm.uniqueValue"')
+    expect(fieldProperties).toContain('由数据库并发保证')
     expect(moduleConfiguration).toContain('字段配置自动维护')
     expect(moduleConfiguration).toContain("index.index.code.startsWith('field_unique_')")
   })
 
   it('configures text length and format through field-specific controls instead of JSON', () => {
-    expect(moduleConfiguration).toContain('label="最短长度"')
-    expect(moduleConfiguration).toContain('label="最长长度"')
-    expect(moduleConfiguration).toContain('label="附加格式规则"')
-    expect(moduleConfiguration).toContain('自定义正则表达式')
-    expect(moduleConfiguration).toContain('builtInTextFormat(fieldForm.fieldType)')
+    expect(fieldProperties).toContain('label="最短长度"')
+    expect(fieldProperties).toContain('label="最长长度"')
+    expect(fieldProperties).toContain('label="附加格式规则"')
+    expect(fieldProperties).toContain('自定义正则表达式')
+    expect(fieldProperties).toContain('builtInTextFormat(fieldForm.fieldType)')
   })
 })

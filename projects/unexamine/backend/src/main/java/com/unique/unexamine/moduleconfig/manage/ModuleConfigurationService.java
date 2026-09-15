@@ -250,6 +250,13 @@ public class ModuleConfigurationService {
         if (!request.version().equals(page.getVersion())) {
             throw new DomainException("DRAFT_VERSION_CONFLICT", "页面草稿已被其他操作修改", HttpStatus.CONFLICT);
         }
+        if ("FORM".equals(page.getPageType())) {
+            Set<String> activeCodes = fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
+                    .eq(ConfiguredModuleField::getModuleId, moduleId).eq(ConfiguredModuleField::getStatus, "ACTIVE"))
+                    .stream().map(ConfiguredModuleField::getCode).collect(java.util.stream.Collectors.toSet());
+            var problems = FormLayoutProtocol.validate(objectMapper.valueToTree(request.layout()), activeCodes);
+            if (!problems.isEmpty()) throw new DomainException("FORM_LAYOUT_INVALID", problems.getFirst().message(), HttpStatus.BAD_REQUEST);
+        }
         page.setLayoutJson(toJson(request.layout()));
         if (pageService.updateById(page) == 0) {
             throw new DomainException("DRAFT_VERSION_CONFLICT", "页面草稿已被其他操作修改", HttpStatus.CONFLICT);

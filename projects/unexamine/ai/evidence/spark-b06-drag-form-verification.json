@@ -1,0 +1,468 @@
+{
+  "step": "B06.1a",
+  "status": "verified",
+  "verified_at": "2026-09-15T15:52:00.105807+08:00",
+  "verification_scope": "Drag/configure/save/publish/create/edit main form journey for supported core fields only. Not completion of B05/B06, every field type, or approval/application/channel requirements.",
+  "source_rows": [
+    "R0518",
+    "R0519",
+    "R0551",
+    "R0552",
+    "R0553",
+    "R0557",
+    "R1464",
+    "R1465",
+    "R1466",
+    "R1467",
+    "R1468",
+    "R1469",
+    "R1475",
+    "R1484",
+    "R1488",
+    "R1489",
+    "R1490",
+    "R2949"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+    "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+    "projects/unexamine/frontend/src/product/field-capabilities.ts",
+    "projects/unexamine/frontend/src/product/lowcode-workflow.test.ts",
+    "projects/unexamine/frontend/src/product/product.css",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/SystemAdminHomeView.vue",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/FormLayoutProtocol.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/FormLayoutProtocolTest.java",
+    "projects/unexamine/frontend/src/product/components/ModuleFieldProperties.vue",
+    "projects/unexamine/frontend/src/product/components/ModuleFormDesigner.vue",
+    "projects/unexamine/frontend/src/product/components/SchemaFormLayout.vue",
+    "projects/unexamine/frontend/src/product/form-layout.test.ts",
+    "projects/unexamine/frontend/src/product/form-layout.ts"
+  ],
+  "implementation": [
+    "Pointer drag inserts a pending field into left-types/center-canvas/right-properties designer. Save replaces its pending code and width with the persisted field code.",
+    "One SchemaFormLayout consumes section titles/order/columns/spans in designer preview and runtime create/edit. Reused RuntimeFieldInput covers text, number, money, date/datetime, boolean, fixed single selection/status, rich text and structured JSON.",
+    "Existing field configuration extracted into ModuleFieldProperties and reused, including pre-existing specialized type controls. Remaining type families are not claimed complete.",
+    "Draft and publication share FormLayoutProtocol validation. Reject duplicate/unknown references, inconsistent section order/range, invalid columns/spans and overflowing integer widths.",
+    "Unsaved layout/field changes block task/tab/module/navigation/refresh changes. Explicit draft save and publish show errors; unchanged layouts avoid redundant writes.",
+    "Long-form toolbar and both side panels remain visible while scrolling. Existing unrelated layout metadata and non-SECTION components are retained."
+  ],
+  "checks_actual_results": [
+    "Final native JDK21 Maven FormLayoutProtocolTest: 3 tests, 0 failures/errors; package -DskipTests passed.",
+    "Final Vitest: 4 files, 17 tests passed (3 new form layout behavior tests plus directly related existing checks).",
+    "Final vue-tsc and Vite production build passed, 3983 modules. Existing chunk-size warning remains.",
+    "Real pointer type drag -> name/placeholder/width -> save -> code replacement/DB readback passed.",
+    "Real saved-field drags moved phone to contact section and email before phone; section set to one column; save/reopen preserved placement/order/width.",
+    "Unsaved task switch kept current canvas and showed save-first warning. Mobile preview used real core inputs and a single-column canvas.",
+    "Server publication check passed; published version 6 -> runtime create -> list -> detail -> edit readback passed.",
+    "Invalid phone update showed named field error and was audited as FIELD_VALIDATION_FAILED; corrected update succeeded, record 69 revision 1.",
+    "All normal configuration and business form interactions used typed UI controls, no raw JSON, technical field IDs or request payload entry.",
+    "Final packaged backend restarted successfully; /actuator/health returned UP after startup. Live database version38 and record69 retained.",
+    "Final real navigation tests: changed group title -> roles navigation/refresh/template tenant switch all blocked with canvas retained; restoring saved title -> roles navigation succeeded. No extra page writes were made for these temporary checks."
+  ],
+  "commands": [
+    "npm test -- src/product/form-layout.test.ts src/product/lowcode-workflow.test.ts src/product/runtime-workflow.test.ts src/product/field-capabilities.test.ts",
+    "npm run build",
+    "D:/dev/maven/bin/mvn.cmd -q -Dmaven.repo.local=D:/dev/maven_repository -Dtest=FormLayoutProtocolTest test",
+    "D:/dev/maven/bin/mvn.cmd -q -Dmaven.repo.local=D:/dev/maven_repository -DskipTests package",
+    "npm test -- src/product/form-layout.test.ts src/product/lowcode-workflow.test.ts src/product/runtime-workflow.test.ts src/product/field-capabilities.test.ts src/product/admin-workflow.test.ts (19/20; known baseline source-label assertion failed)"
+  ],
+  "corrections_during_verification": [
+    "Old source-position assertions failed because typed field controls moved into their shared component; assertions now read that component, retaining their original checks.",
+    "Unquoted PowerShell Maven property flags were parsed incorrectly; quoted flags passed. Those failed invocations are not counted as successful tests.",
+    "Sticky panels initially failed because ancestor designer overflow:hidden captured sticky positioning; the form-only container now allows overflow and real long-form scroll verified panels stay visible.",
+    "Development script HMR reset a local unsaved draft during inspection. Final journey was restarted from published state; only persisted field 54 and retained record 69 are counted.",
+    "Final navigation test exposed parent active-section mutation before route guards; parent now waits for successful router navigation. Local template switching also checks the mounted editor before changing its section."
+  ],
+  "database_readback": [
+    {
+      "code": "module_4513ff83a1",
+      "name": "客户档案",
+      "version": 6,
+      "moduleId": 28,
+      "versionId": 38,
+      "schemaHash": "fc3c58694a9ec1e28d72dcffb39c8ec7cb7e7b0488c7fb6e44aae9ce7fda125a",
+      "draftRevision": 16,
+      "publishedRevision": 16
+    },
+    {
+      "id": 54,
+      "code": "field_5deda98a29",
+      "name": "联系人电话",
+      "type": "PHONE",
+      "config": {
+        "readOnly": false,
+        "sensitive": false,
+        "placeholder": "填写客户联系电话"
+      },
+      "version": 0
+    },
+    {
+      "id": 67,
+      "layout": {
+        "components": []
+      },
+      "version": 0,
+      "pageType": "DETAIL"
+    },
+    {
+      "id": 66,
+      "layout": {
+        "components": [
+          {
+            "id": "main",
+            "type": "SECTION",
+            "title": "主要信息",
+            "columns": 2,
+            "fieldCodes": [
+              "field_20a69d1ce3",
+              "field_831b688ceb",
+              "field_21059c1892",
+              "field_cca77c32e8",
+              "field_db1ac87c01",
+              "field_6690d5a5db",
+              "field_8c64e4b826",
+              "field_f98636b68b",
+              "field_63b21f9af4"
+            ]
+          },
+          {
+            "id": "section-2247e2dd-f1d1-4db2-ab00-a9bf6c0feac1",
+            "type": "SECTION",
+            "title": "联系信息",
+            "columns": 1,
+            "fieldCodes": [
+              "field_ab6c49c1de",
+              "field_5deda98a29"
+            ]
+          }
+        ],
+        "fieldCodes": [
+          "field_20a69d1ce3",
+          "field_831b688ceb",
+          "field_21059c1892",
+          "field_cca77c32e8",
+          "field_db1ac87c01",
+          "field_6690d5a5db",
+          "field_8c64e4b826",
+          "field_f98636b68b",
+          "field_63b21f9af4",
+          "field_ab6c49c1de",
+          "field_5deda98a29"
+        ],
+        "fieldSpans": {
+          "field_5deda98a29": 2
+        },
+        "layoutType": "FORM",
+        "schemaVersion": 1
+      },
+      "version": 2,
+      "pageType": "FORM"
+    },
+    {
+      "id": 65,
+      "layout": {
+        "components": []
+      },
+      "version": 0,
+      "pageType": "LIST"
+    },
+    {
+      "id": 68,
+      "title": "结构化字段真实验收客户",
+      "version": 2,
+      "createdConfigVersionId": 37,
+      "updatedConfigVersionId": 37
+    },
+    {
+      "id": 69,
+      "title": "拖拽表单真实验收客户",
+      "version": 1,
+      "createdConfigVersionId": 38,
+      "updatedConfigVersionId": 38
+    },
+    {
+      "date": null,
+      "json": null,
+      "text": "拖拽表单真实验收客户",
+      "number": null,
+      "boolean": null,
+      "fieldId": 44,
+      "recordId": 69,
+      "fieldCode": "field_20a69d1ce3"
+    },
+    {
+      "date": null,
+      "json": null,
+      "text": "active",
+      "number": null,
+      "boolean": null,
+      "fieldId": 45,
+      "recordId": 69,
+      "fieldCode": "field_831b688ceb"
+    },
+    {
+      "date": null,
+      "json": null,
+      "text": null,
+      "number": 80.0,
+      "boolean": null,
+      "fieldId": 46,
+      "recordId": 69,
+      "fieldCode": "field_21059c1892"
+    },
+    {
+      "date": "2026-09-30",
+      "json": null,
+      "text": null,
+      "number": null,
+      "boolean": null,
+      "fieldId": 47,
+      "recordId": 69,
+      "fieldCode": "field_cca77c32e8"
+    },
+    {
+      "date": null,
+      "json": null,
+      "text": null,
+      "number": null,
+      "boolean": 1,
+      "fieldId": 48,
+      "recordId": 69,
+      "fieldCode": "field_db1ac87c01"
+    },
+    {
+      "date": null,
+      "json": null,
+      "text": "form.acceptance@example.com",
+      "number": null,
+      "boolean": null,
+      "fieldId": 51,
+      "recordId": 69,
+      "fieldCode": "field_ab6c49c1de"
+    },
+    {
+      "date": null,
+      "json": "<b>默认合作说明</b>",
+      "text": null,
+      "number": null,
+      "boolean": null,
+      "fieldId": 52,
+      "recordId": 69,
+      "fieldCode": "field_f98636b68b"
+    },
+    {
+      "date": null,
+      "json": null,
+      "text": "13800000602",
+      "number": null,
+      "boolean": null,
+      "fieldId": 54,
+      "recordId": 69,
+      "fieldCode": "field_5deda98a29"
+    },
+    {
+      "id": 2761,
+      "code": "MODULE_FIELD_DRAFT_CREATED",
+      "detail": {
+        "moduleId": 28,
+        "fieldCode": "field_5deda98a29",
+        "fieldType": "PHONE"
+      },
+      "result": "SUCCESS",
+      "objectId": "54",
+      "objectType": "MODULE_FIELD"
+    },
+    {
+      "id": 2762,
+      "code": "MODULE_PAGE_DRAFT_UPDATED",
+      "detail": {
+        "moduleId": 28,
+        "pageType": "FORM"
+      },
+      "result": "SUCCESS",
+      "objectId": "66",
+      "objectType": "MODULE_PAGE"
+    },
+    {
+      "id": 2763,
+      "code": "MODULE_PAGE_DRAFT_UPDATED",
+      "detail": {
+        "moduleId": 28,
+        "pageType": "FORM"
+      },
+      "result": "SUCCESS",
+      "objectId": "66",
+      "objectType": "MODULE_PAGE"
+    },
+    {
+      "id": 2764,
+      "code": "MODULE_PUBLISHED",
+      "detail": {
+        "moduleId": 28,
+        "draftRevision": 16,
+        "versionNumber": 6
+      },
+      "result": "SUCCESS",
+      "objectId": "38",
+      "objectType": "MODULE_VERSION"
+    },
+    {
+      "id": 2765,
+      "code": "BUSINESS_RECORD_CREATED",
+      "detail": {
+        "fields": {
+          "field_20a69d1ce3": "拖拽表单真实验收客户",
+          "field_21059c1892": 80,
+          "field_5deda98a29": "13800000601",
+          "field_831b688ceb": "active",
+          "field_ab6c49c1de": "form.acceptance@example.com",
+          "field_cca77c32e8": "2026-09-30",
+          "field_db1ac87c01": true,
+          "field_f98636b68b": "<b>默认合作说明</b>"
+        },
+        "moduleCode": "module_4513ff83a1",
+        "configVersionId": 38,
+        "participantMemberIds": []
+      },
+      "result": "SUCCESS",
+      "objectId": "69",
+      "objectType": "BUSINESS_RECORD"
+    },
+    {
+      "id": 2766,
+      "code": "BUSINESS_RECORD_UPDATE",
+      "detail": {
+        "errors": [
+          "field_5deda98a29: 手机号格式不正确"
+        ],
+        "recordId": 69
+      },
+      "result": "FIELD_VALIDATION_FAILED",
+      "objectId": "69",
+      "objectType": "BUSINESS_RECORD"
+    },
+    {
+      "id": 2767,
+      "code": "BUSINESS_RECORD_UPDATED",
+      "detail": {
+        "moduleCode": "module_4513ff83a1",
+        "afterFields": {
+          "field_20a69d1ce3": "拖拽表单真实验收客户",
+          "field_21059c1892": 80,
+          "field_5deda98a29": "13800000602",
+          "field_831b688ceb": "active",
+          "field_ab6c49c1de": "form.acceptance@example.com",
+          "field_cca77c32e8": "2026-09-30",
+          "field_db1ac87c01": true,
+          "field_f98636b68b": "<b>默认合作说明</b>"
+        },
+        "beforeFields": {
+          "field_20a69d1ce3": "拖拽表单真实验收客户",
+          "field_21059c1892": 80.0,
+          "field_5deda98a29": "13800000601",
+          "field_831b688ceb": "active",
+          "field_ab6c49c1de": "form.acceptance@example.com",
+          "field_cca77c32e8": "2026-09-30",
+          "field_db1ac87c01": true,
+          "field_f98636b68b": "<b>默认合作说明</b>"
+        },
+        "dataTenantId": 21,
+        "actorTenantId": 21,
+        "configVersionId": 38,
+        "participantMemberIds": []
+      },
+      "result": "SUCCESS",
+      "objectId": "69",
+      "objectType": "BUSINESS_RECORD"
+    }
+  ],
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "985efc4c7f6156fb3826759bfe7082eaf6e6e681b2fabea40ee764659672460f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "9dcf552a319fbec34f280ad01d0173cce643ef30275311d7bd0bf4b7dd4e34e6"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+      "sha256": "e37bf13525908035d4f5fb831c4817af1345dd1c53ee4e3dcd914844bd7a18c6"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/field-capabilities.ts",
+      "sha256": "43be2f14ff8c678804ebfa09e023bc785aaff33bd942a33dcd234cd166524259"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/lowcode-workflow.test.ts",
+      "sha256": "e6abbf35df2a43ff99beaee33838a9b02fd9acc1d1961ec10e4b311fbc4a9459"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/product.css",
+      "sha256": "39279a2fcd4bae1b7e9f2c7d78631ae92b71e431dfe38defbe6425dbbc800387"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "bc8039511a52ed6676c151491f40c6839f29f462224705c14640958553c525cc"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "f385422658da2023c1aacefbfec310b5be9bf717a3efe345d2704338edbc85a7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/SystemAdminHomeView.vue",
+      "sha256": "b150315b601676799914fe61c09ffb17fda84422c1455c9de269178662e16022"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/FormLayoutProtocol.java",
+      "sha256": "e2e1ed259de30d6126e5f9826bed62a8e3c045f3e32956b3205b38253ba753fd"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/FormLayoutProtocolTest.java",
+      "sha256": "1e9d951b6db1ff9f5058bda02e53978e1bb3d969560f2b9b27bee2484e662aa3"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ModuleFieldProperties.vue",
+      "sha256": "cb0625ad624e40353e6e0194ef63876d246757fbdcbd2215802aed554dad78f7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ModuleFormDesigner.vue",
+      "sha256": "fce8af0b55c53ebc099a6d698ede2fd920ab3f5e36d67b02fc1fd9a3d8ec522b"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/SchemaFormLayout.vue",
+      "sha256": "8881c2cf81dbec997c9c989714594642e2447a0db31c7cc955dd775ada7f76ab"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/form-layout.test.ts",
+      "sha256": "5ac44e4be562189a4c4b4ba6a8b72795db926c168bb38eb6e20de66c0b4dd52f"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/form-layout.ts",
+      "sha256": "f1a5efe9d47ef7d2593025d437f586c61368436e198cf63f6f2cff4931e227c6"
+    }
+  ],
+  "remaining": [
+    "B06.1b1: shared LIST/DETAIL configuration, preview and runtime consumption, plus verification with a second structurally different module.",
+    "B06.1b: component conditions/linkage/hidden/readonly behavior and complete field renderer families and cross-channel permissions.",
+    "B06.2/6.3 full query/view/detail/relationship behavior; B05.2b2 SECRET and remaining B05 families/import/export/query requirements.",
+    "Complete B07 actions, B08-B10 Flow/approval including timeout/repeat approver/dynamic nodes, B11-B12 applications/real external channels, and all other open requirements."
+  ],
+  "next_step": "B06.1b1",
+  "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b06-drag-form.json",
+  "boundary_validation": "No repository boundaries, workspace definition, generated Base code or engineering template changed; boundary validator not repeated.",
+  "runtime_artifact": {
+    "jar": "projects/unexamine/backend/target/unexamine-server-0.1.0-SNAPSHOT.jar",
+    "sha256": "159c01761362b71354b3e7adadc37bb2900f82221be583143cd6e916bcad0013",
+    "health": "UP"
+  },
+  "known_check_gaps": [
+    {
+      "check": "Optional expanded admin-workflow.test.ts source assertion",
+      "result": "2/3 passed; one existing assertion expects label=其他业务参数 while baseline/current navigation uses 业务参数. HEAD source independently confirms it pre-existed. It was left unchanged; no product navigation labels changed. Core selected tests 17/17 passed and final build/real navigation passed."
+    }
+  ]
+}

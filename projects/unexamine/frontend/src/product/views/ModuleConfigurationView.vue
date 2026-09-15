@@ -11,12 +11,12 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons-vue'
 import { Empty, message } from 'ant-design-vue'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 import { api, ApiError } from '../api'
 import { productDateTime } from '../presentation'
 import { systemContext, systemTokens } from '../session'
-import { builtInTextFormat, defaultEditor, fieldTypes, supportsTextConstraints, supportsUniqueValue, supportsFieldSearch } from '../field-capabilities'
+import { fieldTypes, supportsTextConstraints, supportsUniqueValue, supportsFieldSearch } from '../field-capabilities'
 import type {
   ConfiguredField,
   ConfiguredAction,
@@ -35,10 +35,9 @@ import type {
   AiSystemOverview,
 } from '../types'
 
-import StructuredSchemaEditor from '../components/StructuredSchemaEditor.vue'
-import StructuredValueEditor from '../components/StructuredValueEditor.vue'
-import RichTextEditor from '../components/RichTextEditor.vue'
-import { newJsonSchema, emptyJsonValue, jsonSchemaIssue, type JsonSchema } from '../structured-content'
+import ModuleFieldProperties from '../components/ModuleFieldProperties.vue'
+import ModuleFormDesigner from '../components/ModuleFormDesigner.vue'
+import { newJsonSchema, jsonSchemaIssue, type JsonSchema } from '../structured-content'
 
 const emit = defineEmits<{ published: [] }>()
 const router = useRouter()
@@ -56,6 +55,9 @@ const draggingType = ref('')
 const groupModal = ref(false)
 const moduleModal = ref(false)
 const fieldDrawer = ref(false)
+const formDesigner = ref<InstanceType<typeof ModuleFormDesigner>>()
+const fieldFormSnapshot = ref('')
+const designerError = ref('')
 const activeDesignerTab = ref('FIELDS')
 type ModuleConfigTask = 'INFO' | 'FIELDS' | 'ACTIONS' | 'FLOW' | 'APPLICATION'
 
@@ -133,11 +135,7 @@ const conditionOperatorOptions = [
   { value: 'IN', label: '属于' }, { value: 'CONTAINS', label: '包含' },
   { value: 'EMPTY', label: '为空' }, { value: 'NOT_EMPTY', label: '不为空' },
 ]
-const patternModeOptions = [
-  { value: 'NONE', label: '不限附加格式' }, { value: 'DIGITS', label: '仅数字' },
-  { value: 'LETTERS', label: '仅英文字母' }, { value: 'ALPHANUMERIC', label: '英文字母和数字' },
-  { value: 'CHINESE', label: '仅中文' }, { value: 'CUSTOM', label: '自定义正则表达式' },
-]
+
 
 const token = computed(() => systemTokens.value?.accessToken || '')
 const selectedModule = computed(() => overview.value.modules.find((item) => item.id === selectedModuleId.value))
@@ -145,6 +143,13 @@ const groupedModules = computed(() => overview.value.groups.map((group) => ({
   ...group,
   modules: overview.value.modules.filter((module) => module.groupId === group.id),
 })))
+const formDesignActive = computed(() => activeConfigTask.value === 'FIELDS' && ['FIELDS', 'FORM'].includes(activeDesignerTab.value))
+const formDesignPage = computed(() => draft.value?.pages.find(page => page.pageType === 'FORM'))
+const fieldPropertyDirty = computed(() => fieldDrawer.value && (!editingField.value || JSON.stringify(fieldForm) !== fieldFormSnapshot.value))
+const pendingFormField = computed<ConfiguredField | undefined>(() => formDesignActive.value && fieldDrawer.value && !editingField.value ? {
+  id: -1, code: '__pending_field__', name: fieldForm.name || fieldTypes.find(field => field.type === fieldForm.fieldType)?.name || '新字段',
+  fieldType: fieldForm.fieldType, required: fieldForm.required, sortOrder: fieldForm.sortOrder, status: 'ACTIVE', configJson: JSON.stringify(fieldConfig()), version: 0,
+} : undefined)
 const selectedPage = computed(() => draft.value?.pages.find((page) => page.pageType === activeDesignerTab.value))
 const rawSelectedPageFieldCodes = computed(() => {
   if (!selectedPage.value) return [] as string[]
@@ -233,6 +238,7 @@ const fieldConfigurationIssue = computed(() => {
 })
 
 async function loadOverview(preferredModuleId?: number) {
+  if (!canLeaveForm()) return
   if (!token.value) return
   loading.value = true
   error.value = ''
@@ -260,6 +266,8 @@ async function loadOverview(preferredModuleId?: number) {
 }
 
 async function selectModule(moduleId: number) {
+  if (!canLeaveForm()) return
+  fieldDrawer.value = false
   selectedModuleId.value = moduleId
   error.value = ''
   try {
@@ -294,6 +302,7 @@ async function createGroup() {
 }
 
 function beginModule() {
+  if (!canLeaveForm()) return
   Object.assign(moduleForm, {
     groupMode: overview.value.groups.length ? 'existing' : 'new',
     groupId: overview.value.groups[0]?.id,
@@ -346,6 +355,7 @@ function beginField(type: string) {
     sensitive: type === 'SECRET', readOnly: type.startsWith('SYSTEM_'), version: 0,
   })
   fieldDrawer.value = true
+  fieldFormSnapshot.value = JSON.stringify(fieldForm)
 }
 
 function editField(field: ConfiguredField) {
@@ -371,6 +381,7 @@ function editField(field: ConfiguredField) {
     readOnly: Boolean(config.readOnly) || field.fieldType.startsWith('SYSTEM_'), version: field.version,
   })
   fieldDrawer.value = true
+  fieldFormSnapshot.value = JSON.stringify(fieldForm)
 }
 
 function fieldConfig() {
@@ -417,12 +428,14 @@ function isManagedFieldIndex(index: QueryIndexDraft) {
 }
 
 async function saveField() {
-  if (!selectedModuleId.value) return
-  if (fieldConfigurationIssue.value) return message.warning(fieldConfigurationIssue.value)
+  if (!selectedModuleId.value) return false
+  if (fieldConfigurationIssue.value) { message.warning(fieldConfigurationIssue.value); return false }
   saving.value = true
+  designerError.value = ''
   try {
+    let saved: ConfiguredField
     if (editingField.value) {
-      await api(`/api/admin/module-config/modules/${selectedModuleId.value}/fields/${editingField.value.id}`, {
+      saved = await api<ConfiguredField>(`/api/admin/module-config/modules/${selectedModuleId.value}/fields/${editingField.value.id}`, {
         method: 'PUT', body: JSON.stringify({
           name: fieldForm.name, required: fieldForm.required, sortOrder: fieldForm.sortOrder,
           uniqueValue: fieldForm.uniqueValue, searchable: fieldForm.searchable,
@@ -431,7 +444,7 @@ async function saveField() {
         }),
       }, token.value)
     } else {
-      await api(`/api/admin/module-config/modules/${selectedModuleId.value}/fields`, {
+      saved = await api<ConfiguredField>(`/api/admin/module-config/modules/${selectedModuleId.value}/fields`, {
         method: 'POST', body: JSON.stringify({
           name: fieldForm.name, fieldType: fieldForm.fieldType,
           required: fieldForm.required, uniqueValue: fieldForm.uniqueValue, searchable: fieldForm.searchable,
@@ -440,15 +453,47 @@ async function saveField() {
         }),
       }, token.value)
     }
-    fieldDrawer.value = false
     message.success(editingField.value ? '字段配置已更新' : '字段已加入草稿')
-    await loadOverview(selectedModuleId.value)
+    if (formDesignActive.value && draft.value) {
+      draft.value.fields = [...draft.value.fields.filter(field => field.id !== saved.id), saved].sort((a,b) => a.sortOrder - b.sortOrder)
+      formDesigner.value?.commitField(saved)
+      editingField.value = saved
+      fieldForm.version = saved.version
+      fieldFormSnapshot.value = JSON.stringify(fieldForm)
+      fieldDrawer.value = true
+    } else {
+      fieldDrawer.value = false
+      await loadOverview(selectedModuleId.value)
+    }
+    return true
   } catch (reason) {
-    message.error(readable(reason))
+    designerError.value = readable(reason)
+    message.error(designerError.value)
+    return false
   } finally {
     saving.value = false
   }
 }
+
+async function saveDesignerDraft() {
+  if (!selectedModuleId.value || !formDesignPage.value || !formDesigner.value) return false
+  if (fieldPropertyDirty.value && !await saveField()) return false
+  if (!formDesigner.value.hasUnsaved()) return true
+  const page = formDesignPage.value
+  saving.value = true
+  designerError.value = ''
+  try {
+    const saved = await api<import('../types').ConfiguredPage>(`/api/admin/module-config/modules/${selectedModuleId.value}/pages/FORM`, {
+      method: 'PUT', body: JSON.stringify({ layout: formDesigner.value.getLayout(), version: page.version }),
+    }, token.value)
+    draft.value!.pages = draft.value!.pages.map(current => current.id === saved.id ? saved : current)
+    formDesigner.value.markSaved(saved.layoutJson)
+    message.success('表单草稿已保存，分组、顺序和宽度将在发布后生效')
+    return true
+  } catch (reason) { designerError.value = readable(reason); message.error(designerError.value); return false }
+  finally { saving.value = false }
+}
+async function publishDesigner() { if (await saveDesignerDraft()) openPublicationStep() }
 
 async function savePageLayout(fieldCodes: string[], columns = pageColumns.value, properties: Record<string, unknown> = {}) {
   if (!selectedModuleId.value || !selectedPage.value) return
@@ -861,13 +906,37 @@ function onDrop(event: DragEvent) {
   draggingType.value = ''
 }
 
+function canLeaveForm() {
+  if (formDesigner.value?.hasUnsaved()) { message.warning('请先保存当前表单草稿再切换'); return false }
+  return true
+}
+onBeforeRouteLeave(() => canLeaveForm())
+onBeforeRouteUpdate((to, from) => to.query.section === from.query.section || canLeaveForm())
+function warnBeforeUnload(event: BeforeUnloadEvent) {
+  if (formDesigner.value?.hasUnsaved()) { event.preventDefault(); event.returnValue = '' }
+}
+onMounted(() => window.addEventListener('beforeunload', warnBeforeUnload))
+onBeforeUnmount(() => window.removeEventListener('beforeunload', warnBeforeUnload))
+defineExpose({ canLeaveForm })
+function selectDesignerTab(tab: string) {
+  if (!['FIELDS', 'FORM'].includes(tab) && !canLeaveForm()) return
+  activeDesignerTab.value = tab
+}
+function cancelFieldProperties() {
+  if (editingField.value) editField(editingField.value)
+  fieldDrawer.value = false
+  designerError.value = ''
+}
+
 function selectConfigTask(task: ModuleConfigTask) {
+  if (task !== activeConfigTask.value && !canLeaveForm()) return
   activeConfigTask.value = task
   if (task === 'FIELDS') activeDesignerTab.value = 'FIELDS'
   if (task === 'ACTIONS') activeDesignerTab.value = 'ACTIONS'
 }
 
 function selectInfoSection(section: 'OVERVIEW' | 'PUBLICATION') {
+  if (!canLeaveForm()) return
   activeConfigTask.value = 'INFO'
   infoSection.value = section
   if (section === 'PUBLICATION') void checkPublication(false)
@@ -913,14 +982,15 @@ onMounted(() => loadOverview())
     <div class="module-builder-toolbar">
       <div><strong>模板配置</strong><span>选择模块后，按模块信息、字段、动作、流程和应用五类任务完成配置。</span></div>
       <div class="heading-actions">
+        <a-select v-if="formDesignActive" :value="selectedModuleId" aria-label="选择配置模块" style="min-width:180px" :options="overview.modules.map(module => ({ value: module.id, label: module.name }))" @change="selectModule(Number($event))" />
         <a-button :loading="loading" @click="loadOverview()"><ReloadOutlined />刷新</a-button>
         <a-button type="primary" @click="beginModule"><PlusOutlined />新建模块</a-button>
       </div>
     </div>
     <a-alert v-if="error" type="error" show-icon :message="error" class="section-alert" />
 
-    <div :class="['config-layout', { 'config-layout--page': activeConfigTask === 'FIELDS' && (activeDesignerTab === 'FIELDS' || selectedPage) }]">
-      <aside class="config-tree panel-card">
+    <div :class="['config-layout', { 'config-layout--page': activeConfigTask === 'FIELDS' && !formDesignActive && selectedPage, 'config-layout--form': formDesignActive }]">
+      <aside v-if="!formDesignActive" class="config-tree panel-card">
         <div class="panel-title"><strong>模块结构</strong><a-button type="text" size="small" @click="groupModal = true"><PlusOutlined />业务分组</a-button></div>
         <a-skeleton v-if="loading && !overview.groups.length" active :paragraph="{ rows: 5 }" />
         <template v-else>
@@ -955,7 +1025,7 @@ onMounted(() => loadOverview())
           </div>
           <div v-else-if="activeConfigTask === 'FIELDS'" class="designer-subtabs">
             <button :class="{ active: activeDesignerTab === 'FIELDS' }" @click="activeDesignerTab = 'FIELDS'">模块字段</button>
-            <button v-for="page in draft.pages" :key="page.id" :class="{ active: activeDesignerTab === page.pageType }" @click="activeDesignerTab = page.pageType">{{ page.name }}</button>
+            <button v-for="page in draft.pages" :key="page.id" :class="{ active: activeDesignerTab === page.pageType }" @click="selectDesignerTab(page.pageType)">{{ page.name }}</button>
             <button class="designer-tab-add" @click="pageModal = true"><PlusOutlined />新增页面</button>
           </div>
           <div v-else-if="activeConfigTask === 'ACTIONS'" class="designer-subtabs">
@@ -968,18 +1038,15 @@ onMounted(() => loadOverview())
             <div class="module-task-guidance"><h3>模块骨架已准备好</h3><ol><li>列表、表单和详情页已经自动创建</li><li>新建、编辑、删除、导入和导出等常用功能已经准备好</li><li>内部稳定标识由系统维护，不需要用户记忆或复制</li></ol><a-button type="primary" @click="selectConfigTask('FIELDS')">下一步：添加业务字段</a-button></div>
             <div class="module-entry-list"><div class="panel-title"><strong>运行入口</strong><span>发布后显示在业务工作区</span></div><button v-for="menu in draft.menus" :key="menu.id" type="button" class="menu-config-row" @click="editMenu(menu)"><span class="menu-config-icon">{{ (menu.icon || 'M').slice(0, 1).toUpperCase() }}</span><span><strong>{{ menu.name }}</strong><small>{{ menu.visible && menu.status === 'ACTIVE' ? '发布后显示' : '当前隐藏' }}</small></span><span>配置</span></button></div>
           </section>
-          <div v-else-if="activeConfigTask === 'FIELDS' && activeDesignerTab === 'FIELDS'" class="field-canvas" @dragover.prevent @drop="onDrop">
-            <div class="field-task-toolbar"><div><strong>模块字段</strong><small>字段决定业务数据结构和页面可用内容</small></div><a-dropdown><a-button type="primary"><PlusOutlined />添加字段</a-button><template #overlay><a-menu class="field-type-menu" @click="beginField(String($event.key))"><a-menu-item v-for="field in fieldTypes" :key="field.type"><strong>{{ field.name }}</strong><small>{{ field.hint }}</small></a-menu-item></a-menu></template></a-dropdown></div>
-            <button v-for="field in draft.fields" :key="field.id" type="button" class="configured-field" @click="editField(field)">
-              <DragOutlined class="field-handle" />
-              <span><strong>{{ field.name }}</strong><small>{{ field.searchable ? '可搜索' : '普通字段' }}</small></span>
-              <a-tag>{{ fieldTypes.find((item) => item.type === field.fieldType)?.name || field.fieldType }}</a-tag>
-              <em v-if="field.required">必填</em><em v-if="field.status !== 'ACTIVE'" class="muted">停用</em>
-            </button>
-            <button v-if="!draft.fields.length" type="button" class="empty-drop" @click="beginField('TEXT')">
-              <PlusOutlined /><strong>添加第一个字段</strong><span>模块至少需要一个有效字段才能发布</span>
-            </button>
-          </div>
+          <ModuleFormDesigner v-else-if="formDesignActive && formDesignPage" :key="draft.module.id" ref="formDesigner"
+            :layout-json="formDesignPage.layoutJson" :fields="draft.fields" :pending-field="pendingFormField" :saving="saving"
+            :property-dirty="fieldPropertyDirty" :property-issue="fieldDrawer ? fieldConfigurationIssue : ''"
+            @add="beginField" @select="editField" @save="saveDesignerDraft" @publish="publishDesigner" @cancel="cancelFieldProperties">
+            <template #properties><ModuleFieldProperties :field-form="fieldForm" :editing="Boolean(editingField)" :field-configuration-issue="fieldConfigurationIssue" :dictionary-options="dictionaryOptions" :reference-module-options="referenceModuleOptions" :available-ai-models="availableAiModels" />
+              <a-alert v-if="designerError" type="error" show-icon :message="designerError" />
+              <div class="drawer-footer"><a-button @click="cancelFieldProperties">取消属性修改</a-button><a-button type="primary" :loading="saving" :disabled="Boolean(fieldConfigurationIssue)" @click="saveField">保存字段</a-button></div>
+            </template>
+          </ModuleFormDesigner>
           <div v-else-if="activeConfigTask === 'FIELDS' && selectedPage" class="page-config-canvas">
             <div class="page-editor-toolbar">
               <div><strong>{{ selectedPage.name }} · 页面布局</strong><small>拖动已显示字段可调整顺序；发布前业务页面继续使用旧版本。</small></div>
@@ -1090,7 +1157,7 @@ onMounted(() => loadOverview())
         <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="创建并选择模块后，在这里设计字段" />
       </main>
 
-      <aside v-if="activeConfigTask === 'FIELDS' && (activeDesignerTab === 'FIELDS' || selectedPage)" class="field-palette panel-card" :class="{ 'field-palette--types': activeDesignerTab === 'FIELDS' }">
+      <aside v-if="activeConfigTask === 'FIELDS' && !formDesignActive && selectedPage" class="field-palette panel-card" :class="{ 'field-palette--types': activeDesignerTab === 'FIELDS' }">
         <template v-if="activeDesignerTab === 'FIELDS'">
           <div class="panel-title"><strong>字段类型</strong><span>拖拽添加</span></div>
           <button v-for="field in fieldTypes" :key="field.type" type="button" class="palette-field" draggable="true"
@@ -1143,66 +1210,8 @@ onMounted(() => loadOverview())
         <a-alert type="info" show-icon message="扩展页面与列表、表单、详情共用同一套字段配置和发布版本。" />
       </a-form>
     </a-modal>
-    <a-drawer v-model:open="fieldDrawer" :title="editingField ? '编辑字段' : '添加字段'" width="520">
-      <a-form layout="vertical">
-        <a-form-item label="字段类型"><a-select v-if="!editingField" v-model:value="fieldForm.fieldType" show-search :options="fieldTypes.map(item => ({ value: item.type, label: `${item.name} · ${item.hint}` }))" /><a-input v-else :value="fieldTypes.find((item) => item.type === fieldForm.fieldType)?.name" disabled /></a-form-item>
-        <a-form-item label="字段名称" required><a-input v-model:value="fieldForm.name" placeholder="例如：客户名称、联系电话、跟进结果" /></a-form-item>
-        <div class="form-grid"><a-form-item label="排序"><a-input-number v-model:value="fieldForm.sortOrder" :min="0" /></a-form-item>
-          <a-form-item label="是否必填"><a-switch v-model:checked="fieldForm.required" /></a-form-item></div>
-        <div class="form-grid"><a-form-item label="可搜索"><a-switch v-model:checked="fieldForm.searchable" :disabled="!supportsFieldSearch(fieldForm.fieldType)" /></a-form-item>
-          <a-form-item label="唯一值" extra="在当前组织和模块内约束非空值；由数据库并发保证。"><a-switch v-model:checked="fieldForm.uniqueValue" :disabled="!supportsUniqueValue(fieldForm.fieldType)" /></a-form-item></div>
-        <a-form-item label="提示文案"><a-input v-model:value="fieldForm.placeholder" placeholder="页面输入提示" /></a-form-item>
-        <template v-if="supportsTextConstraints(fieldForm.fieldType)">
-          <a-alert v-if="builtInTextFormat(fieldForm.fieldType)" type="info" show-icon class="section-alert" :message="builtInTextFormat(fieldForm.fieldType)" />
-          <div class="form-grid"><a-form-item label="最短长度"><a-input-number v-model:value="fieldForm.minLength" :min="0" :max="100000" placeholder="不限" style="width:100%" /></a-form-item>
-            <a-form-item label="最长长度"><a-input-number v-model:value="fieldForm.maxLength" :min="1" :max="100000" placeholder="不限" style="width:100%" /></a-form-item></div>
-          <a-form-item v-if="fieldForm.fieldType !== 'RICH_TEXT'" label="附加格式规则" extra="常用格式直接选择；只有特殊业务规则才需要自定义正则表达式。"><a-select v-model:value="fieldForm.patternMode" :options="patternModeOptions" /></a-form-item>
-          <a-form-item v-if="fieldForm.patternMode === 'CUSTOM'" label="自定义正则表达式" required extra="按完整字段值校验，例如 ^VIP-[0-9]{6}$"><a-input v-model:value="fieldForm.customPattern" placeholder="输入完整匹配表达式" /></a-form-item>
-        </template>
-        <a-form-item v-if="fieldForm.fieldType === 'RICH_TEXT'" label="格式工具栏"><a-radio-group v-model:value="fieldForm.richTextMode"><a-radio value="BASIC">基础格式</a-radio><a-radio value="FULL">含列表、标题和链接</a-radio></a-radio-group></a-form-item>
-        <a-form-item v-if="fieldForm.fieldType === 'JSON'" label="内容结构" extra="添加属性、选择类型和必填条件；支持嵌套属性组和多行列表。"><StructuredSchemaEditor v-model="fieldForm.jsonSchema" /></a-form-item>
-        <a-form-item label="默认值" extra="可留空；创建记录时会自动带入并接受同一套服务端校验。">
-          <RichTextEditor v-if="fieldForm.fieldType === 'RICH_TEXT'" v-model="fieldForm.defaultValue" :mode="fieldForm.richTextMode" :max-length="fieldForm.maxLength" />
-          <template v-else-if="fieldForm.fieldType === 'JSON'">
-            <a-button v-if="fieldForm.defaultValue === undefined" @click="fieldForm.defaultValue = emptyJsonValue(fieldForm.jsonSchema)">设置默认内容</a-button>
-            <template v-else><StructuredValueEditor v-model="fieldForm.defaultValue" :schema="fieldForm.jsonSchema" /><a-button size="small" @click="fieldForm.defaultValue = undefined">不设置默认值</a-button></template>
-          </template>
-          <a-input-number v-else-if="defaultEditor(fieldForm.fieldType) === 'NUMBER'" v-model:value="fieldForm.defaultValue as number" style="width:100%" placeholder="输入默认数字" />
-          <a-date-picker v-else-if="defaultEditor(fieldForm.fieldType) === 'DATE'" v-model:value="fieldForm.defaultValue as string" value-format="YYYY-MM-DD" style="width:100%" placeholder="选择默认日期" />
-          <a-date-picker v-else-if="defaultEditor(fieldForm.fieldType) === 'DATETIME'" v-model:value="fieldForm.defaultValue as string" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" placeholder="选择默认日期和时间" />
-          <a-select v-else-if="defaultEditor(fieldForm.fieldType) === 'BOOLEAN'" v-model:value="fieldForm.defaultValue" allow-clear placeholder="不设置默认值" :options="[{ value: true, label: '是' }, { value: false, label: '否' }]" />
-          <a-input v-else v-model:value="fieldForm.defaultValue as string" placeholder="输入默认内容" />
-        </a-form-item>
-        <a-form-item v-if="editingField" label="状态"><a-radio-group v-model:value="fieldForm.status"><a-radio value="ACTIVE">启用</a-radio><a-radio value="DISABLED">停用</a-radio></a-radio-group></a-form-item>
-        <a-form-item v-if="['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(fieldForm.fieldType)" label="发布字典" extra="绑定后模块发布会检查字典是否已经发布；也可以留空使用手动选项。">
-          <a-select v-model:value="fieldForm.dictionaryId" allow-clear show-search :options="dictionaryOptions" />
-        </a-form-item>
-        <a-form-item v-if="['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(fieldForm.fieldType) && !fieldForm.dictionaryId" label="手动选项" extra="每行一个，格式：值|显示名称">
-          <a-textarea v-model:value="fieldForm.optionsText" :rows="7" />
-        </a-form-item>
-        <template v-if="fieldForm.fieldType === 'CASCADE'">
-          <a-alert type="info" show-icon message="级联字段只能选择一种数据源" class="section-alert" />
-          <a-form-item label="层级字典"><a-select v-model:value="fieldForm.dictionaryId" allow-clear :options="dictionaryOptions" @change="fieldForm.referenceModuleId = undefined" /></a-form-item>
-          <a-form-item label="或模块数据源"><a-select v-model:value="fieldForm.referenceModuleId" allow-clear :options="referenceModuleOptions" @change="fieldForm.dictionaryId = undefined" /></a-form-item>
-          <div class="form-grid"><a-form-item label="最大层级"><a-input-number v-model:value="fieldForm.maxDepth" :min="1" :max="20" /></a-form-item><a-form-item label="允许选中间层"><a-switch v-model:checked="fieldForm.allowIntermediate" /></a-form-item></div>
-          <a-form-item label="保存方式"><a-radio-group v-model:value="fieldForm.saveMode"><a-radio value="FINAL">最终项</a-radio><a-radio value="PATH">完整路径</a-radio></a-radio-group></a-form-item>
-        </template>
-        <template v-if="fieldForm.fieldType === 'MONEY'">
-          <div class="form-grid"><a-form-item label="币种" required><a-input v-model:value="fieldForm.currency" placeholder="CNY" /></a-form-item><a-form-item label="小数精度" required><a-input-number v-model:value="fieldForm.precision" :min="0" :max="6" /></a-form-item></div>
-        </template>
-        <a-form-item v-if="['REFERENCE', 'LOOKUP', 'SUBTABLE', 'SUMMARY', 'AGGREGATE'].includes(fieldForm.fieldType)" label="目标模块" required extra="选择要关联的业务模块，运行页展示目标记录的业务名称。">
-          <a-select v-model:value="fieldForm.referenceModuleId" show-search :options="referenceModuleOptions" />
-        </a-form-item>
-        <a-form-item v-if="fieldForm.fieldType === 'AUTO_NUMBER'" label="编号规则" required><a-input v-model:value="fieldForm.sequenceCode" placeholder="例如：客户编号" /></a-form-item>
-        <a-form-item v-if="['FORMULA', 'CALCULATION'].includes(fieldForm.fieldType)" label="表达式" required><a-textarea v-model:value="fieldForm.expression" :rows="4" placeholder="例如 amount * tax_rate" /></a-form-item>
-        <template v-if="fieldForm.fieldType === 'AI_FILL'">
-          <a-form-item label="授权模型" required><a-select v-model:value="fieldForm.modelCode" show-search :options="availableAiModels.map(model => ({ value: model.code, label: `${model.name} · ${model.provider}` }))" placeholder="仅显示当前系统已授权模型" /></a-form-item>
-          <a-form-item label="写入控制"><a-checkbox v-model:checked="fieldForm.humanConfirmation">每次写入前必须人工确认</a-checkbox></a-form-item>
-        </template>
-        <a-form-item v-if="fieldForm.fieldType === 'SECRET'" label="敏感字段"><a-checkbox v-model:checked="fieldForm.sensitive">按敏感字段权限、脱敏和审计处理</a-checkbox></a-form-item>
-        <a-form-item v-if="fieldForm.fieldType.startsWith('SYSTEM_')" label="系统字段"><a-checkbox v-model:checked="fieldForm.readOnly">只读，由系统维护</a-checkbox></a-form-item>
-        <a-alert v-if="fieldConfigurationIssue" type="warning" show-icon :message="fieldConfigurationIssue" />
-      </a-form>
+    <a-drawer :open="fieldDrawer && !formDesignActive" @close="fieldDrawer = false" :title="editingField ? '编辑字段' : '添加字段'" width="520">
+      <ModuleFieldProperties :field-form="fieldForm" :editing="Boolean(editingField)" :field-configuration-issue="fieldConfigurationIssue" :dictionary-options="dictionaryOptions" :reference-module-options="referenceModuleOptions" :available-ai-models="availableAiModels" />
       <template #footer><div class="drawer-footer"><a-button @click="fieldDrawer = false">取消</a-button><a-button type="primary" :loading="saving" :disabled="Boolean(fieldConfigurationIssue)" @click="saveField">保存字段</a-button></div></template>
     </a-drawer>
     <a-drawer v-model:open="actionDrawer" :title="`配置动作：${editingAction?.name || ''}`" width="430">
