@@ -8,6 +8,8 @@ import { statusTone } from '../responsive'
 import { systemContext, systemTokens } from '../session'
 import { conversionTargetCodes, createRuntimeAction, businessActionMessage, type BusinessActionResult } from '../runtime-actions'
 import BusinessActionReceipt from '../components/BusinessActionReceipt.vue'
+import RuntimeActionGroup from '../components/RuntimeActionGroup.vue'
+import { actionsAtLocation, actionAllowsLifecycle, actionAllowsRecord, requiresRecord, selectionActionReason } from '../action-placement'
 import { authorizedBlob, saveBlob } from '../file'
 import { allowsPermission } from '../permissions'
 import ModuleImportDrawer from '../components/ModuleImportDrawer.vue'
@@ -247,7 +249,8 @@ const rowSelection = computed(() => ({
 const formDirty = computed(() => formOpen.value && formSnapshot.value !== serializeForm())
 
 function hasAction(code: string) {
-  return actions.value.some((action) => action.code === code)
+  return actions.value.some((action) => action.code === code && action.status === 'ACTIVE')
+    && allowsPermission(systemContext.value?.permissions, 'MODULE', activeCode.value, code)
 }
 
 function openAiCreate() {
@@ -269,36 +272,47 @@ function actionNames(codes: string[]) {
 
 function runPageUtility(key: string) {
   if (key === 'refresh') void loadModules()
-  else if (key === 'import') importOpen.value = true
-  else if (key === 'export') exportOpen.value = true
   else if (key === 'ai') openAiCreate()
 }
 
-function hasSecondaryRecordAction(record: RuntimeRecord) {
-  return lifecycleState.value !== 'ACTIVE'
-    || recordAllowsAction(record, 'TRANSFER')
-    || recordAllowsAction(record, 'CONVERT') && conversionTargetOptions.value.length > 0
-    || recordAllowsAction(record, 'ARCHIVE')
-    || recordAllowsAction(record, 'DELETE')
-    || record.ownedByCurrentTenant && hasAction('SHARE')
+const selectedActionRecord = computed(() => selectedRowKeys.value.length === 1 ? records.value.find(record => record.id === selectedRowKeys.value[0]) : undefined)
+function canRecordAction(code: string, record: RuntimeRecord) {
+  if (!hasAction(code)) return false
+  if (code === 'LIST') return true
+  if (['CREATE', 'IMPORT'].includes(code)) return lifecycleState.value === 'ACTIVE'
+  if (!actionAllowsRecord(code, record, conversionTargetOptions.value.length > 0)) return false
+  return code !== 'UPDATE' || actionVisibleForRecord(record)
 }
-
-const showRecordActions = computed(() => records.value.some((record) =>
-  lifecycleState.value === 'ACTIVE' && actionVisibleForRecord(record) || hasSecondaryRecordAction(record)))
-
-function runRecordMenu(key: string, record: RuntimeRecord) {
-  if (key === 'transfer') void openTransfer(record)
-  else if (key === 'convert') void openConversion(record)
-  else if (key === 'archive') void openLifecycle(record, 'ARCHIVE')
-  else if (key === 'delete') void openLifecycle(record, 'DELETE')
-  else if (key === 'restore') void openLifecycle(record, 'RESTORE')
-  else if (key === 'share') void openShare(record)
+function canPageAction(code: string) {
+  if (!hasAction(code) || !actionAllowsLifecycle(code, lifecycleState.value)) return false
+  if (code === 'CONVERT' && !conversionTargetOptions.value.length) return false
+  if (requiresRecord(code) && selectedActionRecord.value) return canRecordAction(code, selectedActionRecord.value)
+  if (code === 'EXPORT' && selectedRowKeys.value.length) return records.value.filter(record => selectedRowKeys.value.includes(record.id)).every(record => canRecordAction(code, record))
+  return true
 }
-
-function runDetailMenu(key: string) {
-  if (!detail.value) return
-  if (key === 'print') openPrint()
-  else runRecordMenu(key, detail.value)
+function pageActionReason(code: string) { return selectionActionReason(code, selectedRowKeys.value.length) }
+const showRecordActions = computed(() => records.value.some(record => actionsAtLocation(actions.value, 'ROW', code => canRecordAction(code, record)).length))
+const canSelectRecords = computed(() => hasAction('EXPORT') || actions.value.some(action => requiresRecord(action.code)
+  && ['MODULE_ENTRY', 'LIST_TOOLBAR', 'BATCH'].includes(action.location) && hasAction(action.code)))
+function runConfiguredAction(code: string, explicitRecord?: RuntimeRecord) {
+  const record = explicitRecord || selectedActionRecord.value
+  if (explicitRecord ? !canRecordAction(code, explicitRecord) : !canPageAction(code)) { message.warning('当前记录或身份不能执行此操作'); return }
+  if (requiresRecord(code) && !explicitRecord && pageActionReason(code)) { message.warning(pageActionReason(code)); return }
+  const handlers: Record<string, () => void> = {
+    LIST: () => { closeDetail(); void loadRecords() },
+    CREATE: openCreate,
+    IMPORT: () => { importOpen.value = true },
+    EXPORT: () => { if (explicitRecord) selectedRowKeys.value = [explicitRecord.id]; exportOpen.value = true },
+    DETAIL: () => { if (record) void openDetail(record) },
+    UPDATE: () => { if (record) openEdit(record) },
+    TRANSFER: () => { if (record) void openTransfer(record) },
+    CONVERT: () => { if (record) void openConversion(record) },
+    SHARE: () => { if (record) void openShare(record) },
+    ARCHIVE: () => { if (record) void openLifecycle(record, 'ARCHIVE') },
+    DELETE: () => { if (record) void openLifecycle(record, 'DELETE') },
+    RESTORE: () => { if (record) void openLifecycle(record, 'RESTORE') },
+  }
+  if (handlers[code]) runAction(code, handlers[code])
 }
 
 function actionConfiguration(code: string) {
@@ -1328,17 +1342,16 @@ defineExpose({ refresh: loadModules, executeCommand })
   <ProductPage class="runtime-page" :data-refresh-key="props.refreshKey">
     <ProductPageHeader kicker="业务工作区" :title="activeModule?.moduleName || '业务模块'" description="查看、筛选并维护当前模块中的业务记录。">
       <template #actions>
+        <RuntimeActionGroup :actions="actions" location="MODULE_ENTRY" :can="canPageAction" :disabled-reason="pageActionReason" :module-name="activeModule?.moduleName" @run="runConfiguredAction" />
         <a-dropdown>
           <a-button><MoreOutlined />更多</a-button>
           <template #overlay><a-menu @click="runPageUtility(String($event.key))">
             <a-menu-item key="refresh"><ReloadOutlined />刷新数据</a-menu-item>
-            <a-menu-item v-if="hasAction('IMPORT') && lifecycleState === 'ACTIVE'" key="import"><ImportOutlined />导入数据</a-menu-item>
-            <a-menu-item v-if="hasAction('EXPORT')" key="export"><ExportOutlined />导出数据</a-menu-item>
             <a-menu-item v-if="canUseAi && hasAction('CREATE') && lifecycleState === 'ACTIVE'" key="ai"><RobotOutlined />使用智能助手创建</a-menu-item>
           </a-menu></template>
         </a-dropdown>
       </template>
-      <template #primary><a-button v-if="hasAction('CREATE') && lifecycleState === 'ACTIVE'" type="primary" @click="runAction('CREATE', openCreate)"><PlusOutlined />新建{{ activeModule?.moduleName }}</a-button></template>
+
     </ProductPageHeader>
     <BusinessActionReceipt :module-code="activeCode" :result="lastAction?.moduleCode === activeCode ? lastAction.result : undefined"
       @executed="loadRecords" />
@@ -1370,6 +1383,7 @@ defineExpose({ refresh: loadModules, executeCommand })
               <a-radio-button value="ACTIVE">正常</a-radio-button><a-radio-button value="ARCHIVED">已归档</a-radio-button><a-radio-button value="DELETED">回收站</a-radio-button>
             </a-radio-group>
           <template #tools>
+            <RuntimeActionGroup :actions="actions" location="LIST_TOOLBAR" :can="canPageAction" :disabled-reason="pageActionReason" :module-name="activeModule?.moduleName" @run="runConfiguredAction" />
             <a-button :class="{ 'record-filter-active': listFilters.length }" @click="filterOpen = true"><FilterOutlined />筛选<span v-if="listFilters.length">（{{ listFilters.length }}）</span></a-button>
             <a-select v-if="savedViews.length" :value="activeViewCode || undefined" allow-clear placeholder="常用视图" style="width:160px" :options="savedViews.map(view => ({ value: view.code, label: `${view.name}${view.defaultView ? ' · 默认' : ''}` }))" @change="selectSavedView" />
             <a-popover v-model:open="columnOpen" trigger="click" placement="bottomRight">
@@ -1386,17 +1400,17 @@ defineExpose({ refresh: loadModules, executeCommand })
         </ProductFilterBar>
       </template>
       <template v-if="activeCode" #summary><div class="record-summary"><div><a-segmented v-if="showTenantScope" v-model:value="tenantScope" size="small" :options="[{ label: '全部', value: 'ALL' }, { label: '当前工作空间', value: 'OWN' }, { label: '共享给我', value: 'SHARED' }]" @change="page = 1; activeViewCode = ''; loadRecords()" /><strong>{{ loading ? '正在加载…' : `共 ${total} 条记录` }}</strong><small v-if="queryCustomized">{{ querySummary }}</small></div></div></template>
-      <template v-if="selectedRowKeys.length" #batch><div class="runtime-batch-bar"><strong>已选择 {{ selectedRowKeys.length }} 条</strong><span>可以导出已选记录；修改、归档等操作请在对应记录中确认。</span><a-button v-if="hasAction('EXPORT')" size="small" @click="exportOpen = true">导出已选</a-button><a-button type="link" size="small" @click="selectedRowKeys = []">清除选择</a-button></div></template>
+      <template v-if="selectedRowKeys.length" #batch><div class="runtime-batch-bar"><strong>已选择 {{ selectedRowKeys.length }} 条</strong><RuntimeActionGroup :actions="actions" location="BATCH" :can="canPageAction" :disabled-reason="pageActionReason" size="small" @run="runConfiguredAction" /><a-button type="link" size="small" @click="selectedRowKeys = []">清除选择</a-button></div></template>
       <template #state-actions="{ state }">
         <a-button v-if="state === 'error'" type="primary" @click="activeCode ? loadRecords() : loadModules()">保留条件重试</a-button>
         <a-button v-else-if="activeCode && hasAction('CREATE') && lifecycleState === 'ACTIVE'" type="primary" @click="runAction('CREATE', openCreate)">新建第一条记录</a-button>
       </template>
       <template v-if="activeCode && records.length">
-          <SchemaRecordTable class="record-table" :records="records" :columns="displayedColumns" :fixed-codes="fixedFieldCodes" :density="listSettings.density" :caption="listCaption" :loading="loading" :row-selection="hasAction('EXPORT') ? rowSelection : undefined" :custom-row="rowHandlers" :scroll="{ y: pageSize >= 100 ? 560 : undefined }" :virtual="pageSize >= 100">
+          <SchemaRecordTable class="record-table" :records="records" :columns="displayedColumns" :fixed-codes="fixedFieldCodes" :density="listSettings.density" :caption="listCaption" :loading="loading" :row-selection="canSelectRecords ? rowSelection : undefined" :custom-row="rowHandlers" :scroll="{ y: pageSize >= 100 ? 560 : undefined }" :virtual="pageSize >= 100">
             <template #value="{ column, record }"><template v-if="column.code === 'title'"><strong class="record-title">{{ record.title }}</strong><small>{{ userFacingRecordNumber(record.recordNumber, '未设置业务编号') }} · {{ userFacingWorkspaceName(record.dataTenantName) }}</small></template>
                 <a-tag v-else-if="column.code === 'dataTenantName'" :color="record.shared ? 'orange' : 'blue'">{{ record.shared ? `${userFacingWorkspaceName(record.dataTenantName)}共享` : '当前工作空间' }}</a-tag>
                 <ProductStatusTag v-else-if="column.code === 'status'" :status="record.status" /><template v-else>{{ columnValue(column, record) }}</template></template>
-            <template v-if="showRecordActions" #actions="{ record }"><a-button v-if="lifecycleState === 'ACTIVE' && actionVisibleForRecord(record)" type="link" size="small" @click.stop="runAction('UPDATE', () => openEdit(record))"><EditOutlined />编辑</a-button><a-dropdown v-if="hasSecondaryRecordAction(record)" trigger="click"><a-button type="link" size="small" @click.stop><MoreOutlined />更多</a-button><template #overlay><a-menu @click="runRecordMenu(String($event.key), record)"><a-menu-item v-if="lifecycleState === 'ACTIVE' && recordAllowsAction(record, 'TRANSFER')" key="transfer">转交负责人</a-menu-item><a-menu-item v-if="lifecycleState === 'ACTIVE' && recordAllowsAction(record, 'CONVERT') && conversionTargetOptions.length" key="convert">转化记录</a-menu-item><a-menu-item v-if="record.ownedByCurrentTenant && hasAction('SHARE')" key="share">共享记录</a-menu-item><a-menu-item v-if="lifecycleState === 'ACTIVE' && recordAllowsAction(record, 'ARCHIVE')" key="archive">归档记录</a-menu-item><a-menu-item v-if="lifecycleState !== 'ACTIVE' && recordAllowsAction(record, 'RESTORE')" key="restore">恢复记录</a-menu-item><a-menu-divider /><a-menu-item v-if="lifecycleState !== 'DELETED' && recordAllowsAction(record, 'DELETE')" key="delete" danger>删除记录</a-menu-item></a-menu></template></a-dropdown></template>
+            <template v-if="showRecordActions" #actions="{ record }"><RuntimeActionGroup :actions="actions" location="ROW" :can="code => canRecordAction(code, record)" size="small" @run="runConfiguredAction($event, record)" /></template>
           </SchemaRecordTable>
           <div class="mobile-record-list" aria-label="业务记录卡片列表" :aria-busy="loading">
             <button v-for="record in records" :key="record.id" type="button" :data-status-tone="statusTone(record.status)" @click="openDetail(record)">
@@ -1442,7 +1456,7 @@ defineExpose({ refresh: loadModules, executeCommand })
     </a-modal>
 
     <ProductDetailDrawer :open="detailOpen" :title="detail?.title" :width="assistantOpen ? 'min(980px, 100vw)' : 'min(760px, 100vw)'" class="detail-drawer" @close="closeDetail">
-      <template #extra><a-button v-if="detail && canUseAi" @click="assistantOpen = !assistantOpen"><RobotOutlined />{{ assistantOpen ? '收起助手' : '询问当前记录' }}</a-button></template>
+      <template #extra><a-space wrap><RuntimeActionGroup v-if="detail" :actions="actions" location="DETAIL_HEADER" :can="code => canRecordAction(code, detail!)" @run="runConfiguredAction($event, detail)" /><a-button v-if="detail && canUseAi" @click="assistantOpen = !assistantOpen"><RobotOutlined />{{ assistantOpen ? '收起助手' : '询问当前记录' }}</a-button></a-space></template>
       <template v-if="detail"><div :class="['record-detail-shell', { 'record-detail-shell--assistant': assistantOpen && canUseAi }]"><section class="record-detail-main"><div class="detail-meta"><span>{{ userFacingRecordNumber(detail.recordNumber, '未设置业务编号') }}</span><ProductStatusTag :status="detail.status" /><a-tag :color="detail.shared ? 'orange' : 'blue'">数据归属：{{ userFacingWorkspaceName(detail.dataTenantName) }}</a-tag><span v-if="detail.shared" class="detail-share-status">共享状态：<ProductStatusTag :status="detail.shareStatus" /></span></div>
         <a-tabs class="detail-tabs-runtime">
           <a-tab-pane key="basic" tab="概览"><SchemaRecordDetail :layout="detailLayout" :fields="detailValueFields" :values="detail.fields" :text="displayValue"><template #tools="{ field }"><a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></template></SchemaRecordDetail><a-descriptions class="detail-system-meta" :column="1" bordered size="small">
@@ -1454,8 +1468,7 @@ defineExpose({ refresh: loadModules, executeCommand })
               <ul v-if="entry.changes.length" class="timeline-changes"><li v-for="change in entry.changes" :key="`${entry.eventId}-${change.fieldCode}`"><strong>{{ change.fieldName }}</strong>：<template v-if="change.masked">无查看权限</template><template v-else>{{ timelineFieldValue(change.fieldCode, change.beforeValue) }} → {{ timelineFieldValue(change.fieldCode, change.afterValue) }}</template></li></ul>
             </a-timeline-item></a-timeline><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无变更记录" /></a-tab-pane>
         </a-tabs></section><AiContextAssistantPanel v-if="assistantOpen && canUseAi" :key="`${activeCode}-${detail.id}`" :module-code="activeCode" :module-name="activeModule?.moduleName || activeCode" :record="detail" :visible-fields="detailValueFields" :modules="modules" @business-written="handleAiBusinessWritten" /></div></template>
-      <template #actions><a-dropdown v-if="detail" trigger="click"><a-button><MoreOutlined />更多操作</a-button><template #overlay><a-menu @click="runDetailMenu(String($event.key))"><a-menu-item v-if="printTemplates.length" key="print">打印</a-menu-item><a-menu-item v-if="detail.ownedByCurrentTenant && hasAction('SHARE')" key="share">共享</a-menu-item><a-menu-item v-if="!detail.archived && !detail.deleted && recordAllowsAction(detail, 'TRANSFER')" key="transfer">转交</a-menu-item><a-menu-item v-if="!detail.archived && !detail.deleted && recordAllowsAction(detail, 'CONVERT') && conversionTargetOptions.length" key="convert">转化</a-menu-item><a-menu-item v-if="!detail.archived && !detail.deleted && recordAllowsAction(detail, 'ARCHIVE')" key="archive">归档</a-menu-item><a-menu-item v-if="(detail.archived || detail.deleted) && recordAllowsAction(detail, 'RESTORE')" key="restore">恢复</a-menu-item><a-menu-divider /><a-menu-item v-if="!detail.deleted && recordAllowsAction(detail, 'DELETE')" key="delete" danger>删除</a-menu-item></a-menu></template></a-dropdown></template>
-      <template #primary><a-button v-if="detail && !detail.archived && !detail.deleted && actionVisibleForRecord(detail)" type="primary" @click="openEdit(detail)">编辑</a-button></template>
+      <template #actions><RuntimeActionGroup v-if="detail" :actions="actions" location="DETAIL_MORE" :can="code => canRecordAction(code, detail!)" menu @run="runConfiguredAction($event, detail)" /><a-button v-if="printTemplates.length" @click="openPrint()"><PrinterOutlined />打印</a-button></template>
     </ProductDetailDrawer>
 
     <a-modal v-model:open="printOpen" title="记录打印与 PDF 预览" width="920" :footer="null" @cancel="clearPrintPreview">

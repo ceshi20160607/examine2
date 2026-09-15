@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { Empty, message } from 'ant-design-vue'
 import { ApiError, api } from '../api'
 import { allowsPermission } from '../permissions'
@@ -16,7 +17,9 @@ import type {
 } from '../types'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'system' })
-const activeSection = ref<'designer' | 'bindings' | 'runtime'>('designer')
+const route = useRoute()
+const activeSection = ref<'designer' | 'bindings' | 'runtime'>(props.context === 'system' && route.query.flowSection === 'bindings' ? 'bindings' : 'designer')
+watch(() => route.query.flowSection, section => { if (props.context === 'system' && section === 'bindings') activeSection.value = 'bindings' })
 const token = computed(() => props.context === 'platform' ? platformTokens.value?.accessToken : systemTokens.value?.accessToken)
 const current = computed(() => props.context === 'platform' ? platformContext.value : systemContext.value)
 const contextCode = computed(() => props.context === 'platform' ? 'PLATFORM' : 'SYSTEM')

@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Empty, Modal, message } from 'ant-design-vue'
 import { ApiError, api } from '../api'
 import { bindingSourceLabel, publishedBindingPayload } from '../flow-binding'
 import { versionLabel } from '../presentation'
 import { allowsPermission } from '../permissions'
 import { systemContext, systemTokens } from '../session'
+import ModuleContextBanner from '../components/ModuleContextBanner.vue'
+import { moduleAdminTarget, queryText, selectContextModule } from '../module-navigation'
 import type { FlowBindingList, FlowBindingResolution, FlowBindingView, FlowDefinitionView, RuntimeModuleCatalogItem } from '../types'
 
 const token = computed(() => systemTokens.value?.accessToken)
+const route = useRoute()
+const router = useRouter()
 const modules = ref<RuntimeModuleCatalogItem[]>([])
 const flows = ref<FlowDefinitionView[]>([])
 const bindings = ref<FlowBindingList>({ currentTenant: [], inheritedDefaults: [] })
@@ -28,6 +33,13 @@ const resolveAmount = ref(8000)
 
 const publishedFlows = computed(() => flows.value.filter(flow => !!flow.currentVersionId))
 const rows = computed(() => [...bindings.value.currentTenant, ...bindings.value.inheritedDefaults])
+const contextModule = computed(() => modules.value.find(module => module.moduleId === form.moduleId))
+function returnToModule() {
+  if (systemContext.value?.systemId) void router.push(moduleAdminTarget(systemContext.value.systemId, contextModule.value?.moduleCode || queryText(route.query.module), 'templates', 'FLOW'))
+}
+function syncModuleRoute() {
+  if (contextModule.value && queryText(route.query.module) !== contextModule.value.moduleCode) void router.replace({ query: { ...route.query, module: contextModule.value.moduleCode, moduleTask: 'FLOW' } })
+}
 
 function can(action: string) {
   return allowsPermission(systemContext.value?.permissions, 'FLOW', 'SYSTEM', action)
@@ -65,9 +77,10 @@ async function loadCatalog() {
       api<FlowDefinitionView>(`/api/flows/${flow.id}`, {}, token.value)))
     modules.value = moduleRows
     flows.value = flowRows
-    form.moduleId ||= moduleRows[0]?.moduleId
+    form.moduleId = selectContextModule(moduleRows, queryText(route.query.module))?.moduleId
     form.flowId ||= publishedFlows.value[0]?.id
     await loadBindings()
+    syncModuleRoute()
   } catch (error) {
     message.error(describeError(error))
   } finally {
@@ -76,10 +89,14 @@ async function loadCatalog() {
 }
 
 async function loadBindings() {
+  bindings.value = { currentTenant: [], inheritedDefaults: [] }
   if (!token.value || !form.moduleId || !can('VIEW')) return
+  const moduleId = form.moduleId
+  const triggerEvent = form.triggerEvent
   try {
-    bindings.value = await api<FlowBindingList>(
-      `/api/flow-bindings?moduleId=${form.moduleId}&triggerEvent=${encodeURIComponent(form.triggerEvent)}`, {}, token.value)
+    const result = await api<FlowBindingList>(
+      `/api/flow-bindings?moduleId=${moduleId}&triggerEvent=${encodeURIComponent(triggerEvent)}`, {}, token.value)
+    if (form.moduleId === moduleId && form.triggerEvent === triggerEvent) bindings.value = result
   } catch (error) {
     message.error(describeError(error))
   }
@@ -133,12 +150,16 @@ async function resolveBinding() {
 
 watch(() => [form.moduleId, form.triggerEvent], () => {
   resolution.value = undefined
-  void loadBindings()
+  if (!loading.value) { syncModuleRoute(); void loadBindings() }
+})
+watch(() => route.query.module, value => {
+  if (!loading.value) form.moduleId = selectContextModule(modules.value, queryText(value))?.moduleId
 })
 onMounted(loadCatalog)
 </script>
 
 <template>
+  <ModuleContextBanner v-if="route.query.module" :module-name="contextModule?.moduleName" :loading="loading" task=" Flow" @back="returnToModule" />
   <a-alert v-if="!can('VIEW')" type="warning" show-icon message="当前系统没有流程绑定查看权限" />
   <a-spin v-else :spinning="loading">
     <div class="flow-binding-layout">

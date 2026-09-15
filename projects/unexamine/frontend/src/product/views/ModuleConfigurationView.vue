@@ -12,7 +12,7 @@ import {
 } from '@ant-design/icons-vue'
 import { Empty, message } from 'ant-design-vue'
 import { computed, onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
-import { useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 import { api, ApiError } from '../api'
 import { productDateTime } from '../presentation'
 import { systemContext, systemTokens } from '../session'
@@ -40,10 +40,13 @@ import type {
 import ModuleFieldProperties from '../components/ModuleFieldProperties.vue'
 import ModuleFormDesigner from '../components/ModuleFormDesigner.vue'
 import ModulePageDesigner from '../components/ModulePageDesigner.vue'
+import { actionLocations } from '../action-placement'
+import { moduleAdminTarget, moduleTask, queryText, type ModuleTask } from '../module-navigation'
 import { newJsonSchema, jsonSchemaIssue, type JsonSchema } from '../structured-content'
 
 const emit = defineEmits<{ published: [] }>()
 const router = useRouter()
+const route = useRoute()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -64,10 +67,10 @@ const previewRecords = ref<RuntimeRecord[]>([])
 const previewError = ref('')
 const fieldFormSnapshot = ref('')
 const designerError = ref('')
-const activeDesignerTab = ref('FIELDS')
-type ModuleConfigTask = 'INFO' | 'FIELDS' | 'ACTIONS' | 'FLOW' | 'APPLICATION'
+const activeDesignerTab = ref(moduleTask(route.query.moduleTask) === 'ACTIONS' ? 'ACTIONS' : 'FIELDS')
+type ModuleConfigTask = ModuleTask
 
-const activeConfigTask = ref<ModuleConfigTask>('INFO')
+const activeConfigTask = ref<ModuleConfigTask>(moduleTask(route.query.moduleTask))
 const infoSection = ref<'OVERVIEW' | 'PUBLICATION'>('OVERVIEW')
 const actionDrawer = ref(false)
 const menuDrawer = ref(false)
@@ -262,9 +265,10 @@ async function loadOverview(preferredModuleId?: number) {
     } catch {
       availableAiModels.value = []
     }
-    const target = preferredModuleId ?? selectedModuleId.value ?? overview.value.modules[0]?.id
+    const requested = queryText(route.query.module)
+    const target = preferredModuleId ?? (requested ? overview.value.modules.find(module => module.code === requested)?.id : selectedModuleId.value ?? overview.value.modules[0]?.id)
     if (target) await selectModule(target)
-    else draft.value = undefined
+    else { draft.value = undefined; if (requested) error.value = '当前模块不存在或没有配置权限，请重新选择模块' }
   } catch (reason) {
     error.value = readable(reason)
   } finally {
@@ -284,6 +288,7 @@ async function selectModule(moduleId: number) {
       api<RuleIndexDraft>(`/api/admin/module-config/modules/${moduleId}/rules-indexes`, {}, token.value),
     ])
     draft.value = currentDraft
+    syncModuleRoute()
     versions.value = history
     ruleIndexDraft.value = rulesIndexes
     previewRecords.value = []
@@ -707,6 +712,7 @@ async function saveAction() {
   saving.value = true
   try {
     const config: Record<string, unknown> = {
+      ...JSON.parse(editingAction.value.configJson || '{}'),
       confirmation: actionForm.confirmation, confirmationText: actionForm.confirmationText,
     }
     if (editingAction.value.code === 'CONVERT') {
@@ -946,7 +952,7 @@ function canLeaveForm() {
   return true
 }
 onBeforeRouteLeave(() => canLeaveForm())
-onBeforeRouteUpdate((to, from) => to.query.section === from.query.section || canLeaveForm())
+onBeforeRouteUpdate((to, from) => (to.query.section === from.query.section && to.query.module === from.query.module && to.query.moduleTask === from.query.moduleTask) || canLeaveForm())
 function warnBeforeUnload(event: BeforeUnloadEvent) {
   if (formDesigner.value?.hasUnsaved() || pageDesigner.value?.hasUnsaved()) { event.preventDefault(); event.returnValue = '' }
 }
@@ -970,6 +976,7 @@ function selectConfigTask(task: ModuleConfigTask) {
   activeConfigTask.value = task
   if (task === 'FIELDS') activeDesignerTab.value = 'FIELDS'
   if (task === 'ACTIONS') activeDesignerTab.value = 'ACTIONS'
+  syncModuleRoute()
 }
 
 function selectInfoSection(section: 'OVERVIEW' | 'PUBLICATION') {
@@ -977,6 +984,7 @@ function selectInfoSection(section: 'OVERVIEW' | 'PUBLICATION') {
   fieldDrawer.value = false
   activeConfigTask.value = 'INFO'
   infoSection.value = section
+  syncModuleRoute()
   if (section === 'PUBLICATION') void checkPublication(false)
 }
 
@@ -985,8 +993,24 @@ function openPublicationStep() {
 }
 
 function openRelatedConfiguration(section: 'flow' | 'applications') {
-  void router.push(`/systems/${systemContext.value?.systemId}/admin?section=${section}`)
+  if (!selectedModule.value || !systemContext.value?.systemId || !canLeaveForm()) return
+  void router.push(moduleAdminTarget(systemContext.value.systemId, selectedModule.value.code, section, section === 'flow' ? 'FLOW' : 'APPLICATION'))
 }
+function syncModuleRoute() {
+  if (!draft.value) return
+  if (route.query.module === draft.value.module.code && route.query.moduleTask === activeConfigTask.value) return
+  void router.replace({ path: route.path, query: { ...route.query, module: draft.value.module.code, moduleTask: activeConfigTask.value } })
+}
+watch(() => [route.query.module, route.query.moduleTask], ([code, task]) => {
+  const nextTask = moduleTask(task)
+  if (activeConfigTask.value !== nextTask) {
+    activeConfigTask.value = nextTask
+    if (nextTask === 'FIELDS') activeDesignerTab.value = 'FIELDS'
+    if (nextTask === 'ACTIONS') activeDesignerTab.value = 'ACTIONS'
+  }
+  const module = overview.value.modules.find(module => module.code === queryText(code))
+  if (module && module.id !== selectedModuleId.value) void selectModule(module.id)
+})
 
 function readable(reason: unknown) {
   if (reason instanceof ApiError) return reason.traceId ? `${reason.message}（追踪号：${reason.traceId}）` : reason.message
@@ -994,10 +1018,7 @@ function readable(reason: unknown) {
 }
 
 function actionLocationName(location: string) {
-  return ({
-    MODULE_ENTRY: '模块入口', LIST_TOOLBAR: '列表上方', BATCH: '批量操作', ROW: '每行操作',
-    DETAIL_HEADER: '详情页上方', DETAIL_MORE: '详情更多操作',
-  } as Record<string, string>)[location] || location
+  return actionLocations.find(item => item.value === location)?.label || '已配置位置'
 }
 
 function optionName(options: Array<{ value: string; label: string }>, value: string) {
@@ -1249,11 +1270,7 @@ onMounted(() => loadOverview())
     </a-drawer>
     <a-drawer v-model:open="actionDrawer" :title="`配置动作：${editingAction?.name || ''}`" width="430">
       <a-form layout="vertical">
-        <a-form-item label="出现位置"><a-select v-model:value="actionForm.location" :options="[
-          { value: 'MODULE_ENTRY', label: '模块入口' }, { value: 'LIST_TOOLBAR', label: '列表工具栏' },
-          { value: 'BATCH', label: '批量操作区' }, { value: 'ROW', label: '列表行' }, { value: 'DETAIL_HEADER', label: '详情头部' },
-          { value: 'DETAIL_MORE', label: '详情更多操作' },
-        ]" /></a-form-item>
+        <a-form-item label="出现位置"><a-select v-model:value="actionForm.location" :options="actionLocations" /></a-form-item>
         <a-form-item label="执行前二次确认"><a-switch v-model:checked="actionForm.confirmation" /></a-form-item>
         <a-form-item v-if="actionForm.confirmation" label="确认提示"><a-input v-model:value="actionForm.confirmationText" placeholder="确认执行此操作？" /></a-form-item>
         <template v-if="editingAction?.code === 'CONVERT'">

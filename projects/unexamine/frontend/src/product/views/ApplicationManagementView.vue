@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ApiOutlined, CopyOutlined, DownloadOutlined, KeyOutlined, PlusOutlined, SafetyCertificateOutlined, UploadOutlined } from '@ant-design/icons-vue'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Empty, message } from 'ant-design-vue'
 import { ApiError, api } from '../api'
 import { applicationStatusColor, applicationStatusLabel, applicationTypeLabel, newApplicationNonce, signApplicationRequest } from '../application'
 import { productDateTime } from '../presentation'
 import { allowsPermission } from '../permissions'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
+import ModuleContextBanner from '../components/ModuleContextBanner.vue'
+import { moduleAdminTarget, queryText } from '../module-navigation'
 import type {
   ApplicationCreateResult,
   ApplicationCallLogView,
@@ -46,6 +49,10 @@ interface CallbackForm {
 }
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'platform' })
+const route = useRoute()
+const router = useRouter()
+const requestedModule = computed(() => props.context === 'system' ? queryText(route.query.module) : '')
+const moduleOnly = ref(Boolean(requestedModule.value))
 const token = computed(() => props.context === 'platform' ? platformTokens.value?.accessToken : systemTokens.value?.accessToken)
 const current = computed(() => props.context === 'platform' ? platformContext.value : systemContext.value)
 const contextCode = computed(() => props.context === 'platform' ? 'PLATFORM' : 'SYSTEM')
@@ -93,8 +100,18 @@ const callForm = reactive({
 const callFieldValues = ref<Record<string, unknown>>({})
 const resourceTypeOptions = computed(() => [...new Set(resources.value.map(item => item.resourceType))]
   .map(value => ({ value, label: resourceLabel(value) })))
-const visibleRows = computed(() => applicationFilter.value === 'ACTIVE'
-  ? rows.value.filter(item => item.status !== 'DISABLED') : rows.value)
+const contextModule = computed(() => resources.value.find(resource => resource.resourceType === 'MODULE' && resource.resourceId === requestedModule.value))
+const visibleRows = computed(() => rows.value.filter(item => (applicationFilter.value !== 'ACTIVE' || item.status !== 'DISABLED')
+  && (!moduleOnly.value || [...item.grants, ...item.publishedGrants].some(grant => grant.resourceType === 'MODULE' && grant.resourceId === requestedModule.value))))
+function returnToModule() { if (systemContext.value?.systemId) void router.push(moduleAdminTarget(systemContext.value.systemId, requestedModule.value, 'templates', 'APPLICATION')) }
+function switchModuleFilter(checked: boolean) {
+  moduleOnly.value = checked
+  retainVisibleSelection()
+}
+function retainVisibleSelection() {
+  if (!visibleRows.value.some(item => item.id === selected.value?.id)) { selected.value = undefined; callLogs.value = []; if (visibleRows.value[0]) void selectApplication(visibleRows.value[0].id) }
+}
+watch(requestedModule, value => switchModuleFilter(Boolean(value)))
 const displayGrants = computed(() => selected.value?.publishedGrants.length
   ? selected.value.publishedGrants : selected.value?.grants || [])
 const availableCallGrants = computed(() => displayGrants.value.filter(grant =>
@@ -109,8 +126,7 @@ const writableCallFields = computed(() => {
 
 function switchApplicationFilter(value: string) {
   applicationFilter.value = value === 'ALL' ? 'ALL' : 'ACTIVE'
-  const first = visibleRows.value[0]
-  if (first && !visibleRows.value.some(item => item.id === selected.value?.id)) void selectApplication(first.id)
+  retainVisibleSelection()
 }
 
 function resourceLabel(value: string) {
@@ -209,7 +225,7 @@ function grantChannels(callControl: Record<string, unknown>) {
 }
 
 function newGrant(): GrantForm {
-  const resource = resources.value[0]
+  const resource = requestedModule.value ? contextModule.value : resources.value[0]
   return {
     accessChannels: ['EXTERNAL'],
     resourceType: resource?.resourceType || (props.context === 'platform' ? 'FLOW' : 'MODULE'),
@@ -239,9 +255,9 @@ async function load(preferredId?: number) {
     ])
     rows.value = applications
     resources.value = resourceCatalog
-    const id = preferredId && rows.value.some(item => item.id === preferredId)
-      ? preferredId : selected.value && rows.value.some(item => item.id === selected.value?.id)
-        ? selected.value.id : rows.value[0]?.id
+    const id = preferredId && visibleRows.value.some(item => item.id === preferredId)
+      ? preferredId : selected.value && visibleRows.value.some(item => item.id === selected.value?.id)
+        ? selected.value.id : visibleRows.value[0]?.id
     selected.value = id ? await api<ApplicationView>(`/api/applications/${id}`, {}, token.value) : undefined
     await loadCalls()
   } catch (error) {
@@ -698,6 +714,8 @@ onMounted(() => load())
         <a-button type="primary" @click="openCreate"><PlusOutlined />新建应用</a-button>
       </div>
     </div>
+    <ModuleContextBanner v-if="requestedModule" :module-name="contextModule?.name" :loading="loading" task="应用" @back="returnToModule" />
+    <a-checkbox v-if="requestedModule" :checked="!moduleOnly" class="section-alert" @change="switchModuleFilter(!$event.target.checked)">显示所有应用</a-checkbox>
     <a-alert v-if="!can('VIEW')" type="warning" show-icon message="当前工作范围没有应用查看权限" description="平台应用与系统应用使用独立权限和数据范围。" />
     <div v-else class="application-layout">
       <section class="panel-card application-list">
@@ -707,7 +725,7 @@ onMounted(() => load())
             <span><strong>{{ item.name }}</strong><small>{{ item.description || applicationTypeLabel(item.applicationType) }}</small></span>
             <a-tag :color="applicationStatusColor(item.status)">{{ applicationStatusLabel(item.status) }}</a-tag>
           </button>
-          <a-empty v-if="!loading && !visibleRows.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="applicationFilter === 'ACTIVE' ? '当前没有可用应用' : '当前还没有应用'" />
+          <a-empty v-if="!loading && !visibleRows.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="moduleOnly ? '当前模块尚未关联应用' : applicationFilter === 'ACTIVE' ? '当前没有可用应用' : '当前还没有应用'" />
         </a-spin>
       </section>
 
