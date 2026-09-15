@@ -169,6 +169,7 @@ public class ModuleConfigurationService {
             throw new DomainException("FIELD_TYPE_UNSUPPORTED", "当前字段类型不受支持", HttpStatus.BAD_REQUEST);
         }
         validateFieldDefinition(context, fieldType, request.dictionaryId(), request.referenceModuleId(), request.config(), traceId);
+        if ("JSON".equals(fieldType) && Boolean.TRUE.equals(request.searchable())) invalidField("结构化数据使用是否已填写筛选，不支持全文搜索");
         ConfiguredModuleField field = new ConfiguredModuleField();
         field.setSystemId(context.systemId());
         field.setOwnerTenantId(context.tenantId());
@@ -213,6 +214,7 @@ public class ModuleConfigurationService {
         Long dictionaryId = request.dictionaryId() == null ? field.getDictionaryId() : request.dictionaryId();
         Long referenceModuleId = request.referenceModuleId() == null ? field.getReferenceModuleId() : request.referenceModuleId();
         validateFieldDefinition(context, field.getFieldType(), dictionaryId, referenceModuleId, request.config(), traceId);
+        if ("JSON".equals(field.getFieldType()) && Boolean.TRUE.equals(request.searchable())) invalidField("结构化数据使用是否已填写筛选，不支持全文搜索");
         field.setName(request.name().strip());
         field.setRequired(request.required());
         if (request.uniqueValue() != null) field.setUniqueValue(request.uniqueValue());
@@ -496,6 +498,7 @@ public class ModuleConfigurationService {
             String traceId) {
         try {
             TextFieldProtocol.validateConfiguration(fieldType, config);
+            StructuredContentFieldProtocol.validateConfiguration(fieldType, config);
         } catch (IllegalArgumentException exception) {
             invalidField(exception.getMessage());
         }

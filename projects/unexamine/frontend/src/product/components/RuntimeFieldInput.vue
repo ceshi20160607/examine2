@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { RuntimeField } from '../types'
+import RichTextEditor from './RichTextEditor.vue'
+import StructuredValueEditor from './StructuredValueEditor.vue'
+import { emptyJsonValue, newJsonSchema, type JsonSchema } from '../structured-content'
 
 const props = defineProps<{ field: RuntimeField; modelValue?: unknown }>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const configuration = computed(() => {
-  try { return JSON.parse(props.field.configJson || '{}') as { placeholder?: string; maxLength?: number } }
+  try { return JSON.parse(props.field.configJson || '{}') as { placeholder?: string; maxLength?: number; richTextMode?: string; jsonSchema?: JsonSchema } }
   catch { return {} }
 })
 const placeholder = computed(() => configuration.value.placeholder || ({
@@ -18,7 +21,12 @@ const inputMode = computed(() => ({ PHONE: 'tel', EMAIL: 'email', URL: 'url' } a
 </script>
 
 <template>
-  <a-textarea v-if="field.fieldType === 'MULTILINE_TEXT'" :value="modelValue as string" :rows="4" :placeholder="placeholder" :maxlength="maxLength" :show-count="Boolean(maxLength)" @update:value="emit('update:modelValue', $event)" />
+  <RichTextEditor v-if="field.fieldType === 'RICH_TEXT'" :model-value="modelValue" :mode="configuration.richTextMode" :placeholder="placeholder" :max-length="maxLength" @update:model-value="emit('update:modelValue', $event)" />
+  <div v-else-if="field.fieldType === 'JSON'">
+    <a-button v-if="!field.required && modelValue === undefined" @click="emit('update:modelValue', emptyJsonValue(configuration.jsonSchema || newJsonSchema()))">填写内容</a-button>
+    <template v-else><StructuredValueEditor :schema="configuration.jsonSchema || newJsonSchema()" :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" /><a-button v-if="!field.required" type="link" size="small" @click="emit('update:modelValue', undefined)">清空内容</a-button></template>
+  </div>
+  <a-textarea v-else-if="field.fieldType === 'MULTILINE_TEXT'" :value="modelValue as string" :rows="4" :placeholder="placeholder" :maxlength="maxLength" :show-count="Boolean(maxLength)" @update:value="emit('update:modelValue', $event)" />
   <a-input-number v-else-if="field.fieldType === 'NUMBER'" :value="modelValue as number" style="width:100%" :placeholder="placeholder" @update:value="emit('update:modelValue', $event)" />
   <a-date-picker v-else-if="field.fieldType === 'DATE'" :value="modelValue as string" value-format="YYYY-MM-DD" style="width:100%" :placeholder="placeholder || '选择日期'" @update:value="emit('update:modelValue', $event)" />
   <a-date-picker v-else-if="field.fieldType === 'DATETIME'" :value="modelValue as string" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" :placeholder="placeholder || '选择日期和时间'" @update:value="emit('update:modelValue', $event)" />

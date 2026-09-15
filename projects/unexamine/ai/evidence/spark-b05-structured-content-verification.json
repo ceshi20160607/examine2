@@ -1,0 +1,319 @@
+{
+  "step": "B05.2b1",
+  "status": "verified",
+  "verified_at": "2026-09-15T14:31:28.822840+08:00",
+  "verification_scope": "Bounded RICH_TEXT/JSON configuration-to-runtime contribution only; this does not complete the entire field family, drag/drop designer, or any cross-package requirement.",
+  "source_rows": [
+    "R0496",
+    "R0497",
+    "R0512",
+    "R0518",
+    "R0519",
+    "R0525",
+    "R0526",
+    "R0527",
+    "R0532",
+    "R0535",
+    "R0536",
+    "R0553",
+    "R0557",
+    "R1659",
+    "R1660",
+    "R2949"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/pom.xml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/StructuredContentFieldProtocol.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/StructuredContentFieldProtocolTest.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+    "projects/unexamine/frontend/src/product/components/RichTextEditor.vue",
+    "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+    "projects/unexamine/frontend/src/product/components/StructuredSchemaEditor.vue",
+    "projects/unexamine/frontend/src/product/components/StructuredValueDisplay.vue",
+    "projects/unexamine/frontend/src/product/components/StructuredValueEditor.vue",
+    "projects/unexamine/frontend/src/product/field-capabilities.ts",
+    "projects/unexamine/frontend/src/product/product.css",
+    "projects/unexamine/frontend/src/product/structured-content.test.ts",
+    "projects/unexamine/frontend/src/product/structured-content.ts",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/ai/planning/spark-state.json",
+    "projects/unexamine/ai/evidence/spark-b05-structured-content-verification.json",
+    "projects/unexamine/ai/evidence/spark-usage-b05-structured-content.json"
+  ],
+  "checks_actual_results": [
+    "JDK 21 StructuredContentFieldProtocolTest passed: 3 meaningful protocol tests, 0 failures/errors/skips, 0.422 seconds.",
+    "JDK 21 native test-compile and skipTests package passed; the live product backend was restarted from the packaged jar and health returned UP.",
+    "Isolated Linux Maven/Testcontainers RuntimeDataHttpTest#publishedStructuredContentValidatesDefaultsSanitizesMarkupAndRollsBackBadUpdates passed: 1 test, 0 failures/errors/skips, 156.444 seconds.",
+    "HTTP verification covers schema/default rejection, nested typed arrays/boolean false/ranges, rich markup sanitization/defaults, plain-text search, JSON filled filtering, invalid query rejection, 3 rejected updates with no partial writes or successful audit, valid update/reopen and typed history.",
+    "Final frontend focused run passed: structured-content, field-capabilities, runtime-workflow and lowcode-workflow; 4 files, 17 tests, 537 ms.",
+    "Final vue-tsc/Vite production build passed, 3974 modules, with the existing chunk-size warning.",
+    "Real UI created RICH_TEXT and JSON fields in retained module 28 using typed property controls; no configuration JSON was entered. JSON company has a required STRING/minLength 2 and partnership is BOOLEAN; extra properties are disallowed.",
+    "Real UI retained/reopened a formatted rich default, passed publication and published 客户档案 version 5, then created record 68 after showing a missing-company field error.",
+    "Real UI reopened typed values, updated company/rich content, inspected readable change history, and searched 已确认合作方案 with one result.",
+    "Real UI applied bold using keyboard selection and the toolbar; database readback retained <b> markup and normal-window screenshot showed bold text with labelled structured properties and 否.",
+    "git diff --check passed; no reset, regeneration, old-cycle restoration, boundary change or unrelated-container modification ran."
+  ],
+  "commands": [
+    "backend: mvn -q -Dtest=StructuredContentFieldProtocolTest test (JAVA_HOME=D:\\dev\\jdk21)",
+    "backend: mvn -q -DskipTests test-compile / package (JDK 21)",
+    "isolated Maven 3.9.11/Temurin 21 with repository/socket mounts: mvn -s /tmp/settings.xml -o -q -Dtest=RuntimeDataHttpTest#publishedStructuredContentValidatesDefaultsSanitizesMarkupAndRollsBackBadUpdates surefire:test",
+    "frontend: npm run test -- src/product/structured-content.test.ts src/product/field-capabilities.test.ts src/product/runtime-workflow.test.ts src/product/lowcode-workflow.test.ts",
+    "frontend: npm run build",
+    "git diff --check"
+  ],
+  "backend_reports": [
+    {
+      "name": "com.unique.unexamine.moduleconfig.manage.StructuredContentFieldProtocolTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.422"
+    },
+    {
+      "name": "com.unique.unexamine.runtimedata.manage.RuntimeDataHttpTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "156.444"
+    }
+  ],
+  "readback": {
+    "module": {
+      "id": 28,
+      "code": "module_4513ff83a1",
+      "name": "客户档案",
+      "system_id": 19,
+      "version_id": 37,
+      "version": 5,
+      "draft_revision": 13
+    },
+    "fields": [
+      {
+        "id": 52,
+        "code": "field_f98636b68b",
+        "type": "RICH_TEXT",
+        "config": {
+          "readOnly": false,
+          "maxLength": 200,
+          "minLength": 2,
+          "sensitive": false,
+          "placeholder": "填写与客户合作的业务说明",
+          "defaultValue": "<b>默认合作说明</b>",
+          "richTextMode": "FULL"
+        }
+      },
+      {
+        "id": 53,
+        "code": "field_63b21f9af4",
+        "type": "JSON",
+        "config": {
+          "readOnly": false,
+          "sensitive": false,
+          "jsonSchema": {
+            "type": "OBJECT",
+            "properties": [
+              {
+                "key": "公司",
+                "label": "公司名称",
+                "schema": {
+                  "type": "STRING",
+                  "minLength": 2
+                },
+                "required": true
+              },
+              {
+                "key": "合作中",
+                "label": "是否合作中",
+                "schema": {
+                  "type": "BOOLEAN"
+                },
+                "required": false
+              }
+            ],
+            "allowExtraProperties": false
+          }
+        }
+      }
+    ],
+    "record": {
+      "id": 68,
+      "version": 2,
+      "title": "结构化字段真实验收客户"
+    },
+    "values": [
+      {
+        "field_code": "field_f98636b68b",
+        "type": "RICH_TEXT",
+        "value": "<b>已确认合作方案：年度客户服务</b>"
+      },
+      {
+        "field_code": "field_63b21f9af4",
+        "type": "JSON",
+        "value": {
+          "公司": "验收示例公司已确认",
+          "合作中": false
+        }
+      }
+    ],
+    "audits": [
+      {
+        "id": 2751,
+        "event": "BUSINESS_RECORD_CREATE",
+        "result": "FIELD_VALIDATION_FAILED",
+        "object_id": "NULL"
+      },
+      {
+        "id": 2752,
+        "event": "BUSINESS_RECORD_CREATED",
+        "result": "SUCCESS",
+        "object_id": "68"
+      },
+      {
+        "id": 2753,
+        "event": "BUSINESS_RECORD_UPDATED",
+        "result": "SUCCESS",
+        "object_id": "68"
+      },
+      {
+        "id": 2755,
+        "event": "BUSINESS_RECORD_UPDATED",
+        "result": "SUCCESS",
+        "object_id": "68"
+      }
+    ],
+    "changes": [
+      {
+        "type": "JSON",
+        "before": null,
+        "after": {
+          "公司": "验收示例公司",
+          "合作中": false
+        }
+      },
+      {
+        "type": "RICH_TEXT",
+        "before": null,
+        "after": "合作方案：年度客户服务"
+      },
+      {
+        "type": "JSON",
+        "before": {
+          "公司": "验收示例公司",
+          "合作中": false
+        },
+        "after": {
+          "公司": "验收示例公司已确认",
+          "合作中": false
+        }
+      },
+      {
+        "type": "RICH_TEXT",
+        "before": "合作方案：年度客户服务",
+        "after": "已确认合作方案：年度客户服务"
+      },
+      {
+        "type": "RICH_TEXT",
+        "before": "已确认合作方案：年度客户服务",
+        "after": "<b>已确认合作方案：年度客户服务</b>"
+      }
+    ]
+  },
+  "permission_or_failure_result": {
+    "configuration": "Malformed/duplicate/reserved/deep JSON schemas, invalid typed defaults and unsupported JSON searchable configuration are rejected before publication/runtime use.",
+    "runtime": "Invalid values return field-level 422 and no partial update. Live error: 请检查填写内容：客户资料：内容·公司名称必须填写; only one valid record 68 was created.",
+    "markup": "Server removes script/style/iframe/object/applet/svg/math subtrees; only allowlisted tags and absolute HTTP(S) links remain. Sanitization is server-authoritative and used by readback/search.",
+    "field_permission": "Shared FieldPolicyResolver/channel projection remains in use; query permission checks precede new content-type restrictions. No new role fixture was repeated; full SECRET/sensitive policy is next, not claimed here.",
+    "query": "JSON only supports EMPTY/NOT_EMPTY filtering and no full-text search/content sort; RICH_TEXT searches and filters readable text and disallows content sorting.",
+    "workspace_preservation": "All incoming committed and uncommitted work was preserved; current edits reuse existing manage, typed storage, renderer and drawer."
+  },
+  "failed_attempts_and_corrections": [
+    "Initial unit verification exposed blocked style/iframe text leaking through the Swing parser. Replaced that parser with pinned jsoup 1.23.2 allowlist cleaning; the adversarial protocol tests passed.",
+    "First focused HTTP run failed before intended assertions because the new request fixture omitted mandatory participantMemberIds. Corrected the fixture and reran the single HTTP method successfully.",
+    "Frontend compile exposed Object.hasOwn unsupported by the configured target; used the compatible hasOwnProperty.call API.",
+    "Live configuration exposed an unreachable field palette guard; corrected it and added native field-type drag data. Native drag attempts still did not open the drawer, so no drag/drop acceptance is claimed.",
+    "Live rich editing exposed stale remembered selection; command now captures the current selection before restoring it. Formatted default and native keyboard-selected runtime bold persisted; attempted automation substring selection alone was not taken as proof."
+  ],
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/pom.xml",
+      "sha256": "190490b1027e634288b3c67211debc380a04dffa9da9bf4ebfb4c76ebf13c722"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "ad93cafb62479fc7a39b95fd170decd216d8defc76e5975c64ca9ae63a29da3c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "f725d056169e60421e8af21bfb7c03ed9f22aec67161f4b98c4a656d15f57e23"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/StructuredContentFieldProtocol.java",
+      "sha256": "108f772006e06d42854a041213738d358ece01ec1ed9023581544f24f313edb0"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "f3eb1e6080486bb9d427943519b1387783ca4a4c472fa5274cccd9ffb86ba2dc"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/StructuredContentFieldProtocolTest.java",
+      "sha256": "113393bff8c63a2db5fb11df2be95cbc05b7eb92265c25092e735c62146f232b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+      "sha256": "7674f8526fb129a958300b4d45783a108d4c299d4433d36c225110923cfc7cfb"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RichTextEditor.vue",
+      "sha256": "e25c8c872806a86ee8917b73bd2afe4bde6f0f9122aabd083f7896efc147b7f7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+      "sha256": "97164b9f09f9f4aceb07fef324017eb9ca5ea6569c2605bfd23438335d41496a"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/StructuredSchemaEditor.vue",
+      "sha256": "0f94b10dd85ee86b65d950f8800f5cdfc0a7c052fd409bde579e2cd32d60360d"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/StructuredValueDisplay.vue",
+      "sha256": "148535dd325196707991b766c4f2a2fc2c079c6aee27e40faf45c6376767169a"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/StructuredValueEditor.vue",
+      "sha256": "035e9a72c8106e2e314612687385fef9b185f31beb2afa96273e837ca660175a"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/field-capabilities.ts",
+      "sha256": "051287dc12607ac82eae3b556aea536516465e6852f851ea0dea88ffb71860ba"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/product.css",
+      "sha256": "e1e7bf9497b30f05380e7115e05ad074e01b2a4d52a6fe7f4b194a51338f2d8d"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/structured-content.test.ts",
+      "sha256": "598e9409f794ffac9ae9479a857fc031b4adf770956a8a75884d34a3972dc586"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/structured-content.ts",
+      "sha256": "a5e81192cd72db59bbc32a98f86dc8fd4a5eeb65cf5064b14a98824bfd8748b8"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "f3a20887e50a79aa38127cafdbcad1088ce520313cc4c8723442ff83303d0352"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "75d73526d7b321ef79e3df1f8deab82be2701e85720fa5f7ac77a259a796e8ed"
+    }
+  ],
+  "remaining": "B05.2b2 SECRET encryption and sensitive field policy; remaining full field families/import/export/query requirements; B06 complete left-palette/center-canvas/right-properties drag/drop designer and preview-to-runtime. Full approval, applications, channels and all other requirements remain required.",
+  "next_step": "B05.2b2",
+  "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b05-structured-content.json"
+}

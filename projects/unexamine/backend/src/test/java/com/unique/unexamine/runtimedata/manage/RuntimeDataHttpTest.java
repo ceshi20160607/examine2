@@ -77,6 +77,79 @@ class RuntimeDataHttpTest {
     private com.unique.unexamine.foundation.manage.control.BusinessActionApprovalCoordinator approvalActions;
 
     @Test
+    void publishedStructuredContentValidatesDefaultsSanitizesMarkupAndRollsBackBadUpdates() {
+        Session owner = register("content_owner", "content-system", "content-owner@example.com");
+        long groupId = number(data(exchange("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
+                Map.of("code", "content", "name", "内容管理", "sortOrder", 10))).get("id"));
+        long moduleId = number(map(data(exchange("/api/admin/module-config/modules", HttpMethod.POST, owner.token(),
+                Map.of("groupId", groupId, "code", "content_customer", "name", "结构化内容客户"))).get("module")).get("id"));
+        createField(owner, moduleId, "name", "客户名称", "TEXT", true, 10, Map.of());
+        var rich = exchange("/api/admin/module-config/modules/" + moduleId + "/fields", HttpMethod.POST, owner.token(),
+                Map.of("code", "notes", "name", "合作说明", "fieldType", "RICH_TEXT", "required", true,
+                        "searchable", true, "sortOrder", 20, "config", Map.of("minLength", 2, "maxLength", 80,
+                                "richTextMode", "FULL", "defaultValue", "<b>默认说明</b>")));
+        assertThat(rich.getStatusCode()).as("rich draft: %s", rich.getBody()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> schema = Map.of("type", "OBJECT", "allowExtraProperties", false, "properties", List.of(
+                Map.of("key", "company", "label", "公司", "required", true, "schema", Map.of("type", "STRING", "minLength", 2)),
+                Map.of("key", "budget", "label", "预算", "schema", Map.of("type", "NUMBER", "minimum", 0)),
+                Map.of("key", "contacts", "label", "联系人", "schema", Map.of("type", "ARRAY", "maxItems", 2,
+                        "items", Map.of("type", "OBJECT", "properties", List.of(
+                                Map.of("key", "name", "label", "姓名", "required", true, "schema", Map.of("type", "STRING")),
+                                Map.of("key", "active", "label", "启用", "required", true, "schema", Map.of("type", "BOOLEAN"))))))));
+        var badDraft = exchange("/api/admin/module-config/modules/" + moduleId + "/fields", HttpMethod.POST, owner.token(),
+                Map.of("code", "bad_default", "name", "错误默认内容", "fieldType", "JSON", "required", false,
+                        "sortOrder", 30, "config", Map.of("jsonSchema", schema, "defaultValue", Map.of())));
+        assertThat(badDraft.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(badDraft.getBody()).containsEntry("code", "FIELD_CONFIG_INVALID");
+        createField(owner, moduleId, "profile", "客户资料", "JSON", true, 30,
+                Map.of("jsonSchema", schema, "defaultValue", Map.of("company", "默认公司")));
+        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST, owner.token(),
+                Map.of("expectedDraftRevision", revision)).getStatusCode()).isEqualTo(HttpStatus.OK);
+        String path = "/api/runtime/modules/content_customer/records";
+        var defaults = exchange(path, HttpMethod.POST, owner.token(), Map.of("participantMemberIds", List.of(), "title", "默认客户", "fields", Map.of("name", "默认客户")));
+        assertThat(defaults.getStatusCode()).as("defaults: %s", defaults.getBody()).isEqualTo(HttpStatus.OK);
+        assertThat(map(data(defaults).get("fields"))).containsEntry("notes", "<b>默认说明</b>")
+                .containsEntry("profile", Map.of("company", "默认公司"));
+        var profile = Map.of("company", "实际公司", "budget", 12.5, "contacts", List.of(Map.of("name", "张三", "active", false)));
+        var created = exchange(path, HttpMethod.POST, owner.token(), Map.of("participantMemberIds", List.of(), "title", "实际客户", "fields", Map.of(
+                "name", "实际客户", "notes", "<p><b>合作</b>方案<script>alert(1)</script><img src=x onerror=steal()></p>", "profile", profile)));
+        assertThat(created.getStatusCode()).as("create: %s", created.getBody()).isEqualTo(HttpStatus.OK);
+        long id = number(data(created).get("id"));
+        var values = map(data(created).get("fields"));
+        assertThat(values.get("notes").toString()).contains("<b>合作</b>方案").doesNotContain("script", "onerror", "alert", "<img");
+        assertThat(values.get("profile")).isEqualTo(profile);
+        assertThat(jdbc.queryForObject("select value_type from biz_record_value where record_id=? and field_code='notes'", String.class, id)).isEqualTo("RICH_TEXT");
+        assertThat(jdbc.queryForObject("select value_json from biz_record_value where record_id=? and field_code='profile'", String.class, id)).contains("false", "12.5");
+        assertThat(number(data(exchangeEncoded(path + "?search=" + URLEncoder.encode("合作方案", StandardCharsets.UTF_8), HttpMethod.GET, owner.token(), null)).get("total"))).isOne();
+        String filledFilter = URLEncoder.encode("[{\"fieldCode\":\"profile\",\"operator\":\"NOT_EMPTY\"}]", StandardCharsets.UTF_8);
+        assertThat(number(data(exchangeEncoded(path + "?filters=" + filledFilter, HttpMethod.GET, owner.token(), null)).get("total"))).isEqualTo(2);
+        assertThat(exchange(path + "?sortField=profile", HttpMethod.GET, owner.token(), null).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        String invalidFilter = URLEncoder.encode("[{\"fieldCode\":\"profile\",\"operator\":\"EQ\",\"value\":\"x\"}]", StandardCharsets.UTF_8);
+        assertThat(exchangeEncoded(path + "?filters=" + invalidFilter, HttpMethod.GET, owner.token(), null).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        int version = ((Number) data(created).get("version")).intValue();
+        for (Map<String, Object> invalidFields : List.<Map<String, Object>>of(
+                Map.of("name", "不应落库", "notes", "<p>有效说明</p>", "profile", Map.of()),
+                Map.of("name", "不应落库", "notes", "<p>有效说明</p>", "profile", Map.of("company", "公司", "budget", -1)),
+                Map.of("name", "不应落库", "notes", "<script>alert(1)</script>", "profile", profile))) {
+            var invalid = exchange(path + "/" + id, HttpMethod.PUT, owner.token(), Map.of("participantMemberIds", List.of(), "title", "不应落库", "version", version, "fields", invalidFields));
+            assertThat(invalid.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+            assertThat(invalid.getBody()).containsEntry("code", "FIELD_VALIDATION_FAILED");
+        }
+        assertThat(jdbc.queryForObject("select version from biz_record where id=?", Integer.class, id)).isEqualTo(version);
+        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_UPDATED' and object_id='" + id + "'")).isZero();
+        var updatedProfile = Map.of("company", "更新公司", "contacts", List.of(Map.of("name", "李四", "active", true)));
+        var updated = exchange(path + "/" + id, HttpMethod.PUT, owner.token(), Map.of("participantMemberIds", List.of(), "title", "更新客户", "version", version,
+                "fields", Map.of("name", "更新客户", "notes", "<h2>更新方案</h2>", "profile", updatedProfile)));
+        assertThat(updated.getStatusCode()).as("update: %s", updated.getBody()).isEqualTo(HttpStatus.OK);
+        assertThat(map(data(exchange(path + "/" + id, HttpMethod.GET, owner.token(), null)).get("fields"))).containsEntry("profile", updatedProfile);
+        var timeline = exchange(path + "/" + id + "/timeline", HttpMethod.GET, owner.token(), null);
+        assertThat(timeline.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(timeline.getBody().toString()).contains("RICH_TEXT", "JSON", "合作说明", "客户资料", "张三", "李四").doesNotContain("onerror", "alert(1)");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
+    }
+
+    @Test
     void actionBoundaryUsesRealApiAndReplaysCreateUpdateDeleteWithoutDuplicateWrites() {
         Session owner = register("action_owner", "action-system", "action-owner@example.com");
         long moduleId = createAndPublishCustomerModule(owner);

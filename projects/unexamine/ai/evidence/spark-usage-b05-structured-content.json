@@ -1,0 +1,48 @@
+{
+  "thread_id": "01a06f53-2b57-7333-8b55-0d0183b53303",
+  "turn_id": "01a0a39b-79b4-7401-ac9a-5044f53da1d8",
+  "sampled_at": "2026-09-15T14:32:01.177851+08:00",
+  "baseline": {
+    "timestamp": "2026-09-15T03:25:03.574Z",
+    "input_tokens": 228229128,
+    "cached_input_tokens": 222944256,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 751027,
+    "reasoning_output_tokens": 267502,
+    "total_tokens": 228980155
+  },
+  "latest": {
+    "timestamp": "2026-09-15T06:32:01.082Z",
+    "input_tokens": 250446735,
+    "cached_input_tokens": 244788480,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 835325,
+    "reasoning_output_tokens": 295818,
+    "total_tokens": 251282060
+  },
+  "delta": {
+    "input_tokens": 22217607,
+    "cached_input_tokens": 21844224,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 84298,
+    "reasoning_output_tokens": 28316,
+    "total_tokens": 22301905,
+    "uncached_input_tokens": 373383
+  },
+  "active_turn": {
+    "input_tokens": 21018952,
+    "cached_input_tokens": 20726400,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 71079,
+    "reasoning_output_tokens": 23406,
+    "total_tokens": 21090031,
+    "uncached_input_tokens": 292552
+  },
+  "cost": null,
+  "notes": [
+    "Delta is traffic since the preceding B05.2a sample, including the intervening form-design contract clarification, not strictly one turn. Active-turn counters are also reported separately.",
+    "Cached and uncached input are separate; reasoning output is a subset of output, not added twice.",
+    "Traffic counters are not context size or a currency bill. Currency cost and provider billing are unavailable.",
+    "No counter reset was observed. Final bookkeeping and response after this sample are excluded."
+  ]
+}

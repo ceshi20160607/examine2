@@ -2094,3 +2094,5 @@ button, input { font: inherit; }
   .business-attachments__list article { grid-template-columns: minmax(0, 1fr) auto; }
   .business-attachments__list article > div { grid-column: 1 / -1; }
 }
+
+.field-palette--types { max-height: 600px; overflow-y: auto; position: sticky; top: 16px; }

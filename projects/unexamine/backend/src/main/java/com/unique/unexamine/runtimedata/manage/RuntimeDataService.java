@@ -48,6 +48,7 @@ import com.unique.unexamine.audit.base.service.AuditFieldChangeBaseService;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
 import com.unique.unexamine.moduleconfig.manage.TextFieldProtocol;
+import com.unique.unexamine.moduleconfig.manage.StructuredContentFieldProtocol;
 import com.unique.unexamine.moduleconfig.manage.DictionaryConfigurationService;
 import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.authorization.manage.DataScopeTerm;
@@ -261,6 +262,7 @@ public class RuntimeDataService {
                 })
                 .map(PublishedField::code).collect(java.util.stream.Collectors.toSet());
         Set<String> searchableFields = published.fields().stream()
+                .filter(field -> !"JSON".equals(field.type()))
                 .filter(PublishedField::searchable).map(PublishedField::code)
                 .filter(queryableFields::contains).collect(java.util.stream.Collectors.toSet());
         Set<String> builtIns = Set.of("title", "recordNumber", "status", "ownerMemberId", "departmentId",
@@ -274,10 +276,18 @@ public class RuntimeDataService {
             if (!Set.of("EQ", "NE", "CONTAINS", "GT", "GTE", "LT", "LTE", "EMPTY", "NOT_EMPTY").contains(operator)) {
                 throw new DomainException("LIST_FILTER_OPERATOR_INVALID", "筛选运算符不受支持", HttpStatus.BAD_REQUEST);
             }
+            PublishedField field = published.fields().stream().filter(item -> item.code().equals(filter.fieldCode())).findFirst().orElse(null);
+            if (field != null && "JSON".equals(field.type()) && !Set.of("EMPTY", "NOT_EMPTY").contains(operator)) {
+                throw new DomainException("LIST_FILTER_OPERATOR_INVALID", "结构化数据仅支持是否已填写筛选", HttpStatus.BAD_REQUEST);
+            }
         }
         String normalizedSort = sortField == null || sortField.isBlank() ? "updatedAt" : sortField.strip();
         if (!builtIns.contains(normalizedSort) && !queryableFields.contains(normalizedSort)) {
             throw new DomainException("LIST_SORT_FIELD_FORBIDDEN", "排序字段不存在、不可读或已脱敏", HttpStatus.FORBIDDEN);
+        }
+        if (published.fields().stream().anyMatch(field -> field.code().equals(normalizedSort)
+                && Set.of("RICH_TEXT", "JSON").contains(field.type()))) {
+            throw new DomainException("LIST_SORT_FIELD_FORBIDDEN", "富文本和结构化数据不支持内容排序", HttpStatus.BAD_REQUEST);
         }
         return new QueryAccessPolicy(queryableFields, searchableFields, builtIns);
     }
@@ -310,7 +320,7 @@ public class RuntimeDataService {
 
     private boolean matchesFilter(JsonNode actual, RuntimeListFilter filter) {
         String operator = filter.operator().strip().toUpperCase(Locale.ROOT);
-        boolean empty = actual == null || actual.isNull() || actual.asText().isBlank();
+        boolean empty = empty(actual);
         if ("EMPTY".equals(operator)) return empty;
         if ("NOT_EMPTY".equals(operator)) return !empty;
         if (empty) return "NE".equals(operator);
@@ -361,8 +371,14 @@ public class RuntimeDataService {
     }
 
     private Map<String, JsonNode> queryValues(RecordAccess access, Map<Long, Map<String, JsonNode>> values) {
-        return values.computeIfAbsent(access.record().getId(), ignored ->
-                readRawValues(access.record().getId(), access.published().fields()));
+        return values.computeIfAbsent(access.record().getId(), ignored -> {
+            Map<String, JsonNode> raw = readRawValues(access.record().getId(), access.published().fields());
+            access.published().fields().stream().filter(field -> "RICH_TEXT".equals(field.type())).forEach(field -> {
+                JsonNode value = raw.get(field.code());
+                if (value != null && value.isTextual()) raw.put(field.code(), TextNode.valueOf(StructuredContentFieldProtocol.plainText(value.textValue())));
+            });
+            return raw;
+        });
     }
 
     private TextNode textNode(String value) {
@@ -2259,10 +2275,12 @@ public class RuntimeDataService {
                 continue;
             }
             JsonNode value = submitted.get(field.code());
-            if (empty(value) && "CREATE".equalsIgnoreCase(actionCode)) {
+            boolean explicitJsonNull = "JSON".equals(field.type()) && "NULL".equals(field.config().path("jsonSchema").path("type").asText())
+                    && value != null && value.isNull();
+            if (empty(value) && !explicitJsonNull && "CREATE".equalsIgnoreCase(actionCode)) {
                 value = configuredDefault(field);
             }
-            if (empty(value)) {
+            if (empty(value) && !explicitJsonNull) {
                 if (field.required()) {
                     errors.add(field.code() + ": 必填字段不能为空");
                 }
@@ -2274,6 +2292,10 @@ public class RuntimeDataService {
             }
             try {
                 JsonNode normalizedValue = normalize(validationContext, field, value);
+                if (empty(normalizedValue) && !explicitJsonNull) {
+                    if (field.required()) throw new IllegalArgumentException("必填字段不能为空");
+                    continue;
+                }
                 validateReferenceValue(validationContext, field, normalizedValue);
                 normalized.put(field.code(), normalizedValue);
             } catch (IllegalArgumentException exception) {
@@ -2351,6 +2373,7 @@ public class RuntimeDataService {
         return switch (field.type()) {
             case "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD" ->
                     TextFieldProtocol.normalize(field.type(), field.config(), value);
+            case "RICH_TEXT", "JSON" -> StructuredContentFieldProtocol.normalize(field.type(), field.config(), value);
             case "SINGLE_SELECT", "STATUS" -> {
                 if (!value.isTextual()) {
                     throw new IllegalArgumentException("必须是选项值");
@@ -2531,6 +2554,7 @@ public class RuntimeDataService {
             case "DATE" -> stored.setValueDate(LocalDate.parse(value.textValue()));
             case "DATETIME" -> stored.setValueDatetime(LocalDateTime.parse(value.textValue()));
             case "BOOLEAN" -> stored.setValueBoolean(value.booleanValue());
+            case "RICH_TEXT", "JSON" -> stored.setValueJson(value.toString());
             case "MEMBER", "DEPARTMENT", "REFERENCE" -> stored.setValueReferenceId(value.longValue());
             case "CASCADE" -> {
                 if (value.isArray()) stored.setValueJson(value.toString());

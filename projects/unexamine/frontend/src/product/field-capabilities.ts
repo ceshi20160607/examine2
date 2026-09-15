@@ -77,8 +77,13 @@ export function isBasicRuntimeField(fieldType: string) {
 }
 
 export function supportsTextConstraints(fieldType: string) {
-  return textRuntimeFieldTypes.has(fieldType)
+  return textRuntimeFieldTypes.has(fieldType) || fieldType === 'RICH_TEXT'
 }
+export function isSharedRuntimeField(fieldType: string) {
+  return isBasicRuntimeField(fieldType) || ['RICH_TEXT', 'JSON'].includes(fieldType)
+}
+export function supportsFieldSearch(fieldType: string) { return !['JSON', 'SECRET'].includes(fieldType) }
+export function supportsContentSort(fieldType: string) { return !['RICH_TEXT', 'JSON', 'SECRET'].includes(fieldType) }
 
 export function builtInTextFormat(fieldType: string) {
   return ({
@@ -105,6 +110,8 @@ export function filterOperators(fieldType?: string) {
   const common = [{ value: 'EQ', label: '等于' }, { value: 'NE', label: '不等于' }]
   const empty = [{ value: 'EMPTY', label: '为空' }, { value: 'NOT_EMPTY', label: '不为空' }]
   const family = fieldFamily(fieldType)
+  if (fieldType === 'JSON') return empty
+  if (fieldType === 'RICH_TEXT') return [...common, { value: 'CONTAINS', label: '包含' }, ...empty]
   if (family === 'BOOLEAN' || family === 'SELECTION') return [...common, ...empty]
   if (family === 'NUMBER' || family === 'DATE') return [...common,
     { value: 'GT', label: '大于' }, { value: 'GTE', label: '大于等于' },

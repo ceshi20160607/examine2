@@ -16,7 +16,7 @@ import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { productDateTime } from '../presentation'
 import { systemContext, systemTokens } from '../session'
-import { builtInTextFormat, defaultEditor, fieldTypes, supportsTextConstraints, supportsUniqueValue } from '../field-capabilities'
+import { builtInTextFormat, defaultEditor, fieldTypes, supportsTextConstraints, supportsUniqueValue, supportsFieldSearch } from '../field-capabilities'
 import type {
   ConfiguredField,
   ConfiguredAction,
@@ -34,6 +34,11 @@ import type {
   RuntimeModuleConfiguration,
   AiSystemOverview,
 } from '../types'
+
+import StructuredSchemaEditor from '../components/StructuredSchemaEditor.vue'
+import StructuredValueEditor from '../components/StructuredValueEditor.vue'
+import RichTextEditor from '../components/RichTextEditor.vue'
+import { newJsonSchema, emptyJsonValue, jsonSchemaIssue, type JsonSchema } from '../structured-content'
 
 const emit = defineEmits<{ published: [] }>()
 const router = useRouter()
@@ -82,9 +87,9 @@ const moduleForm = reactive({
 const fieldForm = reactive({
   code: '', name: '', fieldType: 'TEXT', required: false, uniqueValue: false, searchable: false,
   dictionaryId: undefined as number | undefined, referenceModuleId: undefined as number | undefined,
-  sortOrder: 10, status: 'ACTIVE', optionsText: '', defaultValue: undefined as string | number | boolean | undefined, placeholder: '',
+  sortOrder: 10, status: 'ACTIVE', optionsText: '', defaultValue: undefined as unknown, placeholder: '',
   minLength: undefined as number | undefined, maxLength: undefined as number | undefined,
-  patternMode: 'NONE', customPattern: '',
+  patternMode: 'NONE', customPattern: '', richTextMode: 'FULL', jsonSchema: newJsonSchema(),
   currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false, saveMode: 'FINAL',
   sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true, sensitive: false, readOnly: false,
   version: 0,
@@ -223,6 +228,7 @@ const fieldConfigurationIssue = computed(() => {
     if (fieldForm.minLength !== undefined && fieldForm.maxLength !== undefined && fieldForm.minLength > fieldForm.maxLength) return '最短长度不能大于最长长度'
     if (fieldForm.patternMode === 'CUSTOM' && !fieldForm.customPattern.trim()) return '自定义格式必须填写正则表达式'
   }
+  if (fieldForm.fieldType === 'JSON') return jsonSchemaIssue(fieldForm.jsonSchema)
   return ''
 })
 
@@ -334,7 +340,7 @@ function beginField(type: string) {
     dictionaryId: undefined, referenceModuleId: undefined,
     sortOrder: (draft.value?.fields.length || 0) * 10 + 10,
     status: 'ACTIVE', optionsText: ['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(type) ? 'active|启用\ninactive|停用' : '',
-    defaultValue: undefined, placeholder: '', minLength: undefined, maxLength: undefined, patternMode: 'NONE', customPattern: '',
+    defaultValue: undefined, placeholder: '', richTextMode: 'FULL', jsonSchema: newJsonSchema(), minLength: undefined, maxLength: undefined, patternMode: 'NONE', customPattern: '',
     currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false,
     saveMode: 'FINAL', sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true,
     sensitive: type === 'SECRET', readOnly: type.startsWith('SYSTEM_'), version: 0,
@@ -357,7 +363,7 @@ function editField(field: ConfiguredField) {
     sortOrder: field.sortOrder, status: field.status, optionsText,
     defaultValue: config.defaultValue ?? undefined, placeholder: config.placeholder ?? '',
     minLength: config.minLength ?? undefined, maxLength: config.maxLength ?? undefined,
-    patternMode: config.patternMode || 'NONE', customPattern: config.customPattern || '', currency: config.currency || 'CNY',
+    patternMode: config.patternMode || 'NONE', customPattern: config.customPattern || '', richTextMode: config.richTextMode || 'FULL', jsonSchema: config.jsonSchema || newJsonSchema(), currency: config.currency || 'CNY',
     precision: config.precision ?? 2, maxDepth: config.maxDepth ?? 3,
     allowIntermediate: Boolean(config.allowIntermediate), saveMode: config.saveMode || 'FINAL',
     sequenceCode: config.sequenceCode || '', expression: config.expression || '', modelCode: config.modelCode || '',
@@ -388,6 +394,8 @@ function fieldConfig() {
       return { value, label: label || value, status: 'ACTIVE' }
     })
   }
+  if (fieldForm.fieldType === 'RICH_TEXT') config.richTextMode = fieldForm.richTextMode
+  if (fieldForm.fieldType === 'JSON') config.jsonSchema = fieldForm.jsonSchema
   if (fieldForm.fieldType === 'MONEY') Object.assign(config, { currency: fieldForm.currency, precision: fieldForm.precision })
   if (fieldForm.fieldType === 'CASCADE') Object.assign(config, { maxDepth: fieldForm.maxDepth, allowIntermediate: fieldForm.allowIntermediate, saveMode: fieldForm.saveMode })
   if (fieldForm.fieldType === 'AUTO_NUMBER') config.sequenceCode = fieldForm.sequenceCode
@@ -400,6 +408,7 @@ watch(() => fieldForm.fieldType, (current, previous) => {
   if (!editingField.value && current !== previous) {
     fieldForm.defaultValue = undefined
     if (!supportsUniqueValue(current)) fieldForm.uniqueValue = false
+    if (!supportsFieldSearch(current)) fieldForm.searchable = false
   }
 })
 
@@ -837,8 +846,18 @@ async function rollbackVersion(version: PublishedModuleVersion) {
   } finally { saving.value = false }
 }
 
-function onDrop() {
-  if (draggingType.value) beginField(draggingType.value)
+function beginFieldDrag(type: string, event: DragEvent) {
+  draggingType.value = type
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('application/x-unexamine-field-type', type)
+    event.dataTransfer.setData('text/plain', type)
+    event.dataTransfer.effectAllowed = 'copy'
+  }
+}
+
+function onDrop(event: DragEvent) {
+  const type = event.dataTransfer?.getData('application/x-unexamine-field-type') || draggingType.value
+  if (fieldTypes.some(field => field.type === type)) beginField(type)
   draggingType.value = ''
 }
 
@@ -900,7 +919,7 @@ onMounted(() => loadOverview())
     </div>
     <a-alert v-if="error" type="error" show-icon :message="error" class="section-alert" />
 
-    <div :class="['config-layout', { 'config-layout--page': activeConfigTask === 'FIELDS' && selectedPage }]">
+    <div :class="['config-layout', { 'config-layout--page': activeConfigTask === 'FIELDS' && (activeDesignerTab === 'FIELDS' || selectedPage) }]">
       <aside class="config-tree panel-card">
         <div class="panel-title"><strong>模块结构</strong><a-button type="text" size="small" @click="groupModal = true"><PlusOutlined />业务分组</a-button></div>
         <a-skeleton v-if="loading && !overview.groups.length" active :paragraph="{ rows: 5 }" />
@@ -1071,11 +1090,11 @@ onMounted(() => loadOverview())
         <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="创建并选择模块后，在这里设计字段" />
       </main>
 
-      <aside v-if="activeConfigTask === 'FIELDS' && selectedPage" class="field-palette panel-card">
+      <aside v-if="activeConfigTask === 'FIELDS' && (activeDesignerTab === 'FIELDS' || selectedPage)" class="field-palette panel-card" :class="{ 'field-palette--types': activeDesignerTab === 'FIELDS' }">
         <template v-if="activeDesignerTab === 'FIELDS'">
           <div class="panel-title"><strong>字段类型</strong><span>拖拽添加</span></div>
           <button v-for="field in fieldTypes" :key="field.type" type="button" class="palette-field" draggable="true"
-            @dragstart="draggingType = field.type" @dragend="draggingType = ''" @click="beginField(field.type)">
+            @dragstart="beginFieldDrag(field.type, $event)" @dragend="draggingType = ''" @click="beginField(field.type)">
             <span>{{ field.name.slice(0, 1) }}</span><div><strong>{{ field.name }}</strong><small>{{ field.hint }}</small></div><DragOutlined />
           </button>
         </template>
@@ -1130,18 +1149,25 @@ onMounted(() => loadOverview())
         <a-form-item label="字段名称" required><a-input v-model:value="fieldForm.name" placeholder="例如：客户名称、联系电话、跟进结果" /></a-form-item>
         <div class="form-grid"><a-form-item label="排序"><a-input-number v-model:value="fieldForm.sortOrder" :min="0" /></a-form-item>
           <a-form-item label="是否必填"><a-switch v-model:checked="fieldForm.required" /></a-form-item></div>
-        <div class="form-grid"><a-form-item label="可搜索"><a-switch v-model:checked="fieldForm.searchable" /></a-form-item>
+        <div class="form-grid"><a-form-item label="可搜索"><a-switch v-model:checked="fieldForm.searchable" :disabled="!supportsFieldSearch(fieldForm.fieldType)" /></a-form-item>
           <a-form-item label="唯一值" extra="在当前组织和模块内约束非空值；由数据库并发保证。"><a-switch v-model:checked="fieldForm.uniqueValue" :disabled="!supportsUniqueValue(fieldForm.fieldType)" /></a-form-item></div>
         <a-form-item label="提示文案"><a-input v-model:value="fieldForm.placeholder" placeholder="页面输入提示" /></a-form-item>
         <template v-if="supportsTextConstraints(fieldForm.fieldType)">
           <a-alert v-if="builtInTextFormat(fieldForm.fieldType)" type="info" show-icon class="section-alert" :message="builtInTextFormat(fieldForm.fieldType)" />
           <div class="form-grid"><a-form-item label="最短长度"><a-input-number v-model:value="fieldForm.minLength" :min="0" :max="100000" placeholder="不限" style="width:100%" /></a-form-item>
             <a-form-item label="最长长度"><a-input-number v-model:value="fieldForm.maxLength" :min="1" :max="100000" placeholder="不限" style="width:100%" /></a-form-item></div>
-          <a-form-item label="附加格式规则" extra="常用格式直接选择；只有特殊业务规则才需要自定义正则表达式。"><a-select v-model:value="fieldForm.patternMode" :options="patternModeOptions" /></a-form-item>
+          <a-form-item v-if="fieldForm.fieldType !== 'RICH_TEXT'" label="附加格式规则" extra="常用格式直接选择；只有特殊业务规则才需要自定义正则表达式。"><a-select v-model:value="fieldForm.patternMode" :options="patternModeOptions" /></a-form-item>
           <a-form-item v-if="fieldForm.patternMode === 'CUSTOM'" label="自定义正则表达式" required extra="按完整字段值校验，例如 ^VIP-[0-9]{6}$"><a-input v-model:value="fieldForm.customPattern" placeholder="输入完整匹配表达式" /></a-form-item>
         </template>
+        <a-form-item v-if="fieldForm.fieldType === 'RICH_TEXT'" label="格式工具栏"><a-radio-group v-model:value="fieldForm.richTextMode"><a-radio value="BASIC">基础格式</a-radio><a-radio value="FULL">含列表、标题和链接</a-radio></a-radio-group></a-form-item>
+        <a-form-item v-if="fieldForm.fieldType === 'JSON'" label="内容结构" extra="添加属性、选择类型和必填条件；支持嵌套属性组和多行列表。"><StructuredSchemaEditor v-model="fieldForm.jsonSchema" /></a-form-item>
         <a-form-item label="默认值" extra="可留空；创建记录时会自动带入并接受同一套服务端校验。">
-          <a-input-number v-if="defaultEditor(fieldForm.fieldType) === 'NUMBER'" v-model:value="fieldForm.defaultValue as number" style="width:100%" placeholder="输入默认数字" />
+          <RichTextEditor v-if="fieldForm.fieldType === 'RICH_TEXT'" v-model="fieldForm.defaultValue" :mode="fieldForm.richTextMode" :max-length="fieldForm.maxLength" />
+          <template v-else-if="fieldForm.fieldType === 'JSON'">
+            <a-button v-if="fieldForm.defaultValue === undefined" @click="fieldForm.defaultValue = emptyJsonValue(fieldForm.jsonSchema)">设置默认内容</a-button>
+            <template v-else><StructuredValueEditor v-model="fieldForm.defaultValue" :schema="fieldForm.jsonSchema" /><a-button size="small" @click="fieldForm.defaultValue = undefined">不设置默认值</a-button></template>
+          </template>
+          <a-input-number v-else-if="defaultEditor(fieldForm.fieldType) === 'NUMBER'" v-model:value="fieldForm.defaultValue as number" style="width:100%" placeholder="输入默认数字" />
           <a-date-picker v-else-if="defaultEditor(fieldForm.fieldType) === 'DATE'" v-model:value="fieldForm.defaultValue as string" value-format="YYYY-MM-DD" style="width:100%" placeholder="选择默认日期" />
           <a-date-picker v-else-if="defaultEditor(fieldForm.fieldType) === 'DATETIME'" v-model:value="fieldForm.defaultValue as string" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" placeholder="选择默认日期和时间" />
           <a-select v-else-if="defaultEditor(fieldForm.fieldType) === 'BOOLEAN'" v-model:value="fieldForm.defaultValue" allow-clear placeholder="不设置默认值" :options="[{ value: true, label: '是' }, { value: false, label: '否' }]" />

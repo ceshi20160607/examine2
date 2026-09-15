@@ -16,7 +16,9 @@ import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductPage from '../components/ProductPage.vue'
 import ProductListWorkspace from '../components/ProductListWorkspace.vue'
 import RuntimeFieldInput from '../components/RuntimeFieldInput.vue'
-import { fieldFamily, filterOperators, isBasicRuntimeField } from '../field-capabilities'
+import { fieldFamily, filterOperators, isSharedRuntimeField, supportsContentSort } from '../field-capabilities'
+import StructuredValueDisplay from '../components/StructuredValueDisplay.vue'
+import { sanitizeRichMarkup, richPlainText, structuredSummary, emptyJsonValue, newJsonSchema, type JsonSchema } from '../structured-content'
 import ProductFilterBar from '../components/ProductFilterBar.vue'
 import ProductDetailDrawer from '../components/ProductDetailDrawer.vue'
 import ProductFormDrawer from '../components/ProductFormDrawer.vue'
@@ -215,7 +217,7 @@ const displayedColumns = computed(() => {
 const filterFieldOptions = computed(() => availableColumns.value
   .filter((column) => !['dataTenantName', 'createdAt', 'updatedAt'].includes(column.code))
   .map((column) => ({ value: column.code, label: column.label })))
-const sortFieldOptions = computed(() => availableColumns.value.map((column) => ({ value: column.code, label: column.label })))
+const sortFieldOptions = computed(() => availableColumns.value.filter(column => !column.field || supportsContentSort(column.field.fieldType)).map((column) => ({ value: column.code, label: column.label })))
 const activeSavedView = computed(() => savedViews.value.find((view) => view.code === activeViewCode.value))
 const showTenantScope = computed(() => Boolean(systemContext.value?.tenantSwitchContext?.tenantSwitchable))
 const queryCustomized = computed(() => Boolean(searchText.value.trim() || listFilters.value.length || activeViewCode.value
@@ -444,6 +446,7 @@ function fieldConfig(field: RuntimeField) {
     allowIntermediate?: boolean
     saveMode?: 'FINAL' | 'PATH'
     defaultValue?: unknown
+    jsonSchema?: JsonSchema
     sensitive?: boolean
     readOnly?: boolean
   } }
@@ -453,6 +456,7 @@ function fieldConfig(field: RuntimeField) {
 function initialFieldValue(field: RuntimeField) {
   const configured = fieldConfig(field).defaultValue
   if (configured === undefined || configured === null || configured === '') {
+    if (field.fieldType === 'JSON' && field.required) return emptyJsonValue(fieldConfig(field).jsonSchema || newJsonSchema())
     return field.fieldType === 'BOOLEAN' ? false : undefined
   }
   if (field.fieldType === 'BOOLEAN') return configured === true || String(configured).toLowerCase() === 'true'
@@ -1213,6 +1217,8 @@ function displayValue(field: RuntimeField, value: unknown) {
   if (value === undefined || value === null || value === '') return '—'
   if (value === '***') return '••••（已脱敏）'
   if (value === '[已散列]') return '不可回显（已散列）'
+  if (field.fieldType === 'RICH_TEXT') return richPlainText(String(value)) || '—'
+  if (field.fieldType === 'JSON') return structuredSummary(value)
   if (field.fieldType === 'BOOLEAN') return value ? '是' : '否'
   if (['SYSTEM_CREATED_AT', 'SYSTEM_UPDATED_AT'].includes(field.fieldType)) return productDateTime(String(value))
   if (['SYSTEM_CREATED_BY', 'SYSTEM_UPDATED_BY'].includes(field.fieldType)) {
@@ -1434,7 +1440,7 @@ defineExpose({ refresh: loadModules, executeCommand })
       <template #extra><a-button v-if="detail && canUseAi" @click="assistantOpen = !assistantOpen"><RobotOutlined />{{ assistantOpen ? '收起助手' : '询问当前记录' }}</a-button></template>
       <template v-if="detail"><div :class="['record-detail-shell', { 'record-detail-shell--assistant': assistantOpen && canUseAi }]"><section class="record-detail-main"><div class="detail-meta"><span>{{ userFacingRecordNumber(detail.recordNumber, '未设置业务编号') }}</span><ProductStatusTag :status="detail.status" /><a-tag :color="detail.shared ? 'orange' : 'blue'">数据归属：{{ userFacingWorkspaceName(detail.dataTenantName) }}</a-tag><span v-if="detail.shared" class="detail-share-status">共享状态：<ProductStatusTag :status="detail.shareStatus" /></span></div>
         <a-tabs class="detail-tabs-runtime">
-          <a-tab-pane key="basic" tab="概览"><a-descriptions :column="1" bordered size="small"><a-descriptions-item v-for="field in detailValueFields" :key="field.code" :label="field.name"><span class="detail-field-value">{{ displayValue(field, detail.fields[field.code]) }}<a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></span></a-descriptions-item>
+          <a-tab-pane key="basic" tab="概览"><a-descriptions :column="1" bordered size="small"><a-descriptions-item v-for="field in detailValueFields" :key="field.code" :label="field.name"><span class="detail-field-value"><span v-if="field.fieldType === 'RICH_TEXT'" class="rich-readback" v-html="sanitizeRichMarkup(String(detail.fields[field.code] || ''))"></span><StructuredValueDisplay v-else-if="field.fieldType === 'JSON'" :model-value="detail.fields[field.code]" :schema="fieldConfig(field).jsonSchema" /><template v-else>{{ displayValue(field, detail.fields[field.code]) }}</template><a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></span></a-descriptions-item>
             <a-descriptions-item label="负责人">{{ ownerDisplayName(detail) }}</a-descriptions-item><a-descriptions-item label="相关人">{{ detail.participantMemberIds.length ? `${detail.participantMemberIds.length} 位相关人` : '—' }}</a-descriptions-item><a-descriptions-item label="创建时间">{{ productDateTime(detail.createdAt) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item></a-descriptions></a-tab-pane>
           <a-tab-pane key="relations" tab="关联"><a-list v-if="conversionLinks.length" size="small" bordered :data-source="conversionLinks"><template #renderItem="{ item }"><a-list-item><a-button type="link" @click="openConversionLink(item)">{{ item.direction === 'SOURCE' ? '来源' : '目标' }} · {{ item.moduleName }} · {{ item.recordTitle }}</a-button><span>{{ productDateTime(item.convertedAt) }}</span></a-list-item></template></a-list><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无有权查看的关联数据" /></a-tab-pane>
           <a-tab-pane v-if="recordAttachmentFields.length && canViewAttachments" key="attachments" tab="附件"><a-select v-if="recordAttachmentFields.length > 1" v-model:value="attachmentFieldCode" :options="recordAttachmentFields.map(field => ({ value: field.code, label: field.name }))" style="width:100%;margin-bottom:12px" placeholder="选择附件分类" /><BusinessAttachmentsPanel v-if="recordAttachmentEndpoint" :endpoint="recordAttachmentEndpoint" :writable="recordAttachmentWritable" :title="selectedAttachmentField?.name || '附件'" description="附件按当前字段权限展示，并记录到业务时间线。" compact @changed="detail && openDetail(detail)" /></a-tab-pane>
@@ -1471,7 +1477,7 @@ defineExpose({ refresh: loadModules, executeCommand })
         <a-divider>模块字段</a-divider>
         <a-form-item v-for="field in formValueFields" :key="field.code" :label="field.name" :required="field.required" :data-runtime-field="field.code"
           :validate-status="fieldErrors[field.code] ? 'error' : undefined" :help="fieldErrors[field.code]">
-          <RuntimeFieldInput v-if="isBasicRuntimeField(field.fieldType)" v-model="form.fields[field.code]" :field="field" />
+          <RuntimeFieldInput v-if="isSharedRuntimeField(field.fieldType)" v-model="form.fields[field.code]" :field="field" />
           <a-input-number v-else-if="field.fieldType === 'MONEY'" v-model:value="form.fields[field.code]" style="width:100%" />
           <a-select v-else-if="['SINGLE_SELECT', 'STATUS'].includes(field.fieldType)" v-model:value="form.fields[field.code]" :options="options(field)" allow-clear />
           <a-cascader v-else-if="field.fieldType === 'CASCADE'" v-model:value="form.fields[field.code]" :options="cascadeOptions[field.code] || []"

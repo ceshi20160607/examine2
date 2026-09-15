@@ -5,8 +5,8 @@
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B05.2b",
-  "current_step": "B05.2b",
+  "next_step": "B05.2b2",
+  "current_step": "B05.2b2",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
@@ -19,24 +19,15 @@
     "form_configuration": "shared_drag_drop_field_designer_left_types_center_canvas_right_typed_properties"
   },
   "current_scope": {
-    "step": "B05.2b",
+    "step": "B05.2b2",
     "source_rows": [
-      "R0496",
-      "R0497",
       "R0498",
       "R0512",
       "R0518",
       "R0519",
-      "R0525",
-      "R0526",
       "R0527",
-      "R0532",
-      "R0535",
-      "R0536",
       "R0553",
       "R0557",
-      "R1659",
-      "R1660",
       "R2577",
       "R2583",
       "R2584",
@@ -47,154 +38,47 @@
       "R2949"
     ],
     "files": [
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata",
-      "projects/unexamine/frontend/src/product/field-capabilities.ts",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/ChannelFieldPolicyResolver.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage",
       "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
-      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
-      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue"
     ],
     "entry_points": [
-      "Extend the existing shared field registry and property drawer for the drag-and-drop form designer; do not add a separate one-off configuration page for this field family.",
-      "Trace RICH_TEXT, JSON and SECRET from draft and publication through dedicated editors, safe server normalization, typed storage and readback.",
-      "Sanitize rich text with an explicit allowlist. Give ordinary JSON users schema/key-value/form controls; reserve raw JSON for an explicit advanced import or diagnostic path.",
-      "Treat SECRET as one-time write: no plaintext browser draft, list/detail/history response or client persistence, and no searchable/unique plaintext projection.",
-      "Apply published mask and field access to sensitive phone, ID-card and secret values through the existing common permission path; leave export and application cross-validation attached to their later packets."
+      "Read the existing secret ciphers, field protection, audit/history and FoundationControlService pending-intent/receipt payload paths; choose one shared encrypted value protocol and preserve current action semantics.",
+      "Add ordinary SECRET password input with explicit keep/replace/clear behavior; prevent plaintext local draft, audit/history and pending-intent storage.",
+      "Default masked in lists, queries and readback; detail/application plaintext only under explicit applicable permission/authorization per R2589/R2591. Do not impose unconditional never-readable behavior.",
+      "Verify encrypted database readback, denied/masked projections, permitted detail read, rejected writes without partial state and AFTER_APPROVAL pending intent/resume without plaintext leakage."
     ],
     "acceptance": [
-      "All three field types have usable dedicated structured configuration and runtime input; ordinary users do not hand-write JSON.",
-      "Rich text is sanitized, JSON schema/value validation is field-level, and secret plaintext cannot be read back from API, history, logs or browser storage.",
-      "Invalid content rolls back without a record or successful mutation audit; applicable list/detail/history/search and permission behavior follows the published field configuration.",
-      "Focused tests and one retained-module real journey pass; B05.2 remains unverified until numeric and date/range slices complete.",
-      "B05 verifies field-family behavior only; complete drag-and-drop form-designer acceptance remains required in B06 under form_designer_contract."
+      "SECRET is visually configured, published and written through the common action/field protocol with encrypted value and intent storage.",
+      "Audit/history/client drafts reveal no secret; unchanged masked values are not written back as replacement plaintext.",
+      "Sensitive list/query readback cannot leak plaintext; explicit authorized detail/application read remains possible under requirement-defined policies.",
+      "Focused behavior tests plus one retained-module real journey; B06 drag/drop and all deferred requirements stay open."
     ]
   },
   "last_result": {
-    "step": "B05.2a",
-    "status": "verified_bounded_substep",
-    "verified_at": "2026-09-15T11:26:50.598932+08:00",
-    "verification_scope": "MULTILINE_TEXT, PHONE, EMAIL, URL and ID_CARD now share a published configuration, server normalization, validation and typed text-storage protocol, with structured ordinary-user configuration and one retained real module journey. This completes only the first text-family slice; B05.2 remains open.",
-    "source_rows": [
-      "R0462",
-      "R0463",
-      "R0464",
-      "R0465",
-      "R0466",
-      "R0512",
-      "R0518",
-      "R0519",
-      "R0523",
-      "R0525",
-      "R0526",
-      "R0527",
-      "R0532",
-      "R0535",
-      "R0536",
-      "R0553",
-      "R0557",
-      "R1659",
-      "R1660"
-    ],
-    "changed_files": [
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TextFieldProtocol.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-      "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
-      "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
-      "projects/unexamine/frontend/src/product/field-capabilities.ts",
-      "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
-      "projects/unexamine/frontend/src/product/lowcode-workflow.test.ts",
-      "projects/unexamine/frontend/src/product/runtime-workflow.test.ts",
-      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
-      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-      "projects/unexamine/ai/evidence/spark-b05-text-field-verification.json",
-      "projects/unexamine/ai/evidence/spark-usage-b05-text-fields.json",
-      "projects/unexamine/ai/planning/spark-state.json"
-    ],
+    "step": "B05.2b1",
+    "status": "verified",
+    "verified_at": "2026-09-15T14:31:28.822840+08:00",
+    "verification_scope": "Bounded RICH_TEXT/JSON configuration-to-runtime contribution only; this does not complete the entire field family, drag/drop designer, or any cross-package requirement.",
+    "evidence_path": "projects/unexamine/ai/evidence/spark-b05-structured-content-verification.json",
+    "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b05-structured-content.json",
     "checks_actual_results": [
-      "Frontend focused tests passed after the friendly-error change: 3 files and 14 tests. The production build passed for 3961 modules; only the existing chunk-size warning remained.",
-      "Backend JDK 21 test-compile and package passed.",
-      "Focused isolated Linux Maven/Testcontainers test RuntimeDataHttpTest#publishedTextFamilyUsesStructuredConstraintsTypedStorageAndFieldLevelRollback passed: 1 test, 0 failures/errors/skips, 195.9 seconds.",
-      "The focused HTTP test rejected an invalid draft length range, published all five scoped field types, normalized a valid phone, applied an email default and stored each value with its published type.",
-      "Five invalid runtime variants returned 422 with field-level errors and created no partial record or successful audit; update, reopen, email search, phone filter and typed history passed.",
-      "Real UI added an EMAIL field through min/max length, placeholder and built-in email controls without JSON, passed publication checks and published 客户档案 version 4.",
-      "Real create first showed a field-level malformed-email error, then saved, reopened, updated and showed typed history. Exact-email search returned one record.",
-      "After the final UI fix, the top error identified 业务邮箱 instead of exposing its internal field code; the valid value was restored and the editor was closed cleanly."
+      "Focused backend protocol 3 tests and isolated HTTP 1 test passed; native JDK 21 compilation/package passed.",
+      "Final frontend 4 files/17 tests and production build passed; existing chunk warning remains.",
+      "Real typed configuration -> publication -> missing-company error -> valid create/reopen/update/history/plain-text search passed.",
+      "Native keyboard-selected bold persisted in database and rendered; normal viewport restored."
     ],
     "readback": [
-      "客户档案 module id 28/code module_4513ff83a1 is published at cfg_module_version id 36/version 4/draft revision 9.",
-      "Field id 51/code field_ab6c49c1de is EMAIL, searchable=true and stores config {readOnly:false,maxLength:100,sensitive:false,placeholder:name@example.com}.",
-      "Record id 67 is 文本字段真实验收客户, version 1, with one EMAIL value row containing real.customer@example.com.",
-      "Record 67 has one successful create and one successful update audit. The live malformed-email attempt recorded FIELD_VALIDATION_FAILED and created no rejected record.",
-      "No records whose title starts with 不应落库 exist."
+      "客户档案 module 28 is published at version id 37/version 5/draft revision 13; RICH_TEXT field 52 and JSON field 53 have typed configuration.",
+      "Record 68/version 2 retains <b> rich text and typed JSON company/合作中=false; one successful create, two successful updates, and failed create audit 2751 retained.",
+      "Full before/after values, commands, 18 tested source hashes and failed-attempt corrections are in the referenced evidence file."
     ],
-    "permission_or_failure_result": {
-      "configuration": "An invalid minLength/maxLength pair returned 422 before draft persistence; built-in formats and optional pattern modes are server-validated again at publication.",
-      "runtime_validation": "All five invalid field variants returned 422 at their field. Live malformed email displayed 业务邮箱：邮箱格式不正确 without an internal field code.",
-      "atomicity": "The successful test record remained singular; five failed writes added neither records nor successful mutation audits.",
-      "field_permission": "The scoped types use the same published FieldPolicyResolver and query projection path already verified in B05.1; this change introduced no type-specific permission bypass. Search remains gated by the published searchable flag. Repeating the same role fixture was intentionally avoided.",
-      "workspace_preservation": "No reset, regeneration, old-cycle restoration or workspace-boundary change ran."
-    },
-    "tested_file_hashes": [
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TextFieldProtocol.java",
-        "sha256": "ee0499d67b7e7c63fad1173e3733058b67db0dabaf79b6174afa9e2479bbd750"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
-        "sha256": "e54513f21eec9417541889bc693260f51b0ddb40c8a4fd0d1981ff71181b2ae2"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
-        "sha256": "44b6c0a69bd7613a25557329d701bb932e9fb2129d90f37d21406c8040f9202d"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-        "sha256": "a772859cd06d8e10c3ca30c8773612cb93f01caad4e381d8bfe293c38bb20e1c"
-      },
-      {
-        "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
-        "sha256": "86369edb1d287f453cd8ccd97913b67bb4737dd22399ec27a276daf25fcb2f03"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
-        "sha256": "cbc1e9a83154a3c86ecc3185dafdc3e77b85e7b5d8d5789ca35a8b8b7847e302"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/field-capabilities.ts",
-        "sha256": "e610f52ef0f20e5fe104f18305f9cc31b6e2f1b87af0da352434fa6c865226f4"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
-        "sha256": "b4c3abb36abfc7475f16be3cd31b31ff8d4a146574dd252d51f9b6e6cedcb6bb"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/lowcode-workflow.test.ts",
-        "sha256": "600590cac9c6bdac900a82eacc24518c50167643818c92e21d2af76b8a01d623"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/runtime-workflow.test.ts",
-        "sha256": "e6793e1cbc336cae13a6d21cd397ae989a356cce6d8d965252c8e02c99665a44"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
-        "sha256": "b3b664518708023d4f209a6e3d8a600201cab3d3ffd592a2c22c21a78ef29193"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-        "sha256": "fb5a80b45dca92fae416f4c07f49e8922e0745edebf46a3814d7779566fefbff"
-      }
-    ],
-    "remaining": [
-      "B05.2b: complete RICH_TEXT, JSON and SECRET with safe editors, server protocols and sensitive-value handling.",
-      "B05.2c: complete NUMBER, MONEY, PERCENT, RATING and PROGRESS as a dedicated numeric-family slice.",
-      "B05.2d: complete date/time and range field types; later B05 selection, identity, relation, file, location and derived families remain required.",
-      "B04 destructive dependency checks and deferred B03.1b/B03.1c remain required."
-    ],
-    "next_step": "B05.2b",
-    "evidence": "projects/unexamine/ai/evidence/spark-b05-text-field-verification.json",
-    "usage_report": "projects/unexamine/ai/evidence/spark-usage-b05-text-fields.json"
+    "remaining": "B05.2b2 SECRET encryption and sensitive field policy; remaining full field families/import/export/query requirements; B06 complete left-palette/center-canvas/right-properties drag/drop designer and preview-to-runtime. Full approval, applications, channels and all other requirements remain required.",
+    "next_step": "B05.2b2"
   },
   "blockers": [
     {
@@ -1226,6 +1110,13 @@
       "next_step": "B05.2b",
       "evidence": "projects/unexamine/ai/evidence/spark-b05-text-field-verification.json",
       "usage_report": "projects/unexamine/ai/evidence/spark-usage-b05-text-fields.json"
+    },
+    {
+      "step": "B05.2b1",
+      "status": "verified",
+      "path": "projects/unexamine/ai/evidence/spark-b05-structured-content-verification.json",
+      "verification_scope": "Bounded RICH_TEXT/JSON configuration-to-runtime contribution only; this does not complete the entire field family, drag/drop designer, or any cross-package requirement.",
+      "next_step": "B05.2b2"
     }
   ],
   "step_record_contract": {
@@ -1314,7 +1205,7 @@
       ],
       "steps": {
         "B05.1": "verified",
-        "B05.2": "unverified",
+        "B05.2": "in_progress",
         "B05.3": "unverified",
         "B05.4": "unverified",
         "B05.5": "unverified",
@@ -1548,8 +1439,15 @@
     ],
     "ordinary_path": "Drag a field type from the left palette into the center form canvas, position/reorder/group it, and configure its type-specific properties on the right. Preview, draft save, publication and runtime share the same field registry and renderer. No hand-written JSON.",
     "internal_protocol": "Page schema and JSON are internal persistence/transport formats; a JSON business field must not turn form, page, Flow or application configuration into a raw-JSON editor.",
-    "current_observed_gap": "Type-palette drop currently opens field configuration and page layout is a separate field-selection/reordering view with schematic preview. The full shared three-panel drag-to-runtime journey is not verified.",
+    "current_observed_gap": "Field-type palette is now reachable and click opens typed properties; native drag attempts did not open a drawer. Palette remains on the right, field configuration uses a drawer and page layout is a separate selection/reordering view. Complete left-types/center-canvas/right-properties drag-to-runtime acceptance remains B06.",
     "completion_packet": "B06",
     "acceptance": "Use real drag/drop to create and arrange a form, edit typed properties and groups, preview, publish and reopen in the runtime. A field table, modal or checkbox selection alone is insufficient."
+  },
+  "pending_substeps": {
+    "B05.2b2": {
+      "scope": "SECRET input, encrypted field/action-intent storage, redacted audit/history/client drafts and published sensitive masking across list/detail/query.",
+      "requirement_rule": "Default masked; detail and application plaintext only with explicit applicable permission/authorization, as required by R2589/R2591. Do not replace this with an unconditional never-readable policy.",
+      "reason": "Security spans the common action receipt/pending-intent path and must be verified separately from rich/JSON rendering."
+    }
   }
 }

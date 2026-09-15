@@ -451,6 +451,8 @@ public class ModulePublicationService {
             try {
                 TextFieldProtocol.validateConfiguration(field.getFieldType(),
                         objectMapper.readTree(field.getConfigJson() == null ? "{}" : field.getConfigJson()));
+                StructuredContentFieldProtocol.validateConfiguration(field.getFieldType(),
+                        objectMapper.readTree(field.getConfigJson() == null ? "{}" : field.getConfigJson()));
             } catch (Exception exception) {
                 issues.add(new PublicationCheckIssue(path + ".config", "FIELD_CONFIG_INVALID", exception.getMessage()));
             }
