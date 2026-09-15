@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultEditor, fieldFamily, fieldTypes, filterOperators, isBasicRuntimeField } from './field-capabilities'
+import { defaultEditor, fieldFamily, fieldTypes, filterOperators, isBasicRuntimeField, supportsUniqueValue } from './field-capabilities'
 
 describe('field capability registry', () => {
   it('keeps each configurable field type unique and classifies the basic runtime family', () => {
@@ -19,5 +19,12 @@ describe('field capability registry', () => {
     expect(filterOperators('NUMBER').map((item) => item.value)).not.toContain('CONTAINS')
     expect(filterOperators('BOOLEAN').map((item) => item.value)).toEqual(['EQ', 'NE', 'EMPTY', 'NOT_EMPTY'])
     expect(filterOperators('TEXT').map((item) => item.value)).toContain('CONTAINS')
+  })
+
+  it('offers field-level uniqueness only to values stored in the shared query-index path', () => {
+    expect(supportsUniqueValue('TEXT')).toBe(true)
+    expect(supportsUniqueValue('NUMBER')).toBe(true)
+    expect(supportsUniqueValue('JSON')).toBe(false)
+    expect(supportsUniqueValue('SYSTEM_CREATED_AT')).toBe(false)
   })
 })

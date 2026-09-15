@@ -1,0 +1,133 @@
+{
+  "step": "B05.1b",
+  "status": "verified_bounded_substep",
+  "verified_at": "2026-09-15T10:44:53.191735+08:00",
+  "verification_scope": "Field-level required, unique and read-only/system behavior was verified through the shared published runtime, including typed history and the retained customer-module browser journey. This completes B05.1; later field families and destructive migration checks remain separate required work.",
+  "source_rows": [
+    "R0459",
+    "R0500",
+    "R0512",
+    "R0517",
+    "R0518",
+    "R0522",
+    "R0523",
+    "R0525",
+    "R0526",
+    "R0527",
+    "R0532",
+    "R0535",
+    "R0536",
+    "R0537",
+    "R0553",
+    "R0555",
+    "R0557",
+    "R1659",
+    "R1660",
+    "R2045",
+    "R2047",
+    "R2048",
+    "R2049",
+    "R2050",
+    "R2052",
+    "R2054"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/FieldUniqueIndexSynchronizer.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleRuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRuleIndexService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+    "projects/unexamine/frontend/src/product/field-capabilities.ts",
+    "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
+    "projects/unexamine/frontend/src/product/runtime-workflow.test.ts",
+    "projects/unexamine/frontend/src/product/lowcode-workflow.test.ts",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/ai/evidence/spark-b05-field-constraints-verification.json",
+    "projects/unexamine/ai/evidence/spark-usage-b05-field-constraints.json",
+    "projects/unexamine/ai/planning/spark-state.json"
+  ],
+  "checks_actual_results": [
+    "Backend JDK 21 test-compile passed.",
+    "Focused Linux Maven/Testcontainers HTTP test passed: required 422, crafted read-only 422, successful create, duplicate-create 409, successful second create, duplicate-update 409, crafted read-only update 422, successful update and timeline read.",
+    "The backend test verified rollback of record count, field value, version and successful audit for duplicate writes; typed history returned 客户编码 and TEXT values C-002 → C-003.",
+    "Frontend focused validation passed: 5 files and 25 tests. Production build passed for 3961 modules; only the existing chunk-size warning remained.",
+    "Real UI added 客户编码 with the unique switch and no JSON, showed its generated rule as 字段配置自动维护, added 系统创建时间 as read-only, passed checks and published version 3.",
+    "The runtime form omitted the system field, detail displayed its generated time, and duplicate create showed a field-level error under 客户编码.",
+    "A real hidden-value integration failure was found and fixed by restricting the common submitter to visible writable fields. The retry succeeded and history showed 客户名称 and 客户编码 before/after values.",
+    "Live crafted HTTP returned required 422, read-only 422 and unique 409. Database stayed at five records/five successful create audits with zero rejected-title rows."
+  ],
+  "readback": [
+    "客户档案 module id 28 is published at version id 35/version 3/draft revision 8.",
+    "Field id 49/code field_6690d5a5db has uniqueValue=true and cfg_query_index id 3/code field_unique_49 with one index-field row.",
+    "Field id 50/code field_8c64e4b826 is SYSTEM_CREATED_AT/readOnly=true; no biz_record_value row stores it because runtime derives biz_record.created_at.",
+    "Record id 64 is 唯一约束验收客户甲已更新, version 1, code UNIQUE-002 and has one non-null unique projection.",
+    "Audit 2725 stores customer-name/code changes and history renders UNIQUE-001 → UNIQUE-002; audit 2724 retains the rejected hidden-system-field attempt."
+  ],
+  "permission_or_failure_result": {
+    "required": "Missing required value returned 422 before persistence.",
+    "read_only": "System fields are absent from the form; crafted writes returned 422. The common submitter sends only form-visible writable codes.",
+    "unique": "Duplicate create/update returned 409 with a field-code message; transactions preserved record/value/version and created no successful mutation audit.",
+    "history": "Published names and typed before/after values were permission-protected and displayed in the timeline.",
+    "workspace_preservation": "No reset, regeneration, old-cycle restoration or second uniqueness store was used."
+  },
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/FieldUniqueIndexSynchronizer.java",
+      "sha256": "587187e15a95dbf2fe9ab79daacd51e5319a2790a79242849b23907c212d35d9"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "d41867d9a70de494f52bfbb2625473deeb49222326a93e0e1e39cbe1d76aae56"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleRuleConfigurationService.java",
+      "sha256": "e4f54b982892fc4257fc93d672601644b616c361b7f44d0cdf79293bce37ed7d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "35568009725caabb9c55a943482c7110ca7647c3b8f5e2a99b029ca017984f97"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRuleIndexService.java",
+      "sha256": "77274b2a73a956ca8891fc73e40f6c607d7b247b901a7b97269b1fc0a997bafb"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+      "sha256": "019e591d8a903792e0ab29119a8c294a7e153f53fe26d941f2fce8b1e10c7a07"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/field-capabilities.ts",
+      "sha256": "a0af6e5cb127751fe6181d3bcbfd98b68f328b3d020e8c1944bbc7a27f8bc5e3"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
+      "sha256": "6c212e05c4f1127a0125f068a3a51fa0b096348e83265c3d85172492e96180bd"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/runtime-workflow.test.ts",
+      "sha256": "89b2a97a851664a2120ba26354c45c948ccbce6aae5fc95b3421b1ed9f7492d8"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/lowcode-workflow.test.ts",
+      "sha256": "7f724a9c671d0d0a3b7d58f18100bddde40fc805774f485b236bb4a5d2887996"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "d19a287f3f007129b62f2ce637bbbf1654bc94edabdd9df50ae3f4646f8dfa1c"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "1deb2db7359af4d88a747f59a6d1527bc356587a7ec730223e7d7892a91ee49b"
+    }
+  ],
+  "remaining": [
+    "B05.2a: complete multiline, phone, email, URL and identity-card fields with structured configuration, built-in validation and the runtime acceptance matrix.",
+    "B05.2b and later B05 field families remain unverified.",
+    "Enabling uniqueness on an already-populated field still requires the B04 destructive publication/migration check.",
+    "Deferred B03.1b/B03.1c and unfinished B04 checks remain required."
+  ],
+  "next_step": "B05.2a",
+  "usage_report": "projects/unexamine/ai/evidence/spark-usage-b05-field-constraints.json"
+}

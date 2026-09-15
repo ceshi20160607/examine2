@@ -43,7 +43,9 @@ import java.util.stream.Collectors;
 @Service
 public class ModuleRuleConfigurationService {
     private static final Set<String> NON_INDEXABLE_TYPES = Set.of(
-            "RICH_TEXT", "JSON", "SECRET", "ATTACHMENT", "IMAGE", "FILE", "FILE_GROUP", "SUBTABLE", "SIGNATURE");
+            "RICH_TEXT", "JSON", "SECRET", "ATTACHMENT", "IMAGE", "FILE", "FILE_GROUP", "SUBTABLE", "SIGNATURE",
+            "LOOKUP", "FORMULA", "SUMMARY", "CALCULATION", "AGGREGATE", "AI_FILL",
+            "SYSTEM_CREATED_BY", "SYSTEM_CREATED_AT", "SYSTEM_UPDATED_BY", "SYSTEM_UPDATED_AT");
 
     private final ConfiguredModuleBaseService moduleService;
     private final ConfiguredModuleFieldBaseService fieldService;
@@ -150,6 +152,9 @@ public class ModuleRuleConfigurationService {
     public QueryIndexDraft createIndex(
             AuthenticatedContext context, Long moduleId, CreateIndexRequest request, String traceId) {
         ConfiguredModule module = requireModule(context, moduleId);
+        if (request.code() != null && normalizeCode(request.code()).startsWith(FieldUniqueIndexSynchronizer.CODE_PREFIX)) {
+            managedIndex();
+        }
         validateIndexFields(moduleId, request.fields());
         CfgQueryIndex index = new CfgQueryIndex();
         index.setSystemId(context.systemId());
@@ -174,6 +179,7 @@ public class ModuleRuleConfigurationService {
             AuthenticatedContext context, Long moduleId, Long indexId, UpdateIndexRequest request, String traceId) {
         ConfiguredModule module = requireModule(context, moduleId);
         CfgQueryIndex index = requireIndex(context, moduleId, indexId);
+        if (FieldUniqueIndexSynchronizer.managed(index)) managedIndex();
         if (!request.version().equals(index.getVersion())) conflict("索引草稿已被其他操作修改");
         validateIndexFields(moduleId, request.fields());
         index.setName(request.name().strip());
@@ -222,7 +228,7 @@ public class ModuleRuleConfigurationService {
             ConfiguredModuleField field = active.get(request.fieldId());
             if (field == null) invalidIndex("索引字段不存在或已停用");
             if (!fieldIds.add(request.fieldId()) || !orders.add(request.sortOrder())) invalidIndex("索引字段和顺序不能重复");
-            if (NON_INDEXABLE_TYPES.contains(field.getFieldType())) invalidIndex("字段类型 " + field.getFieldType() + " 不支持查询索引");
+            if (!indexable(field.getFieldType())) invalidIndex("字段类型 " + field.getFieldType() + " 不支持查询索引");
         }
     }
 
@@ -324,6 +330,8 @@ public class ModuleRuleConfigurationService {
     }
 
     private String normalizeCode(String code) { return code.strip().toLowerCase(Locale.ROOT); }
+    static boolean indexable(String fieldType) { return !NON_INDEXABLE_TYPES.contains(fieldType); }
+    private void managedIndex() { throw new DomainException("QUERY_INDEX_MANAGED", "字段唯一值规则请在字段配置中调整", HttpStatus.CONFLICT); }
     private void conflict(String message) { throw new DomainException("DRAFT_VERSION_CONFLICT", message, HttpStatus.CONFLICT); }
     private void invalidIndex(String message) { throw new DomainException("QUERY_INDEX_INVALID", message, HttpStatus.UNPROCESSABLE_ENTITY); }
 }

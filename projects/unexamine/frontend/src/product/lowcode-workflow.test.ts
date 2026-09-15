@@ -33,4 +33,11 @@ describe('low-code module lifecycle contract', () => {
     expect(moduleConfiguration).toContain(':options="conditionOperatorOptions"')
     expect(moduleConfiguration).toContain('{{ fieldName(condition.field) }}')
   })
+
+  it('keeps field uniqueness on a structured switch and identifies its managed index', () => {
+    expect(moduleConfiguration).toContain('v-model:checked="fieldForm.uniqueValue"')
+    expect(moduleConfiguration).toContain('由数据库并发保证')
+    expect(moduleConfiguration).toContain('字段配置自动维护')
+    expect(moduleConfiguration).toContain("index.index.code.startsWith('field_unique_')")
+  })
 })

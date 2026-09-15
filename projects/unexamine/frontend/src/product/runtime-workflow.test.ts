@@ -15,6 +15,14 @@ describe('runtime task recovery contract', () => {
     expect(runtime).toContain('草稿已经自动保存在当前浏览器')
   })
 
+  it('submits only rendered writable fields and maps unique conflicts back to the field', () => {
+    expect(runtime).toContain('const writableCodes = new Set(formFields.value.map((field) => field.code))')
+    expect(runtime).toContain('writableCodes.has(code)')
+    expect(runtime).toContain("['FIELD_VALIDATION_FAILED', 'UNIQUE_RULE_VIOLATION'].includes(reason.code)")
+    expect(runtime).toContain("!field.fieldType.startsWith('SYSTEM_')")
+    expect(runtime).toContain('!Boolean(fieldConfig(field).readOnly)')
+  })
+
   it('closes inaccessible details and refreshes the list after permission loss', () => {
     expect(runtime).toContain("'PERMISSION_DENIED', 'RECORD_NOT_FOUND'")
     expect(runtime).toContain('detailOpen.value = false')

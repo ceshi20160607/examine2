@@ -101,9 +101,7 @@ public class RuntimeRuleIndexService {
             try {
                 recordIndexService.insert(projection);
             } catch (DataIntegrityViolationException exception) {
-                throw new DomainException("UNIQUE_RULE_VIOLATION",
-                        "唯一规则 “" + index.path("name").asText(index.path("code").asText()) + "” 已存在相同值",
-                        HttpStatus.CONFLICT);
+                throw uniqueViolation(configuration, index, definitions);
             }
         }
     }
@@ -140,11 +138,22 @@ public class RuntimeRuleIndexService {
                     .eq(BizRecordIndex::getQueryIndexId, indexId)
                     .eq(BizRecordIndex::getUniqueKeyHash, hash)).isEmpty();
             if (occupied) {
-                throw new DomainException("UNIQUE_RULE_VIOLATION",
-                        "唯一规则 “" + index.path("name").asText(index.path("code").asText()) + "” 已存在相同值",
-                        HttpStatus.CONFLICT);
+                throw uniqueViolation(configuration, index, definitions);
             }
         }
+    }
+
+    private DomainException uniqueViolation(
+            RuntimeModuleConfiguration configuration, JsonNode index, List<JsonNode> definitions) {
+        if (index.path("code").asText().startsWith("field_unique_") && definitions.size() == 1) {
+            String fieldCode = fieldCode(configuration.configuration().path("fields"),
+                    definitions.get(0).path("fieldId").asLong());
+            return new DomainException("UNIQUE_RULE_VIOLATION",
+                    fieldCode + ": 已存在相同值，请填写唯一内容", HttpStatus.CONFLICT);
+        }
+        return new DomainException("UNIQUE_RULE_VIOLATION",
+                "唯一规则 “" + index.path("name").asText(index.path("code").asText()) + "” 已存在相同值",
+                HttpStatus.CONFLICT);
     }
 
     public void clearIndexes(Long recordId) {

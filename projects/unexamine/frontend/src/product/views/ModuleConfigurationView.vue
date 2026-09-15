@@ -16,7 +16,7 @@ import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { productDateTime } from '../presentation'
 import { systemContext, systemTokens } from '../session'
-import { defaultEditor, fieldTypes } from '../field-capabilities'
+import { defaultEditor, fieldTypes, supportsUniqueValue } from '../field-capabilities'
 import type {
   ConfiguredField,
   ConfiguredAction,
@@ -192,7 +192,7 @@ const conversionModuleOptions = computed(() => overview.value.modules
 const activeFieldOptions = computed(() => (draft.value?.fields || []).filter(field => field.status === 'ACTIVE')
   .map(field => ({ value: field.code, label: field.name })))
 const indexFieldOptions = computed(() => (draft.value?.fields || []).filter(field => field.status === 'ACTIVE'
-  && !['RICH_TEXT', 'JSON', 'SECRET', 'ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP', 'SUBTABLE', 'SIGNATURE'].includes(field.fieldType))
+  && supportsUniqueValue(field.fieldType))
   .map(field => ({ value: field.id, label: field.name })))
 const ruleNeedsTarget = computed(() => ['REQUIRE_FIELD', 'SET_VISIBILITY', 'SET_EDITABLE', 'REQUIRE_APPROVAL'].includes(ruleForm.effectType))
 const fieldConfigurationIssue = computed(() => {
@@ -209,6 +209,7 @@ const fieldConfigurationIssue = computed(() => {
   if (['FORMULA', 'CALCULATION'].includes(fieldForm.fieldType) && !fieldForm.expression.trim()) return '公式或计算字段必须配置表达式'
   if (fieldForm.fieldType === 'AI_FILL' && (!fieldForm.modelCode.trim() || !fieldForm.humanConfirmation)) return 'AI 填充必须选择授权模型并启用人工确认'
   if (fieldForm.fieldType.startsWith('SYSTEM_') && !fieldForm.readOnly) return '系统字段必须只读'
+  if (fieldForm.uniqueValue && !supportsUniqueValue(fieldForm.fieldType)) return '当前字段类型不支持唯一值约束'
   return ''
 })
 
@@ -374,8 +375,15 @@ function fieldConfig() {
 }
 
 watch(() => fieldForm.fieldType, (current, previous) => {
-  if (!editingField.value && current !== previous) fieldForm.defaultValue = undefined
+  if (!editingField.value && current !== previous) {
+    fieldForm.defaultValue = undefined
+    if (!supportsUniqueValue(current)) fieldForm.uniqueValue = false
+  }
 })
+
+function isManagedFieldIndex(index: QueryIndexDraft) {
+  return index.index.code.startsWith('field_unique_')
+}
 
 async function saveField() {
   if (!selectedModuleId.value) return
@@ -720,6 +728,10 @@ function beginIndex() {
 }
 
 function editIndex(index: QueryIndexDraft) {
+  if (isManagedFieldIndex(index)) {
+    message.info('这条唯一规则由字段的“唯一值”开关自动维护')
+    return
+  }
   editingIndex.value = index
   Object.assign(indexForm, {
     code: index.index.code, name: index.index.name, uniqueIndex: index.index.uniqueIndex,
@@ -979,7 +991,7 @@ onMounted(() => loadOverview())
             <div class="page-editor-toolbar"><div><strong>查询索引与唯一规则</strong><small>按选定字段生成运行态投影；唯一规则固定隔离到系统、租户、模块和未删除数据。</small></div><a-button type="primary" @click="beginIndex"><PlusOutlined />新建索引</a-button></div>
             <button v-for="item in ruleIndexDraft.indexes" :key="item.index.id" type="button" class="index-config-card" @click="editIndex(item)">
               <span><strong>{{ item.index.name }}</strong><small>{{ fieldNames(item.fieldCodes) }}</small></span>
-              <a-tag :color="item.index.uniqueIndex ? 'volcano' : 'blue'">{{ item.index.uniqueIndex ? '唯一规则' : '查询投影' }}</a-tag>
+              <a-tag :color="item.index.uniqueIndex ? 'volcano' : 'blue'">{{ item.index.uniqueIndex ? '唯一规则' : '查询投影' }}</a-tag><a-tag v-if="isManagedFieldIndex(item)" color="green">字段配置自动维护</a-tag>
               <p>{{ item.index.uniqueIndex ? '在当前系统、组织和模块内保证未归档数据不重复' : '提升所选字段的筛选与查询速度' }}</p>
             </button>
             <a-empty v-if="!ruleIndexDraft.indexes.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无索引；普通字段仍可使用基础查询" />
@@ -1097,7 +1109,7 @@ onMounted(() => loadOverview())
         <div class="form-grid"><a-form-item label="排序"><a-input-number v-model:value="fieldForm.sortOrder" :min="0" /></a-form-item>
           <a-form-item label="是否必填"><a-switch v-model:checked="fieldForm.required" /></a-form-item></div>
         <div class="form-grid"><a-form-item label="可搜索"><a-switch v-model:checked="fieldForm.searchable" /></a-form-item>
-          <a-form-item label="唯一值"><a-switch v-model:checked="fieldForm.uniqueValue" /></a-form-item></div>
+          <a-form-item label="唯一值" extra="在当前组织和模块内约束非空值；由数据库并发保证。"><a-switch v-model:checked="fieldForm.uniqueValue" :disabled="!supportsUniqueValue(fieldForm.fieldType)" /></a-form-item></div>
         <a-form-item label="提示文案"><a-input v-model:value="fieldForm.placeholder" placeholder="页面输入提示" /></a-form-item>
         <a-form-item label="默认值" extra="可留空；创建记录时会自动带入并接受同一套服务端校验。">
           <a-input-number v-if="defaultEditor(fieldForm.fieldType) === 'NUMBER'" v-model:value="fieldForm.defaultValue as number" style="width:100%" placeholder="输入默认数字" />

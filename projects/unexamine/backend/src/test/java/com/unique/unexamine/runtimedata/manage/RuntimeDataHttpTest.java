@@ -213,6 +213,118 @@ class RuntimeDataHttpTest {
     }
 
     @Test
+    void fieldUniqueSwitchReadOnlySystemValuesAndTypedHistoryUseThePublishedRuntimeChain() {
+        Session owner = register("constraint_owner", "constraint-system", "constraint-owner@example.com");
+        long groupId = number(data(exchange("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
+                Map.of("code", "customers", "name", "客户管理", "sortOrder", 10))).get("id"));
+        Map<String, Object> moduleDraft = data(exchange("/api/admin/module-config/modules", HttpMethod.POST,
+                owner.token(), Map.of("groupId", groupId, "code", "constraint_customer", "name", "客户约束验收")));
+        long moduleId = number(((Map<?, ?>) moduleDraft.get("module")).get("id"));
+        createField(owner, moduleId, "customer_name", "客户名称", "TEXT", true, 10, Map.of());
+        ResponseEntity<Map> uniqueField = exchange("/api/admin/module-config/modules/" + moduleId + "/fields",
+                HttpMethod.POST, owner.token(), Map.of("code", "customer_code", "name", "客户编码",
+                        "fieldType", "TEXT", "required", false, "uniqueValue", true,
+                        "searchable", true, "sortOrder", 20, "config", Map.of()));
+        assertThat(uniqueField.getStatusCode()).as("unique field: %s", uniqueField.getBody()).isEqualTo(HttpStatus.OK);
+        long uniqueFieldId = number(data(uniqueField).get("id"));
+        createField(owner, moduleId, "created_time", "创建时间", "SYSTEM_CREATED_AT", false, 30,
+                Map.of("readOnly", true));
+        createField(owner, moduleId, "created_user", "创建人", "SYSTEM_CREATED_BY", false, 40,
+                Map.of("readOnly", true));
+
+        long generatedIndexId = jdbc.queryForObject(
+                "select id from cfg_query_index where module_id=? and code=?", Long.class,
+                moduleId, "field_unique_" + uniqueFieldId);
+        assertThat(jdbc.queryForObject("select unique_index from cfg_query_index where id=?", Boolean.class,
+                generatedIndexId)).isTrue();
+        assertThat(jdbc.queryForObject("select status from cfg_query_index where id=?", String.class,
+                generatedIndexId)).isEqualTo("ACTIVE");
+        assertThat(jdbc.queryForObject("select field_id from cfg_query_index_field where query_index_id=?",
+                Long.class, generatedIndexId)).isEqualTo(uniqueFieldId);
+
+        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", revision));
+        assertThat(published.getStatusCode()).as("publish: %s", published.getBody()).isEqualTo(HttpStatus.OK);
+        String recordsPath = "/api/runtime/modules/constraint_customer/records";
+
+        ResponseEntity<Map> missingRequired = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
+                "title", "缺少名称", "participantMemberIds", List.of(), "fields", Map.of("customer_code", "C-000")));
+        assertThat(missingRequired.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(missingRequired.getBody()).containsEntry("code", "FIELD_VALIDATION_FAILED");
+        assertThat(missingRequired.getBody().get("message").toString()).contains("customer_name");
+
+        ResponseEntity<Map> craftedReadOnly = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
+                "title", "伪造系统时间", "participantMemberIds", List.of(), "fields", Map.of(
+                        "customer_name", "伪造系统时间", "customer_code", "C-RO",
+                        "created_time", "2000-01-01T00:00:00")));
+        assertThat(craftedReadOnly.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(craftedReadOnly.getBody().get("message").toString()).contains("created_time", "只读字段由系统维护");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
+
+        ResponseEntity<Map> first = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
+                "title", "客户甲", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "客户甲", "customer_code", "C-001")));
+        assertThat(first.getStatusCode()).as("first: %s", first.getBody()).isEqualTo(HttpStatus.OK);
+        long firstId = number(data(first).get("id"));
+        assertThat(map(data(first).get("fields"))).containsKeys("created_time", "created_user");
+        assertThat(map(data(first).get("fields")).get("created_time").toString()).isNotBlank();
+        assertThat(number(map(data(first).get("fields")).get("created_user"))).isEqualTo(memberId(owner.systemId(), owner.accountId()));
+
+        int successfulCreates = count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + firstId + "'");
+        ResponseEntity<Map> duplicateCreate = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
+                "title", "客户乙重复", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "客户乙重复", "customer_code", "C-001")));
+        assertThat(duplicateCreate.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(duplicateCreate.getBody()).containsEntry("code", "UNIQUE_RULE_VIOLATION");
+        assertThat(duplicateCreate.getBody().get("message").toString()).startsWith("customer_code:");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + firstId + "'"))
+                .isEqualTo(successfulCreates);
+
+        ResponseEntity<Map> second = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
+                "title", "客户乙", "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "客户乙", "customer_code", "C-002")));
+        assertThat(second.getStatusCode()).as("second: %s", second.getBody()).isEqualTo(HttpStatus.OK);
+        long secondId = number(data(second).get("id"));
+        int secondVersion = ((Number) data(second).get("version")).intValue();
+
+        ResponseEntity<Map> duplicateUpdate = exchange(recordsPath + "/" + secondId, HttpMethod.PUT,
+                owner.token(), Map.of("title", "不应保存", "participantMemberIds", List.of(), "version", secondVersion,
+                        "fields", Map.of("customer_name", "不应保存", "customer_code", "C-001")));
+        assertThat(duplicateUpdate.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(duplicateUpdate.getBody()).containsEntry("code", "UNIQUE_RULE_VIOLATION");
+        assertThat(jdbc.queryForObject("select title from biz_record where id=?", String.class, secondId)).isEqualTo("客户乙");
+        assertThat(jdbc.queryForObject("select value_text from biz_record_value where record_id=? and field_code='customer_code'",
+                String.class, secondId)).isEqualTo("C-002");
+        assertThat(jdbc.queryForObject("select version from biz_record where id=?", Integer.class, secondId)).isEqualTo(secondVersion);
+        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_UPDATED' and object_id='" + secondId + "' and result_code='SUCCESS'")).isZero();
+
+        ResponseEntity<Map> readOnlyUpdate = exchange(recordsPath + "/" + secondId, HttpMethod.PUT,
+                owner.token(), Map.of("title", "也不应保存", "participantMemberIds", List.of(), "version", secondVersion,
+                        "fields", Map.of("customer_name", "也不应保存", "customer_code", "C-002",
+                                "created_user", 999999L)));
+        assertThat(readOnlyUpdate.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(jdbc.queryForObject("select title from biz_record where id=?", String.class, secondId)).isEqualTo("客户乙");
+
+        ResponseEntity<Map> updated = exchange(recordsPath + "/" + secondId, HttpMethod.PUT,
+                owner.token(), Map.of("title", "客户乙已更新", "participantMemberIds", List.of(), "version", secondVersion,
+                        "fields", Map.of("customer_name", "客户乙已更新", "customer_code", "C-003")));
+        assertThat(updated.getStatusCode()).as("update: %s", updated.getBody()).isEqualTo(HttpStatus.OK);
+        ResponseEntity<Map> timeline = exchange(recordsPath + "/" + secondId + "/timeline",
+                HttpMethod.GET, owner.token(), null);
+        assertThat(timeline.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> latest = map(((List<?>) data(timeline).get("entries")).get(0));
+        assertThat(latest).containsEntry("eventCode", "BUSINESS_RECORD_UPDATED");
+        assertThat((List<?>) latest.get("changes")).anySatisfy(change -> assertThat(map(change))
+                .containsEntry("fieldCode", "customer_code")
+                .containsEntry("fieldName", "客户编码")
+                .containsEntry("valueType", "TEXT")
+                .containsEntry("beforeValue", "C-002")
+                .containsEntry("afterValue", "C-003"));
+    }
+
+    @Test
     void concurrentActionsAndRecoverableDeliveryDoNotRepeatBusiness() throws Exception {
         Session owner = register("action_parallel", "action-parallel", "action-parallel@example.com");
         long moduleId = createAndPublishCustomerModule(owner);

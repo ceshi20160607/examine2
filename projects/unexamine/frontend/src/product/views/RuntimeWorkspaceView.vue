@@ -156,7 +156,8 @@ const fieldsForPage = (pageType: string) => {
   } catch { return fields.value }
 }
 const listFields = computed(() => fieldsForPage('LIST').filter((field) => field.access?.readable !== false))
-const formFields = computed(() => fieldsForPage('FORM').filter((field) => field.access?.writable !== false))
+const formFields = computed(() => fieldsForPage('FORM').filter((field) => field.access?.writable !== false
+  && !field.fieldType.startsWith('SYSTEM_') && !Boolean(fieldConfig(field).readOnly)))
 const detailFields = computed(() => fieldsForPage('DETAIL').filter((field) => field.access?.readable !== false))
 const attachmentFieldTypes = new Set(['ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP'])
 const recordAttachmentFields = computed(() => detailFields.value.filter(field => attachmentFieldTypes.has(field.fieldType)))
@@ -444,6 +445,7 @@ function fieldConfig(field: RuntimeField) {
     saveMode?: 'FINAL' | 'PATH'
     defaultValue?: unknown
     sensitive?: boolean
+    readOnly?: boolean
   } }
   catch { return {} }
 }
@@ -1072,7 +1074,9 @@ function participantIds() {
 }
 
 function normalizedFields() {
-  return Object.fromEntries(Object.entries(form.fields).filter(([, value]) => value !== undefined && value !== null && value !== ''))
+  const writableCodes = new Set(formFields.value.map((field) => field.code))
+  return Object.fromEntries(Object.entries(form.fields)
+    .filter(([code, value]) => writableCodes.has(code) && value !== undefined && value !== null && value !== ''))
 }
 
 function numericFieldValue(fieldCode: string) {
@@ -1136,7 +1140,7 @@ function clearFormErrors() {
 
 function applyFormError(reason: unknown) {
   formError.value = readable(reason)
-  if (!(reason instanceof ApiError) || reason.code !== 'FIELD_VALIDATION_FAILED') return
+  if (!(reason instanceof ApiError) || !['FIELD_VALIDATION_FAILED', 'UNIQUE_RULE_VIOLATION'].includes(reason.code)) return
   reason.message.split('；').forEach((item) => {
     const separator = item.indexOf(':')
     if (separator <= 0) return
@@ -1205,6 +1209,10 @@ function displayValue(field: RuntimeField, value: unknown) {
   if (value === '***') return '••••（已脱敏）'
   if (value === '[已散列]') return '不可回显（已散列）'
   if (field.fieldType === 'BOOLEAN') return value ? '是' : '否'
+  if (['SYSTEM_CREATED_AT', 'SYSTEM_UPDATED_AT'].includes(field.fieldType)) return productDateTime(String(value))
+  if (['SYSTEM_CREATED_BY', 'SYSTEM_UPDATED_BY'].includes(field.fieldType)) {
+    return peopleDirectory.value.people.find((item) => item.systemMemberId === Number(value))?.displayName || `成员 ${value}`
+  }
   if (['SINGLE_SELECT', 'STATUS'].includes(field.fieldType)) return options(field).find((item) => item.value === value)?.label || String(value)
   if (field.fieldType === 'CASCADE') {
     const selected = Array.isArray(value) ? value.map(Number)

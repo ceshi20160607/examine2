@@ -61,6 +61,11 @@ export const fieldTypes: FieldTypeDefinition[] = [
 ]
 
 const definitions = new Map(fieldTypes.map((field) => [field.type, field]))
+const nonUniqueFieldTypes = new Set([
+  'RICH_TEXT', 'JSON', 'SECRET', 'ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP', 'SUBTABLE', 'SIGNATURE',
+  'LOOKUP', 'FORMULA', 'SUMMARY', 'CALCULATION', 'AGGREGATE', 'AI_FILL',
+  'SYSTEM_CREATED_BY', 'SYSTEM_CREATED_AT', 'SYSTEM_UPDATED_BY', 'SYSTEM_UPDATED_AT',
+])
 
 export function fieldFamily(fieldType?: string): FieldFamily | undefined {
   return fieldType ? definitions.get(fieldType)?.family : undefined
@@ -68,6 +73,10 @@ export function fieldFamily(fieldType?: string): FieldFamily | undefined {
 
 export function isBasicRuntimeField(fieldType: string) {
   return ['TEXT', 'MULTILINE_TEXT', 'NUMBER', 'DATE', 'DATETIME', 'BOOLEAN'].includes(fieldType)
+}
+
+export function supportsUniqueValue(fieldType: string) {
+  return !nonUniqueFieldTypes.has(fieldType)
 }
 
 export function defaultEditor(fieldType: string): 'TEXT' | 'NUMBER' | 'DATE' | 'DATETIME' | 'BOOLEAN' {

@@ -55,6 +55,7 @@ public class ModuleConfigurationService {
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final FieldUniqueIndexSynchronizer fieldUniqueIndexSynchronizer;
 
     public ModuleConfigurationService(
             ConfiguredModuleGroupBaseService groupService,
@@ -67,7 +68,8 @@ public class ModuleConfigurationService {
             CfgDictionaryBaseService dictionaryService,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            FieldUniqueIndexSynchronizer fieldUniqueIndexSynchronizer) {
         this.groupService = groupService;
         this.moduleService = moduleService;
         this.fieldService = fieldService;
@@ -79,6 +81,7 @@ public class ModuleConfigurationService {
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.fieldUniqueIndexSynchronizer = fieldUniqueIndexSynchronizer;
     }
 
     @Transactional
@@ -183,6 +186,7 @@ public class ModuleConfigurationService {
         field.setConfigJson(toJson(request.config()));
         field.setVersion(0);
         fieldService.insert(field);
+        fieldUniqueIndexSynchronizer.sync(field);
         touch(module);
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "MODULE_FIELD_DRAFT_CREATED", "MODULE_FIELD", field.getId().toString(), "SUCCESS",
@@ -221,6 +225,7 @@ public class ModuleConfigurationService {
         if (fieldService.updateById(field) == 0) {
             throw new DomainException("DRAFT_VERSION_CONFLICT", "字段草稿已被其他操作修改", HttpStatus.CONFLICT);
         }
+        fieldUniqueIndexSynchronizer.sync(field);
         touch(module);
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "MODULE_FIELD_DRAFT_UPDATED", "MODULE_FIELD", fieldId.toString(), "SUCCESS",

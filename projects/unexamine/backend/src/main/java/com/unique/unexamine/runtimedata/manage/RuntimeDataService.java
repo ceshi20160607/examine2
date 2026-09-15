@@ -2250,6 +2250,13 @@ public class RuntimeDataService {
                 context, moduleCode, actionCode, "PAGE", fields.stream().map(PublishedField::code).toList());
         Map<String, JsonNode> normalized = new LinkedHashMap<>();
         for (PublishedField field : fields) {
+            boolean readOnly = field.type().startsWith("SYSTEM_") || field.config().path("readOnly").asBoolean(false);
+            if (readOnly) {
+                if (submitted.containsKey(field.code())) {
+                    errors.add(field.code() + ": 只读字段由系统维护，不能写入");
+                }
+                continue;
+            }
             JsonNode value = submitted.get(field.code());
             if (empty(value) && "CREATE".equalsIgnoreCase(actionCode)) {
                 value = configuredDefault(field);
@@ -2581,7 +2588,7 @@ public class RuntimeDataService {
                 access.share() == null ? null : effectiveShareStatus(access.share()),
                 access.share() == null ? List.of() : shareActions(access.share()),
                 access.share() == null ? null : access.share().getExpiresAt(),
-                readProtectedValues(context, moduleCode, actionCode, channels, record.getId(), published.fields()));
+                readProtectedValues(context, moduleCode, actionCode, channels, record, published.fields()));
     }
 
     private Map<String, JsonNode> readRawValues(Long recordId, List<PublishedField> fields) {
@@ -2595,9 +2602,13 @@ public class RuntimeDataService {
     }
 
     private Map<String, JsonNode> readProtectedValues(AuthenticatedContext context, String moduleCode,
-                                                       String actionCode, List<String> channels, Long recordId,
+                                                       String actionCode, List<String> channels, BusinessRecord record,
                                                        List<PublishedField> fields) {
-        Map<String, JsonNode> raw = readRawValues(recordId, fields);
+        Map<String, JsonNode> raw = readRawValues(record.getId(), fields);
+        fields.stream().filter(field -> field.type().startsWith("SYSTEM_")).forEach(field -> {
+            JsonNode value = systemFieldValue(record, field.type());
+            if (value != null) raw.put(field.code(), value);
+        });
         Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolveIntersection(
                 context, moduleCode, actionCode, channels, fields.stream().map(PublishedField::code).toList());
         Map<String, JsonNode> result = new LinkedHashMap<>();
@@ -2608,6 +2619,20 @@ public class RuntimeDataService {
             }
         });
         return result;
+    }
+
+    private JsonNode systemFieldValue(BusinessRecord record, String fieldType) {
+        return switch (fieldType) {
+            case "SYSTEM_CREATED_BY" -> record.getCreatedByMemberId() == null
+                    ? null : LongNode.valueOf(record.getCreatedByMemberId());
+            case "SYSTEM_CREATED_AT" -> record.getCreatedAt() == null
+                    ? null : TextNode.valueOf(record.getCreatedAt().toString());
+            case "SYSTEM_UPDATED_BY" -> record.getUpdatedByMemberId() == null
+                    ? null : LongNode.valueOf(record.getUpdatedByMemberId());
+            case "SYSTEM_UPDATED_AT" -> record.getUpdatedAt() == null
+                    ? null : TextNode.valueOf(record.getUpdatedAt().toString());
+            default -> null;
+        };
     }
 
     private Map<String, Object> permissionSnapshot(AuthenticatedContext context, String moduleCode,
