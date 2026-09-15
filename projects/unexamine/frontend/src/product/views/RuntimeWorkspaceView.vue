@@ -15,6 +15,8 @@ import ModuleExportDrawer from '../components/ModuleExportDrawer.vue'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductPage from '../components/ProductPage.vue'
 import ProductListWorkspace from '../components/ProductListWorkspace.vue'
+import RuntimeFieldInput from '../components/RuntimeFieldInput.vue'
+import { fieldFamily, filterOperators, isBasicRuntimeField } from '../field-capabilities'
 import ProductFilterBar from '../components/ProductFilterBar.vue'
 import ProductDetailDrawer from '../components/ProductDetailDrawer.vue'
 import ProductFormDrawer from '../components/ProductFormDrawer.vue'
@@ -624,6 +626,29 @@ function deleteCurrentView() {
 
 function addFilter() {
   listFilters.value.push({ fieldCode: filterFieldOptions.value[0]?.value || 'title', operator: 'CONTAINS', value: '' })
+}
+
+function filterRuntimeField(condition: RuntimeListFilter) {
+  return fields.value.find((field) => field.code === condition.fieldCode)
+}
+
+function conditionOperators(condition: RuntimeListFilter) {
+  return filterOperators(filterRuntimeField(condition)?.fieldType)
+}
+
+function resetFilterCondition(condition: RuntimeListFilter) {
+  condition.operator = fieldFamily(filterRuntimeField(condition)?.fieldType) === 'TEXT' ? 'CONTAINS' : 'EQ'
+  condition.value = ''
+}
+
+function numericFilterValue(condition: RuntimeListFilter) {
+  if (condition.value === '') return undefined
+  const value = Number(condition.value)
+  return Number.isFinite(value) ? value : undefined
+}
+
+function setNumericFilterValue(condition: RuntimeListFilter, value: number | null) {
+  condition.value = value === null || value === undefined ? '' : String(value)
 }
 
 function applyListQuery() {
@@ -1368,13 +1393,15 @@ defineExpose({ refresh: loadModules, executeCommand })
       <a-alert type="info" show-icon class="section-alert" message="所有条件均由服务端执行权限校验" description="不可读或已脱敏字段不能用于筛选、排序或保存视图。查询失败不会清空当前条件。" />
       <div class="runtime-filter-list">
         <div v-for="(condition, index) in listFilters" :key="index" class="runtime-filter-row">
-          <a-select v-model:value="condition.fieldCode" show-search :options="filterFieldOptions" />
-          <a-select v-model:value="condition.operator" :options="[
-            { value: 'EQ', label: '等于' }, { value: 'NE', label: '不等于' }, { value: 'CONTAINS', label: '包含' },
-            { value: 'GT', label: '大于' }, { value: 'GTE', label: '大于等于' }, { value: 'LT', label: '小于' },
-            { value: 'LTE', label: '小于等于' }, { value: 'EMPTY', label: '为空' }, { value: 'NOT_EMPTY', label: '不为空' },
-          ]" />
-          <a-input v-if="!['EMPTY', 'NOT_EMPTY'].includes(condition.operator)" v-model:value="condition.value" placeholder="条件值" />
+          <a-select v-model:value="condition.fieldCode" show-search :options="filterFieldOptions" @change="resetFilterCondition(condition)" />
+          <a-select v-model:value="condition.operator" :options="conditionOperators(condition)" />
+          <template v-if="!['EMPTY', 'NOT_EMPTY'].includes(condition.operator)">
+            <a-input-number v-if="fieldFamily(filterRuntimeField(condition)?.fieldType) === 'NUMBER'" :value="numericFilterValue(condition)" style="width:100%" placeholder="输入数字" @update:value="setNumericFilterValue(condition, $event)" />
+            <a-date-picker v-else-if="filterRuntimeField(condition)?.fieldType === 'DATE'" v-model:value="condition.value" value-format="YYYY-MM-DD" style="width:100%" placeholder="选择日期" />
+            <a-date-picker v-else-if="filterRuntimeField(condition)?.fieldType === 'DATETIME'" v-model:value="condition.value" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" placeholder="选择日期和时间" />
+            <a-select v-else-if="fieldFamily(filterRuntimeField(condition)?.fieldType) === 'BOOLEAN'" v-model:value="condition.value" :options="[{ value: 'true', label: '是' }, { value: 'false', label: '否' }]" placeholder="选择是或否" />
+            <a-input v-else v-model:value="condition.value" placeholder="条件值" />
+          </template>
           <a-button danger type="text" @click="listFilters.splice(index, 1)">移除</a-button>
         </div>
         <a-button block type="dashed" @click="addFilter"><PlusOutlined />增加条件</a-button>
@@ -1431,14 +1458,11 @@ defineExpose({ refresh: loadModules, executeCommand })
         <a-divider>模块字段</a-divider>
         <a-form-item v-for="field in formValueFields" :key="field.code" :label="field.name" :required="field.required" :data-runtime-field="field.code"
           :validate-status="fieldErrors[field.code] ? 'error' : undefined" :help="fieldErrors[field.code]">
-          <a-textarea v-if="field.fieldType === 'MULTILINE_TEXT'" v-model:value="form.fields[field.code]" :rows="4" />
-          <a-input-number v-else-if="['NUMBER', 'MONEY'].includes(field.fieldType)" v-model:value="form.fields[field.code]" style="width:100%" />
-          <a-date-picker v-else-if="field.fieldType === 'DATE'" v-model:value="form.fields[field.code]" value-format="YYYY-MM-DD" style="width:100%" />
-          <a-date-picker v-else-if="field.fieldType === 'DATETIME'" v-model:value="form.fields[field.code]" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" />
+          <RuntimeFieldInput v-if="isBasicRuntimeField(field.fieldType)" v-model="form.fields[field.code]" :field="field" />
+          <a-input-number v-else-if="field.fieldType === 'MONEY'" v-model:value="form.fields[field.code]" style="width:100%" />
           <a-select v-else-if="['SINGLE_SELECT', 'STATUS'].includes(field.fieldType)" v-model:value="form.fields[field.code]" :options="options(field)" allow-clear />
           <a-cascader v-else-if="field.fieldType === 'CASCADE'" v-model:value="form.fields[field.code]" :options="cascadeOptions[field.code] || []"
             :change-on-select="Boolean(fieldConfig(field).allowIntermediate)" allow-clear show-search placeholder="请选择级联项" />
-          <a-switch v-else-if="field.fieldType === 'BOOLEAN'" v-model:checked="form.fields[field.code]" />
           <PersonSelect v-else-if="field.fieldType === 'MEMBER'" :model-value="numericFieldValue(field.code)" :people="peopleDirectory.people" value-key="tenantMemberId" placeholder="搜索姓名、岗位或部门" @update:model-value="form.fields[field.code] = $event" />
           <DepartmentSelect v-else-if="field.fieldType === 'DEPARTMENT'" :model-value="numericFieldValue(field.code)" :departments="peopleDirectory.departments" @update:model-value="form.fields[field.code] = $event" />
           <a-select v-else-if="field.fieldType === 'REFERENCE'" v-model:value="form.fields[field.code]" show-search allow-clear :loading="referenceLoading" :filter-option="(input: string, option: { label?: string; description?: string }) => `${option.label || ''} ${option.description || ''}`.toLowerCase().includes(input.toLowerCase())" :options="referenceOptions[field.code] || []" placeholder="搜索并选择业务记录"><template #option="{ label, description }"><span class="reference-option"><strong>{{ label }}</strong><small>{{ description }}</small></span></template></a-select>

@@ -5,8 +5,8 @@
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B05.1a",
-  "current_step": "B05.1a",
+  "next_step": "B05.1b",
+  "current_step": "B05.1b",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
@@ -18,7 +18,7 @@
     "frontend": "shared_shells_and_schema_renderers"
   },
   "current_scope": {
-    "step": "B05.1a",
+    "step": "B05.1b",
     "source_rows": [
       "R0459",
       "R0512",
@@ -39,100 +39,109 @@
     "files": [
       "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig",
       "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/audit",
+      "projects/unexamine/frontend/src/product/field-capabilities.ts",
+      "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
       "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
-      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-      "projects/unexamine/frontend/src/product/components"
+      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
     ],
     "entry_points": [
-      "Inventory the actual configuration, server normalization/validation/storage/query and shared rendering paths for existing text, number, date and boolean fields; keep one registry instead of adding page-specific branches.",
-      "Use the retained 客户档案 acceptance module or one bounded test fixture to exercise one representative field from each family through configuration and publication.",
-      "Fix only failures in the real configure-to-runtime chain. Add focused contract coverage for configured defaults and invalid values; do not repeat full suites after relevant checks pass.",
-      "Do not start approval or application expansion until this basic field-family matrix is read back from the real UI and database."
+      "Trace uniqueValue, readOnly/system fields and typed history from module draft through publication and runtime; do not add a second uniqueness store.",
+      "Wire uniqueValue to the existing cfg_query_index and biz_record_index core so create and update reject duplicates atomically and return a field-level error.",
+      "Use structured switches and field selectors only. Verify required, unique and read-only failures through real HTTP, then show readable old/new values in record history.",
+      "Keep the retained 客户档案 module as the acceptance path and preserve the B05.1a field permission boundary."
     ],
     "acceptance": [
-      "Each representative field can be configured without JSON and displays only relevant options.",
-      "Published defaults apply on omitted create input; invalid input is rejected server-side without a record or audit-success row.",
-      "Values survive create/update/reopen and appear correctly in list and detail; applicable filter/sort is verified.",
-      "A role with field restrictions cannot recover hidden values from the page or direct API.",
-      "Record exact unsupported behavior as remaining B05 work; do not claim all field types complete."
+      "A unique field can be configured without JSON; duplicate create and update are rejected without partial record/value/audit success.",
+      "Required and read-only/system fields are enforced server-side even when a caller crafts the payload.",
+      "History shows typed field names and readable before/after values after a successful change.",
+      "All focused tests and the real configure-to-runtime journey pass; B05.1 remains unverified until this constraint substep is complete."
     ]
   },
   "last_result": {
-    "step": "B04.1a",
-    "status": "vertical_slice_verified",
-    "verified_at": "2026-09-15T00:03:56.589376+08:00",
-    "verification_scope": "A real browser golden path from system-admin module creation and publication through role assignment to ordinary-member list/detail/create/update, backed by database and audit readback. This proves the first usable slice only; it does not mark B03, B04, B05 or B06 complete.",
+    "step": "B05.1a",
+    "status": "verified_bounded_substep",
+    "verified_at": "2026-09-15T09:59:53.4278678+08:00",
     "source_rows": [
-      "R0162",
-      "R0292",
-      "R0293",
-      "R0295",
-      "R0313",
-      "R0315",
-      "R0437",
-      "R0451",
+      "R0459",
+      "R0512",
+      "R0514",
+      "R0515",
+      "R0516",
       "R0518",
-      "R0606",
-      "R0798",
-      "R0819",
-      "R1413",
-      "R1414"
+      "R0525",
+      "R0526",
+      "R0527",
+      "R0533",
+      "R0535",
+      "R0536",
+      "R0553",
+      "R0555",
+      "R0557"
     ],
     "changed_files": [
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
       "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+      "projects/unexamine/frontend/src/product/field-capabilities.ts",
+      "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
+      "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
       "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-      "projects/unexamine/ai/evidence/spark-golden-path-module-record-verification.json",
+      "projects/unexamine/ai/evidence/spark-b05-basic-field-verification.json",
+      "projects/unexamine/ai/evidence/spark-usage-b05-basic-fields.json",
       "projects/unexamine/ai/planning/spark-state.json"
     ],
     "checks_actual_results": [
-      "Backend JDK 21 test-compile passed.",
-      "RuntimeDataHttpTest#configuredFieldDefaultIsValidatedAndStoredWhenCreateOmitsTheField passed in the isolated Linux Maven/Testcontainers path.",
-      "Frontend RuntimeWorkspaceView focused tests passed: 3 files, 13 tests.",
-      "Frontend production build passed for 3958 modules; only the existing chunk-size warning remained.",
-      "Real browser: system administrator created the 客户管理 / 客户档案 module, configured required text and status fields, passed publication checks, published v1 and entered the runtime.",
-      "Real browser: an ordinary member with a published 业务成员 role saw only the authorized module and could list, open detail, update and create records without entering JSON or a duplicate title.",
-      "Direct HTTP call to an ungranted archive action returned HTTP 403 / PERMISSION_DENIED.",
-      "Database readback found the ordinary-member-created record with title and required text equal to 普通用户新增客户, configured status default active, owner/creator/updater member 68, and immutable BUSINESS_RECORD_CREATED audit.",
-      "The retained B03 browser fixture system 52/account 50 was disabled and its sessions revoked; the previously blocked registration offset test passed.",
-      "Temporary golden-path account/system/member sessions were disabled or revoked after verification; immutable audit remained. The unused second draft module was removed with its one audit row retained."
+      "Frontend focused tests passed: 3 files and 16 tests; production build passed for 3961 modules.",
+      "Backend JDK 21 test-compile and the focused Linux Maven/Testcontainers configured-default test passed.",
+      "Real UI configure/publish/create/update/reopen/list/detail/filter/sort matrix passed for number, date and boolean.",
+      "Live invalid create returned 422 without persistence or success audit; ordinary-member UI and direct API both trimmed the three hidden fields."
     ],
     "readback": [
-      "Record 62 was created by ordinary system member 68 and stored both configured values; record 61 was updated by member 68 and reopened as 客户状态=启用.",
-      "Role 业务成员 is published and assigned to the temporary member with LIST, DETAIL, CREATE and UPDATE at ALL data scope and PAGE read/write access to both fields.",
-      "Revoking the temporary account sessions and reloading the browser returned the user to /login, proving forced-offline behavior.",
-      "The runnable acceptance system retains one published 客户档案 module and three readable records; the throwaway 客户回访 draft no longer exists."
+      "cfg_module_field ids 46-48 store typed defaults as JSON number 80, date string 2026-09-30 and boolean true.",
+      "biz_record 63 is 基础字段验收客户. biz_record_value stores 95 in value_number, 2026-10-01 in value_date and false in value_boolean.",
+      "The ordinary-member direct API returned field_20a69d1ce3 and field_831b688ceb only; field_21059c1892, field_cca77c32e8 and field_db1ac87c01 were absent.",
+      "The retained acceptance system now has one published five-field 客户档案 module and four readable records for continued vertical-slice work."
     ],
     "permission_or_failure_result": {
-      "permission_enforcement": "An ordinary member could execute only the four granted module actions; a direct archive request was rejected with 403/PERMISSION_DENIED.",
-      "configured_default": "A missing create payload value used the published field default and was then normalized, validated and persisted as active.",
-      "first_create_observation": "The first module create with a new group showed a success toast followed by a generic request failure until manual refresh. Server data was complete and a second create/readback did not reproduce it, so no speculative patch was made.",
-      "cleanup": "Six temporary account sessions were revoked; one temporary account, platform member, two system members, two tenant memberships and temporary system 53 were disabled. No audit row was deleted.",
-      "workspace_preservation": "Pre-existing staged/unstaged implementation was preserved; no reset or regeneration ran."
+      "field_permission": "UI list/detail and direct record API both removed fields without an explicit readable policy; hidden typed values could not be recovered through the tested page or endpoint.",
+      "invalid_input": "HTTP 422 occurred before business persistence and before any successful create audit event.",
+      "fixture_cleanup": "Account 51, platform member 50, system member 68 and tenant member 70 are DISABLED; zero unrevoked sessions remain for account 51.",
+      "workspace_preservation": "Pre-existing changes were preserved. No reset or regeneration ran."
     },
     "tested_file_hashes": [
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-        "sha256": "a9530137a728ed89b74cd78d15278334d41f61c98fd8461929ee9fb7cc5bc134"
+        "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "sha256": "728e58c9d9e3a3b2f5accb27d910e170fd96b5f87d70ec0990fce0c6b66abe0e"
       },
       {
-        "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
-        "sha256": "8c53aef21f7b3d0923554c7493f95bd0a33fef3a4fa54907e5d1080578a4a6f0"
+        "path": "projects/unexamine/frontend/src/product/field-capabilities.ts",
+        "sha256": "83d0d68a54aee50445bfdf5d14de38c4b4fc38b2784aa110a713087865aa6f84"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
+        "sha256": "03fc065cf430f35251a93812e5cc0b7e910c906a83d32f2277acf5335f0c2392"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+        "sha256": "3d875c7818113475ed6b32a2bf73b0a9dcc5b34b351840c723ac1e74574eb5f8"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "sha256": "26e44ca76d3c666e37f29cac5921bd1f825aefe76a408dfbe6acb1d5733038cf"
       },
       {
         "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-        "sha256": "55b8c9eec31559c053f95d1f3c0309bbb20a1af298b736945291274e453bea15"
+        "sha256": "0629e1f9e21f3d92a4407eff5fccbb5070614e1de451812ca31dde0188045664"
       }
     ],
     "remaining": [
-      "B05.1a: verify and complete the shared text/number/date/boolean field registry with one representative of each family through configure, publish, default, invalid-input rejection, create/update, reopen, list/detail, applicable filter/sort and field permission.",
-      "B04 still needs dictionary variants, version rollback, destructive dependency checks and tenant extension merge verification.",
-      "B03.1b password recovery and B03.1c enterprise identity mapping remain required and deferred, not complete.",
-      "The non-reproduced first-create/new-group UI readback error remains an observed risk; re-open only if it reproduces during the next module/configuration journey."
+      "B05.1b: enforce the existing uniqueValue switch through the shared query-index core, finish read-only/system-field behavior and verify required/unique/history constraints in the same real module journey.",
+      "B05.2 and later field families remain unverified; the registry classifies them but does not claim their configuration, storage or rendering chains work.",
+      "B03.1b/B03.1c and unfinished B04 checks remain required under the user-directed vertical-slice ordering."
     ],
-    "next_step": "B05.1a",
-    "evidence": "projects/unexamine/ai/evidence/spark-golden-path-module-record-verification.json",
-    "usage_report": "projects/unexamine/ai/evidence/spark-usage-golden-path.json"
+    "next_step": "B05.1b",
+    "evidence": "projects/unexamine/ai/evidence/spark-b05-basic-field-verification.json",
+    "usage_report": "projects/unexamine/ai/evidence/spark-usage-b05-basic-fields.json"
   },
   "blockers": [
     {
@@ -819,6 +828,91 @@
       "next_step": "B05.1a",
       "evidence": "projects/unexamine/ai/evidence/spark-golden-path-module-record-verification.json",
       "usage_report": "projects/unexamine/ai/evidence/spark-usage-golden-path.json"
+    },
+    {
+      "step": "B05.1a",
+      "status": "verified_bounded_substep",
+      "verified_at": "2026-09-15T09:59:53.4278678+08:00",
+      "source_rows": [
+        "R0459",
+        "R0512",
+        "R0514",
+        "R0515",
+        "R0516",
+        "R0518",
+        "R0525",
+        "R0526",
+        "R0527",
+        "R0533",
+        "R0535",
+        "R0536",
+        "R0553",
+        "R0555",
+        "R0557"
+      ],
+      "changed_files": [
+        "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+        "projects/unexamine/frontend/src/product/field-capabilities.ts",
+        "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
+        "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+        "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "projects/unexamine/ai/evidence/spark-b05-basic-field-verification.json",
+        "projects/unexamine/ai/evidence/spark-usage-b05-basic-fields.json",
+        "projects/unexamine/ai/planning/spark-state.json"
+      ],
+      "checks_actual_results": [
+        "Frontend focused tests passed: 3 files and 16 tests; production build passed for 3961 modules.",
+        "Backend JDK 21 test-compile and the focused Linux Maven/Testcontainers configured-default test passed.",
+        "Real UI configure/publish/create/update/reopen/list/detail/filter/sort matrix passed for number, date and boolean.",
+        "Live invalid create returned 422 without persistence or success audit; ordinary-member UI and direct API both trimmed the three hidden fields."
+      ],
+      "readback": [
+        "cfg_module_field ids 46-48 store typed defaults as JSON number 80, date string 2026-09-30 and boolean true.",
+        "biz_record 63 is 基础字段验收客户. biz_record_value stores 95 in value_number, 2026-10-01 in value_date and false in value_boolean.",
+        "The ordinary-member direct API returned field_20a69d1ce3 and field_831b688ceb only; field_21059c1892, field_cca77c32e8 and field_db1ac87c01 were absent.",
+        "The retained acceptance system now has one published five-field 客户档案 module and four readable records for continued vertical-slice work."
+      ],
+      "permission_or_failure_result": {
+        "field_permission": "UI list/detail and direct record API both removed fields without an explicit readable policy; hidden typed values could not be recovered through the tested page or endpoint.",
+        "invalid_input": "HTTP 422 occurred before business persistence and before any successful create audit event.",
+        "fixture_cleanup": "Account 51, platform member 50, system member 68 and tenant member 70 are DISABLED; zero unrevoked sessions remain for account 51.",
+        "workspace_preservation": "Pre-existing changes were preserved. No reset or regeneration ran."
+      },
+      "tested_file_hashes": [
+        {
+          "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+          "sha256": "728e58c9d9e3a3b2f5accb27d910e170fd96b5f87d70ec0990fce0c6b66abe0e"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/field-capabilities.ts",
+          "sha256": "83d0d68a54aee50445bfdf5d14de38c4b4fc38b2784aa110a713087865aa6f84"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
+          "sha256": "03fc065cf430f35251a93812e5cc0b7e910c906a83d32f2277acf5335f0c2392"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+          "sha256": "3d875c7818113475ed6b32a2bf73b0a9dcc5b34b351840c723ac1e74574eb5f8"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+          "sha256": "26e44ca76d3c666e37f29cac5921bd1f825aefe76a408dfbe6acb1d5733038cf"
+        },
+        {
+          "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+          "sha256": "0629e1f9e21f3d92a4407eff5fccbb5070614e1de451812ca31dde0188045664"
+        }
+      ],
+      "remaining": [
+        "B05.1b: enforce the existing uniqueValue switch through the shared query-index core, finish read-only/system-field behavior and verify required/unique/history constraints in the same real module journey.",
+        "B05.2 and later field families remain unverified; the registry classifies them but does not claim their configuration, storage or rendering chains work.",
+        "B03.1b/B03.1c and unfinished B04 checks remain required under the user-directed vertical-slice ordering."
+      ],
+      "next_step": "B05.1b",
+      "evidence": "projects/unexamine/ai/evidence/spark-b05-basic-field-verification.json",
+      "usage_report": "projects/unexamine/ai/evidence/spark-usage-b05-basic-fields.json"
     }
   ],
   "step_record_contract": {

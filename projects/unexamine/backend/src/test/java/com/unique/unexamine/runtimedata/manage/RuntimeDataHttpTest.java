@@ -175,6 +175,12 @@ class RuntimeDataHttpTest {
                 Map.of("defaultValue", "active", "options", List.of(
                         Map.of("value", "active", "label", "启用", "status", "ACTIVE"),
                         Map.of("value", "inactive", "label", "停用", "status", "ACTIVE"))));
+        createField(owner, moduleId, "customer_score", "客户评分", "NUMBER", false, 30,
+                Map.of("defaultValue", 12.5));
+        createField(owner, moduleId, "next_contact", "下次联系日期", "DATE", false, 40,
+                Map.of("defaultValue", "2026-10-01"));
+        createField(owner, moduleId, "priority_customer", "重点客户", "BOOLEAN", false, 50,
+                Map.of("defaultValue", false));
         int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
         assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST,
                 owner.token(), Map.of("expectedDraftRevision", revision)).getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -184,10 +190,26 @@ class RuntimeDataHttpTest {
                         "fields", Map.of("customer_name", "默认值客户")));
         assertThat(created.getStatusCode()).as("create: %s", created.getBody()).isEqualTo(HttpStatus.OK);
         Map<String, Object> fields = map(data(created).get("fields"));
-        assertThat(fields).containsEntry("customer_status", "active");
+        assertThat(fields).containsEntry("customer_status", "active")
+                .containsEntry("customer_score", 12.5)
+                .containsEntry("next_contact", "2026-10-01")
+                .containsEntry("priority_customer", false);
         long recordId = number(data(created).get("id"));
         assertThat(jdbc.queryForObject("select value_text from biz_record_value where record_id=? and field_code='customer_status'",
                 String.class, recordId)).isEqualTo("active");
+        assertThat(jdbc.queryForObject("select value_number from biz_record_value where record_id=? and field_code='customer_score'",
+                java.math.BigDecimal.class, recordId)).isEqualByComparingTo("12.5");
+        assertThat(jdbc.queryForObject("select value_date from biz_record_value where record_id=? and field_code='next_contact'",
+                java.time.LocalDate.class, recordId)).isEqualTo(java.time.LocalDate.of(2026, 10, 1));
+        assertThat(jdbc.queryForObject("select value_boolean from biz_record_value where record_id=? and field_code='priority_customer'",
+                Boolean.class, recordId)).isFalse();
+
+        ResponseEntity<Map> invalid = exchange("/api/runtime/modules/default_customer/records", HttpMethod.POST,
+                owner.token(), Map.of("title", "非法数字", "participantMemberIds", List.of(),
+                        "fields", Map.of("customer_name", "非法数字", "customer_score", "not-a-number")));
+        assertThat(invalid.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(invalid.getBody()).containsEntry("code", "FIELD_VALIDATION_FAILED");
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
     }
 
     @Test

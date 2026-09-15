@@ -11,11 +11,12 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons-vue'
 import { Empty, message } from 'ant-design-vue'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { productDateTime } from '../presentation'
 import { systemContext, systemTokens } from '../session'
+import { defaultEditor, fieldTypes } from '../field-capabilities'
 import type {
   ConfiguredField,
   ConfiguredAction,
@@ -36,59 +37,6 @@ import type {
 
 const emit = defineEmits<{ published: [] }>()
 const router = useRouter()
-
-const fieldTypes = [
-  { type: 'TEXT', name: '单行文本', hint: '名称、编号等短文本' },
-  { type: 'MULTILINE_TEXT', name: '多行文本', hint: '备注和较长说明' },
-  { type: 'PHONE', name: '手机号', hint: '手机号格式校验' },
-  { type: 'EMAIL', name: '邮箱', hint: '邮箱格式校验' },
-  { type: 'URL', name: 'URL', hint: '网页地址' },
-  { type: 'ID_CARD', name: '身份证号', hint: '证件格式与脱敏' },
-  { type: 'NUMBER', name: '数字', hint: '普通数值' },
-  { type: 'PERCENT', name: '百分比', hint: '百分比与精度' },
-  { type: 'MONEY', name: '金额', hint: '精确金额数值' },
-  { type: 'DATE', name: '日期', hint: '年月日' },
-  { type: 'DATETIME', name: '日期时间', hint: '日期和具体时间' },
-  { type: 'DATE_RANGE', name: '日期范围', hint: '开始和结束日期' },
-  { type: 'TIME', name: '时间', hint: '时分秒' },
-  { type: 'TIME_RANGE', name: '时间范围', hint: '开始和结束时间' },
-  { type: 'SINGLE_SELECT', name: '单选', hint: '配置固定选项' },
-  { type: 'MULTI_SELECT', name: '多选', hint: '选择多个字典项' },
-  { type: 'CASCADE', name: '级联选择', hint: '树形字典或模块层级' },
-  { type: 'STATUS', name: '状态', hint: '业务状态选项' },
-  { type: 'BOOLEAN', name: '是否', hint: '是或否' },
-  { type: 'MEMBER', name: '成员', hint: '关联当前租户成员' },
-  { type: 'DEPARTMENT', name: '部门', hint: '关联当前租户部门' },
-  { type: 'ORGANIZATION', name: '组织/租户', hint: '当前系统组织范围' },
-  { type: 'ATTACHMENT', name: '附件', hint: '通用附件引用' },
-  { type: 'IMAGE', name: '图片', hint: '图片预览与附件引用' },
-  { type: 'FILE', name: '文件', hint: '单个文件引用' },
-  { type: 'FILE_GROUP', name: '文件组', hint: '文件夹或多文件' },
-  { type: 'AUTO_NUMBER', name: '自动编号', hint: '并发安全编号规则' },
-  { type: 'REFERENCE', name: '关联数据', hint: '关联另一模块的业务记录' },
-  { type: 'LOOKUP', name: '引用字段', hint: '从关联记录读取字段' },
-  { type: 'SUBTABLE', name: '子表', hint: '一主多明细事务' },
-  { type: 'ADDRESS', name: '地址', hint: '结构化地址' },
-  { type: 'LOCATION', name: '地理位置', hint: '经纬度与名称' },
-  { type: 'RATING', name: '评分', hint: '星级或分值' },
-  { type: 'PROGRESS', name: '进度', hint: '0 到 100 进度' },
-  { type: 'TAG', name: '标签', hint: '带颜色的多标签' },
-  { type: 'BARCODE', name: '条码', hint: '条码内容与展示' },
-  { type: 'QRCODE', name: '二维码', hint: '二维码内容与展示' },
-  { type: 'SIGNATURE', name: '签名', hint: '签名文件引用' },
-  { type: 'RICH_TEXT', name: '富文本', hint: '受控富文本内容' },
-  { type: 'JSON', name: '结构化数据', hint: '保存成组的结构化内容' },
-  { type: 'SECRET', name: '密码/密钥', hint: '敏感值与脱敏' },
-  { type: 'SYSTEM_CREATED_BY', name: '创建人', hint: '只读系统字段' },
-  { type: 'SYSTEM_CREATED_AT', name: '创建时间', hint: '只读系统字段' },
-  { type: 'SYSTEM_UPDATED_BY', name: '更新人', hint: '只读系统字段' },
-  { type: 'SYSTEM_UPDATED_AT', name: '更新时间', hint: '只读系统字段' },
-  { type: 'FORMULA', name: '公式', hint: '表达式计算结果' },
-  { type: 'SUMMARY', name: '汇总', hint: '关联记录汇总' },
-  { type: 'CALCULATION', name: '计算', hint: '业务计算表达式' },
-  { type: 'AGGREGATE', name: '聚合', hint: '关联模块聚合' },
-  { type: 'AI_FILL', name: 'AI 填充', hint: '授权模型且人工确认' },
-]
 
 const loading = ref(false)
 const saving = ref(false)
@@ -134,7 +82,7 @@ const moduleForm = reactive({
 const fieldForm = reactive({
   code: '', name: '', fieldType: 'TEXT', required: false, uniqueValue: false, searchable: false,
   dictionaryId: undefined as number | undefined, referenceModuleId: undefined as number | undefined,
-  sortOrder: 10, status: 'ACTIVE', optionsText: '', defaultValue: '', placeholder: '',
+  sortOrder: 10, status: 'ACTIVE', optionsText: '', defaultValue: undefined as string | number | boolean | undefined, placeholder: '',
   currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false, saveMode: 'FINAL',
   sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true, sensitive: false, readOnly: false,
   version: 0,
@@ -372,7 +320,7 @@ function beginField(type: string) {
     dictionaryId: undefined, referenceModuleId: undefined,
     sortOrder: (draft.value?.fields.length || 0) * 10 + 10,
     status: 'ACTIVE', optionsText: ['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(type) ? 'active|启用\ninactive|停用' : '',
-    defaultValue: '', placeholder: '', currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false,
+    defaultValue: undefined, placeholder: '', currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false,
     saveMode: 'FINAL', sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true,
     sensitive: type === 'SECRET', readOnly: type.startsWith('SYSTEM_'), version: 0,
   })
@@ -392,7 +340,7 @@ function editField(field: ConfiguredField) {
     uniqueValue: Boolean(field.uniqueValue), searchable: Boolean(field.searchable),
     dictionaryId: field.dictionaryId, referenceModuleId: field.referenceModuleId,
     sortOrder: field.sortOrder, status: field.status, optionsText,
-    defaultValue: config.defaultValue ?? '', placeholder: config.placeholder ?? '', currency: config.currency || 'CNY',
+    defaultValue: config.defaultValue ?? undefined, placeholder: config.placeholder ?? '', currency: config.currency || 'CNY',
     precision: config.precision ?? 2, maxDepth: config.maxDepth ?? 3,
     allowIntermediate: Boolean(config.allowIntermediate), saveMode: config.saveMode || 'FINAL',
     sequenceCode: config.sequenceCode || '', expression: config.expression || '', modelCode: config.modelCode || '',
@@ -405,9 +353,11 @@ function editField(field: ConfiguredField) {
 function fieldConfig() {
   const config: Record<string, unknown> = {
     placeholder: fieldForm.placeholder || undefined,
-    defaultValue: fieldForm.defaultValue || undefined,
     sensitive: fieldForm.sensitive,
     readOnly: fieldForm.readOnly,
+  }
+  if (fieldForm.defaultValue !== undefined && fieldForm.defaultValue !== null && fieldForm.defaultValue !== '') {
+    config.defaultValue = fieldForm.defaultValue
   }
   if (['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(fieldForm.fieldType) && !fieldForm.dictionaryId) {
     config.options = fieldForm.optionsText.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => {
@@ -422,6 +372,10 @@ function fieldConfig() {
   if (fieldForm.fieldType === 'AI_FILL') Object.assign(config, { modelCode: fieldForm.modelCode, humanConfirmation: fieldForm.humanConfirmation })
   return config
 }
+
+watch(() => fieldForm.fieldType, (current, previous) => {
+  if (!editingField.value && current !== previous) fieldForm.defaultValue = undefined
+})
 
 async function saveField() {
   if (!selectedModuleId.value) return
@@ -1145,7 +1099,13 @@ onMounted(() => loadOverview())
         <div class="form-grid"><a-form-item label="可搜索"><a-switch v-model:checked="fieldForm.searchable" /></a-form-item>
           <a-form-item label="唯一值"><a-switch v-model:checked="fieldForm.uniqueValue" /></a-form-item></div>
         <a-form-item label="提示文案"><a-input v-model:value="fieldForm.placeholder" placeholder="页面输入提示" /></a-form-item>
-        <a-form-item label="默认值"><a-input v-model:value="fieldForm.defaultValue" placeholder="可留空；高级默认值由后续规则配置" /></a-form-item>
+        <a-form-item label="默认值" extra="可留空；创建记录时会自动带入并接受同一套服务端校验。">
+          <a-input-number v-if="defaultEditor(fieldForm.fieldType) === 'NUMBER'" v-model:value="fieldForm.defaultValue as number" style="width:100%" placeholder="输入默认数字" />
+          <a-date-picker v-else-if="defaultEditor(fieldForm.fieldType) === 'DATE'" v-model:value="fieldForm.defaultValue as string" value-format="YYYY-MM-DD" style="width:100%" placeholder="选择默认日期" />
+          <a-date-picker v-else-if="defaultEditor(fieldForm.fieldType) === 'DATETIME'" v-model:value="fieldForm.defaultValue as string" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" placeholder="选择默认日期和时间" />
+          <a-select v-else-if="defaultEditor(fieldForm.fieldType) === 'BOOLEAN'" v-model:value="fieldForm.defaultValue" allow-clear placeholder="不设置默认值" :options="[{ value: true, label: '是' }, { value: false, label: '否' }]" />
+          <a-input v-else v-model:value="fieldForm.defaultValue as string" placeholder="输入默认内容" />
+        </a-form-item>
         <a-form-item v-if="editingField" label="状态"><a-radio-group v-model:value="fieldForm.status"><a-radio value="ACTIVE">启用</a-radio><a-radio value="DISABLED">停用</a-radio></a-radio-group></a-form-item>
         <a-form-item v-if="['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(fieldForm.fieldType)" label="发布字典" extra="绑定后模块发布会检查字典是否已经发布；也可以留空使用手动选项。">
           <a-select v-model:value="fieldForm.dictionaryId" allow-clear show-search :options="dictionaryOptions" />

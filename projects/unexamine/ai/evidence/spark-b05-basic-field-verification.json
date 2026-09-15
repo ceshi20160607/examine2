@@ -1,0 +1,91 @@
+{
+  "step": "B05.1a",
+  "status": "verified_bounded_substep",
+  "verified_at": "2026-09-15T09:59:53.4278678+08:00",
+  "verification_scope": "Shared text, number, date and boolean field capabilities were verified from administrator configuration and publication through typed runtime create/update/read/filter/sort, ordinary-member field trimming and database storage. This does not mark B05.1 or the complete field catalog finished.",
+  "source_rows": [
+    "R0459",
+    "R0512",
+    "R0514",
+    "R0515",
+    "R0516",
+    "R0518",
+    "R0525",
+    "R0526",
+    "R0527",
+    "R0533",
+    "R0535",
+    "R0536",
+    "R0553",
+    "R0555",
+    "R0557"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+    "projects/unexamine/frontend/src/product/field-capabilities.ts",
+    "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
+    "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/ai/evidence/spark-b05-basic-field-verification.json",
+    "projects/unexamine/ai/evidence/spark-usage-b05-basic-fields.json",
+    "projects/unexamine/ai/planning/spark-state.json"
+  ],
+  "checks_actual_results": [
+    "Frontend focused validation passed: field-capabilities.test.ts, routes.test.ts and runtime-actions.test.ts, 3 files and 16 tests.",
+    "Frontend production build passed for 3961 modules; only the existing chunk-size warning remained.",
+    "Backend JDK 21 test-compile passed.",
+    "RuntimeDataHttpTest#configuredFieldDefaultIsValidatedAndStoredWhenCreateOmitsTheField passed in the isolated Linux Maven/Testcontainers path with typed number/date/boolean defaults and invalid-number rejection.",
+    "Real browser configuration showed a number input for 客户评分 default 80, a date picker for 下次联系日期 default 2026-09-30, and a yes/no selector for 重点客户 default 是; no JSON entry was required.",
+    "Module 客户档案 published version 2. A new record created with only 客户名称 reopened with defaults 80, 2026-09-30 and 是, then reopened after edit with 95, 2026-10-01 and 否.",
+    "The three fields were enabled in the list column chooser and displayed their typed values. Numeric EQ filtering plus descending server sort, date EQ filtering, and boolean false filtering each returned the single expected record.",
+    "A live invalid-number create returned HTTP 422/FIELD_VALIDATION_FAILED. The matching business-record count stayed zero and the latest successful BUSINESS_RECORD_CREATED audit id stayed 2701.",
+    "An ordinary member whose published role exposed only the original two fields saw only those fields in list and detail. Direct record HTTP read returned exactly those two field keys and omitted score/date/boolean.",
+    "The temporary ordinary account, platform member, system member and tenant membership were disabled again; all account sessions were revoked."
+  ],
+  "readback": [
+    "cfg_module_field ids 46-48 store typed defaults as JSON number 80, date string 2026-09-30 and boolean true.",
+    "biz_record 63 is 基础字段验收客户. biz_record_value stores 95 in value_number, 2026-10-01 in value_date and false in value_boolean.",
+    "The ordinary-member direct API returned field_20a69d1ce3 and field_831b688ceb only; field_21059c1892, field_cca77c32e8 and field_db1ac87c01 were absent.",
+    "The retained acceptance system now has one published five-field 客户档案 module and four readable records for continued vertical-slice work."
+  ],
+  "permission_or_failure_result": {
+    "field_permission": "UI list/detail and direct record API both removed fields without an explicit readable policy; hidden typed values could not be recovered through the tested page or endpoint.",
+    "invalid_input": "HTTP 422 occurred before business persistence and before any successful create audit event.",
+    "fixture_cleanup": "Account 51, platform member 50, system member 68 and tenant member 70 are DISABLED; zero unrevoked sessions remain for account 51.",
+    "workspace_preservation": "Pre-existing changes were preserved. No reset or regeneration ran."
+  },
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+      "sha256": "728e58c9d9e3a3b2f5accb27d910e170fd96b5f87d70ec0990fce0c6b66abe0e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/field-capabilities.ts",
+      "sha256": "83d0d68a54aee50445bfdf5d14de38c4b4fc38b2784aa110a713087865aa6f84"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/field-capabilities.test.ts",
+      "sha256": "03fc065cf430f35251a93812e5cc0b7e910c906a83d32f2277acf5335f0c2392"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+      "sha256": "3d875c7818113475ed6b32a2bf73b0a9dcc5b34b351840c723ac1e74574eb5f8"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "26e44ca76d3c666e37f29cac5921bd1f825aefe76a408dfbe6acb1d5733038cf"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "0629e1f9e21f3d92a4407eff5fccbb5070614e1de451812ca31dde0188045664"
+    }
+  ],
+  "remaining": [
+    "B05.1b: enforce the existing uniqueValue switch through the shared query-index core, finish read-only/system-field behavior and verify required/unique/history constraints in the same real module journey.",
+    "B05.2 and later field families remain unverified; the registry classifies them but does not claim their configuration, storage or rendering chains work.",
+    "B03.1b/B03.1c and unfinished B04 checks remain required under the user-directed vertical-slice ordering."
+  ],
+  "next_step": "B05.1b",
+  "usage_report": "projects/unexamine/ai/evidence/spark-usage-b05-basic-fields.json"
+}
