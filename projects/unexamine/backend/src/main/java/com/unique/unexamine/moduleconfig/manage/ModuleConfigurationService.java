@@ -494,6 +494,11 @@ public class ModuleConfigurationService {
             Long referenceModuleId,
             com.fasterxml.jackson.databind.JsonNode config,
             String traceId) {
+        try {
+            TextFieldProtocol.validateConfiguration(fieldType, config);
+        } catch (IllegalArgumentException exception) {
+            invalidField(exception.getMessage());
+        }
         if (("SECRET".equals(fieldType) || config.path("sensitive").asBoolean(false))
                 && !permissionChecker.allows(context, "CONFIG", "MODULE_FIELD", "CONFIGURE_SENSITIVE")) {
             auditRecorder.recordPermissionDenied(traceId, context.accountId(), context.systemId(), context.tenantId(),

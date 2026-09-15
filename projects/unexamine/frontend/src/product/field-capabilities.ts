@@ -61,6 +61,7 @@ export const fieldTypes: FieldTypeDefinition[] = [
 ]
 
 const definitions = new Map(fieldTypes.map((field) => [field.type, field]))
+const textRuntimeFieldTypes = new Set(['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL', 'ID_CARD'])
 const nonUniqueFieldTypes = new Set([
   'RICH_TEXT', 'JSON', 'SECRET', 'ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP', 'SUBTABLE', 'SIGNATURE',
   'LOOKUP', 'FORMULA', 'SUMMARY', 'CALCULATION', 'AGGREGATE', 'AI_FILL',
@@ -72,7 +73,20 @@ export function fieldFamily(fieldType?: string): FieldFamily | undefined {
 }
 
 export function isBasicRuntimeField(fieldType: string) {
-  return ['TEXT', 'MULTILINE_TEXT', 'NUMBER', 'DATE', 'DATETIME', 'BOOLEAN'].includes(fieldType)
+  return textRuntimeFieldTypes.has(fieldType) || ['NUMBER', 'DATE', 'DATETIME', 'BOOLEAN'].includes(fieldType)
+}
+
+export function supportsTextConstraints(fieldType: string) {
+  return textRuntimeFieldTypes.has(fieldType)
+}
+
+export function builtInTextFormat(fieldType: string) {
+  return ({
+    PHONE: '自动校验并规范化电话号码，可输入空格、短横线和括号',
+    EMAIL: '自动校验完整邮箱地址',
+    URL: '自动校验完整的 http 或 https 地址',
+    ID_CARD: '自动校验 15 位或 18 位居民身份证号、出生日期和校验位',
+  } as Record<string, string>)[fieldType] || ''
 }
 
 export function supportsUniqueValue(fieldType: string) {

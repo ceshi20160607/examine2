@@ -448,6 +448,12 @@ public class ModulePublicationService {
                     && field.getDictionaryId() == null) {
                 validateOptions(field, path, issues);
             }
+            try {
+                TextFieldProtocol.validateConfiguration(field.getFieldType(),
+                        objectMapper.readTree(field.getConfigJson() == null ? "{}" : field.getConfigJson()));
+            } catch (Exception exception) {
+                issues.add(new PublicationCheckIssue(path + ".config", "FIELD_CONFIG_INVALID", exception.getMessage()));
+            }
             if (field.getDictionaryId() != null) {
                 Integer publications = jdbc.queryForObject(
                         "select count(*) from cfg_dictionary_publication p join cfg_dictionary d on d.id=p.dictionary_id "

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 const productRoot = fileURLToPath(new URL('.', import.meta.url))
 const runtime = readFileSync(`${productRoot}/views/RuntimeWorkspaceView.vue`, 'utf8')
+const runtimeInput = readFileSync(`${productRoot}/components/RuntimeFieldInput.vue`, 'utf8')
 const styles = readFileSync(`${productRoot}/product.css`, 'utf8')
 
 describe('runtime task recovery contract', () => {
@@ -19,6 +20,8 @@ describe('runtime task recovery contract', () => {
     expect(runtime).toContain('const writableCodes = new Set(formFields.value.map((field) => field.code))')
     expect(runtime).toContain('writableCodes.has(code)')
     expect(runtime).toContain("['FIELD_VALIDATION_FAILED', 'UNIQUE_RULE_VIOLATION'].includes(reason.code)")
+    expect(runtime).toContain("fields.value.find((field) => field.code === code)?.name || '字段'")
+    expect(runtime).toContain('请检查填写内容：')
     expect(runtime).toContain("!field.fieldType.startsWith('SYSTEM_')")
     expect(runtime).toContain('!Boolean(fieldConfig(field).readOnly)')
   })
@@ -33,5 +36,14 @@ describe('runtime task recovery contract', () => {
   it('keeps the mobile detail action bar inside the viewport', () => {
     expect(styles).toContain('.detail-drawer .drawer-footer { width: 100%; display: grid;')
     expect(styles).toContain('.detail-drawer .drawer-footer .ant-btn { min-width: 0;')
+  })
+
+  it('uses the shared typed text input with published length and semantic hints', () => {
+    expect(runtime).not.toContain("field.fieldType === 'PHONE'")
+    expect(runtimeInput).toContain("PHONE: 'tel'")
+    expect(runtimeInput).toContain("EMAIL: 'email'")
+    expect(runtimeInput).toContain("URL: 'url'")
+    expect(runtimeInput).toContain(':maxlength="maxLength"')
+    expect(runtimeInput).toContain("field.fieldType === 'ID_CARD' ? 'off'")
   })
 })

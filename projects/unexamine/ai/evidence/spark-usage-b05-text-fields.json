@@ -1,0 +1,39 @@
+{
+  "thread_id": "01a06f53-2b57-7333-8b55-0d0183b53303",
+  "sampled_at": "2026-09-15T11:26:50.598932+08:00",
+  "baseline": {
+    "timestamp": "2026-09-15T02:44:00.934Z",
+    "input_tokens": 80769986,
+    "cached_input_tokens": 79293056,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 158071,
+    "reasoning_output_tokens": 56046,
+    "total_tokens": 80928057
+  },
+  "latest": {
+    "timestamp": "2026-09-15T03:25:03.574Z",
+    "input_tokens": 228229128,
+    "cached_input_tokens": 222944256,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 751027,
+    "reasoning_output_tokens": 267502,
+    "total_tokens": 228980155
+  },
+  "delta": {
+    "input_tokens": 147459142,
+    "cached_input_tokens": 143651200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 592956,
+    "reasoning_output_tokens": 211456,
+    "total_tokens": 148052098,
+    "uncached_input_tokens": 3807942
+  },
+  "cost": null,
+  "notes": [
+    "Incremental B05.2a traffic after the B05.1b sample, not the whole thread.",
+    "Input is dominated by cached context and tool traffic; uncached input is reported separately.",
+    "Reasoning output is a subset of output and is not added twice.",
+    "Cumulative traffic is not context size or a currency bill; final bookkeeping and response after this sample are excluded.",
+    "Counters remained monotonic; no reset segment was observed."
+  ]
+}

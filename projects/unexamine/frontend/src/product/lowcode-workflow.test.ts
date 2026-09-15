@@ -40,4 +40,12 @@ describe('low-code module lifecycle contract', () => {
     expect(moduleConfiguration).toContain('字段配置自动维护')
     expect(moduleConfiguration).toContain("index.index.code.startsWith('field_unique_')")
   })
+
+  it('configures text length and format through field-specific controls instead of JSON', () => {
+    expect(moduleConfiguration).toContain('label="最短长度"')
+    expect(moduleConfiguration).toContain('label="最长长度"')
+    expect(moduleConfiguration).toContain('label="附加格式规则"')
+    expect(moduleConfiguration).toContain('自定义正则表达式')
+    expect(moduleConfiguration).toContain('builtInTextFormat(fieldForm.fieldType)')
+  })
 })

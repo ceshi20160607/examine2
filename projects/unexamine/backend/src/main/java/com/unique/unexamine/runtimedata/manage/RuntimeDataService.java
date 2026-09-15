@@ -47,6 +47,7 @@ import com.unique.unexamine.audit.base.service.AuditEventBaseService;
 import com.unique.unexamine.audit.base.service.AuditFieldChangeBaseService;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
+import com.unique.unexamine.moduleconfig.manage.TextFieldProtocol;
 import com.unique.unexamine.moduleconfig.manage.DictionaryConfigurationService;
 import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.authorization.manage.DataScopeTerm;
@@ -2348,18 +2349,8 @@ public class RuntimeDataService {
 
     private JsonNode normalize(AuthenticatedContext context, PublishedField field, JsonNode value) {
         return switch (field.type()) {
-            case "TEXT", "MULTILINE_TEXT" -> {
-                if (!value.isTextual()) {
-                    throw new IllegalArgumentException("必须是文本");
-                }
-                yield TextNode.valueOf(value.textValue());
-            }
-            case "PHONE" -> {
-                if (!value.isTextual()) throw new IllegalArgumentException("必须是手机号文本");
-                String phone = value.textValue().strip().replace(" ", "").replace("-", "");
-                if (!phone.matches("^\\+?[0-9]{6,20}$")) throw new IllegalArgumentException("手机号格式不正确");
-                yield TextNode.valueOf(phone);
-            }
+            case "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD" ->
+                    TextFieldProtocol.normalize(field.type(), field.config(), value);
             case "SINGLE_SELECT", "STATUS" -> {
                 if (!value.isTextual()) {
                     throw new IllegalArgumentException("必须是选项值");
@@ -2534,7 +2525,8 @@ public class RuntimeDataService {
         stored.setFieldCode(field.code());
         stored.setValueType(field.type());
         switch (field.type()) {
-            case "TEXT", "MULTILINE_TEXT", "PHONE", "SINGLE_SELECT", "STATUS" -> stored.setValueText(value.textValue());
+            case "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "SINGLE_SELECT", "STATUS" ->
+                    stored.setValueText(value.textValue());
             case "NUMBER", "MONEY" -> stored.setValueNumber(value.decimalValue());
             case "DATE" -> stored.setValueDate(LocalDate.parse(value.textValue()));
             case "DATETIME" -> stored.setValueDatetime(LocalDateTime.parse(value.textValue()));

@@ -1127,7 +1127,7 @@ async function saveRecord() {
     if (wasEditing && result.value) await openDetail(result.value).catch(() => message.warning('操作已成功，请重新打开详情'))
   } catch (reason) {
     applyFormError(reason)
-    message.error(readable(reason))
+    message.error(formError.value)
   } finally {
     saving.value = false
   }
@@ -1141,13 +1141,18 @@ function clearFormErrors() {
 function applyFormError(reason: unknown) {
   formError.value = readable(reason)
   if (!(reason instanceof ApiError) || !['FIELD_VALIDATION_FAILED', 'UNIQUE_RULE_VIOLATION'].includes(reason.code)) return
+  const summaries: string[] = []
   reason.message.split('；').forEach((item) => {
     const separator = item.indexOf(':')
     if (separator <= 0) return
     const code = item.slice(0, separator).trim()
     const message = item.slice(separator + 1).trim()
-    if (code) fieldErrors[code] = message
+    if (code) {
+      fieldErrors[code] = message
+      summaries.push(`${fields.value.find((field) => field.code === code)?.name || '字段'}：${message}`)
+    }
   })
+  if (summaries.length) formError.value = `请检查填写内容：${summaries.join('；')}`
   const first = Object.keys(fieldErrors)[0]
   if (first) void nextTick(() => {
     const container = document.querySelector<HTMLElement>(`[data-runtime-field="${first}"]`)
@@ -1474,7 +1479,6 @@ defineExpose({ refresh: loadModules, executeCommand })
           <PersonSelect v-else-if="field.fieldType === 'MEMBER'" :model-value="numericFieldValue(field.code)" :people="peopleDirectory.people" value-key="tenantMemberId" placeholder="搜索姓名、岗位或部门" @update:model-value="form.fields[field.code] = $event" />
           <DepartmentSelect v-else-if="field.fieldType === 'DEPARTMENT'" :model-value="numericFieldValue(field.code)" :departments="peopleDirectory.departments" @update:model-value="form.fields[field.code] = $event" />
           <a-select v-else-if="field.fieldType === 'REFERENCE'" v-model:value="form.fields[field.code]" show-search allow-clear :loading="referenceLoading" :filter-option="(input: string, option: { label?: string; description?: string }) => `${option.label || ''} ${option.description || ''}`.toLowerCase().includes(input.toLowerCase())" :options="referenceOptions[field.code] || []" placeholder="搜索并选择业务记录"><template #option="{ label, description }"><span class="reference-option"><strong>{{ label }}</strong><small>{{ description }}</small></span></template></a-select>
-          <a-input v-else-if="field.fieldType === 'PHONE'" v-model:value="form.fields[field.code]" inputmode="tel" placeholder="请输入手机号" />
           <a-input v-else v-model:value="form.fields[field.code]" />
         </a-form-item>
       </a-form>

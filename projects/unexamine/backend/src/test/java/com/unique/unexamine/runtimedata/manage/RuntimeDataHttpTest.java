@@ -325,6 +325,124 @@ class RuntimeDataHttpTest {
     }
 
     @Test
+    void publishedTextFamilyUsesStructuredConstraintsTypedStorageAndFieldLevelRollback() {
+        Session owner = register("text_family_owner", "text-family-system", "text-family-owner@example.com");
+        long groupId = number(data(exchange("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
+                Map.of("code", "customers", "name", "客户管理", "sortOrder", 10))).get("id"));
+        long moduleId = number(((Map<?, ?>) data(exchange("/api/admin/module-config/modules", HttpMethod.POST,
+                owner.token(), Map.of("groupId", groupId, "code", "text_customer", "name", "文本客户")))
+                .get("module")).get("id"));
+
+        ResponseEntity<Map> invalidConfiguration = exchange(
+                "/api/admin/module-config/modules/" + moduleId + "/fields", HttpMethod.POST, owner.token(),
+                Map.of("code", "invalid_length", "name", "错误长度", "fieldType", "MULTILINE_TEXT",
+                        "required", false, "sortOrder", 5, "config", Map.of("minLength", 20, "maxLength", 10)));
+        assertThat(invalidConfiguration.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(invalidConfiguration.getBody()).containsEntry("code", "FIELD_CONFIG_INVALID");
+
+        List<Map<String, Object>> definitions = List.of(
+                Map.of("code", "notes", "name", "跟进说明", "fieldType", "MULTILINE_TEXT", "required", true,
+                        "searchable", true, "sortOrder", 10,
+                        "config", Map.of("minLength", 5, "maxLength", 80)),
+                Map.of("code", "phone", "name", "联系电话", "fieldType", "PHONE", "required", true,
+                        "searchable", true, "sortOrder", 20,
+                        "config", Map.of("minLength", 11, "maxLength", 15)),
+                Map.of("code", "email", "name", "工作邮箱", "fieldType", "EMAIL", "required", false,
+                        "searchable", true, "sortOrder", 30,
+                        "config", Map.of("maxLength", 100, "patternMode", "CUSTOM",
+                                "customPattern", "^[^@]+@example\\.com$", "defaultValue", "default@example.com")),
+                Map.of("code", "website", "name", "公司网站", "fieldType", "URL", "required", true,
+                        "searchable", true, "sortOrder", 40, "config", Map.of("maxLength", 200)),
+                Map.of("code", "identity", "name", "身份证号", "fieldType", "ID_CARD", "required", true,
+                        "searchable", true, "sortOrder", 50, "config", Map.of("maxLength", 18)));
+        for (Map<String, Object> definition : definitions) {
+            ResponseEntity<Map> created = exchange("/api/admin/module-config/modules/" + moduleId + "/fields",
+                    HttpMethod.POST, owner.token(), definition);
+            assertThat(created.getStatusCode()).as("field %s: %s", definition.get("code"), created.getBody())
+                    .isEqualTo(HttpStatus.OK);
+        }
+        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", revision));
+        assertThat(published.getStatusCode()).as("publish: %s", published.getBody()).isEqualTo(HttpStatus.OK);
+
+        String recordsPath = "/api/runtime/modules/text_customer/records";
+        Map<String, Object> initialFields = new java.util.LinkedHashMap<>();
+        initialFields.put("notes", "首次联系，客户有明确需求");
+        initialFields.put("phone", "139-0013-9000");
+        initialFields.put("website", "https://example.com/customer");
+        initialFields.put("identity", "11010519491231002X");
+        ResponseEntity<Map> created = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
+                "title", "文本字段客户", "participantMemberIds", List.of(), "fields", initialFields));
+        assertThat(created.getStatusCode()).as("create: %s", created.getBody()).isEqualTo(HttpStatus.OK);
+        long recordId = number(data(created).get("id"));
+        int version = ((Number) data(created).get("version")).intValue();
+        Map<String, Object> createdFields = map(data(created).get("fields"));
+        assertThat(createdFields).containsEntry("phone", "13900139000")
+                .containsEntry("email", "default@example.com")
+                .containsEntry("website", "https://example.com/customer")
+                .containsEntry("identity", "11010519491231002X");
+        assertThat(count("biz_record_value", "record_id=" + recordId + " and value_text is not null")).isEqualTo(5);
+        assertThat(jdbc.queryForList("select value_type from biz_record_value where record_id=?", String.class, recordId))
+                .containsExactlyInAnyOrder("MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD");
+
+        Map<String, Object> validFields = new java.util.LinkedHashMap<>(createdFields);
+        List<Map.Entry<String, String>> invalidValues = List.of(
+                Map.entry("notes", "短"), Map.entry("phone", "not-a-phone"),
+                Map.entry("email", "user@other.com"), Map.entry("website", "example.com/path"),
+                Map.entry("identity", "110105194912310021"));
+        for (Map.Entry<String, String> invalidValue : invalidValues) {
+            Map<String, Object> submitted = new java.util.LinkedHashMap<>(validFields);
+            submitted.put(invalidValue.getKey(), invalidValue.getValue());
+            ResponseEntity<Map> rejected = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
+                    "title", "不应落库-" + invalidValue.getKey(), "participantMemberIds", List.of(), "fields", submitted));
+            assertThat(rejected.getStatusCode()).as("invalid %s: %s", invalidValue.getKey(), rejected.getBody())
+                    .isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+            assertThat(rejected.getBody()).containsEntry("code", "FIELD_VALIDATION_FAILED");
+            assertThat(rejected.getBody().get("message").toString()).contains(invalidValue.getKey());
+        }
+        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + recordId
+                + "' and result_code='SUCCESS'")).isOne();
+
+        Map<String, Object> updatedFields = new java.util.LinkedHashMap<>(validFields);
+        updatedFields.put("notes", "再次联系，已经约定演示时间");
+        updatedFields.put("phone", "+86 139 0013 9001");
+        updatedFields.put("email", "updated@example.com");
+        updatedFields.put("website", "https://example.com/customer/updated");
+        ResponseEntity<Map> updated = exchange(recordsPath + "/" + recordId, HttpMethod.PUT, owner.token(), Map.of(
+                "title", "文本字段客户已更新", "participantMemberIds", List.of(), "version", version,
+                "fields", updatedFields));
+        assertThat(updated.getStatusCode()).as("update: %s", updated.getBody()).isEqualTo(HttpStatus.OK);
+        assertThat(map(data(updated).get("fields"))).containsEntry("phone", "+8613900139001")
+                .containsEntry("email", "updated@example.com");
+
+        ResponseEntity<Map> reopened = exchange(recordsPath + "/" + recordId, HttpMethod.GET, owner.token(), null);
+        assertThat(reopened.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(map(data(reopened).get("fields"))).containsEntry("notes", "再次联系，已经约定演示时间")
+                .containsEntry("website", "https://example.com/customer/updated");
+        ResponseEntity<Map> searched = exchangeEncoded(recordsPath + "?search="
+                + URLEncoder.encode("updated@example.com", StandardCharsets.UTF_8), HttpMethod.GET, owner.token(), null);
+        assertThat(searched.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat((List<?>) data(searched).get("records")).singleElement();
+        String filters = URLEncoder.encode("[{\"fieldCode\":\"phone\",\"operator\":\"CONTAINS\",\"value\":\"39001\"}]",
+                StandardCharsets.UTF_8);
+        ResponseEntity<Map> filtered = exchangeEncoded(recordsPath + "?filters=" + filters,
+                HttpMethod.GET, owner.token(), null);
+        assertThat(filtered.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat((List<?>) data(filtered).get("records")).singleElement();
+
+        ResponseEntity<Map> timeline = exchange(recordsPath + "/" + recordId + "/timeline",
+                HttpMethod.GET, owner.token(), null);
+        assertThat(timeline.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> latest = map(((List<?>) data(timeline).get("entries")).get(0));
+        assertThat((List<?>) latest.get("changes")).anySatisfy(change -> assertThat(map(change))
+                .containsEntry("fieldCode", "email").containsEntry("fieldName", "工作邮箱")
+                .containsEntry("valueType", "EMAIL").containsEntry("beforeValue", "default@example.com")
+                .containsEntry("afterValue", "updated@example.com"));
+    }
+
+    @Test
     void concurrentActionsAndRecoverableDeliveryDoNotRepeatBusiness() throws Exception {
         Session owner = register("action_parallel", "action-parallel", "action-parallel@example.com");
         long moduleId = createAndPublishCustomerModule(owner);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultEditor, fieldFamily, fieldTypes, filterOperators, isBasicRuntimeField, supportsUniqueValue } from './field-capabilities'
+import { builtInTextFormat, defaultEditor, fieldFamily, fieldTypes, filterOperators, isBasicRuntimeField, supportsTextConstraints, supportsUniqueValue } from './field-capabilities'
 
 describe('field capability registry', () => {
   it('keeps each configurable field type unique and classifies the basic runtime family', () => {
@@ -8,7 +8,14 @@ describe('field capability registry', () => {
     expect(fieldFamily('NUMBER')).toBe('NUMBER')
     expect(fieldFamily('DATE')).toBe('DATE')
     expect(fieldFamily('BOOLEAN')).toBe('BOOLEAN')
-    expect(['TEXT', 'MULTILINE_TEXT', 'NUMBER', 'DATE', 'DATETIME', 'BOOLEAN'].every(isBasicRuntimeField)).toBe(true)
+    expect(['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL', 'ID_CARD', 'NUMBER', 'DATE', 'DATETIME', 'BOOLEAN'].every(isBasicRuntimeField)).toBe(true)
+  })
+
+  it('routes every common text type through its shared input and describes built-in formats', () => {
+    expect(['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL', 'ID_CARD'].every(supportsTextConstraints)).toBe(true)
+    expect(builtInTextFormat('EMAIL')).toContain('邮箱')
+    expect(builtInTextFormat('URL')).toContain('http')
+    expect(builtInTextFormat('TEXT')).toBe('')
   })
 
   it('uses typed default editors and does not offer text operators for numeric or boolean fields', () => {

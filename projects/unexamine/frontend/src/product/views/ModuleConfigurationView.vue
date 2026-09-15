@@ -16,7 +16,7 @@ import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { productDateTime } from '../presentation'
 import { systemContext, systemTokens } from '../session'
-import { defaultEditor, fieldTypes, supportsUniqueValue } from '../field-capabilities'
+import { builtInTextFormat, defaultEditor, fieldTypes, supportsTextConstraints, supportsUniqueValue } from '../field-capabilities'
 import type {
   ConfiguredField,
   ConfiguredAction,
@@ -83,6 +83,8 @@ const fieldForm = reactive({
   code: '', name: '', fieldType: 'TEXT', required: false, uniqueValue: false, searchable: false,
   dictionaryId: undefined as number | undefined, referenceModuleId: undefined as number | undefined,
   sortOrder: 10, status: 'ACTIVE', optionsText: '', defaultValue: undefined as string | number | boolean | undefined, placeholder: '',
+  minLength: undefined as number | undefined, maxLength: undefined as number | undefined,
+  patternMode: 'NONE', customPattern: '',
   currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false, saveMode: 'FINAL',
   sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true, sensitive: false, readOnly: false,
   version: 0,
@@ -125,6 +127,11 @@ const conditionOperatorOptions = [
   { value: 'LT', label: '小于' }, { value: 'LTE', label: '小于等于' },
   { value: 'IN', label: '属于' }, { value: 'CONTAINS', label: '包含' },
   { value: 'EMPTY', label: '为空' }, { value: 'NOT_EMPTY', label: '不为空' },
+]
+const patternModeOptions = [
+  { value: 'NONE', label: '不限附加格式' }, { value: 'DIGITS', label: '仅数字' },
+  { value: 'LETTERS', label: '仅英文字母' }, { value: 'ALPHANUMERIC', label: '英文字母和数字' },
+  { value: 'CHINESE', label: '仅中文' }, { value: 'CUSTOM', label: '自定义正则表达式' },
 ]
 
 const token = computed(() => systemTokens.value?.accessToken || '')
@@ -210,6 +217,12 @@ const fieldConfigurationIssue = computed(() => {
   if (fieldForm.fieldType === 'AI_FILL' && (!fieldForm.modelCode.trim() || !fieldForm.humanConfirmation)) return 'AI 填充必须选择授权模型并启用人工确认'
   if (fieldForm.fieldType.startsWith('SYSTEM_') && !fieldForm.readOnly) return '系统字段必须只读'
   if (fieldForm.uniqueValue && !supportsUniqueValue(fieldForm.fieldType)) return '当前字段类型不支持唯一值约束'
+  if (supportsTextConstraints(fieldForm.fieldType)) {
+    if (fieldForm.minLength !== undefined && (fieldForm.minLength < 0 || !Number.isInteger(fieldForm.minLength))) return '最短长度必须是大于等于 0 的整数'
+    if (fieldForm.maxLength !== undefined && (fieldForm.maxLength < 1 || !Number.isInteger(fieldForm.maxLength))) return '最长长度必须是大于 0 的整数'
+    if (fieldForm.minLength !== undefined && fieldForm.maxLength !== undefined && fieldForm.minLength > fieldForm.maxLength) return '最短长度不能大于最长长度'
+    if (fieldForm.patternMode === 'CUSTOM' && !fieldForm.customPattern.trim()) return '自定义格式必须填写正则表达式'
+  }
   return ''
 })
 
@@ -321,7 +334,8 @@ function beginField(type: string) {
     dictionaryId: undefined, referenceModuleId: undefined,
     sortOrder: (draft.value?.fields.length || 0) * 10 + 10,
     status: 'ACTIVE', optionsText: ['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(type) ? 'active|启用\ninactive|停用' : '',
-    defaultValue: undefined, placeholder: '', currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false,
+    defaultValue: undefined, placeholder: '', minLength: undefined, maxLength: undefined, patternMode: 'NONE', customPattern: '',
+    currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false,
     saveMode: 'FINAL', sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true,
     sensitive: type === 'SECRET', readOnly: type.startsWith('SYSTEM_'), version: 0,
   })
@@ -341,7 +355,9 @@ function editField(field: ConfiguredField) {
     uniqueValue: Boolean(field.uniqueValue), searchable: Boolean(field.searchable),
     dictionaryId: field.dictionaryId, referenceModuleId: field.referenceModuleId,
     sortOrder: field.sortOrder, status: field.status, optionsText,
-    defaultValue: config.defaultValue ?? undefined, placeholder: config.placeholder ?? '', currency: config.currency || 'CNY',
+    defaultValue: config.defaultValue ?? undefined, placeholder: config.placeholder ?? '',
+    minLength: config.minLength ?? undefined, maxLength: config.maxLength ?? undefined,
+    patternMode: config.patternMode || 'NONE', customPattern: config.customPattern || '', currency: config.currency || 'CNY',
     precision: config.precision ?? 2, maxDepth: config.maxDepth ?? 3,
     allowIntermediate: Boolean(config.allowIntermediate), saveMode: config.saveMode || 'FINAL',
     sequenceCode: config.sequenceCode || '', expression: config.expression || '', modelCode: config.modelCode || '',
@@ -359,6 +375,12 @@ function fieldConfig() {
   }
   if (fieldForm.defaultValue !== undefined && fieldForm.defaultValue !== null && fieldForm.defaultValue !== '') {
     config.defaultValue = fieldForm.defaultValue
+  }
+  if (supportsTextConstraints(fieldForm.fieldType)) {
+    if (fieldForm.minLength !== undefined) config.minLength = fieldForm.minLength
+    if (fieldForm.maxLength !== undefined) config.maxLength = fieldForm.maxLength
+    if (fieldForm.patternMode !== 'NONE') config.patternMode = fieldForm.patternMode
+    if (fieldForm.patternMode === 'CUSTOM') config.customPattern = fieldForm.customPattern.trim()
   }
   if (['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(fieldForm.fieldType) && !fieldForm.dictionaryId) {
     config.options = fieldForm.optionsText.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => {
@@ -1111,6 +1133,13 @@ onMounted(() => loadOverview())
         <div class="form-grid"><a-form-item label="可搜索"><a-switch v-model:checked="fieldForm.searchable" /></a-form-item>
           <a-form-item label="唯一值" extra="在当前组织和模块内约束非空值；由数据库并发保证。"><a-switch v-model:checked="fieldForm.uniqueValue" :disabled="!supportsUniqueValue(fieldForm.fieldType)" /></a-form-item></div>
         <a-form-item label="提示文案"><a-input v-model:value="fieldForm.placeholder" placeholder="页面输入提示" /></a-form-item>
+        <template v-if="supportsTextConstraints(fieldForm.fieldType)">
+          <a-alert v-if="builtInTextFormat(fieldForm.fieldType)" type="info" show-icon class="section-alert" :message="builtInTextFormat(fieldForm.fieldType)" />
+          <div class="form-grid"><a-form-item label="最短长度"><a-input-number v-model:value="fieldForm.minLength" :min="0" :max="100000" placeholder="不限" style="width:100%" /></a-form-item>
+            <a-form-item label="最长长度"><a-input-number v-model:value="fieldForm.maxLength" :min="1" :max="100000" placeholder="不限" style="width:100%" /></a-form-item></div>
+          <a-form-item label="附加格式规则" extra="常用格式直接选择；只有特殊业务规则才需要自定义正则表达式。"><a-select v-model:value="fieldForm.patternMode" :options="patternModeOptions" /></a-form-item>
+          <a-form-item v-if="fieldForm.patternMode === 'CUSTOM'" label="自定义正则表达式" required extra="按完整字段值校验，例如 ^VIP-[0-9]{6}$"><a-input v-model:value="fieldForm.customPattern" placeholder="输入完整匹配表达式" /></a-form-item>
+        </template>
         <a-form-item label="默认值" extra="可留空；创建记录时会自动带入并接受同一套服务端校验。">
           <a-input-number v-if="defaultEditor(fieldForm.fieldType) === 'NUMBER'" v-model:value="fieldForm.defaultValue as number" style="width:100%" placeholder="输入默认数字" />
           <a-date-picker v-else-if="defaultEditor(fieldForm.fieldType) === 'DATE'" v-model:value="fieldForm.defaultValue as string" value-format="YYYY-MM-DD" style="width:100%" placeholder="选择默认日期" />
