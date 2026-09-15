@@ -40,4 +40,16 @@ public class FlowBindingController {
         return ApiResult.ok(service.resolve(AuthenticationContextHolder.require(), body,
                 TraceIdFilter.current(request)));
     }
+
+    @GetMapping("/condition-fields")
+    public ApiResult<java.util.List<FlowBindingModels.ConditionField>> conditionFields(
+            @RequestParam Long moduleId, @RequestParam String triggerEvent) {
+        return ApiResult.ok(service.conditionFields(AuthenticationContextHolder.require(), moduleId, triggerEvent));
+    }
+
+    @PostMapping("/preview-condition")
+    public ApiResult<FlowBindingModels.ConditionPreview> previewCondition(
+            @Valid @RequestBody FlowBindingModels.PreviewConditionRequest body) {
+        return ApiResult.ok(service.previewCondition(AuthenticationContextHolder.require(), body));
+    }
 }

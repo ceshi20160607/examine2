@@ -5,7 +5,7 @@ import RichTextEditor from './RichTextEditor.vue'
 import StructuredValueEditor from './StructuredValueEditor.vue'
 import { emptyJsonValue, newJsonSchema, type JsonSchema } from '../structured-content'
 
-const props = defineProps<{ field: RuntimeField; modelValue?: unknown; options?: Array<{ value: string; label: string }> }>()
+const props = defineProps<{ field: Pick<RuntimeField, 'fieldType' | 'configJson' | 'required'>; modelValue?: unknown; options?: Array<{ value: string; label: string }> }>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const configuration = computed(() => {
@@ -33,6 +33,7 @@ const inputMode = computed(() => ({ PHONE: 'tel', EMAIL: 'email', URL: 'url' } a
   <a-textarea v-else-if="field.fieldType === 'MULTILINE_TEXT'" :value="modelValue as string" :rows="4" :placeholder="placeholder" :maxlength="maxLength" :show-count="Boolean(maxLength)" @update:value="emit('update:modelValue', $event)" />
   <a-input-number v-else-if="['NUMBER', 'MONEY'].includes(field.fieldType)" :value="modelValue as number" style="width:100%" :placeholder="placeholder" @update:value="emit('update:modelValue', $event)" />
   <a-select v-else-if="['SINGLE_SELECT', 'STATUS'].includes(field.fieldType)" :value="modelValue as string" :options="selectionOptions" allow-clear @update:value="emit('update:modelValue', $event)" />
+  <a-select v-else-if="field.fieldType === 'MULTI_SELECT'" :value="modelValue as string[]" :options="selectionOptions" mode="multiple" allow-clear @update:value="emit('update:modelValue', $event)" />
   <a-date-picker v-else-if="field.fieldType === 'DATE'" :value="modelValue as string" value-format="YYYY-MM-DD" style="width:100%" :placeholder="placeholder || '选择日期'" @update:value="emit('update:modelValue', $event)" />
   <a-date-picker v-else-if="field.fieldType === 'DATETIME'" :value="modelValue as string" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" :placeholder="placeholder || '选择日期和时间'" @update:value="emit('update:modelValue', $event)" />
   <a-switch v-else-if="field.fieldType === 'BOOLEAN'" :checked="Boolean(modelValue)" checked-children="是" un-checked-children="否" @update:checked="emit('update:modelValue', $event)" />

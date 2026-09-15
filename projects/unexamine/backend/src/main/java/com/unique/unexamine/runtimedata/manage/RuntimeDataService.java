@@ -813,7 +813,8 @@ public class RuntimeDataService {
                 "CREATE", null, null, request, options, traceId);
         BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
                 () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
-                        actionVariables(request), traceId),
+                        actionVariables(request, validateFields(context, dataContext, moduleCode, "CREATE",
+                                published.fields(), request.fields(), traceId, null)), traceId),
                 () -> validateImport(context, moduleCode, null, request, null, traceId),
                 () -> createDirect(context, moduleCode, request, traceId));
         return protectActionReplay(context, moduleCode, "CREATE", result, traceId);
@@ -924,6 +925,13 @@ public class RuntimeDataService {
         return variables;
     }
 
+    private Map<String, Object> actionVariables(Object request, Map<String, JsonNode> normalizedFields) {
+        Map<String, Object> variables = objectMapper.convertValue(request, new TypeReference<>() {});
+        variables.put("fields", normalizedFields);
+        normalizedFields.forEach(variables::putIfAbsent);
+        return variables;
+    }
+
     private BusinessAction.Result<RuntimeRecordView> protectActionReplay(
             AuthenticatedContext context, String moduleCode, String action,
             BusinessAction.Result<RuntimeRecordView> result, String traceId) {
@@ -993,7 +1001,8 @@ public class RuntimeDataService {
                 "UPDATE", recordId, request.version(), request, options, traceId);
         BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
                 () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
-                        actionVariables(request), traceId),
+                        actionVariables(request, validateFields(context, dataContext, moduleCode, "UPDATE",
+                                published.fields(), request.fields(), traceId, recordId)), traceId),
                 () -> validateImport(context, moduleCode, recordId, new CreateRuntimeRecordRequest(
                         request.title(), request.recordNumber(), request.status(), request.ownerMemberId(),
                         request.departmentId(), request.participantMemberIds(), request.fields()), request.version(), traceId),

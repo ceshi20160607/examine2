@@ -522,6 +522,7 @@ SELECT wl.id, CAST(jt.task_id AS UNSIGNED)
 FROM `work_log` wl
 JOIN JSON_TABLE(wl.custom_values_json, '$.taskIds[*]' COLUMNS(task_id VARCHAR(32) PATH '$')) AS jt ON TRUE
 WHERE wl.custom_values_json IS NOT NULL;
+
 -- source: update/V39__application_call_immutable_version.sql
 -- Application calls execute the immutable published version, never mutable draft grant rows.
 ALTER TABLE `app_call`
@@ -530,3 +531,11 @@ ALTER TABLE `app_call`
   ADD CONSTRAINT `fk_app_call_version`
     FOREIGN KEY (`application_id`, `application_version_id`)
     REFERENCES `app_version` (`application_id`, `id`);
+
+-- source: update/V40__direct_action_without_flow.sql
+-- A configured DIRECT action saves normally and does not require an unrelated Flow.
+ALTER TABLE `flow_trigger_binding`
+  DROP FOREIGN KEY `fk_flow_binding_definition`;
+ALTER TABLE `flow_trigger_binding` MODIFY COLUMN `flow_id` BIGINT NULL;
+ALTER TABLE `flow_trigger_binding` ADD CONSTRAINT `fk_flow_binding_definition`
+    FOREIGN KEY (`flow_id`) REFERENCES `flow_definition` (`id`);

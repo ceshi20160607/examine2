@@ -1,0 +1,302 @@
+{
+  "sampled_at": "2026-09-15T18:52:55.590574+08:00",
+  "assertions": "passed",
+  "records": [
+    [
+      "70",
+      "2",
+      "40",
+      "41",
+      "14.00000000"
+    ],
+    [
+      "71",
+      "4",
+      "41",
+      "41",
+      "18.00000000"
+    ]
+  ],
+  "receipts": [
+    {
+      "id": 41,
+      "status": "COMPLETED",
+      "mode": "DIRECT",
+      "flow_instance_id": null,
+      "value_version": 0
+    },
+    {
+      "id": 42,
+      "status": "COMPLETED",
+      "mode": "DIRECT",
+      "flow_instance_id": null,
+      "value_version": 1
+    },
+    {
+      "id": 43,
+      "status": "COMPLETED",
+      "mode": "DIRECT",
+      "flow_instance_id": null,
+      "value_version": 2
+    },
+    {
+      "id": 44,
+      "status": "COMPLETED",
+      "mode": "AFTER_EXECUTION",
+      "flow_instance_id": null,
+      "value_version": 3
+    },
+    {
+      "id": 45,
+      "status": "FLOW_STARTED",
+      "mode": "FLOW_ONLY",
+      "flow_instance_id": 36,
+      "value_version": null
+    },
+    {
+      "id": 46,
+      "status": "EXECUTED",
+      "mode": "AFTER_APPROVAL",
+      "flow_instance_id": 37,
+      "value_version": 4
+    }
+  ],
+  "bindings": [
+    {
+      "id": 3,
+      "status": "DISABLED",
+      "flow_id": "NULL",
+      "policy": {
+        "executionMode": "DIRECT",
+        "conditionExpression": null,
+        "condition": {
+          "mode": "ALL",
+          "conditions": []
+        },
+        "flowVersionId": null,
+        "mutuallyExclusive": true
+      }
+    },
+    {
+      "id": 4,
+      "status": "DISABLED",
+      "flow_id": "10",
+      "policy": {
+        "executionMode": "AFTER_EXECUTION",
+        "conditionExpression": null,
+        "condition": {
+          "mode": "ALL",
+          "conditions": [
+            {
+              "field": "field_54b4d262eb",
+              "operator": "GT",
+              "value": 15
+            },
+            {
+              "mode": "ANY",
+              "conditions": [
+                {
+                  "field": "field_cc57ec35ec",
+                  "operator": "EQ",
+                  "value": true
+                },
+                {
+                  "field": "field_dcc06d22c1",
+                  "operator": "EMPTY"
+                }
+              ]
+            }
+          ]
+        },
+        "flowVersionId": 10,
+        "mutuallyExclusive": true
+      }
+    },
+    {
+      "id": 5,
+      "status": "DISABLED",
+      "flow_id": "10",
+      "policy": {
+        "executionMode": "FLOW_ONLY",
+        "conditionExpression": null,
+        "condition": {
+          "mode": "ALL",
+          "conditions": [
+            {
+              "field": "field_54b4d262eb",
+              "operator": "GT",
+              "value": 15
+            },
+            {
+              "mode": "ANY",
+              "conditions": [
+                {
+                  "field": "field_cc57ec35ec",
+                  "operator": "EQ",
+                  "value": true
+                },
+                {
+                  "field": "field_dcc06d22c1",
+                  "operator": "EMPTY"
+                }
+              ]
+            }
+          ]
+        },
+        "flowVersionId": 10,
+        "mutuallyExclusive": true
+      }
+    },
+    {
+      "id": 6,
+      "status": "ACTIVE",
+      "flow_id": "10",
+      "policy": {
+        "executionMode": "AFTER_APPROVAL",
+        "conditionExpression": null,
+        "condition": {
+          "mode": "ALL",
+          "conditions": [
+            {
+              "field": "field_54b4d262eb",
+              "operator": "GT",
+              "value": 15
+            },
+            {
+              "mode": "ANY",
+              "conditions": [
+                {
+                  "field": "field_cc57ec35ec",
+                  "operator": "EQ",
+                  "value": true
+                },
+                {
+                  "field": "field_dcc06d22c1",
+                  "operator": "EMPTY"
+                }
+              ]
+            }
+          ]
+        },
+        "flowVersionId": 10,
+        "mutuallyExclusive": true
+      }
+    }
+  ],
+  "flows": [
+    [
+      "35",
+      "10",
+      "10",
+      "WAITING"
+    ],
+    [
+      "36",
+      "10",
+      "10",
+      "WAITING"
+    ],
+    [
+      "37",
+      "10",
+      "10",
+      "COMPLETED"
+    ]
+  ],
+  "outbox": [
+    [
+      "31",
+      "BUSINESS_ACTION_COMPLETED",
+      "PUBLISHED",
+      "null"
+    ],
+    [
+      "32",
+      "BUSINESS_ACTION_COMPLETED",
+      "PUBLISHED",
+      "null"
+    ],
+    [
+      "33",
+      "BUSINESS_ACTION_COMPLETED",
+      "PUBLISHED",
+      "null"
+    ],
+    [
+      "34",
+      "BUSINESS_ACTION_COMPLETED",
+      "PUBLISHED",
+      "35"
+    ],
+    [
+      "35",
+      "BUSINESS_ACTION_COMPLETED",
+      "PUBLISHED",
+      "36"
+    ],
+    [
+      "36",
+      "BUSINESS_ACTION_APPROVAL_REQUESTED",
+      "PUBLISHED",
+      "37"
+    ]
+  ],
+  "number_change_audits": [
+    [
+      "2790",
+      "BUSINESS_RECORD_CREATED",
+      "SUCCESS",
+      "null",
+      "8"
+    ],
+    [
+      "2792",
+      "BUSINESS_RECORD_UPDATED",
+      "SUCCESS",
+      "8.0",
+      "9"
+    ],
+    [
+      "2794",
+      "BUSINESS_RECORD_UPDATED",
+      "SUCCESS",
+      "9.0",
+      "10"
+    ],
+    [
+      "2796",
+      "BUSINESS_RECORD_UPDATED",
+      "SUCCESS",
+      "10.0",
+      "16"
+    ],
+    [
+      "2806",
+      "BUSINESS_RECORD_UPDATED",
+      "SUCCESS",
+      "16.0",
+      "18"
+    ]
+  ],
+  "migration": [
+    [
+      "40",
+      "1"
+    ]
+  ],
+  "flow_id_nullable": [
+    [
+      "YES"
+    ]
+  ],
+  "before_approval_observed": {
+    "record": 71,
+    "version": 3,
+    "number": 16,
+    "intent": 46,
+    "status": "PENDING_APPROVAL",
+    "flow_instance": 37,
+    "flow_status": "WAITING"
+  },
+  "limits": "Current fixture readback, not all action families/roles/approval behavior or future business data."
+}

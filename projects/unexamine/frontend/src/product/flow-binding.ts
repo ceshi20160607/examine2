@@ -1,4 +1,5 @@
 import type { FlowBindingView } from './types'
+import type { ConditionGroup } from './conditions'
 
 export function activeBinding(bindings: FlowBindingView[]) {
   return bindings.find(binding => binding.status === 'ACTIVE')
@@ -10,12 +11,14 @@ export function bindingSourceLabel(source: 'DEFAULT' | 'TENANT_OVERRIDE') {
 
 export function publishedBindingPayload(input: {
   moduleId: number
-  flowId: number
+  flowId?: number
   triggerEvent: string
   executionMode: string
   priorityOrder: number
   conditionExpression?: string
+  condition?: ConditionGroup
   mutuallyExclusive: boolean
 }, replaceExisting = false) {
-  return { ...input, conditionExpression: input.conditionExpression?.trim() || undefined, replaceExisting }
+  return { ...input, flowId: input.executionMode === 'DIRECT' ? undefined : input.flowId,
+    conditionExpression: input.conditionExpression?.trim() || undefined, replaceExisting }
 }

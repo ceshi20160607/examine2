@@ -1,5 +1,7 @@
 package com.unique.unexamine.flow.manage;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.unique.unexamine.moduleconfig.manage.ModuleRuleModels.ConditionResult;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,10 +19,11 @@ public final class FlowBindingModels {
             @NotNull Long moduleId,
             Long actionId,
             @NotBlank @Size(max = 64) String triggerEvent,
-            @NotNull Long flowId,
+            Long flowId,
             @NotBlank @Size(max = 64) String executionMode,
             @Min(0) Integer priorityOrder,
             @Size(max = 2000) String conditionExpression,
+            JsonNode condition,
             Boolean mutuallyExclusive,
             Boolean replaceExisting) {
     }
@@ -46,6 +49,7 @@ public final class FlowBindingModels {
             String executionMode,
             Integer priorityOrder,
             String conditionExpression,
+            JsonNode condition,
             boolean mutuallyExclusive,
             String status,
             Integer version,
@@ -71,4 +75,9 @@ public final class FlowBindingModels {
 
     public record BindingList(List<BindingView> currentTenant, List<BindingView> inheritedDefaults) {
     }
+
+    public record ConditionField(String code, String name, String fieldType, String configJson) { }
+    public record PreviewConditionRequest(@NotNull Long moduleId, @NotBlank String triggerEvent,
+                                          @NotNull JsonNode condition, Map<String, Object> variables) { }
+    public record ConditionPreview(boolean matched, List<ConditionResult> conditions) { }
 }

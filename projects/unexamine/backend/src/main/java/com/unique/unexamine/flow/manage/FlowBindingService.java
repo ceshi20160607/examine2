@@ -4,6 +4,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.unique.unexamine.authorization.manage.ChannelFieldPolicyResolver;
+import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
+import com.unique.unexamine.moduleconfig.manage.StructuredRuleEvaluator;
+import com.unique.unexamine.moduleconfig.manage.ModuleRuleModels.ConditionResult;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
@@ -39,6 +44,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.ArrayList;
 
 @Service
 public class FlowBindingService {
@@ -60,6 +66,9 @@ public class FlowBindingService {
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final ModulePublicationService moduleConfigurations;
+    private final ChannelFieldPolicyResolver fieldPolicies;
+    private final StructuredRuleEvaluator conditions;
 
     public FlowBindingService(
             FlowTriggerBindingBaseService bindingService,
@@ -73,7 +82,8 @@ public class FlowBindingService {
             SystemTenantBaseService tenantService,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, ModulePublicationService moduleConfigurations,
+            ChannelFieldPolicyResolver fieldPolicies, StructuredRuleEvaluator conditions) {
         this.bindingService = bindingService;
         this.resolutionService = resolutionService;
         this.definitionService = definitionService;
@@ -86,6 +96,9 @@ public class FlowBindingService {
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.moduleConfigurations = moduleConfigurations;
+        this.fieldPolicies = fieldPolicies;
+        this.conditions = conditions;
     }
 
     @Transactional(readOnly = true)
@@ -125,17 +138,25 @@ public class FlowBindingService {
             throw invalid("FLOW_BINDING_EXECUTION_MODE_INVALID", "Flow 绑定执行模式无效");
         }
         validateCondition(input.conditionExpression());
-        FlowDefinition flow = requirePublishedFlow(context, input.flowId());
-        FlowPublication publication = publication(flow.getId());
-        FlowVersion version = requireVersion(publication.getCurrentVersionId(), flow.getId());
+        if (input.condition() != null) {
+            if (blankToNull(input.conditionExpression()) != null) throw invalid("FLOW_BINDING_CONDITION_INVALID", "不能同时配置两种条件协议");
+            validateStructuredCondition(context, module, event, input.condition());
+        }
+        FlowDefinition flow = "DIRECT".equals(executionMode) ? null : requirePublishedFlow(context, input.flowId());
+        Long flowId = flow == null ? null : flow.getId();
+        FlowVersion version = flow == null ? null : requireVersion(publication(flowId).getCurrentVersionId(), flowId);
+        Long versionId = version == null ? null : version.getId();
         int priority = input.priorityOrder() == null ? 0 : input.priorityOrder();
 
         List<FlowTriggerBinding> scope = scopeBindingsForUpdate(
                 context.systemId(), context.tenantId(), module.getId(), action == null ? null : action.getId(), event);
         List<FlowTriggerBinding> active = scope.stream().filter(item -> "ACTIVE".equals(item.getStatus())).toList();
-        boolean sameActive = active.size() == 1 && Objects.equals(active.getFirst().getFlowId(), flow.getId())
+        boolean sameActive = active.size() == 1 && Objects.equals(active.getFirst().getFlowId(), flowId)
                 && active.getFirst().getPriorityOrder() == priority
                 && Objects.equals(policy(active.getFirst()).executionMode(), executionMode)
+                && Objects.equals(policy(active.getFirst()).flowVersionId(), versionId)
+                && policy(active.getFirst()).mutuallyExclusive() == !Boolean.FALSE.equals(input.mutuallyExclusive())
+                && Objects.equals(policy(active.getFirst()).condition(), input.condition())
                 && Objects.equals(policy(active.getFirst()).conditionExpression(), blankToNull(input.conditionExpression()));
         if (sameActive) {
             return view(active.getFirst(), mainTenant(context.systemId()).getId());
@@ -169,17 +190,17 @@ public class FlowBindingService {
         binding.setActionId(action == null ? null : action.getId());
         binding.setTriggerEvent(event);
         binding.setVersion(0);
-        binding.setFlowId(flow.getId());
+        binding.setFlowId(flowId);
         binding.setPriorityOrder(priority);
-        binding.setConditionExpression(toPolicyJson(executionMode, input.conditionExpression(), input.mutuallyExclusive()));
+        binding.setConditionExpression(toPolicyJson(executionMode, input.conditionExpression(), input.condition(), input.mutuallyExclusive(), versionId));
         binding.setStatus("ACTIVE");
         bindingService.insert(binding);
         LinkedHashMap<String, Object> detail = new LinkedHashMap<>();
         detail.put("moduleId", module.getId());
         detail.put("actionId", action == null ? null : action.getId());
         detail.put("triggerEvent", event);
-        detail.put("flowId", flow.getId());
-        detail.put("flowVersionId", version.getId());
+        detail.put("flowId", flowId);
+        detail.put("flowVersionId", versionId);
         detail.put("ownerTenantId", context.tenantId());
         audit(context, traceId, "FLOW_BINDING_PUBLISHED", "FLOW_TRIGGER_BINDING", binding.getId(), detail);
         return view(binding, mainTenant(context.systemId()).getId());
@@ -235,17 +256,26 @@ public class FlowBindingService {
             throw new DomainException("FLOW_BINDING_NOT_FOUND", "当前业务触发点没有可用 Flow 绑定", HttpStatus.NOT_FOUND);
         }
         BindingPolicy policy = policy(binding);
-        if (!matches(policy.conditionExpression(), input.variables())) {
+        if (!optional && policy.condition() != null) {
+            validateStructuredCondition(context, module, event, policy.condition());
+            validateVariables(context, module, event, input.variables());
+        }
+        if (!(policy.condition() == null ? matches(policy.conditionExpression(), input.variables())
+                : conditions.evaluateConditions(policy.condition(), objectMapper.valueToTree(input.variables() == null ? Map.of() : input.variables()), new ArrayList<>()))) {
             if (optional) return null;
             throw invalid("FLOW_BINDING_CONDITION_NOT_MATCHED", "业务数据未命中 Flow 绑定条件");
         }
+        if ("DIRECT".equals(policy.executionMode())) return new FlowBindingModels.ResolutionView(
+                null, binding.getId(), Objects.equals(binding.getOwnerTenantId(), mainTenantId) ? "DEFAULT" : "TENANT_OVERRIDE",
+                binding.getOwnerTenantId(), context.tenantId(), null, null, null, null, Map.of(),
+                "DIRECT", policy.mutuallyExclusive(), "DIRECT_CONFIGURATION", LocalDateTime.now());
         FlowDefinition flow = definitionService.selectById(binding.getFlowId());
         if (flow == null || !Objects.equals(flow.getSystemId(), context.systemId())
                 || !Objects.equals(flow.getOwnerTenantId(), binding.getOwnerTenantId())) {
             throw invalid("FLOW_BINDING_VERSION_INCOMPATIBLE", "Flow 绑定与生效租户不兼容");
         }
-        FlowPublication publication = publication(flow.getId());
-        FlowVersion version = requireVersion(publication.getCurrentVersionId(), flow.getId());
+        FlowVersion version = requireVersion(policy.flowVersionId() == null
+                ? publication(flow.getId()).getCurrentVersionId() : policy.flowVersionId(), flow.getId());
         boolean override = !Objects.equals(binding.getOwnerTenantId(), mainTenantId);
         String reason = override ? "TENANT_OVERRIDE" : "MAIN_TENANT_DEFAULT";
 
@@ -270,6 +300,101 @@ public class FlowBindingService {
                 binding.getOwnerTenantId(), context.tenantId(), flow.getId(), version.getId(),
                 version.getVersionNumber(), version.getDefinitionHash(), readMap(version.getSnapshotJson()),
                 policy.executionMode(), policy.mutuallyExclusive(), reason, resolution.getResolvedAt());
+    }
+
+    @Transactional(readOnly = true)
+    public List<FlowBindingModels.ConditionField> conditionFields(AuthenticatedContext context, Long moduleId, String event) {
+        requireSystem(context);
+        requireAction(context, "VIEW");
+        return conditionFieldsInternal(context, requireModule(context, moduleId), normalizeEvent(event));
+    }
+
+    private List<FlowBindingModels.ConditionField> conditionFieldsInternal(AuthenticatedContext context, ConfiguredModule module, String event) {
+        JsonNode snapshot = moduleConfigurations.published(context, module.getCode()).configuration();
+        List<JsonNode> fields = new ArrayList<>();
+        snapshot.path("fields").forEach(field -> {
+            if ("ACTIVE".equals(field.path("status").asText()) && Set.of("TEXT", "MULTILINE_TEXT", "NUMBER", "MONEY", "BOOLEAN",
+                    "DATE", "DATETIME", "PHONE", "EMAIL", "URL", "ID_CARD", "SINGLE_SELECT", "MULTI_SELECT", "STATUS").contains(field.path("fieldType").asText())) fields.add(field);
+        });
+        String action = Set.of("CREATE", "UPDATE", "DELETE").contains(event) ? event : "DETAIL";
+        var access = fieldPolicies.resolveIntersection(context, module.getCode(), action, List.of("PAGE", "FLOW"),
+                fields.stream().map(field -> field.path("code").asText()).toList());
+        return fields.stream().filter(field -> {
+            var decision = access.get(field.path("code").asText());
+            return decision != null && decision.readable() && decision.maskStrategy() == null;
+        }).map(field -> {
+            JsonNode config = readJson(field.path("configJson").asText("{}"));
+            var safeConfig = objectMapper.createObjectNode();
+            for (String key : List.of("options", "placeholder", "maxLength")) if (config.has(key)) safeConfig.set(key, config.get(key));
+            return new FlowBindingModels.ConditionField(field.path("code").asText(), field.path("name").asText(),
+                    field.path("fieldType").asText(), safeConfig.toString());
+        }).toList();
+    }
+
+    private JsonNode readJson(String value) {
+        try { return objectMapper.readTree(value); }
+        catch (JsonProcessingException exception) { throw invalid("FLOW_BINDING_CONDITION_INVALID", "条件或字段配置无法读取"); }
+    }
+
+    private void validateStructuredCondition(AuthenticatedContext context, ConfiguredModule module, String event, JsonNode condition) {
+        var fields = conditionFieldsInternal(context, module, event);
+        var issues = conditions.inspectConditions(condition, fields.stream().map(FlowBindingModels.ConditionField::code).collect(java.util.stream.Collectors.toSet()));
+        if (!issues.isEmpty()) throw invalid("FLOW_BINDING_CONDITION_INVALID", String.join("；", issues));
+        validateConditionValues(condition, fields);
+    }
+
+    private void validateConditionValues(JsonNode node, List<FlowBindingModels.ConditionField> fields) {
+        if (node.has("conditions")) { for (JsonNode child : node.path("conditions")) validateConditionValues(child, fields); return; }
+        String op = node.path("operator").asText();
+        if (Set.of("EMPTY", "NOT_EMPTY").contains(op)) return;
+        var field = fields.stream().filter(item -> item.code().equals(node.path("field").asText())).findFirst().orElseThrow();
+        JsonNode value = node.path("value");
+        if (Set.of("GT", "GTE", "LT", "LTE").contains(op) && !Set.of("NUMBER", "MONEY", "DATE", "DATETIME").contains(field.fieldType()))
+            throw invalid("FLOW_BINDING_CONDITION_INVALID", field.name() + "不支持大小比较");
+        if ("CONTAINS".equals(op) && !Set.of("TEXT", "MULTILINE_TEXT", "MULTI_SELECT", "PHONE", "EMAIL", "URL", "ID_CARD").contains(field.fieldType()))
+            throw invalid("FLOW_BINDING_CONDITION_INVALID", field.name() + "不支持包含比较");
+        if ("IN".equals(op)) {
+            if ("MULTI_SELECT".equals(field.fieldType())) throw invalid("FLOW_BINDING_CONDITION_INVALID", "多选字段请使用包含条件");
+            for (JsonNode item : value) if (!validValue(field.fieldType(), item)) throw invalid("FLOW_BINDING_CONDITION_INVALID", field.name() + "的比较值类型不正确");
+        } else if (!("CONTAINS".equals(op) && "MULTI_SELECT".equals(field.fieldType()) ? value.isTextual() : validValue(field.fieldType(), value)))
+            throw invalid("FLOW_BINDING_CONDITION_INVALID", field.name() + "的比较值类型不正确");
+    }
+
+    private boolean validValue(String type, JsonNode value) {
+        if (Set.of("NUMBER", "MONEY").contains(type)) return value.isNumber();
+        if ("BOOLEAN".equals(type)) return value.isBoolean();
+        if ("MULTI_SELECT".equals(type)) return value.isArray() && java.util.stream.StreamSupport.stream(value.spliterator(), false).allMatch(JsonNode::isTextual);
+        if (!value.isTextual()) return false;
+        try {
+            if ("DATE".equals(type)) java.time.LocalDate.parse(value.asText());
+            if ("DATETIME".equals(type)) {
+                try { java.time.OffsetDateTime.parse(value.asText()); }
+                catch (java.time.format.DateTimeParseException ignored) { java.time.LocalDateTime.parse(value.asText()); }
+            }
+            return true;
+        } catch (java.time.format.DateTimeParseException exception) { return false; }
+    }
+
+    private void validateVariables(AuthenticatedContext context, ConfiguredModule module, String event, Map<String, Object> variables) {
+        var allowed = conditionFieldsInternal(context, module, event);
+        for (var entry : (variables == null ? Map.<String, Object>of() : variables).entrySet()) {
+            var field = allowed.stream().filter(item -> item.code().equals(entry.getKey())).findFirst()
+                    .orElseThrow(() -> invalid("FLOW_BINDING_FIELD_NOT_ALLOWED", "测试数据引用不可读取的字段"));
+            JsonNode value = objectMapper.valueToTree(entry.getValue());
+            if (!value.isNull() && !validValue(field.fieldType(), value)) throw invalid("FLOW_BINDING_CONDITION_INVALID", field.name() + "的测试值类型不正确");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public FlowBindingModels.ConditionPreview previewCondition(AuthenticatedContext context, FlowBindingModels.PreviewConditionRequest input) {
+        requireSystem(context); requireAction(context, "TRIGGER");
+        var module = requireModule(context, input.moduleId());
+        String event = normalizeEvent(input.triggerEvent());
+        validateStructuredCondition(context, module, event, input.condition());
+        validateVariables(context, module, event, input.variables());
+        List<ConditionResult> results = new ArrayList<>();
+        boolean matched = conditions.evaluateConditions(input.condition(), objectMapper.valueToTree(input.variables() == null ? Map.of() : input.variables()), results);
+        return new FlowBindingModels.ConditionPreview(matched, results);
     }
 
     private ConfiguredModule requireModule(AuthenticatedContext context, Long moduleId) {
@@ -303,6 +428,7 @@ public class FlowBindingService {
     }
 
     private FlowDefinition requirePublishedFlow(AuthenticatedContext context, Long flowId) {
+        if (flowId == null) throw invalid("FLOW_BINDING_FLOW_NOT_PUBLISHED", "请选择已发布流程");
         FlowDefinition flow = definitionService.selectById(flowId);
         if (flow == null || !"SYSTEM".equals(flow.getContextType())
                 || !Objects.equals(flow.getSystemId(), context.systemId())
@@ -360,16 +486,18 @@ public class FlowBindingService {
     }
 
     private FlowBindingModels.BindingView view(FlowTriggerBinding binding, Long mainTenantId) {
-        FlowPublication publication = publicationService.selectList(Wrappers.<FlowPublication>lambdaQuery()
-                        .eq(FlowPublication::getFlowId, binding.getFlowId())).stream().findFirst().orElse(null);
-        FlowVersion version = publication == null ? null : versionService.selectById(publication.getCurrentVersionId());
         BindingPolicy policy = policy(binding);
+        FlowPublication publication = binding.getFlowId() == null ? null : publicationService.selectList(Wrappers.<FlowPublication>lambdaQuery()
+                        .eq(FlowPublication::getFlowId, binding.getFlowId())).stream().findFirst().orElse(null);
+        FlowVersion version = policy.flowVersionId() != null ? versionService.selectById(policy.flowVersionId())
+                : publication == null ? null : versionService.selectById(publication.getCurrentVersionId());
         return new FlowBindingModels.BindingView(
                 binding.getId(), binding.getSystemId(), binding.getOwnerTenantId(),
                 Objects.equals(binding.getOwnerTenantId(), mainTenantId) ? "DEFAULT" : "TENANT_OVERRIDE",
                 binding.getModuleId(), binding.getActionId(), binding.getTriggerEvent(), binding.getFlowId(),
                 version == null ? null : version.getId(), version == null ? null : version.getVersionNumber(),
                 policy.executionMode(), binding.getPriorityOrder(), policy.conditionExpression(),
+                policy.condition(),
                 policy.mutuallyExclusive(), binding.getStatus(), binding.getVersion(), binding.getUpdatedAt());
     }
 
@@ -389,10 +517,12 @@ public class FlowBindingService {
         return normalized;
     }
 
-    private String toPolicyJson(String mode, String expression, Boolean mutuallyExclusive) {
+    private String toPolicyJson(String mode, String expression, JsonNode condition, Boolean mutuallyExclusive, Long flowVersionId) {
         LinkedHashMap<String, Object> value = new LinkedHashMap<>();
         value.put("executionMode", mode);
         value.put("conditionExpression", blankToNull(expression));
+        value.put("condition", condition);
+        value.put("flowVersionId", flowVersionId);
         value.put("mutuallyExclusive", !Boolean.FALSE.equals(mutuallyExclusive));
         try {
             return objectMapper.writeValueAsString(value);
@@ -403,7 +533,7 @@ public class FlowBindingService {
 
     private BindingPolicy policy(FlowTriggerBinding binding) {
         if (binding.getConditionExpression() == null || binding.getConditionExpression().isBlank()) {
-            return new BindingPolicy("AFTER_EXECUTION", null, true);
+            return new BindingPolicy("AFTER_EXECUTION", null, null, true, null);
         }
         try {
             Map<String, Object> value = objectMapper.readValue(binding.getConditionExpression(), new TypeReference<>() { });
@@ -411,9 +541,11 @@ public class FlowBindingService {
                     String.valueOf(value.getOrDefault("executionMode", "AFTER_EXECUTION")),
                     blankToNull(value.get("conditionExpression") == null ? null
                             : String.valueOf(value.get("conditionExpression"))),
-                    !Boolean.FALSE.equals(value.get("mutuallyExclusive")));
+                    value.get("condition") == null ? null : objectMapper.valueToTree(value.get("condition")),
+                    !Boolean.FALSE.equals(value.get("mutuallyExclusive")),
+                    value.get("flowVersionId") == null ? null : ((Number) value.get("flowVersionId")).longValue());
         } catch (JsonProcessingException ignored) {
-            return new BindingPolicy("AFTER_EXECUTION", binding.getConditionExpression(), true);
+            return new BindingPolicy("AFTER_EXECUTION", binding.getConditionExpression(), null, true, null);
         }
     }
 
@@ -512,6 +644,6 @@ public class FlowBindingService {
         return value == null || value.isBlank() ? null : value.strip();
     }
 
-    private record BindingPolicy(String executionMode, String conditionExpression, boolean mutuallyExclusive) {
+    private record BindingPolicy(String executionMode, String conditionExpression, JsonNode condition, boolean mutuallyExclusive, Long flowVersionId) {
     }
 }

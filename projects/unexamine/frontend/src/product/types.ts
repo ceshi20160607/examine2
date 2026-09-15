@@ -1816,12 +1816,13 @@ export interface FlowBindingView {
   moduleId: number
   actionId?: number
   triggerEvent: string
-  flowId: number
-  flowVersionId: number
-  flowVersionNumber: number
+  flowId?: number
+  flowVersionId?: number
+  flowVersionNumber?: number
   executionMode: string
   priorityOrder: number
   conditionExpression?: string
+  condition?: import('./conditions').ConditionNode
   mutuallyExclusive: boolean
   status: string
   version: number
@@ -1837,9 +1838,9 @@ export interface FlowBindingResolution {
   source: 'DEFAULT' | 'TENANT_OVERRIDE'
   sourceTenantId: number
   requestedTenantId: number
-  flowId: number
-  flowVersionId: number
-  flowVersionNumber: number
+  flowId?: number
+  flowVersionId?: number
+  flowVersionNumber?: number
   definitionHash: string
   definitionSnapshot: Record<string, unknown>
   executionMode: string
