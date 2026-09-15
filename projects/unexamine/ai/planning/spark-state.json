@@ -15,7 +15,8 @@
     "strategy": "modify_existing_shared_core_no_stack_replacement",
     "action_executor_path": "foundation/manage/control/FoundationControlService.execute; RuntimeDataService public writes enter this synchronous transaction; dispatcher handles delivery only",
     "custom_module_storage": "metadata_generic_records_values_indexes_relations",
-    "frontend": "shared_shells_and_schema_renderers"
+    "frontend": "shared_shells_and_schema_renderers",
+    "form_configuration": "shared_drag_drop_field_designer_left_types_center_canvas_right_typed_properties"
   },
   "current_scope": {
     "step": "B05.2b",
@@ -54,6 +55,7 @@
       "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
     ],
     "entry_points": [
+      "Extend the existing shared field registry and property drawer for the drag-and-drop form designer; do not add a separate one-off configuration page for this field family.",
       "Trace RICH_TEXT, JSON and SECRET from draft and publication through dedicated editors, safe server normalization, typed storage and readback.",
       "Sanitize rich text with an explicit allowlist. Give ordinary JSON users schema/key-value/form controls; reserve raw JSON for an explicit advanced import or diagnostic path.",
       "Treat SECRET as one-time write: no plaintext browser draft, list/detail/history response or client persistence, and no searchable/unique plaintext projection.",
@@ -63,7 +65,8 @@
       "All three field types have usable dedicated structured configuration and runtime input; ordinary users do not hand-write JSON.",
       "Rich text is sanitized, JSON schema/value validation is field-level, and secret plaintext cannot be read back from API, history, logs or browser storage.",
       "Invalid content rolls back without a record or successful mutation audit; applicable list/detail/history/search and permission behavior follows the published field configuration.",
-      "Focused tests and one retained-module real journey pass; B05.2 remains unverified until numeric and date/range slices complete."
+      "Focused tests and one retained-module real journey pass; B05.2 remains unverified until numeric and date/range slices complete.",
+      "B05 verifies field-family behavior only; complete drag-and-drop form-designer acceptance remains required in B06 under form_designer_contract."
     ]
   },
   "last_result": {
@@ -1528,5 +1531,25 @@
       "B03.1c"
     ],
     "rule": "Deferred means still required; no historical report may mark it complete."
+  },
+  "form_designer_contract": {
+    "source_rows": [
+      "R0551",
+      "R0552",
+      "R1464",
+      "R1465",
+      "R1466",
+      "R1467",
+      "R1468",
+      "R1469",
+      "R1489",
+      "R1490",
+      "R2949"
+    ],
+    "ordinary_path": "Drag a field type from the left palette into the center form canvas, position/reorder/group it, and configure its type-specific properties on the right. Preview, draft save, publication and runtime share the same field registry and renderer. No hand-written JSON.",
+    "internal_protocol": "Page schema and JSON are internal persistence/transport formats; a JSON business field must not turn form, page, Flow or application configuration into a raw-JSON editor.",
+    "current_observed_gap": "Type-palette drop currently opens field configuration and page layout is a separate field-selection/reordering view with schematic preview. The full shared three-panel drag-to-runtime journey is not verified.",
+    "completion_packet": "B06",
+    "acceptance": "Use real drag/drop to create and arrange a form, edit typed properties and groups, preview, publish and reopen in the runtime. A field table, modal or checkbox selection alone is insufficient."
   }
 }
