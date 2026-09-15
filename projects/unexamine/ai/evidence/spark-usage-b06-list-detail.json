@@ -1,0 +1,47 @@
+{
+  "thread_id": "01a06f53-2b57-7333-8b55-0d0183b53303",
+  "turn_id": "01a0a41b-22f6-79f3-8628-53749b0d4309",
+  "sampled_at": "2026-09-15T16:37:19.092607+08:00",
+  "baseline": {
+    "timestamp": "2026-09-15T08:00:39.440Z",
+    "input_tokens": 268734524,
+    "cached_input_tokens": 262487424,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 906234,
+    "reasoning_output_tokens": 323763,
+    "total_tokens": 269640758
+  },
+  "latest": {
+    "input_tokens": 284335051,
+    "cached_input_tokens": 277708032,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 955005,
+    "reasoning_output_tokens": 337048,
+    "total_tokens": 285290056,
+    "timestamp": "2026-09-15T08:36:52.319Z"
+  },
+  "delta": {
+    "input_tokens": 15600527,
+    "cached_input_tokens": 15220608,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 48771,
+    "reasoning_output_tokens": 13285,
+    "total_tokens": 15649298,
+    "uncached_input_tokens": 379919
+  },
+  "active_turn": {
+    "input_tokens": 15197918,
+    "cached_input_tokens": 14820608,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 47807,
+    "reasoning_output_tokens": 12655,
+    "total_tokens": 15245725,
+    "uncached_input_tokens": 377310
+  },
+  "cost": null,
+  "notes": [
+    "Active-turn counters are primary for this continuation. Delta since prior sample also includes prior final bookkeeping/messages.",
+    "Cached input is separate; reasoning output is included in output, never added twice. Token traffic is not context size or monetary billing.",
+    "No subagents, no currency-pricing estimate. Final commit/bookkeeping/response after this snapshot excluded."
+  ]
+}

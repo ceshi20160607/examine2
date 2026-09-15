@@ -39,11 +39,11 @@ export function formSections(value: unknown, fields: ConfiguredField[]): FormSec
   sections[0]!.fieldCodes.push(...[...visible].filter(code => !used.has(code)))
   return sections
 }
-export function materializeFormLayout(original: unknown, sections: FormSection[], spans: Record<string, number> = {}): FormLayout {
+export function materializeFormLayout(original: unknown, sections: FormSection[], spans: Record<string, number> = {}, pageType: 'FORM' | 'DETAIL' = 'FORM'): FormLayout {
   const layout = parseFormLayout(original)
   const fieldCodes = sections.flatMap(section => section.fieldCodes)
   return {
-    ...layout, schemaVersion: 1, layoutType: 'FORM', fieldCodes,
+    ...layout, schemaVersion: 1, layoutType: pageType, fieldCodes,
     fieldSpans: Object.fromEntries(Object.entries(spans).filter(([code]) => fieldCodes.includes(code))),
     components: [...(Array.isArray(layout.components) ? layout.components : []).filter(component => component.type !== 'SECTION'),
       ...sections.map(section => ({ ...section.extra, id: section.id, type: 'SECTION', title: section.title,

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { ConfiguredField } from '../types'
 import { fieldSpan, formSections } from '../form-layout'
-const props = defineProps<{ layout?: unknown; fields: ConfiguredField[]; design?: boolean; selectedCode?: string; mobile?: boolean }>()
+const props = defineProps<{ layout?: unknown; fields: ConfiguredField[]; design?: boolean; selectedCode?: string; mobile?: boolean; dropHint?: string }>()
 const emit = defineEmits<{ select: [code: string]; section: [id: string] }>()
 const sections = computed(() => formSections(props.layout, props.fields))
 const byCode = computed(() => new Map(props.fields.map(field => [field.code, field])))
@@ -18,7 +18,7 @@ const byCode = computed(() => new Map(props.fields.map(field => [field.code, fie
           <slot name="field-tools" :field="byCode.get(code)!" :section="section" />
           <slot name="field" :field="byCode.get(code)!" :section="section" />
         </div>
-        <div v-if="design" class="schema-form-drop" :data-form-section="section.id">拖入字段，或点击左侧类型添加</div>
+        <div v-if="design" class="schema-form-drop" :data-form-section="section.id">{{ dropHint || '拖入字段，或点击左侧类型添加' }}</div>
       </div>
     </section>
   </div>

@@ -32,11 +32,14 @@ import type {
   RuleTestResult,
   PublishedModuleVersion,
   RuntimeModuleConfiguration,
+  RuntimeRecord,
+  RuntimeRecordList,
   AiSystemOverview,
 } from '../types'
 
 import ModuleFieldProperties from '../components/ModuleFieldProperties.vue'
 import ModuleFormDesigner from '../components/ModuleFormDesigner.vue'
+import ModulePageDesigner from '../components/ModulePageDesigner.vue'
 import { newJsonSchema, jsonSchemaIssue, type JsonSchema } from '../structured-content'
 
 const emit = defineEmits<{ published: [] }>()
@@ -56,6 +59,9 @@ const groupModal = ref(false)
 const moduleModal = ref(false)
 const fieldDrawer = ref(false)
 const formDesigner = ref<InstanceType<typeof ModuleFormDesigner>>()
+const pageDesigner = ref<InstanceType<typeof ModulePageDesigner>>()
+const previewRecords = ref<RuntimeRecord[]>([])
+const previewError = ref('')
 const fieldFormSnapshot = ref('')
 const designerError = ref('')
 const activeDesignerTab = ref('FIELDS')
@@ -144,6 +150,7 @@ const groupedModules = computed(() => overview.value.groups.map((group) => ({
   modules: overview.value.modules.filter((module) => module.groupId === group.id),
 })))
 const formDesignActive = computed(() => activeConfigTask.value === 'FIELDS' && ['FIELDS', 'FORM'].includes(activeDesignerTab.value))
+const pageDesignActive = computed(() => activeConfigTask.value === 'FIELDS' && ['LIST', 'DETAIL'].includes(activeDesignerTab.value))
 const formDesignPage = computed(() => draft.value?.pages.find(page => page.pageType === 'FORM'))
 const fieldPropertyDirty = computed(() => fieldDrawer.value && (!editingField.value || JSON.stringify(fieldForm) !== fieldFormSnapshot.value))
 const pendingFormField = computed<ConfiguredField | undefined>(() => formDesignActive.value && fieldDrawer.value && !editingField.value ? {
@@ -279,6 +286,14 @@ async function selectModule(moduleId: number) {
     draft.value = currentDraft
     versions.value = history
     ruleIndexDraft.value = rulesIndexes
+    previewRecords.value = []
+    previewError.value = ''
+    if (currentDraft.published) {
+      try {
+        const sample = await api<RuntimeRecordList>(`/api/runtime/modules/${currentDraft.module.code}/records?page=1&pageSize=20`, {}, token.value)
+        previewRecords.value = sample.records
+      } catch { previewError.value = '当前身份无法读取预览记录，以下仅显示字段默认值。' }
+    }
   } catch (reason) {
     error.value = readable(reason)
   }
@@ -494,6 +509,25 @@ async function saveDesignerDraft() {
   finally { saving.value = false }
 }
 async function publishDesigner() { if (await saveDesignerDraft()) openPublicationStep() }
+
+async function savePageDesignerDraft() {
+  if (!selectedModuleId.value || !selectedPage.value || !pageDesigner.value) return false
+  const issue = pageDesigner.value.getIssue()
+  if (issue) { message.warning(issue); return false }
+  if (!pageDesigner.value.hasUnsaved()) return true
+  saving.value = true
+  try {
+    const saved = await api<import('../types').ConfiguredPage>(`/api/admin/module-config/modules/${selectedModuleId.value}/pages/${selectedPage.value.pageType}`, {
+      method: 'PUT', body: JSON.stringify({ layout: pageDesigner.value.getLayout(), version: selectedPage.value.version }),
+    }, token.value)
+    draft.value!.pages = draft.value!.pages.map(page => page.id === saved.id ? saved : page)
+    pageDesigner.value.markSaved(saved.layoutJson)
+    message.success('页面草稿已保存，发布后业务页面生效')
+    return true
+  } catch (reason) { message.error(readable(reason)); return false }
+  finally { saving.value = false }
+}
+async function publishPageDesigner() { if (await savePageDesignerDraft()) openPublicationStep() }
 
 async function savePageLayout(fieldCodes: string[], columns = pageColumns.value, properties: Record<string, unknown> = {}) {
   if (!selectedModuleId.value || !selectedPage.value) return
@@ -908,18 +942,20 @@ function onDrop(event: DragEvent) {
 
 function canLeaveForm() {
   if (formDesigner.value?.hasUnsaved()) { message.warning('请先保存当前表单草稿再切换'); return false }
+  if (pageDesigner.value?.hasUnsaved()) { message.warning('请先保存当前页面草稿再切换'); return false }
   return true
 }
 onBeforeRouteLeave(() => canLeaveForm())
 onBeforeRouteUpdate((to, from) => to.query.section === from.query.section || canLeaveForm())
 function warnBeforeUnload(event: BeforeUnloadEvent) {
-  if (formDesigner.value?.hasUnsaved()) { event.preventDefault(); event.returnValue = '' }
+  if (formDesigner.value?.hasUnsaved() || pageDesigner.value?.hasUnsaved()) { event.preventDefault(); event.returnValue = '' }
 }
 onMounted(() => window.addEventListener('beforeunload', warnBeforeUnload))
 onBeforeUnmount(() => window.removeEventListener('beforeunload', warnBeforeUnload))
 defineExpose({ canLeaveForm })
 function selectDesignerTab(tab: string) {
-  if (!['FIELDS', 'FORM'].includes(tab) && !canLeaveForm()) return
+  if (tab !== activeDesignerTab.value && !(formDesignActive.value && ['FIELDS', 'FORM'].includes(tab)) && !canLeaveForm()) return
+  if (!['FIELDS', 'FORM'].includes(tab)) fieldDrawer.value = false
   activeDesignerTab.value = tab
 }
 function cancelFieldProperties() {
@@ -930,6 +966,7 @@ function cancelFieldProperties() {
 
 function selectConfigTask(task: ModuleConfigTask) {
   if (task !== activeConfigTask.value && !canLeaveForm()) return
+  if (task !== 'FIELDS') fieldDrawer.value = false
   activeConfigTask.value = task
   if (task === 'FIELDS') activeDesignerTab.value = 'FIELDS'
   if (task === 'ACTIONS') activeDesignerTab.value = 'ACTIONS'
@@ -937,6 +974,7 @@ function selectConfigTask(task: ModuleConfigTask) {
 
 function selectInfoSection(section: 'OVERVIEW' | 'PUBLICATION') {
   if (!canLeaveForm()) return
+  fieldDrawer.value = false
   activeConfigTask.value = 'INFO'
   infoSection.value = section
   if (section === 'PUBLICATION') void checkPublication(false)
@@ -982,15 +1020,15 @@ onMounted(() => loadOverview())
     <div class="module-builder-toolbar">
       <div><strong>模板配置</strong><span>选择模块后，按模块信息、字段、动作、流程和应用五类任务完成配置。</span></div>
       <div class="heading-actions">
-        <a-select v-if="formDesignActive" :value="selectedModuleId" aria-label="选择配置模块" style="min-width:180px" :options="overview.modules.map(module => ({ value: module.id, label: module.name }))" @change="selectModule(Number($event))" />
+        <a-select v-if="formDesignActive || pageDesignActive" :value="selectedModuleId" aria-label="选择配置模块" style="min-width:180px" :options="overview.modules.map(module => ({ value: module.id, label: module.name }))" @change="selectModule(Number($event))" />
         <a-button :loading="loading" @click="loadOverview()"><ReloadOutlined />刷新</a-button>
         <a-button type="primary" @click="beginModule"><PlusOutlined />新建模块</a-button>
       </div>
     </div>
     <a-alert v-if="error" type="error" show-icon :message="error" class="section-alert" />
 
-    <div :class="['config-layout', { 'config-layout--page': activeConfigTask === 'FIELDS' && !formDesignActive && selectedPage, 'config-layout--form': formDesignActive }]">
-      <aside v-if="!formDesignActive" class="config-tree panel-card">
+    <div :class="['config-layout', { 'config-layout--page': activeConfigTask === 'FIELDS' && !formDesignActive && !pageDesignActive && selectedPage, 'config-layout--form': formDesignActive || pageDesignActive }]">
+      <aside v-if="!formDesignActive && !pageDesignActive" class="config-tree panel-card">
         <div class="panel-title"><strong>模块结构</strong><a-button type="text" size="small" @click="groupModal = true"><PlusOutlined />业务分组</a-button></div>
         <a-skeleton v-if="loading && !overview.groups.length" active :paragraph="{ rows: 5 }" />
         <template v-else>
@@ -1047,6 +1085,9 @@ onMounted(() => loadOverview())
               <div class="drawer-footer"><a-button @click="cancelFieldProperties">取消属性修改</a-button><a-button type="primary" :loading="saving" :disabled="Boolean(fieldConfigurationIssue)" @click="saveField">保存字段</a-button></div>
             </template>
           </ModuleFormDesigner>
+          <ModulePageDesigner v-else-if="pageDesignActive && selectedPage" :key="`${draft.module.id}-${selectedPage.pageType}`" ref="pageDesigner"
+            :page-type="selectedPage.pageType as 'LIST' | 'DETAIL'" :layout-json="selectedPage.layoutJson" :fields="draft.fields" :saving="saving"
+            :samples="previewRecords" :sample-error="previewError" @save="savePageDesignerDraft" @publish="publishPageDesigner" />
           <div v-else-if="activeConfigTask === 'FIELDS' && selectedPage" class="page-config-canvas">
             <div class="page-editor-toolbar">
               <div><strong>{{ selectedPage.name }} · 页面布局</strong><small>拖动已显示字段可调整顺序；发布前业务页面继续使用旧版本。</small></div>
@@ -1074,14 +1115,6 @@ onMounted(() => loadOverview())
               <section :class="['schema-preview', { 'schema-preview--mobile': previewDevice === 'MOBILE' }]">
                 <div class="schema-preview__bar"><span></span><span></span><span></span><strong>实时预览</strong><a-tag>{{ previewDevice === 'MOBILE' ? '手机' : '桌面' }}</a-tag></div>
                 <a-result v-if="!standardPageType" status="error" title="特殊页面尚未完成专属设计" sub-title="不能以通用表单或空抽屉替代；请先配置该页面所需的专属组件、状态和失败反馈。" />
-                <div v-else-if="selectedPage.pageType === 'LIST'" class="preview-table">
-                  <div class="preview-table__head"><span v-for="field in pagePreviewFields" :key="field.code">{{ field.name }}</span></div>
-                  <div v-for="row in 3" :key="row" class="preview-table__row"><span v-for="field in pagePreviewFields" :key="field.code">{{ field.fieldType === 'MONEY' ? '¥ 0.00' : `示例${row}` }}</span></div>
-                </div>
-                <div v-else class="preview-form" :class="`preview-form--${pageDensity}`" :style="{ gridTemplateColumns: `repeat(${previewDevice === 'MOBILE' ? 1 : pageColumns}, minmax(0, 1fr))` }">
-                  <h4>{{ pageSectionTitle }}</h4>
-                  <label v-for="field in pagePreviewFields" :key="field.code"><span>{{ field.name }}<em v-if="field.required">*</em></span><div>{{ JSON.parse(field.configJson || '{}').placeholder || `请输入${field.name}` }}</div></label>
-                </div>
                 <a-empty v-if="!pagePreviewFields.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="从左侧选择字段生成实时预览" />
               </section>
             </div>
@@ -1157,7 +1190,7 @@ onMounted(() => loadOverview())
         <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="创建并选择模块后，在这里设计字段" />
       </main>
 
-      <aside v-if="activeConfigTask === 'FIELDS' && !formDesignActive && selectedPage" class="field-palette panel-card" :class="{ 'field-palette--types': activeDesignerTab === 'FIELDS' }">
+      <aside v-if="activeConfigTask === 'FIELDS' && !formDesignActive && !pageDesignActive && selectedPage" class="field-palette panel-card" :class="{ 'field-palette--types': activeDesignerTab === 'FIELDS' }">
         <template v-if="activeDesignerTab === 'FIELDS'">
           <div class="panel-title"><strong>字段类型</strong><span>拖拽添加</span></div>
           <button v-for="field in fieldTypes" :key="field.type" type="button" class="palette-field" draggable="true"

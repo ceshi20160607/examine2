@@ -17,9 +17,12 @@ import ProductPage from '../components/ProductPage.vue'
 import ProductListWorkspace from '../components/ProductListWorkspace.vue'
 import RuntimeFieldInput from '../components/RuntimeFieldInput.vue'
 import SchemaFormLayout from '../components/SchemaFormLayout.vue'
+import SchemaRecordTable from '../components/SchemaRecordTable.vue'
+import SchemaRecordDetail from '../components/SchemaRecordDetail.vue'
+import { listPageSettings, type PageColumn } from '../page-layout'
+import { parseFormLayout } from '../form-layout'
 import { fieldFamily, filterOperators, isSharedRuntimeField, supportsContentSort } from '../field-capabilities'
-import StructuredValueDisplay from '../components/StructuredValueDisplay.vue'
-import { sanitizeRichMarkup, richPlainText, structuredSummary, emptyJsonValue, newJsonSchema, type JsonSchema } from '../structured-content'
+import { richPlainText, structuredSummary, emptyJsonValue, newJsonSchema, type JsonSchema } from '../structured-content'
 import ProductFilterBar from '../components/ProductFilterBar.vue'
 import ProductDetailDrawer from '../components/ProductDetailDrawer.vue'
 import ProductFormDrawer from '../components/ProductFormDrawer.vue'
@@ -166,6 +169,9 @@ const attachmentFieldTypes = new Set(['ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP
 const recordAttachmentFields = computed(() => detailFields.value.filter(field => attachmentFieldTypes.has(field.fieldType)))
 const detailValueFields = computed(() => detailFields.value.filter(field => !attachmentFieldTypes.has(field.fieldType)))
 const formLayout = computed(() => configuration.value?.configuration.pages.find(page => page.pageType === 'FORM')?.layoutJson)
+const listLayout = computed(() => configuration.value?.configuration.pages.find(page => page.pageType === 'LIST')?.layoutJson)
+const detailLayout = computed(() => configuration.value?.configuration.pages.find(page => page.pageType === 'DETAIL')?.layoutJson)
+const listCaption = computed(() => String(parseFormLayout(listLayout.value).components?.find(component => component.type === 'TABLE')?.title || ''))
 const formValueFields = computed(() => formFields.value.filter(field => !attachmentFieldTypes.has(field.fieldType)))
 const recordTitleField = computed(() => formValueFields.value.find(field => field.required
   && ['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL'].includes(field.fieldType)
@@ -202,8 +208,8 @@ function selectGroup(groupId: number) {
   if (firstModule && firstModule.moduleCode !== activeCode.value) void selectModule(firstModule.moduleCode)
 }
 
-type RuntimeColumn = { code: string; label: string; width: number; field?: RuntimeField }
-const availableColumns = computed<RuntimeColumn[]>(() => [
+type RuntimeColumn = PageColumn
+const availableColumns = computed<RuntimeColumn[]>(() => listPageSettings(listLayout.value, [
   { code: 'title', label: '标题', width: 210 },
   ...listFields.value.map((field) => ({ code: field.code, label: field.name, width: 140, field })),
   { code: 'ownerMemberId', label: '负责人', width: 120 },
@@ -211,7 +217,8 @@ const availableColumns = computed<RuntimeColumn[]>(() => [
   { code: 'status', label: '状态', width: 90 },
   { code: 'createdAt', label: '创建时间', width: 150 },
   { code: 'updatedAt', label: '更新时间', width: 150 },
-].filter((column, index, source) => source.findIndex((item) => item.code === column.code) === index))
+].filter((column, index, source) => source.findIndex((item) => item.code === column.code) === index)).columns)
+const listSettings = computed(() => listPageSettings(listLayout.value, availableColumns.value))
 const displayedColumns = computed(() => {
   const byCode = new Map(availableColumns.value.map((column) => [column.code, column]))
   return visibleFieldCodes.value.map((code) => byCode.get(code)).filter((column): column is RuntimeColumn => Boolean(column))
@@ -549,10 +556,8 @@ async function loadRecords() {
 }
 
 function initializeColumns() {
-  const defaults = ['title', ...listFields.value.slice(0, 2).map((field) => field.code), 'status']
-  const allowed = new Set(availableColumns.value.map((column) => column.code))
-  visibleFieldCodes.value = [...new Set(defaults)].filter((code) => allowed.has(code))
-  fixedFieldCodes.value = visibleFieldCodes.value.includes('title') ? ['title'] : []
+  visibleFieldCodes.value = [...listSettings.value.visible]
+  fixedFieldCodes.value = [...listSettings.value.fixed]
 }
 
 async function loadSavedViews() {
@@ -1387,14 +1392,12 @@ defineExpose({ refresh: loadModules, executeCommand })
         <a-button v-else-if="activeCode && hasAction('CREATE') && lifecycleState === 'ACTIVE'" type="primary" @click="runAction('CREATE', openCreate)">新建第一条记录</a-button>
       </template>
       <template v-if="activeCode && records.length">
-          <a-table class="record-table" :data-source="records" :loading="loading" row-key="id" :pagination="false" :row-selection="hasAction('EXPORT') ? rowSelection : undefined" :custom-row="rowHandlers" :scroll="{ y: pageSize >= 100 ? 560 : undefined }" :virtual="pageSize >= 100">
-            <a-table-column v-for="column in displayedColumns" :key="column.code" :title="column.label" :width="column.width" :fixed="fixedFieldCodes.includes(column.code) ? 'left' : undefined">
-              <template #default="{ record }"><template v-if="column.code === 'title'"><strong class="record-title">{{ record.title }}</strong><small>{{ userFacingRecordNumber(record.recordNumber, '未设置业务编号') }} · {{ userFacingWorkspaceName(record.dataTenantName) }}</small></template>
+          <SchemaRecordTable class="record-table" :records="records" :columns="displayedColumns" :fixed-codes="fixedFieldCodes" :density="listSettings.density" :caption="listCaption" :loading="loading" :row-selection="hasAction('EXPORT') ? rowSelection : undefined" :custom-row="rowHandlers" :scroll="{ y: pageSize >= 100 ? 560 : undefined }" :virtual="pageSize >= 100">
+            <template #value="{ column, record }"><template v-if="column.code === 'title'"><strong class="record-title">{{ record.title }}</strong><small>{{ userFacingRecordNumber(record.recordNumber, '未设置业务编号') }} · {{ userFacingWorkspaceName(record.dataTenantName) }}</small></template>
                 <a-tag v-else-if="column.code === 'dataTenantName'" :color="record.shared ? 'orange' : 'blue'">{{ record.shared ? `${userFacingWorkspaceName(record.dataTenantName)}共享` : '当前工作空间' }}</a-tag>
                 <ProductStatusTag v-else-if="column.code === 'status'" :status="record.status" /><template v-else>{{ columnValue(column, record) }}</template></template>
-            </a-table-column>
-            <a-table-column v-if="showRecordActions" title="操作" fixed="right" :width="140"><template #default="{ record }"><a-button v-if="lifecycleState === 'ACTIVE' && actionVisibleForRecord(record)" type="link" size="small" @click.stop="runAction('UPDATE', () => openEdit(record))"><EditOutlined />编辑</a-button><a-dropdown v-if="hasSecondaryRecordAction(record)" trigger="click"><a-button type="link" size="small" @click.stop><MoreOutlined />更多</a-button><template #overlay><a-menu @click="runRecordMenu(String($event.key), record)"><a-menu-item v-if="lifecycleState === 'ACTIVE' && recordAllowsAction(record, 'TRANSFER')" key="transfer">转交负责人</a-menu-item><a-menu-item v-if="lifecycleState === 'ACTIVE' && recordAllowsAction(record, 'CONVERT') && conversionTargetOptions.length" key="convert">转化记录</a-menu-item><a-menu-item v-if="record.ownedByCurrentTenant && hasAction('SHARE')" key="share">共享记录</a-menu-item><a-menu-item v-if="lifecycleState === 'ACTIVE' && recordAllowsAction(record, 'ARCHIVE')" key="archive">归档记录</a-menu-item><a-menu-item v-if="lifecycleState !== 'ACTIVE' && recordAllowsAction(record, 'RESTORE')" key="restore">恢复记录</a-menu-item><a-menu-divider /><a-menu-item v-if="lifecycleState !== 'DELETED' && recordAllowsAction(record, 'DELETE')" key="delete" danger>删除记录</a-menu-item></a-menu></template></a-dropdown></template></a-table-column>
-          </a-table>
+            <template v-if="showRecordActions" #actions="{ record }"><a-button v-if="lifecycleState === 'ACTIVE' && actionVisibleForRecord(record)" type="link" size="small" @click.stop="runAction('UPDATE', () => openEdit(record))"><EditOutlined />编辑</a-button><a-dropdown v-if="hasSecondaryRecordAction(record)" trigger="click"><a-button type="link" size="small" @click.stop><MoreOutlined />更多</a-button><template #overlay><a-menu @click="runRecordMenu(String($event.key), record)"><a-menu-item v-if="lifecycleState === 'ACTIVE' && recordAllowsAction(record, 'TRANSFER')" key="transfer">转交负责人</a-menu-item><a-menu-item v-if="lifecycleState === 'ACTIVE' && recordAllowsAction(record, 'CONVERT') && conversionTargetOptions.length" key="convert">转化记录</a-menu-item><a-menu-item v-if="record.ownedByCurrentTenant && hasAction('SHARE')" key="share">共享记录</a-menu-item><a-menu-item v-if="lifecycleState === 'ACTIVE' && recordAllowsAction(record, 'ARCHIVE')" key="archive">归档记录</a-menu-item><a-menu-item v-if="lifecycleState !== 'ACTIVE' && recordAllowsAction(record, 'RESTORE')" key="restore">恢复记录</a-menu-item><a-menu-divider /><a-menu-item v-if="lifecycleState !== 'DELETED' && recordAllowsAction(record, 'DELETE')" key="delete" danger>删除记录</a-menu-item></a-menu></template></a-dropdown></template>
+          </SchemaRecordTable>
           <div class="mobile-record-list" aria-label="业务记录卡片列表" :aria-busy="loading">
             <button v-for="record in records" :key="record.id" type="button" :data-status-tone="statusTone(record.status)" @click="openDetail(record)">
               <header><span><strong>{{ record.title }}</strong><small>{{ userFacingRecordNumber(record.recordNumber, '未设置业务编号') }} · {{ userFacingWorkspaceName(record.dataTenantName) }}</small></span><ProductStatusTag :status="record.status" /></header>
@@ -1438,11 +1441,11 @@ defineExpose({ refresh: loadModules, executeCommand })
       <template v-if="activeSavedView" #footer><div class="drawer-footer"><a-button danger @click="deleteCurrentView">删除视图</a-button><span></span><a-button @click="saveViewOpen = false">取消</a-button><a-button type="primary" :loading="saveViewSaving" @click="saveCurrentView">更新视图</a-button></div></template>
     </a-modal>
 
-    <ProductDetailDrawer :open="detailOpen" :title="detail?.title" :width="assistantOpen ? 'min(980px, 100vw)' : 'min(520px, 100vw)'" class="detail-drawer" @close="closeDetail">
+    <ProductDetailDrawer :open="detailOpen" :title="detail?.title" :width="assistantOpen ? 'min(980px, 100vw)' : 'min(760px, 100vw)'" class="detail-drawer" @close="closeDetail">
       <template #extra><a-button v-if="detail && canUseAi" @click="assistantOpen = !assistantOpen"><RobotOutlined />{{ assistantOpen ? '收起助手' : '询问当前记录' }}</a-button></template>
       <template v-if="detail"><div :class="['record-detail-shell', { 'record-detail-shell--assistant': assistantOpen && canUseAi }]"><section class="record-detail-main"><div class="detail-meta"><span>{{ userFacingRecordNumber(detail.recordNumber, '未设置业务编号') }}</span><ProductStatusTag :status="detail.status" /><a-tag :color="detail.shared ? 'orange' : 'blue'">数据归属：{{ userFacingWorkspaceName(detail.dataTenantName) }}</a-tag><span v-if="detail.shared" class="detail-share-status">共享状态：<ProductStatusTag :status="detail.shareStatus" /></span></div>
         <a-tabs class="detail-tabs-runtime">
-          <a-tab-pane key="basic" tab="概览"><a-descriptions :column="1" bordered size="small"><a-descriptions-item v-for="field in detailValueFields" :key="field.code" :label="field.name"><span class="detail-field-value"><span v-if="field.fieldType === 'RICH_TEXT'" class="rich-readback" v-html="sanitizeRichMarkup(String(detail.fields[field.code] || ''))"></span><StructuredValueDisplay v-else-if="field.fieldType === 'JSON'" :model-value="detail.fields[field.code]" :schema="fieldConfig(field).jsonSchema" /><template v-else>{{ displayValue(field, detail.fields[field.code]) }}</template><a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></span></a-descriptions-item>
+          <a-tab-pane key="basic" tab="概览"><SchemaRecordDetail :layout="detailLayout" :fields="detailValueFields" :values="detail.fields" :text="displayValue"><template #tools="{ field }"><a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></template></SchemaRecordDetail><a-descriptions class="detail-system-meta" :column="1" bordered size="small">
             <a-descriptions-item label="负责人">{{ ownerDisplayName(detail) }}</a-descriptions-item><a-descriptions-item label="相关人">{{ detail.participantMemberIds.length ? `${detail.participantMemberIds.length} 位相关人` : '—' }}</a-descriptions-item><a-descriptions-item label="创建时间">{{ productDateTime(detail.createdAt) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item></a-descriptions></a-tab-pane>
           <a-tab-pane key="relations" tab="关联"><a-list v-if="conversionLinks.length" size="small" bordered :data-source="conversionLinks"><template #renderItem="{ item }"><a-list-item><a-button type="link" @click="openConversionLink(item)">{{ item.direction === 'SOURCE' ? '来源' : '目标' }} · {{ item.moduleName }} · {{ item.recordTitle }}</a-button><span>{{ productDateTime(item.convertedAt) }}</span></a-list-item></template></a-list><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无有权查看的关联数据" /></a-tab-pane>
           <a-tab-pane v-if="recordAttachmentFields.length && canViewAttachments" key="attachments" tab="附件"><a-select v-if="recordAttachmentFields.length > 1" v-model:value="attachmentFieldCode" :options="recordAttachmentFields.map(field => ({ value: field.code, label: field.name }))" style="width:100%;margin-bottom:12px" placeholder="选择附件分类" /><BusinessAttachmentsPanel v-if="recordAttachmentEndpoint" :endpoint="recordAttachmentEndpoint" :writable="recordAttachmentWritable" :title="selectedAttachmentField?.name || '附件'" description="附件按当前字段权限展示，并记录到业务时间线。" compact @changed="detail && openDetail(detail)" /></a-tab-pane>

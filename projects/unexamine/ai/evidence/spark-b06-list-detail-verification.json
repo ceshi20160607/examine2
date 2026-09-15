@@ -1,0 +1,449 @@
+{
+  "step": "B06.1b1",
+  "status": "verified",
+  "verified_at": "2026-09-15T16:36:22.207680+08:00",
+  "entry_head": "b841bdb2761d4dc000f080f8f25354ea04b65542",
+  "requirement_source": "docs/user_requirement.md",
+  "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
+  "source_rows": [
+    "R0620",
+    "R0622",
+    "R0630",
+    "R0654",
+    "R1481",
+    "R1484",
+    "R1488",
+    "R2949"
+  ],
+  "verification_scope": "Shared LIST/DETAIL configuration, real preview, publication/runtime consumption and second structurally different module main journey. Not completion of B06/B05 or all product requirements.",
+  "implementation": [
+    "SchemaRecordTable and SchemaRecordDetail are used by designer and runtime; FieldValueDisplay centralizes read-only rich/structured/core value presentation while runtime keeps identity/reference/dictionary label resolution.",
+    "Page layout protocol uses saved field order/width/fixed/density; supports legacy defaults, permission-cropped columns and retained unrelated metadata. Existing runtime saved views still override visible/fixed columns.",
+    "LIST and DETAIL use explicit draft save/check/publication and unsaved guards; DETAIL reuses section/span renderer with independent DETAIL schema. Shared FORM protocol defaults stay FORM.",
+    "Preview samples come from ordinary permitted runtime record API; empty/new modules explicitly show configured defaults. Schematic fake rows/inputs removed from standard page preview."
+  ],
+  "checks_actual_results": [
+    "Final npm test -- src/product/page-layout.test.ts src/product/form-layout.test.ts src/product/structured-content.test.ts: 3 files, 9 behavior tests passed; 3 new list/detail protocol tests.",
+    "Final npm run build: vue-tsc passed; Vite built 3995 modules. Existing large-chunk warning remains.",
+    "Customer module real LIST preview read permitted record69; configured selected fields, compact density, title, name width240 and fixed name/title; actual pointer drag moved name before status.",
+    "Changed list layout -> refresh button: save-first warning; canvas and pending configuration retained. Saved draft -> independent DETAIL edit/save succeeded.",
+    "Customer DETAIL configured customer overview two columns and contact section one column; email moved before phone. Server publication check passed and published version7/id39.",
+    "Published runtime LIST had same selected order, name width240px and fixed-left classes. Detail rendered overview 342.5px+342.5px and contact697px; email and phone readback correct.",
+    "Record69 history showed successful phone correction0601->0602 and creation. Relations tab retained explicit no-permitted-associations empty feedback. List settings and save-current-view entry remained reachable; full saved-view behavior was not re-verified.",
+    "Second module30 created through typed UI; TEXT was really pointer-dragged onto blank canvas, named and marked required; NUMBER default10, BOOLEAN and MULTILINE_TEXT configured/saved through existing shared properties.",
+    "Second FORM group was configured three columns with notes span3; DETAIL one column; LIST four business fields. No new module-specific page/controller/service was written.",
+    "Second module publication check passed and published version1/id40. Runtime FORM had three160px columns and note span3, with server-backed default number10.",
+    "Real runtime create -> successful server receipt -> refresh/list -> detail -> edit succeeded. Record70 revision1 retains number13, BOOLEAN true and multiline note; generic value storage read back independently.",
+    "Reopened second-module designer displayed permitted real record70 number13 and updated note. Legacy unconfigured LIST preview defaults matched runtime first-two-field defaults.",
+    "Actual journey exposed saved inline field editor unexpectedly turning into a global drawer on page switch; fixed safe switches to close it. Focused recheck selected saved field -> DEFAULT_DETAIL kept detail canvas with no global editor overlay.",
+    "Independent database readback confirms separate saved LIST/FORM/DETAIL schemas, customer FORM revision2 unchanged, publications39/40, record70 config40 and prior records68/69 preserved."
+  ],
+  "readback": {
+    "publications": [
+      {
+        "code": "module_4513ff83a1",
+        "name": "客户档案",
+        "module": 28,
+        "versionId": 39,
+        "schemaHash": "8e0a09f39e8de852571f25cc495bbc22d9b23922a4be0ed71b1adae7eeac332f",
+        "draftRevision": 18,
+        "versionNumber": 7
+      },
+      {
+        "code": "module_49d10b5a8b",
+        "name": "设备巡检",
+        "module": 30,
+        "versionId": 40,
+        "schemaHash": "78fec9fa9cc73c6f5eae946217adc8c6e797d3d82ac84d962585c4538ce27e20",
+        "draftRevision": 8,
+        "versionNumber": 1
+      }
+    ],
+    "pages": [
+      {
+        "type": "DETAIL",
+        "layout": {
+          "density": "compact",
+          "components": [
+            {
+              "id": "main",
+              "type": "SECTION",
+              "title": "客户概况",
+              "columns": 2,
+              "fieldCodes": [
+                "field_20a69d1ce3",
+                "field_831b688ceb",
+                "field_21059c1892",
+                "field_cca77c32e8",
+                "field_db1ac87c01",
+                "field_6690d5a5db",
+                "field_8c64e4b826",
+                "field_f98636b68b",
+                "field_63b21f9af4"
+              ]
+            },
+            {
+              "id": "section-7589a8d0-9263-4985-b11a-a1c50b7ef035",
+              "type": "SECTION",
+              "title": "联系信息",
+              "columns": 1,
+              "fieldCodes": [
+                "field_ab6c49c1de",
+                "field_5deda98a29"
+              ]
+            }
+          ],
+          "fieldCodes": [
+            "field_20a69d1ce3",
+            "field_831b688ceb",
+            "field_21059c1892",
+            "field_cca77c32e8",
+            "field_db1ac87c01",
+            "field_6690d5a5db",
+            "field_8c64e4b826",
+            "field_f98636b68b",
+            "field_63b21f9af4",
+            "field_ab6c49c1de",
+            "field_5deda98a29"
+          ],
+          "fieldSpans": {},
+          "layoutType": "DETAIL",
+          "schemaVersion": 1
+        },
+        "module": 28,
+        "revision": 1
+      },
+      {
+        "type": "FORM",
+        "layout": {
+          "components": [
+            {
+              "id": "main",
+              "type": "SECTION",
+              "title": "主要信息",
+              "columns": 2,
+              "fieldCodes": [
+                "field_20a69d1ce3",
+                "field_831b688ceb",
+                "field_21059c1892",
+                "field_cca77c32e8",
+                "field_db1ac87c01",
+                "field_6690d5a5db",
+                "field_8c64e4b826",
+                "field_f98636b68b",
+                "field_63b21f9af4"
+              ]
+            },
+            {
+              "id": "section-2247e2dd-f1d1-4db2-ab00-a9bf6c0feac1",
+              "type": "SECTION",
+              "title": "联系信息",
+              "columns": 1,
+              "fieldCodes": [
+                "field_ab6c49c1de",
+                "field_5deda98a29"
+              ]
+            }
+          ],
+          "fieldCodes": [
+            "field_20a69d1ce3",
+            "field_831b688ceb",
+            "field_21059c1892",
+            "field_cca77c32e8",
+            "field_db1ac87c01",
+            "field_6690d5a5db",
+            "field_8c64e4b826",
+            "field_f98636b68b",
+            "field_63b21f9af4",
+            "field_ab6c49c1de",
+            "field_5deda98a29"
+          ],
+          "fieldSpans": {
+            "field_5deda98a29": 2
+          },
+          "layoutType": "FORM",
+          "schemaVersion": 1
+        },
+        "module": 28,
+        "revision": 2
+      },
+      {
+        "type": "LIST",
+        "layout": {
+          "density": "compact",
+          "components": [
+            {
+              "id": "main",
+              "type": "TABLE",
+              "title": "客户联系清单",
+              "density": "compact",
+              "fieldCodes": [
+                "field_20a69d1ce3",
+                "field_831b688ceb",
+                "field_21059c1892",
+                "field_ab6c49c1de",
+                "field_63b21f9af4",
+                "field_5deda98a29"
+              ]
+            }
+          ],
+          "fieldCodes": [
+            "field_20a69d1ce3",
+            "field_831b688ceb",
+            "field_21059c1892",
+            "field_ab6c49c1de",
+            "field_63b21f9af4",
+            "field_5deda98a29"
+          ],
+          "layoutType": "LIST",
+          "columnWidths": {
+            "field_20a69d1ce3": 240
+          },
+          "schemaVersion": 1,
+          "fixedFieldCodes": [
+            "title",
+            "field_20a69d1ce3"
+          ]
+        },
+        "module": 28,
+        "revision": 1
+      },
+      {
+        "type": "DETAIL",
+        "layout": {
+          "density": "comfortable",
+          "components": [
+            {
+              "id": "main",
+              "type": "SECTION",
+              "title": "巡检详情",
+              "columns": 1,
+              "fieldCodes": [
+                "field_724a18ab7f",
+                "field_54b4d262eb",
+                "field_cc57ec35ec",
+                "field_dcc06d22c1"
+              ]
+            }
+          ],
+          "fieldCodes": [
+            "field_724a18ab7f",
+            "field_54b4d262eb",
+            "field_cc57ec35ec",
+            "field_dcc06d22c1"
+          ],
+          "fieldSpans": {},
+          "layoutType": "DETAIL",
+          "schemaVersion": 1
+        },
+        "module": 30,
+        "revision": 1
+      },
+      {
+        "type": "FORM",
+        "layout": {
+          "components": [
+            {
+              "id": "main",
+              "type": "SECTION",
+              "title": "巡检结果",
+              "columns": 3,
+              "fieldCodes": [
+                "field_724a18ab7f",
+                "field_54b4d262eb",
+                "field_cc57ec35ec",
+                "field_dcc06d22c1"
+              ]
+            }
+          ],
+          "fieldCodes": [
+            "field_724a18ab7f",
+            "field_54b4d262eb",
+            "field_cc57ec35ec",
+            "field_dcc06d22c1"
+          ],
+          "fieldSpans": {
+            "field_dcc06d22c1": 3
+          },
+          "layoutType": "FORM",
+          "schemaVersion": 1
+        },
+        "module": 30,
+        "revision": 1
+      },
+      {
+        "type": "LIST",
+        "layout": {
+          "density": "comfortable",
+          "components": [
+            {
+              "id": "main",
+              "type": "TABLE",
+              "title": "巡检记录",
+              "density": "comfortable",
+              "fieldCodes": [
+                "field_724a18ab7f",
+                "field_54b4d262eb",
+                "field_cc57ec35ec",
+                "field_dcc06d22c1"
+              ]
+            }
+          ],
+          "fieldCodes": [
+            "field_724a18ab7f",
+            "field_54b4d262eb",
+            "field_cc57ec35ec",
+            "field_dcc06d22c1"
+          ],
+          "layoutType": "LIST",
+          "columnWidths": {},
+          "schemaVersion": 1,
+          "fixedFieldCodes": [
+            "title"
+          ]
+        },
+        "module": 30,
+        "revision": 1
+      }
+    ],
+    "records": [
+      {
+        "id": 68,
+        "title": "结构化字段真实验收客户",
+        "module": 28,
+        "revision": 2,
+        "createdConfig": 37,
+        "updatedConfig": 37
+      },
+      {
+        "id": 69,
+        "title": "拖拽表单真实验收客户",
+        "module": 28,
+        "revision": 1,
+        "createdConfig": 38,
+        "updatedConfig": 38
+      },
+      {
+        "id": 70,
+        "title": "一号冷却泵日常巡检",
+        "module": 30,
+        "revision": 1,
+        "createdConfig": 40,
+        "updatedConfig": 40
+      }
+    ],
+    "inspectionValues": [
+      {
+        "name": "巡检项目",
+        "text": "一号冷却泵日常巡检",
+        "type": "TEXT",
+        "number": null,
+        "record": 70,
+        "boolean": null
+      },
+      {
+        "name": "仪表读数",
+        "text": null,
+        "type": "NUMBER",
+        "number": 13.0,
+        "record": 70,
+        "boolean": null
+      },
+      {
+        "name": "正常运行",
+        "text": null,
+        "type": "BOOLEAN",
+        "number": null,
+        "record": 70,
+        "boolean": 1
+      },
+      {
+        "name": "巡检备注",
+        "text": "复核完成\n压力稳定，滤网已清洁",
+        "type": "MULTILINE_TEXT",
+        "number": null,
+        "record": 70,
+        "boolean": null
+      }
+    ]
+  },
+  "tested_files": [
+    {
+      "path": "projects/unexamine/frontend/src/product/form-layout.ts",
+      "sha256": "0a32dcceb093a30821af9389b9c2250e53f0744ea552ed8f1fc9cf3426ec3a3e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/page-layout.ts",
+      "sha256": "928e42fd4331db594e25838b4292225ef5b0404673b42e1e743b0302d0e19029"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/page-layout.test.ts",
+      "sha256": "6019b766164b86c47699a978a87c1fbd545dd6a51904292b2406c5d596dfe000"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/form-layout.test.ts",
+      "sha256": "5ac44e4be562189a4c4b4ba6a8b72795db926c168bb38eb6e20de66c0b4dd52f"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/structured-content.ts",
+      "sha256": "a5e81192cd72db59bbc32a98f86dc8fd4a5eeb65cf5064b14a98824bfd8748b8"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/SchemaFormLayout.vue",
+      "sha256": "2d5da9292dcc6571070653bdfa7c63584ed28134ded32e9a0758b022e2b074b5"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/FieldValueDisplay.vue",
+      "sha256": "e85216437e3a87cd8ec3d68b82ed425b5055ed1404fb4534638e332c927fb7b3"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/SchemaRecordTable.vue",
+      "sha256": "806617c4a34e54bcf4b930ea77e2880b07253097d0795f27a19ff50396bf6310"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/SchemaRecordDetail.vue",
+      "sha256": "d6767394f0036eceebdf1831b67eba2d4df422ee6eb3ce6942c5f671e0de42ab"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ModulePageDesigner.vue",
+      "sha256": "16ea662f06049cd9b2c527670c5bcc72dd9dec7a9d2459ab0c503495ff82b66b"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ModuleFormDesigner.vue",
+      "sha256": "fce8af0b55c53ebc099a6d698ede2fd920ab3f5e36d67b02fc1fd9a3d8ec522b"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+      "sha256": "e37bf13525908035d4f5fb831c4817af1345dd1c53ee4e3dcd914844bd7a18c6"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "a4e4d4aa83af3c712fd098ea31051654cfcd5e9953a7df4cf499c70ab7707dd7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "ca358bf3ad32b86e7f0e766bc3e594f37d0630d923942b300525bfe7d319b055"
+    }
+  ],
+  "previous_evidence_freshness": {
+    "path": "projects/unexamine/ai/evidence/spark-b06-drag-form-verification.json",
+    "note": "Prior frontend file hashes for shared layout/parent/runtime changed and are stale for the current revision. Affected FORM grouping/span behavior was reverified with focused behavior tests and real second-module create/edit; customer published FORM layout was retained. Unchanged backend validation/audit evidence is not invalidated. This is no full-audit refresh.",
+    "unchanged_backend_jar_sha256": "159c01761362b71354b3e7adadc37bb2900f82221be583143cd6e916bcad0013"
+  },
+  "known_check_gaps": [
+    {
+      "check": "Optional expanded admin-workflow.test.ts source assertion",
+      "result": "2/3 passed; one existing assertion expects label=其他业务参数 while baseline/current navigation uses 业务参数. HEAD source independently confirms it pre-existed. It was left unchanged; no product navigation labels changed. Core selected tests 17/17 passed and final build/real navigation passed."
+    }
+  ],
+  "remaining": [
+    "B06.1b: arbitrary components, dynamic conditions/linkage/hidden/readonly/collapsible/subtable behavior and all field renderer families remain required.",
+    "B06.2/B06.3: complete query/views/batch/detail/comments/relationships requirements remain open; this step verifies shared configuration consumption and preserves the tested existing entries only.",
+    "B05.2b2 SECRET and all remaining B05 field families, permissions and import/export/query obligations remain required.",
+    "B07.1a next: make configured action placement actually drive shared runtime buttons and preserve selected module in Flow/application configuration navigation.",
+    "Remaining B07 actions/conditions/permissions/four modes/transfer/conversion/sharing, B08-B10 approvals including timeout/repeat approver/dynamic nodes, B11-B12 applications/real external channels and every other open requirement remain required."
+  ],
+  "next_step": "B07.1a",
+  "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b06-list-detail.json",
+  "boundary_validation": "No repository boundary, generated Base code, reusable engineering template, dependency or database migration changed; boundary validator/full backend suites not repeated."
+}
