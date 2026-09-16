@@ -894,7 +894,8 @@ button, input { font: inherit; }
   .runtime-modules .module-tree-item { min-width: 140px; min-height: var(--ux-touch-target); flex: 0 0 auto; }
   .record-table { display: none; }
   .mobile-record-list { display: grid; gap: 10px; padding: 4px 14px 14px; }
-  .mobile-record-list > button { width: 100%; min-height: var(--ux-touch-target); display: grid; gap: 10px; padding: 14px; border: 1px solid var(--ux-color-border); border-left: 4px solid var(--ux-current-status, var(--ux-status-neutral)); border-radius: var(--ux-radius-panel); background: var(--ux-color-surface); color: var(--ux-color-text); text-align: left; }
+  .mobile-record-item { display: grid; gap: 6px; }
+  .mobile-record-item > button { width: 100%; min-height: var(--ux-touch-target); display: grid; gap: 10px; padding: 14px; border: 1px solid var(--ux-color-border); border-left: 4px solid var(--ux-current-status, var(--ux-status-neutral)); border-radius: var(--ux-radius-panel); background: var(--ux-color-surface); color: var(--ux-color-text); text-align: left; }
   .mobile-record-list header, .mobile-record-list footer { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .mobile-record-list header span { display: grid; gap: 3px; min-width: 0; }
   .mobile-record-list header strong { overflow: hidden; color: var(--ux-color-primary); text-overflow: ellipsis; white-space: nowrap; }

@@ -1,0 +1,44 @@
+{
+  "limits": "当前本地实际审批和幂等回放；凭证、键和完整身份/动作快照不保存。",
+  "replays": [
+    {
+      "currentVersion": 2,
+      "returnedVersion": 1,
+      "expectedVersion": 0,
+      "receiptId": 61,
+      "replayed": true,
+      "recordId": 73
+    },
+    {
+      "currentVersion": 2,
+      "returnedVersion": 2,
+      "expectedVersion": 1,
+      "receiptId": 63,
+      "replayed": true,
+      "recordId": 72
+    },
+    {
+      "currentVersion": 1,
+      "returnedVersion": 1,
+      "expectedVersion": 0,
+      "receiptId": 64,
+      "replayed": true,
+      "recordId": 74
+    }
+  ],
+  "checkedAt": "2026-09-16T17:47:58.8665950+08:00",
+  "beforeApproval": {
+    "deleted": false,
+    "intentStatus": "PENDING_APPROVAL",
+    "recordId": 74,
+    "version": 0,
+    "flowInstanceId": 42
+  },
+  "afterApproval": {
+    "deleted": true,
+    "intentStatus": "EXECUTED",
+    "version": 1,
+    "flowStatus": "COMPLETED",
+    "taskId": 32
+  }
+}

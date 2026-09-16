@@ -1,4 +1,4 @@
-import { api } from './api'
+import { api, ApiError } from './api'
 
 export interface ActionDelivery {
   status: 'NONE' | 'STARTED' | 'PENDING' | 'RETRYING'
@@ -43,6 +43,51 @@ export async function executeRuntimeAction<T>(path: string, method: string, body
     const receiptPath = `${path.slice(0, path.indexOf('/records'))}/records/action-results/${result.idempotencyRecordId}`
     result.delivery = await api<NonNullable<BusinessActionResult<T>['delivery']>>(receiptPath, {}, token).catch(() => undefined)
     return result
+}
+
+export interface RuntimeBatchItem<T> {
+  recordId: number
+  title: string
+  status: 'SUCCESS' | 'FAILED'
+  message: string
+  result?: BusinessActionResult<T>
+}
+
+/** 手动动作与批量删除共用逐条请求身份；未知提交结果重试原请求，明确冲突才使用刷新后的版本。 */
+export function createRuntimeBatchAction<T extends { id: number; title: string }>() {
+  const pending = new Map<number, { path: string; body: unknown; key: string }>()
+  return {
+    clear: () => pending.clear(),
+    async submit(targets: T[], previous: RuntimeBatchItem<T>[], options: {
+      retryFailed?: boolean
+      token: string
+      request: (record: T) => { path: string; body: unknown }
+      completed: string
+    }): Promise<RuntimeBatchItem<T>[]> {
+      const results = new Map(previous.map(item => [item.recordId, item]))
+      for (const record of targets) {
+        const old = results.get(record.id)
+        if (old?.status === 'SUCCESS' || (options.retryFailed && old?.status !== 'FAILED')) continue
+        let request = pending.get(record.id)
+        if (!request) {
+          const input = options.request(record)
+          request = { path: input.path, body: JSON.parse(JSON.stringify(input.body)), key: crypto.randomUUID() }
+          pending.set(record.id, request)
+        }
+        try {
+          const result = await executeRuntimeAction<T>(request.path, 'POST', request.body, request.key, options.token)
+          results.set(record.id, { recordId: record.id, title: record.title, status: 'SUCCESS',
+            message: businessActionMessage(result, options.completed), result })
+          pending.delete(record.id)
+        } catch (reason) {
+          if (reason instanceof ApiError && reason.code === 'RECORD_VERSION_CONFLICT') pending.delete(record.id)
+          results.set(record.id, { recordId: record.id, title: record.title, status: 'FAILED',
+            message: reason instanceof Error ? reason.message : '操作失败，请查看处理结果' })
+        }
+      }
+      return targets.map(record => results.get(record.id)).filter((item): item is RuntimeBatchItem<T> => Boolean(item))
+    },
+  }
 }
 
 export function businessActionMessage(result: BusinessActionResult<unknown>, completed: string): string {

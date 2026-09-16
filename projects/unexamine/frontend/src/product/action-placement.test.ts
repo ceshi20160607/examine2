@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { actionsAtLocation, actionAllowsRecord, selectionActionReason } from './action-placement'
+import { actionsAtLocation, actionAllowsRecord, selectionActionReason, supportsBatchAction } from './action-placement'
 import { moduleAdminTarget, selectContextModule } from './module-navigation'
 import type { ConfiguredAction, RuntimeRecord } from './types'
 const action = (code: string, location: string, status = 'ACTIVE') => ({ code, location, status }) as ConfiguredAction
@@ -44,6 +44,11 @@ describe('published action placement and access', () => {
     expect(selectionActionReason('UPDATE',2)).toBeTruthy()
     expect(selectionActionReason('UPDATE',1)).toBe('')
     expect(selectionActionReason('EXPORT',2)).toBe('')
+    expect(selectionActionReason('DELETE',0,true)).toBeTruthy()
+    expect(selectionActionReason('DELETE',2,true)).toBe('')
+    expect(supportsBatchAction({ ...action('DELETE','BATCH'), actionType:'BUILTIN' })).toBe(true)
+    expect(supportsBatchAction({ ...action('DELETE','ROW'), actionType:'BUILTIN' })).toBe(false)
+    expect(supportsBatchAction({ ...action('TRANSFER','BATCH'), actionType:'BUILTIN' })).toBe(false)
   })
 })
 describe('module configuration navigation', () => {

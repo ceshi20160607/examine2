@@ -1785,7 +1785,8 @@ public class RuntimeDataService {
                 "DELETE", recordId, request.version(), request, options, traceId);
         BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
                 () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
-                        actionVariables(request), traceId),
+                        // 删除条件读取当前业务字段，不能只提供原因和版本而导致字段条件永远不匹配。
+                        actionVariables(request, readRawValues(recordId, published.fields())), traceId),
                 () -> {
                     if (Boolean.TRUE.equals(access.record().getDeleted())) {
                         throw new DomainException("RECORD_ALREADY_DELETED", "业务数据已在回收站", HttpStatus.CONFLICT);

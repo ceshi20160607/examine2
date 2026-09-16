@@ -6,10 +6,10 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { statusTone } from '../responsive'
 import { systemContext, systemTokens } from '../session'
-import { conversionTargetCodes, createRuntimeAction, executeRuntimeAction, businessActionMessage, type BusinessActionResult } from '../runtime-actions'
+import { conversionTargetCodes, createRuntimeAction, createRuntimeBatchAction, businessActionMessage, type BusinessActionResult, type RuntimeBatchItem } from '../runtime-actions'
 import BusinessActionReceipt from '../components/BusinessActionReceipt.vue'
 import RuntimeActionGroup from '../components/RuntimeActionGroup.vue'
-import { actionsAtLocation, actionAllowsLifecycle, actionAllowsRecord, requiresRecord, selectionActionReason } from '../action-placement'
+import { actionsAtLocation, actionAllowsLifecycle, actionAllowsRecord, requiresRecord, selectionActionReason, supportsBatchAction } from '../action-placement'
 import { authorizedBlob, saveBlob } from '../file'
 import { allowsPermission } from '../permissions'
 import ModuleImportDrawer from '../components/ModuleImportDrawer.vue'
@@ -120,6 +120,9 @@ const lifecycleAction = ref<'ARCHIVE' | 'DELETE' | 'RESTORE'>('ARCHIVE')
 const lifecycleRecord = ref<RuntimeRecord>()
 const lifecycleImpact = ref<RuntimeRecordLifecycleImpact>()
 const lifecycleReason = ref('')
+const batchDeleteTargets = ref<RuntimeRecord[]>([])
+const batchDeleteResults = ref<RuntimeBatchItem<RuntimeRecord>[]>([])
+const batchDeleteAction = createRuntimeBatchAction<RuntimeRecord>()
 const transferOpen = ref(false)
 const transferSaving = ref(false)
 const transferRecord = ref<RuntimeRecord>()
@@ -149,14 +152,13 @@ const cascadeOptions = reactive<Record<string, CascadeOption[]>>({})
 const referenceOptions = reactive<Record<string, Array<{ value: number; label: string; description: string }>>>({})
 const referenceLoading = ref(false)
 type ManualActionConfig = { operation?: string; parameterFieldCodes?: string[]; confirmation?: boolean; confirmationText?: string }
-type ManualActionItemResult = { recordId: number; title: string; status: 'SUCCESS' | 'FAILED'; message: string; result?: BusinessActionResult<RuntimeRecord> }
 const manualActionOpen = ref(false)
 const manualActionSaving = ref(false)
 const manualAction = ref<import('../types').ConfiguredAction>()
 const manualActionTargets = ref<RuntimeRecord[]>([])
 const manualActionValues = reactive<Record<string, unknown>>({})
-const manualActionResults = ref<ManualActionItemResult[]>([])
-const manualActionRequests = new Map<number, { key: string; body: { version: number; values: Record<string, unknown> } }>()
+const manualActionResults = ref<RuntimeBatchItem<RuntimeRecord>[]>([])
+const manualBatchAction = createRuntimeBatchAction<RuntimeRecord>()
 
 const token = computed(() => systemTokens.value?.accessToken || '')
 const selectedPrintTemplate = computed(() => printTemplates.value.find(item => item.templateId === selectedPrintTemplateId.value))
@@ -302,8 +304,9 @@ function canRecordAction(code: string, record: RuntimeRecord) {
 function canPageAction(code: string) {
   if (!hasAction(code) || !actionAllowsLifecycle(code, lifecycleState.value)) return false
   const configured = actions.value.find(action => action.code === code)
-  if (configured?.actionType === 'CUSTOM' && configured.location === 'BATCH') {
-    return selectedRowKeys.value.length > 0 && records.value.filter(record => selectedRowKeys.value.includes(record.id)).every(record => canRecordAction(code, record))
+  if (supportsBatchAction(configured)) {
+    const selected = records.value.filter(record => selectedRowKeys.value.includes(record.id))
+    return selected.length > 0 && selected.length === selectedRowKeys.value.length && selected.every(record => canRecordAction(code, record))
   }
   if (code === 'CONVERT' && !conversionTargetOptions.value.length) return false
   if (requiresRecord(code) && selectedActionRecord.value) return canRecordAction(code, selectedActionRecord.value)
@@ -311,9 +314,7 @@ function canPageAction(code: string) {
   return true
 }
 function pageActionReason(code: string) {
-  const configured = actions.value.find(action => action.code === code)
-  if (configured?.actionType === 'CUSTOM' && configured.location === 'BATCH') return selectedRowKeys.value.length ? '' : '请先勾选至少一条记录'
-  return selectionActionReason(code, selectedRowKeys.value.length)
+  return selectionActionReason(code, selectedRowKeys.value.length, supportsBatchAction(actions.value.find(action => action.code === code)))
 }
 const showRecordActions = computed(() => records.value.some(record => actionsAtLocation(actions.value, 'ROW', code => canRecordAction(code, record)).length))
 const canSelectRecords = computed(() => hasAction('EXPORT') || actions.value.some(action => requiresRecord(action.code)
@@ -323,6 +324,16 @@ function runConfiguredAction(code: string, explicitRecord?: RuntimeRecord) {
   if (explicitRecord ? !canRecordAction(code, explicitRecord) : !canPageAction(code)) { message.warning('当前记录或身份不能执行此操作'); return }
   if (requiresRecord(code) && !explicitRecord && pageActionReason(code)) { message.warning(pageActionReason(code)); return }
   const configured = actions.value.find(action => action.code === code)
+  if (code === 'DELETE' && supportsBatchAction(configured) && !explicitRecord) {
+    batchDeleteTargets.value = records.value.filter(record => selectedRowKeys.value.includes(record.id))
+    batchDeleteResults.value = []
+    batchDeleteAction.clear()
+    lifecycleAction.value = 'DELETE'
+    lifecycleImpact.value = undefined
+    lifecycleReason.value = ''
+    lifecycleOpen.value = true
+    return
+  }
   if (configured?.actionType === 'CUSTOM') {
     const targets = explicitRecord ? [explicitRecord] : records.value.filter(record => selectedRowKeys.value.includes(record.id))
     openManualAction(configured, targets)
@@ -356,7 +367,7 @@ function openManualAction(action: import('../types').ConfiguredAction, targets: 
   manualAction.value = action
   manualActionTargets.value = targets
   manualActionResults.value = []
-  manualActionRequests.clear()
+  manualBatchAction.clear()
   Object.keys(manualActionValues).forEach(key => delete manualActionValues[key])
   for (const field of manualActionFields.value) {
     if (targets.length === 1 && targets[0]?.fields[field.code] !== undefined) manualActionValues[field.code] = targets[0].fields[field.code]
@@ -371,32 +382,14 @@ async function submitManualAction(retryFailed = false) {
   if (!fields.length) { message.error('动作字段已经不可用，请联系管理员重新发布'); return }
   const missing = fields.find(field => field.required && (manualActionValues[field.code] === undefined || manualActionValues[field.code] === null || manualActionValues[field.code] === ''))
   if (missing) { message.warning(`请填写${missing.name}`); return }
-  const failedIds = new Set(manualActionResults.value.filter(item => item.status === 'FAILED').map(item => item.recordId))
-  const targets = retryFailed ? manualActionTargets.value.filter(record => failedIds.has(record.id)) : manualActionTargets.value
-  if (!targets.length) return
   manualActionSaving.value = true
   try {
-    const previous = new Map(manualActionResults.value.map(item => [item.recordId, item]))
-    for (const record of targets) {
-      const pending = manualActionRequests.get(record.id) || {
-        key: crypto.randomUUID(), body: { version: record.version,
-          values: JSON.parse(JSON.stringify(Object.fromEntries(fields.map(field => [field.code, manualActionValues[field.code] ?? null])))) as Record<string, unknown> },
-      }
-      manualActionRequests.set(record.id, pending)
-      try {
-        const result = await executeRuntimeAction<RuntimeRecord>(
-          `/api/runtime/modules/${activeCode.value}/records/${record.id}/actions/${manualAction.value.code}`,
-          'POST', pending.body, pending.key, token.value)
-        previous.set(record.id, { recordId: record.id, title: record.title, status: 'SUCCESS', message: businessActionMessage(result, '动作已执行'), result })
-        manualActionRequests.delete(record.id)
-        if (targets.length === 1) lastAction.value = { moduleCode: activeCode.value, result }
-      } catch (reason) {
-        // 明确的版本冲突没有写入；未知连接结果保留原请求和幂等键，避免重试造成第二次写入。
-        if (reason instanceof ApiError && reason.code === 'RECORD_VERSION_CONFLICT') manualActionRequests.delete(record.id)
-        previous.set(record.id, { recordId: record.id, title: record.title, status: 'FAILED', message: readable(reason) })
-      }
-    }
-    manualActionResults.value = manualActionTargets.value.map(record => previous.get(record.id)).filter((item): item is ManualActionItemResult => Boolean(item))
+    manualActionResults.value = await manualBatchAction.submit(manualActionTargets.value, manualActionResults.value, {
+      retryFailed, token: token.value, completed: '动作已执行',
+      request: record => ({ path: `/api/runtime/modules/${activeCode.value}/records/${record.id}/actions/${manualAction.value!.code}`,
+        body: { version: record.version, values: Object.fromEntries(fields.map(field => [field.code, manualActionValues[field.code] ?? null])) } }),
+    })
+    if (manualActionTargets.value.length === 1 && manualActionResults.value[0]?.result) lastAction.value = { moduleCode: activeCode.value, result: manualActionResults.value[0].result }
     await loadRecords().catch(() => undefined)
     const current = new Map(records.value.map(record => [record.id, record]))
     manualActionTargets.value = manualActionTargets.value.map(record => current.get(record.id) || record)
@@ -1147,6 +1140,7 @@ async function changeLifecycleState() {
 
 async function openLifecycle(record: RuntimeRecord, action: 'ARCHIVE' | 'DELETE' | 'RESTORE') {
   try {
+    batchDeleteTargets.value = []
     lifecycleAction.value = action
     lifecycleRecord.value = record
     lifecycleReason.value = ''
@@ -1156,6 +1150,23 @@ async function openLifecycle(record: RuntimeRecord, action: 'ARCHIVE' | 'DELETE'
   } catch (reason) {
     message.error(readable(reason))
   }
+}
+
+async function submitBatchDelete(retryFailed = false) {
+  if (lifecycleSaving.value || !batchDeleteTargets.value.length) return
+  if (!lifecycleReason.value.trim()) { message.warning('请填写操作原因'); return }
+  lifecycleSaving.value = true
+  try {
+    batchDeleteResults.value = await batchDeleteAction.submit(batchDeleteTargets.value, batchDeleteResults.value, {
+      retryFailed, token: token.value, completed: '记录已移入回收站',
+      request: record => ({ path: `/api/runtime/modules/${activeCode.value}/records/${record.id}/delete`,
+        body: { version: record.version, reason: lifecycleReason.value.trim() } }),
+    })
+    await loadRecords().catch(() => message.warning('请刷新列表查看最新数据'))
+    const current = new Map(records.value.map(record => [record.id, record]))
+    batchDeleteTargets.value = batchDeleteTargets.value.map(record => current.get(record.id) || record)
+    selectedRowKeys.value = batchDeleteResults.value.filter(item => item.status === 'FAILED').map(item => item.recordId)
+  } finally { lifecycleSaving.value = false }
 }
 
 async function submitLifecycle() {
@@ -1512,7 +1523,9 @@ defineExpose({ refresh: loadModules, executeCommand })
             <template v-if="showRecordActions" #actions="{ record }"><RuntimeActionGroup :actions="actions" location="ROW" :can="code => canRecordAction(code, record)" size="small" @run="runConfiguredAction($event, record)" /></template>
           </SchemaRecordTable>
           <div class="mobile-record-list" aria-label="业务记录卡片列表" :aria-busy="loading">
-            <button v-for="record in records" :key="record.id" type="button" :data-status-tone="statusTone(record.status)" @click="openDetail(record)">
+            <div v-for="record in records" :key="record.id" class="mobile-record-item">
+            <a-checkbox v-if="canSelectRecords" :checked="selectedRowKeys.includes(record.id)" @change="selectedRowKeys = $event.target.checked ? [...new Set([...selectedRowKeys, record.id])] : selectedRowKeys.filter(id => id !== record.id)">选择此记录</a-checkbox>
+            <button type="button" :data-status-tone="statusTone(record.status)" @click="openDetail(record)">
               <header><span><strong>{{ record.title }}</strong><small>{{ userFacingRecordNumber(record.recordNumber, '未设置业务编号') }} · {{ userFacingWorkspaceName(record.dataTenantName) }}</small></span><ProductStatusTag :status="record.status" /></header>
               <dl>
                 <div v-for="column in displayedColumns.filter(item => !['title', 'status', 'dataTenantName'].includes(item.code)).slice(0, 3)" :key="column.code">
@@ -1521,6 +1534,7 @@ defineExpose({ refresh: loadModules, executeCommand })
               </dl>
               <footer><span>{{ record.shared ? `${userFacingWorkspaceName(record.dataTenantName)}共享` : '当前工作空间记录' }}</span><strong>查看详情 →</strong></footer>
             </button>
+            </div>
           </div>
       </template>
       <template v-if="activeCode" #pagination><a-pagination v-model:current="page" v-model:page-size="pageSize" :total="total" show-size-changer @change="loadRecords" /></template>
@@ -1627,14 +1641,30 @@ defineExpose({ refresh: loadModules, executeCommand })
         <a-button v-if="!manualActionResults.length" type="primary" :loading="manualActionSaving" @click="requestManualAction(false)">确认执行</a-button>
       </div>
     </a-modal>
-    <a-modal v-model:open="lifecycleOpen" :title="lifecycleAction === 'ARCHIVE' ? '确认归档记录' : lifecycleAction === 'DELETE' ? '确认删除记录' : '确认恢复记录'"
+    <a-modal v-model:open="lifecycleOpen" :title="batchDeleteTargets.length ? '批量删除记录' : lifecycleAction === 'ARCHIVE' ? '确认归档记录' : lifecycleAction === 'DELETE' ? '确认删除记录' : '确认恢复记录'"
+      :footer="batchDeleteTargets.length ? null : undefined" :mask-closable="false" :closable="!lifecycleSaving" :keyboard="!lifecycleSaving"
       :confirm-loading="lifecycleSaving" ok-text="确认执行" cancel-text="取消" @ok="submitLifecycle">
+      <a-alert v-if="batchDeleteTargets.length" type="warning" show-icon :message="`将处理 ${batchDeleteTargets.length} 条记录`"
+        description="删除会移入回收站，可通过恢复操作找回；关联数据保留。每条记录独立校验权限、版本和审批配置，请确认后提交。" />
       <a-alert v-if="lifecycleImpact" type="warning" show-icon
         :message="`${lifecycleAction === 'ARCHIVE' ? '归档' : lifecycleAction === 'DELETE' ? '删除' : '恢复'}“${lifecycleRecord?.title}”`"
         class="section-alert">
         <template #description>{{ lifecycleImpact.warning }} 影响范围：出向关联 {{ lifecycleImpact.outgoingRelationCount }} 条，入向关联 {{ lifecycleImpact.incomingRelationCount }} 条，相关人 {{ lifecycleImpact.participantCount }} 人。</template>
       </a-alert>
-      <a-form layout="vertical"><a-form-item label="操作原因" required><a-textarea v-model:value="lifecycleReason" :rows="3" :maxlength="1000" show-count /></a-form-item></a-form>
+      <a-form layout="vertical" :disabled="lifecycleSaving || batchDeleteResults.length > 0 && batchDeleteTargets.length > 0"><a-form-item label="操作原因" required><a-textarea v-model:value="lifecycleReason" :rows="3" :maxlength="1000" show-count /></a-form-item></a-form>
+      <template v-if="batchDeleteTargets.length">
+        <ul v-if="!batchDeleteResults.length"><li v-for="record in batchDeleteTargets" :key="record.id">{{ record.title }}</li></ul>
+        <a-table v-else size="small" :pagination="false" :data-source="batchDeleteResults" row-key="recordId" :scroll="{ y: 240 }">
+          <a-table-column title="记录" data-index="title" />
+          <a-table-column title="结果" width="75"><template #default="{ record }"><a-tag :color="record.status === 'SUCCESS' ? 'green' : 'red'">{{ record.status === 'SUCCESS' ? '已提交' : '失败' }}</a-tag></template></a-table-column>
+          <a-table-column title="说明" data-index="message" />
+          <a-table-column title="处理详情" width="95"><template #default="{ record }"><a-button v-if="record.result" type="link" size="small" @click="lastAction = { moduleCode: activeCode, result: record.result }; lifecycleOpen = false">查看结果</a-button></template></a-table-column>
+        </a-table>
+        <div class="drawer-footer"><a-button :disabled="lifecycleSaving" @click="lifecycleOpen = false">关闭</a-button>
+          <a-button v-if="batchDeleteResults.some(item => item.status === 'FAILED')" :loading="lifecycleSaving" @click="submitBatchDelete(true)">只重试失败项</a-button>
+          <a-button v-if="!batchDeleteResults.length" type="primary" danger :loading="lifecycleSaving" @click="submitBatchDelete(false)">确认删除</a-button>
+        </div>
+      </template>
     </a-modal>
     <a-modal v-model:open="shareOpen" title="共享给同系统租户" :footer="null" :mask-closable="false" width="680px">
       <a-alert type="info" show-icon class="section-alert" message="共享不会复制正文，也不会改变数据归属" description="目标租户默认只能查看；额外动作必须同时通过共享授权、目标角色权限和数据范围，撤销或到期后新访问立即失效。" />

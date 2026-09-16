@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { conversionTargetCodes, createRuntimeAction, executeRuntimeAction, businessActionMessage } from './runtime-actions'
+import { conversionTargetCodes, createRuntimeAction, createRuntimeBatchAction, executeRuntimeAction, businessActionMessage } from './runtime-actions'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -70,5 +70,43 @@ describe('runtime conversion actions', () => {
     expect(conversionTargetCodes('{"targetModuleCode":"lead"}')).toEqual(['lead'])
     expect(conversionTargetCodes('{broken')).toEqual([])
     expect(conversionTargetCodes('{"targetModuleCode":"Other System"}')).toEqual([])
+  })
+})
+
+describe('shared per-record batch submission', () => {
+  const targets = [{ id: 1, title: '巡检一', version: 1 }, { id: 2, title: '巡检二', version: 1 }]
+  const ok = (id: number) => new Response(JSON.stringify({ code: 'OK', data: {
+    idempotencyRecordId: id, mode: 'DIRECT', status: 'COMPLETED', value: { id }, replayed: false,
+  } }))
+  const receipt = () => new Response(JSON.stringify({ code: 'OK', data: { status: 'NONE' } }))
+  const options = (reason = '重复记录') => ({ token: 'token', completed: '记录已移入回收站',
+    request: (record: typeof targets[number]) => ({ path: `/api/runtime/modules/check/records/${record.id}/delete`, body: { version: record.version, reason } }) })
+
+  it('keeps partial success, refreshes only a rejected version and never submits a successful item again', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(ok(1)).mockResolvedValueOnce(receipt())
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: 'RECORD_VERSION_CONFLICT', message: '记录版本已变化' }), { status: 409 }))
+      .mockResolvedValueOnce(ok(2)).mockResolvedValueOnce(receipt())
+    vi.stubGlobal('fetch', fetcher)
+    const batch = createRuntimeBatchAction<typeof targets[number]>()
+    const first = await batch.submit(targets, [], options())
+    expect(first.map(item => item.status)).toEqual(['SUCCESS', 'FAILED'])
+    const final = await batch.submit([targets[0]!, { ...targets[1]!, version: 2 }], first, { ...options(), retryFailed: true })
+    expect(final.map(item => item.status)).toEqual(['SUCCESS', 'SUCCESS'])
+    const writes = fetcher.mock.calls.filter(call => String(call[0]).endsWith('/delete'))
+    expect(writes.map(call => call[0])).toEqual(['/api/runtime/modules/check/records/1/delete', '/api/runtime/modules/check/records/2/delete', '/api/runtime/modules/check/records/2/delete'])
+    expect(JSON.parse(writes[2]![1].body).version).toBe(2)
+    expect(writes[1]![1].headers.get('Idempotency-Key')).not.toBe(writes[2]![1].headers.get('Idempotency-Key'))
+  })
+
+  it('retries an unknown result with the original body/path/key even if the list and form have changed', async () => {
+    const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('connection lost'))
+      .mockResolvedValueOnce(ok(1)).mockResolvedValueOnce(receipt())
+    vi.stubGlobal('fetch', fetcher)
+    const batch = createRuntimeBatchAction<typeof targets[number]>()
+    const first = await batch.submit([targets[0]!], [], options())
+    await batch.submit([{ ...targets[0]!, version: 9 }], first, { ...options('已修改原因'), retryFailed: true })
+    expect(fetcher.mock.calls[1]![0]).toBe(fetcher.mock.calls[0]![0])
+    expect(fetcher.mock.calls[1]![1].body).toBe(fetcher.mock.calls[0]![1].body)
+    expect(fetcher.mock.calls[1]![1].headers.get('Idempotency-Key')).toBe(fetcher.mock.calls[0]![1].headers.get('Idempotency-Key'))
   })
 })

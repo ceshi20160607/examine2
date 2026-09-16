@@ -28,6 +28,10 @@ export function actionAllowsRecord(code: string, record: Pick<RuntimeRecord, 'sh
   if (code === 'CONVERT' && !hasConversionTargets) return false
   return actionAllowsLifecycle(code, record.deleted ? 'DELETED' : record.archived ? 'ARCHIVED' : 'ACTIVE')
 }
-export function selectionActionReason(code: string, selectedCount: number) {
-  return requiresRecord(code) && selectedCount !== 1 ? '请先选择一条记录' : ''
+export function supportsBatchAction(action?: Pick<ConfiguredAction, 'code' | 'actionType' | 'location'>) {
+  return action?.location === 'BATCH' && (action.actionType === 'CUSTOM' || action.code === 'DELETE')
+}
+export function selectionActionReason(code: string, selectedCount: number, batch = false) {
+  if (!requiresRecord(code)) return ''
+  return batch ? (selectedCount < 1 ? '请先勾选至少一条记录' : '') : (selectedCount !== 1 ? '请先选择一条记录' : '')
 }
