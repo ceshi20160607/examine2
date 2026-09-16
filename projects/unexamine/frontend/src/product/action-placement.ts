@@ -8,15 +8,16 @@ export const actionLocations: Array<{ value: ActionLocation; label: string }> = 
 ]
 const recordCodes = new Set(['DETAIL', 'UPDATE', 'ARCHIVE', 'DELETE', 'RESTORE', 'TRANSFER', 'CONVERT', 'SHARE'])
 const moduleCodes = new Set(['LIST', 'CREATE', 'IMPORT', 'EXPORT'])
-export function requiresRecord(code: string) { return recordCodes.has(code) }
+export function requiresRecord(code: string) { return recordCodes.has(code) || code.startsWith('ACTION_') }
 export function actionsAtLocation(actions: ConfiguredAction[], location: ActionLocation, can: (code: string) => boolean) {
-  // The default LIST entry is already rendered by the shared module navigation.
+  // 模块导航提供列表入口，点击数据行提供详情入口，避免重复放置相同按钮。
   return actions.filter(action => action.status === 'ACTIVE' && action.location === location
     && (action.code !== 'LIST' || location !== 'MODULE_ENTRY')
-    && (recordCodes.has(action.code) || moduleCodes.has(action.code)) && can(action.code))
+    && (action.code !== 'DETAIL' || location !== 'ROW')
+    && (recordCodes.has(action.code) || moduleCodes.has(action.code) || action.actionType === 'CUSTOM') && can(action.code))
 }
 export function actionAllowsLifecycle(code: string, state: 'ACTIVE' | 'ARCHIVED' | 'DELETED') {
-  if (['CREATE', 'IMPORT', 'UPDATE', 'ARCHIVE', 'TRANSFER', 'CONVERT'].includes(code)) return state === 'ACTIVE'
+  if (code.startsWith('ACTION_') || ['CREATE', 'IMPORT', 'UPDATE', 'ARCHIVE', 'TRANSFER', 'CONVERT'].includes(code)) return state === 'ACTIVE'
   if (code === 'DELETE') return state !== 'DELETED'
   if (code === 'RESTORE') return state !== 'ACTIVE'
   return true

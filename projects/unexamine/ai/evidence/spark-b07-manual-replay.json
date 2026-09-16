@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-09-16T17:04:29.5797542+08:00",
+  "replays": [
+    {
+      "receiptId": 48,
+      "recordId": 71,
+      "expectedVersion": 4,
+      "returnedVersion": 5,
+      "replayed": true
+    },
+    {
+      "receiptId": 51,
+      "recordId": 70,
+      "expectedVersion": 4,
+      "returnedVersion": 5,
+      "replayed": true
+    }
+  ],
+  "extraFieldAttempt": {
+    "code": "MANUAL_ACTION_VALUES_INVALID",
+    "httpStatus": 422
+  },
+  "limits": "请求标识、凭证和完整身份快照不写入证据。"
+}

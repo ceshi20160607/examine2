@@ -208,6 +208,18 @@ public class RuntimeDataController {
                 AuthenticationContextHolder.require(), moduleCode, recordId, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))), request);
     }
 
+    @PostMapping("/{recordId}/actions/{actionCode}")
+    public ApiResult<?> executeManualAction(
+            @PathVariable String moduleCode,
+            @PathVariable Long recordId,
+            @PathVariable String actionCode,
+            @Valid @RequestBody ManualRecordActionRequest body,
+            HttpServletRequest request) {
+        return actionResponse(runtimeDataService.manualAction(
+                AuthenticationContextHolder.require(), moduleCode, recordId, actionCode, body,
+                TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))), request);
+    }
+
     @GetMapping("/action-results/{actionId}")
     public ApiResult<BusinessAction.Delivery> actionDelivery(@PathVariable String moduleCode, @PathVariable long actionId,
                                                            HttpServletRequest request) {

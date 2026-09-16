@@ -1,0 +1,24 @@
+{
+  "receiptId": 54,
+  "bindingId": 8,
+  "verificationCorrection": "验收脚本最初误把投递 status 当业务 businessStatus；已更正断言，未据此修改产品。",
+  "checkedAt": "2026-09-16T17:10:31.5096025+08:00",
+  "replayed": true,
+  "taskId": 31,
+  "flowInstanceId": 41,
+  "limits": "本地当前真实调用；凭证、幂等键和完整身份快照不写入证据。",
+  "actionId": 286,
+  "beforeApproval": {
+    "note": "单条复核完成，设备状态正常。",
+    "version": 5,
+    "intentStatus": "PENDING_APPROVAL",
+    "assertion": "审批提交前实际 GET 校验通过"
+  },
+  "afterApproval": {
+    "note": "审批后复核完成，设备状态正常。",
+    "version": 6,
+    "intentStatus": "EXECUTED",
+    "flowStatus": "COMPLETED",
+    "deliveryStatus": "STARTED"
+  }
+}

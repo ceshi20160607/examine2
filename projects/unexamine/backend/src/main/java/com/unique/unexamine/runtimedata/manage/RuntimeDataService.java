@@ -913,7 +913,8 @@ public class RuntimeDataService {
             case "CREATE" -> createDirect(actor, input.moduleCode(), objectMapper.convertValue(input.payload(), CreateRuntimeRecordRequest.class), input.traceId());
             case "UPDATE" -> updateDirect(actor, input.moduleCode(), input.recordId(), objectMapper.convertValue(input.payload(), UpdateRuntimeRecordRequest.class), input.traceId());
             case "DELETE" -> deleteDirect(actor, input.moduleCode(), input.recordId(), objectMapper.convertValue(input.payload(), RecordLifecycleRequest.class), input.traceId());
-            default -> throw new DomainException("ACTION_APPROVAL_HANDLER_MISSING", "此操作尚未接入审批后执行", HttpStatus.UNPROCESSABLE_ENTITY);
+            default -> executeManualDirect(actor, input.moduleCode(), input.recordId(), input.actionCode(),
+                    objectMapper.convertValue(input.payload(), ManualRecordActionRequest.class), input.traceId());
         };
     }
 
@@ -1010,13 +1011,94 @@ public class RuntimeDataService {
         return protectActionReplay(context, moduleCode, "UPDATE", result, traceId);
     }
 
+    /**
+     * 执行已发布的手动字段动作。动作权限、字段权限、条件和四种 Flow 模式都经过公共动作入口。
+     */
+    @Transactional
+    public BusinessAction.Result<RuntimeRecordView> manualAction(
+            AuthenticatedContext context, String moduleCode, Long recordId, String actionCode,
+            ManualRecordActionRequest request, String traceId, BusinessAction.Options options) {
+        validateActionRequest(request);
+        String action = actionCode == null ? "" : actionCode.strip().toUpperCase(Locale.ROOT);
+        ManualActionPlan plan = manualActionPlan(context, moduleCode, recordId, action, request, traceId, false);
+        BusinessAction.Input input = new BusinessAction.Input(context, plan.access().sourceContext().tenantId(),
+                plan.access().published().configuration().moduleId(), moduleCode,
+                plan.access().published().configuration().versionId(), action, recordId, request.version(),
+                request, options, traceId);
+        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(
+                input, RuntimeRecordView.class, plan.access().published().configuration().configuration(),
+                () -> actionBindings.resolveManualAction(plan.access().sourceContext(), input.moduleId(),
+                        plan.actionId(), actionVariables(plan.update(), plan.update().fields()), traceId),
+                () -> manualActionPlan(context, moduleCode, recordId, action, request, traceId, true),
+                () -> executeManualDirect(context, moduleCode, recordId, action, request, traceId));
+        return protectActionReplay(context, moduleCode, action, result, traceId);
+    }
+
+    /** 将手动动作的局部字段输入合并到当前记录，并继续复用标准更新校验。 */
+    private ManualActionPlan manualActionPlan(
+            AuthenticatedContext context, String moduleCode, Long recordId, String actionCode,
+            ManualRecordActionRequest request, String traceId, boolean checkVersion) {
+        RecordAccess access = requireRecordAccess(context, moduleCode, actionCode, recordId, true, traceId);
+        // 字段更新动作必须同时满足标准编辑权限与数据范围，与运行页可用性保持一致。
+        requireRecordAccess(context, moduleCode, "UPDATE", recordId, true, traceId);
+        JsonNode action = findPublishedAction(access.published(), actionCode);
+        if (!"CUSTOM".equals(action.path("actionType").asText()) || !"ACTIVE".equals(action.path("status").asText())) {
+            throw new DomainException("MANUAL_ACTION_NOT_AVAILABLE", "手动动作未发布或已停用", HttpStatus.CONFLICT);
+        }
+        JsonNode config = parseConfig(action.path("configJson").asText("{}"));
+        if (!"UPDATE_FIELDS".equals(config.path("operation").asText()) || !config.path("parameterFieldCodes").isArray()) {
+            throw new DomainException("MANUAL_ACTION_CONFIG_INVALID", "手动动作配置无效，请联系系统管理员",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        Set<String> configured = new LinkedHashSet<>();
+        config.path("parameterFieldCodes").forEach(node -> configured.add(node.asText()));
+        if (request.values().isEmpty() || !configured.equals(request.values().keySet())) {
+            throw new DomainException("MANUAL_ACTION_VALUES_INVALID", "请完整填写动作要求的业务字段",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        BusinessRecord record = access.record();
+        if (checkVersion && !request.version().equals(record.getVersion())) {
+            recordVersionConflict(context, moduleCode, recordId, request.version(), record.getVersion(), traceId);
+            throw new DomainException("RECORD_VERSION_CONFLICT", "业务数据已被其他操作修改", HttpStatus.CONFLICT);
+        }
+        List<PublishedField> inputFields = access.published().fields().stream()
+                .filter(field -> configured.contains(field.code())).toList();
+        Map<String, JsonNode> normalized = validateFields(context, access.sourceContext(), moduleCode, "UPDATE",
+                inputFields, request.values(), traceId, recordId);
+        // 未选字段原样保留，避免局部动作覆盖只读、脱敏或无写入权限的其他业务值。
+        Map<String, JsonNode> merged = new LinkedHashMap<>(readRawValues(recordId, access.published().fields()));
+        configured.forEach(merged::remove);
+        merged.putAll(normalized);
+        UpdateRuntimeRecordRequest update = new UpdateRuntimeRecordRequest(
+                record.getTitle(), record.getRecordNumber(), record.getStatus(), record.getOwnerMemberId(),
+                record.getDepartmentId(), participantIds(recordId), merged, request.version());
+        long actionId = action.path("id").asLong(0);
+        if (actionId <= 0) throw new DomainException("MANUAL_ACTION_CONFIG_INVALID", "手动动作配置无效",
+                HttpStatus.UNPROCESSABLE_ENTITY);
+        return new ManualActionPlan(access, actionId, update);
+    }
+
+    private RuntimeRecordView executeManualDirect(
+            AuthenticatedContext context, String moduleCode, Long recordId, String actionCode,
+            ManualRecordActionRequest request, String traceId) {
+        ManualActionPlan plan = manualActionPlan(context, moduleCode, recordId, actionCode, request, traceId, true);
+        return updateDirect(context, moduleCode, recordId, plan.update(), traceId, actionCode, plan.update().fields());
+    }
+
     private RuntimeRecordView updateDirect(
             AuthenticatedContext context,
             String moduleCode,
             Long recordId,
             UpdateRuntimeRecordRequest request,
             String traceId) {
-        RecordAccess access = requireRecordAccess(context, moduleCode, "UPDATE", recordId, true, traceId);
+        return updateDirect(context, moduleCode, recordId, request, traceId, "UPDATE", null);
+    }
+
+    private RuntimeRecordView updateDirect(
+            AuthenticatedContext context, String moduleCode, Long recordId,
+            UpdateRuntimeRecordRequest request, String traceId, String permissionAction,
+            Map<String, JsonNode> validatedFields) {
+        RecordAccess access = requireRecordAccess(context, moduleCode, permissionAction, recordId, true, traceId);
         PublishedModule published = access.published();
         BusinessRecord record = access.record();
         if (!request.version().equals(record.getVersion())) {
@@ -1024,8 +1106,10 @@ public class RuntimeDataService {
             throw new DomainException("RECORD_VERSION_CONFLICT", "业务数据已被其他操作修改", HttpStatus.CONFLICT);
         }
         Map<String, JsonNode> before = readRawValues(recordId, published.fields());
-        Map<String, JsonNode> normalizedValues = validateFields(
-                context, access.sourceContext(), moduleCode, "UPDATE", published.fields(), request.fields(), traceId, recordId);
+        // 局部动作已经校验输入并合并原值；普通编辑仍执行全表单校验。
+        Map<String, JsonNode> normalizedValues = validatedFields == null ? validateFields(
+                context, access.sourceContext(), moduleCode, "UPDATE", published.fields(), request.fields(), traceId, recordId)
+                : validatedFields;
         ruleIndexService.validate(published.configuration(), "UPDATE", normalizedValues);
         Ownership ownership = validateOwnership(
                 access.sourceContext(), request.ownerMemberId(), request.departmentId(), request.participantMemberIds(),
@@ -1059,11 +1143,11 @@ public class RuntimeDataService {
         Long auditEventId = auditRecorder.recordWithPermissionSnapshot(
                 traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "BUSINESS_RECORD_UPDATED", "BUSINESS_RECORD", recordId.toString(), "SUCCESS",
-                permissionSnapshot(context, moduleCode, "UPDATE", "PAGE"),
+                permissionSnapshot(context, moduleCode, permissionAction, "PAGE"),
                 auditDetail);
         recordFieldChanges(context, moduleCode, auditEventId, before, normalizedValues, published.fields());
-        if (access.share() != null) recordShareUsage(context, access.share(), "UPDATE", "SUCCESS");
-        return view(context, moduleCode, "UPDATE", List.of("PAGE"), new RecordAccess(
+        if (access.share() != null) recordShareUsage(context, access.share(), permissionAction, "SUCCESS");
+        return view(context, moduleCode, permissionAction, List.of("PAGE"), new RecordAccess(
                 recordService.selectById(recordId), published, access.sourceContext(), access.share()));
     }
 
@@ -1491,7 +1575,7 @@ public class RuntimeDataService {
         for (JsonNode action : published.configuration().configuration().path("actions")) {
             if (code.equalsIgnoreCase(action.path("code").asText())) return action;
         }
-        throw new DomainException("MODULE_ACTION_NOT_PUBLISHED", "当前发布版本未包含转化动作", HttpStatus.CONFLICT);
+        throw new DomainException("MODULE_ACTION_NOT_PUBLISHED", "当前发布版本未包含该动作", HttpStatus.CONFLICT);
     }
 
     private JsonNode findConversionTarget(JsonNode action, String targetModuleCode) {
@@ -2781,6 +2865,10 @@ public class RuntimeDataService {
             Long actionId,
             Map<String, JsonNode> targetValues,
             RuntimeRecordConversionPreview preview) {
+    }
+
+    /** 手动动作在公共执行前解析出的不可变配置和完整更新请求。 */
+    private record ManualActionPlan(RecordAccess access, Long actionId, UpdateRuntimeRecordRequest update) {
     }
 
     @FunctionalInterface

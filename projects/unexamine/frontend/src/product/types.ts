@@ -58,6 +58,7 @@ export interface ConfiguredAction {
   id: number
   code: string
   name: string
+  actionType: 'BUILTIN' | 'CUSTOM'
   location: string
   status: string
   configJson: string

@@ -101,4 +101,19 @@ class FlowBindingConfigurationTest {
         assertThat(stored).hasSize(2);assertThat(stored.getFirst().getStatus()).isEqualTo("DISABLED");assertThat(stored.getLast().getStatus()).isEqualTo("ACTIVE");
         assertThat(service.resolveForAction(actor,30L,"CREATE",Map.of(),"trace").executionMode()).isEqualTo("FLOW_ONLY");
     }
+
+    /** 手动动作采用独立触发点；未命中条件时继续正常业务，命中时使用发布时固定的流程版本。 */
+    @Test void manualActionUsesItsOwnBindingAndPinnedFlowVersion() throws Exception {
+        var action = new ConfiguredModuleAction();
+        action.setId(300L);action.setModuleId(30L);action.setSystemId(19L);action.setStatus("ACTIVE");
+        action.setCode("ACTION_REVIEW");action.setActionType("CUSTOM");
+        when(actions.selectById(300L)).thenReturn(action);
+        var input = new FlowBindingModels.PublishBindingRequest(30L,300L,"MANUAL",100L,"AFTER_EXECUTION",0,
+                null,json.readTree("{\"field\":\"reading\",\"operator\":\"GT\",\"value\":10}"),true,false);
+        var published = service.publish(actor,input,"trace");
+        assertThat(published.actionId()).isEqualTo(300L);
+        publication.setCurrentVersionId(102L);
+        assertThat(service.resolveManualAction(actor,30L,300L,Map.of("reading",13),"trace").flowVersionId()).isEqualTo(101L);
+        assertThat(service.resolveManualAction(actor,30L,300L,Map.of("reading",8),"trace")).isNull();
+    }
 }

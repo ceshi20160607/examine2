@@ -104,6 +104,12 @@ public class FlowBindingService {
     @Transactional(readOnly = true)
     public FlowBindingModels.BindingList list(
             AuthenticatedContext context, Long moduleId, String triggerEvent) {
+        return list(context, moduleId, null, triggerEvent);
+    }
+
+    @Transactional(readOnly = true)
+    public FlowBindingModels.BindingList list(
+            AuthenticatedContext context, Long moduleId, Long actionId, String triggerEvent) {
         requireSystem(context);
         requireAction(context, "VIEW");
         ConfiguredModule module = requireModule(context, moduleId);
@@ -112,6 +118,8 @@ public class FlowBindingService {
         List<FlowTriggerBinding> all = bindingService.selectList(Wrappers.<FlowTriggerBinding>lambdaQuery()
                 .eq(FlowTriggerBinding::getSystemId, context.systemId())
                 .eq(FlowTriggerBinding::getModuleId, module.getId())
+                .isNull(actionId == null, FlowTriggerBinding::getActionId)
+                .eq(actionId != null, FlowTriggerBinding::getActionId, actionId)
                 .eq(event != null, FlowTriggerBinding::getTriggerEvent, event)
                 .orderByAsc(FlowTriggerBinding::getTriggerEvent)
                 .orderByAsc(FlowTriggerBinding::getPriorityOrder));
@@ -232,6 +240,18 @@ public class FlowBindingService {
         }
         return resolveInternal(context, new FlowBindingModels.ResolveBindingRequest(
                 moduleId, actionId, actionCode, variables), traceId, true);
+    }
+
+    /**
+     * 解析已发布的手动动作绑定。业务权限仍使用动作自身编码，Flow 触发点统一使用 MANUAL。
+     */
+    @Transactional
+    public FlowBindingModels.ResolutionView resolveManualAction(
+            AuthenticatedContext context, Long moduleId, Long actionId,
+            Map<String, Object> variables, String traceId) {
+        requireSystem(context);
+        return resolveInternal(context, new FlowBindingModels.ResolveBindingRequest(
+                moduleId, actionId, "MANUAL", variables), traceId, true);
     }
 
     private FlowBindingModels.ResolutionView resolveInternal(

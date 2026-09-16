@@ -6,7 +6,7 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { statusTone } from '../responsive'
 import { systemContext, systemTokens } from '../session'
-import { conversionTargetCodes, createRuntimeAction, businessActionMessage, type BusinessActionResult } from '../runtime-actions'
+import { conversionTargetCodes, createRuntimeAction, executeRuntimeAction, businessActionMessage, type BusinessActionResult } from '../runtime-actions'
 import BusinessActionReceipt from '../components/BusinessActionReceipt.vue'
 import RuntimeActionGroup from '../components/RuntimeActionGroup.vue'
 import { actionsAtLocation, actionAllowsLifecycle, actionAllowsRecord, requiresRecord, selectionActionReason } from '../action-placement'
@@ -148,6 +148,15 @@ type CascadeOption = { value: number; label: string; children?: CascadeOption[] 
 const cascadeOptions = reactive<Record<string, CascadeOption[]>>({})
 const referenceOptions = reactive<Record<string, Array<{ value: number; label: string; description: string }>>>({})
 const referenceLoading = ref(false)
+type ManualActionConfig = { operation?: string; parameterFieldCodes?: string[]; confirmation?: boolean; confirmationText?: string }
+type ManualActionItemResult = { recordId: number; title: string; status: 'SUCCESS' | 'FAILED'; message: string; result?: BusinessActionResult<RuntimeRecord> }
+const manualActionOpen = ref(false)
+const manualActionSaving = ref(false)
+const manualAction = ref<import('../types').ConfiguredAction>()
+const manualActionTargets = ref<RuntimeRecord[]>([])
+const manualActionValues = reactive<Record<string, unknown>>({})
+const manualActionResults = ref<ManualActionItemResult[]>([])
+const manualActionRequests = new Map<number, { key: string; body: { version: number; values: Record<string, unknown> } }>()
 
 const token = computed(() => systemTokens.value?.accessToken || '')
 const selectedPrintTemplate = computed(() => printTemplates.value.find(item => item.templateId === selectedPrintTemplateId.value))
@@ -192,6 +201,12 @@ const recordAttachmentEndpoint = computed(() => detail.value && selectedAttachme
 const recordAttachmentWritable = computed(() => Boolean(detail.value && selectedAttachmentField.value?.access?.writable !== false
   && canWriteAttachments.value && !detail.value.archived && !detail.value.deleted && recordAllowsAction(detail.value, 'UPDATE')))
 const actions = computed(() => configuration.value?.configuration.actions || [])
+const manualActionFields = computed(() => {
+  const codes = actionConfiguration(manualAction.value?.code || '').parameterFieldCodes || []
+  const byCode = new Map(fields.value.filter(field => field.access?.writable !== false && !Boolean(fieldConfig(field).readOnly))
+    .map(field => [field.code, field]))
+  return codes.map(code => byCode.get(code)).filter((field): field is RuntimeField => Boolean(field))
+})
 const activeModule = computed(() => modules.value.find((item) => item.moduleCode === activeCode.value))
 const groupedModules = computed(() => {
   const groups = new Map<number, { id: number; name: string; modules: RuntimeModuleCatalogItem[] }>()
@@ -281,16 +296,25 @@ function canRecordAction(code: string, record: RuntimeRecord) {
   if (code === 'LIST') return true
   if (['CREATE', 'IMPORT'].includes(code)) return lifecycleState.value === 'ACTIVE'
   if (!actionAllowsRecord(code, record, conversionTargetOptions.value.length > 0)) return false
+  if (code.startsWith('ACTION_') && !actionVisibleForRecord(record)) return false
   return code !== 'UPDATE' || actionVisibleForRecord(record)
 }
 function canPageAction(code: string) {
   if (!hasAction(code) || !actionAllowsLifecycle(code, lifecycleState.value)) return false
+  const configured = actions.value.find(action => action.code === code)
+  if (configured?.actionType === 'CUSTOM' && configured.location === 'BATCH') {
+    return selectedRowKeys.value.length > 0 && records.value.filter(record => selectedRowKeys.value.includes(record.id)).every(record => canRecordAction(code, record))
+  }
   if (code === 'CONVERT' && !conversionTargetOptions.value.length) return false
   if (requiresRecord(code) && selectedActionRecord.value) return canRecordAction(code, selectedActionRecord.value)
   if (code === 'EXPORT' && selectedRowKeys.value.length) return records.value.filter(record => selectedRowKeys.value.includes(record.id)).every(record => canRecordAction(code, record))
   return true
 }
-function pageActionReason(code: string) { return selectionActionReason(code, selectedRowKeys.value.length) }
+function pageActionReason(code: string) {
+  const configured = actions.value.find(action => action.code === code)
+  if (configured?.actionType === 'CUSTOM' && configured.location === 'BATCH') return selectedRowKeys.value.length ? '' : '请先勾选至少一条记录'
+  return selectionActionReason(code, selectedRowKeys.value.length)
+}
 const showRecordActions = computed(() => records.value.some(record => actionsAtLocation(actions.value, 'ROW', code => canRecordAction(code, record)).length))
 const canSelectRecords = computed(() => hasAction('EXPORT') || actions.value.some(action => requiresRecord(action.code)
   && ['MODULE_ENTRY', 'LIST_TOOLBAR', 'BATCH'].includes(action.location) && hasAction(action.code)))
@@ -298,6 +322,12 @@ function runConfiguredAction(code: string, explicitRecord?: RuntimeRecord) {
   const record = explicitRecord || selectedActionRecord.value
   if (explicitRecord ? !canRecordAction(code, explicitRecord) : !canPageAction(code)) { message.warning('当前记录或身份不能执行此操作'); return }
   if (requiresRecord(code) && !explicitRecord && pageActionReason(code)) { message.warning(pageActionReason(code)); return }
+  const configured = actions.value.find(action => action.code === code)
+  if (configured?.actionType === 'CUSTOM') {
+    const targets = explicitRecord ? [explicitRecord] : records.value.filter(record => selectedRowKeys.value.includes(record.id))
+    openManualAction(configured, targets)
+    return
+  }
   const handlers: Record<string, () => void> = {
     LIST: () => { closeDetail(); void loadRecords() },
     CREATE: openCreate,
@@ -315,10 +345,79 @@ function runConfiguredAction(code: string, explicitRecord?: RuntimeRecord) {
   if (handlers[code]) runAction(code, handlers[code])
 }
 
-function actionConfiguration(code: string) {
+function actionConfiguration(code: string): ManualActionConfig & { targetModuleCode?: string; targets?: Array<{ moduleCode: string }> } {
   const action = actions.value.find((item) => item.code === code)
   try { return JSON.parse(action?.configJson || '{}') as { confirmation?: boolean; confirmationText?: string; targetModuleCode?: string; targets?: Array<{ moduleCode: string }> } }
   catch { return {} }
+}
+
+function openManualAction(action: import('../types').ConfiguredAction, targets: RuntimeRecord[]) {
+  if (!targets.length) { message.warning('请先选择需要处理的记录'); return }
+  manualAction.value = action
+  manualActionTargets.value = targets
+  manualActionResults.value = []
+  manualActionRequests.clear()
+  Object.keys(manualActionValues).forEach(key => delete manualActionValues[key])
+  for (const field of manualActionFields.value) {
+    if (targets.length === 1 && targets[0]?.fields[field.code] !== undefined) manualActionValues[field.code] = targets[0].fields[field.code]
+    else if (field.fieldType === 'BOOLEAN') manualActionValues[field.code] = false
+  }
+  manualActionOpen.value = true
+}
+
+async function submitManualAction(retryFailed = false) {
+  if (!manualAction.value || !token.value) return
+  const fields = manualActionFields.value
+  if (!fields.length) { message.error('动作字段已经不可用，请联系管理员重新发布'); return }
+  const missing = fields.find(field => field.required && (manualActionValues[field.code] === undefined || manualActionValues[field.code] === null || manualActionValues[field.code] === ''))
+  if (missing) { message.warning(`请填写${missing.name}`); return }
+  const failedIds = new Set(manualActionResults.value.filter(item => item.status === 'FAILED').map(item => item.recordId))
+  const targets = retryFailed ? manualActionTargets.value.filter(record => failedIds.has(record.id)) : manualActionTargets.value
+  if (!targets.length) return
+  manualActionSaving.value = true
+  try {
+    const previous = new Map(manualActionResults.value.map(item => [item.recordId, item]))
+    for (const record of targets) {
+      const pending = manualActionRequests.get(record.id) || {
+        key: crypto.randomUUID(), body: { version: record.version,
+          values: JSON.parse(JSON.stringify(Object.fromEntries(fields.map(field => [field.code, manualActionValues[field.code] ?? null])))) as Record<string, unknown> },
+      }
+      manualActionRequests.set(record.id, pending)
+      try {
+        const result = await executeRuntimeAction<RuntimeRecord>(
+          `/api/runtime/modules/${activeCode.value}/records/${record.id}/actions/${manualAction.value.code}`,
+          'POST', pending.body, pending.key, token.value)
+        previous.set(record.id, { recordId: record.id, title: record.title, status: 'SUCCESS', message: businessActionMessage(result, '动作已执行'), result })
+        manualActionRequests.delete(record.id)
+        if (targets.length === 1) lastAction.value = { moduleCode: activeCode.value, result }
+      } catch (reason) {
+        // 明确的版本冲突没有写入；未知连接结果保留原请求和幂等键，避免重试造成第二次写入。
+        if (reason instanceof ApiError && reason.code === 'RECORD_VERSION_CONFLICT') manualActionRequests.delete(record.id)
+        previous.set(record.id, { recordId: record.id, title: record.title, status: 'FAILED', message: readable(reason) })
+      }
+    }
+    manualActionResults.value = manualActionTargets.value.map(record => previous.get(record.id)).filter((item): item is ManualActionItemResult => Boolean(item))
+    await loadRecords().catch(() => undefined)
+    const current = new Map(records.value.map(record => [record.id, record]))
+    manualActionTargets.value = manualActionTargets.value.map(record => current.get(record.id) || record)
+    const failed = manualActionResults.value.filter(item => item.status === 'FAILED').length
+    selectedRowKeys.value = manualActionResults.value.filter(item => item.status === 'FAILED').map(item => item.recordId)
+    if (failed) message.warning(`${manualActionResults.value.length - failed} 条成功，${failed} 条失败，可只重试失败项`)
+    else message.success(`${manualActionResults.value.length} 条记录已提交`)
+  } finally {
+    manualActionSaving.value = false
+  }
+}
+
+function requestManualAction(retryFailed = false) {
+  const config = actionConfiguration(manualAction.value?.code || '')
+  const execute = () => submitManualAction(retryFailed)
+  if (!config.confirmation) { void execute(); return }
+  Modal.confirm({
+    title: config.confirmationText || `确认执行“${manualAction.value?.name || '当前动作'}”？`,
+    content: retryFailed ? '本次只重新处理失败记录，已成功记录不会重复执行。' : `将处理 ${manualActionTargets.value.length} 条记录。`,
+    okText: retryFailed ? '重试失败项' : '确认执行', cancelText: '取消', onOk: execute,
+  })
 }
 
 const conversionTargetOptions = computed(() => {
@@ -1507,6 +1606,27 @@ defineExpose({ refresh: loadModules, executeCommand })
         </a-form-item></template></SchemaFormLayout>
       </a-form>
     </ProductFormDrawer>
+    <a-modal v-model:open="manualActionOpen" :title="manualAction?.name || '执行业务动作'" :footer="null" :mask-closable="false" :closable="!manualActionSaving" :keyboard="!manualActionSaving" width="720px">
+      <a-alert type="info" show-icon class="section-alert"
+        :message="manualActionTargets.length === 1 ? `处理“${manualActionTargets[0]?.title}”` : `批量处理 ${manualActionTargets.length} 条记录`"
+        description="填写业务字段后统一执行；批量处理中每条记录独立校验、审批和记录结果。" />
+      <a-form layout="vertical" :disabled="manualActionSaving || manualActionResults.length > 0">
+        <a-form-item v-for="field in manualActionFields" :key="field.code" :label="field.name" :required="field.required">
+          <RuntimeFieldInput v-model="manualActionValues[field.code]" :field="field" :options="options(field)" />
+        </a-form-item>
+      </a-form>
+      <a-table v-if="manualActionResults.length" size="small" :pagination="false" :data-source="manualActionResults" row-key="recordId" :scroll="{ y: 240 }">
+        <a-table-column title="记录" data-index="title" :ellipsis="true" />
+        <a-table-column title="结果" width="90"><template #default="{ record }"><a-tag :color="record.status === 'SUCCESS' ? 'green' : 'red'">{{ record.status === 'SUCCESS' ? '成功' : '失败' }}</a-tag></template></a-table-column>
+        <a-table-column title="说明" data-index="message" />
+        <a-table-column title="处理详情" width="100"><template #default="{ record }"><a-button v-if="record.result" type="link" size="small" @click="lastAction = { moduleCode: activeCode, result: record.result }; manualActionOpen = false">查看结果</a-button></template></a-table-column>
+      </a-table>
+      <div class="drawer-footer">
+        <a-button :disabled="manualActionSaving" @click="manualActionOpen = false">关闭</a-button>
+        <a-button v-if="manualActionResults.some(item => item.status === 'FAILED')" :loading="manualActionSaving" @click="requestManualAction(true)">只重试失败项</a-button>
+        <a-button v-if="!manualActionResults.length" type="primary" :loading="manualActionSaving" @click="requestManualAction(false)">确认执行</a-button>
+      </div>
+    </a-modal>
     <a-modal v-model:open="lifecycleOpen" :title="lifecycleAction === 'ARCHIVE' ? '确认归档记录' : lifecycleAction === 'DELETE' ? '确认删除记录' : '确认恢复记录'"
       :confirm-loading="lifecycleSaving" ok-text="确认执行" cancel-text="取消" @ok="submitLifecycle">
       <a-alert v-if="lifecycleImpact" type="warning" show-icon

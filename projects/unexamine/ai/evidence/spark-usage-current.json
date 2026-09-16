@@ -1,7 +1,7 @@
 {
   "thread_id": "01a06f53-2b57-7333-8b55-0d0183b53303",
   "started_at": "2026-09-07T05:59:39.353Z",
-  "sampled_at": "2026-09-07T06:38:02.141965+00:00",
+  "sampled_at": "2026-09-16T09:16:57.015925+00:00",
   "baseline": {
     "timestamp": "2026-09-07T05:57:33.949Z",
     "input_tokens": 182436,
@@ -12,26 +12,27 @@
     "total_tokens": 184931
   },
   "latest": {
-    "timestamp": "2026-09-07T06:37:18.319Z",
-    "input_tokens": 6561230,
-    "cached_input_tokens": 6394752,
+    "timestamp": "2026-09-16T09:16:23.427Z",
+    "input_tokens": 214430611,
+    "cached_input_tokens": 210107008,
     "cache_write_input_tokens": 0,
-    "output_tokens": 53359,
-    "reasoning_output_tokens": 24198,
-    "total_tokens": 6614589
+    "output_tokens": 583753,
+    "reasoning_output_tokens": 208034,
+    "total_tokens": 215014364
   },
   "delta": {
-    "input_tokens": 6378794,
-    "cached_input_tokens": 6249216,
+    "input_tokens": 298777817,
+    "cached_input_tokens": 292708864,
     "cache_write_input_tokens": 0,
-    "output_tokens": 50864,
-    "reasoning_output_tokens": 23533,
-    "total_tokens": 6429658,
-    "uncached_input_tokens": 129578
+    "output_tokens": 906068,
+    "reasoning_output_tokens": 342377,
+    "total_tokens": 299683885,
+    "uncached_input_tokens": 6068953
   },
   "cost": null,
   "notes": [
     "Input includes cached input; reasoning is a subset of output, not added twice.",
-    "Cumulative traffic is not context size or a currency bill. Final unsampled output is excluded."
+    "Cumulative traffic is not context size or a currency bill. Final unsampled output is excluded.",
+    "Counters reset 3 time(s); deltas were summed across comparable counter segments."
   ]
 }

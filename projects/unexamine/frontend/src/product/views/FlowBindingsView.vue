@@ -12,13 +12,14 @@ import ConditionGroupEditor from '../components/ConditionGroupEditor.vue'
 import ConditionValueInput from '../components/ConditionValueInput.vue'
 import { bindingCondition, emptyCondition, conditionFieldCodes, conditionIssues, conditionSummary, type ConditionField } from '../conditions'
 import { moduleAdminTarget, queryText, selectContextModule } from '../module-navigation'
-import type { FlowBindingList, FlowBindingResolution, FlowBindingView, FlowDefinitionView, RuntimeModuleCatalogItem, RuntimeRecord } from '../types'
+import type { ConfiguredAction, FlowBindingList, FlowBindingResolution, FlowBindingView, FlowDefinitionView, RuntimeModuleCatalogItem, RuntimeModuleConfiguration, RuntimeRecord } from '../types'
 
 const token = computed(() => systemTokens.value?.accessToken)
 const route = useRoute()
 const router = useRouter()
 const modules = ref<RuntimeModuleCatalogItem[]>([])
 const flows = ref<FlowDefinitionView[]>([])
+const manualActions = ref<ConfiguredAction[]>([])
 const bindings = ref<FlowBindingList>({ currentTenant: [], inheritedDefaults: [] })
 const resolution = ref<FlowBindingResolution>()
 const loading = ref(false)
@@ -26,6 +27,7 @@ const busy = ref('')
 const form = reactive({
   moduleId: undefined as number | undefined,
   triggerEvent: ['CREATE','UPDATE','DELETE','STATUS_CHANGED','MANUAL','SCHEDULED','APPLICATION','IMPORT_COMPLETED','EXCEPTION'].includes(queryText(route.query.triggerEvent)) ? queryText(route.query.triggerEvent) : 'CREATE',
+  actionId: undefined as number | undefined,
   flowId: undefined as number | undefined,
   executionMode: 'DIRECT',
   priorityOrder: 0,
@@ -40,7 +42,7 @@ const pointLoading = ref(false)
 const pointReady = ref(false)
 const savedSnapshot = ref('')
 const preview = ref<{ matched: boolean; conditions: Array<{ field: string; operator: string; matched: boolean }> }>()
-function snapshot() { return JSON.stringify({ mode: form.executionMode, flowId: form.flowId, priority: form.priorityOrder, exclusive: form.mutuallyExclusive, condition: condition.value }) }
+function snapshot() { return JSON.stringify({ actionId: form.actionId, mode: form.executionMode, flowId: form.flowId, priority: form.priorityOrder, exclusive: form.mutuallyExclusive, condition: condition.value }) }
 const dirty = computed(() => Boolean(savedSnapshot.value && savedSnapshot.value !== snapshot()))
 const testFields = computed(() => conditionFields.value.filter(field => conditionFieldCodes(condition.value).includes(field.code)))
 const issues = computed(() => conditionIssues(condition.value, conditionFields.value))
@@ -58,7 +60,14 @@ onBeforeRouteLeave(canLeave)
 onBeforeRouteUpdate((to, from) => to.query.module === from.query.module && to.query.triggerEvent === from.query.triggerEvent || canLeave())
 function changePoint(moduleId?: number, event = form.triggerEvent) {
   if (!canLeave()) return
-  savedSnapshot.value = ''; form.moduleId = moduleId; form.triggerEvent = event
+  savedSnapshot.value = ''; form.moduleId = moduleId; form.triggerEvent = event; form.actionId = undefined
+}
+
+function changeManualAction(actionId?: number) {
+  if (!canLeave()) return
+  savedSnapshot.value = ''
+  form.actionId = actionId
+  void loadBindings()
 }
 
 const publishedFlows = computed(() => flows.value.filter(flow => !!flow.currentVersionId))
@@ -95,6 +104,10 @@ function flowName(id?: number) {
   return flow ? flow.name : '业务流程'
 }
 
+function actionName(id?: number) {
+  return manualActions.value.find(item => item.id === id)?.name || '手动动作'
+}
+
 async function loadCatalog() {
   if (!token.value) return
   loading.value = true
@@ -120,6 +133,7 @@ async function loadCatalog() {
 async function loadBindings() {
   pointReady.value = false
   bindings.value = { currentTenant: [], inheritedDefaults: [] }
+  manualActions.value = []
   conditionFields.value = []; sampleRecords.value = []; savedSnapshot.value = ''
   useSample(); condition.value = emptyCondition()
   form.flowId = undefined; form.executionMode = 'DIRECT'; form.priorityOrder = 0; form.mutuallyExclusive = true
@@ -127,11 +141,21 @@ async function loadBindings() {
   const moduleId = form.moduleId, triggerEvent = form.triggerEvent
   pointLoading.value = true
   try {
+    const module = modules.value.find(item => item.moduleId === moduleId)
+    if (triggerEvent === 'MANUAL' && module) {
+      const runtime = await api<RuntimeModuleConfiguration>(`/api/runtime/modules/${module.moduleCode}/configuration`, {}, token.value)
+      manualActions.value = runtime.configuration.actions.filter(action => action.actionType === 'CUSTOM' && action.status === 'ACTIVE')
+      if (!manualActions.value.some(action => action.id === form.actionId)) form.actionId = manualActions.value[0]?.id
+    } else form.actionId = undefined
+    const scopedActionId = form.actionId
+    const actionQuery = triggerEvent === 'MANUAL' && form.actionId ? `&actionId=${form.actionId}` : ''
     const [result, fields] = await Promise.all([
-      api<FlowBindingList>(`/api/flow-bindings?moduleId=${moduleId}&triggerEvent=${encodeURIComponent(triggerEvent)}`, {}, token.value),
+      triggerEvent === 'MANUAL' && !form.actionId
+        ? Promise.resolve({ currentTenant: [], inheritedDefaults: [] } as FlowBindingList)
+        : api<FlowBindingList>(`/api/flow-bindings?moduleId=${moduleId}&triggerEvent=${encodeURIComponent(triggerEvent)}${actionQuery}`, {}, token.value),
       api<ConditionField[]>(`/api/flow-bindings/condition-fields?moduleId=${moduleId}&triggerEvent=${encodeURIComponent(triggerEvent)}`, {}, token.value),
     ])
-    if (form.moduleId !== moduleId || form.triggerEvent !== triggerEvent) return
+    if (form.moduleId !== moduleId || form.triggerEvent !== triggerEvent || form.actionId !== scopedActionId) return
     bindings.value = result; conditionFields.value = fields
     pointReady.value = true
     const current = activePublished.value
@@ -140,7 +164,6 @@ async function loadBindings() {
       condition.value = bindingCondition(current.condition, current.conditionExpression)
     }
     savedSnapshot.value = snapshot()
-    const module = modules.value.find(module => module.moduleId === moduleId)
     if (module && allowsPermission(systemContext.value?.permissions, 'MODULE', module.moduleCode, 'LIST')) {
       const result = await api<{ records: RuntimeRecord[] }>(`/api/runtime/modules/${module.moduleCode}/records?page=1&pageSize=20`, {}, token.value)
       if (form.moduleId === moduleId && form.triggerEvent === triggerEvent) sampleRecords.value = result.records
@@ -151,12 +174,14 @@ async function loadBindings() {
 
 async function publish(replaceExisting = false) {
   if (!token.value || !form.moduleId || form.executionMode !== 'DIRECT' && !form.flowId) return
+  if (form.triggerEvent === 'MANUAL' && !form.actionId) return message.warning('请先选择需要绑定的手动动作')
   if (issues.value.length) return message.warning(issues.value[0]!)
   busy.value = 'publish'
   try {
     const saved = await api<FlowBindingView>('/api/flow-bindings/publish', {
       method: 'POST', body: JSON.stringify(publishedBindingPayload({
-        moduleId: form.moduleId, flowId: form.flowId, triggerEvent: form.triggerEvent,
+        moduleId: form.moduleId, actionId: form.triggerEvent === 'MANUAL' ? form.actionId : undefined,
+        flowId: form.flowId, triggerEvent: form.triggerEvent,
         executionMode: form.executionMode, priorityOrder: form.priorityOrder,
         condition: condition.value, mutuallyExclusive: form.mutuallyExclusive,
       }, replaceExisting)),
@@ -168,7 +193,7 @@ async function publish(replaceExisting = false) {
     if (error instanceof ApiError && error.code === 'FLOW_BINDING_REPLACEMENT_REQUIRED') {
       Modal.confirm({
         title: '确认替换当前启用绑定？',
-        content: '同一模块和触发事件只能有一个启用绑定。确认后旧绑定会保留为“已停用”，不会删除历史记录。',
+        content: '当前业务触发点已有启用绑定。确认后旧绑定会保留为“已停用”，不会删除历史记录。',
         okText: '停用旧绑定并发布', cancelText: '取消',
         onOk: () => publish(true),
       })
@@ -184,7 +209,8 @@ async function resolveBinding() {
   try {
     resolution.value = await api<FlowBindingResolution>('/api/flow-bindings/resolve', {
       method: 'POST', body: JSON.stringify({
-        moduleId: form.moduleId, triggerEvent: form.triggerEvent, variables: testVariables(),
+        moduleId: form.moduleId, actionId: form.triggerEvent === 'MANUAL' ? form.actionId : undefined,
+        triggerEvent: form.triggerEvent, variables: testVariables(),
       }),
     }, token.value)
     message.success(resolution.value.executionMode === 'DIRECT' ? '已匹配直接保存配置' : `已解析到${bindingSourceLabel(resolution.value.source)}的流程${versionLabel(resolution.value.flowVersionNumber)}`)
@@ -234,6 +260,10 @@ onMounted(loadCatalog)
           <a-form-item label="触发事件" required>
             <a-select :value="form.triggerEvent" @update:value="changePoint(form.moduleId,$event)" :options="['CREATE','UPDATE','DELETE','STATUS_CHANGED','MANUAL','SCHEDULED','APPLICATION','IMPORT_COMPLETED','EXCEPTION'].map(value => ({ value, label: eventLabel(value) }))" />
           </a-form-item>
+          <a-form-item v-if="form.triggerEvent === 'MANUAL'" label="手动动作" required extra="动作来自模块的已发布配置；每个动作可独立设置条件和审批方式。">
+            <a-select :value="form.actionId" placeholder="选择手动动作" :options="manualActions.map(item => ({ value: item.id, label: item.name }))" @update:value="changeManualAction" />
+          </a-form-item>
+          <a-alert v-if="form.triggerEvent === 'MANUAL' && pointReady && !manualActions.length" type="warning" show-icon class="section-alert" message="当前模块没有可配置的已发布手动动作" description="请先在模块配置中用字段选择器新增手动动作并发布。" />
           <a-form-item v-if="form.executionMode !== 'DIRECT'" label="已发布流程" required>
             <a-select v-model:value="form.flowId" placeholder="选择流程" :options="publishedFlows.map(item => ({ value: item.id, label: `${item.name} · ${versionLabel(item.versions.find(v => v.id === item.currentVersionId)?.versionNumber)}` }))" />
           </a-form-item>
@@ -247,7 +277,7 @@ onMounted(loadCatalog)
           </a-form-item>
           <a-alert v-if="issues.length" type="warning" show-icon :message="issues[0]" />
           <a-checkbox v-model:checked="form.mutuallyExclusive">命中后不再寻找其他绑定</a-checkbox>
-          <a-button v-if="can('BIND_PUBLISH')" type="primary" block class="flow-binding-submit" :disabled="!pointReady || pointLoading || !form.moduleId || form.executionMode !== 'DIRECT' && !form.flowId || issues.length > 0" :loading="busy === 'publish'" @click="publish(false)">发布动作配置</a-button>
+          <a-button v-if="can('BIND_PUBLISH')" type="primary" block class="flow-binding-submit" :disabled="!pointReady || pointLoading || !form.moduleId || form.triggerEvent === 'MANUAL' && !form.actionId || form.executionMode !== 'DIRECT' && !form.flowId || issues.length > 0" :loading="busy === 'publish'" @click="publish(false)">发布动作配置</a-button>
           <a-button v-if="dirty" block class="flow-binding-submit" @click="loadBindings">取消修改</a-button>
         </a-form>
       </section>
@@ -258,7 +288,7 @@ onMounted(loadCatalog)
           <div v-if="rows.length" class="flow-binding-list">
             <article v-for="binding in rows" :key="binding.id" :class="{ disabled: binding.status !== 'ACTIVE' }">
               <div><a-tag :color="binding.scopeType === 'TENANT_OVERRIDE' ? 'purple' : 'blue'">{{ binding.scopeType === 'TENANT_OVERRIDE' ? '当前工作空间' : '系统公共' }}</a-tag><a-tag :color="binding.status === 'ACTIVE' ? 'green' : 'default'">{{ binding.status === 'ACTIVE' ? '启用' : '已停用' }}</a-tag></div>
-              <strong>{{ eventLabel(binding.triggerEvent) }} → {{ binding.executionMode === 'DIRECT' ? '直接保存' : flowName(binding.flowId) }}</strong>
+              <strong>{{ binding.triggerEvent === 'MANUAL' ? actionName(binding.actionId) : eventLabel(binding.triggerEvent) }} → {{ binding.executionMode === 'DIRECT' ? '直接保存' : flowName(binding.flowId) }}</strong>
               <p>{{ modeLabel(binding.executionMode) }} · {{ binding.flowVersionNumber ? versionLabel(binding.flowVersionNumber) : '不启动流程' }} · 优先级 {{ binding.priorityOrder }}</p>
               <small>条件：{{ conditionSummary(bindingCondition(binding.condition,binding.conditionExpression), conditionFields) }} · 已发布</small>
             </article>

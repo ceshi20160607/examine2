@@ -132,6 +132,15 @@ public class ModuleConfigurationController {
                 AuthenticationContextHolder.require(), moduleId, actionCode, request, TraceIdFilter.current(servletRequest)));
     }
 
+    @PostMapping("/modules/{moduleId}/actions")
+    public ApiResult<ConfiguredModuleAction> createCustomAction(
+            @PathVariable Long moduleId,
+            @Valid @RequestBody CreateCustomActionRequest request,
+            HttpServletRequest servletRequest) {
+        return ApiResult.ok(configurationService.createCustomAction(
+                AuthenticationContextHolder.require(), moduleId, request, TraceIdFilter.current(servletRequest)));
+    }
+
     @GetMapping("/modules/{moduleId}/publication-check")
     @RequirePermission(resourceType = "CONFIG", resourceCode = "MODULE", actionCode = "PREVIEW")
     public ApiResult<PublicationCheckResult> publicationCheck(@PathVariable Long moduleId) {

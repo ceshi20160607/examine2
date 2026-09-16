@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { conversionTargetCodes, createRuntimeAction, businessActionMessage } from './runtime-actions'
+import { conversionTargetCodes, createRuntimeAction, executeRuntimeAction, businessActionMessage } from './runtime-actions'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -34,6 +34,18 @@ describe('shared runtime action submission', () => {
   it('only starting a flow cannot be described as a created business record', () => {
     expect(businessActionMessage({ ...result, mode: 'FLOW_ONLY', value: null, flowInstanceId: 30 }, '业务数据已创建'))
       .toBe('流程已发起，业务数据未变更')
+  })
+
+  it('retains a batch item key and uses the module receipt endpoint for a manual action', async () => {
+    const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('connection lost'))
+      .mockResolvedValueOnce(response(result)).mockResolvedValueOnce(response({ status: 'STARTED', flowInstanceId: 40 }))
+    vi.stubGlobal('fetch', fetcher)
+    const manualPath = `${path}/10/actions/ACTION_REVIEW`
+    await expect(executeRuntimeAction(manualPath, 'POST', { version: 2, values: { note: '复核完成' } }, 'item-key')).rejects.toThrow()
+    await executeRuntimeAction(manualPath, 'POST', { version: 2, values: { note: '复核完成' } }, 'item-key')
+    expect(fetcher.mock.calls[0]![1].headers.get('Idempotency-Key')).toBe('item-key')
+    expect(fetcher.mock.calls[1]![1].headers.get('Idempotency-Key')).toBe('item-key')
+    expect(fetcher.mock.calls[2]![0]).toBe(`${path}/action-results/7`)
   })
 
   it('distinguishes approval success from the business execution outcome', () => {

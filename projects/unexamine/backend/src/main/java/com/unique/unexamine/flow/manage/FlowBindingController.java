@@ -23,8 +23,9 @@ public class FlowBindingController {
 
     @GetMapping
     public ApiResult<FlowBindingModels.BindingList> list(
-            @RequestParam Long moduleId, @RequestParam(required = false) String triggerEvent) {
-        return ApiResult.ok(service.list(AuthenticationContextHolder.require(), moduleId, triggerEvent));
+            @RequestParam Long moduleId, @RequestParam(required = false) Long actionId,
+            @RequestParam(required = false) String triggerEvent) {
+        return ApiResult.ok(service.list(AuthenticationContextHolder.require(), moduleId, actionId, triggerEvent));
     }
 
     @PostMapping("/publish")

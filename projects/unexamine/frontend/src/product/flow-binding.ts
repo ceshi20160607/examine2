@@ -11,6 +11,7 @@ export function bindingSourceLabel(source: 'DEFAULT' | 'TENANT_OVERRIDE') {
 
 export function publishedBindingPayload(input: {
   moduleId: number
+  actionId?: number
   flowId?: number
   triggerEvent: string
   executionMode: string

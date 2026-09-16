@@ -28,15 +28,21 @@ export function createRuntimeAction() {
     const serialized = JSON.stringify(body)
     const fingerprint = JSON.stringify([token, path, method, serialized])
     if (pending?.fingerprint !== fingerprint) pending = { fingerprint, key: crypto.randomUUID() }
-    const result = await api<BusinessActionResult<T>>(path, {
-      method, body: serialized, headers: { 'Idempotency-Key': pending.key, Prefer: 'return=action' },
-    }, token)
+    const result = await executeRuntimeAction<T>(path, method, body, pending.key, token)
     pending = undefined
+    return result
+  }
+}
+
+/** Execute one record action with a caller-owned identity so batch retries can retain failed item keys. */
+export async function executeRuntimeAction<T>(path: string, method: string, body: unknown, idempotencyKey: string, token?: string) {
+    const result = await api<BusinessActionResult<T>>(path, {
+      method, body: JSON.stringify(body), headers: { 'Idempotency-Key': idempotencyKey, Prefer: 'return=action' },
+    }, token)
     // A receipt/read failure must not turn a committed write into a reported save failure.
     const receiptPath = `${path.slice(0, path.indexOf('/records'))}/records/action-results/${result.idempotencyRecordId}`
     result.delivery = await api<NonNullable<BusinessActionResult<T>['delivery']>>(receiptPath, {}, token).catch(() => undefined)
     return result
-  }
 }
 
 export function businessActionMessage(result: BusinessActionResult<unknown>, completed: string): string {

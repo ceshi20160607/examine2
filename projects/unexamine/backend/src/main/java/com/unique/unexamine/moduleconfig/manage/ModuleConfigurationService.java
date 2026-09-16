@@ -2,6 +2,7 @@ package com.unique.unexamine.moduleconfig.manage;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModule;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleAction;
@@ -32,9 +33,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.LinkedHashMap;
 
 @Service
 public class ModuleConfigurationService {
+    private static final Set<String> CUSTOM_ACTION_FIELD_TYPES = Set.of(
+            "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "NUMBER", "MONEY",
+            "BOOLEAN", "DATE", "DATETIME", "SINGLE_SELECT", "MULTI_SELECT", "STATUS", "RICH_TEXT", "JSON");
     static final Set<String> FIELD_TYPES = Set.of(
             "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "NUMBER", "PERCENT", "MONEY",
             "DATE", "DATETIME", "DATE_RANGE", "TIME", "TIME_RANGE", "SINGLE_SELECT", "MULTI_SELECT", "CASCADE",
@@ -396,6 +401,9 @@ public class ModuleConfigurationService {
             throw new DomainException("DRAFT_VERSION_CONFLICT", "动作草稿已被其他操作修改", HttpStatus.CONFLICT);
         }
         action.setLocation(request.location());
+        if ("CUSTOM".equals(action.getActionType())) {
+            validateCustomActionConfig(moduleId, request.config());
+        }
         action.setConfigJson(toJson(request.config()));
         if (actionService.updateById(action) == 0) {
             throw new DomainException("DRAFT_VERSION_CONFLICT", "动作草稿已被其他操作修改", HttpStatus.CONFLICT);
@@ -405,6 +413,84 @@ public class ModuleConfigurationService {
                 "MODULE_ACTION_DRAFT_UPDATED", "MODULE_ACTION", action.getId().toString(), "SUCCESS",
                 Map.of("moduleId", moduleId, "actionCode", action.getCode()));
         return action;
+    }
+
+    /**
+     * 创建一个对记录执行字段更新的手动动作。动作编码和内部配置由服务端生成，避免配置者接触技术标识。
+     */
+    @Transactional
+    public ConfiguredModuleAction createCustomAction(
+            AuthenticatedContext context, Long moduleId, CreateCustomActionRequest request, String traceId) {
+        ConfiguredModule module = requireOwnedDraft(context, moduleId);
+        LinkedHashMap<String, Object> config = new LinkedHashMap<>();
+        config.put("operation", "UPDATE_FIELDS");
+        config.put("parameterFieldCodes", request.parameterFieldCodes());
+        config.put("confirmation", request.confirmation());
+        config.put("confirmationText", blankToNull(request.confirmationText()));
+        JsonNode configNode = objectMapper.valueToTree(config);
+        validateCustomActionConfig(moduleId, configNode);
+
+        ConfiguredModuleAction action = new ConfiguredModuleAction();
+        action.setSystemId(module.getSystemId());
+        action.setOwnerTenantId(module.getOwnerTenantId());
+        action.setModuleId(moduleId);
+        action.setCode("ACTION_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase(Locale.ROOT));
+        action.setName(request.name().strip());
+        action.setActionType("CUSTOM");
+        action.setLocation(request.location());
+        action.setSortOrder(actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
+                .eq(ConfiguredModuleAction::getModuleId, moduleId)).stream()
+                .map(ConfiguredModuleAction::getSortOrder).filter(java.util.Objects::nonNull)
+                .max(Integer::compareTo).orElse(0) + 10);
+        action.setStatus("ACTIVE");
+        action.setConfigJson(toJson(configNode));
+        action.setVersion(0);
+        actionService.insert(action);
+        touch(module);
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "MODULE_CUSTOM_ACTION_CREATED", "MODULE_ACTION", action.getId().toString(), "SUCCESS",
+                Map.of("moduleId", moduleId, "actionCode", action.getCode(), "parameterCount", request.parameterFieldCodes().size()));
+        return action;
+    }
+
+    /** 校验手动动作只能写当前模块中启用且可输入的业务字段。 */
+    private void validateCustomActionConfig(Long moduleId, JsonNode config) {
+        if (!"UPDATE_FIELDS".equals(config.path("operation").asText())
+                || !config.path("parameterFieldCodes").isArray()
+                || config.path("parameterFieldCodes").isEmpty()
+                || config.path("parameterFieldCodes").size() > 20) {
+            throw new DomainException("CUSTOM_ACTION_CONFIG_INVALID", "手动动作必须配置 1 至 20 个填写字段",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        Set<String> requested = new java.util.LinkedHashSet<>();
+        config.path("parameterFieldCodes").forEach(node -> requested.add(node.asText()));
+        if (requested.size() != config.path("parameterFieldCodes").size()) {
+            throw new DomainException("CUSTOM_ACTION_CONFIG_INVALID", "手动动作字段不能重复",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        Set<String> writable = fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
+                        .eq(ConfiguredModuleField::getModuleId, moduleId)
+                        .eq(ConfiguredModuleField::getStatus, "ACTIVE"))
+                .stream().filter(this::customActionFieldWritable)
+                .map(ConfiguredModuleField::getCode).collect(java.util.stream.Collectors.toSet());
+        if (!writable.containsAll(requested)) {
+            throw new DomainException("CUSTOM_ACTION_FIELD_INVALID", "手动动作引用了不存在、停用或只读的字段",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    /** 手动动作仅开放已有可视化输入控件支持的可写字段，损坏配置按不可写处理。 */
+    private boolean customActionFieldWritable(ConfiguredModuleField field) {
+        if (!CUSTOM_ACTION_FIELD_TYPES.contains(field.getFieldType())) return false;
+        try {
+            return !objectMapper.readTree(field.getConfigJson()).path("readOnly").asBoolean(false);
+        } catch (JsonProcessingException exception) {
+            return false;
+        }
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.strip();
     }
 
     @Transactional

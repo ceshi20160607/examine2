@@ -105,7 +105,7 @@ const fieldForm = reactive({
   sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true, sensitive: false, readOnly: false,
   version: 0,
 })
-const actionForm = reactive({ location: 'ROW', confirmation: false, confirmationText: '', version: 0 })
+const actionForm = reactive({ name: '', location: 'ROW', parameterFieldCodes: [] as string[], confirmation: false, confirmationText: '', version: 0 })
 type ConversionMapping = { targetCode: string; sourceCode: string }
 type ConversionTarget = { moduleCode: string; mappings: ConversionMapping[] }
 const conversionTargets = ref<ConversionTarget[]>([])
@@ -217,6 +217,11 @@ const conversionModuleOptions = computed(() => overview.value.modules
   .filter(module => module.id !== selectedModuleId.value)
   .map(module => ({ value: module.code, label: module.name })))
 const activeFieldOptions = computed(() => (draft.value?.fields || []).filter(field => field.status === 'ACTIVE')
+  .map(field => ({ value: field.code, label: field.name })))
+const manualActionFieldOptions = computed(() => (draft.value?.fields || []).filter(field => field.status === 'ACTIVE'
+  && ['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL', 'ID_CARD', 'NUMBER', 'MONEY', 'BOOLEAN', 'DATE', 'DATETIME',
+    'SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'RICH_TEXT', 'JSON'].includes(field.fieldType))
+  .filter(field => { try { return !JSON.parse(field.configJson || '{}').readOnly } catch { return false } })
   .map(field => ({ value: field.code, label: field.name })))
 const indexFieldOptions = computed(() => (draft.value?.fields || []).filter(field => field.status === 'ACTIVE'
   && supportsUniqueValue(field.fieldType))
@@ -652,12 +657,23 @@ async function saveMenu() {
   finally { saving.value = false }
 }
 
+function beginCustomAction() {
+  editingAction.value = undefined
+  Object.assign(actionForm, {
+    name: '', location: 'ROW', parameterFieldCodes: [] as string[],
+    confirmation: true, confirmationText: '', version: 0,
+  })
+  actionDrawer.value = true
+}
+
 function editAction(action: ConfiguredAction) {
   editingAction.value = action
-  let config: { confirmation?: boolean; confirmationText?: string; targetModuleCode?: string; fieldMappings?: Record<string, string>; targets?: Array<{ moduleCode: string; fieldMappings?: Record<string, string> }> } = {}
+  let config: { confirmation?: boolean; confirmationText?: string; parameterFieldCodes?: string[]; targetModuleCode?: string; fieldMappings?: Record<string, string>; targets?: Array<{ moduleCode: string; fieldMappings?: Record<string, string> }> } = {}
   try { config = JSON.parse(action.configJson) } catch { /* publication check reports invalid JSON */ }
   Object.assign(actionForm, {
+    name: action.name,
     location: action.location,
+    parameterFieldCodes: config.parameterFieldCodes || [],
     confirmation: Boolean(config.confirmation),
     confirmationText: config.confirmationText || '',
     version: action.version,
@@ -708,12 +724,32 @@ function conversionMappings(target: ConversionTarget) {
 }
 
 async function saveAction() {
-  if (!selectedModuleId.value || !editingAction.value) return
+  if (!selectedModuleId.value) return
   saving.value = true
   try {
+    if (!editingAction.value) {
+      if (!actionForm.name.trim()) throw new Error('请填写动作名称')
+      if (!actionForm.parameterFieldCodes.length) throw new Error('请至少选择一个需要填写的业务字段')
+      await api(`/api/admin/module-config/modules/${selectedModuleId.value}/actions`, {
+        method: 'POST', body: JSON.stringify({
+          name: actionForm.name, location: actionForm.location,
+          parameterFieldCodes: actionForm.parameterFieldCodes,
+          confirmation: actionForm.confirmation, confirmationText: actionForm.confirmationText,
+        }),
+      }, token.value)
+      actionDrawer.value = false
+      message.success('手动动作已加入草稿，发布后在业务页面使用')
+      await loadOverview(selectedModuleId.value)
+      return
+    }
     const config: Record<string, unknown> = {
       ...JSON.parse(editingAction.value.configJson || '{}'),
       confirmation: actionForm.confirmation, confirmationText: actionForm.confirmationText,
+    }
+    if (editingAction.value.actionType === 'CUSTOM') {
+      if (!actionForm.parameterFieldCodes.length) throw new Error('请至少选择一个需要填写的业务字段')
+      config.operation = 'UPDATE_FIELDS'
+      config.parameterFieldCodes = actionForm.parameterFieldCodes
     }
     if (editingAction.value.code === 'CONVERT') {
       if (!conversionTargets.value.length || conversionTargets.value.some(target => !target.moduleCode)) {
@@ -1159,7 +1195,7 @@ onMounted(() => loadOverview())
             <a-empty v-if="!ruleIndexDraft.indexes.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无索引；普通字段仍可使用基础查询" />
           </div>
           <div v-else-if="activeConfigTask === 'ACTIONS' && activeDesignerTab === 'ACTIONS'" class="page-config-canvas">
-            <div class="page-editor-toolbar"><div><strong>模块功能</strong><small>常用功能默认可用；只有业务确实需要时再调整位置或二次确认。</small></div></div>
+            <div class="page-editor-toolbar"><div><strong>模块功能</strong><small>常用功能默认可用；业务动作可以选择字段并在运行时填写。</small></div><a-button type="primary" @click="beginCustomAction"><PlusOutlined />新建手动动作</a-button></div>
             <button v-for="action in draft.actions" :key="action.id" type="button" class="action-config-row" @click="editAction(action)">
               <span><strong>{{ action.name }}</strong><small>{{ actionLocationName(action.location) }}</small></span>
               <a-tag>{{ action.status === 'ACTIVE' ? '已启用' : '已停用' }}</a-tag><span>配置</span>
@@ -1268,8 +1304,13 @@ onMounted(() => loadOverview())
       <ModuleFieldProperties :field-form="fieldForm" :editing="Boolean(editingField)" :field-configuration-issue="fieldConfigurationIssue" :dictionary-options="dictionaryOptions" :reference-module-options="referenceModuleOptions" :available-ai-models="availableAiModels" />
       <template #footer><div class="drawer-footer"><a-button @click="fieldDrawer = false">取消</a-button><a-button type="primary" :loading="saving" :disabled="Boolean(fieldConfigurationIssue)" @click="saveField">保存字段</a-button></div></template>
     </a-drawer>
-    <a-drawer v-model:open="actionDrawer" :title="`配置动作：${editingAction?.name || ''}`" width="430">
+    <a-drawer v-model:open="actionDrawer" :title="editingAction ? `配置动作：${editingAction.name}` : '新建手动动作'" width="480">
       <a-form layout="vertical">
+        <template v-if="!editingAction || editingAction.actionType === 'CUSTOM'">
+          <a-alert type="info" show-icon class="section-alert" message="用户执行时填写所选字段；单条和批量都走同一权限、校验、审批与审计链路。" />
+          <a-form-item v-if="!editingAction" label="动作名称" required><a-input v-model:value="actionForm.name" placeholder="例如：填写复核结果" /></a-form-item>
+          <a-form-item label="执行时填写" required extra="只显示当前模块可输入的已启用字段。"><a-select v-model:value="actionForm.parameterFieldCodes" mode="multiple" :options="manualActionFieldOptions" placeholder="选择业务字段" /></a-form-item>
+        </template>
         <a-form-item label="出现位置"><a-select v-model:value="actionForm.location" :options="actionLocations" /></a-form-item>
         <a-form-item label="执行前二次确认"><a-switch v-model:checked="actionForm.confirmation" /></a-form-item>
         <a-form-item v-if="actionForm.confirmation" label="确认提示"><a-input v-model:value="actionForm.confirmationText" placeholder="确认执行此操作？" /></a-form-item>

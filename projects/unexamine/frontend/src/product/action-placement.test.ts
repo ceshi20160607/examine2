@@ -28,6 +28,16 @@ describe('published action placement and access', () => {
     expect(actionsAtLocation([entry], 'MODULE_ENTRY', () => true)).toEqual([])
     entry.location = 'DETAIL_HEADER'
     expect(actionsAtLocation([entry], 'DETAIL_HEADER', () => true)).toEqual([entry])
+    expect(actionsAtLocation([action('DETAIL', 'ROW')], 'ROW', () => true)).toEqual([])
+  })
+
+  it('places published manual actions while retaining permission, lifecycle and sharing limits', () => {
+    const manual = { ...action('ACTION_REVIEW', 'BATCH'), actionType: 'CUSTOM' as const }
+    expect(actionsAtLocation([manual], 'BATCH', () => true)).toEqual([manual])
+    expect(actionsAtLocation([manual], 'BATCH', () => false)).toEqual([])
+    expect(actionAllowsRecord(manual.code, record({ archived: true }))).toBe(false)
+    expect(actionAllowsRecord(manual.code, record({ shared: true, sharedActions: ['UPDATE'] }))).toBe(false)
+    expect(actionAllowsRecord(manual.code, record({ shared: true, sharedActions: [manual.code] }))).toBe(true)
   })
   it('requires an explicit single record for record actions; export retains multiple selection support', () => {
     expect(selectionActionReason('UPDATE',0)).toBeTruthy()

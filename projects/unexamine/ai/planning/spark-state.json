@@ -5,12 +5,12 @@
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B07.1c",
-  "current_step": "B07.1c",
+  "next_step": "B07.1c.2",
+  "current_step": "B07.1c.2",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
-  "environment_note": "JDK21 native compile works. Windows TestRestTemplate loopback fails before assertions; verified workaround is native test-compile plus isolated Linux Maven surefire:test/Testcontainers. Do not retry full native suites or touch unrelated containers.",
+  "environment_note": "Reuse running shared redis:6379 with its existing authentication; project unexamine-redis-1 MUST stay stopped. Existing unexamine-mysql-1:33077 and same unexamine-golden-backend:18080 (existing network/jar/business-files mounts), one native Vite:15173. Backend healthy/preflight5/schema40. Do not full compose up, create duplicate frontend/backend/cache environments, use Testcontainers or change unrelated dm8/es8104. JDK21 native focused compile/tests work. Prefer current services and readback for this completion effort; preserve credentials internally, never write them to evidence.",
   "architecture_choices": {
     "strategy": "modify_existing_shared_core_no_stack_replacement",
     "action_executor_path": "foundation/manage/control/FoundationControlService.execute; RuntimeDataService public writes enter this synchronous transaction; dispatcher handles delivery only",
@@ -19,12 +19,11 @@
     "form_configuration": "shared_drag_drop_field_designer_left_types_center_canvas_right_typed_properties"
   },
   "current_scope": {
-    "step": "B07.1c",
+    "step": "B07.1c.2",
     "source_rows": [
       "R0635",
       "R0636",
       "R0839",
-      "R0926",
       "R2735",
       "R2777",
       "R2831",
@@ -34,137 +33,129 @@
       "R2949"
     ],
     "files": [
-      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
       "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-      "projects/unexamine/frontend/src/product/components",
+      "projects/unexamine/frontend/src/product/components/RuntimeActionGroup.vue",
       "projects/unexamine/frontend/src/product/action-placement.ts",
       "projects/unexamine/frontend/src/product/runtime-actions.ts",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control"
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java"
     ],
     "entry_points": [
-      "Read only these indexed clauses and existing manual/bulk action configuration -> RuntimeActionGroup -> RuntimeDataService -> FoundationControlService.execute entry. Preserve current changes and B07.1b conditions/receipt semantics.",
-      "Identify existing CUSTOM_EVENT/manual and batch endpoint contracts before editing. Reuse shared condition editor and typed value/person/department/Flow selectors for the current published module; no raw JSON/technical-ID inputs or new executor.",
-      "First complete one real manual action plus one batch UPDATE main path with permission/lifecycle checks and per-record intent results. Keep transfer/conversion/sharing and advanced approval/application requirements open; no whole-project replan."
+      "Read these indexed current requirement clauses and current lifecycle modal/DELETE placement -> deleteAction -> FoundationControlService.execute. No full audit/replan or old cycle entry.",
+      "Reuse the B07.1c.1 per-item immutable request/result/failed-only retry semantics for batch DELETE; extract a simple shared helper only if actual duplication warrants it. Preserve manual receipts/bindings/configurations and existing changes.",
+      "Reuse current single backend, MySQL, shared Redis and native Vite; no extra container/test stack. Confirm current selection/lifecycle/permissions before mutation."
     ],
     "acceptance": [
-      "Configure/publish/reload one manual action using permitted published fields and typed inputs, execute through the shared entry and read back its actual effect/Flow.",
-      "Bulk controls appear only after row selection. Submit at least two actual records; demonstrate meaningful per-item success/failure and retry that does not repeat successful items. Four-mode shared business write/approval behavior remains intact.",
-      "Use affected behavior tests and builds plus real browser/server/DB readback only; record exact next substep and unresolved requirements. Do not repeat full historical suites."
+      "Published DELETE in BATCH appears only after selection, accepts multiple records with typed reason/confirmation and shared permission/lifecycle/Flow behavior, no raw JSON/IDs.",
+      "Two actual records produce per-item receipts; a meaningful version/permission conflict does not mutate its item and only failed-item retry occurs. Preserve original body/key after unknown connection results and do not repeat successful deletion.",
+      "Read back actual soft-delete/recycle-bin/history/reason/once-only audit/outbox and configured approval/business status. Run affected behavior tests/builds only, preserve remaining transfer/conversion/sharing/approval/apps/full requirements and record exact next step."
     ]
   },
   "last_result": {
-    "step": "B07.1b",
+    "step": "B07.1c.1",
     "status": "verified",
-    "verified_at": "2026-09-15T18:52:31.701495+08:00",
-    "verification_scope": "CREATE/UPDATE visual trigger conditions and four execution modes with one real approval once-only resume; B07.1b only, not full B07/B08/B09/product completion.",
+    "verified_at": "2026-09-16T17:15:11.248533+08:00",
+    "verification_scope": "Typed manual record-field action and bulk UPDATE main journey with partial-failure retry, current manual AFTER_EXECUTION/AFTER_APPROVAL and once-only replay. Only B07.1c.1; not full B07/B08/B09/product completion.",
     "checks_actual_results": [
-      "Frontend focused conditions/flow-binding/runtime-actions tests: 3 files, 12 passed; vue-tsc/Vite build passed (4010 modules, existing chunk-size warning). Backend two focused suites: 8 passed; JDK21 Maven package passed. Only SQL resource changed after package; skipTests package included corrected V40.",
-      "Reused StructuredRuleEvaluator and FoundationControlService.execute; no second executor or per-module CRUD service. Tree ALL/ANY typed fields/operators/values shared with editor/preview/published resolution. EMPTY distinguishes 0/false from absent; numeric decimals/date comparison and invalid refs/types/limits tested.",
-      "Permission unit assertions reject masked/inaccessible unpublished field references and sample extras before mutation. Condition catalog intersects PAGE and FLOW policies; restricted-account browser journey not rerun, cannot claim all authorization coverage.",
-      "Real UI no CREATE binding: record71 created8/version0. DIRECT UPDATE binding3 without Flow: 8->9/version1. Nested ALL(number>15,ANY(boolean=true,notesEMPTY)) preview record9 false, edited sample16 true with three per-field reasons; published binding4 and browser reload preserved exact condition/mode/Flow V1.",
-      "AFTER_EXECUTION UPDATE9->10 no match: normal write/version2, no Flow. UPDATE10->16 match: write/version3, published outbox34 starts Flow35 at real approval. Existing record70 remained14/version2.",
-      "Published explicit replacements retain disabled history. FLOW_ONLY binding5 UPDATE proposed17: receipt45 FLOW_STARTED/Flow36 WAITING, no write, record71 remains16/version3.",
-      "AFTER_APPROVAL binding6 UPDATE proposed18: receipt46 PENDING_APPROVAL/Flow37 WAITING, record71 remains16/version3. Opened actual approval task27 in Flow37, confirmed current admin/PERSON approver and proposed18, approved through UI. Flow37 COMPLETED, intent46 EXECUTED, record71 becomes18/version4; repeated receipt refresh/reload does not add writes, exactly one audit2806 has16->18.",
-      "Independent read-only DB assertion script verifies all six receipts41-46, outboxes31-36 PUBLISHED, bindings3-6 and pinned flowVersionId10, unchanged record70, record71 versions0->4/number8->9->10->16->18, Flow35/36/37 and one approval mutation audit. Current DB readback is not old completion evidence.",
-      "V40 originally failed MySQL same-statement drop/modify/re-add FK. Fixed three separate ALTERs; isolated schema probe preserved existing FK row, accepted nullable direct row. Generated migration/update/final SQL deterministically, fixed polluted frozen init by keeping V39 in updates only; no Base regeneration/hand-business overwrite. Removed only failed Flyway40 history row, successfully migrated actual DB40, restored same backend name/network/ports and mounted business file storage; no data reset or credentials saved in evidence."
+      "JDK21 Maven package and FlowBindingConfigurationTest: 5 passed, 0 failed/skipped. Frontend affected action-placement/runtime-actions/flow-binding suites: 3 files, 16 passed; final vue-tsc/Vite build passed, existing chunk-size warning. No full historical suites or Testcontainers this turn.",
+      "Browser created manual action286 '填写巡检复核备注' with named note-field selector, BATCH location and typed confirmation; no technical code/JSON input. Published module30 version3/config42; fields and page schemas unchanged from41. Existing shared RuntimeFieldInput/modal/action groups reused.",
+      "Module Flow configuration selected published action by name and published binding7 MANUAL AFTER_EXECUTION using existing Flow10 V1. Reload preserved action/mode/condition. Server resolution now scopes manual bindings by actionId; standard CREATE/UPDATE null-action bindings remain separate.",
+      "Runtime hides bulk area with no selection. Selected records70/71 and filled typed notes. Real concurrent standard UPDATE70 version2->3 preceded submission: batch receipt48 updated71 version4->5 and started Flow38; stale70 failed RECORD_VERSION_CONFLICT without mutation. Only-failed retry receipt50 updated70 version3->4 and started Flow39. Successful71 stayed version5 and was not resubmitted.",
+      "Single-record selection prefilled the current note; manual receipt51 updated70 version4->5 and started Flow40. Per-item View Result opens existing BusinessActionReceipt; browser reports business effective and Flow started. Removed repeated DETAIL row button in shared placement; row click still opens actual detail. Complete failure messages wrap.",
+      "Per-item pending requests retain the immutable body and key on unknown connection failure. Explicit version conflict clears the uncommitted request and reloads record versions; retry targets failed items only. Replay original receipts48/51 returns replayed=true/version5. Extra unconfigured number input rejected422 MANUAL_ACTION_VALUES_INVALID and did not write.",
+      "Republished manual binding8 AFTER_APPROVAL. Actual receipt54 PENDING_APPROVAL left70 version5/original note unchanged. Approved current PERSON task31 in Flow41 through API; Flow41 COMPLETED, intent54 EXECUTED,70 version6/new note. Original-request replays return the same completed result and version6. Acceptance script initially confused delivery status with businessStatus; corrected its assertion, did not change product to satisfy it.",
+      "Independent read-only DB script checks published action/config42, preserved schemas/number/boolean/ownership, receipts47/48/50/51/54, manual bindings7/8 pinned Flow10, Flow38-41, outboxes38-43 PUBLISHED and exactly one audit write per batch/single/approved note. Latest schema40 unchanged; no table reset or migration this turn.",
+      "Docker initially had shared Redis/dm8/es8104 running and project services stopped. Started existing unexamine-mysql-1; reused same unexamine-golden-backend name/port/network and mounted jar/files, configured existing shared Redis authentication internally. Final backend healthy, startup preflight5 passed; unexamine-redis-1 remains stopped. One native Vite15173; no additional frontend/backend containers, no unrelated container changes or persisted credentials.",
+      "Final browser reload retained module30; opened record70 detail through its card/row and visibly read approved note, number14, booleantrue and existing owner. Git diff --check passed; state/ledger/evidence JSON parse and tested-file hash comparison passed."
     ],
-    "tested_files": [
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingController.java",
-        "sha256": "e4ae4d202b5e4fbcaac195d22f77b00f07e334eedfb82d016ea74b42a03c1d61"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingModels.java",
-        "sha256": "67732060a2ed3723cb6512c8b100ae764190f8ab00a24af9dec4a117162269c2"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
-        "sha256": "d116f7e435a53f593c22e397de63077848571446b70297ae25d8f709e16c8418"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/StructuredRuleEvaluator.java",
-        "sha256": "557ea286f6835fb4ce6dc8034da8b5c0ad4e12b7718cd9fdc517a0260a6704d7"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-        "sha256": "fa14e1e953a1362d62d968c262dcc908ddbb4884afc0925d8e81ffc16bd0c7d4"
-      },
-      {
-        "path": "projects/unexamine/db/final.sql",
-        "sha256": "043fd7f4337bbdf71b6aa6bb72444e11e0bce494812d2010e8387edab608f6d0"
-      },
-      {
-        "path": "projects/unexamine/db/init.sql",
-        "sha256": "718e2202eddcce0b1da1467bf257b5a73ed6e2cffe4fba8f2bf671edbd7f20ba"
-      },
-      {
-        "path": "projects/unexamine/db/update.sql",
-        "sha256": "0ed83f9d2b7d1b644719a13569ebed4dfeca3e03d0e10d65999eaf0117a908b4"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
-        "sha256": "b94cef1d678204ee643aebf830825018e360e0455477c84512edb40918a1ae03"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/flow-binding.ts",
-        "sha256": "2780a36f0fc9a76a5238009a1dadc83a1df4d7f0136b25d1e84bfee985f266d2"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/types.ts",
-        "sha256": "bcca1b6ab7921fd7752fbca0adb0ae5242bdab551503bac082259c77e8d558ff"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
-        "sha256": "47233efff45bdc057479518683e6d7e492374d7e19a38df91dcd69aa54f6debf"
-      },
-      {
-        "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowBindingConfigurationTest.java",
-        "sha256": "9b926905078a1e09c8b4a7a51168d0c03fa0d1e4e3167a7a0a211edf919559eb"
-      },
-      {
-        "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/StructuredRuleEvaluatorTest.java",
-        "sha256": "a3da928169a6ffedfc131b91d25bbdc0e37067606b9fe328dd3628832bb96276"
-      },
-      {
-        "path": "projects/unexamine/db/migration/V40__direct_action_without_flow.sql",
-        "sha256": "bb80728bfb35d27ed84c0a6fdb9de5b68c681e1857615281c2751e95a0ad22d0"
-      },
-      {
-        "path": "projects/unexamine/db/update/V40__direct_action_without_flow.sql",
-        "sha256": "bb80728bfb35d27ed84c0a6fdb9de5b68c681e1857615281c2751e95a0ad22d0"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/components/ConditionGroupEditor.vue",
-        "sha256": "4c1286d245fe41cb12bc190a10500079a46351e16580a756df7f255a3463930f"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/components/ConditionValueInput.vue",
-        "sha256": "5fd4f2a35379598ee06fd69bb4c6e3c7ad8d011384179986bf9c7acad963e622"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/conditions.test.ts",
-        "sha256": "c03ed67ff57c3ac50c8378c0f0c226e7bce20da8f3ef5ed59b8a6e540efd6af5"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/conditions.ts",
-        "sha256": "df72d7fe86a45876272229b365eec625e0ac7836fd55e92afc037c96aee3a5fc"
-      }
-    ],
-    "readback": "projects/unexamine/ai/evidence/spark-b07-condition-readback.json",
+    "readback": "projects/unexamine/ai/evidence/spark-b07-manual-readback.json",
     "remaining": [
-      "B07.1c: manual and batch actions, typed action parameters/configuration, selection-only bulk areas, per-item partial failures and safe retries through existing common entry; remaining B07 transfer/conversion/sharing are required.",
+      "Next B07.1c.2: bulk DELETE using existing shared deleteAction and typed lifecycle reason, per-item results/immutable keys/failed-only retry, actual soft-delete/history/Flow readback. R0636 is not implemented/verified by this step.",
+      "Remaining B07 transfer/conversion/sharing, complete batch EDIT field families and conditions, multi-record built-in placements and role/channel/tenant/ownership coverage remain required. Only one note-field manual/bulk update main journey was verified; custom DIRECT/FLOW_ONLY real journeys were not repeated here.",
+      "Complete unified serial/checkbox/title column rules and record title-to-business-field mapping; changing a candidate title field via partial action currently preserves system record.title. Do not infer a configured primary-field contract from the frontend heuristic.",
       "Advanced approval node design, nested Flow branching, timeout/transfer/repeated approver/dynamic nodes and all B08-B10 requirements remain open. This proves one existing published PERSON/OR_SIGN approval and once-only UPDATE resume only.",
       "Approval runtime currently displays technical field codes and serialized business parameters; replace with published field names/common typed read-only renderer when completing B08/B09. Pending UPDATE Flow has null business_id although its retained intent/resource correctly targets record71; link the existing record explicitly there.",
       "Old binding rows lacking flowVersionId still use legacy latest publication; new/republished bindings pin their version. Legacy upgrade plus concurrency/version/tenant coverage remains B08, not declared complete here.",
       "Condition fields currently cover permitted supported scalar/date/select types with inline options; dictionary, relation, member/department and complex field catalogs/default normalization HTTP cases and every action-family/role/channel are not all verified.",
       "B05/B06 deferred field families, sensitive data, linkage/display rules and all other full product requirements remain required. No external channel/account verification performed.",
-      "Browser acceptance left real fixture record71 at18/version4, current binding6 AFTER_APPROVAL, and Flow35/36 WAITING, Flow37 COMPLETED. Historical record70/configuration41 unchanged."
+      "Current local fixtures: module30 published config42/version3; record70 number14/version6, record71 number18/version5; UPDATE binding6 AFTER_APPROVAL remains unchanged, MANUAL action286 current binding8 AFTER_APPROVAL; Flow38/39/40 WAITING and41 COMPLETED. All old pending Flow data retained."
     ],
-    "next_step": "B07.1c",
-    "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b07-conditions.json",
-    "evidence": "projects/unexamine/ai/evidence/spark-b07-conditions-verification.json"
+    "next_step": "B07.1c.2",
+    "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b07-manual.json",
+    "tested_files": [
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingController.java",
+        "sha256": "b4c6b3044949aac5a5a0117ae861ade414a68398212dd38def2aa99486322e91"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+        "sha256": "684033fbd34772a4c5687e1b33fbc86fe7fe2b0bf13f64e8c4752d0cd51a124e"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+        "sha256": "6e12f5c73e790146bd7f83378cfb597eec352f7ac7ad59acfab351d3d8405815"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+        "sha256": "7084c8b6baf80d53669bebcd094362338c52856d0349b109dc4b651582146243"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+        "sha256": "68cc2dd295ce389b5f677922ab71fc1b5a4057aa6f52893abf5070b3c9f72d84"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "sha256": "d49f7c0c8ae6df4f98a9be9f1d23ab41fe75a64f247637a3652b2601ba197356"
+      },
+      {
+        "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowBindingConfigurationTest.java",
+        "sha256": "5c593777d8ecc972f4adc9957534a5826b1c8c8b6e6288662bf353eb3264da29"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/action-placement.test.ts",
+        "sha256": "6173407d89e664bb70949a0e0600e5b23a0f89221cca07b775f754b3c056585a"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/action-placement.ts",
+        "sha256": "60d9563860206322f5902186eb4b8f17c1264c6a5fab14bf91454a3d61a220f4"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/flow-binding.ts",
+        "sha256": "0f596c6251e4e09b0be88761f00234544d9ae737b6f93489b99b2826f7bbe6bc"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/runtime-actions.test.ts",
+        "sha256": "469f303134ba437a4070254cf9e9f5e8d04255140163fe930a4f98a75549d2f0"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/runtime-actions.ts",
+        "sha256": "38a82197a742d5cd87c79f4795c8d7396edb1bbb1eb87b2df12fbe22bc34f133"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/types.ts",
+        "sha256": "efda9de98d2d9f371dceb6ac986d8a7d4493c48917de1bfbb7e7e9030f2a0c90"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+        "sha256": "bc52b4e7342bed640b6c59cb38233e51f1891c35515ea3411f688bc269531bde"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "sha256": "a048e64a7daea00c47593ef4b8de8cb30c130873915f9f72f75ed5fbc4c8060d"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "sha256": "652bc2aa2fe144d36126d8af1ef518c83fff607583b2de3648f73b01b8de5e3b"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/CreateCustomActionRequest.java",
+        "sha256": "0e769deda850d9f192af5ba139e969f22adacec0e139996e130f5b51cf41b7c2"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/ManualRecordActionRequest.java",
+        "sha256": "2ba9498116161e52c190f62897fb44e03aba2615f55a5bac9466ace4749a17b3"
+      }
+    ],
+    "evidence": "projects/unexamine/ai/evidence/spark-b07-manual-verification.json"
   },
   "blockers": [
     {
@@ -363,7 +354,7 @@
     },
     {
       "step": "B01.1",
-      "verified_at": "2026-09-07T06:37:17.490414+00:00",
+      "verified_at": "2026-09-07T14:37:17.490414+08:00",
       "source_rows": [
         "R0303",
         "R0304",
@@ -466,7 +457,7 @@
     },
     {
       "step": "B01.2",
-      "verified_at": "2026-09-07T06:37:17.490414+00:00",
+      "verified_at": "2026-09-07T14:37:17.490414+08:00",
       "source_rows": [
         "R0303",
         "R0304",
@@ -1418,7 +1409,8 @@
       ],
       "next_step": "B07.1c",
       "evidence": "projects/unexamine/ai/evidence/spark-b07-conditions-verification.json"
-    }
+    },
+    "projects/unexamine/ai/evidence/spark-b07-manual-verification.json"
   ],
   "step_record_contract": {
     "required": [
@@ -1540,7 +1532,9 @@
         "B07.4": "unverified",
         "B07.1a": "verified",
         "B07.1b": "verified",
-        "B07.1c": "unverified"
+        "B07.1c": "in_progress",
+        "B07.1c.1": "verified",
+        "B07.1c.2": "unverified"
       }
     },
     {
@@ -1729,7 +1723,7 @@
       "B05.2b2"
     ],
     "rule": "Deferred means still required; no historical report may mark it complete.",
-    "current_main_path": "B06 main form/list/detail and B07.1a verified -> B07.1b visual conditions/four-mode action-to-Flow plus real basic approval resume verified -> B07.1c remaining manual/batch common actions -> remaining B07 -> B08/B09 advanced approval -> B11/B12 application opening. All deferred full requirements remain required."
+    "current_main_path": "B06 main form/list/detail -> B07.1a placement -> B07.1b conditions/four modes -> B07.1c.1 typed manual/bulk UPDATE and approval resume verified -> B07.1c.2 bulk DELETE -> remaining B07 transfer/conversion/sharing -> B08/B09 advanced approval -> B11/B12 application opening. All deferred full requirements stay required."
   },
   "form_designer_contract": {
     "source_rows": [
@@ -1780,9 +1774,19 @@
       "evidence": "projects/unexamine/ai/evidence/spark-b07-conditions-verification.json"
     },
     "B07.1c": {
-      "status": "unverified",
+      "status": "in_progress",
       "scope": "B07.1c: manual and batch actions, typed action parameters/configuration, selection-only bulk areas, per-item partial failures and safe retries through existing common entry; remaining B07 transfer/conversion/sharing are required.",
       "reason": "Finish remaining common manual/batch actions before expanding approval/applications; other full requirements are not reduced."
+    },
+    "B07.1c.1": {
+      "status": "verified",
+      "scope": "Typed manual record-field action and bulk UPDATE main journey with partial-failure retry, current manual AFTER_EXECUTION/AFTER_APPROVAL and once-only replay. Only B07.1c.1; not full B07/B08/B09/product completion.",
+      "evidence": "projects/unexamine/ai/evidence/spark-b07-manual-verification.json"
+    },
+    "B07.1c.2": {
+      "status": "unverified",
+      "scope": "Published DELETE in BATCH appears only after selection, accepts multiple records with typed reason/confirmation and shared permission/lifecycle/Flow behavior, no raw JSON/IDs.",
+      "reason": "Exact continuation after verified manual/bulk UPDATE; keep all other requirements."
     }
   }
 }
