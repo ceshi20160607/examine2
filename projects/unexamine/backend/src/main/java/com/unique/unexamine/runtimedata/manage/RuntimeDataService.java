@@ -680,6 +680,19 @@ public class RuntimeDataService {
     private String timelineSummary(
             String eventCode, Map<String, Object> detail,
             Map<String, PublishedField> fieldsByCode) {
+        // 使用执行时保存的名称快照展示归属前后值，避免成员更名后历史变化或暴露技术编号。
+        if ("BUSINESS_RECORD_TRANSFERRED".equals(eventCode) && detail.get("preview") instanceof Map<?, ?> preview) {
+            String owner = "负责人 " + Objects.toString(preview.get("fromOwnerName"), "不可用成员")
+                    + " → " + Objects.toString(preview.get("toOwnerName"), "不可用成员");
+            String department = "部门 " + Objects.toString(preview.get("fromDepartmentName"), "未设置")
+                    + " → " + Objects.toString(preview.get("toDepartmentName"), "未设置");
+            List<String> participants = List.of("fromParticipantNames", "toParticipantNames").stream()
+                    .map(key -> preview.get(key) instanceof List<?> names && !names.isEmpty()
+                            ? String.join("、", names.stream().map(name -> Objects.toString(name, "不可用成员")).toList())
+                            : "无").toList();
+            return owner + "；" + department + "；相关人 " + participants.get(0) + " → " + participants.get(1)
+                    + "；原因：" + Objects.toString(detail.get("reason"), "未填写");
+        }
         if (eventCode.startsWith("BUSINESS_RECORD_TASK_")) {
             String title = nullableString(detail.get("taskTitle"));
             String status = workTaskStatusLabel(nullableString(detail.get("taskStatus")));
@@ -913,6 +926,8 @@ public class RuntimeDataService {
             case "CREATE" -> createDirect(actor, input.moduleCode(), objectMapper.convertValue(input.payload(), CreateRuntimeRecordRequest.class), input.traceId());
             case "UPDATE" -> updateDirect(actor, input.moduleCode(), input.recordId(), objectMapper.convertValue(input.payload(), UpdateRuntimeRecordRequest.class), input.traceId());
             case "DELETE" -> deleteDirect(actor, input.moduleCode(), input.recordId(), objectMapper.convertValue(input.payload(), RecordLifecycleRequest.class), input.traceId());
+            case "TRANSFER" -> transferDirect(actor, input.moduleCode(), input.recordId(),
+                    objectMapper.convertValue(input.payload(), RecordTransferRequest.class), input.traceId());
             default -> executeManualDirect(actor, input.moduleCode(), input.recordId(), input.actionCode(),
                     objectMapper.convertValue(input.payload(), ManualRecordActionRequest.class), input.traceId());
         };
@@ -1286,6 +1301,7 @@ public class RuntimeDataService {
     public RuntimeRecordTransferPreview transferPreview(
             AuthenticatedContext context, String moduleCode, Long recordId,
             RecordTransferRequest request, String traceId) {
+        validateActionRequest(request);
         RecordAccess access = requireRecordAccess(context, moduleCode, "TRANSFER", recordId, true, traceId);
         BusinessRecord record = access.record();
         requireRecordVersion(context, moduleCode, "TRANSFER", record, request.version(), traceId);
@@ -1304,11 +1320,50 @@ public class RuntimeDataService {
                 request.ownerMemberId(), memberName(access.sourceContext(), request.ownerMemberId()),
                 record.getDepartmentId(), departmentName(access.sourceContext(), record.getDepartmentId()),
                 request.departmentId(), departmentName(access.sourceContext(), request.departmentId()),
-                currentParticipants, targetParticipants);
+                currentParticipants, targetParticipants,
+                currentParticipants.stream().map(id -> memberName(access.sourceContext(), id)).toList(),
+                targetParticipants.stream().map(id -> memberName(access.sourceContext(), id)).toList(),
+                relationMapper.selectCount(Wrappers.<BizRecordRelation>lambdaQuery()
+                        .eq(BizRecordRelation::getSystemId, context.systemId())
+                        .eq(BizRecordRelation::getTenantId, record.getTenantId())
+                        .eq(BizRecordRelation::getSourceRecordId, recordId)),
+                relationMapper.selectCount(Wrappers.<BizRecordRelation>lambdaQuery()
+                        .eq(BizRecordRelation::getSystemId, context.systemId())
+                        .eq(BizRecordRelation::getTenantId, record.getTenantId())
+                        .eq(BizRecordRelation::getTargetRecordId, recordId)));
     }
 
     @Transactional
     public RuntimeRecordView transfer(
+            AuthenticatedContext context, String moduleCode, Long recordId,
+            RecordTransferRequest request, String traceId) {
+        return requireSavedRecord(transferAction(context, moduleCode, recordId, request, traceId,
+                BusinessAction.Options.internal()));
+    }
+
+    /** 转移共用动作事务、权限、幂等和四种 Flow 模式；审批前不改变正式归属。 */
+    @Transactional
+    public BusinessAction.Result<RuntimeRecordView> transferAction(
+            AuthenticatedContext context, String moduleCode, Long recordId,
+            RecordTransferRequest request, String traceId, BusinessAction.Options options) {
+        validateActionRequest(request);
+        RecordAccess access = requireRecordAccess(context, moduleCode, "TRANSFER", recordId, true, traceId);
+        PublishedModule published = access.published();
+        BusinessAction.Input input = new BusinessAction.Input(context, access.sourceContext().tenantId(),
+                published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
+                "TRANSFER", recordId, request.version(), request, options, traceId);
+        // 目标与版本校验留给首次执行；回放读取首次结果，不重复转移或申请审批。
+        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class,
+                published.configuration().configuration(),
+                () -> actionBindings.resolveForAction(access.sourceContext(), input.moduleId(), "TRANSFER",
+                        actionVariables(request, readRawValues(recordId, published.fields())), traceId),
+                () -> transferPreview(context, moduleCode, recordId, request, traceId),
+                () -> transferDirect(context, moduleCode, recordId, request, traceId));
+        return protectActionReplay(context, moduleCode, "TRANSFER", result, traceId);
+    }
+
+    /** 唯一物理转移处理：批准后重查权限、版本和有效目标，保留模块及数据租户。 */
+    private RuntimeRecordView transferDirect(
             AuthenticatedContext context, String moduleCode, Long recordId,
             RecordTransferRequest request, String traceId) {
         RuntimeRecordTransferPreview preview = transferPreview(context, moduleCode, recordId, request, traceId);
@@ -1327,7 +1382,9 @@ public class RuntimeDataService {
 
         record.setOwnerMemberId(request.ownerMemberId());
         record.setDepartmentId(request.departmentId());
+        record.setUpdatedConfigVersionId(published.configuration().versionId());
         record.setUpdatedByMemberId(context.memberId());
+        // 沿用基础 CRUD 的数据库自动更新时间，避免应用和数据库时区不同导致时间倒退。
         record.setUpdatedAt(null);
         if (recordService.updateById(record) == 0) {
             recordOperationFailure(context, moduleCode, "TRANSFER", recordId, "RECORD_VERSION_CONFLICT",

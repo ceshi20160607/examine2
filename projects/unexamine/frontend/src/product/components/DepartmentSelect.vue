@@ -5,11 +5,13 @@ import type { SystemDirectoryDepartment } from '../types'
 const props = withDefaults(defineProps<{
   modelValue?: number
   departments: SystemDirectoryDepartment[]
+  disabled?: boolean
   allowClear?: boolean
   placeholder?: string
   excludedValues?: number[]
 }>(), {
   allowClear: true,
+  disabled: false,
   placeholder: '选择部门',
   excludedValues: () => [],
 })
@@ -26,6 +28,6 @@ function update(value: number | undefined) {
 </script>
 
 <template>
-  <a-select :value="modelValue" :allow-clear="allowClear" show-search option-filter-prop="label"
+  <a-select :value="modelValue" :disabled="disabled" :allow-clear="allowClear" show-search option-filter-prop="label"
     :placeholder="placeholder" :options="options" @update:value="update" />
 </template>

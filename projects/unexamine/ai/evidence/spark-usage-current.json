@@ -1,7 +1,7 @@
 {
   "thread_id": "01a06f53-2b57-7333-8b55-0d0183b53303",
   "started_at": "2026-09-07T05:59:39.353Z",
-  "sampled_at": "2026-09-16T09:51:14.281751+00:00",
+  "sampled_at": "2026-09-16T10:35:54.549402+00:00",
   "baseline": {
     "timestamp": "2026-09-07T05:57:33.949Z",
     "input_tokens": 182436,
@@ -12,22 +12,22 @@
     "total_tokens": 184931
   },
   "latest": {
-    "timestamp": "2026-09-16T09:50:00.833Z",
-    "input_tokens": 222975093,
-    "cached_input_tokens": 218582912,
+    "timestamp": "2026-09-16T10:35:38.542Z",
+    "input_tokens": 237555319,
+    "cached_input_tokens": 232975744,
     "cache_write_input_tokens": 0,
-    "output_tokens": 608797,
-    "reasoning_output_tokens": 217073,
-    "total_tokens": 223583890
+    "output_tokens": 658249,
+    "reasoning_output_tokens": 231512,
+    "total_tokens": 238213568
   },
   "delta": {
-    "input_tokens": 307322299,
-    "cached_input_tokens": 301184768,
+    "input_tokens": 321902525,
+    "cached_input_tokens": 315577600,
     "cache_write_input_tokens": 0,
-    "output_tokens": 931112,
-    "reasoning_output_tokens": 351416,
-    "total_tokens": 308253411,
-    "uncached_input_tokens": 6137531
+    "output_tokens": 980564,
+    "reasoning_output_tokens": 365855,
+    "total_tokens": 322883089,
+    "uncached_input_tokens": 6324925
   },
   "cost": null,
   "notes": [

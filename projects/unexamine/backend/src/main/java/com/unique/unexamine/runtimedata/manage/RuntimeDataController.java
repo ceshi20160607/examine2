@@ -110,13 +110,14 @@ public class RuntimeDataController {
     }
 
     @PostMapping("/{recordId}/transfer")
-    public ApiResult<RuntimeRecordView> transfer(
+    public ApiResult<?> transfer(
             @PathVariable String moduleCode,
             @PathVariable Long recordId,
             @Valid @RequestBody RecordTransferRequest body,
             HttpServletRequest request) {
-        return ApiResult.ok(runtimeDataService.transfer(AuthenticationContextHolder.require(), moduleCode,
-                recordId, body, TraceIdFilter.current(request)));
+        return actionResponse(runtimeDataService.transferAction(AuthenticationContextHolder.require(), moduleCode,
+                recordId, body, TraceIdFilter.current(request),
+                BusinessAction.Options.page(request.getHeader("Idempotency-Key"))), request);
     }
 
     @PostMapping("/{recordId}/conversion-preview")

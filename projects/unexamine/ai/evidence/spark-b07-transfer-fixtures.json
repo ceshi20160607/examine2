@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-09-16T18:10:12.9495713+08:00",
+  "published": {
+    "moduleId": 30,
+    "versionId": 44,
+    "versionNumber": 5,
+    "draftRevision": 12,
+    "publishedAt": "2026-09-16T10:10:12.584980272+08:00"
+  },
+  "department": {
+    "id": 70,
+    "name": "设备保障验收组"
+  },
+  "targetMember": {
+    "systemMemberId": 69,
+    "tenantMemberId": 71,
+    "displayName": "C28 商机跟进人",
+    "roleIds": []
+  },
+  "record": {
+    "id": 75,
+    "title": "归属转移验收巡检",
+    "version": 0,
+    "ownerMemberId": 21,
+    "departmentId": 3
+  }
+}

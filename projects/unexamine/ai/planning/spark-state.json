@@ -5,8 +5,8 @@
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B07.2a",
-  "current_step": "B07.2a",
+  "next_step": "B07.3a",
+  "current_step": "B07.3a",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
@@ -19,7 +19,53 @@
     "form_configuration": "shared_drag_drop_field_designer_left_types_center_canvas_right_typed_properties"
   },
   "current_scope": {
+    "step": "B07.3a",
+    "source_rows": [
+      "R2831",
+      "R2834",
+      "R2835",
+      "R2836",
+      "R2837",
+      "R2838",
+      "R2839",
+      "R2840",
+      "R2841",
+      "R2849",
+      "R2888",
+      "R2896",
+      "R2897",
+      "R2898",
+      "R2899",
+      "R2900",
+      "R2948",
+      "R2949"
+    ],
+    "files": [
+      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "projects/unexamine/frontend/src/product/runtime-actions.ts",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordConversionRequest.java"
+    ],
+    "entry_points": [
+      "Read indexed current conversion clauses/CONVERT config/preview/convert/link methods; no full audit, old cycles or whole-project replan.",
+      "Finish one current two-module conversion journey with visual named-field mapping and existing public executor/storage/publication; no per-module engine or user JSON.",
+      "Reuse same backend18080/MySQL33077/shared redis6379/native Vite15173. Project Redis stays stopped. Preserve changes; boundary modifications require workspace validation first."
+    ],
+    "acceptance": [
+      "Publish visual conversion mapping for two current modules; runtime preview uses names and checks current target publication/types/required/unique permissions.",
+      "Use existing public executor and atomic target/conversion marker/relation/audit write; original-key replay and approval no-write-before-approval must hold.",
+      "Verify concurrent requests create one source+target success, failed target validation leaves no partial result; permanent uniqueness survives target soft-delete/relation removal. Verify source/target detail links and permissions.",
+      "Affected tests/builds plus real browser/API/DB evidence. Retain batch conversion/B07.1c.3/B07.2b/sharing/advanced approval/applications/channels/all deferred full requirements; record exact next substep."
+    ]
+  },
+  "last_result": {
     "step": "B07.2a",
+    "status": "verified",
+    "verified_at": "2026-09-16T18:35:24.094524+08:00",
+    "verification_scope": "Single-record named owner/department/participant transfer, shared public action executor, before/after preview/history, conditional approval and once-only resume/replay. B07.2a only; full B07/product remain in progress.",
     "source_rows": [
       "R0852",
       "R2831",
@@ -31,72 +77,64 @@
       "R2948",
       "R2949"
     ],
-    "files": [
-      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-      "projects/unexamine/frontend/src/product/runtime-actions.ts",
+    "changed_files": [
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordTransferRequest.java",
       "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
       "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control"
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordTransferPreview.java",
+      "projects/unexamine/frontend/src/product/components/DepartmentSelect.vue",
+      "projects/unexamine/frontend/src/product/types.ts",
+      "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
     ],
-    "entry_points": [
-      "Read indexed current transfer clauses and existing transfer preview/execute/person-department selectors, then public transfer entry/common executor/approval resume. No full audit or whole-project replan.",
-      "First connect one actual named-owner/department transfer through existing public action control, before/after preview and history; no per-module service or handwritten configuration JSON. Preserve existing staged/unstaged changes.",
-      "Reuse existing backend18080/MySQL33077/shared redis6379/native Vite15173. No additional containers/Testcontainers, no unrelated Docker changes."
-    ],
-    "acceptance": [
-      "Use real people/department selectors to preview then transfer a record, preserve its module/data tenant and fields, read back actual owner/department and one traceable before/after history.",
-      "Verify expected-version/permission rejection and original-key replay; configured transfer approval must not write ownership before approval and may resume only once through the same entry.",
-      "Run affected tests/builds plus actual browser/API/DB verification. Record exact next substep and preserve B07.1c.3, conversion, sharing, advanced approvals, applications/channels and all deferred full requirements."
-    ]
-  },
-  "last_result": {
-    "step": "B07.1c.2",
-    "status": "verified",
-    "verified_at": "2026-09-16T17:51:11.819121+08:00",
-    "verification_scope": "Published batch DELETE with typed reason, partial-version-conflict/failed-only retry, actual recycle-bin restore and field-conditional AFTER_APPROVAL once-only execution/replay. B07.1c.2 only; full B07 and product remain in progress.",
     "checks_actual_results": [
-      "Affected frontend runtime-actions/action-placement suites: 2 files, 16 passed. Final vue-tsc/Vite build passed (4010 modules, existing chunk warning). JDK21 Maven -DskipTests package passed: compiled current backend/test sources, backend tests not executed. No Testcontainers/full old suites/new Docker stack.",
-      "Existing deleteAction/FoundationControlService.execute reused. DELETE resolution now supplies current business fields for conditions, rather than only reason/version; actual number14>10 approval binding9 matched and pinned published Flow10 V1.",
-      "Common createRuntimeBatchAction transport helper reused by manual actions and batch DELETE; per-item immutable path/body/key survives unknown response, explicit version conflict permits refreshed version/new key, successful items are skipped. Two meaningful tests verify partial retry and original body/key despite changed list/form.",
-      "Updated existing DELETE placement to BATCH and published module30 config43/version4 via API; fields/pages unchanged from42. Browser no selection has no bulk area; selecting records72/73 shows DELETE enabled for two records. Typed confirmation lists both names and accepts a deletion reason, no handwritten JSON/technical ID input.",
-      "Real concurrent standard UPDATE receipt60 changed72 version0->1. Browser batch: receipt61 deletes73 version0->1; stale72 rejected with visible version-conflict reason, remains normal version1. Only-failed retry receipt63 deletes72 version1->2. Browser preserves per-item success, failed-only control disappears after both succeed.73 never resubmitted.",
-      "Browser recycle bin showed72/73. Opened73 detail and existing RESTORE action, supplied reason, confirmed normal recovery:73 version1->2 and no longer deleted, numbers/boolean/note preserved. This also verifies old single lifecycle modal remains usable after batch results.",
-      "Published DELETE AFTER_APPROVAL binding9 with permitted field condition number>10 using existing Flow10 V1. Browser selected74 and submitted typed reason:receipt64 PENDING_APPROVAL/Flow42 WAITING, UI says change not effective, DB/API74 version0/deleted=false. Approved actual PERSON task32 via API;Flow42 COMPLETED,intent64 EXECUTED,74 version1/deleted=true. Browser View Result/Refresh Result says approval passed/business effective.",
-      "Replayed original receipts61/63/64 via real API: all replayed=true;73 remains restored version2,72 remains deleted version2,74 remains deleted version1. No repeated writes or new approvals. Credentials, keys and complete actor/action snapshots are not saved.",
-      "Independent DB script verifies current config43/BATCH, unchanged fields/pages, records70/71 unchanged,72/73/74 preserved number14/booleantrue, receipts60/61/63/64, field-conditioned binding9 pinned10,Flow42 completed,outboxes44-51 PUBLISHED, exactly one DELETE audit per item and one RESTORE audit for73, exact reason/state histories, unchanged schema40.",
-      "Added checkboxes adjacent to mobile cards using the same selection state, with matching CSS; actual narrow-screen layout was not tested and is not claimed complete. Desktop selection/confirmation/results/recycle-bin/restore/approval receipt paths were tested.",
-      "Only restarted existing unexamine-golden-backend to load packaged jar; existing MySQL/shared Redis/native Vite reused. Project Redis remains stopped; unrelated containers untouched. Git diff --check passed and current JSON/hash checks passed."
+      "Final JDK21 Maven -DskipTests package passed: compiled 788 main/29 test sources; backend tests not executed. Final vue-tsc/Vite build passed (4010 modules, existing chunk warning). Affected runtime-actions/action-placement: 2 files/16 tests passed. No new suite/Testcontainers/extra Docker.",
+      "Reused FoundationControlService.execute and existing transfer mutation; HTTP supports Prefer:return=action/Idempotency-Key, TRANSFER approval resume calls the same physical method. Current permission checks still precede replay; original body/key/version retained by shared frontend transport.",
+      "Real browser discovered missing TRANSFER Flow trigger catalog and missing before/after history summary; corrected those actual failures. Existing DB ON UPDATE clock maintained, avoiding application/DB timezone update-time reversal. No schema change, time-field rename, new engine or generated-base overwrite.",
+      "Published module30 config44/version5 TRANSFER DETAIL_HEADER via API; fields/pages unchanged from43. Local current account7 added as member69/tenantMember71 with roleIds=[], department70 created. Browser chose actual names/department/participant21, previewed names/0 incoming-outgoing relations. Receipt70 DIRECT: record75 version0->1 owner69/department70; fields/module/data tenant preserved.",
+      "Original70 replay returns original version1/replayed=true. Actual stale version409/invalid tenant-member-as-system-member422/forged platform system context409/wrong-module404 rejected with no ownership change. Complete restricted-role/shared-tenant/channel coverage remains required.",
+      "Published TRANSFER AFTER_APPROVAL binding10, condition number14>10, pinned published Flow10 V1. Browser receipt74 pending explicitly says business not effective; record75 stays version1/owner69 before approval. PERSON task33 approved via API, Flow43 completed/74 EXECUTED, version2 owner21/department3. Original70/74 replay does not write again; browser Refresh Result/history confirms effective state and before/after names/reason.",
+      "Final-code distinct approval receipt77/Flow44/task34: unchanged before approval then version3 owner69/dept70/participant21;77 replay no new write. Fields unchanged, DB updatedAt18:29>=createdAt18:10. Final browser detail shows owner/department/participants by names and correct update time.",
+      "Actual typed Flow configuration page selected TRANSFER/current module, showed AFTER_APPROVAL/published Flow V1/仪表读数 大于 10. Form submission disables name/department selectors; immutable confirmed preview body retained for unknown-response retry. No user JSON/technical-ID input.",
+      "Independent spark-b07-transfer-readback.py passed: three distinct ownership histories/success audits, receipts70/74/77 versions1/2/3, pinned/completed Flows43/44, current outbox52+ published, unchanged fields/pages/prior fixtures70-74/schema40. Same backend18080/MySQL33077/shared redis6379/native Vite15173; project Redis stays stopped. Chinese business comments and git diff --check reviewed."
     ],
-    "readback": "projects/unexamine/ai/evidence/spark-b07-delete-readback.json",
-    "remaining": [
-      "B07.1c.3 remains required: complete built-in multi-record UPDATE, remaining manual parameter field families/visibility conditions, lifecycle/state actions and role/shared-tenant/channel hard-permission coverage; custom DIRECT/FLOW_ONLY and DELETE AFTER_EXECUTION/FLOW_ONLY browser modes not all repeated here.",
-      "Next B07.2a: transfer preview/execution with named people/department selectors, before/after values/history/association impact, same public executor and four-mode/approval resume semantics. Then B07.3 conversion and B07.4 sharing; no requirement reduction.",
-      "Complete unified serial/checkbox/title column rules and record title-to-business-field mapping; changing a candidate title field via partial action currently preserves system record.title. Do not infer a configured primary-field contract from the frontend heuristic.",
-      "Advanced approval node design, nested Flow branching, timeout/transfer/repeated approver/dynamic nodes and all B08-B10 requirements remain open. This proves one existing published PERSON/OR_SIGN approval and once-only UPDATE resume only.",
-      "Approval runtime currently displays technical field codes and serialized business parameters; replace with published field names/common typed read-only renderer when completing B08/B09. Pending UPDATE Flow has null business_id although its retained intent/resource correctly targets record71; link the existing record explicitly there.",
-      "Old binding rows lacking flowVersionId still use legacy latest publication; new/republished bindings pin their version. Legacy upgrade plus concurrency/version/tenant coverage remains B08, not declared complete here.",
-      "Condition fields currently cover permitted supported scalar/date/select types with inline options; dictionary, relation, member/department and complex field catalogs/default normalization HTTP cases and every action-family/role/channel are not all verified.",
-      "B05/B06 deferred field families, sensitive data, linkage/display rules and all other full product requirements remain required. No external channel/account verification performed.",
-      "Current local fixtures: config43/version4 DELETE BATCH;70 version6/number14 and71 version5/number18 unchanged;72 deleted/version2,73 restored/version2,74 approved-deleted/version1. DELETE binding9 AFTER_APPROVAL field number>10/pinnedFlow10;Flow42 COMPLETED. Existing UPDATE6/MANUAL8 bindings and prior pending Flows retained."
+    "readback": [
+      "projects/unexamine/ai/evidence/spark-b07-transfer-fixtures.json",
+      "projects/unexamine/ai/evidence/spark-b07-transfer-direct-replay.json",
+      "projects/unexamine/ai/evidence/spark-b07-transfer-approval-replay.json",
+      "projects/unexamine/ai/evidence/spark-b07-transfer-final-clock.json",
+      "projects/unexamine/ai/evidence/spark-b07-transfer-readback.json"
     ],
-    "next_step": "B07.2a",
-    "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b07-delete.json",
-    "tested_files": [
+    "permission_or_failure_result": "409 stale/422 invalid target/409 forged context/404 wrong module, all no ownership write; complete roles/shared/channels still required.",
+    "tested_file_hashes": [
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+        "sha256": "8c3a596fb5958ea175cb11b038a336a35af2bddb8fd21eb1df2e1a6053aac69b"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordTransferRequest.java",
+        "sha256": "2af5a0fc82caa7864d9c5573d4ba470b2238afef6d8aa5fedf01e7a6bce96d96"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+        "sha256": "bb38483653d560c259e06058bfc8d82421294ce7ac12e8e584d843603f7a0a2c"
+      },
       {
         "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-        "sha256": "655fc3ce838ab080079b4f49e2d2f1029890bb325b49b236c4c0ebe3b1bdd52b"
+        "sha256": "1de652f6d2b44d87a7f3ddb8d6cbcd81ce82c1859d1d75a2c4ae14637d400915"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordTransferPreview.java",
+        "sha256": "18282419be9d759bf3fe84c8aa7f0c92c92f07b925091e98266700d144791a3b"
       },
       {
         "path": "projects/unexamine/frontend/src/product/action-placement.test.ts",
         "sha256": "3a1ef4c37fd775990150f731658fea8232f3af33aa5fdb420db7d6ae18cfe951"
       },
       {
-        "path": "projects/unexamine/frontend/src/product/action-placement.ts",
-        "sha256": "7835a1581b9a70702a523e2fadf485e8d604fc07943f6dea871b207b2e665756"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/product.css",
-        "sha256": "b3daee91416a3a2f3a5772cf38b3707f9632f230cee31112696951b47034a327"
+        "path": "projects/unexamine/frontend/src/product/components/DepartmentSelect.vue",
+        "sha256": "ae0948792b3580d00c70f11cb4f96b131789109801a063ee7472ad9b40918ff7"
       },
       {
         "path": "projects/unexamine/frontend/src/product/runtime-actions.test.ts",
@@ -107,11 +145,84 @@
         "sha256": "51341994eecf852e4aa41b7eac046c7c12a76ece2a8fefc658e3cd8200e04d96"
       },
       {
+        "path": "projects/unexamine/frontend/src/product/types.ts",
+        "sha256": "46b84a0cf5f9f6d97239ead64699e8ce5b20059ef5bc96cb03c6ea01439d0160"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+        "sha256": "7a3899f906f10546141de33ff2dcdbe2e56064811065b7ba088c14cfdc5fdcdf"
+      },
+      {
         "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-        "sha256": "0ec1c038ec10c9557eb2cc6ba717354883cf27bcca41448db340ed735040efce"
+        "sha256": "a00f185a0b01ec22246e726c0cdab33784dad806963bb6aae10ff9254eec1776"
       }
     ],
-    "evidence": "projects/unexamine/ai/evidence/spark-b07-delete-verification.json"
+    "tested_files": [
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+        "sha256": "8c3a596fb5958ea175cb11b038a336a35af2bddb8fd21eb1df2e1a6053aac69b"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordTransferRequest.java",
+        "sha256": "2af5a0fc82caa7864d9c5573d4ba470b2238afef6d8aa5fedf01e7a6bce96d96"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+        "sha256": "bb38483653d560c259e06058bfc8d82421294ce7ac12e8e584d843603f7a0a2c"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "sha256": "1de652f6d2b44d87a7f3ddb8d6cbcd81ce82c1859d1d75a2c4ae14637d400915"
+      },
+      {
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordTransferPreview.java",
+        "sha256": "18282419be9d759bf3fe84c8aa7f0c92c92f07b925091e98266700d144791a3b"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/action-placement.test.ts",
+        "sha256": "3a1ef4c37fd775990150f731658fea8232f3af33aa5fdb420db7d6ae18cfe951"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/components/DepartmentSelect.vue",
+        "sha256": "ae0948792b3580d00c70f11cb4f96b131789109801a063ee7472ad9b40918ff7"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/runtime-actions.test.ts",
+        "sha256": "8763c81736bc1d7a050330d34cafbc8e75f1ce3c05112fb4bf500d371354f1a3"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/runtime-actions.ts",
+        "sha256": "51341994eecf852e4aa41b7eac046c7c12a76ece2a8fefc658e3cd8200e04d96"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/types.ts",
+        "sha256": "46b84a0cf5f9f6d97239ead64699e8ce5b20059ef5bc96cb03c6ea01439d0160"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+        "sha256": "7a3899f906f10546141de33ff2dcdbe2e56064811065b7ba088c14cfdc5fdcdf"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+        "sha256": "a00f185a0b01ec22246e726c0cdab33784dad806963bb6aae10ff9254eec1776"
+      }
+    ],
+    "remaining": [
+      "Next B07.3a: visual source/target field mapping, current target validation, public conversion executor, atomic conversion/target/relation/audit, original-key replay and controlled detail links. Verify concurrent one-result/permanent source+target uniqueness and target soft-delete/unlink behavior; retain batch conversion requirements.",
+      "B07.2b still required: batch transfer/partial failure/retry, restricted-role/shared-tenant/channel coverage, disabled system-member/account target validation, nonzero relation preservation/visibility and TRANSFER AFTER_EXECUTION/FLOW_ONLY. Single-record DIRECT/AFTER_APPROVAL main verification does not complete all transfer requirements.",
+      "Observed admin-to-runtime direct navigation can strip search/recordId during module initialization; actual list-to-detail works. Verify/correct source/target deep links in B07.3a.",
+      "Current fixture config44/version5 TRANSFER DETAIL_HEADER;75 version3/owner69/dept70/participant21/number14. Binding10 AFTER_APPROVAL field>10/pinned10;Flows43/44 completed. Preserve70-74/UPDATE-MANUAL-DELETE bindings/old pending instances.",
+      "B07.1c.3 remains required: complete built-in multi-record UPDATE, remaining manual parameter field families/visibility conditions, lifecycle/state actions and role/shared-tenant/channel hard-permission coverage; custom DIRECT/FLOW_ONLY and DELETE AFTER_EXECUTION/FLOW_ONLY browser modes not all repeated here.",
+      "Complete unified serial/checkbox/title column rules and record title-to-business-field mapping; changing a candidate title field via partial action currently preserves system record.title. Do not infer a configured primary-field contract from the frontend heuristic.",
+      "Advanced approval node design, nested Flow branching, timeout/transfer/repeated approver/dynamic nodes and all B08-B10 requirements remain open. This proves one existing published PERSON/OR_SIGN approval and once-only UPDATE resume only.",
+      "Approval runtime currently displays technical field codes and serialized business parameters; replace with published field names/common typed read-only renderer when completing B08/B09. Pending UPDATE Flow has null business_id although its retained intent/resource correctly targets record71; link the existing record explicitly there.",
+      "Old binding rows lacking flowVersionId still use legacy latest publication; new/republished bindings pin their version. Legacy upgrade plus concurrency/version/tenant coverage remains B08, not declared complete here.",
+      "Condition fields currently cover permitted supported scalar/date/select types with inline options; dictionary, relation, member/department and complex field catalogs/default normalization HTTP cases and every action-family/role/channel are not all verified.",
+      "B05/B06 deferred field families, sensitive data, linkage/display rules and all other full product requirements remain required. No external channel/account verification performed."
+    ],
+    "next_step": "B07.3a",
+    "usage_evidence": "projects/unexamine/ai/evidence/spark-usage-b07-transfer.json",
+    "evidence": "projects/unexamine/ai/evidence/spark-b07-transfer-verification.json"
   },
   "blockers": [
     {
@@ -1367,7 +1478,8 @@
       "evidence": "projects/unexamine/ai/evidence/spark-b07-conditions-verification.json"
     },
     "projects/unexamine/ai/evidence/spark-b07-manual-verification.json",
-    "projects/unexamine/ai/evidence/spark-b07-delete-verification.json"
+    "projects/unexamine/ai/evidence/spark-b07-delete-verification.json",
+    "projects/unexamine/ai/evidence/spark-b07-transfer-verification.json"
   ],
   "step_record_contract": {
     "required": [
@@ -1493,7 +1605,9 @@
         "B07.1c.1": "verified",
         "B07.1c.2": "verified",
         "B07.1c.3": "unverified",
-        "B07.2a": "unverified"
+        "B07.2a": "verified",
+        "B07.2b": "unverified",
+        "B07.3a": "unverified"
       }
     },
     {
@@ -1753,9 +1867,18 @@
       "reason": "Still required after prioritised remaining B07 main journeys; manual note updates do not complete every batch edit/role/field/lifecycle requirement."
     },
     "B07.2a": {
+      "status": "verified",
+      "scope": "Single-record named owner/department/participant transfer, shared public action executor, before/after preview/history, conditional approval and once-only resume/replay. B07.2a only; full B07/product remain in progress.",
+      "evidence": "projects/unexamine/ai/evidence/spark-b07-transfer-verification.json"
+    },
+    "B07.2b": {
       "status": "unverified",
-      "scope": "Transfer preview/common execution and approved ownership resume with named selectors/history.",
-      "reason": "Exact next bounded step after verified batch DELETE."
+      "scope": "B07.2b still required: batch transfer/partial failure/retry, restricted-role/shared-tenant/channel coverage, disabled system-member/account target validation, nonzero relation preservation/visibility and TRANSFER AFTER_EXECUTION/FLOW_ONLY. Single-record DIRECT/AFTER_APPROVAL main verification does not complete all transfer requirements."
+    },
+    "B07.3a": {
+      "status": "unverified",
+      "scope": "Current two-module single conversion main journey with visual mapping/public executor/validation/atomicity/permanent unique marker/detail links.",
+      "reason": "Exact next main journey; no requirement reduction."
     }
   }
 }

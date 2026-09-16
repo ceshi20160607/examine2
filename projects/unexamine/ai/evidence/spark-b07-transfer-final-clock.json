@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-09-16T18:29:50.766463+08:00",
+  "receipt_id": 77,
+  "flow_id": 44,
+  "task_id": 34,
+  "mode": "AFTER_APPROVAL",
+  "status": "EXECUTED",
+  "unchanged_before_approval": true,
+  "replayed": true,
+  "record": {
+    "id": 75,
+    "version": 3,
+    "ownerMemberId": 69,
+    "departmentId": 70,
+    "participantMemberIds": [
+      21
+    ],
+    "dataTenantId": 21,
+    "createdAt": "2026-09-16T18:10:12.822+08:00",
+    "updatedAt": "2026-09-16T18:29:50.373+08:00"
+  },
+  "fields_unchanged": true,
+  "database_clock_maintains_update_time": true
+}

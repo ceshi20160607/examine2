@@ -1,0 +1,67 @@
+{
+  "checked_at": "2026-09-16T18:21:59.429859+08:00",
+  "direct": {
+    "id": 75,
+    "version": 1,
+    "ownerMemberId": 69,
+    "departmentId": 70,
+    "participantMemberIds": [
+      21
+    ],
+    "dataTenantId": 21,
+    "updatedConfigVersionId": 44
+  },
+  "receipt": {
+    "id": 70,
+    "mode": "DIRECT",
+    "status": "COMPLETED"
+  },
+  "replay": {
+    "id": 70,
+    "replayed": true,
+    "version": 1
+  },
+  "negative_cases": [
+    {
+      "case": "stale_version",
+      "http": 409,
+      "code": "RECORD_VERSION_CONFLICT",
+      "message": "业务数据已被其他操作修改"
+    },
+    {
+      "case": "tenant_member_id_is_not_system_member_id",
+      "http": 422,
+      "code": "TRANSFER_TARGET_INVALID",
+      "message": "新负责人、所属部门或相关人不属于当前租户"
+    },
+    {
+      "case": "platform_token_cannot_forge_system_context",
+      "http": 409,
+      "code": "SYSTEM_CONTEXT_REQUIRED",
+      "message": "请先进入系统"
+    },
+    {
+      "case": "different_module_record",
+      "http": 404,
+      "code": "RECORD_NOT_FOUND",
+      "message": "业务数据不存在"
+    }
+  ],
+  "no_write_on_failure": true,
+  "transfer_history_summary": "负责人 平台超级管理员 → C28 商机跟进人；部门 全公司 → 设备保障验收组；相关人 无 → 平台超级管理员；原因：本地验收：转交设备保障负责人和部门。",
+  "approval_binding": {
+    "id": 10,
+    "event": "TRANSFER",
+    "mode": "AFTER_APPROVAL",
+    "condition": {
+      "mode": "ALL",
+      "conditions": [
+        {
+          "field": "field_54b4d262eb",
+          "operator": "GT",
+          "value": 10
+        }
+      ]
+    }
+  }
+}

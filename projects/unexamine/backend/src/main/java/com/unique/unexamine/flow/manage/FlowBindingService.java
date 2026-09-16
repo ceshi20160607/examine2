@@ -49,7 +49,7 @@ import java.util.ArrayList;
 @Service
 public class FlowBindingService {
     private static final Set<String> TRIGGER_EVENTS = Set.of(
-            "CREATE", "UPDATE", "DELETE", "STATUS_CHANGED", "MANUAL", "SCHEDULED",
+            "CREATE", "UPDATE", "DELETE", "TRANSFER", "STATUS_CHANGED", "MANUAL", "SCHEDULED",
             "APPLICATION", "IMPORT_COMPLETED", "EXCEPTION");
     private static final Set<String> EXECUTION_MODES = Set.of(
             "DIRECT", "AFTER_EXECUTION", "AFTER_APPROVAL", "FLOW_ONLY");
@@ -336,7 +336,7 @@ public class FlowBindingService {
             if ("ACTIVE".equals(field.path("status").asText()) && Set.of("TEXT", "MULTILINE_TEXT", "NUMBER", "MONEY", "BOOLEAN",
                     "DATE", "DATETIME", "PHONE", "EMAIL", "URL", "ID_CARD", "SINGLE_SELECT", "MULTI_SELECT", "STATUS").contains(field.path("fieldType").asText())) fields.add(field);
         });
-        String action = Set.of("CREATE", "UPDATE", "DELETE").contains(event) ? event : "DETAIL";
+        String action = Set.of("CREATE", "UPDATE", "DELETE", "TRANSFER").contains(event) ? event : "DETAIL";
         var access = fieldPolicies.resolveIntersection(context, module.getCode(), action, List.of("PAGE", "FLOW"),
                 fields.stream().map(field -> field.path("code").asText()).toList());
         return fields.stream().filter(field -> {

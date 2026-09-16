@@ -127,6 +127,8 @@ const transferOpen = ref(false)
 const transferSaving = ref(false)
 const transferRecord = ref<RuntimeRecord>()
 const transferPreview = ref<RuntimeRecordTransferPreview>()
+const transferAction = createRuntimeAction()
+const confirmedTransferRequest = ref<{ version: number; ownerMemberId: number; departmentId?: number; participantMemberIds: number[]; reason: string }>()
 const peopleDirectory = ref<SystemPeopleDirectory>({ departments: [], people: [], permissionVersion: 0 })
 const transferForm = reactive({ ownerMemberId: undefined as number | undefined, departmentId: undefined as number | undefined, participantMemberIds: [] as number[], reason: '' })
 const conversionOpen = ref(false)
@@ -999,6 +1001,7 @@ async function openRouteRecordDetail() {
 function openTransfer(record: RuntimeRecord) {
   transferRecord.value = record
   transferPreview.value = undefined
+  confirmedTransferRequest.value = undefined
   Object.assign(transferForm, { ownerMemberId: record.ownerMemberId, departmentId: record.departmentId,
     participantMemberIds: [...record.participantMemberIds], reason: '' })
   transferOpen.value = true
@@ -1010,26 +1013,39 @@ async function previewTransfer() {
     return
   }
   transferSaving.value = true
+  transferPreview.value = undefined
   try {
+    const body = { version: transferRecord.value.version, ownerMemberId: transferForm.ownerMemberId,
+      departmentId: transferForm.departmentId, participantMemberIds: transferParticipantIds(), reason: transferForm.reason.trim() }
     transferPreview.value = await api<RuntimeRecordTransferPreview>(
       `/api/runtime/modules/${activeCode.value}/records/${transferRecord.value.id}/transfer-preview`,
-      { method: 'POST', body: JSON.stringify({ version: transferRecord.value.version, ownerMemberId: transferForm.ownerMemberId, departmentId: transferForm.departmentId, participantMemberIds: transferParticipantIds(), reason: transferForm.reason.trim() }) }, token.value)
+      { method: 'POST', body: JSON.stringify(body) }, token.value)
+    confirmedTransferRequest.value = body
   } catch (reason) { message.error(readable(reason)) } finally { transferSaving.value = false }
 }
 
 async function submitTransfer() {
-  if (!transferRecord.value || !transferPreview.value) return
+  if (transferSaving.value || !transferRecord.value || !transferPreview.value || !confirmedTransferRequest.value) return
   transferSaving.value = true
   try {
-    const saved = await api<RuntimeRecord>(
+    const result = await transferAction<RuntimeRecord>(
       `/api/runtime/modules/${activeCode.value}/records/${transferRecord.value.id}/transfer`,
-      { method: 'POST', body: JSON.stringify({ version: transferRecord.value.version, ownerMemberId: transferForm.ownerMemberId, departmentId: transferForm.departmentId, participantMemberIds: transferParticipantIds(), reason: transferForm.reason.trim() }) }, token.value)
+      'POST', confirmedTransferRequest.value, token.value)
+    lastAction.value = { moduleCode: activeCode.value, result }
     transferOpen.value = false
     detailOpen.value = false
-    message.success('负责人已转交，列表已刷新')
-    await loadRecords()
-    await openDetail(saved)
-  } catch (reason) { message.error(readable(reason)) } finally { transferSaving.value = false }
+    message.success(businessActionMessage(result, '负责人和部门已转交'))
+    await loadRecords().catch(() => message.warning('操作已提交，请刷新列表查看最新数据'))
+    if (result.value) await openDetail(result.value).catch(() => message.warning('请重新打开详情查看转交结果'))
+  } catch (reason) {
+    message.error(readable(reason))
+    if (reason instanceof ApiError && reason.code === 'RECORD_VERSION_CONFLICT') {
+      transferPreview.value = undefined
+      await loadRecords().catch(() => undefined)
+      const current = records.value.find(record => record.id === transferRecord.value?.id)
+      if (current) transferRecord.value = current
+    }
+  } finally { transferSaving.value = false }
 }
 
 function transferParticipantIds() {
@@ -1573,7 +1589,7 @@ defineExpose({ refresh: loadModules, executeCommand })
       <template v-if="detail"><div :class="['record-detail-shell', { 'record-detail-shell--assistant': assistantOpen && canUseAi }]"><section class="record-detail-main"><div class="detail-meta"><span>{{ userFacingRecordNumber(detail.recordNumber, '未设置业务编号') }}</span><ProductStatusTag :status="detail.status" /><a-tag :color="detail.shared ? 'orange' : 'blue'">数据归属：{{ userFacingWorkspaceName(detail.dataTenantName) }}</a-tag><span v-if="detail.shared" class="detail-share-status">共享状态：<ProductStatusTag :status="detail.shareStatus" /></span></div>
         <a-tabs class="detail-tabs-runtime">
           <a-tab-pane key="basic" tab="概览"><SchemaRecordDetail :layout="detailLayout" :fields="detailValueFields" :values="detail.fields" :text="displayValue"><template #tools="{ field }"><a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></template></SchemaRecordDetail><a-descriptions class="detail-system-meta" :column="1" bordered size="small">
-            <a-descriptions-item label="负责人">{{ ownerDisplayName(detail) }}</a-descriptions-item><a-descriptions-item label="相关人">{{ detail.participantMemberIds.length ? `${detail.participantMemberIds.length} 位相关人` : '—' }}</a-descriptions-item><a-descriptions-item label="创建时间">{{ productDateTime(detail.createdAt) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item></a-descriptions></a-tab-pane>
+            <a-descriptions-item label="负责人">{{ ownerDisplayName(detail) }}</a-descriptions-item><a-descriptions-item label="负责部门">{{ detail.departmentId ? peopleDirectory.departments.find(item => item.id === detail?.departmentId)?.name || '不可用部门' : '未设置' }}</a-descriptions-item><a-descriptions-item label="相关人">{{ detail.participantMemberIds.length ? detail.participantMemberIds.map(id => peopleDirectory.people.find(person => person.systemMemberId === id)?.displayName || '不可用成员').join('、') : '—' }}</a-descriptions-item><a-descriptions-item label="创建时间">{{ productDateTime(detail.createdAt) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item></a-descriptions></a-tab-pane>
           <a-tab-pane key="relations" tab="关联"><a-list v-if="conversionLinks.length" size="small" bordered :data-source="conversionLinks"><template #renderItem="{ item }"><a-list-item><a-button type="link" @click="openConversionLink(item)">{{ item.direction === 'SOURCE' ? '来源' : '目标' }} · {{ item.moduleName }} · {{ item.recordTitle }}</a-button><span>{{ productDateTime(item.convertedAt) }}</span></a-list-item></template></a-list><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无有权查看的关联数据" /></a-tab-pane>
           <a-tab-pane v-if="recordAttachmentFields.length && canViewAttachments" key="attachments" tab="附件"><a-select v-if="recordAttachmentFields.length > 1" v-model:value="attachmentFieldCode" :options="recordAttachmentFields.map(field => ({ value: field.code, label: field.name }))" style="width:100%;margin-bottom:12px" placeholder="选择附件分类" /><BusinessAttachmentsPanel v-if="recordAttachmentEndpoint" :endpoint="recordAttachmentEndpoint" :writable="recordAttachmentWritable" :title="selectedAttachmentField?.name || '附件'" description="附件按当前字段权限展示，并记录到业务时间线。" compact @changed="detail && openDetail(detail)" /></a-tab-pane>
           <a-tab-pane key="timeline" tab="历史"><a-timeline v-if="timeline.length"><a-timeline-item v-for="entry in timeline" :key="entry.eventId">
@@ -1676,10 +1692,11 @@ defineExpose({ refresh: loadModules, executeCommand })
         <a-table-column title="目标租户" data-index="targetTenantName" /><a-table-column title="动作"><template #default="{ record }">{{ actionNames(record.allowedActions) }}</template></a-table-column><a-table-column title="状态"><template #default="{ record }"><ProductStatusTag :status="record.status" /></template></a-table-column><a-table-column title="失效时间"><template #default="{ record }">{{ record.expiresAt || '长期有效' }}</template></a-table-column><a-table-column title="操作"><template #default="{ record }"><a-button v-if="record.status === 'ACTIVE'" danger type="link" size="small" @click="revokeShare(record)">撤销</a-button></template></a-table-column>
       </a-table>
     </a-modal>
-    <a-modal v-model:open="transferOpen" title="转交负责人" :footer="null" :mask-closable="false">
-      <a-form layout="vertical"><div class="form-grid"><a-form-item label="新负责人" required><PersonSelect v-model="transferForm.ownerMemberId" :people="peopleDirectory.people" placeholder="搜索姓名、岗位或部门" @change="transferPreview = undefined" /></a-form-item><a-form-item label="负责部门"><DepartmentSelect v-model="transferForm.departmentId" :departments="peopleDirectory.departments" @change="transferPreview = undefined" /></a-form-item></div><a-form-item label="相关成员"><PersonSelect v-model="transferForm.participantMemberIds" multiple :people="peopleDirectory.people" placeholder="搜索并选择协作成员" @change="transferPreview = undefined" /></a-form-item><a-form-item label="转交原因" required><a-textarea v-model:value="transferForm.reason" :rows="3" :maxlength="1000" show-count @change="transferPreview = undefined" /></a-form-item></a-form>
-      <a-alert v-if="transferPreview" type="info" show-icon class="section-alert" message="归属变化预览"><template #description>{{ transferPreview.fromOwnerName || `成员 ${transferPreview.fromOwnerMemberId || '—'}` }} → {{ transferPreview.toOwnerName || `成员 ${transferPreview.toOwnerMemberId}` }}；{{ transferPreview.fromDepartmentName || '无部门' }} → {{ transferPreview.toDepartmentName || '无部门' }}；相关人 {{ transferPreview.fromParticipantMemberIds.join('、') || '无' }} → {{ transferPreview.toParticipantMemberIds.join('、') || '无' }}</template></a-alert>
-      <div class="drawer-footer"><a-button @click="transferOpen = false">取消</a-button><a-button :loading="transferSaving" @click="previewTransfer">预览变化</a-button><a-button type="primary" :disabled="!transferPreview" :loading="transferSaving" @click="submitTransfer">确认转交</a-button></div>
+    <a-modal v-model:open="transferOpen" title="转交负责人和部门" :footer="null" :mask-closable="false" :closable="!transferSaving" :keyboard="!transferSaving">
+      <a-form layout="vertical" :disabled="transferSaving"><div class="form-grid"><a-form-item label="新负责人" required><PersonSelect :disabled="transferSaving" v-model="transferForm.ownerMemberId" :people="peopleDirectory.people" placeholder="搜索姓名、岗位或部门" @change="transferPreview = undefined" /></a-form-item><a-form-item label="负责部门"><DepartmentSelect :disabled="transferSaving" v-model="transferForm.departmentId" :departments="peopleDirectory.departments" @change="transferPreview = undefined" /></a-form-item></div><a-form-item label="相关成员"><PersonSelect :disabled="transferSaving" v-model="transferForm.participantMemberIds" multiple :people="peopleDirectory.people" placeholder="搜索并选择协作成员" @change="transferPreview = undefined" /></a-form-item><a-form-item label="转交原因" required><a-textarea v-model:value="transferForm.reason" :rows="3" :maxlength="1000" show-count @change="transferPreview = undefined" /></a-form-item></a-form>
+      <a-alert v-if="transferPreview" type="info" show-icon class="section-alert" message="归属变化预览"><template #description>{{ transferPreview.fromOwnerName || '不可用成员' }} → {{ transferPreview.toOwnerName || '不可用成员' }}；{{ transferPreview.fromDepartmentName || '无部门' }} → {{ transferPreview.toDepartmentName || '无部门' }}；相关人 {{ transferPreview.fromParticipantNames.map(name => name || '不可用成员').join('、') || '无' }} → {{ transferPreview.toParticipantNames.map(name => name || '不可用成员').join('、') || '无' }}</template></a-alert>
+      <a-alert v-if="transferPreview" type="info" :message="`关联影响：出向 ${transferPreview.outgoingRelationCount} 条，入向 ${transferPreview.incomingRelationCount} 条`" description="仅变更当前记录的负责人、部门及相关人；模块、数据工作空间和关联记录归属保留。" />
+      <div class="drawer-footer"><a-button :disabled="transferSaving" @click="transferOpen = false">取消</a-button><a-button :loading="transferSaving" @click="previewTransfer">预览变化</a-button><a-button type="primary" :disabled="!transferPreview" :loading="transferSaving" @click="submitTransfer">确认转交</a-button></div>
     </a-modal>
     <a-modal v-model:open="conversionOpen" title="转化为目标模块记录" :footer="null" :mask-closable="false" width="640px">
       <a-form layout="vertical"><a-form-item label="目标模块" required><a-select v-model:value="conversionTargetCode" :options="conversionTargetOptions" @change="conversionPreview = undefined" /></a-form-item></a-form>

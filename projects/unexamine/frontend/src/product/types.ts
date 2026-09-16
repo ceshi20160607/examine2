@@ -738,6 +738,10 @@ export interface RuntimeRecordTransferPreview {
   toDepartmentName?: string
   fromParticipantMemberIds: number[]
   toParticipantMemberIds: number[]
+  fromParticipantNames: string[]
+  toParticipantNames: string[]
+  outgoingRelationCount: number
+  incomingRelationCount: number
 }
 
 export interface RuntimeRecordConversionMapping {
