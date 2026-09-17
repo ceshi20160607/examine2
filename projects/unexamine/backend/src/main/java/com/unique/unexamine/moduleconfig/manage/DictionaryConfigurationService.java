@@ -291,7 +291,22 @@ public class DictionaryConfigurationService {
         return runtimeDictionary(dictionary, parentId);
     }
 
-    @Transactional(readOnly = true)
+    /** 单选和状态字段使用字典当前发布的有效选项，不接受草稿、停用选项或未授权字典。 */
+    // 校验失败由调用方汇总为预览或业务错误，不能提前把外层事务标记为只能回滚。
+    @Transactional(readOnly = true, noRollbackFor = IllegalArgumentException.class)
+    public void validateRuntimeOption(AuthenticatedContext context, Long dictionaryId, String submitted) {
+        try {
+            boolean selectable = runtime(context, dictionaryId, null).items().stream()
+                    .anyMatch(item -> submitted.equals(item.path("code").asText())
+                            && "ACTIVE".equals(item.path("status").asText()));
+            if (!selectable) throw new IllegalArgumentException("字典选项不存在或已停用");
+        } catch (DomainException exception) {
+            throw new IllegalArgumentException("字典不可用：" + exception.getMessage(), exception);
+        }
+    }
+
+    /** 级联选项沿用相同校验事务语义；写入失败仍由业务动作事务整体回滚。 */
+    @Transactional(readOnly = true, noRollbackFor = IllegalArgumentException.class)
     public List<Long> validateRuntimeSelection(
             AuthenticatedContext context,
             Long dictionaryId,

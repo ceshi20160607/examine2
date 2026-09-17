@@ -167,6 +167,7 @@ const formSnapshot = ref('')
 const formDraftRestored = ref(false)
 type CascadeOption = { value: number; label: string; children?: CascadeOption[] }
 const cascadeOptions = reactive<Record<string, CascadeOption[]>>({})
+const dictionaryOptions = reactive<Record<string, Array<{ value: string; label: string }>>>({})
 const referenceOptions = reactive<Record<string, Array<{ value: number; label: string; description: string }>>>({})
 const referenceLoading = ref(false)
 type ManualActionConfig = { operation?: string; parameterFieldCodes?: string[]; confirmation?: boolean; confirmationText?: string }
@@ -575,7 +576,7 @@ function returnToDashboard() {
 async function loadConfiguration() {
   configuration.value = await api<RuntimeModuleConfiguration>(
     `/api/runtime/modules/${activeCode.value}/configuration`, {}, token.value)
-  await loadCascadeOptions()
+  await loadDictionaryOptions()
 }
 
 function fieldConfig(field: RuntimeField) {
@@ -605,9 +606,20 @@ function initialFieldValue(field: RuntimeField) {
   return configured
 }
 
-async function loadCascadeOptions() {
+/** 字典字段统一读取当前发布的选项；单选、状态和级联不回退到已过期的手动配置。 */
+async function loadDictionaryOptions() {
+  const currentConfiguration = configuration.value
+  Object.keys(dictionaryOptions).forEach(code => delete dictionaryOptions[code])
   Object.keys(cascadeOptions).forEach((code) => delete cascadeOptions[code])
-  const cascadeFields = configuration.value?.configuration.fields
+  const selectionFields = currentConfiguration?.configuration.fields
+    .filter(field => ['SINGLE_SELECT', 'STATUS'].includes(field.fieldType) && field.dictionaryId) || []
+  await Promise.all(selectionFields.map(async field => {
+    const dictionary = await api<RuntimeDictionary>(`/api/runtime/dictionaries/by-id/${field.dictionaryId}`, {}, token.value)
+    if (configuration.value === currentConfiguration) {
+      dictionaryOptions[field.code] = dictionary.items.map(item => ({ value: item.code, label: item.label }))
+    }
+  }))
+  const cascadeFields = currentConfiguration?.configuration.fields
     .filter((field) => field.fieldType === 'CASCADE' && field.dictionaryId) || []
   await Promise.all(cascadeFields.map(async (field) => {
     const maximumDepth = Math.max(1, fieldConfig(field).maxDepth || 20)
@@ -620,7 +632,8 @@ async function loadCascadeOptions() {
         return { value: item.id, label: item.label, ...(children.length ? { children } : {}) }
       }))
     }
-    cascadeOptions[field.code] = await loadLevel(undefined, 1)
+    const loaded = await loadLevel(undefined, 1)
+    if (configuration.value === currentConfiguration) cascadeOptions[field.code] = loaded
   }))
 }
 
@@ -937,6 +950,11 @@ async function openDetail(record: RuntimeRecord) {
       api<RuntimePrintTemplate[]>(`/api/print/runtime/modules/${activeCode.value}/templates`, {}, token.value).catch(() => []),
     ])
     detail.value = recordDetail
+    if (fields.value.some(field => field.fieldType === 'REFERENCE'
+      && recordDetail.fields[field.code] != null
+      && !referenceOptions[field.code]?.some(option => option.value === Number(recordDetail.fields[field.code])))) {
+      loadReferenceOptions()
+    }
     if (!recordAttachmentFields.value.some(field => field.code === attachmentFieldCode.value)) {
       attachmentFieldCode.value = recordAttachmentFields.value[0]?.code || ''
     }
@@ -1383,6 +1401,7 @@ async function submitLifecycle() {
 }
 
 function options(field: RuntimeField) {
+  if (field.dictionaryId) return dictionaryOptions[field.code] || []
   try {
     const config = JSON.parse(field.configJson) as { options?: Array<{ value?: string; code?: string; label?: string; status?: string; disabled?: boolean }> }
     return (config.options || []).filter((option) => option.status !== 'DISABLED' && !option.disabled)
@@ -1551,7 +1570,7 @@ function displayValue(field: RuntimeField, value: unknown) {
     return referenceOptions[field.code]?.find((item) => item.value === Number(value))?.label || '关联记录'
   }
   if (field.fieldType === 'MEMBER') {
-    return peopleDirectory.value.people.find((item) => item.tenantMemberId === Number(value))?.displayName || '组织成员'
+    return peopleDirectory.value.people.find((item) => item.systemMemberId === Number(value))?.displayName || '不可用成员'
   }
   if (field.fieldType === 'DEPARTMENT') {
     return peopleDirectory.value.departments.find((item) => item.id === Number(value))?.name || '组织部门'
@@ -1808,7 +1827,7 @@ defineExpose({ refresh: loadModules, executeCommand })
           <a-select v-else-if="['SINGLE_SELECT', 'STATUS'].includes(field.fieldType)" v-model:value="form.fields[field.code]" :options="options(field)" allow-clear />
           <a-cascader v-else-if="field.fieldType === 'CASCADE'" v-model:value="form.fields[field.code]" :options="cascadeOptions[field.code] || []"
             :change-on-select="Boolean(fieldConfig(field).allowIntermediate)" allow-clear show-search placeholder="请选择级联项" />
-          <PersonSelect v-else-if="field.fieldType === 'MEMBER'" :model-value="numericFieldValue(field.code)" :people="peopleDirectory.people" value-key="tenantMemberId" placeholder="搜索姓名、岗位或部门" @update:model-value="form.fields[field.code] = $event" />
+          <PersonSelect v-else-if="field.fieldType === 'MEMBER'" :model-value="numericFieldValue(field.code)" :people="peopleDirectory.people" value-key="systemMemberId" placeholder="搜索姓名、岗位或部门" @update:model-value="form.fields[field.code] = $event" />
           <DepartmentSelect v-else-if="field.fieldType === 'DEPARTMENT'" :model-value="numericFieldValue(field.code)" :departments="peopleDirectory.departments" @update:model-value="form.fields[field.code] = $event" />
           <a-select v-else-if="field.fieldType === 'REFERENCE'" v-model:value="form.fields[field.code]" show-search allow-clear :loading="referenceLoading" :filter-option="(input: string, option: { label?: string; description?: string }) => `${option.label || ''} ${option.description || ''}`.toLowerCase().includes(input.toLowerCase())" :options="referenceOptions[field.code] || []" placeholder="搜索并选择业务记录"><template #option="{ label, description }"><span class="reference-option"><strong>{{ label }}</strong><small>{{ description }}</small></span></template></a-select>
           <a-input v-else v-model:value="form.fields[field.code]" />

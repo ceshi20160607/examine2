@@ -1747,7 +1747,11 @@ public class RuntimeDataService {
                 issues.add(targetField.name() + "：目标字段无写入权限");
             } else {
                 value = sourceValues.get(sourceCode);
-                if (empty(value)) {
+                // JSON 的明确空值是一项合法业务值；不能把已保存的 null 当作缺少来源而丢失映射。
+                boolean explicitJsonNull = "JSON".equals(targetField.type())
+                        && "NULL".equals(targetField.config().path("jsonSchema").path("type").asText())
+                        && value != null && value.isNull();
+                if (empty(value) && !explicitJsonNull) {
                     status = targetField.required() ? "MISSING" : "EMPTY";
                     message = targetField.required() ? "来源值为空" : "可选来源值为空";
                     if (targetField.required()) issues.add(targetField.name() + "：来源值为空");
@@ -2694,7 +2698,7 @@ public class RuntimeDataService {
                 if (!value.isTextual()) {
                     throw new IllegalArgumentException("必须是选项值");
                 }
-                validateOption(field, value.textValue());
+                validateOption(context, field, value.textValue());
                 yield TextNode.valueOf(value.textValue());
             }
             case "NUMBER", "MONEY" -> {
@@ -2770,7 +2774,12 @@ public class RuntimeDataService {
         };
     }
 
-    private void validateOption(PublishedField field, String submitted) {
+    /** 绑定字典与手动选项共用规范化入口；新建、编辑和转化都校验当前有效选项。 */
+    private void validateOption(AuthenticatedContext context, PublishedField field, String submitted) {
+        if (field.dictionaryId() != null) {
+            dictionaryConfigurationService.validateRuntimeOption(context, field.dictionaryId(), submitted);
+            return;
+        }
         JsonNode options = field.config().path("options");
         if (!options.isArray() || options.isEmpty()) {
             throw new IllegalArgumentException("字段没有可用选项");

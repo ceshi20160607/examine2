@@ -5,8 +5,8 @@
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B07.3b.2",
-  "current_step": "B07.3b.2",
+  "next_step": "B07.4a",
+  "current_step": "B07.4a",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
@@ -19,146 +19,82 @@
     "form_configuration": "shared_drag_drop_field_designer_left_types_center_canvas_right_typed_properties"
   },
   "current_scope": {
-    "step": "B07.3b.2",
+    "step": "B07.4a",
     "source_rows": [
-      "R2831",
-      "R2834",
-      "R2835",
-      "R2836",
-      "R2841",
-      "R2845",
-      "R2847",
-      "R2848",
-      "R2849",
-      "R2896",
-      "R2897",
-      "R2948",
-      "R2949"
+      "R2886",
+      "R2887",
+      "R2888",
+      "R2889",
+      "R2890",
+      "R2891",
+      "R2892"
     ],
-    "files": [
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-      "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
-      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-      "projects/unexamine/frontend/src/product/runtime-actions.ts"
-    ],
-    "entry_points": [
-      "Only remaining CONVERT AFTER_EXECUTION/FLOW_ONLY modes. Use current visual published binding UI + existing public conversion handler/dispatcher and current batch results. Capture current CONVERT binding condition/priority/Flow before changing synthetic acceptance fixtures; preserve existing flow instances and original receipts.",
-      "Check existing implementation before editing; do not introduce another executor. Bindings/configuration are trusted runtime metadata, user config remains visual. Verify exact typed value/null and actual Flow/marker/target/audit under each mode, with original-key replay.",
-      "If a real mode bug appears, fix only common control/receipt/conversion/view affected path and rerun bounded checks. Same backend/native Vite/MySQL/shared Redis; no Testcontainers/full compose/full audit."
+    "reason": "First close actual no-copy/list-scope/default-readonly/grant-update/revoke sharing chain on isolated current fixtures. B07.4b conversion and source-effective Flow/full actor-role-scope matrix remain required.",
+    "entry_files": [
+      "runtimedata/manage/RuntimeDataService.java",
+      "frontend/src/product/views/RuntimeWorkspaceView.vue"
     ],
     "acceptance": [
-      "AFTER_EXECUTION: one atomic target/marker/result/audit, business state remains executed while Flow delivery pending/retrying, eventual current pinned Flow and original replay once.",
-      "FLOW_ONLY: accepted Flow with value=null, no target/conversion marker/conversion success audit; batch UI says only Flow/business unchanged, accepted item not failed-only retried.",
-      "Actual UI named configured modes and readable current batch/per-record receipt; original target type/null properly handled and no JSON/IDs entered.",
-      "Keep B07.3b.3 complex mappings/current target publication plus full permissions/sharing/applications/channels/all deferred requirements open; exact next step recorded."
+      "Real UI named share target/action settings and source labels/all-own-shared filters.",
+      "Default read-only; granted UPDATE remains on source tenant; re-share/cross-system denied; revoke removes access and retains history."
     ]
   },
   "last_result": {
-    "step": "B07.3b.1",
+    "step": "B07.3b.3a",
     "status": "verified_contribution",
-    "verified_at": "2026-09-17T14:30:32.307283+08:00",
-    "verification_scope": "Published visual batch CONVERT, named per-record preview, actual partial required/version failures, explicit confirmed-version failed-only retry, DIRECT plus conditional approval/result refresh and original-key replay. B07.3b/B07/product remain in progress.",
+    "verified_at": "2026-09-17T21:01:50.692475+08:00",
     "source_rows": [
-      "R2831",
-      "R2832",
-      "R2834",
       "R2835",
       "R2836",
-      "R2841",
-      "R2845",
+      "R2844",
       "R2849",
-      "R2888",
       "R2896",
-      "R2897",
-      "R2898",
-      "R2899",
       "R2948",
       "R2949"
     ],
     "changed_files": [
-      "projects/unexamine/frontend/src/product/action-placement.test.ts",
-      "projects/unexamine/frontend/src/product/action-placement.ts",
-      "projects/unexamine/frontend/src/product/api.ts",
-      "projects/unexamine/frontend/src/product/runtime-actions.test.ts",
-      "projects/unexamine/frontend/src/product/runtime-actions.ts",
-      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
-      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/DictionaryRuntimeOptionTest.java"
     ],
     "checks_actual_results": [
-      "Focused npm run test -- src/product/runtime-actions.test.ts src/product/action-placement.test.ts src/product/api.test.ts: 3 files/22 tests passed, including corrected validation new-key/new-version, immutable unknown-result request identity and skipping accepted/pending items with typed target wrappers.",
-      "Final npm run build passed: vue-tsc + Vite4010 modules, existing chunk warning. Last template fixes only table phase remount and centered dialog; current screenshot/target navigation rechecked. Unchanged transport/placement tests remain fresh. No backend source/SQL changes or repeat Maven/Testcontainers.",
-      "Real visual source30 action CONVERT changed from DETAIL_HEADER to BATCH, named existing mapping preserved, draft check passed and publication46/version7 entered runtime. DB fields/pages match45, current runtime action location BATCH.",
-      "Browser checked four named source96/97/98/99 and opened batch modal; source98 edited separately after selection. Named target and expanded named four-field mappings shown, no JSON/ID entry. Preview gave required 客户名称 and old-source-version errors.",
-      "Actual first submit: source96 DIRECT creates target100; required97 and stale98 return failures without markers; source99 receipt134/Flow50 pending no target. Screen truthfully shows 已转化/失败/待审批 and retry disabled until explicit refresh.",
-      "Corrected97 required value/version1; browser refreshed only rejected97/98, preview both executable, then failed-only retry created targets102/101 using source versions1. Source96 accepted receipt137 and source99 pending134 unchanged: no resubmission of success/pending.",
-      "Approved source99 Flow50/task40: exact public common resume EXECUTED/target103. Browser receipt-only refresh displays all four 已转化 and explicit 审批已通过 without resubmitting business actions.",
-      "DB/API final assertions: every source exactly one SUCCEEDED v1 marker/result/success audit and independent current target mapped fields; source96/99 version0, corrected97/98 version1; all finished>=created. Every original key replay returns same target; all fresh duplicates409 RECORD_ALREADY_CONVERTED.",
-      "Real final layout screenshot identified stale expanded-cell width after result-column change; keyed phase table remount fixed it, centered dialog shows footer within1280x720. Browser normal result 打开目标 reaches target100 in target module with current target schema/field values.",
-      "Same healthy backend18080/MySQL33077/shared Redis6379 and existing native Vite15173 reused; project Redis remains stopped. No new containers or unrelated service changes. git diff --check passed."
+      "Real published dictionary SINGLE_SELECT target initially rejected valid code as no options. Shared normalize now validates current published/scoped/active dictionary codes; runtime selector loads named options. Actual UI created target108 and converted107 to109 with date/rich-text readback.",
+      "One public DIRECT conversion110 to111 mapped/read back 19 supported field families; original key replay same target and one marker/result. Explicit JSON NULL source112 to113 now preserves present null instead of losing it as EMPTY.",
+      "Actual preview/submit rejected current required/unique/dictionary/status/cascade/reference failures with named issues/409 and no target/marker/success audit. Draft required rule remained invisible until publication; corrected source114 v1 converted to120.",
+      "Read-only dictionary/cascade validation previously poisoned the outer transaction and returned UnexpectedRollbackException/500. Scoped noRollbackFor IllegalArgumentException now permits preview collection while final failed business action still rolls back. Five focused tests include real Spring transaction proxy, plus three structured-content protocol tests; all eight passed. Native JDK21 Maven package succeeded; no full-suite/Testcontainers.",
+      "Actual two-record batch preview was executable; publishing disabled dictionary option afterward caused one successful target124 and one readable rejection. Restoring publication and failed-only retry created125; successful target/marker unchanged.",
+      "Actual target111 detail and editor now resolve MEMBER by systemMemberId; REFERENCE detail loads available named record instead of generic placeholder. Current vue-tsc/production build passed (4010 modules, existing bundle-size warning).",
+      "Temporary date/status/dictionary/category mapping settings restored via public publish APIs. Synthetic reference118 logically deleted only for this acceptance. Existing backend/MySQL/shared Redis and one Vite reused; no new containers or schema changes."
     ],
     "readback": [
-      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-fixtures.json",
-      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-stale.json",
-      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-first.json",
-      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-correction.json",
-      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-final.json"
+      "projects/unexamine/ai/evidence/spark-b07-mapping-facts.json"
     ],
-    "permission_or_failure_result": "Live required/version failures leave no markers; successes and pending receipts do not retry; fresh duplicate409; unknown network/server result retains original identity in focused transport tests. No live network-fault injection or full shared/role/channel matrix claimed.",
+    "permission_or_failure_result": "Published option scope/active-state/current target constraints and no partial conversion verified. Full role/shared/application/channel field restrictions and remaining field families are still required.",
     "tested_file_hashes": [
       {
-        "path": "projects/unexamine/frontend/src/product/action-placement.test.ts",
-        "sha256": "f17d611baee0d74642d14e96fe33537c0f50fa7414e6d82b205347a160080857"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationService.java",
+        "sha256": "5a8543fd05bc1ba97f097280c68e0a436a2e62f77f73f1b4414f0ee70771b038"
       },
       {
-        "path": "projects/unexamine/frontend/src/product/action-placement.ts",
-        "sha256": "fe89f5931052b908b01ae005251669c05ab506bb36da46dae9c0854b9bddb466"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/api.ts",
-        "sha256": "7d1156ce2a4d509a6ad052fe1d8255ad0cfe39bdc917a32a578c6b8a0a36f9c5"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/runtime-actions.test.ts",
-        "sha256": "a73a9625367057b5f2c4ccec73cd02a628126517e5187cc3e0f1da847a8d289b"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/runtime-actions.ts",
-        "sha256": "8ecabcc1d463a26493cfacc8f5f87a0d865dcb17c3eb25b82bc5b02cec3411d4"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
-        "sha256": "55a55f2f212c2477c4949dad5d9fd6e37b2571fd1887051289466da02a74b2cc"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+        "sha256": "98405725df1d6420a7e9a94a2465bd3897ddb6e922e3db596130e91f6996cd2e"
       },
       {
         "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-        "sha256": "1883ba9cc67603e3550029f0df5147d8a62cf3783f5d57eab85a3e8e93edf384"
+        "sha256": "3199537d2b07b608928c513049b0762a6ac8d2378d76728f84779ee35b06e69e"
+      },
+      {
+        "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/DictionaryRuntimeOptionTest.java",
+        "sha256": "ac450ae5af522f272050ad7360ae66a50e1662af153c250c4663649b65207a58"
       }
     ],
+    "prior_evidence_freshness": "B07.3b.2 fault injection was executed at its recorded hashes, retained unchanged. On the new backend, original receipts152/154 replayed the same target/one Flow. Mode executor/dispatcher/Flow files were unchanged; this does not claim a repeated fault injection at new RuntimeDataService/frontend hashes.",
     "remaining": [
-      "B07.3b.2 next: actual CONVERT AFTER_EXECUTION and FLOW_ONLY through visual published binding, common receipt/replay and batch truthful status; FLOW_ONLY must not create target/marker/success audit, AFTER_EXECUTION must retain saved target while delivery is pending/retrying.",
-      "B07.3b.3 still required: remaining complex mapping families and changed current target publication/type/required/unique/dictionary/reference rules. Current four TEXT/NUMBER/BOOLEAN mappings do not satisfy all mapping requirements.",
-      "Full restricted-role/data-scope/shared-tenant/application/channel restrictions remain required. Batch calls same hard public checks; current packet does not claim fresh full permission matrix or durable batch recovery after closing/reloading the page.",
-      "B07.1c.3, B07.2b, B07.4 sharing, existing B05/B06/B03 deferred full requirements, advanced approval/timeouts/reassignment/dynamic nodes, applications/WeChat/WeCom/Feishu/DingTalk and every full requirement remain required; whole B07/product incomplete."
+      "B07.3b.3b all deferred complex mapping families and full permission matrix remain required.",
+      "B07.4 sharing, B08/B09 approvals and all remaining/deferred product requirements remain required."
     ],
-    "next_step": "B07.3b.2",
-    "usage": {
-      "latest_turn_report": "projects/unexamine/ai/evidence/spark-usage-b07-batch-conversion.json",
-      "cumulative_report": "projects/unexamine/ai/evidence/spark-usage-current.json",
-      "cost": null,
-      "through": "2026-09-17T06:29:07.620Z",
-      "latest_turn_delta": {
-        "input_tokens": 10229071,
-        "cached_input_tokens": 10020224,
-        "cache_write_input_tokens": 0,
-        "output_tokens": 22877,
-        "reasoning_output_tokens": 8702,
-        "total_tokens": 10251948,
-        "uncached_input_tokens": 208847
-      }
-    },
-    "prior_evidence_freshness": "Changed shared frontend transport/view hashes replace prior corresponding UI/retry checks with current22 tests + actual batch/current target navigation. Backend conversion/unlink/permission/clock sources unchanged, their bounded proofs remain valid; publication45 old placement is historical and current46 is BATCH, no historical completion substituted."
+    "next_step": "B07.4a"
   },
   "blockers": [
     {
@@ -1430,7 +1366,12 @@
     "projects/unexamine/ai/evidence/spark-b07-batch-conversion-first.json",
     "projects/unexamine/ai/evidence/spark-b07-batch-conversion-correction.json",
     "projects/unexamine/ai/evidence/spark-b07-batch-conversion-final.json",
-    "projects/unexamine/ai/evidence/spark-b07-batch-conversion-verification.json"
+    "projects/unexamine/ai/evidence/spark-b07-batch-conversion-verification.json",
+    "projects/unexamine/ai/evidence/spark-b07-conversion-modes-verification.json",
+    "projects/unexamine/ai/evidence/spark-b07-conversion-modes-facts.json",
+    "projects/unexamine/ai/evidence/spark-b07-mapping-verification.json",
+    "projects/unexamine/ai/evidence/spark-b07-mapping-facts.json",
+    "projects/unexamine/ai/evidence/spark-usage-b07-mapping.json"
   ],
   "step_record_contract": {
     "required": [
@@ -1549,7 +1490,7 @@
         "B07.1": "in_progress",
         "B07.2": "in_progress",
         "B07.3": "in_progress",
-        "B07.4": "unverified",
+        "B07.4": "in_progress",
         "B07.1a": "verified",
         "B07.1b": "verified",
         "B07.1c": "in_progress",
@@ -1563,8 +1504,12 @@
         "B07.3a.2": "verified",
         "B07.3b": "in_progress",
         "B07.3b.1": "verified",
-        "B07.3b.2": "unverified",
-        "B07.3b.3": "unverified"
+        "B07.3b.2": "verified",
+        "B07.3b.3": "in_progress",
+        "B07.3b.3a": "verified",
+        "B07.3b.3b": "unverified",
+        "B07.4a": "in_progress",
+        "B07.4b": "unverified"
       }
     },
     {
@@ -1753,7 +1698,7 @@
       "B05.2b2"
     ],
     "rule": "Deferred means still required; no historical report may mark it complete.",
-    "current_main_path": "B07.3a single conversion lifecycle and B07.3b.1 batch/failed-only retry verified -> B07.3b.2 remaining conversion modes -> remaining mapping/current publication/hard limits -> B07.4 sharing -> B08/B09 advanced approval -> B11/B12 applications/channels. B07.1c.3, B07.2b and all deferred full requirements remain required."
+    "current_main_path": "B07.3b.3a supported mappings verified -> B07.4a sharing -> B07.4b shared conversion/source Flow -> B08/B09 advanced approval -> B11/B12 apps/channels; deferred fields/pages and all requirements remain required."
   },
   "form_designer_contract": {
     "source_rows": [
@@ -1857,13 +1802,31 @@
       "evidence": "projects/unexamine/ai/evidence/spark-b07-batch-conversion-verification.json"
     },
     "B07.3b.2": {
-      "status": "unverified",
+      "status": "verified",
       "scope": "B07.3b.2 next: actual CONVERT AFTER_EXECUTION and FLOW_ONLY through visual published binding, common receipt/replay and batch truthful status; FLOW_ONLY must not create target/marker/success audit, AFTER_EXECUTION must retain saved target while delivery is pending/retrying.",
-      "reason": "Exact remaining modes within existing B07.3b; no new whole-project plan."
+      "reason": "Exact remaining modes within existing B07.3b; no new whole-project plan.",
+      "evidence": "projects/unexamine/ai/evidence/spark-b07-conversion-modes-verification.json"
     },
     "B07.3b.3": {
-      "status": "unverified",
+      "status": "in_progress",
       "scope": "B07.3b.3 still required: remaining complex mapping families and changed current target publication/type/required/unique/dictionary/reference rules. Current four TEXT/NUMBER/BOOLEAN mappings do not satisfy all mapping requirements."
+    },
+    "B07.3b.3a": {
+      "status": "verified",
+      "scope": "19 supported typed families/current target rules/actual batch changed publication retry; remaining families/full matrix open.",
+      "evidence": "projects/unexamine/ai/evidence/spark-b07-mapping-verification.json"
+    },
+    "B07.3b.3b": {
+      "status": "unverified",
+      "scope": "All remaining complex field mapping families after B05 capability completion plus full role/shared/application/channel hard restrictions. No requirement removed."
+    },
+    "B07.4a": {
+      "status": "in_progress",
+      "scope": "First close actual no-copy/list-scope/default-readonly/grant-update/revoke sharing chain on isolated current fixtures. B07.4b conversion and source-effective Flow/full actor-role-scope matrix remain required."
+    },
+    "B07.4b": {
+      "status": "unverified",
+      "scope": "Explicitly shared CONVERT/target permission and source-tenant rules/Flow, complete actor role/data-scope/field/channel restrictions; do not rely on stale old HTTP tests."
     }
   }
 }

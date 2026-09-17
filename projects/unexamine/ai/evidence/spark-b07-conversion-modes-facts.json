@@ -1,0 +1,465 @@
+{
+  "original_binding": {
+    "id": 11,
+    "systemId": 19,
+    "ownerTenantId": 21,
+    "scopeType": "DEFAULT",
+    "moduleId": 30,
+    "actionId": null,
+    "triggerEvent": "CONVERT",
+    "flowId": 10,
+    "flowVersionId": 10,
+    "flowVersionNumber": 1,
+    "executionMode": "AFTER_APPROVAL",
+    "priorityOrder": 0,
+    "conditionExpression": null,
+    "condition": {
+      "mode": "ALL",
+      "conditions": [
+        {
+          "field": "field_54b4d262eb",
+          "operator": "GT",
+          "value": 0
+        }
+      ]
+    },
+    "mutuallyExclusive": false,
+    "status": "ACTIVE",
+    "version": 0,
+    "updatedAt": "2026-09-17T13:00:15.047+08:00"
+  },
+  "historical_flows": [
+    [
+      "1",
+      "1",
+      "COMPLETED",
+      "e1d574caa49cc1175ecf3092f01a831b"
+    ],
+    [
+      "2",
+      "1",
+      "TERMINATED",
+      "e9ee4bc9dfddac4ac782ec26a5f0d18c"
+    ],
+    [
+      "3",
+      "1",
+      "COMPLETED",
+      "e9ee4bc9dfddac4ac782ec26a5f0d18c"
+    ],
+    [
+      "4",
+      "3",
+      "WAITING",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "5",
+      "4",
+      "COMPLETED",
+      "e9c16bab7dfedbd95c7b7563c66b43a1"
+    ],
+    [
+      "6",
+      "4",
+      "COMPLETED",
+      "63f92643478d19e185010e1961399732"
+    ],
+    [
+      "7",
+      "5",
+      "COMPLETED",
+      "e551a5a2ae224e9b1d9ab15a1f1f52fe"
+    ],
+    [
+      "8",
+      "5",
+      "COMPLETED",
+      "6387fc426bb7de9639bf4cfb7160bb21"
+    ],
+    [
+      "9",
+      "4",
+      "COMPLETED",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "10",
+      "6",
+      "COMPLETED",
+      "4a693ba6e2ff5641682ee6dd8a2b8d2e"
+    ],
+    [
+      "11",
+      "7",
+      "COMPLETED",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "12",
+      "6",
+      "COMPLETED",
+      "659eae665318665ebfac43fbaea78139"
+    ],
+    [
+      "14",
+      "8",
+      "COMPLETED",
+      "df33f4fdad60a72ec14e9eb6df8a52de"
+    ],
+    [
+      "15",
+      "8",
+      "COMPLETED",
+      "df33f4fdad60a72ec14e9eb6df8a52de"
+    ],
+    [
+      "16",
+      "8",
+      "COMPLETED",
+      "6927e4a0030a6888f50bd5ef03183c9c"
+    ],
+    [
+      "17",
+      "9",
+      "COMPLETED",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "18",
+      "8",
+      "COMPLETED",
+      "00e0816f2e626d71a267461043860543"
+    ],
+    [
+      "19",
+      "8",
+      "COMPLETED",
+      "00e0816f2e626d71a267461043860543"
+    ],
+    [
+      "20",
+      "10",
+      "COMPLETED",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "21",
+      "11",
+      "WAITING",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "22",
+      "12",
+      "WAITING",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "23",
+      "12",
+      "REJECTED",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "24",
+      "12",
+      "RETURNED",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "25",
+      "12",
+      "WITHDRAWN",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "26",
+      "12",
+      "TERMINATED",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "27",
+      "12",
+      "WAITING",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "28",
+      "12",
+      "COMPLETED",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "29",
+      "13",
+      "REJECTED",
+      "99914b932bd37a50b983c5e7c90ae93b"
+    ],
+    [
+      "30",
+      "14",
+      "COMPLETED",
+      "145b0fdb65d3e977be2fe466115ec510"
+    ],
+    [
+      "31",
+      "15",
+      "COMPLETED",
+      "c41da4e03f71738773b276dd5129c7a8"
+    ],
+    [
+      "32",
+      "16",
+      "COMPLETED",
+      "62f5d3a7a471877b18d347e5059ae976"
+    ],
+    [
+      "33",
+      "17",
+      "COMPLETED",
+      "08e415d256b07f0f0b88ba2d9639a72c"
+    ],
+    [
+      "34",
+      "18",
+      "COMPLETED",
+      "99b502a82e96c60b3970cedc09bf83b9"
+    ],
+    [
+      "35",
+      "10",
+      "WAITING",
+      "03655cd574b7c949766e4e5d36180f9c"
+    ],
+    [
+      "36",
+      "10",
+      "WAITING",
+      "1d3486adf3e37282f108088dc814e80b"
+    ],
+    [
+      "37",
+      "10",
+      "COMPLETED",
+      "03ec2eb0ddd63a74a45982fe176b2678"
+    ],
+    [
+      "38",
+      "10",
+      "WAITING",
+      "c13ceb9155c80c82ccd6aed2efa010e2"
+    ],
+    [
+      "39",
+      "10",
+      "WAITING",
+      "2316f5612aba58fbea78491e5b05b366"
+    ],
+    [
+      "40",
+      "10",
+      "WAITING",
+      "579adb1035a54a25ea6d5faac9b59b83"
+    ],
+    [
+      "41",
+      "10",
+      "COMPLETED",
+      "0a521cd69efce6b4c28f76f9ea7c7ea8"
+    ],
+    [
+      "42",
+      "10",
+      "COMPLETED",
+      "29cfd322f4097d9c98dd19d5b61b4950"
+    ],
+    [
+      "43",
+      "10",
+      "COMPLETED",
+      "355c44af437a7193cafa52b7ed9d13bf"
+    ],
+    [
+      "44",
+      "10",
+      "COMPLETED",
+      "8926cb8937ac63dda1748f1850281665"
+    ],
+    [
+      "45",
+      "10",
+      "COMPLETED",
+      "a949c132389bbe388236762acb0884b7"
+    ],
+    [
+      "46",
+      "10",
+      "COMPLETED",
+      "ae751e7746af6e894eb13ed7016ada57"
+    ],
+    [
+      "47",
+      "10",
+      "COMPLETED",
+      "8b1df106173dc4bc461a3b71f64fbcb3"
+    ],
+    [
+      "48",
+      "10",
+      "COMPLETED",
+      "af2106c64f7a0e7c0d98791b7aeb060e"
+    ],
+    [
+      "49",
+      "10",
+      "REJECTED",
+      "ef91c408c0558601b5ddf69efb81d11c"
+    ],
+    [
+      "50",
+      "10",
+      "COMPLETED",
+      "6caea552e42dccaae9d78c5e010a3493"
+    ]
+  ],
+  "records": {
+    "after": {
+      "id": 104,
+      "recordNumber": null,
+      "title": "转化模式验收·执行后流程",
+      "status": "ACTIVE",
+      "ownerMemberId": 21,
+      "departmentId": 3,
+      "createdByMemberId": 21,
+      "updatedByMemberId": 21,
+      "createdConfigVersionId": 46,
+      "updatedConfigVersionId": 46,
+      "participantMemberIds": [],
+      "archived": false,
+      "archivedAt": null,
+      "deleted": false,
+      "deletedAt": null,
+      "version": 0,
+      "createdAt": "2026-09-17T20:23:19.24+08:00",
+      "updatedAt": "2026-09-17T20:23:19.24+08:00",
+      "dataTenantId": 21,
+      "dataTenantName": "默认主租户",
+      "ownedByCurrentTenant": true,
+      "shared": false,
+      "shareId": null,
+      "shareStatus": null,
+      "sharedActions": [],
+      "shareExpiresAt": null,
+      "fields": {
+        "field_54b4d262eb": 3,
+        "field_724a18ab7f": "转化模式验收·执行后流程",
+        "field_cc57ec35ec": true,
+        "field_dcc06d22c1": "转化模式验收·执行后流程客户"
+      }
+    },
+    "only": {
+      "id": 105,
+      "recordNumber": null,
+      "title": "转化模式验收·仅流程",
+      "status": "ACTIVE",
+      "ownerMemberId": 21,
+      "departmentId": 3,
+      "createdByMemberId": 21,
+      "updatedByMemberId": 21,
+      "createdConfigVersionId": 46,
+      "updatedConfigVersionId": 46,
+      "participantMemberIds": [],
+      "archived": false,
+      "archivedAt": null,
+      "deleted": false,
+      "deletedAt": null,
+      "version": 0,
+      "createdAt": "2026-09-17T20:23:19.416+08:00",
+      "updatedAt": "2026-09-17T20:23:19.416+08:00",
+      "dataTenantId": 21,
+      "dataTenantName": "默认主租户",
+      "ownedByCurrentTenant": true,
+      "shared": false,
+      "shareId": null,
+      "shareStatus": null,
+      "sharedActions": [],
+      "shareExpiresAt": null,
+      "fields": {
+        "field_54b4d262eb": 3,
+        "field_724a18ab7f": "转化模式验收·仅流程",
+        "field_cc57ec35ec": true,
+        "field_dcc06d22c1": "转化模式验收·仅流程客户"
+      }
+    }
+  },
+  "checked_at": "2026-09-17T12:51:04.097Z",
+  "after_failed_delivery": {
+    "source_id": 104,
+    "target_id": 106,
+    "receipt_id": 152,
+    "business_status": "COMPLETED",
+    "delivery_status": "RETRYING",
+    "outbox": [
+      [
+        "FAILED",
+        "1"
+      ]
+    ],
+    "one_atomic_marker_result_audit": true,
+    "ui_message": "批量转化记录\n目标模块\n客户档案\n本次处理 1 条来源记录\n每条记录独立校验和执行，已转化和待审批项不会重复提交。明确失败可修正来源后刷新预览再重试；响应未确认会重试原请求。\n\t来源记录\t预校验\t处理结果\t数据\t\n \n\t\n \n\t\n \n\t\n \n\t\n \n\n\n\t转化模式验收·执行后流程\t映射可执行\t已转化\n转化已完成；流程暂未发起，系统将自动重试，无需重复提交\n\t打开目标\n关 闭\n刷新处理结果"
+  },
+  "after": {
+    "source_id": 104,
+    "target_id": 106,
+    "receipt_id": 152,
+    "flow_id": 51,
+    "flow_version_id": 10,
+    "recovered_delivery": "STARTED",
+    "original_replay_same_target": true,
+    "one_flow_start": true,
+    "ui_message": "批量转化记录\n目标模块\n客户档案\n本次处理 1 条来源记录\n每条记录独立校验和执行，已转化和待审批项不会重复提交。明确失败可修正来源后刷新预览再重试；响应未确认会重试原请求。\n\t来源记录\t预校验\t处理结果\t数据\t\n \n\t\n \n\t\n \n\t\n \n\t\n \n\n\n\t转化模式验收·执行后流程\t映射可执行\t已转化\n转化已完成，流程已发起\n\t打开目标\n关 闭\n刷新处理结果"
+  },
+  "only": {
+    "source_id": 105,
+    "receipt_id": 154,
+    "flow_id": 52,
+    "no_target_marker_success_audit": true,
+    "source_unchanged": true,
+    "one_flow_start": true,
+    "original_replay_same_flow": true,
+    "ui_message": "批量转化记录\n目标模块\n客户档案\n本次处理 1 条来源记录\n每条记录独立校验和执行，已转化和待审批项不会重复提交。明确失败可修正来源后刷新预览再重试；响应未确认会重试原请求。\n\t来源记录\t预校验\t处理结果\t数据\t\n \n\t\n \n\t\n \n\t\n \n\t\n \n\n\n\t转化模式验收·仅流程\t映射可执行\t仅发起流程\n流程已发起，业务数据未变更\n\t查看来源\n关 闭\n刷新处理结果"
+  },
+  "restored_binding": {
+    "id": 15,
+    "systemId": 19,
+    "ownerTenantId": 21,
+    "scopeType": "DEFAULT",
+    "moduleId": 30,
+    "actionId": null,
+    "triggerEvent": "CONVERT",
+    "flowId": 10,
+    "flowVersionId": 10,
+    "flowVersionNumber": 1,
+    "executionMode": "AFTER_APPROVAL",
+    "priorityOrder": 0,
+    "conditionExpression": null,
+    "condition": {
+      "mode": "ALL",
+      "conditions": [
+        {
+          "field": "field_54b4d262eb",
+          "operator": "GT",
+          "value": 0
+        }
+      ]
+    },
+    "mutuallyExclusive": false,
+    "status": "ACTIVE",
+    "version": 0,
+    "updatedAt": null
+  },
+  "historical_flows_unchanged": true,
+  "current_backend_original_replays_passed": true
+}
