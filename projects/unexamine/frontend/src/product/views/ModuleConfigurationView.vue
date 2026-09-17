@@ -1319,6 +1319,7 @@ onMounted(() => loadOverview())
         <template v-if="editingAction?.code === 'CONVERT'">
           <a-divider>转化目标与字段映射</a-divider>
           <a-alert type="info" show-icon class="section-alert" message="运行时只读取已发布映射；每个来源记录对同一目标模块永久只能成功转化一次。" />
+          <a-alert v-if="actionForm.location === 'BATCH'" type="info" show-icon class="section-alert" message="运行页勾选记录后逐条转化；单条失败不回滚已成功项，失败项可修正后单独重试，审批项按配置等待生效。" />
           <section v-for="(target, index) in conversionTargets" :key="index" class="panel-card" style="padding:12px;margin-bottom:12px">
             <a-form-item label="目标模块" required><a-select v-model:value="target.moduleCode" show-search :options="conversionModuleOptions" @change="target.mappings = [{ targetCode: '', sourceCode: '' }]; loadConversionTarget(String($event))" /></a-form-item>
             <a-form-item label="字段对应关系" required extra="选择新记录中的目标字段，以及从当前记录取值的来源字段。">

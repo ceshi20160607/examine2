@@ -20,6 +20,7 @@ export class ApiError extends Error {
     message: string,
     public readonly traceId?: string,
     public readonly details?: Record<string, unknown>,
+    public readonly httpStatus?: number,
   ) {
     super(message)
   }
@@ -60,6 +61,7 @@ function unwrap<T>(response: Response, payload: ApiEnvelope<T> & { data?: { trac
       payload.message || '请求失败',
       payload.data?.traceId ?? payload.requestId,
       payload.data && typeof payload.data === 'object' ? payload.data as Record<string, unknown> : undefined,
+      response.status,
     )
   }
   return payload.data as T

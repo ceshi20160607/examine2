@@ -109,4 +109,41 @@ describe('shared per-record batch submission', () => {
     expect(fetcher.mock.calls[1]![1].body).toBe(fetcher.mock.calls[0]![1].body)
     expect(fetcher.mock.calls[1]![1].headers.get('Idempotency-Key')).toBe(fetcher.mock.calls[0]![1].headers.get('Idempotency-Key'))
   })
+
+  it('retries corrected conversion validation with a new version/key while preserving targets and pending approval', async () => {
+    const converted = { idempotencyRecordId: 11, mode: 'DIRECT', status: 'COMPLETED', value: { conversionId: 8, targetRecord: { id: 99 } } }
+    const pending = { idempotencyRecordId: 12, mode: 'AFTER_APPROVAL', status: 'PENDING_APPROVAL', value: null }
+    const fetcher = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ code: 'OK', data: converted })))
+      .mockResolvedValueOnce(receipt())
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: 'CONVERSION_MAPPING_INVALID', message: '请填写客户名称' }), { status: 409 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: 'OK', data: pending })))
+      .mockResolvedValueOnce(receipt())
+    vi.stubGlobal('fetch', fetcher)
+    const batch = createRuntimeBatchAction<typeof targets[number], typeof converted.value>()
+    const convertOptions = { token: 'token', completed: '转化已完成', request: (record: typeof targets[number]) => ({
+      path: `/api/runtime/modules/check/records/${record.id}/convert`, body: { version: record.version, targetModuleCode: 'customer' },
+    }) }
+    const first = await batch.submit(targets, [], convertOptions)
+    expect(first[0]?.result?.value?.targetRecord.id).toBe(99)
+    expect(first[1]?.failureKind).toBe('REJECTED')
+    const final = await batch.submit([targets[0]!, { ...targets[1]!, version: 2 }], first, { ...convertOptions, retryFailed: true })
+    expect(final[1]?.message).toContain('尚未生效')
+    await batch.submit(targets, final, { ...convertOptions, retryFailed: true })
+    const writes = fetcher.mock.calls.filter(call => String(call[0]).endsWith('/convert'))
+    expect(writes.map(call => call[0])).toEqual(['/api/runtime/modules/check/records/1/convert', '/api/runtime/modules/check/records/2/convert', '/api/runtime/modules/check/records/2/convert'])
+    expect(JSON.parse(writes[2]![1].body).version).toBe(2)
+    expect(writes[2]![1].headers.get('Idempotency-Key')).not.toBe(writes[1]![1].headers.get('Idempotency-Key'))
+  })
+
+  it('keeps original conversion identity after a server error even when the record version changed', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ code: 'SERVER_ERROR', message: '结果未知' }), { status: 500 }))
+      .mockResolvedValueOnce(ok(1)).mockResolvedValueOnce(receipt())
+    vi.stubGlobal('fetch', fetcher)
+    const batch = createRuntimeBatchAction<typeof targets[number]>()
+    const first = await batch.submit([targets[0]!], [], options())
+    expect(first[0]?.failureKind).toBe('UNKNOWN_RESULT')
+    await batch.submit([{ ...targets[0]!, version: 9 }], first, { ...options(), retryFailed: true })
+    expect(fetcher.mock.calls[1]![1].body).toBe(fetcher.mock.calls[0]![1].body)
+    expect(fetcher.mock.calls[1]![1].headers.get('Idempotency-Key')).toBe(fetcher.mock.calls[0]![1].headers.get('Idempotency-Key'))
+  })
 })

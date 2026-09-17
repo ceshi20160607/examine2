@@ -1,0 +1,38 @@
+{
+  "thread_id": "01a06f53-2b57-7333-8b55-0d0183b53303",
+  "started_at": "2026-09-17T06:14:00.303Z",
+  "sampled_at": "2026-09-17T06:30:34.461062+00:00",
+  "baseline": {
+    "timestamp": "2026-09-17T06:01:57.662Z",
+    "input_tokens": 263995139,
+    "cached_input_tokens": 258683136,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 764581,
+    "reasoning_output_tokens": 273624,
+    "total_tokens": 264759720
+  },
+  "latest": {
+    "timestamp": "2026-09-17T06:29:07.620Z",
+    "input_tokens": 274224210,
+    "cached_input_tokens": 268703360,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 787458,
+    "reasoning_output_tokens": 282326,
+    "total_tokens": 275011668
+  },
+  "delta": {
+    "input_tokens": 10229071,
+    "cached_input_tokens": 10020224,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 22877,
+    "reasoning_output_tokens": 8702,
+    "total_tokens": 10251948,
+    "uncached_input_tokens": 208847
+  },
+  "cost": null,
+  "notes": [
+    "Input includes cached input; reasoning is a subset of output, not added twice.",
+    "Cumulative traffic is not context size or a currency bill. Final unsampled output is excluded.",
+    "Counters reset 0 time(s); deltas were summed across comparable counter segments."
+  ]
+}

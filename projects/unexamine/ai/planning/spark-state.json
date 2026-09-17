@@ -5,8 +5,8 @@
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B07.3b.1",
-  "current_step": "B07.3b.1",
+  "next_step": "B07.3b.2",
+  "current_step": "B07.3b.2",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
@@ -19,7 +19,47 @@
     "form_configuration": "shared_drag_drop_field_designer_left_types_center_canvas_right_typed_properties"
   },
   "current_scope": {
+    "step": "B07.3b.2",
+    "source_rows": [
+      "R2831",
+      "R2834",
+      "R2835",
+      "R2836",
+      "R2841",
+      "R2845",
+      "R2847",
+      "R2848",
+      "R2849",
+      "R2896",
+      "R2897",
+      "R2948",
+      "R2949"
+    ],
+    "files": [
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "projects/unexamine/frontend/src/product/runtime-actions.ts"
+    ],
+    "entry_points": [
+      "Only remaining CONVERT AFTER_EXECUTION/FLOW_ONLY modes. Use current visual published binding UI + existing public conversion handler/dispatcher and current batch results. Capture current CONVERT binding condition/priority/Flow before changing synthetic acceptance fixtures; preserve existing flow instances and original receipts.",
+      "Check existing implementation before editing; do not introduce another executor. Bindings/configuration are trusted runtime metadata, user config remains visual. Verify exact typed value/null and actual Flow/marker/target/audit under each mode, with original-key replay.",
+      "If a real mode bug appears, fix only common control/receipt/conversion/view affected path and rerun bounded checks. Same backend/native Vite/MySQL/shared Redis; no Testcontainers/full compose/full audit."
+    ],
+    "acceptance": [
+      "AFTER_EXECUTION: one atomic target/marker/result/audit, business state remains executed while Flow delivery pending/retrying, eventual current pinned Flow and original replay once.",
+      "FLOW_ONLY: accepted Flow with value=null, no target/conversion marker/conversion success audit; batch UI says only Flow/business unchanged, accepted item not failed-only retried.",
+      "Actual UI named configured modes and readable current batch/per-record receipt; original target type/null properly handled and no JSON/IDs entered.",
+      "Keep B07.3b.3 complex mappings/current target publication plus full permissions/sharing/applications/channels/all deferred requirements open; exact next step recorded."
+    ]
+  },
+  "last_result": {
     "step": "B07.3b.1",
+    "status": "verified_contribution",
+    "verified_at": "2026-09-17T14:30:32.307283+08:00",
+    "verification_scope": "Published visual batch CONVERT, named per-record preview, actual partial required/version failures, explicit confirmed-version failed-only retry, DIRECT plus conditional approval/result refresh and original-key replay. B07.3b/B07/product remain in progress.",
     "source_rows": [
       "R2831",
       "R2832",
@@ -37,171 +77,88 @@
       "R2948",
       "R2949"
     ],
-    "files": [
-      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
-      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-      "projects/unexamine/frontend/src/product/runtime-actions.ts",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java"
-    ],
-    "entry_points": [
-      "Read only current CONVERT visual mapping/location and existing shared batch manual/DELETE execution and failed-only retry; current single conversion is now available. Reuse them instead of another executor or JSON configuration.",
-      "Implement actual batch CONVERT: selected source versions + named target from current publication; each item uses shared typed CONVERT/public actor permissions and action modes, with its own stable idempotency key.",
-      "One real browser batch with target validation/version partial failure, successful result/navigation and failed-only safe retry. Reuse existing services and preserve all full remaining requirements."
-    ],
-    "acceptance": [
-      "User publishes batch conversion through visual named mapping/location, selects rows and target, previews/errors are readable; no JSON/IDs entered.",
-      "Successful items retain atomic target/marker/result/audit; failed items retain no partial conversion. Results show actual per-item executed/pending/conflict; successful or pending items are not blindly retried.",
-      "After correcting a failed item, retry only failed records using current confirmed versions; network retry of an unchanged request retains original key/payload, successful sources cannot create duplicates.",
-      "Affected compile/build and focused API/DB + one real page journey; exact next for complex mappings/modes/full permissions/sharing remains open."
-    ]
-  },
-  "last_result": {
-    "step": "B07.3a.2",
-    "status": "verified_contribution",
-    "verified_at": "2026-09-17T14:00:43.632705+08:00",
-    "verification_scope": "Bounded single-record conversion lifecycle: typed relation removal through common executor, direct/approval/conflict/replay, current source CONVERT + target DETAIL, permanent history/unique marker and completion clock repair. B07.3a bounded journey verified; B07.3/B07/product remain in progress.",
-    "source_rows": [
-      "R2831",
-      "R2834",
-      "R2835",
-      "R2836",
-      "R2837",
-      "R2838",
-      "R2839",
-      "R2840",
-      "R2841",
-      "R2849",
-      "R2888",
-      "R2896",
-      "R2897",
-      "R2898",
-      "R2899",
-      "R2900",
-      "R2948",
-      "R2949"
-    ],
     "changed_files": [
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordConversionUnlinkRequest.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordConversionLink.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordConversionUnlink.java",
-      "projects/unexamine/db/final.sql",
-      "projects/unexamine/db/migration/V41__conversion_completion_clock_repair.sql",
-      "projects/unexamine/db/update.sql",
-      "projects/unexamine/db/update/V41__conversion_completion_clock_repair.sql",
-      "projects/unexamine/frontend/src/product/types.ts",
-      "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+      "projects/unexamine/frontend/src/product/action-placement.test.ts",
+      "projects/unexamine/frontend/src/product/action-placement.ts",
+      "projects/unexamine/frontend/src/product/api.ts",
+      "projects/unexamine/frontend/src/product/runtime-actions.test.ts",
+      "projects/unexamine/frontend/src/product/runtime-actions.ts",
+      "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
       "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
     ],
     "checks_actual_results": [
-      "Final JDK21 mvn -DskipTests package passed (790 main/29 test sources compiled, tests skipped). Final frontend npm run build passed (vue-tsc, 4010 Vite modules; existing chunk warning). No product source changes after these builds.",
-      "DB Flyway41 applied successfully. Four evidence-confirmed old conversion clocks (2/3/5/6) repaired, version1 preserved, before/after permanent repair audits read back. New conversion clocks >= creation in current direct, concurrent and approved writes.",
-      "Real browser source86 conversion tab -> named unlink modal -> blank reason prevented submission -> typed reason -> INVALID relation, link retained/button gone -> source history preserved -> target87 correct detail and incoming INVALID link. Actual common layout visually checked; no user JSON or ID entry.",
-      "Current public API original-key unlink replay exactly once; source/target fields, ownership and versions unchanged. Mapping snapshot, original finished time, permanent key and conversion result retained. Fresh reconvert409; preview alreadyConverted=true; original CONVERT replay same target.",
-      "Independent CONVERSION_UNLINK binding12 AFTER_APPROVAL: source88 pending has no relation effect; task36/Flow46 approval resumes once, marker UNLINKED v2, source/target unchanged and replay stable. Source90 task37/Flow47 edited before approval yields CONFLICT/RECORD_VERSION_CONFLICT, marker SUCCEEDED v1 and target unchanged.",
-      "Actual 7 failure boundaries: stale relation version409, already unlinked409, wrong source404, wrong module404, blank reason400, reconvert409, unauthenticated401; no extra success audit or write.",
-      "Real ordinary account52 with two separate restricted roles: missing source CONVERT403 (link visible without unlink); missing target DETAIL403 (links hidden). No marker write. Test member roles removed, account disabled and all sessions revoked; audit retained.",
-      "Affected physical conversion source lock reverified: source92 concurrent distinct keys returns one200/one409, exactly one target93/marker/result, sourcev0. Source94 conditional CONVERT approval task38/Flow48 executed once/target95, replay and current business clock passed. Current required source78 returns409/zero marker.",
-      "Previous uniqueness test fixture79 no longer collides because target81 was soft-deleted and its unique field released. Erroneous test submission126/Flow49 was explicitly REJECTED, no conversion created. No business validation weakened to match a stale fixture.",
-      "Deterministic db-prepare passed:18 init/23 update/41 migrations, update/final synchronized, migration/update V41 bytes identical, schema unchanged by data-only repair. No base generation or repository boundary change.",
-      "Same backend18080, MySQL33077, shared authenticated Redis6379 and one native Vite15173 reused. Project Redis stopped; unrelated containers unchanged. git diff --check passed."
+      "Focused npm run test -- src/product/runtime-actions.test.ts src/product/action-placement.test.ts src/product/api.test.ts: 3 files/22 tests passed, including corrected validation new-key/new-version, immutable unknown-result request identity and skipping accepted/pending items with typed target wrappers.",
+      "Final npm run build passed: vue-tsc + Vite4010 modules, existing chunk warning. Last template fixes only table phase remount and centered dialog; current screenshot/target navigation rechecked. Unchanged transport/placement tests remain fresh. No backend source/SQL changes or repeat Maven/Testcontainers.",
+      "Real visual source30 action CONVERT changed from DETAIL_HEADER to BATCH, named existing mapping preserved, draft check passed and publication46/version7 entered runtime. DB fields/pages match45, current runtime action location BATCH.",
+      "Browser checked four named source96/97/98/99 and opened batch modal; source98 edited separately after selection. Named target and expanded named four-field mappings shown, no JSON/ID entry. Preview gave required 客户名称 and old-source-version errors.",
+      "Actual first submit: source96 DIRECT creates target100; required97 and stale98 return failures without markers; source99 receipt134/Flow50 pending no target. Screen truthfully shows 已转化/失败/待审批 and retry disabled until explicit refresh.",
+      "Corrected97 required value/version1; browser refreshed only rejected97/98, preview both executable, then failed-only retry created targets102/101 using source versions1. Source96 accepted receipt137 and source99 pending134 unchanged: no resubmission of success/pending.",
+      "Approved source99 Flow50/task40: exact public common resume EXECUTED/target103. Browser receipt-only refresh displays all four 已转化 and explicit 审批已通过 without resubmitting business actions.",
+      "DB/API final assertions: every source exactly one SUCCEEDED v1 marker/result/success audit and independent current target mapped fields; source96/99 version0, corrected97/98 version1; all finished>=created. Every original key replay returns same target; all fresh duplicates409 RECORD_ALREADY_CONVERTED.",
+      "Real final layout screenshot identified stale expanded-cell width after result-column change; keyed phase table remount fixed it, centered dialog shows footer within1280x720. Browser normal result 打开目标 reaches target100 in target module with current target schema/field values.",
+      "Same healthy backend18080/MySQL33077/shared Redis6379 and existing native Vite15173 reused; project Redis remains stopped. No new containers or unrelated service changes. git diff --check passed."
     ],
     "readback": [
-      "projects/unexamine/ai/evidence/spark-b07-conversion-clock-repair.json",
-      "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-fixtures.json",
-      "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-main.json",
-      "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-approval.json",
-      "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-permissions.json",
-      "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-race.json",
-      "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-convert-regression.json"
+      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-fixtures.json",
+      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-stale.json",
+      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-first.json",
+      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-correction.json",
+      "projects/unexamine/ai/evidence/spark-b07-batch-conversion-final.json"
     ],
-    "permission_or_failure_result": "Two actual ordinary-account403 cases/current link hiding; 400/401/404/409 and approved-source-version409 conflict preserve data. Full role/data-scope/shared/channel matrix remains required.",
+    "permission_or_failure_result": "Live required/version failures leave no markers; successes and pending receipts do not retry; fresh duplicate409; unknown network/server result retains original identity in focused transport tests. No live network-fault injection or full shared/role/channel matrix claimed.",
     "tested_file_hashes": [
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
-        "sha256": "65160495dec86c8c685332b52fd4fb34ae75c069fba133256d54c480078d3275"
+        "path": "projects/unexamine/frontend/src/product/action-placement.test.ts",
+        "sha256": "f17d611baee0d74642d14e96fe33537c0f50fa7414e6d82b205347a160080857"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
-        "sha256": "62bb2cca9c448268db08159087fd0a06aeca2788ebb40a923ebf22ccb5e50b84"
+        "path": "projects/unexamine/frontend/src/product/action-placement.ts",
+        "sha256": "fe89f5931052b908b01ae005251669c05ab506bb36da46dae9c0854b9bddb466"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordConversionUnlinkRequest.java",
-        "sha256": "683d6fd302cee1a7e79efc26c1bfab25c46c700920ddc7aad3be7f5bac2f4e1f"
+        "path": "projects/unexamine/frontend/src/product/api.ts",
+        "sha256": "7d1156ce2a4d509a6ad052fe1d8255ad0cfe39bdc917a32a578c6b8a0a36f9c5"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
-        "sha256": "687c3f655a9082c3e347575be6be6e1e79ae880179e3f052e1cc2cf0ca6b4ccb"
+        "path": "projects/unexamine/frontend/src/product/runtime-actions.test.ts",
+        "sha256": "a73a9625367057b5f2c4ccec73cd02a628126517e5187cc3e0f1da847a8d289b"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-        "sha256": "9921df8c0c3f740fd69e1359b8b92e2566a8b3609bb6957a2404e3e3b46060fd"
+        "path": "projects/unexamine/frontend/src/product/runtime-actions.ts",
+        "sha256": "8ecabcc1d463a26493cfacc8f5f87a0d865dcb17c3eb25b82bc5b02cec3411d4"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordConversionLink.java",
-        "sha256": "bd8e710783b652c8f93fff2c7da44be37ab6768d67b12f08a240aa55fdb91781"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordConversionUnlink.java",
-        "sha256": "cdd1dba20e801aff9a0ebdf748a32012f3473ebe3603778c952f2d939b9eb1e4"
-      },
-      {
-        "path": "projects/unexamine/db/final.sql",
-        "sha256": "692bb9dd1ce0785e1b96cb4d3b573a8bc2a8972db90cb6fca91640d3c13ba2e5"
-      },
-      {
-        "path": "projects/unexamine/db/migration/V41__conversion_completion_clock_repair.sql",
-        "sha256": "6d36070110784331d4f982c7345c043df9c51d0e9aff8ff4f0d684bc25f69330"
-      },
-      {
-        "path": "projects/unexamine/db/update.sql",
-        "sha256": "25ebef46f96fb70308a8113bede50f1d8e7c6e1a91c92e2430b10d5176f9f526"
-      },
-      {
-        "path": "projects/unexamine/db/update/V41__conversion_completion_clock_repair.sql",
-        "sha256": "6d36070110784331d4f982c7345c043df9c51d0e9aff8ff4f0d684bc25f69330"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/types.ts",
-        "sha256": "5c0ea473167babc8bd2716f9f254514a7dfe276fb76dc38dc71336ecfd9d6087"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
-        "sha256": "0edfce849bd68514dcd64722f9debecb328ae9fa34e6b321dc49da815123e4ed"
+        "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+        "sha256": "55a55f2f212c2477c4949dad5d9fd6e37b2571fd1887051289466da02a74b2cc"
       },
       {
         "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-        "sha256": "25bed9fab73b06a3ea4f3011981cb60af774ae55e2855274b273e0b6329c74f3"
+        "sha256": "1883ba9cc67603e3550029f0df5147d8a62cf3783f5d57eab85a3e8e93edf384"
       }
     ],
     "remaining": [
-      "B07.3b.1 next: publish named batch CONVERT configuration and shared per-record execution; actual partial validation/version failures, successful-item retention, failed-only safe retry/replay; do not rerun old cycles.",
-      "B07.3b still required: remaining mapping type families/current target publication changes, CONVERT AFTER_EXECUTION/FLOW_ONLY, full data-scope/shared-tenant/application/channel hard boundaries. Current two-role denial is bounded, not full permission coverage.",
-      "B07.1c.3 batch manual/UPDATE/DELETE full acceptance, B07.2b batch transfer and remaining permissions/modes, B07.4 sharing and all existing B05/B06 deferred full requirements remain required.",
-      "B08/B09 advanced approval including timeout handling/reassignment/repeated approver/dynamic nodes, automation, applications/WeChat/WeCom/Feishu/DingTalk and all other full requirements remain required. Whole B07/product not complete."
+      "B07.3b.2 next: actual CONVERT AFTER_EXECUTION and FLOW_ONLY through visual published binding, common receipt/replay and batch truthful status; FLOW_ONLY must not create target/marker/success audit, AFTER_EXECUTION must retain saved target while delivery is pending/retrying.",
+      "B07.3b.3 still required: remaining complex mapping families and changed current target publication/type/required/unique/dictionary/reference rules. Current four TEXT/NUMBER/BOOLEAN mappings do not satisfy all mapping requirements.",
+      "Full restricted-role/data-scope/shared-tenant/application/channel restrictions remain required. Batch calls same hard public checks; current packet does not claim fresh full permission matrix or durable batch recovery after closing/reloading the page.",
+      "B07.1c.3, B07.2b, B07.4 sharing, existing B05/B06/B03 deferred full requirements, advanced approval/timeouts/reassignment/dynamic nodes, applications/WeChat/WeCom/Feishu/DingTalk and every full requirement remain required; whole B07/product incomplete."
     ],
-    "next_step": "B07.3b.1",
+    "next_step": "B07.3b.2",
     "usage": {
-      "latest_turn_report": "projects/unexamine/ai/evidence/spark-usage-b07-conversion-lifecycle.json",
+      "latest_turn_report": "projects/unexamine/ai/evidence/spark-usage-b07-batch-conversion.json",
       "cumulative_report": "projects/unexamine/ai/evidence/spark-usage-current.json",
-      "through": "2026-09-17T06:00:43.866Z",
+      "cost": null,
+      "through": "2026-09-17T06:29:07.620Z",
       "latest_turn_delta": {
-        "input_tokens": 7582249,
-        "cached_input_tokens": 7251840,
+        "input_tokens": 10229071,
+        "cached_input_tokens": 10020224,
         "cache_write_input_tokens": 0,
-        "output_tokens": 46307,
-        "reasoning_output_tokens": 16814,
-        "total_tokens": 7628556,
-        "uncached_input_tokens": 330409
-      },
-      "cost": null
+        "output_tokens": 22877,
+        "reasoning_output_tokens": 8702,
+        "total_tokens": 10251948,
+        "uncached_input_tokens": 208847
+      }
     },
-    "prior_evidence_freshness": "Changed RuntimeDataService/links/approval permission mapping/clock invalidate corresponding prior hashes. Current direct, concurrent and approved physical conversion plus current link access/lifecycle checks above replace those affected proofs. Prior immutable reports retain their historical scope; unchanged visual publisher and publication45 are not re-audited."
+    "prior_evidence_freshness": "Changed shared frontend transport/view hashes replace prior corresponding UI/retry checks with current22 tests + actual batch/current target navigation. Backend conversion/unlink/permission/clock sources unchanged, their bounded proofs remain valid; publication45 old placement is historical and current46 is BATCH, no historical completion substituted."
   },
   "blockers": [
     {
@@ -1467,7 +1424,13 @@
     "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-permissions.json",
     "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-race.json",
     "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-convert-regression.json",
-    "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-verification.json"
+    "projects/unexamine/ai/evidence/spark-b07-conversion-lifecycle-verification.json",
+    "projects/unexamine/ai/evidence/spark-b07-batch-conversion-fixtures.json",
+    "projects/unexamine/ai/evidence/spark-b07-batch-conversion-stale.json",
+    "projects/unexamine/ai/evidence/spark-b07-batch-conversion-first.json",
+    "projects/unexamine/ai/evidence/spark-b07-batch-conversion-correction.json",
+    "projects/unexamine/ai/evidence/spark-b07-batch-conversion-final.json",
+    "projects/unexamine/ai/evidence/spark-b07-batch-conversion-verification.json"
   ],
   "step_record_contract": {
     "required": [
@@ -1599,7 +1562,9 @@
         "B07.3a.1": "verified",
         "B07.3a.2": "verified",
         "B07.3b": "in_progress",
-        "B07.3b.1": "unverified"
+        "B07.3b.1": "verified",
+        "B07.3b.2": "unverified",
+        "B07.3b.3": "unverified"
       }
     },
     {
@@ -1788,7 +1753,7 @@
       "B05.2b2"
     ],
     "rule": "Deferred means still required; no historical report may mark it complete.",
-    "current_main_path": "B07.1c.2 batch DELETE/retry/restore/conditional approval verified -> B07.2a transfer -> B07.3 conversion -> B07.4 sharing -> B08/B09 advanced approval -> B11/B12 applications/channels. B07.1c.3 and every deferred full requirement remain required."
+    "current_main_path": "B07.3a single conversion lifecycle and B07.3b.1 batch/failed-only retry verified -> B07.3b.2 remaining conversion modes -> remaining mapping/current publication/hard limits -> B07.4 sharing -> B08/B09 advanced approval -> B11/B12 applications/channels. B07.1c.3, B07.2b and all deferred full requirements remain required."
   },
   "form_designer_contract": {
     "source_rows": [
@@ -1887,9 +1852,18 @@
       "scope": "B07.3b: batch conversion/partial failures/safe retries, remaining complex mapping families/current publication changes, CONVERT AFTER_EXECUTION/FLOW_ONLY, full role/shared-tenant/application/channel hard restrictions remain required."
     },
     "B07.3b.1": {
+      "status": "verified",
+      "scope": "Published visual batch CONVERT, named per-record preview, actual partial required/version failures, explicit confirmed-version failed-only retry, DIRECT plus conditional approval/result refresh and original-key replay. B07.3b/B07/product remain in progress.",
+      "evidence": "projects/unexamine/ai/evidence/spark-b07-batch-conversion-verification.json"
+    },
+    "B07.3b.2": {
       "status": "unverified",
-      "scope": "B07.3b.1 next: publish named batch CONVERT configuration and shared per-record execution; actual partial validation/version failures, successful-item retention, failed-only safe retry/replay; do not rerun old cycles.",
-      "reason": "Exact next bounded implementation; no full-plan rebuild or requirement reduction."
+      "scope": "B07.3b.2 next: actual CONVERT AFTER_EXECUTION and FLOW_ONLY through visual published binding, common receipt/replay and batch truthful status; FLOW_ONLY must not create target/marker/success audit, AFTER_EXECUTION must retain saved target while delivery is pending/retrying.",
+      "reason": "Exact remaining modes within existing B07.3b; no new whole-project plan."
+    },
+    "B07.3b.3": {
+      "status": "unverified",
+      "scope": "B07.3b.3 still required: remaining complex mapping families and changed current target publication/type/required/unique/dictionary/reference rules. Current four TEXT/NUMBER/BOOLEAN mappings do not satisfy all mapping requirements."
     }
   }
 }

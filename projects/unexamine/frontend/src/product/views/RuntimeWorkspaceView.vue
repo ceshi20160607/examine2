@@ -146,6 +146,13 @@ const conversionRecord = ref<RuntimeRecord>()
 const conversionTargetCode = ref('')
 const conversionPreview = ref<RuntimeRecordConversionPreview>()
 const conversionLinks = ref<RuntimeRecordConversionLink[]>([])
+const batchConversionTargets = ref<RuntimeRecord[]>([])
+const batchConversionModule = ref('')
+const batchConversionPreviews = ref<Array<{ recordId: number; title: string; preview?: RuntimeRecordConversionPreview; error?: string }>>([])
+const batchConversionResults = ref<RuntimeBatchItem<RuntimeRecordConversionExecution>[]>([])
+const batchConversionAction = createRuntimeBatchAction<RuntimeRecord, RuntimeRecordConversionExecution>()
+const batchConversionRetryPreviewed = ref(false)
+const batchConversionFailed = computed(() => batchConversionResults.value.filter(item => item.status === 'FAILED'))
 const shareOpen = ref(false)
 const shareSaving = ref(false)
 const shareRecord = ref<RuntimeRecord>()
@@ -343,6 +350,10 @@ function runConfiguredAction(code: string, explicitRecord?: RuntimeRecord) {
     lifecycleImpact.value = undefined
     lifecycleReason.value = ''
     lifecycleOpen.value = true
+    return
+  }
+  if (code === 'CONVERT' && supportsBatchAction(configured) && !explicitRecord) {
+    openBatchConversion(records.value.filter(record => selectedRowKeys.value.includes(record.id)))
     return
   }
   if (configured?.actionType === 'CUSTOM') {
@@ -1064,11 +1075,115 @@ function transferParticipantIds() {
 }
 
 function openConversion(record: RuntimeRecord) {
+  batchConversionTargets.value = []
   confirmedConversionRequest.value = undefined
   conversionRecord.value = record
   conversionPreview.value = undefined
   conversionTargetCode.value = conversionTargetOptions.value[0]?.value || ''
   conversionOpen.value = true
+}
+
+/** 批量只组织同一模块的逐条公共动作；版本来自用户选择的记录，不自动偷换提交数据。 */
+function openBatchConversion(targets: RuntimeRecord[]) {
+  batchConversionModule.value = activeCode.value
+  batchConversionTargets.value = targets.map(record => ({ ...record }))
+  batchConversionPreviews.value = []
+  batchConversionResults.value = []
+  batchConversionAction.clear()
+  batchConversionRetryPreviewed.value = false
+  conversionPreview.value = undefined
+  conversionTargetCode.value = conversionTargetOptions.value[0]?.value || ''
+  conversionOpen.value = true
+}
+
+function resetConversionPreview() {
+  conversionPreview.value = undefined
+  batchConversionPreviews.value = []
+}
+
+async function previewBatchConversion(refreshFailed = false) {
+  if (conversionSaving.value || !conversionTargetCode.value) return
+  conversionSaving.value = true
+  batchConversionRetryPreviewed.value = false
+  const previous = new Map(batchConversionPreviews.value.map(item => [item.recordId, item]))
+  try {
+    for (let index = 0; index < batchConversionTargets.value.length; index++) {
+      let record = batchConversionTargets.value[index]!
+      const failed = batchConversionFailed.value.find(item => item.recordId === record.id)
+      if (refreshFailed && !failed) continue
+      try {
+        // 未知结果保留原请求的来源版本；只有明确拒绝的记录才由用户要求刷新和重新确认。
+        if (refreshFailed && failed?.failureKind === 'REJECTED') {
+          record = await api<RuntimeRecord>(`/api/runtime/modules/${batchConversionModule.value}/records/${record.id}`, {}, token.value)
+          batchConversionTargets.value[index] = record
+        }
+        const preview = await api<RuntimeRecordConversionPreview>(
+          `/api/runtime/modules/${batchConversionModule.value}/records/${record.id}/conversion-preview`,
+          { method: 'POST', body: JSON.stringify({ version: record.version, targetModuleCode: conversionTargetCode.value }) }, token.value)
+        previous.set(record.id, { recordId: record.id, title: record.title, preview })
+      } catch (reason) {
+        previous.set(record.id, { recordId: record.id, title: record.title, error: readable(reason) })
+      }
+    }
+    batchConversionPreviews.value = batchConversionTargets.value.map(record => previous.get(record.id)!)
+    batchConversionRetryPreviewed.value = refreshFailed
+  } finally { conversionSaving.value = false }
+}
+
+async function submitBatchConversion(retryFailed = false) {
+  if (conversionSaving.value || !batchConversionTargets.value.length) return
+  conversionSaving.value = true
+  batchConversionRetryPreviewed.value = false
+  try {
+    batchConversionResults.value = await batchConversionAction.submit(batchConversionTargets.value, batchConversionResults.value, {
+      retryFailed, token: token.value, completed: '转化已完成',
+      request: record => ({ path: `/api/runtime/modules/${batchConversionModule.value}/records/${record.id}/convert`,
+        body: { version: record.version, targetModuleCode: conversionTargetCode.value } }),
+    })
+    if (activeCode.value === batchConversionModule.value) {
+      await loadRecords().catch(() => message.warning('请求已处理，请刷新列表查看数据'))
+      selectedRowKeys.value = batchConversionFailed.value.map(item => item.recordId)
+    }
+    message.info(`${batchConversionResults.value.length - batchConversionFailed.value.length} 条已受理，${batchConversionFailed.value.length} 条失败；具体生效状态见逐条结果`)
+  } finally { conversionSaving.value = false }
+}
+
+async function refreshBatchConversionResults() {
+  if (conversionSaving.value) return
+  conversionSaving.value = true
+  try {
+    for (const item of batchConversionResults.value) {
+      if (!item.result) continue
+      try {
+        item.result.delivery = await api(`/api/runtime/modules/${batchConversionModule.value}/records/action-results/${item.result.idempotencyRecordId}`, {}, token.value)
+        item.message = businessActionMessage(item.result, '转化已完成')
+        if (item.result.delivery?.message) item.message += `；${item.result.delivery.message}`
+      } catch (reason) { message.warning(`${item.title}：${readable(reason)}`) }
+    }
+  } finally { conversionSaving.value = false }
+}
+
+function batchConversionState(item: RuntimeBatchItem<RuntimeRecordConversionExecution>) {
+  if (item.status === 'FAILED') return item.failureKind === 'UNKNOWN_RESULT' ? '响应未确认' : '失败'
+  const result = item.result!
+  if (result.mode === 'FLOW_ONLY') return '仅发起流程'
+  if (result.mode === 'AFTER_APPROVAL') {
+    const status = result.delivery?.businessStatus || result.status
+    if (status === 'EXECUTED') return '已转化'
+    if (['CONFLICT', 'EXECUTION_FAILED'].includes(status)) return '执行未生效'
+    if (['REJECTED', 'WITHDRAWN', 'TERMINATED', 'RETURNED'].includes(status)) return '审批已结束'
+    return '待审批'
+  }
+  return '已转化'
+}
+
+async function openBatchConversionRecord(item: RuntimeBatchItem<RuntimeRecordConversionExecution>) {
+  conversionOpen.value = false
+  const result = item.result?.value
+  try {
+    await selectModule(result?.targetModuleCode || batchConversionModule.value)
+    await openDetail(result?.targetRecord || { id: item.recordId } as RuntimeRecord)
+  } catch (reason) { message.error(readable(reason)) }
 }
 
 async function previewConversion() {
@@ -1762,11 +1877,29 @@ defineExpose({ refresh: loadModules, executeCommand })
       <a-alert v-if="transferPreview" type="info" :message="`关联影响：出向 ${transferPreview.outgoingRelationCount} 条，入向 ${transferPreview.incomingRelationCount} 条`" description="仅变更当前记录的负责人、部门及相关人；模块、数据工作空间和关联记录归属保留。" />
       <div class="drawer-footer"><a-button :disabled="transferSaving" @click="transferOpen = false">取消</a-button><a-button :loading="transferSaving" @click="previewTransfer">预览变化</a-button><a-button type="primary" :disabled="!transferPreview" :loading="transferSaving" @click="submitTransfer">确认转交</a-button></div>
     </a-modal>
-    <a-modal v-model:open="conversionOpen" title="转化为目标模块记录" :footer="null" :mask-closable="false" :closable="!conversionSaving" :keyboard="!conversionSaving" width="640px">
-      <a-form layout="vertical"><a-form-item label="目标模块" required><a-select :disabled="conversionSaving" v-model:value="conversionTargetCode" :options="conversionTargetOptions" @change="conversionPreview = undefined" /></a-form-item></a-form>
-      <template v-if="conversionPreview"><a-alert :type="conversionPreview.executable ? 'success' : 'error'" show-icon class="section-alert" :message="conversionPreview.executable ? '映射校验通过，可以执行转化' : '映射校验未通过'" :description="conversionPreview.issues.join('；') || `目标标题：${conversionPreview.targetTitle}`" />
+    <a-modal v-model:open="conversionOpen" centered :title="batchConversionTargets.length ? '批量转化记录' : '转化为目标模块记录'" :footer="null" :mask-closable="false" :closable="!conversionSaving" :keyboard="!conversionSaving" :width="batchConversionTargets.length ? 860 : 640">
+      <a-form layout="vertical"><a-form-item label="目标模块" required><a-select :disabled="conversionSaving || batchConversionResults.length > 0 && batchConversionTargets.length > 0" v-model:value="conversionTargetCode" :options="conversionTargetOptions" @change="resetConversionPreview" /></a-form-item></a-form>
+      <template v-if="batchConversionTargets.length">
+        <a-alert type="info" show-icon class="section-alert" :message="`本次处理 ${batchConversionTargets.length} 条来源记录`" description="每条记录独立校验和执行，已转化和待审批项不会重复提交。明确失败可修正来源后刷新预览再重试；响应未确认会重试原请求。" />
+        <ul v-if="!batchConversionPreviews.length"><li v-for="record in batchConversionTargets" :key="record.id">{{ record.title }}</li></ul>
+        <a-table v-else :key="batchConversionResults.length ? 'results' : 'preview'" size="small" :pagination="false" :data-source="batchConversionPreviews" row-key="recordId" :scroll="{ y: 320 }">
+          <a-table-column title="来源记录" data-index="title" />
+          <a-table-column title="预校验"><template #default="{ record }">{{ record.error || (record.preview?.executable ? '映射可执行' : record.preview?.issues.join('；')) }}</template></a-table-column>
+          <a-table-column v-if="batchConversionResults.length" title="处理结果"><template #default="{ record }"><template v-for="item in batchConversionResults.filter(item => item.recordId === record.recordId)" :key="item.recordId"><a-tag>{{ batchConversionState(item) }}</a-tag><div>{{ item.message }}</div></template></template></a-table-column>
+          <a-table-column v-if="batchConversionResults.length" title="数据"><template #default="{ record }"><a-button v-for="item in batchConversionResults.filter(item => item.recordId === record.recordId && item.status === 'SUCCESS')" :key="item.recordId" type="link" size="small" :disabled="conversionSaving" @click="openBatchConversionRecord(item)">{{ item.result?.value ? '打开目标' : '查看来源' }}</a-button></template></a-table-column>
+          <template #expandedRowRender="{ record }"><template v-if="record.preview"><p>目标标题：{{ record.preview.targetTitle }}</p><a-table size="small" :pagination="false" :data-source="record.preview.mappings" row-key="targetFieldCode"><a-table-column title="目标字段" data-index="targetFieldName" /><a-table-column title="来源字段" data-index="sourceFieldName" /><a-table-column title="映射结果"><template #default="{ record: mapping }">{{ typeof mapping.value === 'boolean' ? (mapping.value ? '是' : '否') : timelineValue(mapping.value) }}</template></a-table-column><a-table-column title="校验" data-index="message" /></a-table></template><p v-else>{{ record.error }}</p></template>
+        </a-table>
+        <div class="drawer-footer">
+          <a-button :disabled="conversionSaving" @click="conversionOpen = false">关闭</a-button>
+          <a-button v-if="batchConversionResults.length" :loading="conversionSaving" @click="refreshBatchConversionResults">刷新处理结果</a-button>
+          <a-button v-if="batchConversionFailed.length" :loading="conversionSaving" @click="previewBatchConversion(true)">刷新失败项并预览</a-button>
+          <a-button v-if="batchConversionFailed.length" type="primary" :disabled="!batchConversionRetryPreviewed && batchConversionFailed.some(item => item.failureKind !== 'UNKNOWN_RESULT')" :loading="conversionSaving" @click="submitBatchConversion(true)">只重试失败项</a-button>
+          <template v-if="!batchConversionResults.length"><a-button :loading="conversionSaving" @click="previewBatchConversion(false)">预览全部映射</a-button><a-button type="primary" :disabled="!batchConversionPreviews.some(item => item.preview?.executable)" :loading="conversionSaving" @click="submitBatchConversion(false)">确认批量转化</a-button></template>
+        </div>
+      </template>
+      <template v-else><template v-if="conversionPreview"><a-alert :type="conversionPreview.executable ? 'success' : 'error'" show-icon class="section-alert" :message="conversionPreview.executable ? '映射校验通过，可以执行转化' : '映射校验未通过'" :description="conversionPreview.issues.join('；') || `目标标题：${conversionPreview.targetTitle}`" />
         <a-table size="small" :pagination="false" :data-source="conversionPreview.mappings" row-key="targetFieldCode"><a-table-column title="目标字段" data-index="targetFieldName" /><a-table-column title="来源字段" data-index="sourceFieldName" /><a-table-column title="映射结果"><template #default="{ record }">{{ typeof record.value === 'boolean' ? (record.value ? '是' : '否') : timelineValue(record.value) }}</template></a-table-column><a-table-column title="校验" data-index="message" /></a-table></template>
-      <div class="drawer-footer"><a-button :disabled="conversionSaving" @click="conversionOpen = false">取消</a-button><a-button :loading="conversionSaving" @click="previewConversion">预览映射</a-button><a-button type="primary" :disabled="!conversionPreview?.executable" :loading="conversionSaving" @click="submitConversion">确认并打开目标</a-button></div>
+      <div class="drawer-footer"><a-button :disabled="conversionSaving" @click="conversionOpen = false">取消</a-button><a-button :loading="conversionSaving" @click="previewConversion">预览映射</a-button><a-button type="primary" :disabled="!conversionPreview?.executable" :loading="conversionSaving" @click="submitConversion">确认并打开目标</a-button></div></template>
     </a-modal>
     <a-modal v-model:open="conversionUnlinkOpen" title="解除转化关联" :footer="null" :mask-closable="false" :closable="!conversionUnlinkSaving" :keyboard="!conversionUnlinkSaving">
       <a-alert type="info" show-icon :message="`解除与${conversionUnlinkLink?.moduleName} · ${conversionUnlinkLink?.recordTitle}的关系`" description="目标数据和转化历史会保留；解除后仍不能再次转化到同一目标模块。" />

@@ -1,0 +1,27 @@
+{
+  "checked_at": "2026-09-17T14:24:17.198456+08:00",
+  "one_direct_target": [
+    [
+      "13",
+      "SUCCEEDED",
+      "1",
+      "100",
+      "1"
+    ]
+  ],
+  "failed_without_marker": [
+    97,
+    98
+  ],
+  "pending_without_target": {
+    "source_id": 99,
+    "receipt_id": 134,
+    "flow_id": 50
+  },
+  "receipt_ids": {
+    "main": 137,
+    "missing": null,
+    "stale": null,
+    "approval": 134
+  }
+}

@@ -49,6 +49,8 @@ describe('published action placement and access', () => {
     expect(supportsBatchAction({ ...action('DELETE','BATCH'), actionType:'BUILTIN' })).toBe(true)
     expect(supportsBatchAction({ ...action('DELETE','ROW'), actionType:'BUILTIN' })).toBe(false)
     expect(supportsBatchAction({ ...action('TRANSFER','BATCH'), actionType:'BUILTIN' })).toBe(false)
+    expect(supportsBatchAction({ ...action('CONVERT','BATCH'), actionType:'BUILTIN' })).toBe(true)
+    expect(selectionActionReason('CONVERT', 3, true)).toBe('')
   })
 })
 describe('module configuration navigation', () => {

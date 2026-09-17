@@ -29,7 +29,7 @@ export function actionAllowsRecord(code: string, record: Pick<RuntimeRecord, 'sh
   return actionAllowsLifecycle(code, record.deleted ? 'DELETED' : record.archived ? 'ARCHIVED' : 'ACTIVE')
 }
 export function supportsBatchAction(action?: Pick<ConfiguredAction, 'code' | 'actionType' | 'location'>) {
-  return action?.location === 'BATCH' && (action.actionType === 'CUSTOM' || action.code === 'DELETE')
+  return action?.location === 'BATCH' && (action.actionType === 'CUSTOM' || ['DELETE', 'CONVERT'].includes(action.code))
 }
 export function selectionActionReason(code: string, selectedCount: number, batch = false) {
   if (!requiresRecord(code)) return ''

@@ -51,19 +51,20 @@ export interface RuntimeBatchItem<T> {
   status: 'SUCCESS' | 'FAILED'
   message: string
   result?: BusinessActionResult<T>
+  failureKind?: 'REJECTED' | 'UNKNOWN_RESULT'
 }
 
-/** 手动动作与批量删除共用逐条请求身份；未知提交结果重试原请求，明确冲突才使用刷新后的版本。 */
-export function createRuntimeBatchAction<T extends { id: number; title: string }>() {
+/** 各批量动作共用逐条请求身份；结果可以是目标记录包装，未知提交结果始终重试原请求。 */
+export function createRuntimeBatchAction<T extends { id: number; title: string }, TResult = T>() {
   const pending = new Map<number, { path: string; body: unknown; key: string }>()
   return {
     clear: () => pending.clear(),
-    async submit(targets: T[], previous: RuntimeBatchItem<T>[], options: {
+    async submit(targets: T[], previous: RuntimeBatchItem<TResult>[], options: {
       retryFailed?: boolean
       token: string
       request: (record: T) => { path: string; body: unknown }
       completed: string
-    }): Promise<RuntimeBatchItem<T>[]> {
+    }): Promise<RuntimeBatchItem<TResult>[]> {
       const results = new Map(previous.map(item => [item.recordId, item]))
       for (const record of targets) {
         const old = results.get(record.id)
@@ -75,17 +76,21 @@ export function createRuntimeBatchAction<T extends { id: number; title: string }
           pending.set(record.id, request)
         }
         try {
-          const result = await executeRuntimeAction<T>(request.path, 'POST', request.body, request.key, options.token)
+          const result = await executeRuntimeAction<TResult>(request.path, 'POST', request.body, request.key, options.token)
           results.set(record.id, { recordId: record.id, title: record.title, status: 'SUCCESS',
             message: businessActionMessage(result, options.completed), result })
           pending.delete(record.id)
         } catch (reason) {
-          if (reason instanceof ApiError && reason.code === 'RECORD_VERSION_CONFLICT') pending.delete(record.id)
+          // 明确拒绝意味着未提交；校验修正后可使用新版本。超时、限流及服务器故障仍按未知结果保留原请求。
+          const rejected = reason instanceof ApiError && (reason.code === 'RECORD_VERSION_CONFLICT'
+            || Boolean(reason.httpStatus && reason.httpStatus >= 400 && reason.httpStatus < 500 && ![408, 429].includes(reason.httpStatus)))
+          if (rejected) pending.delete(record.id)
           results.set(record.id, { recordId: record.id, title: record.title, status: 'FAILED',
+            failureKind: rejected ? 'REJECTED' : 'UNKNOWN_RESULT',
             message: reason instanceof Error ? reason.message : '操作失败，请查看处理结果' })
         }
       }
-      return targets.map(record => results.get(record.id)).filter((item): item is RuntimeBatchItem<T> => Boolean(item))
+      return targets.map(record => results.get(record.id)).filter((item): item is RuntimeBatchItem<TResult> => Boolean(item))
     },
   }
 }
