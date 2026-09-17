@@ -749,6 +749,7 @@ export interface RuntimeRecordConversionMapping {
   targetFieldName: string
   required: boolean
   sourceFieldCode?: string
+  sourceFieldName?: string
   value?: unknown
   status: 'READY' | 'MISSING' | 'INVALID' | 'DENIED' | 'EMPTY'
   message: string
@@ -779,6 +780,7 @@ export interface RuntimeRecordConversionLink {
   moduleName: string
   recordId: number
   recordTitle: string
+  recordStatus: string
   convertedAt: string
 }
 

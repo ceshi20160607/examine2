@@ -363,7 +363,8 @@ public class FoundationControlService {
                     : mode == BusinessAction.Mode.FLOW_ONLY ? "FLOW_STARTED" : "COMPLETED";
             return new BusinessAction.Delivery(actionId, original.path("actionCode").asText(), mode, status, instanceId,
                     businessStatus, payload.path("errorCode").asText(null), payload.path("errorMessage").asText(null),
-                    payload.path("result").path("id").isNumber() ? payload.path("result").path("id").longValue() : null);
+                    "CONVERT".equals(original.path("actionCode").asText()) ? original.path("recordId").longValue()
+                            : payload.path("result").path("id").isNumber() ? payload.path("result").path("id").longValue() : null);
         } catch (JsonProcessingException exception) {
             throw new DomainException("ACTION_RESULT_INVALID", "操作结果暂时无法读取", HttpStatus.CONFLICT);
         }

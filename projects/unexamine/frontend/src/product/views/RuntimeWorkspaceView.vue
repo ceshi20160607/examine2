@@ -64,6 +64,9 @@ const loading = ref(false)
 const saving = ref(false)
 const saveAction = createRuntimeAction()
 const deleteAction = createRuntimeAction()
+let routeInitializing = true
+const conversionAction = createRuntimeAction()
+const confirmedConversionRequest = ref<{ version: number; targetModuleCode: string }>()
 const lastAction = ref<{ moduleCode: string; result: BusinessActionResult<unknown> }>()
 const error = ref('')
 const modules = ref<RuntimeModuleCatalogItem[]>([])
@@ -503,7 +506,7 @@ function applyRouteListState() {
 }
 
 function syncListRoute(recordId?: number) {
-  if (!activeCode.value) return
+  if (routeInitializing || !activeCode.value) return
   const query = { ...route.query, workspace: 'runtime', module: activeCode.value } as Record<string, string | undefined>
   const setOptional = (key: string, value: string, ordinary: string) => {
     if (value && value !== ordinary) query[key] = value
@@ -522,10 +525,11 @@ function syncListRoute(recordId?: number) {
   else delete query.recordId
   const keys = new Set([...Object.keys(route.query), ...Object.keys(query)])
   const unchanged = [...keys].every(key => String(route.query[key] ?? '') === String(query[key] ?? ''))
-  if (!unchanged) void router.replace({ path: route.path, query })
+  if (!unchanged) return router.replace({ path: route.path, query })
 }
 
 async function selectModule(code: string, fromRoute = false) {
+  if (code !== activeCode.value) { detailOpen.value = false; detail.value = undefined; lastOpenedRouteRecordId.value = undefined }
   activeCode.value = code
   lifecycleState.value = 'ACTIVE'
   tenantScope.value = 'ALL'
@@ -654,10 +658,11 @@ async function loadRecords() {
       detailOpen.value = false
       detail.value = undefined
     }
-    syncListRoute()
+    // 先完成当前列表的地址同步，再允许调用方切换转化目标模块。
+    await syncListRoute()
   } catch (reason) {
     error.value = readable(reason)
-    syncListRoute()
+    await syncListRoute()
   } finally {
     loading.value = false
   }
@@ -1053,6 +1058,7 @@ function transferParticipantIds() {
 }
 
 function openConversion(record: RuntimeRecord) {
+  confirmedConversionRequest.value = undefined
   conversionRecord.value = record
   conversionPreview.value = undefined
   conversionTargetCode.value = conversionTargetOptions.value[0]?.value || ''
@@ -1065,33 +1071,50 @@ async function previewConversion() {
     return
   }
   conversionSaving.value = true
+  conversionPreview.value = undefined
   try {
+    const body = { version: conversionRecord.value.version, targetModuleCode: conversionTargetCode.value }
     conversionPreview.value = await api<RuntimeRecordConversionPreview>(
       `/api/runtime/modules/${activeCode.value}/records/${conversionRecord.value.id}/conversion-preview`,
-      { method: 'POST', body: JSON.stringify({ version: conversionRecord.value.version, targetModuleCode: conversionTargetCode.value }) }, token.value)
+      { method: 'POST', body: JSON.stringify(body) }, token.value)
+    confirmedConversionRequest.value = body
   } catch (reason) { message.error(readable(reason)) } finally { conversionSaving.value = false }
 }
 
 async function submitConversion() {
-  if (!conversionRecord.value || !conversionPreview.value?.executable) return
+  if (conversionSaving.value || !conversionRecord.value || !conversionPreview.value?.executable || !confirmedConversionRequest.value) return
   conversionSaving.value = true
+  const submittedModule = activeCode.value
   try {
-    const result = await api<RuntimeRecordConversionExecution>(
-      `/api/runtime/modules/${activeCode.value}/records/${conversionRecord.value.id}/convert`,
-      { method: 'POST', body: JSON.stringify({ version: conversionRecord.value.version, targetModuleCode: conversionTargetCode.value }) }, token.value)
+    const result = await conversionAction<RuntimeRecordConversionExecution>(
+      `/api/runtime/modules/${submittedModule}/records/${conversionRecord.value.id}/convert`,
+      'POST', confirmedConversionRequest.value, token.value)
+    lastAction.value = { moduleCode: submittedModule, result }
     conversionOpen.value = false
     detailOpen.value = false
-    message.success('转化完成，正在打开目标记录')
-    await selectModule(result.targetModuleCode)
-    await openDetail(result.targetRecord)
-  } catch (reason) { message.error(readable(reason)) } finally { conversionSaving.value = false }
+    message.success(businessActionMessage(result, '转化已完成'))
+    await loadRecords().catch(() => message.warning('转化请求已接收，列表暂未刷新'))
+    if (result.value) {
+      try { await selectModule(result.value.targetModuleCode); await openDetail(result.value.targetRecord) }
+      catch { message.warning('转化已完成，目标详情暂未打开；可从来源记录的转化页查看') }
+    }
+  } catch (reason) {
+    if (reason instanceof ApiError && ['RECORD_VERSION_CONFLICT', 'RECORD_ALREADY_CONVERTED'].includes(reason.code)) {
+      conversionPreview.value = undefined
+      await loadRecords()
+      const current = records.value.find(record => record.id === conversionRecord.value?.id)
+      if (current) conversionRecord.value = current
+    }
+    message.error(readable(reason))
+  } finally { conversionSaving.value = false }
 }
 
 async function openConversionLink(link: RuntimeRecordConversionLink) {
-  await selectModule(link.moduleCode)
-  const linked = records.value.find((record) => record.id === link.recordId)
-    || await api<RuntimeRecord>(`/api/runtime/modules/${link.moduleCode}/records/${link.recordId}`, {}, token.value)
-  await openDetail(linked)
+  try {
+    const linked = await api<RuntimeRecord>(`/api/runtime/modules/${link.moduleCode}/records/${link.recordId}`, {}, token.value)
+    await selectModule(link.moduleCode)
+    await openDetail(linked)
+  } catch (reason) { message.error(readable(reason)) }
 }
 
 function loadReferenceOptions() {
@@ -1447,13 +1470,22 @@ watch(form, () => {
   localStorage.setItem(formDraftKey(), JSON.stringify({ value: JSON.parse(serializeForm(true)), updatedAt: new Date().toLocaleString() }))
 }, { deep: true })
 
-watch(() => route.query.recordId, () => { void openRouteRecordDetail() })
+watch(() => [route.query.module, route.query.recordId], async () => {
+  if (routeInitializing) return
+  const code = String(routeValue('module') || '')
+  if (code && code !== activeCode.value && modules.value.some(module => module.moduleCode === code)) {
+    routeInitializing = true
+    try { await selectModule(code, true) } finally { routeInitializing = false }
+  }
+  await openRouteRecordDetail()
+})
 
 onMounted(() => {
   window.addEventListener('beforeunload', beforeWindowUnload)
   void (async () => {
-    await Promise.all([loadModules(), loadPeopleDirectory()])
+    try { await Promise.all([loadModules(), loadPeopleDirectory()]) } finally { routeInitializing = false }
     await openRouteRecordDetail()
+    syncListRoute()
   })()
 })
 onBeforeUnmount(() => {
@@ -1590,7 +1622,7 @@ defineExpose({ refresh: loadModules, executeCommand })
         <a-tabs class="detail-tabs-runtime">
           <a-tab-pane key="basic" tab="概览"><SchemaRecordDetail :layout="detailLayout" :fields="detailValueFields" :values="detail.fields" :text="displayValue"><template #tools="{ field }"><a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></template></SchemaRecordDetail><a-descriptions class="detail-system-meta" :column="1" bordered size="small">
             <a-descriptions-item label="负责人">{{ ownerDisplayName(detail) }}</a-descriptions-item><a-descriptions-item label="负责部门">{{ detail.departmentId ? peopleDirectory.departments.find(item => item.id === detail?.departmentId)?.name || '不可用部门' : '未设置' }}</a-descriptions-item><a-descriptions-item label="相关人">{{ detail.participantMemberIds.length ? detail.participantMemberIds.map(id => peopleDirectory.people.find(person => person.systemMemberId === id)?.displayName || '不可用成员').join('、') : '—' }}</a-descriptions-item><a-descriptions-item label="创建时间">{{ productDateTime(detail.createdAt) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item></a-descriptions></a-tab-pane>
-          <a-tab-pane key="relations" tab="关联"><a-list v-if="conversionLinks.length" size="small" bordered :data-source="conversionLinks"><template #renderItem="{ item }"><a-list-item><a-button type="link" @click="openConversionLink(item)">{{ item.direction === 'SOURCE' ? '来源' : '目标' }} · {{ item.moduleName }} · {{ item.recordTitle }}</a-button><span>{{ productDateTime(item.convertedAt) }}</span></a-list-item></template></a-list><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无有权查看的关联数据" /></a-tab-pane>
+          <a-tab-pane key="relations" tab="转化"><a-list v-if="conversionLinks.length" size="small" bordered :data-source="conversionLinks"><template #renderItem="{ item }"><a-list-item><a-button type="link" @click="openConversionLink(item)">{{ item.direction === 'SOURCE' ? '来源' : '目标' }} · {{ item.moduleName }} · {{ item.recordTitle }}</a-button><ProductStatusTag :status="item.recordStatus" /><span>{{ productDateTime(item.convertedAt) }}</span></a-list-item></template></a-list><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无有权查看的关联数据" /></a-tab-pane>
           <a-tab-pane v-if="recordAttachmentFields.length && canViewAttachments" key="attachments" tab="附件"><a-select v-if="recordAttachmentFields.length > 1" v-model:value="attachmentFieldCode" :options="recordAttachmentFields.map(field => ({ value: field.code, label: field.name }))" style="width:100%;margin-bottom:12px" placeholder="选择附件分类" /><BusinessAttachmentsPanel v-if="recordAttachmentEndpoint" :endpoint="recordAttachmentEndpoint" :writable="recordAttachmentWritable" :title="selectedAttachmentField?.name || '附件'" description="附件按当前字段权限展示，并记录到业务时间线。" compact @changed="detail && openDetail(detail)" /></a-tab-pane>
           <a-tab-pane key="timeline" tab="历史"><a-timeline v-if="timeline.length"><a-timeline-item v-for="entry in timeline" :key="entry.eventId">
               <div class="timeline-heading"><strong>{{ entry.label }}</strong><span>{{ productDateTime(entry.occurredAt) }}</span></div><p>{{ entry.actorDisplayName }}<template v-if="entry.summary"> · {{ entry.summary }}</template></p>
@@ -1698,11 +1730,11 @@ defineExpose({ refresh: loadModules, executeCommand })
       <a-alert v-if="transferPreview" type="info" :message="`关联影响：出向 ${transferPreview.outgoingRelationCount} 条，入向 ${transferPreview.incomingRelationCount} 条`" description="仅变更当前记录的负责人、部门及相关人；模块、数据工作空间和关联记录归属保留。" />
       <div class="drawer-footer"><a-button :disabled="transferSaving" @click="transferOpen = false">取消</a-button><a-button :loading="transferSaving" @click="previewTransfer">预览变化</a-button><a-button type="primary" :disabled="!transferPreview" :loading="transferSaving" @click="submitTransfer">确认转交</a-button></div>
     </a-modal>
-    <a-modal v-model:open="conversionOpen" title="转化为目标模块记录" :footer="null" :mask-closable="false" width="640px">
-      <a-form layout="vertical"><a-form-item label="目标模块" required><a-select v-model:value="conversionTargetCode" :options="conversionTargetOptions" @change="conversionPreview = undefined" /></a-form-item></a-form>
+    <a-modal v-model:open="conversionOpen" title="转化为目标模块记录" :footer="null" :mask-closable="false" :closable="!conversionSaving" :keyboard="!conversionSaving" width="640px">
+      <a-form layout="vertical"><a-form-item label="目标模块" required><a-select :disabled="conversionSaving" v-model:value="conversionTargetCode" :options="conversionTargetOptions" @change="conversionPreview = undefined" /></a-form-item></a-form>
       <template v-if="conversionPreview"><a-alert :type="conversionPreview.executable ? 'success' : 'error'" show-icon class="section-alert" :message="conversionPreview.executable ? '映射校验通过，可以执行转化' : '映射校验未通过'" :description="conversionPreview.issues.join('；') || `目标标题：${conversionPreview.targetTitle}`" />
-        <a-table size="small" :pagination="false" :data-source="conversionPreview.mappings" row-key="targetFieldCode"><a-table-column title="目标字段" data-index="targetFieldName" /><a-table-column title="来源字段" data-index="sourceFieldCode" /><a-table-column title="映射结果"><template #default="{ record }">{{ timelineValue(record.value) }}</template></a-table-column><a-table-column title="校验" data-index="message" /></a-table></template>
-      <div class="drawer-footer"><a-button @click="conversionOpen = false">取消</a-button><a-button :loading="conversionSaving" @click="previewConversion">预览映射</a-button><a-button type="primary" :disabled="!conversionPreview?.executable" :loading="conversionSaving" @click="submitConversion">确认并打开目标</a-button></div>
+        <a-table size="small" :pagination="false" :data-source="conversionPreview.mappings" row-key="targetFieldCode"><a-table-column title="目标字段" data-index="targetFieldName" /><a-table-column title="来源字段" data-index="sourceFieldName" /><a-table-column title="映射结果"><template #default="{ record }">{{ typeof record.value === 'boolean' ? (record.value ? '是' : '否') : timelineValue(record.value) }}</template></a-table-column><a-table-column title="校验" data-index="message" /></a-table></template>
+      <div class="drawer-footer"><a-button :disabled="conversionSaving" @click="conversionOpen = false">取消</a-button><a-button :loading="conversionSaving" @click="previewConversion">预览映射</a-button><a-button type="primary" :disabled="!conversionPreview?.executable" :loading="conversionSaving" @click="submitConversion">确认并打开目标</a-button></div>
     </a-modal>
     <ModuleImportDrawer v-if="activeCode" v-model:open="importOpen" :module-code="activeCode" :module-name="activeModule?.moduleName" @records-changed="loadRecords" />
     <ModuleExportDrawer v-if="activeCode" v-model:open="exportOpen" :module-code="activeCode" :module-name="activeModule?.moduleName"

@@ -1,0 +1,29 @@
+{
+  "final_unique_error_uses_field_name": [
+    "客户编码: 已存在相同值，请填写唯一内容",
+    "该记录已经转化到所选目标模块，永久唯一关系禁止再次转化"
+  ],
+  "hard_boundaries": [
+    {
+      "case": "missing_expected_version",
+      "http": 400,
+      "code": "VALIDATION_FAILED"
+    },
+    {
+      "case": "wrong_module_record",
+      "http": 404,
+      "code": "RECORD_NOT_FOUND"
+    },
+    {
+      "case": "without_authentication",
+      "http": 401,
+      "code": "AUTHENTICATION_REQUIRED"
+    },
+    {
+      "case": "without_system_context",
+      "http": 409,
+      "code": "SYSTEM_CONTEXT_REQUIRED"
+    }
+  ],
+  "limits": "Restricted roles, shared tenants and application channels remain required; these are not full permission coverage."
+}

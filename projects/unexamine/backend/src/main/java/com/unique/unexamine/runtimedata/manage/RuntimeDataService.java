@@ -903,7 +903,7 @@ public class RuntimeDataService {
     }
 
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
-    public RuntimeRecordView resumeApprovedAction(BusinessAction.ApprovedExecution permit, AuthenticatedContext actor) {
+    public Object resumeApprovedAction(BusinessAction.ApprovedExecution permit, AuthenticatedContext actor) {
         BusinessAction.Input input = permit.input();
         requireAction(actor, input.moduleCode(), input.actionCode(), input.traceId());
         PublishedModule current;
@@ -928,6 +928,8 @@ public class RuntimeDataService {
             case "DELETE" -> deleteDirect(actor, input.moduleCode(), input.recordId(), objectMapper.convertValue(input.payload(), RecordLifecycleRequest.class), input.traceId());
             case "TRANSFER" -> transferDirect(actor, input.moduleCode(), input.recordId(),
                     objectMapper.convertValue(input.payload(), RecordTransferRequest.class), input.traceId());
+            case "CONVERT" -> convertDirect(actor, input.moduleCode(), input.recordId(),
+                    objectMapper.convertValue(input.payload(), RecordConversionRequest.class), input.traceId());
             default -> executeManualDirect(actor, input.moduleCode(), input.recordId(), input.actionCode(),
                     objectMapper.convertValue(input.payload(), ManualRecordActionRequest.class), input.traceId());
         };
@@ -1420,6 +1422,43 @@ public class RuntimeDataService {
     public RuntimeRecordConversionExecution convert(
             AuthenticatedContext context, String moduleCode, Long recordId,
             RecordConversionRequest request, String traceId) {
+        var result = convertAction(context, moduleCode, recordId, request, traceId, BusinessAction.Options.internal());
+        if (result.value() == null) {
+            throw new DomainException("ACTION_REQUIRES_RECEIPT", "转化已进入流程，请通过业务动作入口查看结果", HttpStatus.CONFLICT);
+        }
+        return result.value();
+    }
+
+    /** 转化是一个完整业务动作；审批和重试共用入口，目标落库不再另起新建审批。 */
+    @Transactional
+    public BusinessAction.Result<RuntimeRecordConversionExecution> convertAction(
+            AuthenticatedContext context, String moduleCode, Long recordId,
+            RecordConversionRequest request, String traceId, BusinessAction.Options options) {
+        validateActionRequest(request);
+        RecordAccess access = requireRecordAccess(context, moduleCode, "CONVERT", recordId, true, traceId);
+        requireAction(context, request.targetModuleCode(), "CREATE", traceId);
+        BusinessAction.Input input = new BusinessAction.Input(context, access.sourceContext().tenantId(),
+                access.published().configuration().moduleId(), moduleCode, access.published().configuration().versionId(),
+                "CONVERT", recordId, request.version(), request, options, traceId);
+        var result = actionControl.execute(input, RuntimeRecordConversionExecution.class,
+                access.published().configuration().configuration(),
+                () -> actionBindings.resolveForAction(access.sourceContext(), input.moduleId(), "CONVERT",
+                        actionVariables(request, readRawValues(recordId, access.published().fields())), traceId),
+                () -> requireExecutableConversion(context, moduleCode, recordId, request, traceId),
+                () -> convertDirect(context, moduleCode, recordId, request, traceId));
+        if (!result.replayed() || result.value() == null) return result;
+        var value = result.value();
+        var protectedTarget = protectActionReplay(context, value.targetModuleCode(), "DETAIL",
+                new BusinessAction.Result<>(result.idempotencyRecordId(), result.outboxId(), result.idempotencyKey(),
+                        result.status(), true, result.mode(), value.targetRecord(), result.flowInstanceId()), traceId);
+        return new BusinessAction.Result<>(result.idempotencyRecordId(), result.outboxId(), result.idempotencyKey(),
+                result.status(), true, result.mode(), new RuntimeRecordConversionExecution(value.conversionId(),
+                        value.targetModuleCode(), protectedTarget.value()), result.flowInstanceId());
+    }
+
+    /** 延迟执行与立即执行使用同一预校验，失败时目标、成功标记和日志一起回滚。 */
+    private ConversionPlan requireExecutableConversion(AuthenticatedContext context, String moduleCode, Long recordId,
+            RecordConversionRequest request, String traceId) {
         ConversionPlan plan = buildConversionPreview(context, moduleCode, recordId, request, traceId);
         if (!plan.preview().executable()) {
             recordOperationFailure(context, moduleCode, "CONVERT", recordId, "CONVERSION_NOT_EXECUTABLE",
@@ -1428,7 +1467,13 @@ public class RuntimeDataService {
                     ? "RECORD_ALREADY_CONVERTED" : "CONVERSION_MAPPING_INVALID",
                     String.join("；", plan.preview().issues()), HttpStatus.CONFLICT);
         }
+        return plan;
+    }
 
+    /** 唯一物理转化处理：同一事务创建目标、永久成功标记、转化关系及操作日志。 */
+    private RuntimeRecordConversionExecution convertDirect(AuthenticatedContext context, String moduleCode, Long recordId,
+            RecordConversionRequest request, String traceId) {
+        ConversionPlan plan = requireExecutableConversion(context, moduleCode, recordId, request, traceId);
         BizRecordConversion conversion = new BizRecordConversion();
         conversion.setSystemId(context.systemId());
         conversion.setTenantId(plan.source().getTenantId());
@@ -1458,7 +1503,7 @@ public class RuntimeDataService {
                                 .orderByAsc(BusinessRecordParticipant::getSystemMemberId))
                         .stream().map(BusinessRecordParticipant::getSystemMemberId).toList()
                 : List.of();
-        RuntimeRecordView targetRecord = create(context, request.targetModuleCode(),
+        RuntimeRecordView targetRecord = createDirect(context, request.targetModuleCode(),
                 new CreateRuntimeRecordRequest(plan.preview().targetTitle(), null, "ACTIVE",
                         plan.access().share() == null ? source.getOwnerMemberId() : context.memberId(),
                         plan.access().share() == null ? source.getDepartmentId() : null,
@@ -1500,7 +1545,7 @@ public class RuntimeDataService {
                 .eq(BizRecordConversion::getTenantId, access.record().getTenantId())
                 .eq(BizRecordConversion::getSourceRecordId, recordId)
                 .eq(BizRecordConversion::getStatus, "SUCCEEDED"));
-        appendOutgoingConversionLinks(context, outgoing, links);
+        appendOutgoingConversionLinks(context, outgoing, links, traceId);
 
         List<BizRecordConversionResult> incomingResults = conversionResultService.selectList(
                 Wrappers.<BizRecordConversionResult>lambdaQuery()
@@ -1521,7 +1566,8 @@ public class RuntimeDataService {
                     try {
                         requireRecordAccess(context, module.getCode(), "DETAIL", source.getId(), false, traceId);
                         links.add(new RuntimeRecordConversionLink(conversion.getId(), "SOURCE", module.getCode(),
-                                module.getName(), source.getId(), source.getTitle(), conversion.getFinishedAt()));
+                                module.getName(), source.getId(), source.getTitle(), source.getDeleted() ? "DELETED"
+                                        : source.getArchived() ? "ARCHIVED" : source.getStatus(), conversion.getFinishedAt()));
                     } catch (DomainException ignored) {
                         // Conversion history never widens access to a source record.
                     }
@@ -1536,7 +1582,11 @@ public class RuntimeDataService {
     private ConversionPlan buildConversionPreview(
             AuthenticatedContext context, String moduleCode, Long recordId,
             RecordConversionRequest request, String traceId) {
+        validateActionRequest(request);
         RecordAccess access = requireRecordAccess(context, moduleCode, "CONVERT", recordId, true, traceId);
+        if (!context.tenantId().equals(access.record().getTenantId())) {
+            throw new DomainException("CONVERSION_TENANT_MISMATCH", "转化只能在当前系统和数据工作空间内执行", HttpStatus.FORBIDDEN);
+        }
         PublishedModule sourcePublished = access.published();
         BusinessRecord source = access.record();
         requireRecordVersion(context, moduleCode, "CONVERT", source, request.version(), traceId);
@@ -1553,7 +1603,7 @@ public class RuntimeDataService {
         }
         JsonNode mappingsConfig = targetConfig.path("fieldMappings");
         if (!mappingsConfig.isObject()) {
-            issues.add("转化动作缺少 fieldMappings 配置");
+            issues.add("转化动作尚未配置字段对应关系");
         }
         Map<String, PublishedField> sourceFields = sourcePublished.fields().stream()
                 .collect(java.util.stream.Collectors.toMap(PublishedField::code, item -> item));
@@ -1580,8 +1630,9 @@ public class RuntimeDataService {
             } else if (!sourceFields.containsKey(sourceCode)) {
                 status = "INVALID";
                 message = "来源字段不存在";
-                issues.add(targetField.name() + "：来源字段 " + sourceCode + " 不存在");
-            } else if (sourceAccess.get(sourceCode) == null || !sourceAccess.get(sourceCode).readable()) {
+                issues.add(targetField.name() + "：配置的来源字段不存在，请重新选择");
+            } else if (sourceAccess.get(sourceCode) == null || !sourceAccess.get(sourceCode).readable()
+                    || sourceAccess.get(sourceCode).maskStrategy() != null) {
                 status = "DENIED";
                 message = "来源字段无读取权限";
                 issues.add(targetField.name() + "：来源字段无读取权限");
@@ -1608,13 +1659,17 @@ public class RuntimeDataService {
                 }
             }
             mappings.add(new RuntimeRecordConversionMapping(targetField.code(), targetField.name(),
-                    targetField.required(), sourceCode, value, status, message));
+                    targetField.required(), sourceCode, sourceFields.containsKey(sourceCode)
+                            ? sourceFields.get(sourceCode).name() : null, value, status, message));
         }
         if (issues.isEmpty()) {
             try {
                 ruleIndexService.validateCreatePreview(context, target.configuration(), targetValues);
             } catch (DomainException exception) {
-                issues.add(exception.getMessage());
+                // 底层唯一索引以字段编号报错，转化页面须显示当前发布的业务名称。
+                String message = exception.getMessage();
+                for (PublishedField field : target.fields()) message = message.replace(field.code(), field.name());
+                issues.add(message);
             }
         }
         boolean duplicate = hasCompletedConversion(access.sourceContext(), recordId, target.configuration().moduleId());
@@ -1645,20 +1700,16 @@ public class RuntimeDataService {
     }
 
     private boolean hasCompletedConversion(AuthenticatedContext context, Long sourceRecordId, Long targetModuleId) {
-        List<BizRecordConversion> conversions = conversionService.selectList(Wrappers.<BizRecordConversion>lambdaQuery()
+        // 与数据库永久唯一键一致：关系失效或目标软删不能释放已成功占用的来源、目标模块组合。
+        return !conversionService.selectList(Wrappers.<BizRecordConversion>lambdaQuery()
                 .eq(BizRecordConversion::getSystemId, context.systemId())
                 .eq(BizRecordConversion::getTenantId, context.tenantId())
                 .eq(BizRecordConversion::getSourceRecordId, sourceRecordId)
-                .eq(BizRecordConversion::getStatus, "SUCCEEDED"));
-        if (conversions.isEmpty()) return false;
-        return !conversionResultService.selectList(Wrappers.<BizRecordConversionResult>lambdaQuery()
-                .in(BizRecordConversionResult::getConversionId,
-                        conversions.stream().map(BizRecordConversion::getId).toList())
-                .eq(BizRecordConversionResult::getTargetModuleId, targetModuleId)).isEmpty();
+                .eq(BizRecordConversion::getIdempotencyKey, "convert:" + sourceRecordId + ":" + targetModuleId)).isEmpty();
     }
 
     private void appendOutgoingConversionLinks(AuthenticatedContext context, List<BizRecordConversion> conversions,
-                                               List<RuntimeRecordConversionLink> links) {
+            List<RuntimeRecordConversionLink> links, String traceId) {
         if (conversions.isEmpty()) return;
         Map<Long, BizRecordConversion> byId = conversions.stream()
                 .collect(java.util.stream.Collectors.toMap(BizRecordConversion::getId, item -> item));
@@ -1671,8 +1722,14 @@ public class RuntimeDataService {
             BizRecordConversion conversion = byId.get(result.getConversionId());
             if (target != null && module != null && context.systemId().equals(module.getSystemId())
                     && context.tenantId().equals(target.getTenantId())) {
-                links.add(new RuntimeRecordConversionLink(conversion.getId(), "TARGET", module.getCode(),
-                        module.getName(), target.getId(), target.getTitle(), conversion.getFinishedAt()));
+                try {
+                    requireRecordAccess(context, module.getCode(), "DETAIL", target.getId(), false, traceId);
+                    links.add(new RuntimeRecordConversionLink(conversion.getId(), "TARGET", module.getCode(),
+                            module.getName(), target.getId(), target.getTitle(), target.getDeleted() ? "DELETED"
+                                    : target.getArchived() ? "ARCHIVED" : target.getStatus(), conversion.getFinishedAt()));
+                } catch (DomainException ignored) {
+                    // 无目标详情权限时，转化关系也不能泄漏目标标题或状态。
+                }
             }
         }
     }

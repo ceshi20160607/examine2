@@ -26,7 +26,7 @@ const loading = ref(false)
 const busy = ref('')
 const form = reactive({
   moduleId: undefined as number | undefined,
-  triggerEvent: ['CREATE','UPDATE','DELETE','TRANSFER','STATUS_CHANGED','MANUAL','SCHEDULED','APPLICATION','IMPORT_COMPLETED','EXCEPTION'].includes(queryText(route.query.triggerEvent)) ? queryText(route.query.triggerEvent) : 'CREATE',
+  triggerEvent: ['CREATE','UPDATE','DELETE','TRANSFER','CONVERT','STATUS_CHANGED','MANUAL','SCHEDULED','APPLICATION','IMPORT_COMPLETED','EXCEPTION'].includes(queryText(route.query.triggerEvent)) ? queryText(route.query.triggerEvent) : 'CREATE',
   actionId: undefined as number | undefined,
   flowId: undefined as number | undefined,
   executionMode: 'DIRECT',
@@ -91,7 +91,7 @@ function describeError(error: unknown) {
 }
 
 function eventLabel(event: string) {
-  return ({ CREATE: '新建时', UPDATE: '编辑时', DELETE: '删除前', TRANSFER: '转交负责人和部门时', STATUS_CHANGED: '状态变化时', MANUAL: '手动触发',
+  return ({ CREATE: '新建时', UPDATE: '编辑时', DELETE: '删除前', TRANSFER: '转交负责人和部门时', CONVERT: '转化时', STATUS_CHANGED: '状态变化时', MANUAL: '手动触发',
     SCHEDULED: '定时触发', APPLICATION: '应用调用', IMPORT_COMPLETED: '导入完成', EXCEPTION: '异常时' } as Record<string, string>)[event] || event
 }
 
@@ -258,7 +258,7 @@ onMounted(loadCatalog)
             <a-select :value="form.moduleId" @update:value="changePoint($event)" placeholder="选择模块" :options="modules.map(item => ({ value: item.moduleId, label: item.moduleName }))" />
           </a-form-item>
           <a-form-item label="触发事件" required>
-            <a-select :value="form.triggerEvent" @update:value="changePoint(form.moduleId,$event)" :options="['CREATE','UPDATE','DELETE','TRANSFER','STATUS_CHANGED','MANUAL','SCHEDULED','APPLICATION','IMPORT_COMPLETED','EXCEPTION'].map(value => ({ value, label: eventLabel(value) }))" />
+            <a-select :value="form.triggerEvent" @update:value="changePoint(form.moduleId,$event)" :options="['CREATE','UPDATE','DELETE','TRANSFER','CONVERT','STATUS_CHANGED','MANUAL','SCHEDULED','APPLICATION','IMPORT_COMPLETED','EXCEPTION'].map(value => ({ value, label: eventLabel(value) }))" />
           </a-form-item>
           <a-form-item v-if="form.triggerEvent === 'MANUAL'" label="手动动作" required extra="动作来自模块的已发布配置；每个动作可独立设置条件和审批方式。">
             <a-select :value="form.actionId" placeholder="选择手动动作" :options="manualActions.map(item => ({ value: item.id, label: item.name }))" @update:value="changeManualAction" />

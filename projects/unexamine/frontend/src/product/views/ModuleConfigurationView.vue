@@ -109,7 +109,7 @@ const actionForm = reactive({ name: '', location: 'ROW', parameterFieldCodes: []
 type ConversionMapping = { targetCode: string; sourceCode: string }
 type ConversionTarget = { moduleCode: string; mappings: ConversionMapping[] }
 const conversionTargets = ref<ConversionTarget[]>([])
-const conversionTargetDrafts = reactive<Record<string, ModuleDraft>>({})
+const conversionTargetPublications = reactive<Record<string, RuntimeModuleConfiguration>>({})
 const pageForm = reactive({ pageType: 'CUSTOM', name: '自定义页面' })
 const menuForm = reactive({
   parentId: undefined as number | undefined, name: '', icon: 'appstore', routePath: '',
@@ -292,6 +292,8 @@ async function selectModule(moduleId: number) {
       api<PublishedModuleVersion[]>(`/api/admin/module-config/modules/${moduleId}/versions`, {}, token.value),
       api<RuleIndexDraft>(`/api/admin/module-config/modules/${moduleId}/rules-indexes`, {}, token.value),
     ])
+    // 快速切换模块时，旧请求不能覆盖当前模块及其配置地址。
+    if (selectedModuleId.value !== moduleId) return
     draft.value = currentDraft
     syncModuleRoute()
     versions.value = history
@@ -301,7 +303,7 @@ async function selectModule(moduleId: number) {
     if (currentDraft.published) {
       try {
         const sample = await api<RuntimeRecordList>(`/api/runtime/modules/${currentDraft.module.code}/records?page=1&pageSize=20`, {}, token.value)
-        previewRecords.value = sample.records
+        if (selectedModuleId.value === moduleId) previewRecords.value = sample.records
       } catch { previewError.value = '当前身份无法读取预览记录，以下仅显示字段默认值。' }
     }
   } catch (reason) {
@@ -693,18 +695,18 @@ function addConversionTarget() {
 }
 
 async function loadConversionTarget(moduleCode: string) {
-  if (!moduleCode || conversionTargetDrafts[moduleCode]) return
+  if (!moduleCode) return
   const module = overview.value.modules.find(item => item.code === moduleCode)
   if (!module) return
   try {
-    conversionTargetDrafts[moduleCode] = await api<ModuleDraft>(`/api/admin/module-config/modules/${module.id}/draft`, {}, token.value)
+    conversionTargetPublications[moduleCode] = await api<RuntimeModuleConfiguration>(`/api/admin/module-config/modules/${module.id}/published`, {}, token.value)
   } catch (reason) {
     message.error(readable(reason))
   }
 }
 
 function conversionTargetFieldOptions(moduleCode: string) {
-  return (conversionTargetDrafts[moduleCode]?.fields || [])
+  return (conversionTargetPublications[moduleCode]?.configuration.fields || [])
     .filter(field => field.status === 'ACTIVE')
     .map(field => ({ value: field.code, label: field.name }))
 }
@@ -1033,7 +1035,7 @@ function openRelatedConfiguration(section: 'flow' | 'applications') {
   void router.push(moduleAdminTarget(systemContext.value.systemId, selectedModule.value.code, section, section === 'flow' ? 'FLOW' : 'APPLICATION'))
 }
 function syncModuleRoute() {
-  if (!draft.value) return
+  if (!draft.value || draft.value.module.id !== selectedModuleId.value) return
   if (route.query.module === draft.value.module.code && route.query.moduleTask === activeConfigTask.value) return
   void router.replace({ path: route.path, query: { ...route.query, module: draft.value.module.code, moduleTask: activeConfigTask.value } })
 }
@@ -1318,7 +1320,7 @@ onMounted(() => loadOverview())
           <a-divider>转化目标与字段映射</a-divider>
           <a-alert type="info" show-icon class="section-alert" message="运行时只读取已发布映射；每个来源记录对同一目标模块永久只能成功转化一次。" />
           <section v-for="(target, index) in conversionTargets" :key="index" class="panel-card" style="padding:12px;margin-bottom:12px">
-            <a-form-item label="目标模块" required><a-select v-model:value="target.moduleCode" show-search :options="conversionModuleOptions" @change="loadConversionTarget(String($event))" /></a-form-item>
+            <a-form-item label="目标模块" required><a-select v-model:value="target.moduleCode" show-search :options="conversionModuleOptions" @change="target.mappings = [{ targetCode: '', sourceCode: '' }]; loadConversionTarget(String($event))" /></a-form-item>
             <a-form-item label="字段对应关系" required extra="选择新记录中的目标字段，以及从当前记录取值的来源字段。">
               <div v-for="(mapping, mappingIndex) in target.mappings" :key="mappingIndex" class="conversion-mapping-row">
                 <a-select v-model:value="mapping.targetCode" show-search placeholder="目标字段" :options="conversionTargetFieldOptions(target.moduleCode)" />

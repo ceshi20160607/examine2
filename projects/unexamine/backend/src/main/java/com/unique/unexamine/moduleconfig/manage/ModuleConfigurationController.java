@@ -63,6 +63,14 @@ public class ModuleConfigurationController {
         return ApiResult.ok(configurationService.draft(AuthenticationContextHolder.require(), moduleId));
     }
 
+    /** 转化配置读取目标当前发布字段，沿用模块配置查看权限及系统、租户边界。 */
+    @GetMapping("/modules/{moduleId}/published")
+    public ApiResult<RuntimeModuleConfiguration> published(@PathVariable Long moduleId) {
+        var context = AuthenticationContextHolder.require();
+        var draft = configurationService.draft(context, moduleId);
+        return ApiResult.ok(publicationService.published(context, draft.module().getCode()));
+    }
+
     @PostMapping("/modules/{moduleId}/fields")
     public ApiResult<ConfiguredModuleField> createField(
             @PathVariable Long moduleId,

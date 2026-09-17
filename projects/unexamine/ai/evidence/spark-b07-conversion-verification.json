@@ -1,0 +1,140 @@
+{
+  "step": "B07.3a.1",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-17T13:11:15.816112+08:00",
+  "verification_scope": "Current visual named-field single-record conversion main journey through shared public executor, atomic target/marker/result/audit, direct and conditional approval/replay. Business contribution only; B07.3a/B07/product remain in progress, with an observed completion-time issue and missing relation removal.",
+  "source_rows": [
+    "R2831",
+    "R2834",
+    "R2835",
+    "R2836",
+    "R2837",
+    "R2838",
+    "R2839",
+    "R2840",
+    "R2841",
+    "R2849",
+    "R2888",
+    "R2896",
+    "R2897",
+    "R2898",
+    "R2899",
+    "R2900",
+    "R2948",
+    "R2949"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordConversionRequest.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordConversionLink.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordConversionMapping.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+  ],
+  "checks_actual_results": [
+    "Final JDK21 Maven -DskipTests package passed: 788 main/29 test sources compiled; backend tests skipped. Final vue-tsc/Vite build passed, 4010 modules/existing chunk warning. Existing affected runtime-actions/action-placement: 2 files/16 tests passed. No new container/Testcontainers/full suite.",
+    "Real browser configured and published source30 config45/version6: target28 current publication39/version7, four named field mappings, CONVERT DETAIL_HEADER; no user JSON/technical-ID configuration. Preview shows field names and boolean yes/no; final unique validation names 客户编码. Fields/pages unchanged from44.",
+    "Actual module/task switching and post-conversion navigation races found and corrected. Browser source76 -> target81 links worked both ways; source deep URL retained search/recordId. Final direct source84 -> target85 automatically opened actual target detail after fix.",
+    "Current API/DB: main receipt84 target81; concurrent source77 one 200/one409 and target82 only; missing78/unique79 return409 without marker. Target81 soft-delete retains permanent uniqueness and original-key replay. Current database permanent unique key tenant_id,idempotency_key reused.",
+    "Browser source80 receipt94 AFTER_APPROVAL explicitly pending/no target; PERSON task35 approved, pinned Flow45/version10 completed; generic approval result EXECUTED/target83 and original replay exactly once. Later binding does not change old DIRECT replay. Source84 soft-delete leaves target85 active; links carry deleted status.",
+    "Final target links now enforce target DETAIL access before returning title/status, incoming source access already enforced; prefetch/detail writes also retain current hard checks. Actual 400 missing version/404 wrong module/401 missing auth/409 missing system context rejected. Full restricted-role/shared/channel coverage not claimed.",
+    "Independent readback business assertions passed: four successful marker/result/target/audit sets, failed-source zero markers, preserved source versions/ownership and module fields/pages/schema40. Completion-time inconsistency was found and recorded as unfinished; not counted as verified.",
+    "Same backend18080/MySQL33077/shared redis6379/native Vite15173 reused, project Redis stopped. Final build stopped same mounted backend before packaging then restarted it; compiling over running mounted jar caused a transient failed UI submit earlier, with no action marker written; same UI request was retried successfully after restart. No new environment/schema/base regeneration.",
+    "Final running backend readback confirms current target/source DETAIL links and actual soft-deleted statuses. Final browser target85 reload retained the correct module/record and showed its source as 已删除; common detail layout visually inspected."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/spark-b07-conversion-api.json",
+    "projects/unexamine/ai/evidence/spark-b07-conversion-approval.json",
+    "projects/unexamine/ai/evidence/spark-b07-conversion-boundaries.json",
+    "projects/unexamine/ai/evidence/spark-b07-conversion-final.json",
+    "projects/unexamine/ai/evidence/spark-b07-conversion-fixtures.json",
+    "projects/unexamine/ai/evidence/spark-b07-conversion-readback.json",
+    "projects/unexamine/ai/evidence/spark-b07-conversion-final-links.json"
+  ],
+  "permission_or_failure_result": "Required/unique409 no residual marker; concurrent loser409; version400/wrong-module404/auth401/system-context409; real restricted-role/shared/channel coverage still pending.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+      "sha256": "01fb28823ee8b0747c5f588cb2c879d9e7a6a75f31ffad11e783a4182536675c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+      "sha256": "03849c01be9b650e6a7149040e096ca12971bb98351b1cc011adb6b25ef1b3e0"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+      "sha256": "3e26ab8a98f20bc36478101c54aefacf249c87cc8ce8d247707218e44b1b4a4a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+      "sha256": "9b12b4ba6414e1893be89b07c6fa2b430cb6686294ad9593f36b1f98a508b2bd"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordConversionRequest.java",
+      "sha256": "ccd2f57862e86e7c6a32cdd7dbf83540f5baf78db2bc124898a0b3818098d6fd"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+      "sha256": "4615d8edc4874deb8e7c34172c91c1bb1f42626568756717b4285081ca1587ca"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "faa15f24df3744c035eff016217edd4b699fde5b62cfe795e20aaf7f88e433e6"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordConversionLink.java",
+      "sha256": "a45e17a86877d00acf0e61d60e59f766dd7746b85818a5146b308b2093531fb1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordConversionMapping.java",
+      "sha256": "39998da794ff44db9393ecba9f9f66cf85d81fa1a380d63666fc839c6dd501ea"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "2b53024185ebe58666ab1bea181362c04b46403763634f0b63a0c34bfe4b8576"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+      "sha256": "d03d707f57b0f1e76da3e7609edbe3eb14f13c5aa741d04ea1290ce43798a044"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "184153120815e57d0ba30468eba2d3215c8cbd80ffd87ddd5a8ad04a53cca018"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "b8d60f3b0719f294587039ba741de25945cddb37c19f7d0afd33348209fb4175"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/runtime-actions.test.ts",
+      "sha256": "8763c81736bc1d7a050330d34cafbc8e75f1ce3c05112fb4bf500d371354f1a3"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/action-placement.test.ts",
+      "sha256": "3a1ef4c37fd775990150f731658fea8232f3af33aa5fdb420db7d6ae18cfe951"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/spark-b07-conversion-acceptance.py",
+      "sha256": "8e7c820bf26ab75c56c88e9ec2e509c9f125a2c602269d0fda7077c3026fd45d"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/spark-b07-conversion-readback.py",
+      "sha256": "7bf152687ecb52e66b16fe4fc9de6deea538855cebf4563b64a25027c427870f"
+    }
+  ],
+  "remaining": [
+    "B07.3a.2: finish relation-removal operation and real permission/lifecycle verification; permanent source+target uniqueness must survive unlink. Current relation-removal API/UI is absent, not completed.",
+    "B07.3a.2: fix observed completion-time clock inconsistency first. Current JVM UTC finished_at is earlier than DB Asia/Shanghai created_at for local conversion IDs 2/3/5/6; links show 04/05 instead of 12/13. Preserve historical data and provide a bounded, documented repair for confirmed affected data; do not rename/delete/rebuild tables.",
+    "B07.3b: batch conversion/partial failures/safe retries, remaining complex mapping families/current publication changes, CONVERT AFTER_EXECUTION/FLOW_ONLY, full role/shared-tenant/application/channel hard restrictions remain required.",
+    "Retain B07.1c.3/B07.2b/B07.4, deferred B05/B06, all advanced approval/application/platform/product requirements; no old cycles or completion inference."
+  ],
+  "next_step": "B07.3a.2",
+  "usage": "projects/unexamine/ai/evidence/spark-usage-b07-conversion.json"
+}

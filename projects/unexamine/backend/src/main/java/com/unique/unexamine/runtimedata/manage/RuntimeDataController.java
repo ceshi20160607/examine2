@@ -131,13 +131,14 @@ public class RuntimeDataController {
     }
 
     @PostMapping("/{recordId}/convert")
-    public ApiResult<RuntimeRecordConversionExecution> convert(
+    public ApiResult<?> convert(
             @PathVariable String moduleCode,
             @PathVariable Long recordId,
             @Valid @RequestBody RecordConversionRequest body,
             HttpServletRequest request) {
-        return ApiResult.ok(runtimeDataService.convert(AuthenticationContextHolder.require(), moduleCode,
-                recordId, body, TraceIdFilter.current(request)));
+        return actionResponse(runtimeDataService.convertAction(AuthenticationContextHolder.require(), moduleCode,
+                recordId, body, TraceIdFilter.current(request),
+                BusinessAction.Options.page(request.getHeader("Idempotency-Key"))), request);
     }
 
     @GetMapping("/{recordId}/lifecycle-impact")
@@ -233,8 +234,8 @@ public class RuntimeDataController {
         return ApiResult.ok(runtimeDataService.retryApproval(AuthenticationContextHolder.require(), moduleCode, actionId));
     }
 
-    private ApiResult<?> actionResponse(BusinessAction.Result<RuntimeRecordView> result, HttpServletRequest request) {
-        // Older clients retain the record response; Flow-only can never masquerade as a saved record.
+    private ApiResult<?> actionResponse(BusinessAction.Result<?> result, HttpServletRequest request) {
+        // 兼容旧客户端的记录或转化响应；未执行业务时必须返回真实动作回执。
         return ApiResult.ok("return=action".equals(request.getHeader("Prefer")) || result.value() == null ? result : result.value());
     }
 }

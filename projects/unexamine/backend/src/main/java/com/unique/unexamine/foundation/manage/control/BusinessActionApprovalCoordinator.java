@@ -12,7 +12,6 @@ import com.unique.unexamine.foundation.base.entity.CoreIdempotencyRecord;
 import com.unique.unexamine.foundation.base.service.CoreEventOutboxBaseService;
 import com.unique.unexamine.foundation.base.service.CoreIdempotencyRecordBaseService;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
-import com.unique.unexamine.runtimedata.manage.RuntimeRecordView;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
@@ -78,7 +77,8 @@ public class BusinessActionApprovalCoordinator {
                     return null;
                 }
                 AuthenticatedContext actor = currentActor(intent.input().actor());
-                RuntimeRecordView value = runtime.getObject().resumeApprovedAction(
+                // 动作结果既可能是记录，也可能包含转化目标；保留原类型结构供原请求回放。
+                Object value = runtime.getObject().resumeApprovedAction(
                         new BusinessAction.ApprovedExecution(intent.input(), intent.payload().path("configurationSnapshot")), actor);
                 finish(intent, "EXECUTED", value, null, null);
                 CoreEventOutbox event = new CoreEventOutbox();
@@ -162,7 +162,7 @@ public class BusinessActionApprovalCoordinator {
                 original.mfaLevel(), current.roleIds(), current.permissions(), current.dataScopes());
     }
 
-    private void finish(Intent intent, String status, RuntimeRecordView value, String errorCode, String errorMessage) {
+    private void finish(Intent intent, String status, Object value, String errorCode, String errorMessage) {
         intent.payload().put("approvalStatus", status);
         intent.payload().put("errorCode", errorCode);
         intent.payload().put("errorMessage", errorMessage);

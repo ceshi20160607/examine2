@@ -1,0 +1,19 @@
+{
+  "navigation": {
+    "id": 97,
+    "replayed": true,
+    "mode": "DIRECT",
+    "status": "COMPLETED",
+    "target_record_id": 85
+  },
+  "source_deleted": true,
+  "target_remains_active": true,
+  "source_status_link": "DELETED",
+  "race_original_replay": {
+    "id": 88,
+    "replayed": true,
+    "mode": "DIRECT",
+    "status": "COMPLETED",
+    "target_record_id": 82
+  }
+}
