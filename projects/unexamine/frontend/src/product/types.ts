@@ -781,6 +781,9 @@ export interface RuntimeRecordConversionLink {
   recordId: number
   recordTitle: string
   recordStatus: string
+  conversionVersion: number
+  relationStatus: 'ACTIVE' | 'INVALID'
+  canUnlink: boolean
   convertedAt: string
 }
 

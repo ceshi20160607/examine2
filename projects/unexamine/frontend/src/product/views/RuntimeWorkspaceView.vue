@@ -66,6 +66,12 @@ const saveAction = createRuntimeAction()
 const deleteAction = createRuntimeAction()
 let routeInitializing = true
 const conversionAction = createRuntimeAction()
+const conversionUnlinkAction = createRuntimeAction()
+const conversionUnlinkOpen = ref(false)
+const conversionUnlinkSaving = ref(false)
+const conversionUnlinkLink = ref<RuntimeRecordConversionLink>()
+const conversionUnlinkSource = ref<{ id: number; moduleCode: string; version: number }>()
+const conversionUnlinkReason = ref('')
 const confirmedConversionRequest = ref<{ version: number; targetModuleCode: string }>()
 const lastAction = ref<{ moduleCode: string; result: BusinessActionResult<unknown> }>()
 const error = ref('')
@@ -1117,6 +1123,32 @@ async function openConversionLink(link: RuntimeRecordConversionLink) {
   } catch (reason) { message.error(readable(reason)) }
 }
 
+function openConversionUnlink(link: RuntimeRecordConversionLink) {
+  if (!detail.value || !link.canUnlink) return
+  conversionUnlinkLink.value = { ...link }
+  conversionUnlinkSource.value = { id: detail.value.id, moduleCode: activeCode.value, version: detail.value.version }
+  conversionUnlinkReason.value = ''
+  conversionUnlinkOpen.value = true
+}
+
+async function submitConversionUnlink() {
+  const source = conversionUnlinkSource.value, link = conversionUnlinkLink.value
+  if (conversionUnlinkSaving.value || !source || !link) return
+  if (!conversionUnlinkReason.value.trim()) return message.warning('请填写解除原因')
+  conversionUnlinkSaving.value = true
+  try {
+    const result = await conversionUnlinkAction<{ conversionId: number; conversionVersion: number; relationStatus: string }>(
+      `/api/runtime/modules/${source.moduleCode}/records/${source.id}/conversions/unlink`, 'POST',
+      { conversionId: link.conversionId, conversionVersion: link.conversionVersion, version: source.version, reason: conversionUnlinkReason.value.trim() }, token.value)
+    lastAction.value = { moduleCode: source.moduleCode, result }
+    conversionUnlinkOpen.value = false
+    message.success(businessActionMessage(result, '转化关系已解除，目标数据和历史保留'))
+    if (activeCode.value === source.moduleCode) await openDetail({ id: source.id } as RuntimeRecord)
+  } catch (reason) {
+    message.error(readable(reason))
+  } finally { conversionUnlinkSaving.value = false }
+}
+
 function loadReferenceOptions() {
   const referenceFields = fields.value.filter((field) => field.fieldType === 'REFERENCE' && field.referenceModuleId)
   if (!referenceFields.length) return
@@ -1622,7 +1654,7 @@ defineExpose({ refresh: loadModules, executeCommand })
         <a-tabs class="detail-tabs-runtime">
           <a-tab-pane key="basic" tab="概览"><SchemaRecordDetail :layout="detailLayout" :fields="detailValueFields" :values="detail.fields" :text="displayValue"><template #tools="{ field }"><a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></template></SchemaRecordDetail><a-descriptions class="detail-system-meta" :column="1" bordered size="small">
             <a-descriptions-item label="负责人">{{ ownerDisplayName(detail) }}</a-descriptions-item><a-descriptions-item label="负责部门">{{ detail.departmentId ? peopleDirectory.departments.find(item => item.id === detail?.departmentId)?.name || '不可用部门' : '未设置' }}</a-descriptions-item><a-descriptions-item label="相关人">{{ detail.participantMemberIds.length ? detail.participantMemberIds.map(id => peopleDirectory.people.find(person => person.systemMemberId === id)?.displayName || '不可用成员').join('、') : '—' }}</a-descriptions-item><a-descriptions-item label="创建时间">{{ productDateTime(detail.createdAt) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item></a-descriptions></a-tab-pane>
-          <a-tab-pane key="relations" tab="转化"><a-list v-if="conversionLinks.length" size="small" bordered :data-source="conversionLinks"><template #renderItem="{ item }"><a-list-item><a-button type="link" @click="openConversionLink(item)">{{ item.direction === 'SOURCE' ? '来源' : '目标' }} · {{ item.moduleName }} · {{ item.recordTitle }}</a-button><ProductStatusTag :status="item.recordStatus" /><span>{{ productDateTime(item.convertedAt) }}</span></a-list-item></template></a-list><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无有权查看的关联数据" /></a-tab-pane>
+          <a-tab-pane key="relations" tab="转化"><a-list v-if="conversionLinks.length" size="small" bordered :data-source="conversionLinks"><template #renderItem="{ item }"><a-list-item><a-button type="link" @click="openConversionLink(item)">{{ item.direction === 'SOURCE' ? '来源' : '目标' }} · {{ item.moduleName }} · {{ item.recordTitle }}</a-button><ProductStatusTag :status="item.recordStatus" /><a-tag v-if="item.relationStatus === 'INVALID'">关系已解除</a-tag><a-button v-if="item.canUnlink" type="link" danger @click="openConversionUnlink(item)">解除关联</a-button><span>{{ productDateTime(item.convertedAt) }}</span></a-list-item></template></a-list><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无有权查看的关联数据" /></a-tab-pane>
           <a-tab-pane v-if="recordAttachmentFields.length && canViewAttachments" key="attachments" tab="附件"><a-select v-if="recordAttachmentFields.length > 1" v-model:value="attachmentFieldCode" :options="recordAttachmentFields.map(field => ({ value: field.code, label: field.name }))" style="width:100%;margin-bottom:12px" placeholder="选择附件分类" /><BusinessAttachmentsPanel v-if="recordAttachmentEndpoint" :endpoint="recordAttachmentEndpoint" :writable="recordAttachmentWritable" :title="selectedAttachmentField?.name || '附件'" description="附件按当前字段权限展示，并记录到业务时间线。" compact @changed="detail && openDetail(detail)" /></a-tab-pane>
           <a-tab-pane key="timeline" tab="历史"><a-timeline v-if="timeline.length"><a-timeline-item v-for="entry in timeline" :key="entry.eventId">
               <div class="timeline-heading"><strong>{{ entry.label }}</strong><span>{{ productDateTime(entry.occurredAt) }}</span></div><p>{{ entry.actorDisplayName }}<template v-if="entry.summary"> · {{ entry.summary }}</template></p>
@@ -1735,6 +1767,11 @@ defineExpose({ refresh: loadModules, executeCommand })
       <template v-if="conversionPreview"><a-alert :type="conversionPreview.executable ? 'success' : 'error'" show-icon class="section-alert" :message="conversionPreview.executable ? '映射校验通过，可以执行转化' : '映射校验未通过'" :description="conversionPreview.issues.join('；') || `目标标题：${conversionPreview.targetTitle}`" />
         <a-table size="small" :pagination="false" :data-source="conversionPreview.mappings" row-key="targetFieldCode"><a-table-column title="目标字段" data-index="targetFieldName" /><a-table-column title="来源字段" data-index="sourceFieldName" /><a-table-column title="映射结果"><template #default="{ record }">{{ typeof record.value === 'boolean' ? (record.value ? '是' : '否') : timelineValue(record.value) }}</template></a-table-column><a-table-column title="校验" data-index="message" /></a-table></template>
       <div class="drawer-footer"><a-button :disabled="conversionSaving" @click="conversionOpen = false">取消</a-button><a-button :loading="conversionSaving" @click="previewConversion">预览映射</a-button><a-button type="primary" :disabled="!conversionPreview?.executable" :loading="conversionSaving" @click="submitConversion">确认并打开目标</a-button></div>
+    </a-modal>
+    <a-modal v-model:open="conversionUnlinkOpen" title="解除转化关联" :footer="null" :mask-closable="false" :closable="!conversionUnlinkSaving" :keyboard="!conversionUnlinkSaving">
+      <a-alert type="info" show-icon :message="`解除与${conversionUnlinkLink?.moduleName} · ${conversionUnlinkLink?.recordTitle}的关系`" description="目标数据和转化历史会保留；解除后仍不能再次转化到同一目标模块。" />
+      <a-form layout="vertical"><a-form-item label="解除原因" required><a-textarea v-model:value="conversionUnlinkReason" :disabled="conversionUnlinkSaving" :maxlength="1000" :rows="3" placeholder="说明为什么解除这条转化关联" /></a-form-item></a-form>
+      <div class="drawer-footer"><a-button :disabled="conversionUnlinkSaving" @click="conversionUnlinkOpen = false">取消</a-button><a-button type="primary" danger :loading="conversionUnlinkSaving" @click="submitConversionUnlink">确认解除</a-button></div>
     </a-modal>
     <ModuleImportDrawer v-if="activeCode" v-model:open="importOpen" :module-code="activeCode" :module-name="activeModule?.moduleName" @records-changed="loadRecords" />
     <ModuleExportDrawer v-if="activeCode" v-model:open="exportOpen" :module-code="activeCode" :module-name="activeModule?.moduleName"

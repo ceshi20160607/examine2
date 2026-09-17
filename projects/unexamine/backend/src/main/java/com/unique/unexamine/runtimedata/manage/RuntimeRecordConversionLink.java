@@ -11,5 +11,8 @@ public record RuntimeRecordConversionLink(
         Long recordId,
         String recordTitle,
         String recordStatus,
+        Integer conversionVersion,
+        String relationStatus,
+        boolean canUnlink,
         LocalDateTime convertedAt) {
 }

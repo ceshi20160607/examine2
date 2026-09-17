@@ -90,6 +90,14 @@ public class RuntimeDataController {
                 AuthenticationContextHolder.require(), moduleCode, recordId, TraceIdFilter.current(request)));
     }
 
+    /** 解除来源记录的转化关系；版本和原因来自结构化表单，权限由服务端重新检查。 */
+    @PostMapping("/{recordId}/conversions/unlink")
+    public ApiResult<?> unlinkConversion(@PathVariable String moduleCode, @PathVariable Long recordId,
+            @Valid @RequestBody RecordConversionUnlinkRequest body, HttpServletRequest request) {
+        return actionResponse(runtimeDataService.unlinkConversionAction(AuthenticationContextHolder.require(), moduleCode,
+                recordId, body, TraceIdFilter.current(request), BusinessAction.Options.page(request.getHeader("Idempotency-Key"))), request);
+    }
+
     @GetMapping("/{recordId}/conversions")
     public ApiResult<RuntimeRecordConversions> conversions(
             @PathVariable String moduleCode,
