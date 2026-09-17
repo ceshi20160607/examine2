@@ -39,7 +39,7 @@ export async function connect() {
   const button = text => click(`[...document.querySelectorAll('button')].find(el=>el.getClientRects().length && el.textContent.replace(/\\s/g,'')===${JSON.stringify(text.replace(/\s/g, ''))})`)
   const fill = async (expression, text) => {
     await click(expression)
-    await command('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:2})
+    await command('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:2,windowsVirtualKeyCode:65,commands:['selectAll']})
     await command('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:2})
     await command('Input.insertText',{text})
     await command('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab'})

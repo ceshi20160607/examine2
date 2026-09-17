@@ -1484,7 +1484,9 @@ public class RuntimeDataService {
     /** 唯一物理转化处理：同一事务创建目标、永久成功标记、转化关系及操作日志。 */
     private RuntimeRecordConversionExecution convertDirect(AuthenticatedContext context, String moduleCode, Long recordId,
             RecordConversionRequest request, String traceId) {
-        lockConversionSource(context, moduleCode, recordId, request.version(), traceId);
+        RecordAccess access = requireRecordAccess(context, moduleCode, "CONVERT", recordId, true, traceId);
+        // 锁定已经授权的来源归属，不用操作者所在租户代替来源租户，也不接受请求指定归属。
+        lockConversionSource(context, moduleCode, recordId, request.version(), traceId, access.sourceContext().tenantId());
         ConversionPlan plan = requireExecutableConversion(context, moduleCode, recordId, request, traceId);
         BizRecordConversion conversion = new BizRecordConversion();
         conversion.setSystemId(context.systemId());
@@ -1603,7 +1605,7 @@ public class RuntimeDataService {
     /** 原子地标记关系失效并保存原因；永久唯一标记、目标数据和映射快照保留。 */
     private RuntimeRecordConversionUnlink unlinkConversionDirect(AuthenticatedContext context, String moduleCode,
             Long recordId, RecordConversionUnlinkRequest request, String traceId) {
-        lockConversionSource(context, moduleCode, recordId, request.version(), traceId);
+        lockConversionSource(context, moduleCode, recordId, request.version(), traceId, context.tenantId());
         requireConversionUnlinkAccess(context, moduleCode, recordId, request, traceId, true);
         int updated = jdbc.update("UPDATE biz_record_conversion SET status='UNLINKED',version=version+1 "
                         + "WHERE id=? AND system_id=? AND tenant_id=? AND source_record_id=? AND version=? AND status='SUCCEEDED'",
@@ -1619,9 +1621,9 @@ public class RuntimeDataService {
 
     /** 锁定当前来源版本，防止转化或审批恢复与编辑交错后使用旧数据成功提交。 */
     private void lockConversionSource(AuthenticatedContext context, String moduleCode, Long recordId,
-            Integer expectedVersion, String traceId) {
+            Integer expectedVersion, String traceId, Long dataTenantId) {
         List<Integer> versions = jdbc.queryForList("SELECT version FROM biz_record WHERE id=? AND system_id=? AND tenant_id=? FOR UPDATE",
-                Integer.class, recordId, context.systemId(), context.tenantId());
+                Integer.class, recordId, context.systemId(), dataTenantId);
         if (versions.isEmpty()) throw new DomainException("RECORD_NOT_FOUND", "业务数据不存在", HttpStatus.NOT_FOUND);
         if (!expectedVersion.equals(versions.get(0))) {
             recordVersionConflict(context, moduleCode, recordId, expectedVersion, versions.get(0), traceId);
@@ -1689,9 +1691,7 @@ public class RuntimeDataService {
             RecordConversionRequest request, String traceId) {
         validateActionRequest(request);
         RecordAccess access = requireRecordAccess(context, moduleCode, "CONVERT", recordId, true, traceId);
-        if (!context.tenantId().equals(access.record().getTenantId())) {
-            throw new DomainException("CONVERSION_TENANT_MISMATCH", "转化只能在当前系统和数据工作空间内执行", HttpStatus.FORBIDDEN);
-        }
+        // 共享来源须先通过授权、操作者角色及数据范围的交集；新目标仍在当前租户创建并校验创建权限。
         PublishedModule sourcePublished = access.published();
         BusinessRecord source = access.record();
         requireRecordVersion(context, moduleCode, "CONVERT", source, request.version(), traceId);

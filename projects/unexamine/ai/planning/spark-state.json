@@ -5,8 +5,8 @@
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
   "ledger": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
-  "next_step": "B07.4a",
-  "current_step": "B07.4a",
+  "next_step": "B07.4b.2a",
+  "current_step": "B07.4b.2a",
   "head_at_planning": "d92a17f3e3bdd0ae41072411db72d3ae7bfb950d",
   "branch_at_planning": "cursor",
   "baseline_note": "Large staged and unstaged user changes already exist. Preserve them. B00 records path hashes before implementation. Planning did not change product implementation.",
@@ -19,82 +19,68 @@
     "form_configuration": "shared_drag_drop_field_designer_left_types_center_canvas_right_typed_properties"
   },
   "current_scope": {
-    "step": "B07.4a",
+    "step": "B07.4b.2a",
     "source_rows": [
-      "R2886",
-      "R2887",
       "R2888",
       "R2889",
-      "R2890",
-      "R2891",
-      "R2892"
+      "R2890"
     ],
-    "reason": "First close actual no-copy/list-scope/default-readonly/grant-update/revoke sharing chain on isolated current fixtures. B07.4b conversion and source-effective Flow/full actor-role-scope matrix remain required.",
+    "reason": "Independent actor must prove grant/action role/data scope intersections. Current sharing tests used creator/admin with ALL and source membership, so they cannot close the full matrix.",
     "entry_files": [
       "runtimedata/manage/RuntimeDataService.java",
-      "frontend/src/product/views/RuntimeWorkspaceView.vue"
+      "authorization/manage/SystemAuthorizationManagementService.java",
+      "authorization/manage/PermissionResolver.java"
     ],
     "acceptance": [
-      "Real UI named share target/action settings and source labels/all-own-shared filters.",
-      "Default read-only; granted UPDATE remains on source tenant; re-share/cross-system denied; revoke removes access and retains history."
+      "Create independent synthetic account via username-only local registration (no email or SMS); add only to recipient tenant via public member/role APIs.",
+      "Prove missing CONVERT/target CREATE permission and SELF scope on foreign source remain denied/no half writes, and explicit permitted ALL scope works.",
+      "Preserve full source-starter/organization/field/channel/range gaps in subsequent exact substeps."
     ]
   },
   "last_result": {
-    "step": "B07.3b.3a",
+    "step": "B07.4b.1",
     "status": "verified_contribution",
-    "verified_at": "2026-09-17T21:01:50.692475+08:00",
+    "verified_at": "2026-09-17T21:14:28.033306+08:00",
     "source_rows": [
+      "R2834",
       "R2835",
       "R2836",
-      "R2844",
-      "R2849",
+      "R2888",
+      "R2889",
+      "R2890",
       "R2896",
-      "R2948",
-      "R2949"
+      "R2898",
+      "R2899"
     ],
     "changed_files": [
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-      "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-      "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/DictionaryRuntimeOptionTest.java"
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java"
     ],
     "checks_actual_results": [
-      "Real published dictionary SINGLE_SELECT target initially rejected valid code as no options. Shared normalize now validates current published/scoped/active dictionary codes; runtime selector loads named options. Actual UI created target108 and converted107 to109 with date/rich-text readback.",
-      "One public DIRECT conversion110 to111 mapped/read back 19 supported field families; original key replay same target and one marker/result. Explicit JSON NULL source112 to113 now preserves present null instead of losing it as EMPTY.",
-      "Actual preview/submit rejected current required/unique/dictionary/status/cascade/reference failures with named issues/409 and no target/marker/success audit. Draft required rule remained invisible until publication; corrected source114 v1 converted to120.",
-      "Read-only dictionary/cascade validation previously poisoned the outer transaction and returned UnexpectedRollbackException/500. Scoped noRollbackFor IllegalArgumentException now permits preview collection while final failed business action still rolls back. Five focused tests include real Spring transaction proxy, plus three structured-content protocol tests; all eight passed. Native JDK21 Maven package succeeded; no full-suite/Testcontainers.",
-      "Actual two-record batch preview was executable; publishing disabled dictionary option afterward caused one successful target124 and one readable rejection. Restoring publication and failed-only retry created125; successful target/marker unchanged.",
-      "Actual target111 detail and editor now resolve MEMBER by systemMemberId; REFERENCE detail loads available named record instead of generic placeholder. Current vue-tsc/production build passed (4010 modules, existing bundle-size warning).",
-      "Temporary date/status/dictionary/category mapping settings restored via public publish APIs. Synthetic reference118 logically deleted only for this acceptance. Existing backend/MySQL/shared Redis and one Vite reused; no new containers or schema changes."
+      "Before fix current explicit CONVERT grant3 on source128 returned403 CONVERSION_TENANT_MISMATCH. Existing source-context binding/recipient target create code was blocked by unconditional tenant check and actor-tenant source lock.",
+      "Shared access continues to require same-system explicit grant AND actor action permission AND record data scope; current target CREATE and published target fields remain required. Source lock now uses server-authorized owner tenant, preserving actor identity in audit. No caller tenant/system override or new storage abstraction.",
+      "Current native JDK21 Maven package passed, same backend jar/restart UP/schema41/preflight5. No database change/new container/full-suite/Testcontainers. Restart old-process shutdown produced class-loading warnings after mounted jar replacement; fresh backend started/healthy and real requests passed.",
+      "Real Edge batch source128 converted to recipient-owned129. Source marker tenant56 remains permanent; target tenant57 uses current target module. Source main binding16 AFTER_EXECUTION/Flow18/v19 won over actor recipient binding17 FLOW_ONLY/Flow19/v20. One Flow instance53 on source tenant56 pins source version and actorTenant57/dataTenant56.",
+      "Original key from server receipt replays same target129; new key returns409 RECORD_ALREADY_CONVERTED; one marker/result unchanged. No idempotency key/token values written to facts.",
+      "Fresh own source130 converted to main-owned131 on current lock logic; original key replay same target. No share/default-readonly preview/write return404 and leave marker absent; another system module returns404. Full actor-role-scope combinations remain open."
     ],
     "readback": [
-      "projects/unexamine/ai/evidence/spark-b07-mapping-facts.json"
+      "projects/unexamine/ai/evidence/spark-b07-sharing-facts.json"
     ],
-    "permission_or_failure_result": "Published option scope/active-state/current target constraints and no partial conversion verified. Full role/shared/application/channel field restrictions and remaining field families are still required.",
+    "permission_or_failure_result": "Explicit-share entry, source lock, current target permission gate, owner/recipient boundary, source effective Flow, no-share/default-readonly denial, current own regression, replay and permanent uniqueness verified. Dedicated role denial/SELF scope/foreign-only actor/field/channel/range sharing remain required.",
     "tested_file_hashes": [
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationService.java",
-        "sha256": "5a8543fd05bc1ba97f097280c68e0a436a2e62f77f73f1b4414f0ee70771b038"
-      },
-      {
         "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
-        "sha256": "98405725df1d6420a7e9a94a2465bd3897ddb6e922e3db596130e91f6996cd2e"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
-        "sha256": "3199537d2b07b608928c513049b0762a6ac8d2378d76728f84779ee35b06e69e"
-      },
-      {
-        "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/DictionaryRuntimeOptionTest.java",
-        "sha256": "ac450ae5af522f272050ad7360ae66a50e1662af153c250c4663649b65207a58"
+        "sha256": "dab450a714053599a1573071bd9b55ad39e8eaad8eab7ee4189f80baa540c480"
       }
     ],
-    "prior_evidence_freshness": "B07.3b.2 fault injection was executed at its recorded hashes, retained unchanged. On the new backend, original receipts152/154 replayed the same target/one Flow. Mode executor/dispatcher/Flow files were unchanged; this does not claim a repeated fault injection at new RuntimeDataService/frontend hashes.",
     "remaining": [
-      "B07.3b.3b all deferred complex mapping families and full permission matrix remain required.",
-      "B07.4 sharing, B08/B09 approvals and all remaining/deferred product requirements remain required."
+      "B07.4b.2a independent actor role permission and action data-scope intersection.",
+      "B07.4b.2b actor without source tenant membership with source-bound Flow; current startBoundAction requires source identity and can fail. Must reproduce before deciding implementation.",
+      "B07.4b.2c shared detail organization labels currently use actor tenant directory (source department shows unavailable), full field/channel restrictions.",
+      "B07.4c configured range sharing; current per-record grants alone do not satisfy it.",
+      "Remaining B07/deferred field/page/full approval/app/platform requirements remain required."
     ],
-    "next_step": "B07.4a"
+    "next_step": "B07.4b.2a"
   },
   "blockers": [
     {
@@ -1371,7 +1357,11 @@
     "projects/unexamine/ai/evidence/spark-b07-conversion-modes-facts.json",
     "projects/unexamine/ai/evidence/spark-b07-mapping-verification.json",
     "projects/unexamine/ai/evidence/spark-b07-mapping-facts.json",
-    "projects/unexamine/ai/evidence/spark-usage-b07-mapping.json"
+    "projects/unexamine/ai/evidence/spark-usage-b07-mapping.json",
+    "projects/unexamine/ai/evidence/spark-b07-sharing-verification.json",
+    "projects/unexamine/ai/evidence/spark-b07-sharing-facts.json",
+    "projects/unexamine/ai/evidence/spark-b07-shared-conversion-verification.json",
+    "projects/unexamine/ai/evidence/spark-usage-b07-sharing.json"
   ],
   "step_record_contract": {
     "required": [
@@ -1508,8 +1498,14 @@
         "B07.3b.3": "in_progress",
         "B07.3b.3a": "verified",
         "B07.3b.3b": "unverified",
-        "B07.4a": "in_progress",
-        "B07.4b": "unverified"
+        "B07.4a": "verified",
+        "B07.4b": "in_progress",
+        "B07.4b.1": "verified",
+        "B07.4b.2": "in_progress",
+        "B07.4b.2a": "in_progress",
+        "B07.4b.2b": "unverified",
+        "B07.4b.2c": "unverified",
+        "B07.4c": "unverified"
       }
     },
     {
@@ -1698,7 +1694,7 @@
       "B05.2b2"
     ],
     "rule": "Deferred means still required; no historical report may mark it complete.",
-    "current_main_path": "B07.3b.3a supported mappings verified -> B07.4a sharing -> B07.4b shared conversion/source Flow -> B08/B09 advanced approval -> B11/B12 apps/channels; deferred fields/pages and all requirements remain required."
+    "current_main_path": "B07.4a/base and B07.4b.1/explicit shared conversion verified -> B07.4b.2a role/scope -> B07.4b.2b foreign starter -> B07.4b.2c shared field/directory -> B07.4c range -> B08/B09 approvals -> B11/B12 apps; deferred full fields/pages and all requirements remain required."
   },
   "form_designer_contract": {
     "source_rows": [
@@ -1821,12 +1817,38 @@
       "scope": "All remaining complex field mapping families after B05 capability completion plus full role/shared/application/channel hard restrictions. No requirement removed."
     },
     "B07.4a": {
-      "status": "in_progress",
-      "scope": "First close actual no-copy/list-scope/default-readonly/grant-update/revoke sharing chain on isolated current fixtures. B07.4b conversion and source-effective Flow/full actor-role-scope matrix remain required."
+      "status": "verified",
+      "scope": "Actual named default-readonly/granted source edit/filter/revoke chain, full matrix/ranges open.",
+      "evidence": "projects/unexamine/ai/evidence/spark-b07-sharing-verification.json"
     },
     "B07.4b": {
       "status": "unverified",
       "scope": "Explicitly shared CONVERT/target permission and source-tenant rules/Flow, complete actor role/data-scope/field/channel restrictions; do not rely on stale old HTTP tests."
+    },
+    "B07.4b.1": {
+      "status": "verified",
+      "scope": "Explicit sharing conversion/current own lock/source bound Flow/public replay/permanent uniqueness; independent actor matrix open.",
+      "evidence": "projects/unexamine/ai/evidence/spark-b07-shared-conversion-verification.json"
+    },
+    "B07.4b.2": {
+      "status": "unverified",
+      "scope": "Actors with no source membership; full role/data-scope/field/channel/action combinations and data-range sharing configuration. No requirement reduced."
+    },
+    "B07.4b.2a": {
+      "status": "in_progress",
+      "scope": "Independent actor must prove grant/action role/data scope intersections. Current sharing tests used creator/admin with ALL and source membership, so they cannot close the full matrix."
+    },
+    "B07.4b.2b": {
+      "status": "unverified",
+      "scope": "Real actor present only in recipient tenant; source-effective Flow currently requires source membership. Reproduce and close without assigning unauthorized source membership."
+    },
+    "B07.4b.2c": {
+      "status": "unverified",
+      "scope": "Shared source organization named detail/selection with authorized source record scope, complete field/channel restrictions; current source department unresolved."
+    },
+    "B07.4c": {
+      "status": "unverified",
+      "scope": "Configured data-range sharing with effective source/target grants/revoke/scope/audit; current per-record grant does not cover the complete requirement."
     }
   }
 }
