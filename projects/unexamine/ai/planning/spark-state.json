@@ -1856,6 +1856,67 @@
       "scope": "Configured data-range sharing with effective source/target grants/revoke/scope/audit; current per-record grant does not cover the complete requirement."
     }
   },
+  "execution_strategy": {
+    "model": "current_session",
+    "delegated_model": "inherit_current_session",
+    "spark_model_enabled": false,
+    "grouping": "related_business_outcome_and_shared_contracts",
+    "ordering": "shared_skeleton_first_then_dependent_features",
+    "parallel_policy": "Only independent branches with satisfied evidenced dependencies, exclusive file ownership and non-conflicting migration/build/test resources; coordinator alone updates authoritative checkpoints.",
+    "maximum_estimated_minutes": 240,
+    "actual_timer_required": false,
+    "legacy_filenames": "Keep spark-* references for compatibility; filenames do not select a model."
+  },
+  "rebuild_assessment": {
+    "decision": "retain_stack_data_base_and_scope_reconstruction_to_shared_consumption",
+    "record": "projects/unexamine/ai/evidence/rebuild-assessment-current.md",
+    "usage_record": "projects/unexamine/ai/evidence/current-model-rebuild-assessment-usage.json",
+    "product_acceptance": false,
+    "scope": "Consolidate existing action/receipt and field/page contracts and migrate consumers; no second executor/renderer, whole-product rewrite or database reset.",
+    "reassessment": "Stop unrelated scope expansion; if two task packets fail to improve a real main journey, reassess the affected common-layer boundary instead of continuing patch accumulation."
+  },
+  "task_packet": {
+    "name": "Shared actor authorization and source-effective Flow identity",
+    "status": "planned",
+    "current_step": "B07.4b.2a",
+    "substeps": ["B07.4b.2a", "B07.4b.2b"],
+    "source_rows": ["R2888", "R2889", "R2890"],
+    "prerequisite_steps": ["B07.4a", "B07.4b.1"],
+    "estimate_basis": "Existing shared conversion and source-context binding are implemented; remaining work is independent local actor/role fixtures and the source-membership assumption in FlowRuntimeService.startBoundAction. Estimates include targeted implementation and verification, not recreation of existing CRUD. Revise affected estimates on reproduction before admitting extra scope.",
+    "tasks": [
+      {
+        "step": "B07.4b.2a",
+        "estimate_minutes": 65,
+        "result": "Independent recipient actor proves share/action/data-scope intersection and target CREATE denial without half writes.",
+        "writes": ["runtimedata/manage/RuntimeDataService.java", "authorization/manage/SystemAuthorizationManagementService.java", "authorization/manage/PermissionResolver.java"],
+        "execution": "serial_shared_identity_chain"
+      },
+      {
+        "step": "B07.4b.2b",
+        "estimate_minutes": 110,
+        "depends_on": ["B07.4b.2a"],
+        "result": "Recipient-only authorized actor starts source-effective bound Flow without unauthorized source membership, preserving actual actor, data tenant and audit.",
+        "entry_files": ["flow/manage/FlowRuntimeService.java", "flow/manage/FlowParticipantResolver.java", "flow/manage/BusinessActionFlowExtension.java"],
+        "execution": "read_only_callee_assessment_may_parallelize_with_2a_preparation; implementation_after_2a; shared_runtime_writes_serial"
+      },
+      {
+        "kind": "integrated_verification",
+        "estimate_minutes": 35,
+        "depends_on": ["B07.4b.2a", "B07.4b.2b"],
+        "result": "One combined real actor journey with persisted conversion/Flow/audit readback and denial, replay and own-record affected regression."
+      },
+      {
+        "kind": "checkpoint_and_conclusion",
+        "estimate_minutes": 20,
+        "result": "Write real evidence, verify current receipts, retain remaining requirements and record the next exact substep before admitting another packet."
+      }
+    ],
+    "estimated_total_minutes": 230,
+    "maximum_estimated_minutes": 240,
+    "resources": "One existing backend/MySQL/Redis/Vite; deployment and fixture writes serial. No new containers, full-suite reruns or credential leakage.",
+    "excluded_but_required": ["B07.4b.2c organization labels and complete field/channel restrictions", "B07.4c range sharing", "Deferred B03/B04 and complete B05/B06 field/page requirements", "Remaining approval, application, channels and other complete requirements"],
+    "verification_status": "not_run"
+  },
   "autonomous_execution": {
     "automation_id": "unexamine",
     "kind": "heartbeat",
@@ -1878,7 +1939,7 @@
     "record": "projects/unexamine/ai/evidence/spark-framework-project-understanding.md",
     "business_step_unchanged": "B07.4b.2a",
     "cycle_basis": "Assess actual remaining work and dependencies before selecting a fixed task package with total estimated effort <= 240 minutes; verify and accept the package after development before admitting the next package. No actual timer is required.",
-    "next_work": "Review whole-framework/project conclusions before further patches; existing execution-control policy and 20-minute host wake design are provisional and paused, and must not resume development.",
+    "next_work": "Use the recorded scoped reconstruction decision and related task packet with the current session model; preserve B07.4b.2a as the precise business checkpoint. The old 20-minute host wake design remains paused and must not be resumed automatically.",
     "runtime_observation_only": true,
     "full_business_acceptance": false
   }
