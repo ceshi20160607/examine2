@@ -12,7 +12,7 @@
     "automationId": "unexamine",
     "targetThreadId": "01a06f53-2b57-7333-8b55-0d0183b53303",
     "cadenceMinutes": 20,
-    "desiredStatus": "ACTIVE",
+    "desiredStatus": "PAUSED",
     "prompt": "在 D:\\workspace\\01_project\\snow\\cursor\\examine2 按根 AGENTS.md 接续已授权开发。先运行 python template_base/tools/tb.py execution-context --workspace workspace.json，再严格执行项目输出的当前步骤与 policy；执行契约、任务范围、验收、停止和接续规则均以工程文件为准。没有有意义的变化或需要用户处理的问题时保持安静。"
   },
   "policy": {

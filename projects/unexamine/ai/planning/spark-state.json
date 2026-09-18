@@ -1859,7 +1859,7 @@
   "autonomous_execution": {
     "automation_id": "unexamine",
     "kind": "heartbeat",
-    "status": "ACTIVE",
+    "status": "PAUSED",
     "target_thread_id": "01a06f53-2b57-7333-8b55-0d0183b53303",
     "cadence_minutes": 20,
     "verified_at": "2026-09-18T10:22:09.911418+08:00",
@@ -1869,6 +1869,16 @@
     "local_prerequisite": "Computer powered on and desktop app running.",
     "official_documentation": "https://developers.openai.com/codex/app/automations",
     "verification_record": "projects/unexamine/ai/evidence/spark-engineering-execution-bridge-verification.json",
-    "engineering_control": "projects/unexamine/ai/planning/execution-control.json"
+    "engineering_control": "projects/unexamine/ai/planning/execution-control.json",
+    "paused_time": "2026-09-18T10:34:36.147354+08:00",
+    "pause_reason": "User requested engineering framework and project understanding before further implementation; four-hour development window must converge to integrated verification and acceptance."
+  },
+  "orientation_review": {
+    "status": "recorded",
+    "record": "projects/unexamine/ai/evidence/spark-framework-project-understanding.md",
+    "business_step_unchanged": "B07.4b.2a",
+    "next_work": "Review whole-framework/project conclusions before further patches; existing execution-control policy and 20-minute host wake design are provisional and paused, and must not resume development.",
+    "runtime_observation_only": true,
+    "full_business_acceptance": false
   }
 }
