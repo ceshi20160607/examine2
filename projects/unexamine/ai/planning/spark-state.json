@@ -1871,12 +1871,13 @@
     "verification_record": "projects/unexamine/ai/evidence/spark-engineering-execution-bridge-verification.json",
     "engineering_control": "projects/unexamine/ai/planning/execution-control.json",
     "paused_time": "2026-09-18T10:34:36.147354+08:00",
-    "pause_reason": "User requested engineering framework and project understanding before further implementation; four-hour development window must converge to integrated verification and acceptance."
+    "pause_reason": "User requested engineering framework and project understanding before further implementation; bounded task packages use at most 240 minutes of estimated effort, with integrated verification and acceptance after package development, not an elapsed-time deadline."
   },
   "orientation_review": {
     "status": "recorded",
     "record": "projects/unexamine/ai/evidence/spark-framework-project-understanding.md",
     "business_step_unchanged": "B07.4b.2a",
+    "cycle_basis": "Assess actual remaining work and dependencies before selecting a fixed task package with total estimated effort <= 240 minutes; verify and accept the package after development before admitting the next package. No actual timer is required.",
     "next_work": "Review whole-framework/project conclusions before further patches; existing execution-control policy and 20-minute host wake design are provisional and paused, and must not resume development.",
     "runtime_observation_only": true,
     "full_business_acceptance": false
