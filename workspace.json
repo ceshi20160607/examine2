@@ -11,6 +11,7 @@
     "versionFile": "template_base/VERSION"
   },
   "activeProject": {
-    "path": "projects/unexamine"
+    "path": "projects/unexamine",
+    "executionControl": "projects/unexamine/ai/planning/execution-control.json"
   }
 }

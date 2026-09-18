@@ -26,7 +26,10 @@ class WorkspaceTest(unittest.TestCase):
         self.assertEqual("projects/unexamine", status["activeProject"])
 
     def test_project_status_is_computed_from_canonical_workflow_and_fragments(self) -> None:
-        status = computed_project_status(load_workspace(self.workspace_path), self.workspace_path)
+        # 未接入有界步骤的工程仍保留原周期模式；本项目当前入口单独验收。
+        workspace = load_workspace(self.workspace_path)
+        workspace["activeProject"].pop("executionControl", None)
+        status = computed_project_status(workspace, self.workspace_path)
         self.assertEqual(9, status["workflow"]["totalGates"])
         declared = json.loads((REPO_ROOT / "projects" / "unexamine" / "ai" / "status" / "project-status.json").read_text(encoding="utf-8"))
         self.assertEqual(declared["currentGateId"], status["workflow"]["currentGate"]["id"])
@@ -59,7 +62,9 @@ class WorkspaceTest(unittest.TestCase):
         current_gate = json.loads(original)["currentGateId"]
         project_status.write_text(original.replace(current_gate, "G99_INVENTED"), encoding="utf-8")
         try:
-            issues = validate_workspace(load_workspace(self.workspace_path), self.workspace_path)
+            workspace = load_workspace(self.workspace_path)
+            workspace["activeProject"].pop("executionControl", None)
+            issues = validate_workspace(workspace, self.workspace_path)
             self.assertTrue(any("canonical workflow gate" in issue.message for issue in issues))
         finally:
             project_status.write_text(original, encoding="utf-8")
@@ -68,7 +73,9 @@ class WorkspaceTest(unittest.TestCase):
         project_status = REPO_ROOT / "projects" / "unexamine" / "ai" / "status" / "project-status.json"
         original = project_status.read_text(encoding="utf-8")
         declared = json.loads(original)
-        computed = computed_project_status(load_workspace(self.workspace_path), self.workspace_path)
+        workspace = load_workspace(self.workspace_path)
+        workspace["activeProject"].pop("executionControl", None)
+        computed = computed_project_status(workspace, self.workspace_path)
         evidence_backed = computed["scheduling"]["completedCycles"]
         declared["scheduling"]["completedCycles"] = evidence_backed + 1
         declared["scheduling"]["overallPercent"] = round(
@@ -76,7 +83,7 @@ class WorkspaceTest(unittest.TestCase):
         )
         project_status.write_text(json.dumps(declared, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         try:
-            issues = validate_workspace(load_workspace(self.workspace_path), self.workspace_path)
+            issues = validate_workspace(workspace, self.workspace_path)
             self.assertTrue(any(
                 f"evidence-backed contiguous cycle count {evidence_backed}" in issue.message
                 for issue in issues

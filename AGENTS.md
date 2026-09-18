@@ -11,6 +11,8 @@ This repository contains one active implementation and one reusable engineering 
 # Current execution handoff
 
 - For the current completion effort, read `projects/unexamine/ai/planning/spark-execution-plan.md` and `projects/unexamine/ai/planning/spark-state.json` first. Follow their bounded work packets; do not resume old numbered cycles or infer completion from old reports.
+- Before implementing a substep, run `python template_base/tools/tb.py execution-context --workspace workspace.json`. The project execution control binds the current requirement rows, dependencies, source entry files and acceptance. Fix invalid bindings by reviewing the affected source; never bypass failures by changing hashes or status alone.
+- Before advancing a verified substep, run `python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt <current-evidence-path>`, then update the exact next scope and immediately repeat the engineering entry. This integrity check supplements actual business verification; it does not award product completion.
 - `docs/user_requirement.md` remains the only product requirement source. The Spark ledger is a source index and verification record, not a replacement requirement specification.
 - Preserve pre-existing staged and unstaged changes. Never reset the workspace or regenerate over hand-written business code to obtain a clean baseline.
 - Finish and verify the current substep before expanding scope. Record the next exact substep when handing off; do not rebuild the plan or repeat the full audit on each continuation.

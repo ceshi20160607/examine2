@@ -48,6 +48,8 @@ projects/<project>/
 ```powershell
 python template_base/tools/tb.py workspace-validate --workspace workspace.json
 python template_base/tools/tb.py project-status --workspace workspace.json
+python template_base/tools/tb.py execution-context --workspace workspace.json
+python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt <project>/ai/evidence/<当前步骤>.json
 python template_base/tools/tb.py starter-validate --starter <project>/tools/project-starter.json
 python template_base/tools/tb.py starter-check --starter <project>/tools/project-starter.json
 python template_base/tools/tb.py intake --requirements docs/user_requirement.md --output <project>/ai/requirements/requirement-intake.json
@@ -65,7 +67,9 @@ python template_base/tools/tb.py db-prepare --project-root <project>
 powershell -File <project>/tools/regenerate-base.ps1
 ```
 
-`workspace-validate` 和 `project-status` 会逐周期校验 `ai/evidence/CYCLE-xxx.json`：任务必须与排期完全一致，所有检查和已记录旅程必须通过，排期声明真实入口用例且包含前端任务的周期至少有一个真实入口旅程，证据路径必须存在，并且只能按排期顺序形成连续完成前缀。项目完成周期数、百分比和状态日期由这条证据链计算，不能通过单独修改状态文件自报进度。
+项目可通过 `workspace.json.activeProject.executionControl` 接入有界子步骤模式。`execution-context` 只读取项目声明的当前断点、绑定原文、入口和验收；`execution-verify` 检查记录结构、读回产物及文件新鲜度，不改写状态、不替代业务验证。项目决定范围、依赖、接续和唤醒配置，模板提供通用校验，外部宿主负责启动模型。此模式的 `project-status` 只报告当前步骤和最近贡献，旧周期不参与完成判定，不按源行或子步骤计算产品百分比。
+
+未接入有界模式的项目保留原周期模式：`workspace-validate` 和 `project-status` 校验 `ai/evidence/CYCLE-xxx.json` 的任务、检查、旅程、证据路径及连续完成前缀。原周期比例和日期不能作为已切换执行方案项目的当前完成证据。
 
 `requirements-extract-literals` 只建立逐源区块、无遗漏的候选提取层，输出带有 `source-literal/unreviewed` 标记；它不能替代需求角色的语义拆分、总控消重或最终 `requirements-validate`。
 

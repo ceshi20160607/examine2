@@ -35,6 +35,10 @@
       "Create independent synthetic account via username-only local registration (no email or SMS); add only to recipient tenant via public member/role APIs.",
       "Prove missing CONVERT/target CREATE permission and SELF scope on foreign source remain denied/no half writes, and explicit permitted ALL scope works.",
       "Preserve full source-starter/organization/field/channel/range gaps in subsequent exact substeps."
+    ],
+    "prerequisite_steps": [
+      "B07.4a",
+      "B07.4b.1"
     ]
   },
   "last_result": {
@@ -1858,17 +1862,13 @@
     "status": "ACTIVE",
     "target_thread_id": "01a06f53-2b57-7333-8b55-0d0183b53303",
     "cadence_minutes": 20,
-    "run_duration_guidance_minutes": 20,
-    "verified_at": "2026-09-18T09:53:57.119444+08:00",
+    "verified_at": "2026-09-18T10:22:09.911418+08:00",
     "resume_from": "spark-state.json next_step/current_scope; current B07.4b.2a",
     "requirements_and_plan_unchanged": true,
-    "purpose": "Automatically resume authorized implementation in this task without manual continuation messages.",
-    "stop_conditions": [
-      "All effective requirements actually verified; pause automation.",
-      "User explicitly pauses or cancels."
-    ],
+    "purpose": "Host wake adapter only; execution authority and wake configuration belong to project execution-control.json.",
     "local_prerequisite": "Computer powered on and desktop app running.",
     "official_documentation": "https://developers.openai.com/codex/app/automations",
-    "verification_record": "projects/unexamine/ai/evidence/spark-autonomous-continuation.json"
+    "verification_record": "projects/unexamine/ai/evidence/spark-engineering-execution-bridge-verification.json",
+    "engineering_control": "projects/unexamine/ai/planning/execution-control.json"
   }
 }

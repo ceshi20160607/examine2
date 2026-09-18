@@ -8,6 +8,7 @@ from typing import Any
 from .architecture import ArchitectureError, validate_architecture
 from .common import sha256_bytes
 from .evidence import evaluate_cycle_evidence
+from .execution import ExecutionError, current_execution_status, execution_context
 from .requirements import RequirementError, load_analysis, load_intake, require_current_intake, validate_analysis, validate_analysis_fragment
 from .rules import validate_rule
 from .scheduling import ScheduleError, validate_task_graph
@@ -366,7 +367,7 @@ def validate_workspace(data: dict[str, Any], workspace_path: Path) -> list[Works
         root.get("activeProject"),
         "$.activeProject",
         {"path"},
-        {"path"},
+        {"path", "executionControl"},
         issues,
     )
     active_path = _relative(active.get("path"), "$.activeProject.path", workspace_root, issues)
@@ -405,7 +406,9 @@ def validate_workspace(data: dict[str, Any], workspace_path: Path) -> list[Works
                 "$.activeProject.path",
                 f"obsolete partial requirement slice must not exist: {stale.relative_to(active_path).as_posix()}",
             ))
-        _validate_project_control(workspace_root, active_path, workflow, issues)
+        # 当前有界步骤由专属入口校验；旧周期控制文件不再约束本轮状态。
+        if not active.get("executionControl"):
+            _validate_project_control(workspace_root, active_path, workflow, issues)
     if intake_path is not None:
         if not intake_path.is_file():
             issues.append(WorkspaceIssue("$.requirements.intake", f"file does not exist: {intake_path}"))
@@ -421,6 +424,11 @@ def validate_workspace(data: dict[str, Any], workspace_path: Path) -> list[Works
 
     if active_path is not None and template_path is not None and _overlap(active_path, template_path):
         issues.append(WorkspaceIssue("$.activeProject.path", "must not overlap the template directory"))
+    if active.get("executionControl"):
+        try:
+            execution_context(workspace_path)
+        except ExecutionError as error:
+            issues.append(WorkspaceIssue("$.activeProject.executionControl", str(error)))
     return issues
 
 
@@ -441,6 +449,8 @@ def workspace_status(data: dict[str, Any], workspace_path: Path) -> dict[str, An
 
 
 def computed_project_status(data: dict[str, Any], workspace_path: Path) -> dict[str, Any]:
+    if data.get("activeProject", {}).get("executionControl"):
+        return current_execution_status(workspace_path)
     require_valid_workspace(data, workspace_path)
     workspace_root = workspace_path.resolve().parent
     active_path = (workspace_root / data["activeProject"]["path"]).resolve()

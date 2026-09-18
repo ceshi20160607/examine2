@@ -8,6 +8,7 @@ from pathlib import Path
 from template_base.architecture import ArchitectureError, validate_architecture
 from template_base.database import DatabaseError, prepare_database
 from template_base.generator import GenerationError
+from template_base.execution import ExecutionError, execution_context, verify_execution_receipt
 from template_base.requirements import (
     RequirementError,
     build_analysis_plan,
@@ -103,6 +104,13 @@ def parser() -> argparse.ArgumentParser:
     project_status = commands.add_parser("project-status", help="compute gate, requirement and audit status from repository evidence")
     project_status.add_argument("--workspace", required=True, type=Path)
 
+    context = commands.add_parser("execution-context", help="validate and read the current bounded project work packet")
+    context.add_argument("--workspace", required=True, type=Path)
+
+    verify = commands.add_parser("execution-verify", help="validate current checkpoint integrity without claiming business completion")
+    verify.add_argument("--workspace", required=True, type=Path)
+    verify.add_argument("--receipt", required=True, type=Path)
+
     db_prepare = commands.add_parser("db-prepare", help="derive combined SQL and Flyway inputs from versioned database sources")
     db_prepare.add_argument("--project-root", required=True, type=Path)
 
@@ -158,6 +166,10 @@ def main() -> int:
         elif args.command == "workspace-validate":
             workspace_path = args.workspace.resolve()
             result = workspace_status(load_workspace(workspace_path), workspace_path)
+        elif args.command == "execution-context":
+            result = execution_context(args.workspace.resolve())
+        elif args.command == "execution-verify":
+            result = verify_execution_receipt(args.workspace.resolve(), args.receipt)
         elif args.command == "project-status":
             workspace_path = args.workspace.resolve()
             result = computed_project_status(load_workspace(workspace_path), workspace_path)
@@ -175,7 +187,7 @@ def main() -> int:
                 result = check_starter_repeatable(starter, starter_path)
         else:
             raise AssertionError(f"unsupported command: {args.command}")
-    except (ArchitectureError, DatabaseError, GenerationError, RequirementError, RuleValidationError, ScheduleError, StarterError, TaskCatalogError, UseCaseError, WorkspaceError) as error:
+    except (ArchitectureError, DatabaseError, ExecutionError, GenerationError, RequirementError, RuleValidationError, ScheduleError, StarterError, TaskCatalogError, UseCaseError, WorkspaceError) as error:
         print(json.dumps({"ok": False, "error": str(error)}, ensure_ascii=False, indent=2), file=sys.stderr)
         return 2
     print(json.dumps({"ok": True, **result}, ensure_ascii=False, indent=2))

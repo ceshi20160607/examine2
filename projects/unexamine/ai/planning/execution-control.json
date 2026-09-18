@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "mode": "bounded_steps",
+  "state": "projects/unexamine/ai/planning/spark-state.json",
+  "contextRoots": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine",
+    "projects/unexamine/frontend/src/product"
+  ],
+  "maximumContextCharacters": 16000,
+  "wakeUp": {
+    "adapter": "codex_thread_heartbeat",
+    "automationId": "unexamine",
+    "targetThreadId": "01a06f53-2b57-7333-8b55-0d0183b53303",
+    "cadenceMinutes": 20,
+    "desiredStatus": "ACTIVE",
+    "prompt": "在 D:\\workspace\\01_project\\snow\\cursor\\examine2 按根 AGENTS.md 接续已授权开发。先运行 python template_base/tools/tb.py execution-context --workspace workspace.json，再严格执行项目输出的当前步骤与 policy；执行契约、任务范围、验收、停止和接续规则均以工程文件为准。没有有意义的变化或需要用户处理的问题时保持安静。"
+  },
+  "policy": {
+    "authority": "根 AGENTS.md 和当前 Spark 方案规定执行契约；docs/user_requirement.md 是唯一产品需求源。",
+    "entry": "python template_base/tools/tb.py execution-context --workspace workspace.json",
+    "scope": "只展开当前原文、入口文件及直接依赖；保留既有修改和全部未完成需求，不重新审计或规划全项目。",
+    "dependencies": "每个 current_scope 显式列出 prerequisite_steps；前置步骤 verified 且对应证据存在才可实施。依赖实现变化时重新验证受影响行为，不把历史验证当成当前完成。",
+    "checkpoint": "先写真实业务验证记录，运行 execution-verify --workspace workspace.json --receipt <记录路径>；校验通过后更新准确断点及下一步骤范围。结构/哈希通过不能代替页面、API、持久化、权限和失败结果。",
+    "loop": "每次检查点结束立即重新调用 entry 并实施下一可执行步骤，不因单步完成或上下文压缩等待用户喊继续。",
+    "blockers": "外部依赖记录具体阻塞与解锁条件，按既有方案选择独立可执行步骤；不得缩减需求或把阻塞项标为完成。",
+    "stopping": "采用 template_base/agents/workflow.json 的真实停止条件；其中全部周期完成在本轮解释为全部有效需求与最终真实验收通过，不读取旧周期完成数。",
+    "consumption": "检查点记录本轮实际消耗；无新增修改、失败或疑点不重复已通过测试。不以 token 使用或单步完成作为停止条件。",
+    "wakeAdapter": "外部调度器只调用工程入口；任务选择、范围、断点、依赖和验收均来自项目文件，不在定时提示里复制一套规则。"
+  }
+}

@@ -4,6 +4,20 @@
 
 执行顺序由 B00—B19 及其子步骤确定，不再根据旧周期编号续写。先读取状态中的 `next_step`，只展开当前工作包的需求和源码。
 
+工程入口由根 `workspace.json.activeProject.executionControl` 绑定到 `execution-control.json`，复用 Template Base 工具，不另建产品计划：
+
+```powershell
+python template_base/tools/tb.py execution-context --workspace workspace.json
+python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt <当前步骤验证记录>
+python template_base/tools/tb.py project-status --workspace workspace.json
+```
+
+`execution-context` 校验需求绑定、当前断点与范围一致、显式前置步骤证据及入口路径，只输出当前原文和验收，正文上限 16,000 字符。源码按入口和直接依赖读取。后续 `current_scope` 都须写 `prerequisite_steps`，即使为空。需求改变时先对齐受影响原文和证据，不能只改哈希绕过失败。
+
+实施后先保存真实验证记录，再调用 `execution-verify` 检查当前范围、读回产物、测试文件哈希和下一子步骤。该命令只检查记录完整性，不能证明真实业务结果。通过后更新状态，并立即重新调用工程入口；当前状态不引用旧周期完成比例。
+
+`execution-control.json.policy` 是工程接续规则，`wakeUp` 是本项目的唤醒配置，宿主定时仅同步配置并启动工程入口。工具本身不会调用模型，也不会在无人运行时自动开发。宿主可替换，任务和完成判定始终留在项目内。外部阻塞按既有方案保留并继续独立工作；不得因一个步骤完成等待下一条“继续”。
+
 原 `schedule-plan.json`、`task-catalog.json`、`task-graph.json`、`task-layering.json` 和旧复审/顺序文档保留为已有工作记录，不作为本轮任务选择或完成判定依据；它们与本轮方案冲突时，不执行旧指令。旧“完成”状态不能迁入新账本。
 
 方案交付仅证明已经完成规划。全部需求初始为未验证，必须依据当前实现和真实业务结果逐项验证；已有可用代码优先复用。
